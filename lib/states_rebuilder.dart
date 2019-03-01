@@ -25,7 +25,7 @@ class StatesRebuilder extends State {
     if (ids != null) {
       ids.forEach(
         (s) {
-          final State ss = _stateMap[s];print(ss);
+          final State ss = _stateMap[s];
           if (ss != null && ss.mounted) ss.setState(setState ?? () {});
         },
       );
