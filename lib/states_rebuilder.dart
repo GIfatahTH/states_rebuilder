@@ -7,6 +7,14 @@ class StatesRebuilder extends State {
   Map<String, State> _stateMap =
       {}; //key holds the stateID and the value holds the state
 
+  /// Method to add state to the stateMap
+  addState(String id, State state) {
+    _stateMap[id] = state;
+  }
+
+  /// stateMap getter
+  Map<String, State> get stateMap => _stateMap;
+
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   /// It offers you two alternatives to rebuild any of your widgets.
   ///
@@ -41,28 +49,21 @@ class StatesRebuilder extends State {
 
 typedef _StateBuildertype = Widget Function(State state);
 
-/// You wrap any part of your widgets with `StateBuilder` Widget to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
-///
-///  `stateID`: you define the ID of the state. This is the first alternative
-///  `blocs`: You give a list of the logic classes (BloC) you want this ID will be available.
-///
-///  `builder` : You define your top most Widget
-///
-///  `initState` : for code to be executed in the initState of a StatefulWidget
-///
-///  `dispose`: for code to be executed in the dispose of a StatefulWidget
-///
-///  `didChangeDependencies`: for code to be executed in the didChangeDependencies of a StatefulWidget
-///
-///  `didUpdateWidget`: for code to be executed in the didUpdateWidget of a StatefulWidget
 class StateBuilder extends StatefulWidget {
-  @required
-  final _StateBuildertype builder;
-  final void Function(State state) initState, dispose, didChangeDependencies;
-  final void Function(StateBuilder oldWidget, State state) didUpdateWidget;
-  final String stateID;
-  final List<StatesRebuilder> blocs;
-
+  /// You wrap any part of your widgets with `StateBuilder` Widget to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
+  ///
+  ///  `stateID`: you define the ID of the state. This is the first alternative
+  ///  `blocs`: You give a list of the logic classes (BloC) you want this ID will be available.
+  ///
+  ///  `builder` : You define your top most Widget
+  ///
+  ///  `initState` : for code to be executed in the initState of a StatefulWidget
+  ///
+  ///  `dispose`: for code to be executed in the dispose of a StatefulWidget
+  ///
+  ///  `didChangeDependencies`: for code to be executed in the didChangeDependencies of a StatefulWidget
+  ///
+  ///  `didUpdateWidget`: for code to be executed in the didUpdateWidget of a StatefulWidget
   StateBuilder({
     Key key,
     this.stateID,
@@ -76,6 +77,34 @@ class StateBuilder extends StatefulWidget {
         assert(stateID == null ||
             blocs != null), // blocs must not be null if the stateID is given
         super(key: key);
+
+  ///The build strategy currently used update the state.
+  ///StateBuilder widget can berebuilt from the logic class using
+  ///the `rebuildState` method.
+  ///
+  ///The builder is provided with an [State] object.
+  @required
+  final _StateBuildertype builder;
+
+  ///Called when this object is inserted into the tree.
+  final void Function(State state) initState;
+
+  ///Called when this object is removed from the tree permanently.
+  final void Function(State state) dispose;
+
+  ///Called when a dependency of this [State] object changes.
+  final void Function(State state) didChangeDependencies;
+
+  ///Called whenever the widget configuration changes.
+  final void Function(StateBuilder oldWidget, State state) didUpdateWidget;
+
+  ///Uunique name of your Animator widget. It is used to rebuild this widget
+  ///from your logic classes.
+  final String stateID;
+
+  ///List of your logic classes you want to rebuild this widget from.
+  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  final List<StatesRebuilder> blocs;
 
   @override
   _StateBuilderState createState() => _StateBuilderState();
