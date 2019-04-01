@@ -1,3 +1,8 @@
+## 0.1.4
+
+  * improve performance
+
+
 ## 0.1.3
 
   * Add getter and setter for the stateMap.

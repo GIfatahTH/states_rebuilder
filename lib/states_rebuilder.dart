@@ -2,8 +2,6 @@ library states_rebuilder;
 
 import 'package:flutter/material.dart';
 
-typedef _mapValueType = void Function(VoidCallback fn);
-
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder extends State {
   Map<String, List<List<dynamic>>> _innerMap =
@@ -44,8 +42,9 @@ class StatesRebuilder extends State {
         (s) {
           final ss = _innerMap[s];
           if (ss != null) {
-            final _mapValueType sss = ss[0][1];
-            sss(setState ?? () {});
+            ss.forEach((e) {
+              e[1](setState ?? () {});
+            });
           }
         },
       );
