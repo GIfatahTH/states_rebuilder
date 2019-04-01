@@ -2,18 +2,27 @@ library states_rebuilder;
 
 import 'package:flutter/material.dart';
 
+typedef _mapValueType = void Function(VoidCallback fn);
+
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder extends State {
-  Map<String, State> _stateMap =
+  Map<String, List<List<dynamic>>> _innerMap =
       {}; //key holds the stateID and the value holds the state
 
   /// Method to add state to the stateMap
-  addState(String id, State state) {
-    _stateMap[id] = state;
+  addToInnerMap({String id, State state, Function fn, bool add: false}) {
+    if (add) {
+      _innerMap[id] = _innerMap[id] ?? [];
+      _innerMap[id].add([state, fn]);
+    } else {
+      _innerMap[id] = [
+        [state, fn]
+      ];
+    }
   }
 
   /// stateMap getter
-  Map<String, State> get stateMap => _stateMap;
+  Map<String, List<dynamic>> get innerMap => _innerMap;
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   /// It offers you two alternatives to rebuild any of your widgets.
@@ -33,8 +42,11 @@ class StatesRebuilder extends State {
     if (ids != null) {
       ids.forEach(
         (s) {
-          final State ss = _stateMap[s];
-          if (ss != null && ss.mounted) ss.setState(setState ?? () {});
+          final ss = _innerMap[s];
+          if (ss != null) {
+            final _mapValueType sss = ss[0][1];
+            sss(setState ?? () {});
+          }
         },
       );
     }
@@ -119,7 +131,12 @@ class _StateBuilderState extends State<StateBuilder> {
         widget.blocs.forEach(
           (b) {
             if (b == null) return;
-            b._stateMap[widget.stateID] = this;
+            b.addToInnerMap(
+                id: widget.stateID,
+                state: this,
+                fn: (fn) {
+                  if (mounted) setState(fn);
+                });
           },
         );
       }
@@ -135,8 +152,10 @@ class _StateBuilderState extends State<StateBuilder> {
         widget.blocs.forEach(
           (b) {
             if (b == null) return;
-            if (b._stateMap[widget.stateID].hashCode == this.hashCode) {
-              b._stateMap.remove(widget.stateID);
+            if (b.innerMap[widget.stateID] == null) return;
+            if (b.innerMap[widget.stateID][0] == null) return;
+            if (b.innerMap[widget.stateID][0][0].hashCode == this.hashCode) {
+              b.innerMap.remove(widget.stateID);
             }
           },
         );

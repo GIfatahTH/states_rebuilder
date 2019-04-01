@@ -18,7 +18,7 @@ class CounterBloc extends StatesRebuilder {
     // First alternative.
     // Use the ids parameters to enter a list of ids.
     // Widgets with these ids will rebuild to reflect the new counter value.
-    rebuildStates(ids: ["myCounter"]);
+    rebuildStates(ids: ["myCounter", "jlll"]);
   }
 
   void increment2(State state) {
