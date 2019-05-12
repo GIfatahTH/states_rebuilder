@@ -10,18 +10,14 @@ This Library provides two classes and one method:
   * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It offers you two ways to rebuild any of your widgets.
   this is the signature of the `rebuildState`:
   ```dart
-  rebuildStates({
-      VoidCallback setState, // an optional VoidCallback to execute inside the Flutter setState() method 
-      List<String> ids // First way to rebuild a particular widget indirectly by giving its id
-      List<State> states, // Second way to rebuild a particular widget directly by giving its State
-    })
+  rebuildStates([List<dynamic> states])
   ```
   * The `StateBuilder` Widget. You wrap any part of your widgets with it to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
   this is the constructor of the `StateBuilder`:
   ```dart
   StateBuilder( {
       Key key, 
-      String stateID, // you define the ID of the state. This is the first way
+      dynamic stateID, // you define the ID of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this ID will be available.
       @required (State) → Widget builder,  // You define your top most Widget.
       (State) → void initState, // for code to be executed in the initState of a StatefulWidget
@@ -30,14 +26,30 @@ This Library provides two classes and one method:
       (StateBuilder, State) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
     });
   ```
+  `stateID` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
+
   For the first way you have to provide the stateID and blocs parameters. Whereas for the second way you have not. See prototype example bellow.
 	
+  * `BlocProvider` widget. Used to provide your BloCs
+  ```dart
+   BlocProvider<YourBloc>({
+     CounterBloc bloc
+     Widget child,
+   })
+  ```
 ## Prototype Example
 
 your_bloc.dart file:
   ```dart
   import 'package:flutter/material.dart';
   import 'package:states_rebuilder/states_rebuilder.dart'
+
+  // enum is preferred over String to name your `stateID` for big projects.
+  // The nume of the enum is of your choice. You can have many enums.
+
+  // -- Conventionally for each of your BloCs you define a corresponding enum.
+  // -- For very large projects you can make all your enums in a single file.
+  enum YourState {yourStateID1};
 
   class YourBloc extends StatesRebuilder{
 
@@ -50,13 +62,13 @@ your_bloc.dart file:
       yourMethod1() {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates(ids : [“yourStateID1”]);
+        rebuildStates([YourState.yourStateID1]);
       }
 
       // example of fetching data and rebuilding widgets after obtaining the data
       fetchData1() async {
         await yourRepository.fetchDate();
-        rebuildStates(ids : [“yourStateID1”]);
+        rebuildStates([YourState.yourStateID1]);
       }
 
       /// ************** Second way (state way) **************
@@ -64,13 +76,13 @@ your_bloc.dart file:
       yourMethod2(State state) {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates(states : [state]);
+        rebuildStates([state]);
       }
 
       // example of fetching data and rebuild widgets after obtaining the data
       fetchData2(State state) async {
         await yourRepository.fetchDate();
-        rebuildStates(states : [state]);
+        rebuildStates([state]);
       }
 
       /// ************** Combination of first and second ways **************
@@ -78,7 +90,21 @@ your_bloc.dart file:
       yourMethod3(State state) {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates(states : [state], ids : [“yourStateID1”]);
+        rebuildStates([state, YourState.yourStateID1]);
+      }
+
+
+      /// ************** Rebuild All **************
+      yourMethod4() {
+        // some logic staff;
+        yourVar = yourNewValue;
+
+
+         // `rebuildStates()` with no parameter: All widgets that are wrapped with
+         //`StateBuilder` and are given `stateID` will rebuild to reflect the new counter value.
+         // You get a similar behavior like in ``scoped_model`` or ``provider`` packages
+
+        rebuildStates();
       }
   }
   ```
@@ -92,7 +118,7 @@ your main.dart file:
       return Column(
             children: <Widget> [
               StateBuilder(
-                stateID : "yourStateID1",
+                stateID : YourState.yourStateID1 // you can use just a String "yourStateID1",
                 blocs : [yourBloc],
                 initState: (_)=> yourBloc.fetchData1(),
                 builder: (_) => YourChildWidget(yourBloc.yourVar),
