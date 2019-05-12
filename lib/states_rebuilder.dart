@@ -40,7 +40,8 @@ class StatesRebuilder {
   void rebuildStates([List<dynamic> states]) {
     if (states != null) {
       for (final state in states) {
-        if (state is _StateBuilderState) {
+        if (state is _StateBuilderState ||
+            state is _StateBuilderStateSingleMix) {
           state?._setState();
         } else {
           final ss = _innerMap[state];
@@ -78,6 +79,9 @@ class StateBuilder extends StatefulWidget {
   ///  `didChangeDependencies`: for code to be executed in the didChangeDependencies of a StatefulWidget
   ///
   ///  `didUpdateWidget`: for code to be executed in the didUpdateWidget of a StatefulWidget
+  ///
+  /// `withTickerProvider`
+
   StateBuilder({
     Key key,
     this.stateID,
@@ -87,6 +91,7 @@ class StateBuilder extends StatefulWidget {
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
+    this.withTickerProvider = false,
   })  : assert(builder != null),
         assert(stateID == null ||
             blocs != null), // blocs must not be null if the stateID is given
@@ -122,8 +127,83 @@ class StateBuilder extends StatefulWidget {
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
+  final bool withTickerProvider;
+
+  createState() {
+    if (withTickerProvider) {
+      return _StateBuilderStateSingleMix();
+    } else {
+      return _StateBuilderState();
+    }
+  }
+}
+
+class _StateBuilderStateSingleMix extends State<StateBuilder>
+    with TickerProviderStateMixin {
   @override
-  _StateBuilderState createState() => _StateBuilderState();
+  void initState() {
+    super.initState();
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            b.addToInnerMap(
+                id: widget.stateID,
+                hashCode: this.hashCode,
+                fn: () {
+                  if (mounted) setState(() {});
+                });
+          },
+        );
+      }
+    }
+
+    if (widget.initState != null) widget.initState(this);
+  }
+
+  _setState() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            if (b.innerMap[widget.stateID] == null) return;
+            if (b.innerMap[widget.stateID][0] == null) return;
+            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
+              b.innerMap.remove(widget.stateID);
+            }
+          },
+        );
+      }
+    }
+
+    if (widget.dispose != null) widget.dispose(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.didChangeDependencies != null)
+      widget.didChangeDependencies(this);
+  }
+
+  @override
+  void didUpdateWidget(StateBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(this);
+  }
 }
 
 class _StateBuilderState extends State<StateBuilder> {
