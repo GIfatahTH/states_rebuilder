@@ -1,26 +1,32 @@
 library states_rebuilder;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
-class StatesRebuilder extends State {
-  Map<String, List<List<dynamic>>> _innerMap =
+class StatesRebuilder {
+  Map<dynamic, List<Map<String, dynamic>>> _innerMap =
       {}; //key holds the stateID and the value holds the state
 
   /// Method to add state to the stateMap
-  addToInnerMap({String id, State state, Function fn, bool add: false}) {
+  addToInnerMap({dynamic id, int hashCode, Function fn, bool add: false}) {
     if (add) {
       _innerMap[id] = _innerMap[id] ?? [];
-      _innerMap[id].add([state, fn]);
+      _innerMap[id].add({
+        "hashCode": hashCode,
+        "fn": fn,
+      });
     } else {
       _innerMap[id] = [
-        [state, fn]
+        {
+          "hashCode": hashCode,
+          "fn": fn,
+        }
       ];
     }
   }
 
   /// stateMap getter
-  Map<String, List<dynamic>> get innerMap => _innerMap;
+  Map<dynamic, List<dynamic>> get innerMap => _innerMap;
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   /// It offers you two alternatives to rebuild any of your widgets.
@@ -30,31 +36,28 @@ class StatesRebuilder extends State {
   ///  `ids`: First alternative to rebuild a particular widget indirectly by giving its id
   ///
   ///  `states` : Second alternative to rebuild a particular widget directly by giving its State
-  rebuildStates({VoidCallback setState, List<State> states, List<String> ids}) {
+
+  void rebuildStates([List<dynamic> states]) {
     if (states != null) {
-      states.forEach((s) {
-        if (s != null && s.mounted) s.setState(setState ?? () {});
-      });
+      for (final state in states) {
+        if (state is _StateBuilderState) {
+          state?._setState();
+        } else {
+          final ss = _innerMap[state];
+          ss?.forEach((e) {
+            if (e["fn"] != null) e["fn"]();
+          });
+        }
+      }
+    } else {
+      if (_innerMap.isNotEmpty) {
+        _innerMap.forEach((k, v) {
+          v?.forEach((e) {
+            if (e["fn"] != null) e["fn"]();
+          });
+        });
+      }
     }
-
-    if (ids != null) {
-      ids.forEach(
-        (s) {
-          final ss = _innerMap[s];
-          if (ss != null) {
-            ss.forEach((e) {
-              e[1](setState ?? () {});
-            });
-          }
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    //"This build function will never be called. it has to be overridden here because State interface requires this"
-    return Container();
   }
 }
 
@@ -109,9 +112,11 @@ class StateBuilder extends StatefulWidget {
   ///Called whenever the widget configuration changes.
   final void Function(StateBuilder oldWidget, State state) didUpdateWidget;
 
-  ///Uunique name of your Animator widget. It is used to rebuild this widget
+  ///Unique name of your widget. It is used to rebuild this widget
   ///from your logic classes.
-  final String stateID;
+  ///
+  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
+  final dynamic stateID;
 
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
@@ -132,9 +137,9 @@ class _StateBuilderState extends State<StateBuilder> {
             if (b == null) return;
             b.addToInnerMap(
                 id: widget.stateID,
-                state: this,
-                fn: (fn) {
-                  if (mounted) setState(fn);
+                hashCode: this.hashCode,
+                fn: () {
+                  if (mounted) setState(() {});
                 });
           },
         );
@@ -142,6 +147,10 @@ class _StateBuilderState extends State<StateBuilder> {
     }
 
     if (widget.initState != null) widget.initState(this);
+  }
+
+  _setState() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -153,7 +162,7 @@ class _StateBuilderState extends State<StateBuilder> {
             if (b == null) return;
             if (b.innerMap[widget.stateID] == null) return;
             if (b.innerMap[widget.stateID][0] == null) return;
-            if (b.innerMap[widget.stateID][0][0].hashCode == this.hashCode) {
+            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
               b.innerMap.remove(widget.stateID);
             }
           },
@@ -181,5 +190,48 @@ class _StateBuilderState extends State<StateBuilder> {
   @override
   Widget build(BuildContext context) {
     return widget.builder(this);
+  }
+}
+
+class _BlocProvider<T> extends InheritedWidget {
+  final bloc;
+  _BlocProvider({Key key, @required this.bloc, @required Widget child})
+      : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(_) => false;
+}
+
+class BlocProvider<T> extends StatefulWidget {
+  final Widget child;
+  final T bloc;
+  BlocProvider({@required this.child, @required this.bloc});
+
+  static T of<T>(BuildContext context) {
+    final type = _typeOf<_BlocProvider<T>>();
+    _BlocProvider<T> provider = context.inheritFromWidgetOfExactType(type);
+    return provider?.bloc;
+  }
+
+  static Type _typeOf<T>() => T;
+
+  @override
+  _BlocProviderState createState() => _BlocProviderState<T>();
+}
+
+class _BlocProviderState<T> extends State<BlocProvider> {
+  _BlocProvider<T> _blocProvider;
+  @override
+  void initState() {
+    super.initState();
+    _blocProvider = _BlocProvider<T>(
+      bloc: widget.bloc,
+      child: widget.child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _blocProvider;
   }
 }
