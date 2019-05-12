@@ -4,6 +4,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 // Our logic class a counter variable and a method to increment it.
 //
 // It must extend from StatesRebuilder.
+
+enum CounterState { myCounter }
+
 class CounterBloc extends StatesRebuilder {
   int _counter1 = 0;
   int _counter2 = 0;
@@ -18,7 +21,7 @@ class CounterBloc extends StatesRebuilder {
     // First alternative.
     // Use the ids parameters to enter a list of ids.
     // Widgets with these ids will rebuild to reflect the new counter value.
-    rebuildStates(ids: ["myCounter", "jlll"]);
+    rebuildStates([null, 1, CounterState.myCounter, "jlll"]);
   }
 
   void increment2(State state) {
@@ -28,15 +31,9 @@ class CounterBloc extends StatesRebuilder {
     // First alternative.
     // Use the ids parameters to enter a list of ids.
     // Widgets with these ids will rebuild to reflect the new counter value.
-    rebuildStates(states: [state]);
+    rebuildStates([state]);
   }
 }
-
-// For simplicity I use this method to provide the CounterBloc:
-// Declare the counterBloc without instantiating it
-//
-// NOTE: You can use the InheritedWidget to provide the CounterBloc
-CounterBloc counterBloc;
 
 void main() {
   runApp(MyApp());
@@ -47,13 +44,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // At the top level of our widget tree where we want to provide the CounterBloc to all its children, we create a StateBuilder Widget.
     // We instantiate the counterBloc variable in the initState parameter, and kill it in the dispose parameter.
-    return StateBuilder(
-      initState: (_) => counterBloc = CounterBloc(),
-      dispose: (_) => counterBloc = null,
-      builder: (_) => MaterialApp(
-            title: 'states_rebuilder Example',
-            home: Counter('States_Rebuilder demostration'),
-          ),
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: MaterialApp(
+        title: 'states_rebuilder Example',
+        home: Counter('States_Rebuilder demostration'),
+      ),
     );
   }
 }
@@ -65,6 +61,7 @@ class Counter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final counterBloc = BlocProvider.of<CounterBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -81,7 +78,7 @@ class Counter extends StatelessWidget {
             // -- Wrap the Text widget with StateBuilder widget and give it and id of your choice.
             // -- Declare the blocs where you want the state to be available.
             StateBuilder(
-              stateID: 'myCounter',
+              stateID: CounterState.myCounter,
               blocs: [counterBloc],
               builder: (State state) => Text(
                     counterBloc.counter1.toString(),
@@ -122,6 +119,7 @@ class Counter extends StatelessWidget {
 class IncrementFromOtheWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final counterBloc = BlocProvider.of<CounterBloc>(context);
     return RaisedButton(
       key: Key("firstAlternative"),
       child: Text("increment from other widget"),
