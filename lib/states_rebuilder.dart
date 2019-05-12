@@ -1,7 +1,6 @@
 library states_rebuilder;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder {
@@ -38,18 +37,15 @@ class StatesRebuilder {
   ///
   ///  `states` : Second alternative to rebuild a particular widget directly by giving its State
 
-  rebuildStates([List<dynamic> states]) {
-    // final __s = new DateTime.now().microsecondsSinceEpoch;
+  void rebuildStates([List<dynamic> states]) {
     if (states != null) {
       for (final state in states) {
-        if (state == null) continue;
         if (state is _StateBuilderState) {
-          state._setState();
+          state?._setState();
         } else {
           final ss = _innerMap[state];
-          if (ss == null) continue;
-          ss.forEach((e) {
-            e["fn"]();
+          ss?.forEach((e) {
+            if (e["fn"] != null) e["fn"]();
           });
         }
       }
@@ -57,12 +53,11 @@ class StatesRebuilder {
       if (_innerMap.isNotEmpty) {
         _innerMap.forEach((k, v) {
           v?.forEach((e) {
-            e["fn"]();
+            if (e["fn"] != null) e["fn"]();
           });
         });
       }
     }
-    // print(new DateTime.now().microsecondsSinceEpoch - __s);
   }
 }
 
@@ -117,8 +112,10 @@ class StateBuilder extends StatefulWidget {
   ///Called whenever the widget configuration changes.
   final void Function(StateBuilder oldWidget, State state) didUpdateWidget;
 
-  ///Uunique name of your Animator widget. It is used to rebuild this widget
+  ///Unique name of your widget. It is used to rebuild this widget
   ///from your logic classes.
+  ///
+  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   final dynamic stateID;
 
   ///List of your logic classes you want to rebuild this widget from.
@@ -144,7 +141,6 @@ class _StateBuilderState extends State<StateBuilder> {
                 fn: () {
                   if (mounted) setState(() {});
                 });
-            print(" initState ${b._innerMap.length}");
           },
         );
       }
@@ -166,11 +162,9 @@ class _StateBuilderState extends State<StateBuilder> {
             if (b == null) return;
             if (b.innerMap[widget.stateID] == null) return;
             if (b.innerMap[widget.stateID][0] == null) return;
-            print(" dispose ${b._innerMap.length}");
             if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
               b.innerMap.remove(widget.stateID);
             }
-            print(" dispose ${b._innerMap.length}");
           },
         );
       }
