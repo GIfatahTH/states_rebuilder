@@ -54,12 +54,12 @@ class TestBloc extends StatesRebuilder {
 
   void increment([int value]) {
     _counter++;
-    rebuildStates(ids: ["textCounter"]);
+    rebuildStates(["textCounter"]);
   }
 
   void increment2(int value, State state) {
     _counter++;
-    rebuildStates(states: [state]);
+    rebuildStates([state]);
   }
 }
 
