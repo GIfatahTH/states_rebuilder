@@ -24,6 +24,7 @@ This Library provides two classes and one method:
       (State) → void dispose, // for code to be executed in the dispose of a StatefulWidget
       (State) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
       (StateBuilder, State) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
+      bool withTickerProvider: false // set to true if you want your state class to mix with `TickerProviderStateMixin`. Default value is false.
     });
   ```
   `stateID` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
