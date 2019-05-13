@@ -127,10 +127,22 @@ class StateBuilder extends StatefulWidget {
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
+  ///set to true if you want your state class to mix with `TickerProviderStateMixin`
+  ///Default value is false.
   final bool withTickerProvider;
 
   createState() {
     if (withTickerProvider) {
+      assert(() {
+        if (initState == null || dispose == null) {
+          throw FlutterError('`initState` `dispose` must not be null\n'
+              'You are using `TickerProviderStateMixin` so you have to instantiate \n'
+              'your controllers in the initState() and dispose them in the dispose() method\n'
+              'If you do not need to use any controller set `withTickerProvider` to false');
+        }
+
+        return true;
+      }());
       return _StateBuilderStateSingleMix();
     } else {
       return _StateBuilderState();
@@ -159,7 +171,7 @@ class _StateBuilderStateSingleMix extends State<StateBuilder>
       }
     }
 
-    if (widget.initState != null) widget.initState(this);
+    widget.initState(this);
   }
 
   _setState() {
@@ -183,7 +195,7 @@ class _StateBuilderStateSingleMix extends State<StateBuilder>
       }
     }
 
-    if (widget.dispose != null) widget.dispose(this);
+    widget.dispose(this);
     super.dispose();
   }
 
@@ -225,7 +237,6 @@ class _StateBuilderState extends State<StateBuilder> {
         );
       }
     }
-
     if (widget.initState != null) widget.initState(this);
   }
 
@@ -289,6 +300,7 @@ class BlocProvider<T> extends StatefulWidget {
 
   static T of<T>(BuildContext context) {
     final type = _typeOf<_BlocProvider<T>>();
+
     _BlocProvider<T> provider = context.inheritFromWidgetOfExactType(type);
     return provider?.bloc;
   }
