@@ -1,3 +1,7 @@
+## 1.1.0
+ * Add `withTickerProvider` parameter to `StateBuilder` widget.
+
+
 ## 1.0.0
  * Add `BlocProvder`to provide your BloCs.
  * You can use enums to name your `StateBuilder` widgets.
