@@ -40,7 +40,8 @@ class StatesRebuilder {
   void rebuildStates([List<dynamic> states]) {
     if (states != null) {
       for (final state in states) {
-        if (state is _StateBuilderState) {
+        if (state is _StateBuilderState ||
+            state is _StateBuilderStateTickerMix) {
           state?._setState();
         } else {
           final ss = _innerMap[state];
@@ -78,6 +79,9 @@ class StateBuilder extends StatefulWidget {
   ///  `didChangeDependencies`: for code to be executed in the didChangeDependencies of a StatefulWidget
   ///
   ///  `didUpdateWidget`: for code to be executed in the didUpdateWidget of a StatefulWidget
+  ///
+  /// `withTickerProvider`
+
   StateBuilder({
     Key key,
     this.stateID,
@@ -87,6 +91,7 @@ class StateBuilder extends StatefulWidget {
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
+    this.withTickerProvider = false,
   })  : assert(builder != null),
         assert(stateID == null ||
             blocs != null), // blocs must not be null if the stateID is given
@@ -122,8 +127,95 @@ class StateBuilder extends StatefulWidget {
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
+  ///set to true if you want your state class to mix with `TickerProviderStateMixin`
+  ///Default value is false.
+  final bool withTickerProvider;
+
+  createState() {
+    if (withTickerProvider) {
+      assert(() {
+        if (initState == null || dispose == null) {
+          throw FlutterError('`initState` `dispose` must not be null\n'
+              'You are using `TickerProviderStateMixin` so you have to instantiate \n'
+              'your controllers in the initState() and dispose them in the dispose() method\n'
+              'If you do not need to use any controller set `withTickerProvider` to false');
+        }
+
+        return true;
+      }());
+      return _StateBuilderStateTickerMix();
+    } else {
+      return _StateBuilderState();
+    }
+  }
+}
+
+class _StateBuilderStateTickerMix extends State<StateBuilder>
+    with TickerProviderStateMixin {
   @override
-  _StateBuilderState createState() => _StateBuilderState();
+  void initState() {
+    super.initState();
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            b.addToInnerMap(
+                id: widget.stateID,
+                hashCode: this.hashCode,
+                fn: () {
+                  if (mounted) setState(() {});
+                });
+          },
+        );
+      }
+    }
+
+    widget.initState(this);
+  }
+
+  _setState() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            if (b.innerMap[widget.stateID] == null) return;
+            if (b.innerMap[widget.stateID][0] == null) return;
+            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
+              b.innerMap.remove(widget.stateID);
+            }
+          },
+        );
+      }
+    }
+
+    widget.dispose(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.didChangeDependencies != null)
+      widget.didChangeDependencies(this);
+  }
+
+  @override
+  void didUpdateWidget(StateBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(this);
+  }
 }
 
 class _StateBuilderState extends State<StateBuilder> {
@@ -145,7 +237,6 @@ class _StateBuilderState extends State<StateBuilder> {
         );
       }
     }
-
     if (widget.initState != null) widget.initState(this);
   }
 
@@ -209,6 +300,7 @@ class BlocProvider<T> extends StatefulWidget {
 
   static T of<T>(BuildContext context) {
     final type = _typeOf<_BlocProvider<T>>();
+
     _BlocProvider<T> provider = context.inheritFromWidgetOfExactType(type);
     return provider?.bloc;
   }
