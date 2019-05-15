@@ -41,7 +41,7 @@ class StatesRebuilder {
     if (states != null) {
       for (final state in states) {
         if (state is _StateBuilderState ||
-            state is _StateBuilderStateSingleMix) {
+            state is _StateBuilderStateTickerMix) {
           state?._setState();
         } else {
           final ss = _innerMap[state];
@@ -51,13 +51,11 @@ class StatesRebuilder {
         }
       }
     } else {
-      if (_innerMap.isNotEmpty) {
-        _innerMap.forEach((k, v) {
-          v?.forEach((e) {
-            if (e["fn"] != null) e["fn"]();
-          });
+      _innerMap.forEach((k, v) {
+        v?.forEach((e) {
+          if (e["fn"] != null) e["fn"]();
         });
-      }
+      });
     }
   }
 }
@@ -85,6 +83,7 @@ class StateBuilder extends StatefulWidget {
   StateBuilder({
     Key key,
     this.stateID,
+    this.tag,
     this.blocs,
     @required this.builder,
     this.initState,
@@ -93,8 +92,8 @@ class StateBuilder extends StatefulWidget {
     this.didUpdateWidget,
     this.withTickerProvider = false,
   })  : assert(builder != null),
-        assert(stateID == null ||
-            blocs != null), // blocs must not be null if the stateID is given
+        // assert(stateID == null ||
+        //     blocs != null), // blocs must not be null if the stateID is given
         super(key: key);
 
   ///The build strategy currently used update the state.
@@ -122,6 +121,7 @@ class StateBuilder extends StatefulWidget {
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   final dynamic stateID;
+  final dynamic tag;
 
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
@@ -140,17 +140,126 @@ class StateBuilder extends StatefulWidget {
               'your controllers in the initState() and dispose them in the dispose() method\n'
               'If you do not need to use any controller set `withTickerProvider` to false');
         }
-
         return true;
       }());
-      return _StateBuilderStateSingleMix();
+      return _StateBuilderStateTickerMix();
     } else {
       return _StateBuilderState();
     }
   }
 }
 
-class _StateBuilderStateSingleMix extends State<StateBuilder>
+class _StateBuilderState extends State<StateBuilder> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            b.addToInnerMap(
+                id: widget.stateID,
+                hashCode: this.hashCode,
+                fn: () {
+                  if (mounted) setState(() {});
+                });
+          },
+        );
+      }
+    }
+
+    if (widget.tag != null && widget.tag != "") {
+      print(widget.tag);
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            b.addToInnerMap(
+              id: widget.tag,
+              hashCode: this.hashCode,
+              fn: _setState,
+              add: true,
+            );
+          },
+        );
+      }
+    }
+
+    if (widget.initState != null) widget.initState(this);
+  }
+
+  _setState() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    if (widget.stateID != null && widget.stateID != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            if (b.innerMap[widget.stateID] == null) return;
+            if (b.innerMap[widget.stateID][0] == null) return;
+            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
+              b.innerMap.remove(widget.stateID);
+            }
+          },
+        );
+      }
+    }
+
+    if (widget.tag != null && widget.tag != "") {
+      if (widget.blocs != null) {
+        widget.blocs.forEach(
+          (b) {
+            if (b == null) return;
+            final entry = b.innerMap[widget.tag];
+            print('entry $entry');
+            if (entry == null) return;
+            for (var e in entry) {
+              print(e["fn"] == _setState);
+              print(_setState);
+              if (e["hashCode"] == this.hashCode) {
+                b.innerMap[widget.tag].remove(e);
+                break;
+              }
+            }
+            print('entry ${b.innerMap[widget.tag]}');
+            if (b.innerMap[widget.tag].isEmpty) {
+              b.innerMap.remove(widget.tag);
+            }
+            print('entry ${b.innerMap[widget.tag]}');
+          },
+        );
+      }
+    }
+
+    if (widget.dispose != null) widget.dispose(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.didChangeDependencies != null)
+      widget.didChangeDependencies(this);
+  }
+
+  @override
+  void didUpdateWidget(StateBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(this);
+  }
+}
+
+class _StateBuilderStateTickerMix extends State<StateBuilder>
     with TickerProviderStateMixin {
   @override
   void initState() {
@@ -196,72 +305,6 @@ class _StateBuilderStateSingleMix extends State<StateBuilder>
     }
 
     widget.dispose(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(this);
-  }
-
-  @override
-  void didUpdateWidget(StateBuilder oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.builder(this);
-  }
-}
-
-class _StateBuilderState extends State<StateBuilder> {
-  @override
-  void initState() {
-    super.initState();
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            b.addToInnerMap(
-                id: widget.stateID,
-                hashCode: this.hashCode,
-                fn: () {
-                  if (mounted) setState(() {});
-                });
-          },
-        );
-      }
-    }
-    if (widget.initState != null) widget.initState(this);
-  }
-
-  _setState() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            if (b.innerMap[widget.stateID] == null) return;
-            if (b.innerMap[widget.stateID][0] == null) return;
-            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
-              b.innerMap.remove(widget.stateID);
-            }
-          },
-        );
-      }
-    }
-
-    if (widget.dispose != null) widget.dispose(this);
     super.dispose();
   }
 
