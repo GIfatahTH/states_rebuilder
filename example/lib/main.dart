@@ -26,7 +26,7 @@ class RootPage extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -64,11 +64,23 @@ class MyBody extends StatelessWidget {
     return Center(
       child: ListView(
         children: [
+          StateBuilder(
+              blocs: [counterBloc],
+              builder: (_, hashtag) {
+                print('yfhgj $hashtag');
+                return Row(children: <Widget>[
+                  Text("Count is ${counterBloc.value}"),
+                  RaisedButton(
+                    child: Text("Increase value"),
+                    onPressed: () => counterBloc.updateValue1(hashtag),
+                  )
+                ]);
+              }),
           Row(
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -82,7 +94,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -96,7 +108,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -110,7 +122,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -124,7 +136,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -138,7 +150,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -152,7 +164,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -166,7 +178,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -180,7 +192,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -194,7 +206,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -208,7 +220,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -222,7 +234,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -236,7 +248,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -250,7 +262,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -264,21 +276,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                   blocs: [counterBloc],
-                  builder: (State state) {
-                    return Text("Count is ${counterBloc.value}");
-                  },
-                  tag: "value2"),
-              RaisedButton(
-                child: Text("Increase value"),
-                onPressed: () => counterBloc.updateValue(),
-              )
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              StateBuilder(
-                  blocs: [counterBloc],
-                  builder: (State state) {
+                  builder: (_, __) {
                     return Text("Count is ${counterBloc.value}");
                   },
                   tag: "value2"),
@@ -292,7 +290,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -306,7 +304,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -320,7 +318,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -334,7 +332,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -348,7 +346,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -362,7 +360,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -376,7 +374,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -390,7 +388,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -404,7 +402,7 @@ class MyBody extends StatelessWidget {
             children: <Widget>[
               StateBuilder(
                 blocs: [counterBloc],
-                builder: (State state) {
+                builder: (_, __) {
                   return Text("Count is ${counterBloc.value}");
                 },
               ),
@@ -429,6 +427,13 @@ class CounterBloc extends StatesRebuilder {
     value += 1;
     final s = DateTime.now().microsecondsSinceEpoch;
     rebuildStates();
+    print(DateTime.now().microsecondsSinceEpoch - s);
+  }
+
+  void updateValue1(hastag) {
+    value += 1;
+    final s = DateTime.now().microsecondsSinceEpoch;
+    rebuildStates(null, hastag);
     print(DateTime.now().microsecondsSinceEpoch - s);
   }
 }

@@ -6,13 +6,12 @@ import 'package:flutter/widgets.dart';
 class StatesRebuilder {
   Map<dynamic, List<VoidCallback>> _innerMap =
       {}; //key holds the stateID and the value holds the state
-  String _defaultTag;
+  // String _defaultTag;
 
   /// Method to add states to the _innerMap
-  addToInnerMap({dynamic id, VoidCallback listener}) {
-    _innerMap[id] = _innerMap[id] ?? [];
-    _innerMap[id].add(listener);
-    _defaultTag ??= "#@dFaLt${this.hashCode}TaG30";
+  addToInnerMap({dynamic tag, VoidCallback listener}) {
+    _innerMap[tag] = _innerMap[tag] ?? [];
+    _innerMap[tag].add(listener);
   }
 
   /// stateMap getter
@@ -27,30 +26,37 @@ class StatesRebuilder {
   ///
   ///  `states` : Second alternative to rebuild a particular widget directly by giving its State
 
-  void rebuildStates([List<dynamic> states]) {
-    if (states != null) {
-      for (final state in states) {
-        if (state is _StateBuilderState ||
-            state is _StateBuilderStateTickerMix) {
-          state?._listener();
-        } else {
-          final ss = _innerMap[state];
-          ss?.forEach((e) {
-            if (e != null) e();
-          });
-        }
-      }
-    } else {
+  void rebuildStates([List<dynamic> states, List hashTag]) {
+    print(states);
+    print(hashTag);
+    if (states == null && hashTag == null) {
       _innerMap.forEach((k, v) {
         v?.forEach((e) {
           if (e != null) e();
         });
       });
+    } else {
+      if (states != null) {
+        for (final state in states) {
+          if (state is _StateBuilderState ||
+              state is _StateBuilderStateTickerMix) {
+            state?._listener();
+          } else {
+            final ss = _innerMap[state];
+            ss?.forEach((e) {
+              if (e != null) e();
+            });
+          }
+        }
+      }
+      if (hashTag != null) {
+        _innerMap[hashTag[0]][1]();
+      }
     }
   }
 }
 
-typedef _StateBuildertype = Widget Function(State state);
+typedef _StateBuildertype = Widget Function(BuildContext context, List hashtag);
 
 class StateBuilder extends StatefulWidget {
   /// You wrap any part of your widgets with `StateBuilder` Widget to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
@@ -141,6 +147,7 @@ class StateBuilder extends StatefulWidget {
 
 class _StateBuilderState extends State<StateBuilder> {
   String _tag;
+  List _hashtag = [];
 
   @override
   void initState() {
@@ -151,7 +158,7 @@ class _StateBuilderState extends State<StateBuilder> {
           (b) {
             if (b == null) return;
             b.addToInnerMap(
-              id: widget.stateID,
+              tag: widget.stateID,
               listener: _listener,
             );
           },
@@ -165,9 +172,11 @@ class _StateBuilderState extends State<StateBuilder> {
           if (b == null) return;
           _tag = (widget.tag != null && widget.tag != "")
               ? widget.tag
-              : b._defaultTag;
+              : "#@dFaLt${b.hashCode}TaG30";
+          _hashtag = [_tag, b._innerMap[_tag]?.length ?? 0];
+          print(_hashtag);
           b.addToInnerMap(
-            id: _tag,
+            tag: _tag,
             listener: _listener,
           );
         },
@@ -237,7 +246,7 @@ class _StateBuilderState extends State<StateBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(this);
+    return widget.builder(context, _hashtag);
   }
 }
 
@@ -252,7 +261,7 @@ class _StateBuilderStateTickerMix extends State<StateBuilder>
           (b) {
             if (b == null) return;
             b.addToInnerMap(
-              id: widget.stateID,
+              tag: widget.stateID,
               listener: _listener,
             );
           },
@@ -303,7 +312,7 @@ class _StateBuilderStateTickerMix extends State<StateBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(this);
+    return widget.builder(context, null);
   }
 }
 
