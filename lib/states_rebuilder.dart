@@ -10,7 +10,7 @@ class StatesRebuilder {
 
   /// Method to add states to the _innerMap
   addToInnerMap({dynamic tag, VoidCallback listener}) {
-    _innerMap[tag] = _innerMap[tag] ?? [];
+    _innerMap[tag] ??= [];
     _innerMap[tag].add(listener);
   }
 
@@ -26,37 +26,30 @@ class StatesRebuilder {
   ///
   ///  `states` : Second alternative to rebuild a particular widget directly by giving its State
 
-  void rebuildStates([List<dynamic> states, List hashTag]) {
-    print(states);
-    print(hashTag);
-    if (states == null && hashTag == null) {
+  void rebuildStates([List<dynamic> tags]) {
+    if (tags == null) {
       _innerMap.forEach((k, v) {
-        v?.forEach((e) {
-          if (e != null) e();
+        v?.forEach((listener) {
+          if (listener != null) listener();
         });
       });
     } else {
-      if (states != null) {
-        for (final state in states) {
-          if (state is _StateBuilderState ||
-              state is _StateBuilderStateTickerMix) {
-            state?._listener();
-          } else {
-            final ss = _innerMap[state];
-            ss?.forEach((e) {
-              if (e != null) e();
-            });
-          }
+      for (final tag in tags) {
+        final split = tag?.split("|$hashCode|");
+        if (tag is String && split.isNotEmpty) {
+          _innerMap[split[0]][int.parse(split[1])]();
+        } else {
+          final listenerList = _innerMap[tag];
+          listenerList?.forEach((listener) {
+            if (listener != null) listener();
+          });
         }
-      }
-      if (hashTag != null) {
-        _innerMap[hashTag[0]][1]();
       }
     }
   }
 }
 
-typedef _StateBuildertype = Widget Function(BuildContext context, List hashtag);
+typedef _StateBuildertype = Widget Function(BuildContext context, String tagID);
 
 class StateBuilder extends StatefulWidget {
   /// You wrap any part of your widgets with `StateBuilder` Widget to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
@@ -147,11 +140,12 @@ class StateBuilder extends StatefulWidget {
 
 class _StateBuilderState extends State<StateBuilder> {
   String _tag;
-  List _hashtag = [];
+  String _tagID;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.stateID != null && widget.stateID != "") {
       if (widget.blocs != null) {
         widget.blocs.forEach(
@@ -173,8 +167,9 @@ class _StateBuilderState extends State<StateBuilder> {
           _tag = (widget.tag != null && widget.tag != "")
               ? widget.tag
               : "#@dFaLt${b.hashCode}TaG30";
-          _hashtag = [_tag, b._innerMap[_tag]?.length ?? 0];
-          print(_hashtag);
+          _tagID =
+              _tag + "|${b.hashCode}|" + "${b._innerMap[_tag]?.length ?? 0}";
+
           b.addToInnerMap(
             tag: _tag,
             listener: _listener,
@@ -222,7 +217,6 @@ class _StateBuilderState extends State<StateBuilder> {
           if (entry.isEmpty) {
             b.innerMap.remove(_tag);
           }
-          print('$_tag = ${entry?.length}');
         },
       );
     }
@@ -246,7 +240,7 @@ class _StateBuilderState extends State<StateBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context, _hashtag);
+    return widget.builder(context, _tagID);
   }
 }
 

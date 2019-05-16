@@ -67,7 +67,6 @@ class MyBody extends StatelessWidget {
           StateBuilder(
               blocs: [counterBloc],
               builder: (_, hashtag) {
-                print('yfhgj $hashtag');
                 return Row(children: <Widget>[
                   Text("Count is ${counterBloc.value}"),
                   RaisedButton(
@@ -160,28 +159,26 @@ class MyBody extends StatelessWidget {
               )
             ],
           ),
+          StateBuilder(
+              builder: (_, hashtag) {
+                return Row(
+                  children: <Widget>[
+                    Text("Count is ${counterBloc.value}"),
+                    RaisedButton(
+                      child: Text("Increase value 1 "),
+                      onPressed: () => counterBloc.updateValue1(hashtag),
+                    )
+                  ],
+                );
+              },
+              tag: "value2"),
           Row(
             children: <Widget>[
               StateBuilder(
-                  blocs: [counterBloc],
-                  builder: (_, __) {
-                    return Text("Count is ${counterBloc.value}");
-                  },
-                  tag: "value2"),
-              RaisedButton(
-                child: Text("Increase value"),
-                onPressed: () => counterBloc.updateValue(),
-              )
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              StateBuilder(
-                  blocs: [counterBloc],
-                  builder: (_, __) {
-                    return Text("Count is ${counterBloc.value}");
-                  },
-                  tag: "value2"),
+                builder: (_, __) {
+                  return Text("Count isjjjj ${counterBloc.value}");
+                },
+              ),
               RaisedButton(
                 child: Text("Increase value"),
                 onPressed: () => counterBloc.updateValue(),
@@ -430,10 +427,10 @@ class CounterBloc extends StatesRebuilder {
     print(DateTime.now().microsecondsSinceEpoch - s);
   }
 
-  void updateValue1(hastag) {
+  void updateValue1(String hastag) {
     value += 1;
     final s = DateTime.now().microsecondsSinceEpoch;
-    rebuildStates(null, hastag);
+    rebuildStates([hastag]);
     print(DateTime.now().microsecondsSinceEpoch - s);
   }
 }
