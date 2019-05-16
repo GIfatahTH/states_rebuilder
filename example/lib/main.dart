@@ -25,11 +25,11 @@ class RootPage extends StatelessWidget {
           child: Column(
             children: <Widget>[
               StateBuilder(
-                  blocs: [counterBloc],
-                  builder: (State state) {
-                    return Text("Count is ${counterBloc.value}");
-                  },
-                  tag: "value"),
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
               RaisedButton(
                   child: Text("Increase value"),
                   onPressed: () => counterBloc.updateValue()),
@@ -92,6 +92,328 @@ class MyBody extends StatelessWidget {
               )
             ],
           ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                  blocs: [counterBloc],
+                  builder: (State state) {
+                    return Text("Count is ${counterBloc.value}");
+                  },
+                  tag: "value2"),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              StateBuilder(
+                blocs: [counterBloc],
+                builder: (State state) {
+                  return Text("Count is ${counterBloc.value}");
+                },
+              ),
+              RaisedButton(
+                child: Text("Increase value"),
+                onPressed: () => counterBloc.updateValue(),
+              )
+            ],
+          ),
         ],
       ),
     );
@@ -106,7 +428,7 @@ class CounterBloc extends StatesRebuilder {
   void updateValue() {
     value += 1;
     final s = DateTime.now().microsecondsSinceEpoch;
-    rebuildStates(["value"]);
+    rebuildStates();
     print(DateTime.now().microsecondsSinceEpoch - s);
   }
 }

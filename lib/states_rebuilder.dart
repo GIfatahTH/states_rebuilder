@@ -4,25 +4,15 @@ import 'package:flutter/widgets.dart';
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder {
-  Map<dynamic, List<Map<String, dynamic>>> _innerMap =
+  Map<dynamic, List<VoidCallback>> _innerMap =
       {}; //key holds the stateID and the value holds the state
+  String _defaultTag;
 
-  /// Method to add state to the stateMap
-  addToInnerMap({dynamic id, int hashCode, Function fn, bool add: false}) {
-    if (add) {
-      _innerMap[id] = _innerMap[id] ?? [];
-      _innerMap[id].add({
-        "hashCode": hashCode,
-        "fn": fn,
-      });
-    } else {
-      _innerMap[id] = [
-        {
-          "hashCode": hashCode,
-          "fn": fn,
-        }
-      ];
-    }
+  /// Method to add states to the _innerMap
+  addToInnerMap({dynamic id, VoidCallback listener}) {
+    _innerMap[id] = _innerMap[id] ?? [];
+    _innerMap[id].add(listener);
+    _defaultTag ??= "#@dFaLt${this.hashCode}TaG30";
   }
 
   /// stateMap getter
@@ -42,18 +32,18 @@ class StatesRebuilder {
       for (final state in states) {
         if (state is _StateBuilderState ||
             state is _StateBuilderStateTickerMix) {
-          state?._setState();
+          state?._listener();
         } else {
           final ss = _innerMap[state];
           ss?.forEach((e) {
-            if (e["fn"] != null) e["fn"]();
+            if (e != null) e();
           });
         }
       }
     } else {
       _innerMap.forEach((k, v) {
         v?.forEach((e) {
-          if (e["fn"] != null) e["fn"]();
+          if (e != null) e();
         });
       });
     }
@@ -150,6 +140,8 @@ class StateBuilder extends StatefulWidget {
 }
 
 class _StateBuilderState extends State<StateBuilder> {
+  String _tag;
+
   @override
   void initState() {
     super.initState();
@@ -159,37 +151,33 @@ class _StateBuilderState extends State<StateBuilder> {
           (b) {
             if (b == null) return;
             b.addToInnerMap(
-                id: widget.stateID,
-                hashCode: this.hashCode,
-                fn: () {
-                  if (mounted) setState(() {});
-                });
-          },
-        );
-      }
-    }
-
-    if (widget.tag != null && widget.tag != "") {
-      print(widget.tag);
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            b.addToInnerMap(
-              id: widget.tag,
-              hashCode: this.hashCode,
-              fn: _setState,
-              add: true,
+              id: widget.stateID,
+              listener: _listener,
             );
           },
         );
       }
     }
 
+    if (widget.blocs != null) {
+      widget.blocs.forEach(
+        (b) {
+          if (b == null) return;
+          _tag = (widget.tag != null && widget.tag != "")
+              ? widget.tag
+              : b._defaultTag;
+          b.addToInnerMap(
+            id: _tag,
+            listener: _listener,
+          );
+        },
+      );
+    }
+
     if (widget.initState != null) widget.initState(this);
   }
 
-  _setState() {
+  void _listener() {
     if (mounted) setState(() {});
   }
 
@@ -209,31 +197,25 @@ class _StateBuilderState extends State<StateBuilder> {
         );
       }
     }
-
-    if (widget.tag != null && widget.tag != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            final entry = b.innerMap[widget.tag];
-            print('entry $entry');
-            if (entry == null) return;
-            for (var e in entry) {
-              print(e["fn"] == _setState);
-              print(_setState);
-              if (e["hashCode"] == this.hashCode) {
-                b.innerMap[widget.tag].remove(e);
-                break;
-              }
+    if (widget.blocs != null) {
+      widget.blocs.forEach(
+        (b) {
+          if (b == null) return;
+          if (_tag == null) return;
+          final entry = b.innerMap[_tag];
+          if (entry == null) return;
+          for (var e in entry) {
+            if (e == _listener) {
+              entry.remove(e);
+              break;
             }
-            print('entry ${b.innerMap[widget.tag]}');
-            if (b.innerMap[widget.tag].isEmpty) {
-              b.innerMap.remove(widget.tag);
-            }
-            print('entry ${b.innerMap[widget.tag]}');
-          },
-        );
-      }
+          }
+          if (entry.isEmpty) {
+            b.innerMap.remove(_tag);
+          }
+          print('$_tag = ${entry?.length}');
+        },
+      );
     }
 
     if (widget.dispose != null) widget.dispose(this);
@@ -270,11 +252,9 @@ class _StateBuilderStateTickerMix extends State<StateBuilder>
           (b) {
             if (b == null) return;
             b.addToInnerMap(
-                id: widget.stateID,
-                hashCode: this.hashCode,
-                fn: () {
-                  if (mounted) setState(() {});
-                });
+              id: widget.stateID,
+              listener: _listener,
+            );
           },
         );
       }
@@ -283,7 +263,7 @@ class _StateBuilderStateTickerMix extends State<StateBuilder>
     widget.initState(this);
   }
 
-  _setState() {
+  void _listener() {
     if (mounted) setState(() {});
   }
 
