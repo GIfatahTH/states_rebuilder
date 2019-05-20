@@ -20,11 +20,11 @@ This Library provides two classes and one method:
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this widget to listen to.
-      @required (BuildContext, String) → Widget builder,  // You define your top most Widget.
-      (String) → void initState, // for code to be executed in the initState of a StatefulWidget
-      (String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (StateBuilder, String) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
+      @required (BuildContext, String) → Widget builder,  // .
+      (StateBuilder, String) → void initState, // for code to be executed in the initState of a StatefulWidget
+      (StateBuilder, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
+      (StateBuilder, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
+      (StateBuilder, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
     });
   ```
   `tag` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
@@ -32,15 +32,15 @@ This Library provides two classes and one method:
   To extands the state with mixin (practical case with animation), use `StateWithMixinBuilder`
 
     ```dart
-  StateBuilder( {
+  StateWithMixinBuilder( {
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this this widget to listen to.
       @required (BuildContext, String) → Widget builder,  // You define your top most Widget.
-      @required (String,T) → void initState, // for code to be executed in the initState of a StatefulWidget
-      @required (String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (String,T) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (StateBuilder, String,T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
+      @required (BuildContext, String,T) → void initState, // for code to be executed in the initState of a StatefulWidget
+      @required (BuildContext, String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget
+      (BuildContext, String,T) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
+      (BuildContext, String,StateBuilder, T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
       (String, AppLifecycleState) → void didChangeAppLifecycleState // 
       @required MixinWith mixinWith
     });

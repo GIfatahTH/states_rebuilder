@@ -52,12 +52,12 @@ class CounterGrid extends StatelessWidget {
       padding: EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
-          Text("Animate a set ofbox"),
+          Text("Animate a set of boxes"),
           Expanded(
             child: StateWithMixinBuilder(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, ticker) => bloc.initAnimation(ticker),
-              dispose: (_, __) => bloc.dispose(),
+              initState: (_, __, ticker) => bloc.initAnimation(ticker),
+              dispose: (_, __, ___) => bloc.dispose(),
               builder: (_, __) => GridView.count(
                     crossAxisCount: 3,
                     children: <Widget>[

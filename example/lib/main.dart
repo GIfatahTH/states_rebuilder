@@ -9,7 +9,7 @@ import 'pages/5_animate_all.dart';
 import 'pages/6_animate_one_1.dart';
 import 'pages/7_animate_one_2.dart';
 import 'pages/8_animate_set.dart';
-// import 'pages/9_RebuildStates_performance.dart';
+import 'pages/9_rebuildStates_performance.dart';
 
 enum CounterGridTag { isEvenIcon }
 
@@ -46,9 +46,13 @@ class RootPage extends StatelessWidget {
     final bloc = BlocProvider.of<MainBloc>(context);
     return StateWithMixinBuilder(
       mixinWith: MixinWith.singleTickerProviderStateMixin,
-      initState: (_, ticker) => bloc.init(ticker),
-      dispose: (_, __) => bloc.dispose(),
-      builder: (_, __) => Scaffold(
+      initState: (_, __, ticker) => bloc.init(ticker),
+      dispose: (_, __, ___) => bloc.dispose(),
+      builder: (
+        _,
+        __,
+      ) =>
+          Scaffold(
             appBar: AppBar(
               title: Text("Counter Grid"),
               bottom: PreferredSize(
@@ -74,7 +78,7 @@ class RootPage extends StatelessWidget {
                 AnimateOneExample1(),
                 AnimateOneExample2(),
                 AnimateSetExample(),
-                // RebuildStatesPerformanceExample(),
+                RebuildStatesPerformanceExample(),
               ],
             ),
           ),

@@ -25,8 +25,6 @@ class CounterGrid extends StatelessWidget {
     final bloc = BlocProvider.of<CounterBloc>(context);
     return StateWithMixinBuilder(
       mixinWith: MixinWith.automaticKeepAliveClientMixin,
-      initState: (_, __) {},
-      dispose: (_, ___) {},
       builder: (_, __) => Padding(
             padding: EdgeInsets.all(10),
             child: Column(
