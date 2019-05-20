@@ -30,9 +30,8 @@ This Library provides two classes and one method:
   `tag` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
 
   To extands the state with mixin (practical case with animation), use `StateWithMixinBuilder`
-
-    ```dart
-  StateWithMixinBuilder( {
+```Dart
+StateWithMixinBuilder( {
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this this widget to listen to.
@@ -43,9 +42,9 @@ This Library provides two classes and one method:
       (BuildContext, String,StateBuilder, T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
       (String, AppLifecycleState) → void didChangeAppLifecycleState // 
       @required MixinWith mixinWith
-    });
-  ```
-    Avaibable mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
+});
+```
+  Avaibable mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
 
   * `BlocProvider` widget. Used to provide your BloCs
   ```dart
