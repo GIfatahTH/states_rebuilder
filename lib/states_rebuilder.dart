@@ -20,18 +20,15 @@ class StatesRebuilder {
     List<String> keys = List.from(listeners[tag]?.keys);
     if (keys == null) return;
     keys.forEach((k) {
-      print("k $k hashcode $hashcode");
-      print(listeners[tag].length);
       if (k == hashcode) {
         listeners[tag].remove(k);
-        print(listeners[tag].length);
+
         return;
       }
     });
     if (listeners[tag].isEmpty) {
       listeners.remove(tag);
     }
-    print(listeners);
   }
 
   /// listeners getter
