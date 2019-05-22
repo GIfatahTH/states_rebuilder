@@ -25,9 +25,9 @@ class CounterBloc extends StatesRebuilder {
   triggerAnimation(tagID) {
     animation.removeListener(listener);
     listener = () {
-      time = DateTime.now().microsecond;
+      time = DateTime.now().microsecondsSinceEpoch;
       rebuildStates([tagID, CounterTag.time]);
-      time = DateTime.now().microsecond - time;
+      time = DateTime.now().microsecondsSinceEpoch - time;
       print(time);
     };
     animation.addListener(listener);
