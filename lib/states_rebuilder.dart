@@ -8,9 +8,30 @@ class StatesRebuilder {
       {}; //key holds the listener tags and the value holds the listeners
 
   /// Method to add listener to the _listeners Map
-  addToListeners({String tag, VoidCallback listener, String hashTag}) {
+  addToListeners(
+      {@required String tag,
+      @required VoidCallback listener,
+      @required String hashcode}) {
     _listeners[tag] ??= {};
-    _listeners[tag][hashTag] = listener;
+    _listeners[tag][hashcode] = listener;
+  }
+
+  removeFromListeners(String tag, String hashcode) {
+    List<String> keys = List.from(listeners[tag]?.keys);
+    if (keys == null) return;
+    keys.forEach((k) {
+      print("k $k hashcode $hashcode");
+      print(listeners[tag].length);
+      if (k == hashcode) {
+        listeners[tag].remove(k);
+        print(listeners[tag].length);
+        return;
+      }
+    });
+    if (listeners[tag].isEmpty) {
+      listeners.remove(tag);
+    }
+    print(listeners);
   }
 
   /// listeners getter
@@ -105,7 +126,7 @@ class StateBuilder extends _StateBuilder {
   ///Called when this object is inserted into the tree.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final _StateBuildertype initState;
+  final Function(BuildContext context, String tagID) initState;
 
   ///```
   ///StateBuilder(
@@ -117,7 +138,7 @@ class StateBuilder extends _StateBuilder {
   ///Called when this object is removed from the tree permanently.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final _StateBuildertype dispose;
+  final Function(BuildContext context, String tagID) dispose;
 
   ///```
   ///StateBuilder(
@@ -129,7 +150,7 @@ class StateBuilder extends _StateBuilder {
   ///Called when a dependency of this [State] object changes.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final _StateBuildertype didChangeDependencies;
+  final Function(BuildContext context, String tagID) didChangeDependencies;
 
   ///```
   ///StateBuilder(
@@ -184,7 +205,7 @@ class _StateBuilderState extends State<StateBuilder> {
 
   @override
   void dispose() {
-    _removeListner(widget.blocs, _tag, "$hashCode", _listener);
+    _removeListner(widget.blocs, _tag, hashCode, _listener);
 
     if (widget.dispose != null) widget.dispose(context, _tagID);
     super.dispose();
@@ -222,7 +243,7 @@ List<String> _addListener(List<StatesRebuilder> widgetBlocs, dynamic widgetTag,
             ? "$widgetTag"
             : "#@dFau_Lt${b.hashCode}TaG30";
         _tagID = "$tag${b.spliter}$hashcode";
-        b.addToListeners(tag: tag, listener: listener, hashTag: hashcode);
+        b.addToListeners(tag: tag, listener: listener, hashcode: hashcode);
       },
     );
   }
@@ -232,7 +253,7 @@ List<String> _addListener(List<StatesRebuilder> widgetBlocs, dynamic widgetTag,
 void _removeListner(
   List<StatesRebuilder> widgetBlocs,
   String tag,
-  String hashcode,
+  int hashcode,
   VoidCallback listener,
 ) {
   if (widgetBlocs != null) {
@@ -240,17 +261,7 @@ void _removeListner(
       (StatesRebuilder b) {
         if (b == null) return;
         if (tag == null) return;
-        List<String> keys = List.from(b.listeners[tag].keys);
-        if (keys == null) return;
-        keys.forEach((k) {
-          if (k == hashcode) {
-            b.listeners[tag].remove(k);
-            return;
-          }
-        });
-        if (b.listeners[tag].isEmpty) {
-          b.listeners.remove(tag);
-        }
+        b.removeFromListeners(tag, "$hashcode");
       },
     );
   }
@@ -494,7 +505,7 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
 
   @override
   void dispose() {
-    _removeListner(widget.blocs, _tag, "$hashCode", _listener);
+    _removeListner(widget.blocs, _tag, hashCode, _listener);
     super.dispose();
   }
 
