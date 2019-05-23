@@ -4,15 +4,15 @@ A Flutter state management solution that allows you:
   * to separate your User Interface (UI) representation from your logic classes
   * to easily control how your widgets rebuild to reflect the actual state of your application. 
 
-This Library provides two classes and one method:
+This Library provides three classes and one method:
 
   * The `StatesRebuilder` class. Your logics classes will extend this class to create your own business logic BloC (equally can be called ViewModel or Model).
-  * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can all flitre the widgets to rebuild by tag.
+  * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can filter the widgets to rebuild by tag.
   this is the signature of the `rebuildState`:
   ```dart
   rebuildStates([List<dynamic> tags])
   ```
-  * The `StateBuilder` Widget. You wrap any part of your widgets with it to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
+  * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to listeners list of your logic classes and hence can rebuild it using `rebuildState` method
   this is the constructor of the `StateBuilder`:
   
   ```dart
@@ -21,17 +21,17 @@ This Library provides two classes and one method:
       dynamic tag, // you define the tag of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this widget to listen to.
       @required (BuildContext, String) → Widget builder,  // .
-      (StateBuilder, String) → void initState, // for code to be executed in the initState of a StatefulWidget
-      (StateBuilder, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (StateBuilder, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (StateBuilder, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
+      (BuildContext, String) → void initState, // for code to be executed in the initState of a StatefulWidget
+      (BuildContext, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
+      (BuildContext, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
+      (BuildContext, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
     });
   ```
   `tag` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
 
-  To extands the state with mixin (practical case with animation), use `StateWithMixinBuilder`
+  To extands the state with mixin (practical case is animation), use `StateWithMixinBuilder`
 ```Dart
-StateWithMixinBuilder( {
+StateWithMixinBuilder<T>( {
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way
       List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this this widget to listen to.
