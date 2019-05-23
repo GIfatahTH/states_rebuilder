@@ -16,7 +16,6 @@ enum CounterGridTag { isEvenIcon }
 class MainBloc extends StatesRebuilder {
   TabController tabController;
   init(TickerProvider ticker) {
-    print(ticker);
     tabController = TabController(vsync: ticker, length: 9);
   }
 
