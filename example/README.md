@@ -1,140 +1,267 @@
-# counter_app
+# 1- Rebuild All listeners
 
 ```dart
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Our logic class a counter variable and a method to increment it.
-//
-// It must extend from StatesRebuilder.
 class CounterBloc extends StatesRebuilder {
-  int _counter1 = 0;
-  int _counter2 = 0;
-
-  int get counter1 => _counter1;
-  int get counter2 => _counter2;
-
-  void increment1() {
-    // First, increment the counter
-    _counter1++;
-
-    // First alternative.
-    // Use the ids parameters to enter a list of ids.
-    // Widgets with these ids will rebuild to reflect the new counter value.
-    rebuildStates(ids: ["myCounter"]);
-  }
-
-  void increment2(State state) {
-    // First, increment the counter
-    _counter2++;
-
-    // First alternative.
-    // Use the ids parameters to enter a list of ids.
-    // Widgets with these ids will rebuild to reflect the new counter value.
-    rebuildStates(states: [state]);
+  int counter = 0;
+  increment() {
+    counter++;
+    rebuildStates();
   }
 }
 
-// For simplicity I use this method to provide the CounterBloc:
-// Declare the counterBloc without instantiating it
-//
-// NOTE: You can use the InheritedWidget to provide the CounterBloc
-CounterBloc counterBloc;
-
-
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class RebuildAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // At the top level of our widget tree where we want to provide the CounterBloc to all its children, we create a StateBuilder Widget.
-    // We instantiate the counterBloc variable in the initState parameter, and kill it in the dispose parameter.
-    return StateBuilder(
-      initState: (_) => counterBloc = CounterBloc(),
-      dispose: (_) => counterBloc = null,
-      builder: (_) => MaterialApp(
-            title: 'states_rebuilder Example',
-            home: Counter('States_Rebuilder demostration'),
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: Column(
+        children: <Widget>[
+          Text("Rebuild All subscribed states"),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              children: <Widget>[
+                for (var i = 0; i < 12; i++)
+                  StateBuilder(
+                    blocs: [bloc],
+                    builder: (_, __) => GridItem(
+                          count: bloc.counter,
+                          onTap: () => bloc.increment(),
+                        ),
+                  )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
+            ),
+          ),
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+
+
+```
+
+# 2- Rebuild one listener by the automatically generated ID (address).
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class CounterBloc extends StatesRebuilder {
+  int counter = 0;
+  increment(tagID) {
+    counter++;
+    rebuildStates([tagID]);
+  }
+}
+
+class RebuildOneExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
+    return StateWithMixinBuilder(
+      mixinWith: MixinWith.automaticKeepAliveClientMixin,
+      builder: (_, __) => Padding(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              children: <Widget>[
+                Text("Rebuild The tapped widget"),
+                Text(
+                    "This page is mixin with automaticKeepAliveClientMixin to not rebuild on sweep in"),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    children: <Widget>[
+                      for (var i = 0; i < 12; i++)
+                        StateBuilder(
+                          blocs: [bloc],
+                          builder: (_, tagID) => GridItem(
+                                count: bloc.counter,
+                                onTap: () => bloc.increment(tagID),
+                              ),
+                        )
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
     );
   }
 }
 
-class Counter extends StatelessWidget {
-  final String title;
-
-  Counter(this.title);
-
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('You have pushed the button this many times:'),
-            Divider(),
-            Text('The first alternative'),
-
-            // First Alternative:
-            // -- Wrap the Text widget with StateBuilder widget and give it and id of your choice.
-            // -- Declare the blocs where you want the state to be available.
-            StateBuilder(
-              stateID: 'myCounter',
-              blocs: [counterBloc],
-              builder: (State state) => Text(
-                    counterBloc.counter1.toString(),
-                    style: Theme.of(state.context).textTheme.display1,
-                  ),
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
             ),
-
-            // The first method is mainly useful if you want to increment the counter from other widget
-            IncrementFromOtheWidget(),
-            Divider(),
-            Text('The second alternative'),
-
-            // Second Alternative:
-            // -- Wrap the Text widget with StateBuilder widget without giving it an id.
-            // -- Declare the blocs where you want the state to be available.
-            StateBuilder(
-              builder: (State state) => Column(
-                    children: <Widget>[
-                      Text(
-                        counterBloc.counter2.toString(),
-                        style: Theme.of(state.context).textTheme.display1,
-                      ),
-                      RaisedButton(
-                        key: Key("secondAlternative"),
-                        child: Text("increment the same widget"),
-                        onPressed: () => counterBloc.increment2(state),
-                      )
-                    ],
-                  ),
-            ),
-          ],
+          ),
         ),
       ),
+      onTap: onTap,
     );
   }
 }
 
-class IncrementFromOtheWidget extends StatelessWidget {
+```
+
+
+# 2- Rebuild liltered list of listeners by tag.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class CounterBloc extends StatesRebuilder {
+  int counter = 0;
+  increment(tagID) {
+    counter++;
+    rebuildStates([tagID]);
+  }
+}
+
+class RebuildSetExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
-      key: Key("firstAlternative"),
-      child: Text("increment from other widget"),
-      onPressed: counterBloc.increment1,
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
     );
   }
 }
 
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        children: <Widget>[
+          Text("Rebuild a set of widgets that have the same tag"),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              children: <Widget>[
+                for (var i = 0; i < 12; i++)
+                  StateBuilder(
+                    tag: i % 2,
+                    blocs: [bloc],
+                    builder: (_, tagID) => GridItem(
+                          count: bloc.counter,
+                          onTap: () => bloc.increment(i % 2),
+                        ),
+                  )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
+            ),
+          ),
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
 
 ```
