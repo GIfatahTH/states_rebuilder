@@ -1,312 +1,383 @@
-# counter_app with TabView
+# 1- Rebuild All listeners
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// enum is preferred over String to name your `stateID` for big projects.
-// The name of the enums is of your choice. You can have many enums.
 
-// -- Conventionally for each of your BloCs you define a corresponding enum.
-// -- For very large projects you can make all your enums in a single file.
-
-enum CounterState { firstAlternative, total }
-
-// Our logic class a counter variable and a method to increment it.
-//
-// It must extend from `StatesRebuilder`.
 class CounterBloc extends StatesRebuilder {
-  TabController _tabController;
-
-  int _counter1 = 0;
-  int _counter2 = 0;
-
-  int get counter1 => _counter1;
-  int get counter2 => _counter2;
-  int get total => _counter1 + _counter2;
-
-  initState(State state) {
-    _tabController =
-        TabController(vsync: state as TickerProvider, length: choices.length);
-  }
-
-  void _nextPage(int delta) {
-    final int newIndex = _tabController.index + delta;
-    if (newIndex < 0 || newIndex >= _tabController.length) return;
-    _tabController.animateTo(newIndex);
-  }
-
-  dispose() {
-    _tabController.dispose();
-  }
-
-  void increment1() {
-    // Increment the counter
-    _counter1++;
-
-    // First alternative.
-    // Widgets with these stateIDs will rebuild to reflect the new counter value.
-    rebuildStates([CounterState.firstAlternative, CounterState.total]);
-  }
-
-  void increment2(State state) {
-    // Increment the counter
-    _counter2++;
-
-    // Second alternative.
-    // Widgets from which the increment2 method is called will rebuild.
-    // You can mix states and stateIDs
-    rebuildStates([state, CounterState.total]);
-  }
-
-  void increment3() {
-    // increment the counter
-    _counter1++;
-
-    // The third alternative
-
-    // `rebuildStates()` with no parameter: All widgets that are wrapped with `StateBuilder` and
-    // are given `stateID` will rebuild to reflect the new counter value.
-    //
-    // you get a similar behavior like in scoped_model or provider packages
+  int counter = 0;
+  increment() {
+    counter++;
     rebuildStates();
-    // in this particular example we have two widgets that have
-    // a stateID (CounterState.myCounter, and CounterState.total)
   }
 }
 
-void main() {
-  runApp(CounterTabApp());
-}
-
-// ************ Provide your BloC using BlocProvider ******************
-class CounterTabApp extends StatelessWidget {
+class RebuildAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
       bloc: CounterBloc(),
-      child: MaterialApp(
-        home: MyHomePage(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: Column(
+        children: <Widget>[
+          Text("Rebuild All subscribed states"),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              children: <Widget>[
+                for (var i = 0; i < 12; i++)
+                  StateBuilder(
+                    blocs: [bloc],
+                    builder: (_, __) => GridItem(
+                          count: bloc.counter,
+                          onTap: () => bloc.increment(),
+                        ),
+                  )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/*
-  / ************ Provide your BloC using StateBuilder ******************
-  // You can provide your BloC using StateBuilder:
-  //In your BloC file declare  a variable with your BloC as type
-  //Here as we are in the same file we write:
-
-  CounterBloc counterBloc;
-
-  //It is important to not initialize it now
-  //In your UI file:
-  class CounterTabApp extends StatelessWidget {
-    @override
-    Widget build(BuildContext context) {
-      return StateBuilder(
-        initState: (_) => counterBloc = CounterBloc(),
-        dispose: (_) => counterBloc = null,
-        builder: (_) => MaterialApp(
-              home: MyHomePage(),
-            ),
-      );
-    }
-  }
-  // Now your BloC is available only to all child widgets of the MaterialApp widget
-  // Your BloC is alive as long as the MaterialApp is mounted. 
-  // When the MaterialApp is disposed the bloc is killed, and for this reason only child widgets can access to the BloC
-  //
-  // In this case you do not have to use:
-  // final counterBloc = BlocProvider.of<CounterBloc>(context);
-  // To try this approach comment all the "of" methods bellow.
-*/
-
-class MyHomePage extends StatelessWidget {
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
   @override
   Widget build(BuildContext context) {
-    final counterBloc = BlocProvider.of<CounterBloc>(context);
-    return StateBuilder(
-      withTickerProvider: true,
-      initState: (state) => counterBloc.initState(state),
-      dispose: (_) => counterBloc.dispose(),
-      builder: (_) => Scaffold(
-            appBar: AppBar(
-              title: const Text('states_rebuilder'),
-              leading: IconButton(
-                tooltip: 'Previous choice',
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  counterBloc._nextPage(-1);
-                },
-              ),
-              actions: <Widget>[
-                StateBuilder(
-                  stateID: CounterState.total,
-                  blocs: [counterBloc],
-                  builder: (_) => CircleAvatar(
-                        child: Text("${counterBloc.total}"),
-                      ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  tooltip: 'Next choice',
-                  onPressed: () {
-                    counterBloc._nextPage(1);
-                  },
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(48.0),
-                child: Theme(
-                  data: Theme.of(context).copyWith(accentColor: Colors.white),
-                  child: Container(
-                    height: 48.0,
-                    alignment: Alignment.center,
-                    child:
-                        TabPageSelector(controller: counterBloc._tabController),
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
+            ),
+          ),
+        ),
+      ),
+      onTap: onTap,
+    );
+
+  }
+
+```
+
+# 2- Rebuild one listener by the automatically generated ID (address).
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class CounterBloc extends StatesRebuilder {
+  int counter = 0;
+  increment(tagID) {
+    counter++;
+    rebuildStates([tagID]);
+  }
+}
+
+class RebuildOneExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
+    return StateWithMixinBuilder(
+      mixinWith: MixinWith.automaticKeepAliveClientMixin,
+      builder: (_, __) => Padding(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              children: <Widget>[
+                Text("Rebuild The tapped widget"),
+                Text(
+                    "This page is mixin with automaticKeepAliveClientMixin to not rebuild on sweep in"),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    children: <Widget>[
+                      for (var i = 0; i < 12; i++)
+                        StateBuilder(
+                          blocs: [bloc],
+                          builder: (_, tagID) => GridItem(
+                                count: bloc.counter,
+                                onTap: () => bloc.increment(tagID),
+                              ),
+                        )
+                    ],
                   ),
                 ),
-              ),
-            ),
-            body: TabBarView(
-              controller: counterBloc._tabController,
-              children: choices,
+              ],
             ),
           ),
     );
   }
 }
 
-final List<Widget> choices = [
-  FirstAlternative(),
-  SecondAlternative(),
-  ThirdAlternative(),
-];
 
-class FirstAlternative extends StatelessWidget {
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
   @override
   Widget build(BuildContext context) {
-    final counterBloc = BlocProvider.of<CounterBloc>(context);
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
+            ),
+          ),
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+```
+
+
+# 3- Rebuild filtered list of listeners by tag.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class CounterBloc extends StatesRebuilder {
+  int counter = 0;
+  increment(tagID) {
+    counter++;
+    rebuildStates([tagID]);
+  }
+}
+
+class RebuildSetExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
-      child: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text('The first alternative'),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        children: <Widget>[
+          Text("Rebuild a set of widgets that have the same tag"),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
               children: <Widget>[
-                IncrementFromOtheWidget(),
-                StateBuilder(
-                  stateID: CounterState.firstAlternative,
-                  blocs: [counterBloc],
-                  builder: (State state) => Text(
-                        counterBloc.counter1.toString(),
-                        style: Theme.of(state.context).textTheme.display1,
-                      ),
-                ),
+                for (var i = 0; i < 12; i++)
+                  StateBuilder(
+                    tag: i % 2,
+                    blocs: [bloc],
+                    builder: (_, tagID) => GridItem(
+                          count: bloc.counter,
+                          onTap: () => bloc.increment(i % 2),
+                        ),
+                  )
               ],
             ),
-            Divider(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(firstAlternativeTuto),
-              ),
-            )
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class SecondAlternative extends StatelessWidget {
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
   @override
   Widget build(BuildContext context) {
-    final counterBloc = BlocProvider.of<CounterBloc>(context);
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
+            ),
+          ),
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+```
+
+# 3- Animation with StateWithMixinBuilder.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class CounterBloc extends StatesRebuilder {
+  int counter = 0;
+
+  AnimationController controller;
+  Animation animation;
+
+  initAnimation(TickerProvider ticker) {
+    controller =
+        AnimationController(duration: Duration(seconds: 2), vsync: ticker);
+    animation = Tween<double>(begin: 0, end: 2 * 3.14).animate(controller);
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.reset();
+      }
+    });
+  }
+
+  VoidCallback listener;
+  triggerAnimation(tagID) {
+    animation.removeListener(listener);
+    listener = () {
+      rebuildStates([tagID]);
+    };
+    animation.addListener(listener);
+    controller.forward();
+    counter++;
+  }
+
+  dispose() {
+    controller.dispose();
+  }
+}
+
+class AnimateSetExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<CounterBloc>(
+      bloc: CounterBloc(),
+      child: CounterGrid(),
+    );
+  }
+}
+
+class CounterGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
-      child: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text('The second alternative'),
-
-            // Second Alternative:
-            // -- Wrap the Text widget with StateBuilder widget without giving it an id.
-            // -- Pass the state parameter to the increment2 method.
-            StateBuilder(
-              builder: (State state) => Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        children: <Widget>[
+          Text("Animate a set of boxes"),
+          Expanded(
+            child: StateWithMixinBuilder(
+              mixinWith: MixinWith.singleTickerProviderStateMixin,
+              initState: (_, __, ticker) => bloc.initAnimation(ticker),
+              dispose: (_, __, ___) => bloc.dispose(),
+              builder: (_, __) => GridView.count(
+                    crossAxisCount: 3,
                     children: <Widget>[
-                      RaisedButton(
-                        key: Key("secondAlternative"),
-                        child: Text("increment from the same widget"),
-                        onPressed: () => counterBloc.increment2(state),
-                      ),
-                      Text(
-                        counterBloc.counter2.toString(),
-                        style: Theme.of(state.context).textTheme.display1,
-                      ),
+                      for (var i = 0; i < 12; i++)
+                        StateBuilder(
+                          tag: i % 2,
+                          blocs: [bloc],
+                          builder: (_, tagID) => Transform.rotate(
+                                angle: bloc.animation.value,
+                                child: GridItem(
+                                  count: bloc.counter,
+                                  onTap: () => bloc.triggerAnimation(i % 2),
+                                ),
+                              ),
+                        ),
                     ],
                   ),
             ),
-            Divider(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(secondAlternativeTuto),
-              ),
-            )
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class ThirdAlternative extends StatelessWidget {
+class GridItem extends StatelessWidget {
+  final int count;
+  final Function onTap;
+  GridItem({this.count, this.onTap});
   @override
   Widget build(BuildContext context) {
-    final counterBloc = BlocProvider.of<CounterBloc>(context);
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text('The Third alternative'),
-            //All widget that has a stateID will be rebuilt.
-            //look at the increment3() method in the BloC.
-            RaisedButton(
-              child: Text("rebuildStates()"),
-              onPressed: counterBloc.increment3,
+    return InkWell(
+      child: Container(
+        margin: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          border:
+              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            "$count",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 50,
             ),
-            Text(
-                "Navigate back to the first tab to see that the first counter is incremented"),
-            Divider(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(thirdAlternativeTuto),
-              ),
-            )
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class IncrementFromOtheWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final counterBloc = BlocProvider.of<CounterBloc>(context);
-    return RaisedButton(
-      key: Key("firstAlternative"),
-      child: Text("increment from other widget"),
-      onPressed: counterBloc.increment1,
+      onTap: onTap,
     );
   }
 }

@@ -4,33 +4,50 @@ A Flutter state management solution that allows you:
   * to separate your User Interface (UI) representation from your logic classes
   * to easily control how your widgets rebuild to reflect the actual state of your application. 
 
-This Library provides two classes and one method:
+This Library provides three classes and one method:
 
   * The `StatesRebuilder` class. Your logics classes will extend this class to create your own business logic BloC (equally can be called ViewModel or Model).
-  * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It offers you two ways to rebuild any of your widgets.
+  * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can filter the widgets to rebuild by tag.
   this is the signature of the `rebuildState`:
   ```dart
-  rebuildStates([List<dynamic> states])
+  
+  rebuildStates([List<dynamic> tags])
+
   ```
-  * The `StateBuilder` Widget. You wrap any part of your widgets with it to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
+  * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to listeners list of your logic classes and hence can rebuild it using `rebuildState` method
   this is the constructor of the `StateBuilder`:
+  
   ```dart
   StateBuilder( {
       Key key, 
-      dynamic stateID, // you define the ID of the state. This is the first way
-      List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this ID will be available.
-      @required (State) → Widget builder,  // You define your top most Widget.
-      (State) → void initState, // for code to be executed in the initState of a StatefulWidget
-      (State) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (State) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (StateBuilder, State) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
-      bool withTickerProvider: false // set to true if you want your state class to mix with `TickerProviderStateMixin`. Default value is false.
+      dynamic tag, // you define the tag of the state. This is the first way
+      List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this widget to listen to.
+      @required (BuildContext, String) → Widget builder,  // .
+      (BuildContext, String) → void initState, // for code to be executed in the initState of a StatefulWidget
+      (BuildContext, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
+      (BuildContext, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
+      (BuildContext, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
     });
   ```
-  `stateID` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
+  `tag` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).
 
-  For the first way you have to provide the stateID and blocs parameters. Whereas for the second way you have not. See prototype example bellow.
-	
+  To extands the state with mixin (practical case is animation), use `StateWithMixinBuilder`
+```Dart
+StateWithMixinBuilder<T>( {
+      Key key, 
+      dynamic tag, // you define the tag of the state. This is the first way
+      List<StatesRebuilder> blocs, // You give a list of the logic classes (BloC) you want this this widget to listen to.
+      @required (BuildContext, String) → Widget builder,  // You define your top most Widget.
+      @required (BuildContext, String,T) → void initState, // for code to be executed in the initState of a StatefulWidget
+      @required (BuildContext, String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget
+      (BuildContext, String,T) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
+      (BuildContext, String,StateBuilder, T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
+      (String, AppLifecycleState) → void didChangeAppLifecycleState // 
+      @required MixinWith mixinWith
+});
+```
+  Avaibable mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
+
   * `BlocProvider` widget. Used to provide your BloCs
   ```dart
    BlocProvider<YourBloc>({
@@ -45,12 +62,14 @@ your_bloc.dart file:
   import 'package:flutter/material.dart';
   import 'package:states_rebuilder/states_rebuilder.dart'
 
-  // enum is preferred over String to name your `stateID` for big projects.
-  // The nume of the enum is of your choice. You can have many enums.
+
+  // enum is preferred over String to name your `tag` for big projects.
+  // The name of the enum is of your choice. You can have many enums.
 
   // -- Conventionally for each of your BloCs you define a corresponding enum.
   // -- For very large projects you can make all your enums in a single file.
-  enum YourState {yourStateID1};
+
+  enum YourTagEnum {yourtag1};
 
   class YourBloc extends StatesRebuilder{
 
@@ -58,40 +77,41 @@ your_bloc.dart file:
 
       /// You have two ways:
 
-      /// ************** First way: (ID way) **************
+      /// ************** First way: (tag way) **************
 
       yourMethod1() {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates([YourState.yourStateID1]);
+
+        rebuildStates([YourState.yourtag1]);
       }
 
       // example of fetching data and rebuilding widgets after obtaining the data
       fetchData1() async {
         await yourRepository.fetchDate();
-        rebuildStates([YourState.yourStateID1]);
+        rebuildStates([YourState.yourtag1]);
       }
 
-      /// ************** Second way (state way) **************
+      /// ************** Second way (tag way) **************
 
-      yourMethod2(State state) {
+      yourMethod2(String tagID) {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates([state]);
+        rebuildStates([tagID]);
       }
 
       // example of fetching data and rebuild widgets after obtaining the data
-      fetchData2(State state) async {
+      fetchData2(String tagID) async {
         await yourRepository.fetchDate();
-        rebuildStates([state]);
+        rebuildStates([tagID]);
       }
 
       /// ************** Combination of first and second ways **************
 
-      yourMethod3(State state) {
+      yourMethod3(String tagID) {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates([state, YourState.yourStateID1]);
+        rebuildStates([tagID, YourState.yourtag1]);
       }
 
 
@@ -102,7 +122,7 @@ your_bloc.dart file:
 
 
          // `rebuildStates()` with no parameter: All widgets that are wrapped with
-         //`StateBuilder` and are given `stateID` will rebuild to reflect the new counter value.
+         //`StateBuilder` will rebuild to reflect the new counter value.
          // You get a similar behavior like in ``scoped_model`` or ``provider`` packages
 
         rebuildStates();
@@ -112,14 +132,14 @@ your_bloc.dart file:
 your main.dart file:
 
 ```dart
-  // ************** First way: (ID way) ************** 
+  // ************** First way: (tag way) ************** 
   class Firstway extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       return Column(
             children: <Widget> [
               StateBuilder(
-                stateID : YourState.yourStateID1 // you can use just a String "yourStateID1",
+                tag : YourTagenum.yourtag1 // you can use just a String "yourtag1",
                 blocs : [yourBloc],
                 initState: (_)=> yourBloc.fetchData1(),
                 builder: (_) => YourChildWidget(yourBloc.yourVar),
@@ -133,18 +153,18 @@ your main.dart file:
     }
   }
 
-    // ************** Second way: (ID way) ************** 
+    // ************** Second way: (tag way) ************** 
     class Secondway extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       return StateBuilder(
               initState: yourBloc.fetchData2,
-              builder: (State state) => Column(
+              builder: (String tagID) => Column(
                     children: <Widget> [
                       YourChildWidget(yourBloc.yourVar),
                       RaisedButton(
                         child: Text("Second way"),
-                        onPressed :yourBloc.yourMethod2(state),
+                        onPressed :yourBloc.yourMethod2(tagID),
                       ), 
                     ],
                   ),

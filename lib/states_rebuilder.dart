@@ -4,240 +4,499 @@ import 'package:flutter/widgets.dart';
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder {
-  Map<dynamic, List<Map<String, dynamic>>> _innerMap =
-      {}; //key holds the stateID and the value holds the state
+  Map<String, Map<String, VoidCallback>> _listeners =
+      {}; //key holds the listener tags and the value holds the listeners
 
-  /// Method to add state to the stateMap
-  addToInnerMap({dynamic id, int hashCode, Function fn, bool add: false}) {
-    if (add) {
-      _innerMap[id] = _innerMap[id] ?? [];
-      _innerMap[id].add({
-        "hashCode": hashCode,
-        "fn": fn,
-      });
-    } else {
-      _innerMap[id] = [
-        {
-          "hashCode": hashCode,
-          "fn": fn,
-        }
-      ];
+  /// Method to add listener to the _listeners Map
+  addToListeners(
+      {@required String tag,
+      @required VoidCallback listener,
+      @required String hashcode}) {
+    _listeners[tag] ??= {};
+    _listeners[tag][hashcode] = listener;
+  }
+
+  removeFromListeners(String tag, String hashcode) {
+    List<String> keys = List.from(listeners[tag]?.keys);
+    if (keys == null) return;
+    keys.forEach((k) {
+      if (k == hashcode) {
+        listeners[tag].remove(k);
+
+        return;
+      }
+    });
+    if (listeners[tag].isEmpty) {
+      listeners.remove(tag);
     }
   }
 
-  /// stateMap getter
-  Map<dynamic, List<dynamic>> get innerMap => _innerMap;
+  /// listeners getter
+  Map<String, Map<String, VoidCallback>> get listeners => _listeners;
+
+  String spliter = "";
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
-  /// It offers you two alternatives to rebuild any of your widgets.
-  ///
-  ///  `setState` : an optional VoidCallback to execute inside the Flutter setState() method
-  ///
-  ///  `ids`: First alternative to rebuild a particular widget indirectly by giving its id
-  ///
-  ///  `states` : Second alternative to rebuild a particular widget directly by giving its State
-
-  void rebuildStates([List<dynamic> states]) {
-    if (states != null) {
-      for (final state in states) {
-        if (state is _StateBuilderState ||
-            state is _StateBuilderStateTickerMix) {
-          state?._setState();
-        } else {
-          final ss = _innerMap[state];
-          ss?.forEach((e) {
-            if (e["fn"] != null) e["fn"]();
-          });
-        }
-      }
+  rebuildStates([List<dynamic> tags]) {
+    if (tags == null) {
+      _listeners.forEach((_, v) {
+        v?.forEach((__, listener) {
+          if (listener != null) listener();
+        });
+      });
     } else {
-      if (_innerMap.isNotEmpty) {
-        _innerMap.forEach((k, v) {
-          v?.forEach((e) {
-            if (e["fn"] != null) e["fn"]();
-          });
+      for (final tag in tags) {
+        if (tag is String) {
+          final split = tag?.split(spliter);
+          if (split.length > 1 && _listeners[split[0]] != null) {
+            _listeners[split[0]][split.last]();
+            continue;
+          }
+        }
+
+        final listenerList = _listeners["$tag"];
+        listenerList?.forEach((_, listener) {
+          if (listener != null) listener();
         });
       }
     }
   }
 }
 
-typedef _StateBuildertype = Widget Function(State state);
+typedef _StateBuildertype = Widget Function(BuildContext context, String tagID);
 
-class StateBuilder extends StatefulWidget {
-  /// You wrap any part of your widgets with `StateBuilder` Widget to make it available inside your logic classes and hence can rebuild it using `rebuildState` method
-  ///
-  ///  `stateID`: you define the ID of the state. This is the first alternative
-  ///  `blocs`: You give a list of the logic classes (BloC) you want this ID will be available.
-  ///
-  ///  `builder` : You define your top most Widget
-  ///
-  ///  `initState` : for code to be executed in the initState of a StatefulWidget
-  ///
-  ///  `dispose`: for code to be executed in the dispose of a StatefulWidget
-  ///
-  ///  `didChangeDependencies`: for code to be executed in the didChangeDependencies of a StatefulWidget
-  ///
-  ///  `didUpdateWidget`: for code to be executed in the didUpdateWidget of a StatefulWidget
-  ///
-  /// `withTickerProvider`
+abstract class _StateBuilder extends StatefulWidget {
+  _StateBuilder({
+    Key key,
+    this.tag,
+    this.blocs,
+    @required this.builder,
+  })  : assert(builder != null),
+        super(key: key);
 
+  final _StateBuildertype builder;
+  final dynamic tag;
+  final List<StatesRebuilder> blocs;
+}
+
+class StateBuilder extends _StateBuilder {
+  /// You wrap any part of your widgets with `StateBuilder` Widget to make it Reactive.
+  /// When `rebuildState` method is called and referred to it, it will rebuild.
   StateBuilder({
     Key key,
-    this.stateID,
+    this.tag,
+    @required this.blocs,
+    @required this.builder,
+    this.initState,
+    this.dispose,
+    this.didChangeDependencies,
+    this.didUpdateWidget,
+  }) : super(
+          key: key,
+          tag: tag,
+          blocs: blocs,
+          builder: builder,
+        );
+
+  ///```dart
+  ///StateBuilder(
+  ///  blocs:[myBloc],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///The build strategy currently used to rebuild the state.
+  /// `StateBuilder` widget can be rebuilt from the logic class using
+  ///the `rebuildState` method.
+  ///
+  ///The builder is provided with an [BuildContext] and [String] parameters.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this `StateBuilder`.
+  final _StateBuildertype builder;
+
+  ///```
+  ///StateBuilder(
+  ///  initState:(BuildContext context, String tagID)=> myBloc.init([context, tagID]),
+  ///  blocs:[myBloc],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///Called when this object is inserted into the tree.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
+  final Function(BuildContext context, String tagID) initState;
+
+  ///```
+  ///StateBuilder(
+  ///  dispose:(BuildContext context, String tagID)=> myBloc.dispose([context, tagID]),
+  ///  blocs:[myBloc],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///Called when this object is removed from the tree permanently.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
+  final Function(BuildContext context, String tagID) dispose;
+
+  ///```
+  ///StateBuilder(
+  ///  didChangeDependencies:(BuildContext context, String tagID)=> myBloc.myMethod([context, tagID]),
+  ///  blocs:[myBloc],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///Called when a dependency of this [State] object changes.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
+  final Function(BuildContext context, String tagID) didChangeDependencies;
+
+  ///```
+  ///StateBuilder(
+  ///  didUpdateWidget:(BuildContext context, String tagID,_StateBuilder oldWidget)=> myBloc.myMethod([context, tagID,oldWidget]),
+  ///  blocs:[myBloc],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///Called whenever the widget configuration changes.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
+  final void Function(
+          BuildContext context, String tagID, _StateBuilder oldWidget)
+      didUpdateWidget;
+
+  ///A custom name of your widget. It is used to rebuild this widget
+  ///from your logic classes.
+  ///
+  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
+  final dynamic tag;
+
+  ///```
+  ///StateBuilder(
+  ///  blocs:[myBloc1, myBloc2,myBloc3],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///List of your logic classes you want to rebuild this widget from.
+  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  final List<StatesRebuilder> blocs;
+
+  _StateBuilderState createState() => _StateBuilderState();
+}
+
+class _StateBuilderState extends State<StateBuilder> {
+  String _tag;
+  String _tagID;
+
+  @override
+  void initState() {
+    super.initState();
+    final tempTags =
+        _addListener(widget.blocs, widget.tag, "$hashCode", _listener);
+    _tag = tempTags[0];
+    _tagID = tempTags[1];
+    if (widget.initState != null) widget.initState(context, _tagID);
+  }
+
+  void _listener() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _removeListner(widget.blocs, _tag, hashCode, _listener);
+
+    if (widget.dispose != null) widget.dispose(context, _tagID);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.didChangeDependencies != null)
+      widget.didChangeDependencies(context, _tagID);
+  }
+
+  @override
+  void didUpdateWidget(_StateBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.didUpdateWidget != null)
+      widget.didUpdateWidget(context, _tagID, oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context, _tagID);
+  }
+}
+
+List<String> _addListener(List<StatesRebuilder> widgetBlocs, dynamic widgetTag,
+    String hashcode, VoidCallback listener) {
+  String tag, _tagID;
+
+  if (widgetBlocs != null) {
+    widgetBlocs.forEach(
+      (StatesRebuilder b) {
+        if (b == null) return null;
+        tag = (widgetTag != null && widgetTag != "")
+            ? "$widgetTag"
+            : "#@dFau_Lt${b.hashCode}TaG30";
+        _tagID = "$tag${b.spliter}$hashcode";
+        b.addToListeners(tag: tag, listener: listener, hashcode: hashcode);
+      },
+    );
+  }
+  return [tag, _tagID];
+}
+
+void _removeListner(
+  List<StatesRebuilder> widgetBlocs,
+  String tag,
+  int hashcode,
+  VoidCallback listener,
+) {
+  if (widgetBlocs != null) {
+    widgetBlocs.forEach(
+      (StatesRebuilder b) {
+        if (b == null) return;
+        if (tag == null) return;
+        b.removeFromListeners(tag, "$hashcode");
+      },
+    );
+  }
+}
+
+class StateWithMixinBuilder<T> extends _StateBuilder {
+  /// You wrap any part of your widgets with `StateBuilder` Widget to make it Reactive.
+  /// When `rebuildState` method is called and referred to it, it will rebuild.
+  StateWithMixinBuilder({
+    Key key,
+    this.tag,
     this.blocs,
     @required this.builder,
     this.initState,
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
-    this.withTickerProvider = false,
-  })  : assert(builder != null),
-        assert(stateID == null ||
-            blocs != null), // blocs must not be null if the stateID is given
-        super(key: key);
+    this.didChangeAppLifecycleState,
+    @required this.mixinWith,
+  })  : assert(() {
+          if (initState == null || dispose == null) {
+            if (mixinWith == MixinWith.singleTickerProviderStateMixin ||
+                mixinWith == MixinWith.tickerProviderStateMixin ||
+                mixinWith == MixinWith.widgetsBindingObserver) {
+              throw FlutterError('`initState` `dispose` must not be null\n'
+                  'For example if you are using `TickerProviderStateMixin` so you have to instantiate \n'
+                  'your controllers in the initState() and dispose them in the dispose() method\n'
+                  'If you do not need to use any controller set the (){}');
+            }
+          }
+          return true;
+        }()),
+        super(
+          key: key,
+          tag: tag,
+          blocs: blocs,
+          builder: builder,
+        );
 
-  ///The build strategy currently used update the state.
-  ///StateBuilder widget can berebuilt from the logic class using
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///The build strategy currently used to rebuild the state.
+  /// `StateWithMixinBuilder` widget can be rebuilt from the logic class using
   ///the `rebuildState` method.
   ///
-  ///The builder is provided with an [State] object.
-  @required
+  ///The builder is provided with an [BuildContext] and [String] parameters.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   final _StateBuildertype builder;
 
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  initState:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.init([context, tagID, ticker]),
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
   ///Called when this object is inserted into the tree.
-  final void Function(State state) initState;
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
+  ///
+  ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
+  final void Function(BuildContext context, String tagID, T mix) initState;
 
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  dispose:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.dispose([context, tagID, ticker]),
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
   ///Called when this object is removed from the tree permanently.
-  final void Function(State state) dispose;
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
+  ///
+  ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
+  final void Function(BuildContext context, String tagID, T mix) dispose;
 
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  didChangeDependencies:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.myMethod([context, tagID, ticker]),
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
   ///Called when a dependency of this [State] object changes.
-  final void Function(State state) didChangeDependencies;
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
+  ///
+  ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
+  final void Function(String tagID, T mix) didChangeDependencies;
 
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  didUpdateWidget:(BuildContext context, String tagID,_StateBuilder oldWidget, TickerProvider ticker)=> myBloc.myMethod([context, tagID,oldWidget, ticker]),
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
   ///Called whenever the widget configuration changes.
-  final void Function(StateBuilder oldWidget, State state) didUpdateWidget;
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
+  ///
+  ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
+  final void Function(
+          BuildContext context, String tagID, _StateBuilder oldWidget, T mix)
+      didUpdateWidget;
 
-  ///Unique name of your widget. It is used to rebuild this widget
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  didChangeAppLifecycleState:(BuildContext context, String tagID, AppLifecycleState state)=> myBloc.myMethod([context, tagID, state]),
+  ///  MixinWith : MixinWith.widgetsBindingObserver
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///Called when the system puts the app in the background or returns the app to the foreground.
+  ///
+  ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
+  ///
+  ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
+  final void Function(
+          BuildContext context, String tagID, AppLifecycleState state)
+      didChangeAppLifecycleState;
+
+  ///A custom name of your widget. It is used to rebuild this widget
   ///from your logic classes.
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
-  final dynamic stateID;
+  final dynamic tag;
 
+  ///```dart
+  ///StateWithMixinBuilder(
+  ///  blocs:[myBloc1, myBloc2,myBloc3],//If you want this widget to not rebuild, do not define any bloc.
+  ///  MixinWith : MixinWith.singleTickerProviderStateMixin
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
   ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
-
-  ///set to true if you want your state class to mix with `TickerProviderStateMixin`
-  ///Default value is false.
-  final bool withTickerProvider;
+  
+  ///An enum of Pre-defined mixins (ex: MixinWith.tickerProviderStateMixin)
+  final MixinWith mixinWith;
 
   createState() {
-    if (withTickerProvider) {
-      assert(() {
-        if (initState == null || dispose == null) {
-          throw FlutterError('`initState` `dispose` must not be null\n'
-              'You are using `TickerProviderStateMixin` so you have to instantiate \n'
-              'your controllers in the initState() and dispose them in the dispose() method\n'
-              'If you do not need to use any controller set `withTickerProvider` to false');
-        }
-
-        return true;
-      }());
-      return _StateBuilderStateTickerMix();
-    } else {
-      return _StateBuilderState();
+    switch (mixinWith) {
+      case MixinWith.tickerProviderStateMixin:
+        return _StateBuilderStateTickerMix();
+        break;
+      case MixinWith.singleTickerProviderStateMixin:
+        return _StateBuilderStateSingleTickerMix();
+        break;
+      case MixinWith.automaticKeepAliveClientMixin:
+        return _StateBuilderStateAutomaticKeepAliveClient();
+        break;
+      case MixinWith.widgetsBindingObserver:
+        return _StateBuilderStateWidgetsBindingObserver();
+        break;
+      default:
+        return _StateBuilderState();
     }
   }
 }
 
-class _StateBuilderStateTickerMix extends State<StateBuilder>
+enum MixinWith {
+  tickerProviderStateMixin,
+  singleTickerProviderStateMixin,
+  automaticKeepAliveClientMixin,
+  widgetsBindingObserver,
+}
+
+class _StateBuilderStateTickerMix
+    extends _StateBuilderStateWithMixin<TickerProviderStateMixin>
     with TickerProviderStateMixin {
   @override
-  void initState() {
-    super.initState();
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            b.addToInnerMap(
-                id: widget.stateID,
-                hashCode: this.hashCode,
-                fn: () {
-                  if (mounted) setState(() {});
-                });
-          },
-        );
-      }
-    }
-
-    widget.initState(this);
-  }
-
-  _setState() {
-    if (mounted) setState(() {});
-  }
-
-  @override
   void dispose() {
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            if (b.innerMap[widget.stateID] == null) return;
-            if (b.innerMap[widget.stateID][0] == null) return;
-            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
-              b.innerMap.remove(widget.stateID);
-            }
-          },
-        );
-      }
+    if (widget.dispose != null) {
+      widget.dispose(context, _tagID, _tiker);
     }
-
-    widget.dispose(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(this);
-  }
-
-  @override
-  void didUpdateWidget(StateBuilder oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.builder(this);
   }
 }
 
-class _StateBuilderState extends State<StateBuilder> {
+class _StateBuilderStateSingleTickerMix
+    extends _StateBuilderStateWithMixin<SingleTickerProviderStateMixin>
+    with SingleTickerProviderStateMixin {
+  @override
+  void dispose() {
+    if (widget.dispose != null) {
+      widget.dispose(context, _tagID, _tiker);
+    }
+    super.dispose();
+  }
+}
+
+class _StateBuilderStateAutomaticKeepAliveClient
+    extends _StateBuilderStateWithMixin
+    with AutomaticKeepAliveClientMixin<StateWithMixinBuilder> {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.builder(context, _tagID);
+  }
+}
+
+class _StateBuilderStateWidgetsBindingObserver
+    extends _StateBuilderStateWithMixin<WidgetsBindingObserver>
+    with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.didChangeAppLifecycleState != null)
+      widget.didChangeAppLifecycleState(context, _tagID, state);
+  }
+}
+
+class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
+  String _tag, _tagID;
+  T _tiker;
+
   @override
   void initState() {
     super.initState();
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            b.addToInnerMap(
-                id: widget.stateID,
-                hashCode: this.hashCode,
-                fn: () {
-                  if (mounted) setState(() {});
-                });
-          },
-        );
-      }
-    }
-    if (widget.initState != null) widget.initState(this);
+    final tempTags =
+        _addListener(widget.blocs, widget.tag, "$hashCode", _listener);
+    _tag = tempTags[0];
+    _tagID = tempTags[1];
+
+    _tiker = this as T;
+    if (widget.initState != null) widget.initState(context, _tagID, _tiker);
+  }
+
+  void _listener() {
+    if (mounted) setState(() {});
   }
 
   _setState() {
@@ -246,22 +505,7 @@ class _StateBuilderState extends State<StateBuilder> {
 
   @override
   void dispose() {
-    if (widget.stateID != null && widget.stateID != "") {
-      if (widget.blocs != null) {
-        widget.blocs.forEach(
-          (b) {
-            if (b == null) return;
-            if (b.innerMap[widget.stateID] == null) return;
-            if (b.innerMap[widget.stateID][0] == null) return;
-            if (b.innerMap[widget.stateID][0]["hashCode"] == this.hashCode) {
-              b.innerMap.remove(widget.stateID);
-            }
-          },
-        );
-      }
-    }
-
-    if (widget.dispose != null) widget.dispose(this);
+    _removeListner(widget.blocs, _tag, hashCode, _listener);
     super.dispose();
   }
 
@@ -269,18 +513,64 @@ class _StateBuilderState extends State<StateBuilder> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(this);
+      widget.didChangeDependencies(_tagID, _tiker);
   }
 
   @override
-  void didUpdateWidget(StateBuilder oldWidget) {
+  void didUpdateWidget(_StateBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null) widget.didUpdateWidget(oldWidget, this);
+    if (widget.didUpdateWidget != null)
+      widget.didUpdateWidget(context, _tagID, oldWidget, _tiker);
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(this);
+    return widget.builder(context, _tagID);
+  }
+}
+
+class _BlocProvider<T> extends InheritedWidget {
+  final bloc;
+  _BlocProvider({Key key, @required this.bloc, @required Widget child})
+      : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(_) => false;
+}
+
+class BlocProvider<T> extends StatefulWidget {
+  final Widget child;
+  final T bloc;
+  BlocProvider({@required this.child, @required this.bloc});
+
+  static T of<T>(BuildContext context) {
+    final type = _typeOf<_BlocProvider<T>>();
+
+    _BlocProvider<T> provider =
+        context.ancestorInheritedElementForWidgetOfExactType(type)?.widget;
+    return provider?.bloc;
+  }
+
+  static Type _typeOf<T>() => T;
+
+  @override
+  _BlocProviderState createState() => _BlocProviderState<T>();
+}
+
+class _BlocProviderState<T> extends State<BlocProvider> {
+  _BlocProvider<T> _blocProvider;
+  @override
+  void initState() {
+    super.initState();
+    _blocProvider = _BlocProvider<T>(
+      bloc: widget.bloc,
+      child: widget.child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _blocProvider;
   }
 }
 
