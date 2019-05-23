@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+
 import 'pages/1_rebuild_all.dart';
 import 'pages/2_rebuild_one.dart';
 import 'pages/3_rebuild_set.dart';
@@ -22,11 +23,12 @@ class MainBloc extends StatesRebuilder {
   dispose() {
     tabController.dispose();
   }
-}
+
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+// ************ Provide your BloC using BlocProvider ******************
+class CounterTabApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -39,6 +41,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+  
 class RootPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

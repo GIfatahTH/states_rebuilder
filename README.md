@@ -10,7 +10,9 @@ This Library provides three classes and one method:
   * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can filter the widgets to rebuild by tag.
   this is the signature of the `rebuildState`:
   ```dart
+  
   rebuildStates([List<dynamic> tags])
+
   ```
   * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to listeners list of your logic classes and hence can rebuild it using `rebuildState` method
   this is the constructor of the `StateBuilder`:
@@ -60,12 +62,14 @@ your_bloc.dart file:
   import 'package:flutter/material.dart';
   import 'package:states_rebuilder/states_rebuilder.dart'
 
+
   // enum is preferred over String to name your `tag` for big projects.
-  // The nume of the enum is of your choice. You can have many enums.
+  // The name of the enum is of your choice. You can have many enums.
 
   // -- Conventionally for each of your BloCs you define a corresponding enum.
   // -- For very large projects you can make all your enums in a single file.
-  enum YourState {yourtag1};
+
+  enum YourTagEnum {yourtag1};
 
   class YourBloc extends StatesRebuilder{
 
@@ -78,6 +82,7 @@ your_bloc.dart file:
       yourMethod1() {
         // some logic staff;
         yourVar = yourNewValue;
+
         rebuildStates([YourState.yourtag1]);
       }
 
@@ -134,7 +139,7 @@ your main.dart file:
       return Column(
             children: <Widget> [
               StateBuilder(
-                tag : YourState.yourtag1 // you can use just a String "yourtag1",
+                tag : YourTagenum.yourtag1 // you can use just a String "yourtag1",
                 blocs : [yourBloc],
                 initState: (_)=> yourBloc.fetchData1(),
                 builder: (_) => YourChildWidget(yourBloc.yourVar),

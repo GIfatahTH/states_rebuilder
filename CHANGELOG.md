@@ -5,7 +5,6 @@
  *  add `StateWithMixinBuilder` widget to account for some of the most used mixins.
  *  Optimize the code and improve performance
 
-
 ## 1.1.0
  * Add `withTickerProvider` parameter to `StateBuilder` widget.
 

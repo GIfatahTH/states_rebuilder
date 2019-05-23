@@ -1,6 +1,6 @@
 library states_rebuilder;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder {
@@ -401,7 +401,7 @@ class StateWithMixinBuilder<T> extends _StateBuilder {
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
-
+  
   ///An enum of Pre-defined mixins (ex: MixinWith.tickerProviderStateMixin)
   final MixinWith mixinWith;
 
@@ -486,7 +486,6 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
   @override
   void initState() {
     super.initState();
-
     final tempTags =
         _addListener(widget.blocs, widget.tag, "$hashCode", _listener);
     _tag = tempTags[0];
@@ -497,6 +496,10 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
   }
 
   void _listener() {
+    if (mounted) setState(() {});
+  }
+
+  _setState() {
     if (mounted) setState(() {});
   }
 
@@ -545,6 +548,50 @@ class BlocProvider<T> extends StatefulWidget {
 
     _BlocProvider<T> provider =
         context.ancestorInheritedElementForWidgetOfExactType(type)?.widget;
+    return provider?.bloc;
+  }
+
+  static Type _typeOf<T>() => T;
+
+  @override
+  _BlocProviderState createState() => _BlocProviderState<T>();
+}
+
+class _BlocProviderState<T> extends State<BlocProvider> {
+  _BlocProvider<T> _blocProvider;
+  @override
+  void initState() {
+    super.initState();
+    _blocProvider = _BlocProvider<T>(
+      bloc: widget.bloc,
+      child: widget.child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _blocProvider;
+  }
+}
+
+class _BlocProvider<T> extends InheritedWidget {
+  final bloc;
+  _BlocProvider({Key key, @required this.bloc, @required Widget child})
+      : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(_) => false;
+}
+
+class BlocProvider<T> extends StatefulWidget {
+  final Widget child;
+  final T bloc;
+  BlocProvider({@required this.child, @required this.bloc});
+
+  static T of<T>(BuildContext context) {
+    final type = _typeOf<_BlocProvider<T>>();
+
+    _BlocProvider<T> provider = context.inheritFromWidgetOfExactType(type);
     return provider?.bloc;
   }
 
