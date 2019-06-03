@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'states_rebuilder.dart';
 import 'common.dart';
@@ -8,22 +9,35 @@ class StateBuilder extends StateBuilderBase {
   StateBuilder({
     Key key,
     this.tag,
-    @required this.blocs,
+    this.blocs,
+    this.viewModels,
+    this.disposeViewModels,
     @required this.builder,
     this.initState,
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
-  }) : super(
+  })  : assert(() {
+          if (blocs == null && viewModels == null) {
+            throw FlutterError(
+                "ERR(StateBuilder)01: You have to define one of the `blocs` or `viewModels parameters.\n"
+                "`blocs` and `viewModels` are used interchangeably.\n"
+                "`blocs`  is deprecated and will be removed in the future.");
+          }
+          return true;
+        }()),
+        super(
           key: key,
           tag: tag,
           blocs: blocs,
+          viewModels: viewModels,
+          disposeViewModels: disposeViewModels,
           builder: builder,
         );
 
   ///```dart
   ///StateBuilder(
-  ///  blocs:[myBloc],
+  ///  viewModels:[myVM],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
   ///)
   ///```
@@ -39,7 +53,7 @@ class StateBuilder extends StateBuilderBase {
   ///```
   ///StateBuilder(
   ///  initState:(BuildContext context, String tagID)=> myBloc.init([context, tagID]),
-  ///  blocs:[myBloc],
+  ///  viewModels:[myVM],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
   ///)
   ///```
@@ -51,7 +65,7 @@ class StateBuilder extends StateBuilderBase {
   ///```
   ///StateBuilder(
   ///  dispose:(BuildContext context, String tagID)=> myBloc.dispose([context, tagID]),
-  ///  blocs:[myBloc],
+  ///  viewModels:[myVM],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
   ///)
   ///```
@@ -63,7 +77,7 @@ class StateBuilder extends StateBuilderBase {
   ///```
   ///StateBuilder(
   ///  didChangeDependencies:(BuildContext context, String tagID)=> myBloc.myMethod([context, tagID]),
-  ///  blocs:[myBloc],
+  ///  viewModels:[myVM],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
   ///)
   ///```
@@ -74,8 +88,8 @@ class StateBuilder extends StateBuilderBase {
 
   ///```
   ///StateBuilder(
-  ///  didUpdateWidget:(BuildContext context, String tagID,_StateBuilder oldWidget)=> myBloc.myMethod([context, tagID,oldWidget]),
-  ///  blocs:[myBloc],
+  ///  didUpdateWidget:(BuildContext context, String tagID,StateBuilderBase oldWidget)=> myBloc.myMethod([context, tagID,oldWidget]),
+  ///  viewModels:[myVM],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
   ///)
   ///```
@@ -92,7 +106,8 @@ class StateBuilder extends StateBuilderBase {
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   final dynamic tag;
 
-  ///```
+  ///Deprecated. Use viewModels instead.
+  ///```dart
   ///StateBuilder(
   ///  blocs:[myBloc1, myBloc2,myBloc3],
   ///  builder:(BuildContext context, String tagID) =>Mywidget(),
@@ -102,20 +117,43 @@ class StateBuilder extends StateBuilderBase {
   ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
+  ///```dart
+  ///StateBuilder(
+  ///  viewModels:[myVM1, myVM2,myVM3],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///List of your logic classes you want to rebuild this widget from.
+  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  final List<StatesRebuilder> viewModels;
+
+  final bool disposeViewModels;
   _StateBuilderState createState() => _StateBuilderState();
 }
 
 class _StateBuilderState extends State<StateBuilder> {
-  String _tag;
+  var _tag;
   String _tagID;
-
+  String uniqueID;
   @override
   void initState() {
     super.initState();
-    final tempTags =
-        addListener(widget.blocs, widget.tag, "$hashCode", _listener);
-    _tag = tempTags[0];
-    _tagID = tempTags[1];
+    uniqueID = shortHash(this) + UniqueKey().toString();
+    if (widget.tag is List) {
+      _tag = <String>[];
+      widget.tag.forEach((e) {
+        final tempTags = addListener(
+            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
+        _tag.add(tempTags[0]);
+        _tagID = tempTags[1];
+      });
+    } else {
+      final tempTags = addListener(
+          widget.viewModels ?? widget.blocs, widget.tag, uniqueID, _listener);
+      _tag = tempTags[0];
+      _tagID = tempTags[1];
+    }
+
     if (widget.initState != null) widget.initState(context, _tagID);
   }
 
@@ -125,7 +163,19 @@ class _StateBuilderState extends State<StateBuilder> {
 
   @override
   void dispose() {
-    removeListner(widget.blocs, _tag, hashCode, _listener);
+    if (widget.tag is List) {
+      _tag?.forEach((e) {
+        removeListner(
+            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
+      });
+    } else {
+      removeListner(
+          widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
+    }
+
+    if (widget.disposeViewModels == true) {
+      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+    }
 
     if (widget.dispose != null) widget.dispose(context, _tagID);
     super.dispose();
