@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocAnimAll extends StatesRebuilder {
   int counter = 0;
 
   AnimationController controller;
@@ -9,7 +9,7 @@ class CounterBloc extends StatesRebuilder {
 
   initAnimation(TickerProvider ticker) {
     controller =
-        AnimationController(duration: Duration(seconds: 2), vsync: ticker);
+        AnimationController(duration: Duration(seconds: 1), vsync: ticker);
     animation = Tween<double>(begin: 0, end: 2 * 3.14).animate(controller);
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -19,10 +19,9 @@ class CounterBloc extends StatesRebuilder {
   }
 
   VoidCallback listener;
-  triggerAnimation(tagID) {
-    animation.removeListener(listener);
+  triggerAnimation() {
     listener = () {
-      rebuildStates([tagID]);
+      rebuildStates();
     };
     animation.addListener(listener);
     controller.forward();
@@ -34,25 +33,25 @@ class CounterBloc extends StatesRebuilder {
   }
 }
 
-class AnimateSetExample extends StatelessWidget {
+class AnimateAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocAnimAll()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocAnimAll>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
-          Text("Animate a set of boxes"),
+          Text("Animate All subscribed states"),
           Expanded(
             child: StateWithMixinBuilder(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
@@ -63,13 +62,12 @@ class CounterGrid extends StatelessWidget {
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
-                          tag: i % 2,
                           blocs: [bloc],
-                          builder: (_, tagID) => Transform.rotate(
+                          builder: (_, __) => Transform.rotate(
                                 angle: bloc.animation.value,
                                 child: GridItem(
                                   count: bloc.counter,
-                                  onTap: () => bloc.triggerAnimation(i % 2),
+                                  onTap: () => bloc.triggerAnimation(),
                                 ),
                               ),
                         ),

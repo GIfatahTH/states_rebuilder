@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocAnimOne2 extends StatesRebuilder {
   int counter = 0;
 
   AnimationController controller;
@@ -19,9 +19,10 @@ class CounterBloc extends StatesRebuilder {
   }
 
   VoidCallback listener;
-  triggerAnimation() {
+  triggerAnimation(tagID) {
+    animation.removeListener(listener);
     listener = () {
-      rebuildStates();
+      rebuildStates([tagID]);
     };
     animation.addListener(listener);
     controller.forward();
@@ -33,25 +34,25 @@ class CounterBloc extends StatesRebuilder {
   }
 }
 
-class AnimateAllExample extends StatelessWidget {
+class AnimateOneExample2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocAnimOne2()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocAnimOne2>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
-          Text("Animate All subscribed states"),
+          Text("Animate the tapped box (after removing previous listeners)"),
           Expanded(
             child: StateWithMixinBuilder(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
@@ -63,11 +64,11 @@ class CounterGrid extends StatelessWidget {
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
                           blocs: [bloc],
-                          builder: (_, __) => Transform.rotate(
+                          builder: (_, tagID) => Transform.rotate(
                                 angle: bloc.animation.value,
                                 child: GridItem(
                                   count: bloc.counter,
-                                  onTap: () => bloc.triggerAnimation(),
+                                  onTap: () => bloc.triggerAnimation(tagID),
                                 ),
                               ),
                         ),

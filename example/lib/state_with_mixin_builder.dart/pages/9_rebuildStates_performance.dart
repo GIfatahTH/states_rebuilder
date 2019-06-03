@@ -3,7 +3,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 enum CounterTag { time }
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocPerf extends StatesRebuilder {
   int counter = 0;
   int time;
   String state;
@@ -64,17 +64,17 @@ class CounterBloc extends StatesRebuilder {
 class RebuildStatesPerformanceExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocPerf()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocPerf>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: StateWithMixinBuilder(

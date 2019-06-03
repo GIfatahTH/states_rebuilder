@@ -1,44 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocAll extends StatesRebuilder {
   int counter = 0;
-  increment(tagID) {
+  increment() {
     counter++;
-    rebuildStates([tagID]);
+    rebuildStates();
   }
 }
 
-class RebuildSetExample extends StatelessWidget {
+class RebuildAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocAll()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocAll>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
         children: <Widget>[
-          Text("Rebuild a set of widgets that have the same tag"),
+          Text("Rebuild All subscribed states"),
           Expanded(
             child: GridView.count(
               crossAxisCount: 3,
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
-                    tag: i % 2,
                     blocs: [bloc],
-                    builder: (_, tagID) => GridItem(
+                    builder: (_, __) => GridItem(
                           count: bloc.counter,
-                          onTap: () => bloc.increment(i % 2),
+                          onTap: () => bloc.increment(),
                         ),
                   )
               ],

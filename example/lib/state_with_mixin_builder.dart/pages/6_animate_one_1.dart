@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocAnimOne1 extends StatesRebuilder {
   int counter = 0;
 
   AnimationController controller;
@@ -20,7 +20,6 @@ class CounterBloc extends StatesRebuilder {
 
   VoidCallback listener;
   triggerAnimation(tagID) {
-    animation.removeListener(listener);
     listener = () {
       rebuildStates([tagID]);
     };
@@ -34,25 +33,25 @@ class CounterBloc extends StatesRebuilder {
   }
 }
 
-class AnimateOneExample2 extends StatelessWidget {
+class AnimateOneExample1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocAnimOne1()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocAnimOne1>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
-          Text("Animate the tapped box (after removing previous listeners)"),
+          Text("Animate the tapped box (without removing listeners)"),
           Expanded(
             child: StateWithMixinBuilder(
               mixinWith: MixinWith.singleTickerProviderStateMixin,

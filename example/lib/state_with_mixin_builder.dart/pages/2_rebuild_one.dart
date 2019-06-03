@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocOne extends StatesRebuilder {
   int counter = 0;
   increment(tagID) {
     counter++;
@@ -12,17 +12,17 @@ class CounterBloc extends StatesRebuilder {
 class RebuildOneExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocOne()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
+  final bloc = Injector.singleton<CounterBlocOne>();
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
     return StateWithMixinBuilder(
       mixinWith: MixinWith.automaticKeepAliveClientMixin,
       builder: (_, __) => Padding(

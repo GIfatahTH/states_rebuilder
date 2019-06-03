@@ -3,7 +3,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 enum CounterGridTag { isEven }
 
-class CounterBloc extends StatesRebuilder {
+class CounterBlocRemote extends StatesRebuilder {
   int counter = 0;
   bool isEven;
   increment(tagID) {
@@ -16,9 +16,9 @@ class CounterBloc extends StatesRebuilder {
 class RebuildRemoteExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector(
+      models: [() => CounterBlocRemote()],
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -26,7 +26,7 @@ class RebuildRemoteExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
+    final bloc = Injector.singleton<CounterBlocRemote>();
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
