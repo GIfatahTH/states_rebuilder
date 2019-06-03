@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'states_rebuilder.dart';
 import 'common.dart';
@@ -9,12 +10,14 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
     Key key,
     this.tag,
     this.blocs,
+    this.viewModels,
     @required this.builder,
     this.initState,
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.didChangeAppLifecycleState,
+    this.disposeViewModels,
     @required this.mixinWith,
   })  : assert(() {
           if (initState == null || dispose == null) {
@@ -33,7 +36,9 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
           key: key,
           tag: tag,
           blocs: blocs,
+          viewModels: viewModels,
           builder: builder,
+          disposeViewModels: disposeViewModels,
         );
 
   ///```dart
@@ -129,6 +134,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   final dynamic tag;
 
+  ///Deprecated. Use viewModels instead
   ///```dart
   ///StateWithMixinBuilder(
   ///  blocs:[myBloc1, myBloc2,myBloc3],//If you want this widget to not rebuild, do not define any bloc.
@@ -140,9 +146,20 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
+  ///```dart
+  ///StatesWithMixinRebuilder(
+  ///  viewModels:[myVM1, myVM2,myVM3],
+  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///)
+  ///```
+  ///List of your logic classes you want to rebuild this widget from.
+  ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
+  final List<StatesRebuilder> viewModels;
+
   ///An enum of Pre-defined mixins (ex: MixinWith.tickerProviderStateMixin)
   final MixinWith mixinWith;
 
+  final bool disposeViewModels;
   createState() {
     switch (mixinWith) {
       case MixinWith.tickerProviderStateMixin:
@@ -177,6 +194,8 @@ class _StateBuilderStateTickerMix
   void dispose() {
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
+    } else if (widget.disposeViewModels) {
+      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
     }
     super.dispose();
   }
@@ -189,6 +208,8 @@ class _StateBuilderStateSingleTickerMix
   void dispose() {
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
+    } else if (widget.disposeViewModels == true) {
+      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
     }
     super.dispose();
   }
@@ -205,6 +226,16 @@ class _StateBuilderStateAutomaticKeepAliveClient
     super.build(context);
     return widget.builder(context, _tagID);
   }
+
+  @override
+  void dispose() {
+    if (widget.dispose != null) {
+      widget.dispose(context, _tagID, _tiker);
+    } else if (widget.disposeViewModels == true) {
+      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+    }
+    super.dispose();
+  }
 }
 
 class _StateBuilderStateWidgetsBindingObserver
@@ -215,20 +246,41 @@ class _StateBuilderStateWidgetsBindingObserver
     if (widget.didChangeAppLifecycleState != null)
       widget.didChangeAppLifecycleState(context, _tagID, state);
   }
+
+  @override
+  void dispose() {
+    if (widget.dispose != null) {
+      widget.dispose(context, _tagID, _tiker);
+    } else if (widget.disposeViewModels == true) {
+      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+    }
+    super.dispose();
+  }
 }
 
 class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
-  String _tag, _tagID;
+  var _tag;
+  String _tagID;
   T _tiker;
-
+  String uniqueID;
   @override
   void initState() {
     super.initState();
-
-    final tempTags =
-        addListener(widget.blocs, widget.tag, "$hashCode", _listener);
-    _tag = tempTags[0];
-    _tagID = tempTags[1];
+    uniqueID = shortHash(this) + UniqueKey().toString();
+    if (widget.tag is List) {
+      _tag = <String>[];
+      widget.tag.forEach((e) {
+        final tempTags = addListener(
+            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
+        _tag.add(tempTags[0]);
+        _tagID = tempTags[1];
+      });
+    } else {
+      final tempTags = addListener(
+          widget.viewModels ?? widget.blocs, widget.tag, uniqueID, _listener);
+      _tag = tempTags[0];
+      _tagID = tempTags[1];
+    }
 
     _tiker = this as T;
     if (widget.initState != null) widget.initState(context, _tagID, _tiker);
@@ -240,7 +292,15 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
 
   @override
   void dispose() {
-    removeListner(widget.blocs, _tag, hashCode, _listener);
+    if (widget.tag is List) {
+      _tag?.forEach((e) {
+        removeListner(
+            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
+      });
+    } else {
+      removeListner(
+          widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
+    }
     super.dispose();
   }
 
