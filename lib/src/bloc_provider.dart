@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'states_rebuilder.dart';
 
 class _BlocProvider<T> extends InheritedWidget {
   final bloc;
@@ -9,7 +10,7 @@ class _BlocProvider<T> extends InheritedWidget {
   bool updateShouldNotify(_) => false;
 }
 
-class BlocProvider<T> extends StatefulWidget {
+class BlocProvider<T extends StatesRebuilder> extends StatefulWidget {
   final Widget child;
   final T bloc;
   BlocProvider({@required this.child, @required this.bloc});
@@ -37,6 +38,12 @@ class _BlocProviderState<T> extends State<BlocProvider> {
       bloc: widget.bloc,
       child: widget.child,
     );
+  }
+
+  @override
+  void dispose() {
+    widget.bloc.dispose();
+    super.dispose();
   }
 
   @override
