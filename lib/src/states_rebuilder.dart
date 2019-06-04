@@ -129,37 +129,36 @@ class StatesRebuilder {
     }
   }
 
-  dispose() {}
-
   rebuildFromStreams<T>({
-    List<Stream<T>> stream,
-    List<StreamController> controller,
+    List<Stream<T>> streams,
+    List<StreamController<T>> controllers,
     List<T> initialData,
-    @required List<dynamic> tag,
-    List<StreamTransformer> transform,
-    Function(AsyncSnapshot<T>) snapshotMerged,
-    Function(AsyncSnapshot) snapshotCombined,
-    Function(List<AsyncSnapshot<T>>) snapshots,
+    @required List<dynamic> tags,
+    List<StreamTransformer> transforms,
+    void Function(AsyncSnapshot<T>) snapshotMerged,
+    void Function(AsyncSnapshot<T>) snapshotCombined,
+    void Function(List<AsyncSnapshot<T>>) snapshots,
     Object Function(List<AsyncSnapshot<T>>) combine,
   }) {
     List<StreamSubscription<T>> _subscription = [];
     List<AsyncSnapshot<T>> _summary = [];
-    if (stream == null || stream.isEmpty) {
-      if (controller != null && controller.isNotEmpty) {
-        stream = [];
-        controller.forEach((c) => stream.add(c.stream));
+    if (streams == null || streams.isEmpty) {
+      if (controllers != null && controllers.isNotEmpty) {
+        streams = [];
+        controllers.forEach((c) => streams.add(c.stream));
       } else {
         throw FlutterError(
             "ERR(rebuildFromStreams)01: You have to define controller or streams");
       }
     }
-    final streamLength = stream.length;
+    final streamLength = streams.length;
     int _summaryLength;
-    if (transform != null && transform.isNotEmpty && stream != null) {
-      stream.asMap().forEach((k, e) {
-        if (transform.length == streamLength || transform.length == 1) {
-          stream[k] = stream[k].transform(
-              transform.length == streamLength ? transform[k] : transform[0]);
+    if (transforms != null && transforms.isNotEmpty && streams != null) {
+      streams.asMap().forEach((k, e) {
+        if (transforms.length == streamLength || transforms.length == 1) {
+          streams[k] = streams[k].transform(transforms.length == streamLength
+              ? transforms[k]
+              : transforms[0]);
         } else {
           throw FlutterError(
               "ERR(rebuildFromStreams)02: transform length is different from the stream or controller length.\n"
@@ -197,10 +196,11 @@ class StatesRebuilder {
       if (snapshots != null && _summaryLength == streamLength)
         snapshots(_summary);
       if (snapshotMerged != null) snapshotMerged(_summary[index]);
-      if (tag != null) {
-        if (tag.length == streamLength || tag.length == 1) {
+      if (tags != null) {
+        if (tags.length == streamLength || tags.length == 1) {
           if (_listeners.isNotEmpty && rebuild) {
-            rebuildStates(tag.length == stream.length ? [tag[index]] : tag[0]);
+            rebuildStates(
+                tags.length == streams.length ? [tags[index]] : tags[0]);
           }
         } else {
           throw FlutterError(
@@ -210,8 +210,8 @@ class StatesRebuilder {
       }
     }
 
-    if (stream != null) {
-      stream.asMap().forEach((k, s) {
+    if (streams != null) {
+      streams.asMap().forEach((k, s) {
         _summary.add(
           AsyncSnapshot<T>.withData(ConnectionState.none,
               initialData == null ? null : initialData[k]),
@@ -231,8 +231,8 @@ class StatesRebuilder {
         _summaryLength = _summary?.length;
         inner(k, false);
 
-        if (tag != null) {
-          _disposer["${tag[k]}"] = () {
+        if (tags != null) {
+          _disposer["${tags[k]}"] = () {
             _subscription[k].cancel();
             _subscription[k] = null;
           };
