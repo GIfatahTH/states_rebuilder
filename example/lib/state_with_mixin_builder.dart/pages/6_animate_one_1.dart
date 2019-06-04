@@ -44,7 +44,7 @@ class AnimateOneExample1 extends StatelessWidget {
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.singleton<CounterBlocAnimOne1>();
+  final bloc = Injector.get<CounterBlocAnimOne1>();
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -62,7 +62,7 @@ class CounterGrid extends StatelessWidget {
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
-                          blocs: [bloc],
+                          viewModels: [bloc],
                           builder: (_, tagID) => Transform.rotate(
                                 angle: bloc.animation.value,
                                 child: GridItem(

@@ -38,7 +38,7 @@ class CounterGrid extends StatelessWidget {
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
-                    blocs: [bloc],
+                    viewModels: [bloc],
                     builder: (_, __) => GridItem(
                           count: bloc.counter,
                           onTap: () => bloc.increment(),
@@ -130,7 +130,7 @@ class CounterGrid extends StatelessWidget {
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
-                          blocs: [bloc],
+                          viewModels: [bloc],
                           builder: (_, tagID) => GridItem(
                                 count: bloc.counter,
                                 onTap: () => bloc.increment(tagID),
@@ -219,7 +219,7 @@ class CounterGrid extends StatelessWidget {
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
                     tag: i % 2,
-                    blocs: [bloc],
+                    viewModels: [bloc],
                     builder: (_, tagID) => GridItem(
                           count: bloc.counter,
                           onTap: () => bloc.increment(i % 2),
@@ -338,7 +338,7 @@ class CounterGrid extends StatelessWidget {
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
                           tag: i % 2,
-                          blocs: [bloc],
+                          viewModels: [bloc],
                           builder: (_, tagID) => Transform.rotate(
                                 angle: bloc.animation.value,
                                 child: GridItem(

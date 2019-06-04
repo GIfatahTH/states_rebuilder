@@ -72,7 +72,7 @@ class RebuildStatesPerformanceExample extends StatelessWidget {
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.singleton<CounterBlocPerf>();
+  final bloc = Injector.get<CounterBlocPerf>();
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -89,7 +89,7 @@ class CounterGrid extends StatelessWidget {
         builder: (_, __) => Column(
               children: <Widget>[
                 StateBuilder(
-                    blocs: [bloc],
+                    viewModels: [bloc],
                     tag: CounterTag.time,
                     builder: (_, __) => Column(
                           children: <Widget>[
@@ -110,7 +110,7 @@ class CounterGrid extends StatelessWidget {
                             for (var i = 0; i < 12; i++)
                               StateBuilder(
                                 tag: i % 2,
-                                blocs: [bloc],
+                                viewModels: [bloc],
                                 builder: (_, tagID) => Transform.rotate(
                                       angle: bloc.animation.value,
                                       child: GridItem(

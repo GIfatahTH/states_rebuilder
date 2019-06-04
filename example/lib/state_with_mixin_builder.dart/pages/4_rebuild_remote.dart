@@ -26,7 +26,7 @@ class RebuildRemoteExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = Injector.singleton<CounterBlocRemote>();
+    final bloc = Injector.get<CounterBlocRemote>();
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -34,7 +34,7 @@ class CounterGrid extends StatelessWidget {
           Row(
             children: <Widget>[
               StateBuilder(
-                blocs: [bloc],
+                viewModels: [bloc],
                 tag: CounterGridTag.isEven,
                 builder: (_, __) => bloc.isEven == null
                     ? CircularProgressIndicator()
@@ -52,7 +52,7 @@ class CounterGrid extends StatelessWidget {
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
                     tag: i % 2,
-                    blocs: [bloc],
+                    viewModels: [bloc],
                     builder: (_, tagID) => GridItem(
                           count: bloc.counter,
                           onTap: () => bloc.increment(i % 2),

@@ -20,7 +20,7 @@ class RebuildOneExample extends StatelessWidget {
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.singleton<CounterBlocOne>();
+  final bloc = Injector.get<CounterBlocOne>();
   @override
   Widget build(BuildContext context) {
     return StateWithMixinBuilder(
@@ -38,7 +38,7 @@ class CounterGrid extends StatelessWidget {
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
-                          blocs: [bloc],
+                          viewModels: [bloc],
                           builder: (_, tagID) => GridItem(
                                 count: bloc.counter,
                                 onTap: () => bloc.increment(tagID),
