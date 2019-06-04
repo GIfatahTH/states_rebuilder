@@ -73,7 +73,7 @@ class TestWidget1stAlt extends StatelessWidget {
     return Container(
       child: Container(
         child: StateBuilder(
-          blocs: [testBloc],
+          viewModels: [testBloc],
           builder: (_, __) {
             return Text(
               testBloc.counter.toString(),
@@ -99,7 +99,7 @@ class TestWidget2sdAlt extends StatelessWidget {
         textDirection: TextDirection.ltr,
         child: Container(
           child: StateBuilder(
-            blocs: [testBloc],
+            viewModels: [testBloc],
             builder: (BuildContext context, String tagID) {
               return Column(children: [
                 Text(
