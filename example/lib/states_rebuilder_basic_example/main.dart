@@ -41,7 +41,6 @@ class CounterBloc extends StatesRebuilder {
   void increment1() {
     // Increment the counter
     _counter1++;
-    print("inc 1");
     // First alternative.
     // Widgets with these stateIDs will rebuild to reflect the new counter value.
     rebuildStates([CounterState.firstAlternative, CounterState.total]);
@@ -50,7 +49,6 @@ class CounterBloc extends StatesRebuilder {
   void increment2(String tagID) {
     // Increment the counter
     _counter2++;
-    print("inc 2");
 
     // Second alternative.
     // Widgets from which the increment2 method is called will rebuild.
@@ -61,7 +59,6 @@ class CounterBloc extends StatesRebuilder {
   void increment3() {
     // increment the counter
     _counter1++;
-    print("inc 3");
     // The third alternative
 
     // `rebuildStates()` with no parameter: All widgets that are wrapped with `StateBuilder` and
@@ -81,14 +78,7 @@ class CounterTabApp extends StatelessWidget {
     return Injector(
       models: [() => CounterBloc()],
       builder: (_) => MaterialApp(
-            home: Scaffold(
-              appBar: AppBar(),
-              body: Stack(
-                children: <Widget>[
-                  Container(child: FirstAlternative()),
-                ],
-              ),
-            ),
+            home: MyHomePage(),
           ),
     );
   }

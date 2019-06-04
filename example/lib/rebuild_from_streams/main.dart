@@ -111,7 +111,7 @@ class LogginScreen extends StatelessWidget {
             builder: (_, __) => TextField(
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    hintText: "your@email.com",
+                    hintText: "your@email.com. It sould contain '@'v",
                     labelText: "Email Aderess",
                     errorText: model.emailSnapshot.error,
                   ),
@@ -124,7 +124,7 @@ class LogginScreen extends StatelessWidget {
             builder: (_, __) => TextField(
                   onChanged: model.changepassword,
                   decoration: InputDecoration(
-                      hintText: "your password",
+                      hintText: "Password sould be more than three caracters",
                       labelText: 'Password',
                       errorText: model.passwordSnapshot.error),
                 ),

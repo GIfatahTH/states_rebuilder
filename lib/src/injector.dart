@@ -26,7 +26,6 @@ class _InjectorState extends State<Injector> {
   @override
   void initState() {
     super.initState();
-    print("init injecotr from test");
     widget.models.forEach((m) {
       String _modelName;
       Function creationFunction;
