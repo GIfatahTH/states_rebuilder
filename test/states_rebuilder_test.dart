@@ -54,12 +54,12 @@ class TestBloc extends StatesRebuilder {
 
   void increment([int value]) {
     _counter++;
-    rebuildStates(["textCounter"]);
+    rebuildStates();
   }
 
-  void increment2(int value, State state) {
+  void increment2(int value, String tagID) {
     _counter++;
-    rebuildStates([state]);
+    rebuildStates([tagID]);
   }
 }
 
@@ -73,9 +73,8 @@ class TestWidget1stAlt extends StatelessWidget {
     return Container(
       child: Container(
         child: StateBuilder(
-          stateID: "textCounter",
-          blocs: [testBloc],
-          builder: (_) {
+          viewModels: [testBloc],
+          builder: (_, __) {
             return Text(
               testBloc.counter.toString(),
               textDirection: TextDirection.ltr,
@@ -100,14 +99,15 @@ class TestWidget2sdAlt extends StatelessWidget {
         textDirection: TextDirection.ltr,
         child: Container(
           child: StateBuilder(
-            builder: (State state) {
+            viewModels: [testBloc],
+            builder: (BuildContext context, String tagID) {
               return Column(children: [
                 Text(
                   testBloc.counter.toString(),
                 ),
                 RaisedButton(
                   child: Text("Increment"),
-                  onPressed: () => testBloc.increment2(0, state),
+                  onPressed: () => testBloc.increment2(0, tagID),
                 ),
               ]);
             },

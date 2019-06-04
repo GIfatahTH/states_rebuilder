@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/main.dart';
+import '../lib/states_rebuilder_basic_example/main.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets('Counters increments', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(CounterTabApp());
+    await tester.pumpWidget(Injector(
+        models: [() => CounterBloc()],
+        builder: (_) => MaterialApp(
+              home: FirstAlternative(),
+            )));
 
-    // Verify that our both counters start at 0.
-    expect(find.text('0'), findsNWidgets(2));
-    expect(find.text('1'), findsNothing);
+    // Verify that counter1 starts at 0.
+    expect(find.text('0'), findsNWidgets(1));
+    expect(find.text('1'), findsNWidgets(0));
 
-    // Tap  the button  with Key("firstAlternative") and trigger a frame.
+    // Call increment1 and trigger a frame.
     // this is the first alternative
-    await tester.tap(find.byKey(Key("firstAlternative")));
+
+    Injector.get<CounterBloc>().increment1();
     await tester.pump();
 
-    // Verify that  counter1 and total have incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsNWidgets(2));
+    // Verify that only counter1 has incremented.
+    expect(find.text('0'), findsNWidgets(0));
+    expect(find.text('1'), findsNWidgets(1));
   });
 }
