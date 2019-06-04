@@ -150,12 +150,14 @@ your_bloc.dart file:
   import 'package:flutter/material.dart';
   import 'package:states_rebuilder/states_rebuilder.dart'
 
+
   // enum is preferred over String to name your `tag` for big projects.
-  // The nume of the enum is of your choice. You can have many enums.
+  // The name of the enum is of your choice. You can have many enums.
 
   // -- Conventionally for each of your BloCs you define a corresponding enum.
   // -- For very large projects you can make all your enums in a single file.
-  enum YourState {yourtag1};
+
+  enum YourTagEnum {yourtag1};
 
   class YourViewModel extends StatesRebuilder{
 
@@ -222,8 +224,8 @@ your main.dart file:
       return Column(
             children: <Widget> [
               StateBuilder(
-                tag : YourState.yourtag1 // you can use just a String "yourtag1",
-                viewModels : [yourVM],
+                tag : YourTagenum.yourtag1 // you can use just a String "yourtag1",
+                blocs : [yourBloc],
                 initState: (_)=> yourBloc.fetchData1(),
                 builder: (_) => YourChildWidget(yourBloc.yourVar),
             ),

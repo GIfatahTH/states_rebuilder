@@ -174,7 +174,6 @@ class GridItem extends StatelessWidget {
     );
   }
 }
-
 ```
 
 
@@ -264,9 +263,6 @@ class GridItem extends StatelessWidget {
 }
 
 ```
-
-
-
 
 # 3- Animation with StateWithMixinBuilder.
 
