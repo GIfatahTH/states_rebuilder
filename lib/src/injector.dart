@@ -1,49 +1,32 @@
 import 'package:flutter/material.dart';
-import 'states_rebuilder.dart';
-
-class _ServiceFactory {
-  Function() creationFunction;
-  Object instance;
-
-  _ServiceFactory({this.creationFunction, this.instance});
-
-  getObject(bool isfactory) {
-    if (instance == null) {
-      instance = creationFunction();
-    }
-    if (isfactory) {
-      return creationFunction();
-    }
-    return instance;
-  }
-}
 
 class Injector extends StatefulWidget {
   final Widget Function(BuildContext) builder;
   final List<Function()> models;
   Injector(
-      {this.builder, this.models, this.dispose, this.disposeViewModels = false})
+      {this.builder, this.models, this.dispose, this.disposeModels = false})
       : assert(models != null && builder != null);
 
   final VoidCallback dispose;
-  final bool disposeViewModels;
+  final bool disposeModels;
 
   // Inject the same singleton
-  static T singleton<T>([String name]) => _InjectorState._get<T>(false, name);
+  static T get<T>([String name]) => _InjectorState._get<T>(false, name);
 
   /// Inject a new instance
-  static T instance<T>([String name]) => _InjectorState._get<T>(true, name);
+  static T getNew<T>([String name]) => _InjectorState._get<T>(true, name);
 
   @override
   _InjectorState createState() => _InjectorState();
 }
 
 class _InjectorState extends State<Injector> {
-  final vm = new Map<String, _ServiceFactory>();
+  final vm = new Map<String, _Model>();
 
   @override
   void initState() {
     super.initState();
+    print("init injecotr from test");
     widget.models.forEach((m) {
       String _modelName;
       Function creationFunction;
@@ -71,8 +54,8 @@ class _InjectorState extends State<Injector> {
         }
         return true;
       }());
-      vm[_modelName] = _ServiceFactory(
-          creationFunction: creationFunction, instance: instance);
+      vm[_modelName] =
+          _Model(creationFunction: creationFunction, instance: instance);
       _modelsMap.addAll(vm);
     });
   }
@@ -82,10 +65,22 @@ class _InjectorState extends State<Injector> {
     if (widget.dispose != null) {
       widget.dispose();
     }
-    if (widget.disposeViewModels) {
+    if (widget.disposeModels) {
       vm.forEach((k, v) {
-        if (v.instance is StatesRebuilder) {
-          (v.instance as StatesRebuilder).dispose();
+        try {
+          v.instance?.dispose();
+        } catch (e) {
+          if ('$e'.contains(
+              "AnimationController.dispose() called more than once")) {
+            print(e);
+          } else {
+            print(
+                "You have set the parameter `disposeModels` of Injector to true.\n"
+                "Your model must have a dispose() method\n"
+                "If you are registering many models, and you want only a set of them to be dispsed,\n"
+                "wrap them inside another nested Injector widget and set  the parameter `disposeModels` to true\n");
+            rethrow;
+          }
         }
       });
     }
@@ -96,32 +91,42 @@ class _InjectorState extends State<Injector> {
     super.dispose();
   }
 
-  static final _modelsMap = new Map<String, _ServiceFactory>();
+  static final _modelsMap = new Map<String, _Model>();
 
-  static T _get<T>(bool isFactory, [String name]) {
-    _ServiceFactory object;
+  static T _get<T>(bool getNew, [String name]) {
+    _Model _model;
     if (name != null) {
       name = "$T-$name";
-      object = _modelsMap[name];
+      _model = _modelsMap[name];
     } else {
       name = "$T";
-      object = _modelsMap[name];
+      _model = _modelsMap[name];
     }
 
-    if (object == null) {
+    if (_model == null) {
       var _models = _modelsMap.keys;
-      print("Model of type '$name 'is not registered inside yet.\n"
+      print("Model of type '$name 'is not registered yet.\n"
           "You have to registere the model before calling it.\n"
           "To registere the model use the `Injector` widget.\n"
           "The list of registered models is : $_models");
       return null;
     }
 
-    return object.getObject(isFactory) as T;
+    if (getNew) {
+      return _model.creationFunction() as T;
+    }
+    return _model.instance as T;
   }
 
   @override
   Widget build(BuildContext context) {
     return widget.builder(context);
   }
+}
+
+class _Model {
+  final Function() creationFunction;
+  final instance;
+
+  _Model({this.creationFunction, this.instance});
 }
