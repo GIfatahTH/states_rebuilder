@@ -17,7 +17,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.didChangeAppLifecycleState,
-    this.disposeViewModels,
+    this.disposeViewModels = true,
     @required this.mixinWith,
   })  : assert(() {
           if (initState == null || dispose == null) {
@@ -195,7 +195,8 @@ class _StateBuilderStateTickerMix
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
     } else if (widget.disposeViewModels) {
-      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+      (widget.viewModels ?? widget.blocs)
+          ?.forEach((b) => (b as dynamic).dispose());
     }
     super.dispose();
   }
@@ -209,7 +210,8 @@ class _StateBuilderStateSingleTickerMix
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
     } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+      (widget.viewModels ?? widget.blocs)
+          ?.forEach((b) => (b as dynamic).dispose());
     }
     super.dispose();
   }
@@ -232,7 +234,8 @@ class _StateBuilderStateAutomaticKeepAliveClient
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
     } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+      (widget.viewModels ?? widget.blocs)
+          ?.forEach((b) => (b as dynamic).dispose());
     }
     super.dispose();
   }
@@ -252,7 +255,8 @@ class _StateBuilderStateWidgetsBindingObserver
     if (widget.dispose != null) {
       widget.dispose(context, _tagID, _tiker);
     } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+      (widget.viewModels ?? widget.blocs)
+          ?.forEach((b) => (b as dynamic).dispose());
     }
     super.dispose();
   }

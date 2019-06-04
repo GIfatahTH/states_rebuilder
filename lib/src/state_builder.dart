@@ -174,7 +174,8 @@ class _StateBuilderState extends State<StateBuilder> {
     }
 
     if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)?.forEach((b) => b.dispose());
+      (widget.viewModels ?? widget.blocs)
+          ?.forEach((b) => (b as dynamic).dispose());
     }
 
     if (widget.dispose != null) widget.dispose(context, _tagID);
