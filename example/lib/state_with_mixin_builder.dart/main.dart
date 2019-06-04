@@ -21,6 +21,7 @@ class MainBloc extends StatesRebuilder {
 
   dispose() {
     tabController.dispose();
+    print("tab controller is disposed");
   }
 }
 
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
 }
 
 class RootPage extends StatelessWidget {
-  final bloc = Injector.singleton<MainBloc>();
+  final bloc = Injector.get<MainBloc>();
   @override
   Widget build(BuildContext context) {
     return StateWithMixinBuilder(

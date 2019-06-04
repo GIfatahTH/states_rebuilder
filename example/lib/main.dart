@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import './states_rebuilder_basic_example/main.dart' as basicExample;
 import './state_with_mixin_builder.dart/main.dart' as stateWithMixin;
+import './rebuild_from_streams/main.dart' as rebuildFromStreams;
 
 void main() => runApp(MyApp());
 
@@ -36,8 +38,16 @@ class MyHomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           RaisedButton(
+            child: Text("Basic examples"),
+            onPressed: () => goto(basicExample.CounterTabApp(), context),
+          ),
+          RaisedButton(
             child: Text("StateWithMixinBuilder examples"),
             onPressed: () => goto(stateWithMixin.MyApp(), context),
+          ),
+          RaisedButton(
+            child: Text("RebuildFromStreams example"),
+            onPressed: () => goto(rebuildFromStreams.App(), context),
           ),
         ],
       ),
