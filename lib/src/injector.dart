@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import '../states_rebuilder.dart';
 
-class Injector extends StatefulWidget {
-  final Widget Function(BuildContext) builder;
+class Injector<T extends StatesRebuilder> extends StatefulWidget {
+  final Widget Function(BuildContext, T) builder;
   final List<Function()> models;
   Injector(
-      {this.builder, this.models, this.dispose, this.disposeModels = false})
+      {this.builder,
+      this.models,
+      this.initState,
+      this.dispose,
+      this.disposeModels = false})
       : assert(models != null && builder != null);
 
-  final VoidCallback dispose;
+  final Function(T) initState;
+  final Function(T) dispose;
+
   final bool disposeModels;
 
   // Inject the same singleton
@@ -17,10 +24,16 @@ class Injector extends StatefulWidget {
   static T getNew<T>([String name]) => _InjectorState._get<T>(true, name);
 
   @override
-  _InjectorState createState() => _InjectorState();
+  _InjectorState createState() =>
+      _InjectorState<T>(builder, initState, dispose);
 }
 
-class _InjectorState extends State<Injector> {
+class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
+  final Widget Function(BuildContext, T) builder;
+  final Function(T) _initState;
+  final Function(T) _dispose;
+  _InjectorState(this.builder, this._initState, this._dispose);
+
   final vm = new Map<String, _Model>();
 
   @override
@@ -49,7 +62,7 @@ class _InjectorState extends State<Injector> {
       }
       assert(() {
         if (_modelsMap.containsKey(_modelName)) {
-          throw FlutterError("the model $_modelName is already registred");
+          throw FlutterError("the model $_modelName is already registered");
         }
         return true;
       }());
@@ -61,9 +74,6 @@ class _InjectorState extends State<Injector> {
 
   @override
   void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose();
-    }
     if (widget.disposeModels) {
       vm.forEach((k, v) {
         try {
@@ -76,7 +86,7 @@ class _InjectorState extends State<Injector> {
             print(
                 "You have set the parameter `disposeModels` of Injector to true.\n"
                 "Your model must have a dispose() method\n"
-                "If you are registering many models, and you want only a set of them to be dispsed,\n"
+                "If you are registering many models, and you want only a set of them to be disposed,\n"
                 "wrap them inside another nested Injector widget and set  the parameter `disposeModels` to true\n");
             rethrow;
           }
@@ -105,8 +115,8 @@ class _InjectorState extends State<Injector> {
     if (_model == null) {
       var _models = _modelsMap.keys;
       print("Model of type '$name 'is not registered yet.\n"
-          "You have to registere the model before calling it.\n"
-          "To registere the model use the `Injector` widget.\n"
+          "You have to register the model before calling it.\n"
+          "To register the model use the `Injector` widget.\n"
           "The list of registered models is : $_models");
       return null;
     }
@@ -119,7 +129,21 @@ class _InjectorState extends State<Injector> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context);
+    final model = T != StatesRebuilder ? Injector.get<T>() : null;
+    return StateBuilder(
+      viewModels: [model],
+      initState: (_, __) {
+        if (_initState != null) {
+          _initState(model);
+        }
+      },
+      dispose: (_, __) {
+        if (_dispose != null) {
+          _dispose(model);
+        }
+      },
+      builder: (context, _) => builder(context, model),
+    );
   }
 }
 
