@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'states_rebuilder.dart';
 
-typedef StateBuildertype = Widget Function(BuildContext context, String tagID);
+typedef StateBuilderType = Widget Function(BuildContext context, String tagID);
 
 abstract class StateBuilderBase extends StatefulWidget {
   StateBuilderBase({
@@ -14,7 +14,7 @@ abstract class StateBuilderBase extends StatefulWidget {
   })  : assert(builder != null),
         super(key: key);
 
-  final StateBuildertype builder;
+  final StateBuilderType builder;
   final dynamic tag;
   final List<StatesRebuilder> blocs;
   final List<StatesRebuilder> viewModels;
@@ -22,7 +22,7 @@ abstract class StateBuilderBase extends StatefulWidget {
 }
 
 List<String> addListener(List<StatesRebuilder> widgetVM, dynamic widgetTag,
-    String hashcode, VoidCallback listener) {
+    String hashCode, VoidCallback listener) {
   String tag, _tagID;
 
   if (widgetVM != null) {
@@ -32,15 +32,15 @@ List<String> addListener(List<StatesRebuilder> widgetVM, dynamic widgetTag,
         tag = (widgetTag != null && widgetTag != "")
             ? "$widgetTag"
             : "#@dFau_Lt${b.hashCode}TaG30";
-        _tagID = "$tag${b.spliter}$hashcode";
-        b.addToListeners(tag: tag, listener: listener, hashcode: hashcode);
+        _tagID = "$tag${b.splitter}$hashCode";
+        b.addToListeners(tag: tag, listener: listener, hashCode: hashCode);
       },
     );
   }
   return [tag, _tagID];
 }
 
-void removeListner(
+void removeListener(
   List<StatesRebuilder> widgetVM,
   String tag,
   String uniqueID,

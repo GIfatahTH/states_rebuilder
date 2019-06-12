@@ -44,7 +44,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///```dart
   ///StateWithMixinBuilder(
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///The build strategy currently used to rebuild the state.
@@ -54,13 +54,13 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The builder is provided with an [BuildContext] and [String] parameters.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
-  final StateBuildertype builder;
+  final StateBuilderType builder;
 
   ///```dart
   ///StateWithMixinBuilder(
   ///  initState:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.init([context, tagID, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is inserted into the tree.
@@ -74,7 +74,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///StateWithMixinBuilder(
   ///  dispose:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.dispose([context, tagID, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is removed from the tree permanently.
@@ -88,7 +88,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///StateWithMixinBuilder(
   ///  didChangeDependencies:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.myMethod([context, tagID, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when a dependency of this [State] object changes.
@@ -101,7 +101,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///StateWithMixinBuilder(
   ///  didUpdateWidget:(BuildContext context, String tagID,StateBuilderBase oldWidget, TickerProvider ticker)=> myBloc.myMethod([context, tagID,oldWidget, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called whenever the widget configuration changes.
@@ -116,7 +116,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///StateWithMixinBuilder(
   ///  didChangeAppLifecycleState:(BuildContext context, String tagID, AppLifecycleState state)=> myBloc.myMethod([context, tagID, state]),
   ///  MixinWith : MixinWith.widgetsBindingObserver
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when the system puts the app in the background or returns the app to the foreground.
@@ -139,21 +139,21 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///StateWithMixinBuilder(
   ///  blocs:[myBloc1, myBloc2,myBloc3],//If you want this widget to not rebuild, do not define any bloc.
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
+  ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
   ///```dart
   ///StatesWithMixinRebuilder(
   ///  viewModels:[myVM1, myVM2,myVM3],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extand  `StatesWithMixinRebuilder`of the states_rebuilder package.
+  ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> viewModels;
 
   ///An enum of Pre-defined mixins (ex: MixinWith.tickerProviderStateMixin)
@@ -193,7 +193,7 @@ class _StateBuilderStateTickerMix
   @override
   void dispose() {
     if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _tiker);
+      widget.dispose(context, _tagID, _ticker);
     } else if (widget.disposeViewModels) {
       (widget.viewModels ?? widget.blocs)
           ?.forEach((b) => (b as dynamic).dispose());
@@ -208,7 +208,7 @@ class _StateBuilderStateSingleTickerMix
   @override
   void dispose() {
     if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _tiker);
+      widget.dispose(context, _tagID, _ticker);
     } else if (widget.disposeViewModels == true) {
       (widget.viewModels ?? widget.blocs)
           ?.forEach((b) => (b as dynamic).dispose());
@@ -232,7 +232,7 @@ class _StateBuilderStateAutomaticKeepAliveClient
   @override
   void dispose() {
     if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _tiker);
+      widget.dispose(context, _tagID, _ticker);
     } else if (widget.disposeViewModels == true) {
       (widget.viewModels ?? widget.blocs)
           ?.forEach((b) => (b as dynamic).dispose());
@@ -253,7 +253,7 @@ class _StateBuilderStateWidgetsBindingObserver
   @override
   void dispose() {
     if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _tiker);
+      widget.dispose(context, _tagID, _ticker);
     } else if (widget.disposeViewModels == true) {
       (widget.viewModels ?? widget.blocs)
           ?.forEach((b) => (b as dynamic).dispose());
@@ -265,7 +265,7 @@ class _StateBuilderStateWidgetsBindingObserver
 class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
   var _tag;
   String _tagID;
-  T _tiker;
+  T _ticker;
   String uniqueID;
   @override
   void initState() {
@@ -286,8 +286,8 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
       _tagID = tempTags[1];
     }
 
-    _tiker = this as T;
-    if (widget.initState != null) widget.initState(context, _tagID, _tiker);
+    _ticker = this as T;
+    if (widget.initState != null) widget.initState(context, _tagID, _ticker);
   }
 
   void _listener() {
@@ -298,11 +298,11 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
   void dispose() {
     if (widget.tag is List) {
       _tag?.forEach((e) {
-        removeListner(
+        removeListener(
             widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
       });
     } else {
-      removeListner(
+      removeListener(
           widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
     }
     super.dispose();
@@ -312,14 +312,14 @@ class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(_tagID, _tiker);
+      widget.didChangeDependencies(_tagID, _ticker);
   }
 
   @override
   void didUpdateWidget(StateBuilderBase oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.didUpdateWidget != null)
-      widget.didUpdateWidget(context, _tagID, oldWidget, _tiker);
+      widget.didUpdateWidget(context, _tagID, oldWidget, _ticker);
   }
 
   @override
