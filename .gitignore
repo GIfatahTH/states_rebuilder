@@ -12,3 +12,5 @@ ios/Runner/GeneratedPluginRegistrant.*
 .idea
 
 pubspec.lock
+.vscode/settings.json
+.gitignore
