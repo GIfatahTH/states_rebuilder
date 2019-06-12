@@ -1,7 +1,8 @@
+import 'package:counter_app/states_rebuilder_basic_example/blocs/counter_bloc.dart';
+import 'package:counter_app/states_rebuilder_basic_example/pages/first_alternative.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/states_rebuilder_basic_example/main.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -9,7 +10,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(Injector(
         models: [() => CounterBloc()],
-        builder: (_) => MaterialApp(
+        builder: (_, __) => MaterialApp(
               home: FirstAlternative(),
             )));
 

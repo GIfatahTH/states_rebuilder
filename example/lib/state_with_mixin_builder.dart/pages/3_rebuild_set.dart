@@ -14,7 +14,7 @@ class RebuildSetExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       models: [() => CounterBlocSet()],
-      builder: (_) => CounterGrid(),
+      builder: (_, __) => CounterGrid(),
     );
   }
 }

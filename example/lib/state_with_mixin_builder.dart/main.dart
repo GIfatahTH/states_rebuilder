@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       title: "Grid of Counters",
       home: Injector(
         models: [() => MainBloc()],
-        builder: (_) => RootPage(),
+        builder: (_, __) => RootPage(),
       ),
     );
   }

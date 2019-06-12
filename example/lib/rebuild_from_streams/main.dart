@@ -7,52 +7,37 @@ class MainViewModel extends StatesRebuilder {
   final passwordController = StreamController<String>.broadcast();
 
   Function(String) get changeEmail => emailController.sink.add;
-  Function(String) get changepassword => passwordController.sink.add;
+  Function(String) get changePassword => passwordController.sink.add;
 
-  AsyncSnapshot<String> emailSnapshot,
-      passwordSnapshot,
-      combidedSnapshot,
-      mergedSnapshot;
+  Streaming streamer;
+
+  AsyncSnapshot<String> get emailSnapshot => streamer.snapshots[0];
+  AsyncSnapshot<String> get passwordSnapshot => streamer.snapshots[1];
+
+  AsyncSnapshot<String> get mergedSnapshot => streamer.snapshotMerged;
+
+  //the combined snapshot. the combination function is given in `combine` closure
+  AsyncSnapshot<String> get combinedSnapshot => streamer.snapshotCombined;
 
   MainViewModel() {
     //The typical place to use `rebuildFromStreams`is in the constructor
-    rebuildFromStreams<String>(
+    streamer = Streaming<String, String>(
       //Note that `controller`, `streams`, `transforms` and `tags` are lists.
       //The order in the lists must match.
       controllers: [emailController, passwordController],
-      //Alternativally you can pass the streams
+      //Alternatively you can pass the streams
       // streams: [email, password],
       transforms: [validateEmail, validatePassword],
-      initialData: ["initial Email", "initial Password"],
-      //The tags to rebuild when the streams get data
-      //example : ``emailController`` has `validateEmail` as `transform` and will rebuild `email` tag.
-      tags: ["email", "password"],
+    )..addListener(this, ["email", "password"]);
 
-      //List of `snapshots` in the same order in `controllers` list
-      snapshots: (List<AsyncSnapshot<String>> snapshots) {
-        emailSnapshot = snapshots[0];
-        passwordSnapshot = snapshots[1];
-      },
-
-      //The merged snapshot of all the streams
-      snapshotMerged: (AsyncSnapshot<String> snap) {
-        mergedSnapshot = snap;
-      },
-
-      //the combined snapshot. the combination function is given in `combine` closuer
-      snapshotCombined: (snapshot) {
-        combidedSnapshot = snapshot;
-      },
-
-      //the combine function. the order is the same as in `controllers` list
-      combine: (List<AsyncSnapshot<String>> snaps) =>
-          "email: ${snaps[0].data} password: ${snaps[1].data}",
-    );
+    //the combine function. the order is the same as in `controllers` list
+    streamer.combineFn = (List<AsyncSnapshot> snaps) =>
+        "email: ${snaps[0].data} password: ${snaps[1].data}";
   }
 
   submit() {}
 
-  //The validatation of the email. It must containe @
+  //The validation of the email. It must contain @
   final validateEmail = StreamTransformer<String, String>.fromHandlers(
     handleData: (email, sink) {
       if (email.contains("@")) {
@@ -63,13 +48,13 @@ class MainViewModel extends StatesRebuilder {
     },
   );
 
-  //The validation of the password. It must have more than three caracters
+  //The validation of the password. It must have more than three characters
   final validatePassword = StreamTransformer<String, String>.fromHandlers(
     handleData: (password, sink) {
       if (password.length > 3) {
         sink.add(password);
       } else {
-        sink.addError("Enter a valid passwordd");
+        sink.addError("Enter a valid password");
       }
     },
   );
@@ -90,14 +75,14 @@ class App extends StatelessWidget {
         body: Injector(
           models: [() => MainViewModel()],
           disposeModels: true,
-          builder: (_) => LogginScreen(),
+          builder: (_, __) => LoginScreen(),
         ),
       ),
     );
   }
 }
 
-class LogginScreen extends StatelessWidget {
+class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = Injector.get<MainViewModel>();
@@ -111,8 +96,8 @@ class LogginScreen extends StatelessWidget {
             builder: (_, __) => TextField(
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    hintText: "your@email.com. It sould contain '@'v",
-                    labelText: "Email Aderess",
+                    hintText: "your@email.com. It should contain '@'",
+                    labelText: "Email Address",
                     errorText: model.emailSnapshot.error,
                   ),
                   onChanged: model.changeEmail,
@@ -122,9 +107,9 @@ class LogginScreen extends StatelessWidget {
             viewModels: [model],
             tag: "password",
             builder: (_, __) => TextField(
-                  onChanged: model.changepassword,
+                  onChanged: model.changePassword,
                   decoration: InputDecoration(
-                      hintText: "Password sould be more than three caracters",
+                      hintText: "Password should be more than three characters",
                       labelText: 'Password',
                       errorText: model.passwordSnapshot.error),
                 ),
@@ -138,10 +123,11 @@ class LogginScreen extends StatelessWidget {
             builder: (_, tagID) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   RaisedButton(
                     child: Text("login"),
-                    onPressed: model.combidedSnapshot.hasData
+                    onPressed: model.combinedSnapshot.hasData
                         ? () {
                             model.submit();
                           }
@@ -155,17 +141,15 @@ class LogginScreen extends StatelessWidget {
                     ],
                   ),
                   Divider(),
-                  Row(
-                    children: <Widget>[
-                      Text("Password data from snap :"),
-                      Text(model.passwordSnapshot.data ?? "ERROR")
-                    ],
-                  ),
+                  Text("Password data from snap :"),
+                  Text(model.passwordSnapshot.data ?? "ERROR"),
                   Divider(),
-                  Row(
+                  Column(
                     children: <Widget>[
                       Text("Merged data from snap   :"),
-                      Text(model.mergedSnapshot.data ?? "ERROR")
+                      Text(model.mergedSnapshot.hasError
+                          ? model.mergedSnapshot.error
+                          : model.mergedSnapshot.data ?? "NULL")
                     ],
                   ),
                   Divider(),
@@ -174,7 +158,9 @@ class LogginScreen extends StatelessWidget {
                       Text("Combined data from snap :"),
                     ],
                   ),
-                  Text(model.combidedSnapshot.data ?? "ERROR")
+                  Text(model.combinedSnapshot.hasError
+                      ? model.combinedSnapshot.error
+                      : model.combinedSnapshot.data ?? "NULL")
                 ],
               );
             },

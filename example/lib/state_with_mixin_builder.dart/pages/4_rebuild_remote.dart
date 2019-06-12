@@ -18,7 +18,7 @@ class RebuildRemoteExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       models: [() => CounterBlocRemote()],
-      builder: (_) => CounterGrid(),
+      builder: (_, __) => CounterGrid(),
     );
   }
 }

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import './states_rebuilder_basic_example/main.dart' as basicExample;
 import './state_with_mixin_builder.dart/main.dart' as stateWithMixin;
-import './rebuild_from_streams/main.dart' as rebuildFromStreams;
+import './rebuild_from_streams/main.dart' as streaming;
 
-void main() => runApp(Myapp());
+void main() => runApp(MyApp());
 
-class Myapp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,8 +46,8 @@ class MyHomePage extends StatelessWidget {
             onPressed: () => goto(stateWithMixin.MyApp(), context),
           ),
           RaisedButton(
-            child: Text("RebuildFromStreams example"),
-            onPressed: () => goto(rebuildFromStreams.App(), context),
+            child: Text("streaming example"),
+            onPressed: () => goto(streaming.App(), context),
           ),
         ],
       ),

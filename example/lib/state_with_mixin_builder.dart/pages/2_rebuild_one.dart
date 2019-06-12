@@ -14,7 +14,7 @@ class RebuildOneExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       models: [() => CounterBlocOne()],
-      builder: (_) => CounterGrid(),
+      builder: (_, __) => CounterGrid(),
     );
   }
 }

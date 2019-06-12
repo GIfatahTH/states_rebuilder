@@ -39,7 +39,7 @@ class AnimateOneExample2 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       models: [() => CounterBlocAnimOne2()],
-      builder: (_) => CounterGrid(),
+      builder: (_, __) => CounterGrid(),
     );
   }
 }

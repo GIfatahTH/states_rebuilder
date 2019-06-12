@@ -38,7 +38,7 @@ class AnimateAllExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       models: [() => CounterBlocAnimAll()],
-      builder: (_) => CounterGrid(),
+      builder: (_, __) => CounterGrid(),
     );
   }
 }
