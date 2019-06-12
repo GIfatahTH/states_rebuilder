@@ -1,3 +1,9 @@
+## 1.3.1
+* remove `rebuildFromStreams`.
+* Initial release of `Streaming` class
+* The builder closure of the `Injector` takes (BuildContext context, T model) where T is the generic type.
+* Fix typos
+
 ## 1.3.0
 * Initial release of `rebuildFromStreams` method.
 * Initial release of `Injector` for Dependency Injection.
@@ -16,9 +22,9 @@
 
 
 ## 1.0.0
- * Add `BlocProvder`to provide your BloCs.
+ * Add `BlocProvider`to provide your BloCs.
  * You can use enums to name your `StateBuilder` widgets.
- * `rebuildStates` now has only one positioned parameter of List<dynmaic>.
+ * `rebuildStates` now has only one positioned parameter of List<dynamic>.
  * If `rebuildStates` is given without parameter, it will rebuild all widgets that have `stateID`.
  * improve performance.
 

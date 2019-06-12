@@ -3,7 +3,7 @@
 A Flutter state management solution that allows you: 
   * to separate your User Interface (UI) representation from your logic classes
   * to easily control how your widgets rebuild to reflect the actual state of your application.
-  * to inject depencies using Injector 
+  * to inject dependencies using Injector 
 
 
 ### For State Management see this [Medium Article](https://medium.com/flutter-community/widget-perfect-state-management-in-flutte-is-it-possible-73e76c205620)
@@ -32,9 +32,9 @@ This Library provides Four classes and two methods:
       (BuildContext, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
     });
   ```
-  `tag` is of type dynmaic. It can be String (for small projects) or enum member (enums are preferred for big projects).When a list of dynamic tags is provided, states_rebuilder consider it as many tags and will rebuild this widget if any of theses tags are invoked by the `rebuildStates` method.
+  `tag` is of type dynamic. It can be String (for small projects) or enum member (enums are preferred for big projects).When a list of dynamic tags is provided, states_rebuilder consider it as many tags and will rebuild this widget if any of theses tags are invoked by the `rebuildStates` method.
 
- * To extands the state with mixin (practical case is animation), use `StateWithMixinBuilder`
+ * To extends the state with mixin (practical case is animation), use `StateWithMixinBuilder`
 ```Dart
 StateWithMixinBuilder<T>( {
       Key key, 
@@ -49,23 +49,33 @@ StateWithMixinBuilder<T>( {
       @required MixinWith mixinWith
 });
 ```
-  Avaibable mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
+  Available mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
 * With `rebuildFromStreams` method you can control the rebuild of many widgets from single subscription StreamController. You can listen to many streams, merge them and combine them.
 ```dart
-rebuildFromStreams<T>({
-  // Inputs
+Streaming<T, S>({
   List<Stream<T>> streams, //You define a list of streams or
   List<StreamController<T>> controllers, // a list of controllers
-  List<T> initialData, // List of initialdate. the order of the list is the same as in controller or stream list.
-  List<dynamic> tags, // List of tags of widgets to rebuild when streams has data
-  List<StreamTransformer> transforms, // list of transform to apply on streams.
+  List<T> initialData, // List of initialData. the order of the list is the same as in controller or stream list.
+  List<StreamTransformer<dynamic, dynamic>> transforms,  // list of transform to apply on streams.
+  (List<AsyncSnapshot<T>>) → S combineFn // The combination function.
+  })
 
-  // Outputs
-  (List<AsyncSnapshot<T>>) → void snapshots, //List of snapshots in the same order as in streams list
-  (AsyncSnapshot<T>) → void snapshotMerged, // The merged snapshot of all the streams.
-  (AsyncSnapshot<T>) → void snapshotCombined, // The combined snapshot. the combination function is given in `combine` closuer.
-  (List<AsyncSnapshot<T>>) → Object combine // The combination function.
-}) 
+ // To add a listener form any of your viewModels :
+streaming.addListener(this, ["optional tag"]);
+
+// To get any snapshot from your viewModel:
+  AsyncSnapshot<T> get firstSnapshot => streamer.snapshots[0]; // Snapshot of the first stream
+  AsyncSnapshot<T> get secondSnapshot => streamer.snapshots[1]; // Snapshot of the second stream
+  .
+  .
+  AsyncSnapshot<T> get secondSnapshot => streamer.snapshots[n]; // Snapshot of the n th stream
+
+// To get the merged result of the streams from your viewModel:
+ AsyncSnapshot<T> get mergedSnapshot => streamer.snapshotMerged;
+
+// To get the combined result of the streams from your viewModel:
+ AsyncSnapshot<S> get combinedSnapshot => streamer.snapshotCombined;
+
 ```
 
   * `BlocProvider` widget. Used to provide your BloCs
@@ -79,9 +89,9 @@ rebuildFromStreams<T>({
   * Injector widget as dependency injection:
   to register model and services use Injector the same way you use BlocProvider
   ```dart
-  Injector({
+  Injector<T>({
     List<() → dynamic> models, // List of models to register
-    (BuildContext) → Widget builder, 
+    (BuildContext context, T model) → Widget builder, // The model with type T is the viewModel related to this view. When `rebuildStates()` is called in this model this widget will rebuild.
     () → void dispose, // a custom method to call when Injector is disposed.
     bool disposeModels: false // Whether Injector will automatically call dispose method from the registered models.
   }) 
@@ -103,6 +113,7 @@ rebuildFromStreams<T>({
 ## Prototype Example for dependency injection
 
 ```dart
+//Without generic type
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -110,12 +121,29 @@ class MyApp extends StatelessWidget {
       models: [
         () => ModelA(),
         () => ModelB(),
-        () => ModelC(Injector.get<ModelA>()),// Directy inject ModelA in ModelC construtor
+        () => ModelC(Injector.get<ModelA>()),// Directly inject ModelA in ModelC constructor
         () => ModelD(),
        // () => ModelD(),// Not allowed. Model can be registered only once.
-        () => [ModelD(),"costumName"], // To register many model of the same type use this approach
+        () => [ModelD(),"costumeName"], // To register many model of the same type use this approach
         ],
-      builder: (_) => MyWidget(),
+      builder: (context,model) => MyWidget(), // model is null, because no generic type is given
+    );
+  }
+
+  //With generic type
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector<ModelA>( // `ModelA` should extend `StatesRebuilder`.
+      models: [
+        () => ModelA(),
+        () => ModelB(),
+        () => ModelC(Injector.get<ModelA>()),// Directly inject ModelA in ModelC constructor
+        () => ModelD(),
+       // () => ModelD(),// Not allowed. Model can be registered only once.
+        () => [ModelD(),"costumeName"], // To register many model of the same type use this approach
+        ],
+      builder: (context,model) => MyWidget(), // model is of type `ModelA`. when `rebuildStates()` is called in `ModelA` this widget will rebuild
     );
   }
 
@@ -125,7 +153,7 @@ class MyApp extends StatelessWidget {
     final modelA = Injector.get<ModelA>();
     final modelA1 = Injector.getNew<ModelA>();
     final modelD = Injector.get<ModelD>();
-    final modelDNamed = Injector.get<ModelD>("costumName");
+    final modelDNamed = Injector.get<ModelD>("costumeName");
 
 
     @override
@@ -157,7 +185,7 @@ your_bloc.dart file:
   // -- Conventionally for each of your BloCs you define a corresponding enum.
   // -- For very large projects you can make all your enums in a single file.
 
-  enum YourTagEnum {yourtag1};
+  enum YourTagEnum {yourTag1};
 
   class YourViewModel extends StatesRebuilder{
 
@@ -170,13 +198,13 @@ your_bloc.dart file:
       yourMethod1() {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates([YourState.yourtag1]);
+        rebuildStates([YourState.yourTag1]);
       }
 
       // example of fetching data and rebuilding widgets after obtaining the data
       fetchData1() async {
         await yourRepository.fetchDate();
-        rebuildStates([YourState.yourtag1]);
+        rebuildStates([YourState.yourTag1]);
       }
 
       /// ************** Second way (tag way) **************
@@ -198,7 +226,7 @@ your_bloc.dart file:
       yourMethod3(String tagID) {
         // some logic staff;
         yourVar = yourNewValue;
-        rebuildStates([tagID, YourState.yourtag1]);
+        rebuildStates([tagID, YourState.yourTag1]);
       }
 
 
@@ -218,13 +246,13 @@ your main.dart file:
 
 ```dart
   // ************** First way: (tag way) ************** 
-  class Firstway extends StatelessWidget {
+  class FirstWay extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       return Column(
             children: <Widget> [
               StateBuilder(
-                tag : YourTagenum.yourtag1 // you can use just a String "yourtag1",
+                tag : YourTagEnum.yourTag1 // you can use just a String "yourTag1",
                 blocs : [yourBloc],
                 initState: (_)=> yourBloc.fetchData1(),
                 builder: (_) => YourChildWidget(yourBloc.yourVar),
@@ -239,7 +267,7 @@ your main.dart file:
   }
 
     // ************** Second way: (tag way) ************** 
-    class Secondway extends StatelessWidget {
+    class SecondWay extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       return StateBuilder(
