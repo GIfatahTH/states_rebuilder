@@ -38,7 +38,7 @@ class StateBuilder extends StateBuilderBase {
   ///```dart
   ///StateBuilder(
   ///  viewModels:[myVM],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///The build strategy currently used to rebuild the state.
@@ -48,13 +48,13 @@ class StateBuilder extends StateBuilderBase {
   ///The builder is provided with an [BuildContext] and [String] parameters.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this `StateBuilder`.
-  final StateBuildertype builder;
+  final StateBuilderType builder;
 
   ///```
   ///StateBuilder(
   ///  initState:(BuildContext context, String tagID)=> myBloc.init([context, tagID]),
   ///  viewModels:[myVM],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is inserted into the tree.
@@ -66,7 +66,7 @@ class StateBuilder extends StateBuilderBase {
   ///StateBuilder(
   ///  dispose:(BuildContext context, String tagID)=> myBloc.dispose([context, tagID]),
   ///  viewModels:[myVM],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is removed from the tree permanently.
@@ -78,7 +78,7 @@ class StateBuilder extends StateBuilderBase {
   ///StateBuilder(
   ///  didChangeDependencies:(BuildContext context, String tagID)=> myBloc.myMethod([context, tagID]),
   ///  viewModels:[myVM],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called when a dependency of this [State] object changes.
@@ -90,7 +90,7 @@ class StateBuilder extends StateBuilderBase {
   ///StateBuilder(
   ///  didUpdateWidget:(BuildContext context, String tagID,StateBuilderBase oldWidget)=> myBloc.myMethod([context, tagID,oldWidget]),
   ///  viewModels:[myVM],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///Called whenever the widget configuration changes.
@@ -110,21 +110,21 @@ class StateBuilder extends StateBuilderBase {
   ///```dart
   ///StateBuilder(
   ///  blocs:[myBloc1, myBloc2,myBloc3],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> blocs;
 
   ///```dart
   ///StateBuilder(
   ///  viewModels:[myVM1, myVM2,myVM3],
-  ///  builder:(BuildContext context, String tagID) =>Mywidget(),
+  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extand  `StatesRebuilder`of the states_rebuilder package.
+  ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> viewModels;
 
   final bool disposeViewModels;
@@ -165,11 +165,11 @@ class _StateBuilderState extends State<StateBuilder> {
   void dispose() {
     if (widget.tag is List) {
       _tag?.forEach((e) {
-        removeListner(
+        removeListener(
             widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
       });
     } else {
-      removeListner(
+      removeListener(
           widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
     }
 
