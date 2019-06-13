@@ -1,9 +1,10 @@
-import 'package:counter_app/states_rebuilder_basic_example/blocs/counter_bloc.dart';
-import 'package:counter_app/states_rebuilder_basic_example/pages/first_alternative.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
+
+import '../lib/states_rebuilder_basic_example/blocs/counter_bloc.dart';
+import '../lib/states_rebuilder_basic_example/pages/first_alternative.dart';
 
 void main() {
   testWidgets('Counters increments', (WidgetTester tester) async {

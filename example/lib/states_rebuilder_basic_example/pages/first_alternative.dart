@@ -1,6 +1,6 @@
-import 'package:counter_app/states_rebuilder_basic_example/blocs/counter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+import '../blocs/counter_bloc.dart';
 
 class FirstAlternative extends StatelessWidget {
   final counterBloc = Injector.get<CounterBloc>();

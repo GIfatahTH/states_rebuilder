@@ -1,9 +1,9 @@
-import 'package:counter_app/states_rebuilder_basic_example/pages/second_alternative.dart';
-import 'package:counter_app/states_rebuilder_basic_example/pages/third_alternative.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../pages/first_alternative.dart';
+import '../pages/second_alternative.dart';
+import '../pages/third_alternative.dart';
 
 // enum is preferred over String to name your `tag` for big projects.
 // The name of the enums is of your choice. You can have many enums.
