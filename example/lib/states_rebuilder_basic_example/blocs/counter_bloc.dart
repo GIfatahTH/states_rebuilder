@@ -18,7 +18,6 @@ enum CounterState { firstAlternative, total }
 // It must extend from StatesRebuilder.
 class CounterBloc extends StatesRebuilder {
   TabController tabController;
-
   int _counter1 = 0;
   int _counter2 = 0;
 

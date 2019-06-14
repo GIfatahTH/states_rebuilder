@@ -20,8 +20,10 @@ class MainViewModel extends StatesRebuilder {
   AsyncSnapshot<String> get combinedSnapshot => streamer.snapshotCombined;
 
   MainViewModel() {
-    //The typical place to use `rebuildFromStreams`is in the constructor
-    streamer = Streaming<String, String>(
+    this
+        .
+        //The typical place to use `rebuildFromStreams`is in the constructor
+        streamer = Streaming<String, String>(
       //Note that `controller`, `streams`, `transforms` and `tags` are lists.
       //The order in the lists must match.
       controllers: [emailController, passwordController],

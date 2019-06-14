@@ -12,27 +12,31 @@ import '../states_rebuilder.dart';
 ///Streaming<T, S> : T is the type of the streams and S is the type of the result of the combination of streams.
 class Streaming<T, S> {
   ///List of streams
-  List<Stream<T>> streams;
+  // List<Stream<T>> streams;
+  List<Stream<T>> _streams;
 
   ///List of controllers
-  List<StreamController<T>> controllers;
+  List<StreamController<T>> _controllers;
 
   ///List of initialData
   ///The order of the List is the same as in controller or stream list
-  List<T> initialData;
+  List<T> _initialData;
 
   ///List of transforms
   ///The order of the List is the same as in controller or stream list
-  List<StreamTransformer> transforms;
+  List<StreamTransformer> _transforms;
 
   /// The merged snapshot of all the streams
-  AsyncSnapshot<T> snapshotMerged;
+  AsyncSnapshot<T> get snapshotMerged => _snapshotMerged;
+  AsyncSnapshot<T> _snapshotMerged;
 
   /// The combined snapshot. the combination function is given in `combine` closure.
-  AsyncSnapshot<S> snapshotCombined;
+  AsyncSnapshot<S> get snapshotCombined => _snapshotCombined;
+  AsyncSnapshot<S> _snapshotCombined;
 
   ///List of snapshots in the same order as in streams list
-  List<AsyncSnapshot<T>> snapshots;
+  List<AsyncSnapshot<T>> get snapshots => _snapshots;
+  List<AsyncSnapshot<T>> _snapshots;
 
   ///The combination function.
   S Function(List<AsyncSnapshot<T>>) combineFn;
@@ -43,28 +47,33 @@ class Streaming<T, S> {
   Map<String, VoidCallback> _listeners = {};
 
   Streaming(
-      {this.streams,
-      this.controllers,
-      this.initialData,
-      this.transforms,
+      {List<Stream<T>> streams,
+      List<StreamController<T>> controllers,
+      List<T> initialData,
+      List<StreamTransformer> transforms,
       this.combineFn}) {
-    if (streams == null || streams.isEmpty) {
-      if (controllers != null && controllers.isNotEmpty) {
-        streams = [];
-        controllers.forEach((c) => streams.add(c.stream));
+    _streams = streams;
+    _controllers = controllers;
+    _initialData = initialData;
+    _transforms = transforms;
+
+    if (_streams == null || _streams.isEmpty) {
+      if (_controllers != null && _controllers.isNotEmpty) {
+        _streams = [];
+        _controllers.forEach((c) => _streams.add(c.stream));
       } else {
         throw FlutterError(
             "ERR(Streamer)01: You have to define controllers or streams");
       }
     }
-    int streamLength = streams.length;
+    int streamLength = _streams.length;
 
-    if (transforms != null && transforms.isNotEmpty && streams != null) {
-      streams.asMap().forEach((k, e) {
-        if (transforms.length == streamLength || transforms.length == 1) {
-          streams[k] = streams[k].transform(transforms.length == streamLength
-              ? transforms[k]
-              : transforms[0]);
+    if (_transforms != null && _transforms.isNotEmpty && _streams != null) {
+      _streams.asMap().forEach((k, e) {
+        if (_transforms.length == streamLength || _transforms.length == 1) {
+          _streams[k] = _streams[k].transform(_transforms.length == streamLength
+              ? _transforms[k]
+              : _transforms[0]);
         } else {
           throw FlutterError(
               "ERR(Streaming)02: transform length is different from the stream or controller length.\n"
@@ -73,46 +82,48 @@ class Streaming<T, S> {
       });
     }
 
-    if (initialData != null &&
-        initialData.length != 1 &&
-        initialData.length != streamLength) {
+    if (_initialData != null &&
+        _initialData.length != 1 &&
+        _initialData.length != streamLength) {
       throw FlutterError(
           "ERR(Streaming)03: initialData length is different from the stream or controller length.\n"
           "You can provide one initialData to be applied to all the streams");
     }
 
-    if (streams != null) {
-      streams.asMap().forEach((k, s) {
+    if (_streams != null) {
+      _streams.asMap().forEach((k, s) {
         _summary.add(
           AsyncSnapshot<T>.withData(
               ConnectionState.none,
-              initialData == null
+              _initialData == null
                   ? null
-                  : initialData.length == 1 ? initialData[0] : initialData[k]),
+                  : _initialData.length == 1
+                      ? _initialData[0]
+                      : _initialData[k]),
         );
         _subscription.add(s.listen((data) {
           _summary[k] = AsyncSnapshot<T>.withData(ConnectionState.active, data);
-          inner(k);
+          _inner(k);
         }, onError: (error) {
           _summary[k] =
               AsyncSnapshot<T>.withError(ConnectionState.active, error);
-          inner(k);
+          _inner(k);
         }, onDone: () {
           _summary[k] = _summary[k].inState(ConnectionState.done);
-          if (!controllers[k].isClosed) inner(k);
+          if (!_controllers[k].isClosed) _inner(k);
         }, cancelOnError: false));
         _summary[k] = _summary[k].inState(ConnectionState.waiting);
-        inner(k, false);
+        _inner(k, false);
       });
     }
   }
 
-  bool get hasData => _summary.every((e) => e.hasData);
+  bool get _hasData => _summary.every((e) => e.hasData);
 
-  inner(int index, [bool rebuild = true]) {
-    if (!hasData) {
+  _inner(int index, [bool rebuild = true]) {
+    if (!_hasData) {
       if (_summary[index].hasError) {
-        snapshotCombined = AsyncSnapshot<S>.withError(
+        _snapshotCombined = AsyncSnapshot<S>.withError(
             ConnectionState.active, _summary[index].error);
       } else {
         final _snapshot = _summary.firstWhere(
@@ -120,19 +131,19 @@ class Streaming<T, S> {
             return !e.hasData;
           },
         );
-        snapshotCombined =
+        _snapshotCombined =
             AsyncSnapshot<S>.withError(ConnectionState.active, _snapshot.error);
       }
     } else {
-      snapshotCombined = AsyncSnapshot<S>.withData(
+      _snapshotCombined = AsyncSnapshot<S>.withData(
           ConnectionState.active,
-          combineFn != null && _summary.length == streams.length
+          combineFn != null && _summary.length == _streams.length
               ? combineFn(_summary)
               : null);
     }
 
-    snapshots = _summary;
-    snapshotMerged = _summary[index];
+    _snapshots = _summary;
+    _snapshotMerged = _summary[index];
 
     if (rebuild) {
       _listeners.forEach((k, v) {

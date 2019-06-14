@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'states_rebuilder.dart';
 
 typedef StateBuilderType = Widget Function(BuildContext context, String tagID);
@@ -32,8 +33,9 @@ List<String> addListener(List<StatesRebuilder> widgetVM, dynamic widgetTag,
         tag = (widgetTag != null && widgetTag != "")
             ? "$widgetTag"
             : "#@dFau_Lt${b.hashCode}TaG30";
-        _tagID = "$tag${b.splitter}$hashCode";
-        b.addToListeners(tag: tag, listener: listener, hashCode: hashCode);
+        _tagID = "$tag$splitter$hashCode";
+        StatesRebuilder.addToListeners(
+            viewModel: b, tag: tag, listener: listener, hashCode: hashCode);
       },
     );
   }
@@ -51,8 +53,10 @@ void removeListener(
       (StatesRebuilder b) {
         if (b == null) return;
         if (tag == null) return;
-        b.removeFromListeners(tag, uniqueID);
+        StatesRebuilder.removeFromListeners(b, tag, uniqueID);
       },
     );
   }
 }
+
+String splitter = "";

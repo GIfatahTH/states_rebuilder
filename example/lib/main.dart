@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import './states_rebuilder_basic_example/main.dart' as basicExample;
+import './tutorial_1/main.dart' as tutorial1;
 import './state_with_mixin_builder.dart/main.dart' as stateWithMixin;
 import './rebuild_from_streams/main.dart' as streaming;
 
@@ -48,6 +49,10 @@ class MyHomePage extends StatelessWidget {
           RaisedButton(
             child: Text("streaming example"),
             onPressed: () => goto(streaming.App(), context),
+          ),
+          RaisedButton(
+            child: Text("Tutorial 1"),
+            onPressed: () => goto(tutorial1.App(), context),
           ),
         ],
       ),

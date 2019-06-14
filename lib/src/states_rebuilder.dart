@@ -1,70 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'common.dart';
+
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder {
   Map<String, Map<String, VoidCallback>> _listeners =
       {}; //key holds the listener tags and the value holds the listeners
   Map<String, VoidCallback> _disposer = {};
-
-  /// Method to add listener to the _listeners Map
-  addToListeners(
-      {@required String tag,
-      @required VoidCallback listener,
-      @required String hashCode}) {
-    _listeners[tag] ??= {};
-    _listeners[tag][hashCode] = listener;
-  }
-
-  removeFromListeners(
-    String tag,
-    String hashCode,
-  ) {
-    assert(() {
-      if (listeners[tag] == null) {
-        final _keys = listeners.keys;
-        throw FlutterError(
-            "ERR(removeFromListeners)01: The tag: $tag is not registered in this VM listeners.\n"
-            "If you see this error, please report an issue in the repository.\n"
-            "The registered tags are : $_keys");
-      }
-      return true;
-    }());
-    List<String> keys = List.from(listeners[tag].keys);
-    assert(() {
-      if (keys == null) {
-        throw FlutterError(
-            "ERR(removeFromListeners)02: The Map list referred  by '$tag' tag is empty. It should be removed from this VM listeners.\n"
-            "If you see this error, please report an issue in the repository.\n");
-      }
-      return true;
-    }());
-
-    keys.forEach((k) {
-      if (k == hashCode) {
-        listeners[tag].remove(k);
-        return;
-      }
-    });
-    if (listeners[tag].isEmpty) {
-      listeners.remove(tag);
-      if (_disposer[tag] != null) {
-        _disposer[tag]();
-        _disposer.remove(tag);
-      }
-    }
-
-    if (_listeners.isEmpty) {
-      _disposer.forEach((k, v) {
-        v();
-      });
-      _disposer = {};
-    }
-  }
-
-  /// listeners getter
-  Map<String, Map<String, VoidCallback>> get listeners => _listeners;
-
-  String splitter = "";
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   rebuildStates([List<dynamic> tags]) {
@@ -123,6 +65,72 @@ class StatesRebuilder {
                 "If you see this error, please report an issue in the repository.\n");
           }
         });
+      }
+    }
+  }
+
+  /// listeners getter
+  static Map<String, Map<String, VoidCallback>> listeners(
+          StatesRebuilder viewModel) =>
+      viewModel._listeners;
+
+  /// Method to add listener to the _listeners Map
+  static addToListeners(
+      {@required StatesRebuilder viewModel,
+      @required String tag,
+      @required VoidCallback listener,
+      @required String hashCode}) {
+    viewModel._listeners[tag] ??= {};
+    viewModel._listeners[tag][hashCode] = listener;
+  }
+
+  static removeFromListeners(
+    StatesRebuilder viewModel,
+    String tag,
+    String hashCode,
+  ) {
+    if (listeners(viewModel) != null) {
+      final _listeners = listeners(viewModel);
+      assert(() {
+        if (_listeners[tag] == null) {
+          final _keys = _listeners.keys;
+          throw FlutterError(
+              "ERR(removeFromListeners)01: The tag: $tag is not registered in this VM listeners.\n"
+              "If you see this error, please report an issue in the repository.\n"
+              "The registered tags are : $_keys");
+        }
+        return true;
+      }());
+      List<String> keys = List.from(viewModel._listeners[tag].keys);
+      assert(() {
+        if (keys == null) {
+          throw FlutterError(
+              "ERR(removeFromListeners)02: The Map list referred  by '$tag' tag is empty. It should be removed from this VM listeners.\n"
+              "If you see this error, please report an issue in the repository.\n");
+        }
+        return true;
+      }());
+
+      keys.forEach((k) {
+        if (k == hashCode) {
+          viewModel._listeners[tag].remove(k);
+          return;
+        }
+      });
+      print(viewModel._listeners);
+      if (viewModel._listeners[tag].isEmpty) {
+        viewModel._listeners.remove(tag);
+        if (viewModel._disposer[tag] != null) {
+          viewModel._disposer[tag]();
+          viewModel._disposer.remove(tag);
+        }
+      }
+
+      if (viewModel._listeners.isEmpty) {
+        viewModel._disposer.forEach((k, v) {
+          v();
+        });
+        viewModel._disposer = {};
       }
     }
   }
