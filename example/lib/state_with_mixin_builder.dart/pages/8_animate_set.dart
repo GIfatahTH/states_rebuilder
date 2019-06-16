@@ -54,7 +54,7 @@ class CounterGrid extends StatelessWidget {
         children: <Widget>[
           Text("Animate a set of boxes"),
           Expanded(
-            child: StateWithMixinBuilder(
+            child: StateWithMixinBuilder<SingleTickerProviderStateMixin>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
               initState: (_, __, ticker) => bloc.initAnimation(ticker),
               dispose: (_, __, ___) => bloc.dispose(),

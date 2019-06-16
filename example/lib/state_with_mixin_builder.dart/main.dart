@@ -42,8 +42,8 @@ class RootPage extends StatelessWidget {
   final bloc = Injector.get<MainBloc>();
   @override
   Widget build(BuildContext context) {
-    return StateWithMixinBuilder(
-      mixinWith: MixinWith.singleTickerProviderStateMixin,
+    return StateWithMixinBuilder<TickerProviderStateMixin>(
+      mixinWith: MixinWith.tickerProviderStateMixin,
       initState: (_, __, ticker) => bloc.init(ticker),
       dispose: (_, __, ___) => bloc.dispose(),
       builder: (

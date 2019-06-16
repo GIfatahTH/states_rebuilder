@@ -30,6 +30,7 @@ class CounterBlocAnimAll extends StatesRebuilder {
 
   dispose() {
     controller.dispose();
+    print("hi I am disposed $controller");
   }
 }
 
@@ -53,7 +54,7 @@ class CounterGrid extends StatelessWidget {
         children: <Widget>[
           Text("Animate All subscribed states"),
           Expanded(
-            child: StateWithMixinBuilder(
+            child: StateWithMixinBuilder<SingleTickerProviderStateMixin>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
               initState: (_, __, ticker) => bloc.initAnimation(ticker),
               dispose: (_, __, ___) => bloc.dispose(),

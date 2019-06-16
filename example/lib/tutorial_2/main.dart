@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_1/enums/tag_enums.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/main_model.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.generic.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter_share.dart';
+import 'package:states_rebuilder_demo/tutorial_2/ui/views/bloc_pattern_view.dart';
+import 'package:states_rebuilder_demo/tutorial_2/ui/views/double_counter_share.dart';
+import 'package:states_rebuilder_demo/tutorial_2/ui/views/streaming_counter_view.dart';
+import 'package:states_rebuilder_demo/tutorial_2/ui/views/login_form_view.dart';
 
-import 'ui/views/counter_view_global.dart';
+import 'enums/tag_enums.dart';
+import 'logic/viewModels/main_model.dart';
+import 'ui/views/double_counter_share_the_same_view.dart';
 
 main() => runApp(App());
 
@@ -60,17 +60,17 @@ class _Scaffold extends StatelessWidget {
 }
 
 List<Widget> tabs = [
-  CounterViewGlobal(),
-  CounterViewInjector(),
-  CounterViewInjectorGeneric(),
-  DoubleCounter(),
+  BlocPatternView(),
+  StreamingCounterView(),
   DoubleCounterShare(),
+  DoubleCounterShareTheSameView(),
+  LoginFormView(),
 ];
 
 List<String> tabTitles = [
-  "Global instance of ViewModel",
-  "Using Injector to provide ViewModel",
-  "Injector with generic type.",
-  "Double independent counter",
-  "Using service to share counter value",
+  "Bloc pattern",
+  "Use of Streaming class",
+  "share data using Streaming",
+  "share data using Streaming\nin the same view",
+  "Login Form"
 ];

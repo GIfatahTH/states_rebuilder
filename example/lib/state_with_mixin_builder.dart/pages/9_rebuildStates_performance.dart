@@ -77,7 +77,7 @@ class CounterGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10),
-      child: StateWithMixinBuilder(
+      child: StateWithMixinBuilder<WidgetsBindingObserver>(
         mixinWith: MixinWith.widgetsBindingObserver,
         initState: (_, __, observer) =>
             WidgetsBinding.instance.addObserver(observer),
