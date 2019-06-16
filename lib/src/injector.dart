@@ -34,8 +34,8 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
   final Function(T) _dispose;
   _InjectorState(this.builder, this._initState, this._dispose);
 
-  final vm = new Map<String, _Model>();
-
+  final vm = new Map<String, List<_Model>>();
+  List<_Model> _modelInstanceList = [];
   @override
   void initState() {
     super.initState();
@@ -60,14 +60,12 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
         _modelName = "${instance.runtimeType}";
         creationFunction = m;
       }
-      assert(() {
-        if (_modelsMap.containsKey(_modelName)) {
-          throw FlutterError("the model $_modelName is already registered");
-        }
-        return true;
-      }());
-      vm[_modelName] =
+      final _modelInstance =
           _Model(creationFunction: creationFunction, instance: instance);
+      _modelInstanceList.add(_modelInstance);
+      vm[_modelName] = _modelsMap[_modelName] ?? [];
+      vm[_modelName].add(_modelInstance);
+
       _modelsMap.addAll(vm);
     });
   }
@@ -77,7 +75,7 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
     if (widget.disposeModels) {
       vm.forEach((k, v) {
         try {
-          v.instance?.dispose();
+          v.last.instance?.dispose();
         } catch (e) {
           if ('$e'.contains(
               "AnimationController.dispose() called more than once")) {
@@ -94,22 +92,26 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
       });
     }
     vm.forEach((k, v) {
-      _modelsMap[k] = null;
-      _modelsMap.remove(k);
+      _modelInstanceList.forEach((m) {
+        _modelsMap[k].remove(m);
+      });
+      if (_modelsMap[k].isEmpty) {
+        _modelsMap.remove(k);
+      }
     });
     super.dispose();
   }
 
-  static final _modelsMap = new Map<String, _Model>();
+  static final _modelsMap = new Map<String, List<_Model>>();
 
   static T _get<T>(bool getNew, [String name]) {
     _Model _model;
     if (name != null) {
       name = "$T-$name";
-      _model = _modelsMap[name];
+      _model = _modelsMap[name].last;
     } else {
       name = "$T";
-      _model = _modelsMap[name];
+      _model = _modelsMap[name].last;
     }
 
     if (_model == null) {

@@ -6,7 +6,8 @@ import 'common.dart';
 class StatesRebuilder {
   Map<String, Map<String, VoidCallback>> _listeners =
       {}; //key holds the listener tags and the value holds the listeners
-  Map<String, VoidCallback> _disposer = {};
+
+  Function(dynamic) statesRebuilderCleaner;
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   rebuildStates([List<dynamic> tags]) {
@@ -117,20 +118,15 @@ class StatesRebuilder {
           return;
         }
       });
-      print(viewModel._listeners);
       if (viewModel._listeners[tag].isEmpty) {
         viewModel._listeners.remove(tag);
-        if (viewModel._disposer[tag] != null) {
-          viewModel._disposer[tag]();
-          viewModel._disposer.remove(tag);
-        }
+        if (viewModel.statesRebuilderCleaner != null)
+          viewModel.statesRebuilderCleaner(tag);
       }
 
       if (viewModel._listeners.isEmpty) {
-        viewModel._disposer.forEach((k, v) {
-          v();
-        });
-        viewModel._disposer = {};
+        if (viewModel.statesRebuilderCleaner != null)
+          viewModel.statesRebuilderCleaner(null);
       }
     }
   }

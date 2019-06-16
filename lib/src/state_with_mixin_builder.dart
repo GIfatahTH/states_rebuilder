@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'states_rebuilder.dart';
+import 'state_builder.dart';
 import 'common.dart';
 
 class StateWithMixinBuilder<T> extends StateBuilderBase {
@@ -163,16 +164,20 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   createState() {
     switch (mixinWith) {
       case MixinWith.tickerProviderStateMixin:
-        return _StateBuilderStateTickerMix();
+        return _StateBuilderStateTickerMix<T>(
+            initState, dispose, didUpdateWidget, didChangeDependencies);
         break;
       case MixinWith.singleTickerProviderStateMixin:
-        return _StateBuilderStateSingleTickerMix();
+        return _StateBuilderStateSingleTickerMix<T>(
+            initState, dispose, didUpdateWidget, didChangeDependencies);
         break;
       case MixinWith.automaticKeepAliveClientMixin:
-        return _StateBuilderStateAutomaticKeepAliveClient();
+        return _StateBuilderStateAutomaticKeepAliveClient<T>(
+            initState, dispose, didUpdateWidget, didChangeDependencies);
         break;
       case MixinWith.widgetsBindingObserver:
-        return _StateBuilderStateWidgetsBindingObserver();
+        return _StateBuilderStateWidgetsBindingObserver<T>(initState, dispose,
+            didUpdateWidget, didChangeDependencies, didChangeAppLifecycleState);
         break;
       default:
         return null;
@@ -187,143 +192,158 @@ enum MixinWith {
   widgetsBindingObserver,
 }
 
-class _StateBuilderStateTickerMix
-    extends _StateBuilderStateWithMixin<TickerProviderStateMixin>
+class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder>
     with TickerProviderStateMixin {
+  final _initState;
+  final _dispose;
+  final _didUpdateWidget;
+  final _didChangeDependencies;
+  _StateBuilderStateTickerMix(this._initState, this._dispose,
+      this._didUpdateWidget, this._didChangeDependencies);
   @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _ticker);
-    } else if (widget.disposeViewModels) {
-      (widget.viewModels ?? widget.blocs)
-          ?.forEach((b) => (b as dynamic).dispose());
-    }
-    super.dispose();
+  Widget build(BuildContext context) {
+    return StateBuilder(
+      initState: (context, tagID) =>
+          _initState != null ? _initState(context, tagID, this) : null,
+      dispose: (context, tagID) {
+        if (_dispose != null) {
+          _dispose(context, tagID, this);
+        } else if (widget.disposeViewModels == true) {
+          (widget.viewModels ?? widget.blocs)
+              ?.forEach((b) => (b as dynamic).dispose());
+        }
+      },
+      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
+          ? _didUpdateWidget(context, tagID, oldWidget, this)
+          : null,
+      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
+          ? _didChangeDependencies(context, tagID, this)
+          : null,
+      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      tag: widget.tag,
+      builder: (context, tagID) => widget.builder(context, tagID),
+    );
   }
 }
 
-class _StateBuilderStateSingleTickerMix
-    extends _StateBuilderStateWithMixin<SingleTickerProviderStateMixin>
+class _StateBuilderStateSingleTickerMix<T> extends State<StateWithMixinBuilder>
     with SingleTickerProviderStateMixin {
+  final _initState;
+  final _dispose;
+  final _didUpdateWidget;
+  final _didChangeDependencies;
+  _StateBuilderStateSingleTickerMix(this._initState, this._dispose,
+      this._didUpdateWidget, this._didChangeDependencies);
   @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _ticker);
-    } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)
-          ?.forEach((b) => (b as dynamic).dispose());
-    }
-    super.dispose();
+  Widget build(BuildContext context) {
+    return StateBuilder(
+      initState: (context, tagID) =>
+          _initState != null ? _initState(context, tagID, this) : null,
+      dispose: (context, tagID) {
+        if (_dispose != null) {
+          _dispose(context, tagID, this);
+        } else if (widget.disposeViewModels == true) {
+          (widget.viewModels ?? widget.blocs)
+              ?.forEach((b) => (b as dynamic).dispose());
+        }
+      },
+      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
+          ? _didUpdateWidget(context, tagID, oldWidget, this)
+          : null,
+      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
+          ? _didChangeDependencies(context, tagID, this)
+          : null,
+      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      tag: widget.tag,
+      builder: (context, tagID) => widget.builder(context, tagID),
+    );
   }
 }
 
-class _StateBuilderStateAutomaticKeepAliveClient
-    extends _StateBuilderStateWithMixin
+class _StateBuilderStateAutomaticKeepAliveClient<T>
+    extends State<StateWithMixinBuilder>
     with AutomaticKeepAliveClientMixin<StateWithMixinBuilder> {
+  final _initState;
+  final _dispose;
+  final _didUpdateWidget;
+  final _didChangeDependencies;
+  _StateBuilderStateAutomaticKeepAliveClient(this._initState, this._dispose,
+      this._didUpdateWidget, this._didChangeDependencies);
+
   @override
   bool get wantKeepAlive => true;
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return widget.builder(context, _tagID);
-  }
-
-  @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _ticker);
-    } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)
-          ?.forEach((b) => (b as dynamic).dispose());
-    }
-    super.dispose();
+    return StateBuilder(
+      initState: (context, tagID) =>
+          _initState != null ? _initState(context, tagID, this) : null,
+      dispose: (context, tagID) {
+        if (_dispose != null) {
+          _dispose(context, tagID, this);
+        } else if (widget.disposeViewModels == true) {
+          (widget.viewModels ?? widget.blocs)
+              ?.forEach((b) => (b as dynamic).dispose());
+        }
+      },
+      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
+          ? _didUpdateWidget(context, tagID, oldWidget, this)
+          : null,
+      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
+          ? _didChangeDependencies(context, tagID, this)
+          : null,
+      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      tag: widget.tag,
+      builder: (context, tagID) => widget.builder(context, tagID),
+    );
   }
 }
 
-class _StateBuilderStateWidgetsBindingObserver
-    extends _StateBuilderStateWithMixin<WidgetsBindingObserver>
-    with WidgetsBindingObserver {
+class _StateBuilderStateWidgetsBindingObserver<T>
+    extends State<StateWithMixinBuilder> with WidgetsBindingObserver {
+  final _initState;
+  final _dispose;
+  final _didUpdateWidget;
+  final _didChangeDependencies;
+  final _didChangeAppLifecycleState;
+  _StateBuilderStateWidgetsBindingObserver(
+      this._initState,
+      this._dispose,
+      this._didUpdateWidget,
+      this._didChangeDependencies,
+      this._didChangeAppLifecycleState);
+
+  String _tagID;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (widget.didChangeAppLifecycleState != null)
-      widget.didChangeAppLifecycleState(context, _tagID, state);
-  }
-
-  @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _tagID, _ticker);
-    } else if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)
-          ?.forEach((b) => (b as dynamic).dispose());
-    }
-    super.dispose();
-  }
-}
-
-class _StateBuilderStateWithMixin<T> extends State<StateWithMixinBuilder> {
-  var _tag;
-  String _tagID;
-  T _ticker;
-  String uniqueID;
-  @override
-  void initState() {
-    super.initState();
-    uniqueID = shortHash(this) + UniqueKey().toString();
-    if (widget.tag is List) {
-      _tag = <String>[];
-      widget.tag.forEach((e) {
-        final tempTags = addListener(
-            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
-        _tag.add(tempTags[0]);
-        _tagID = tempTags[1];
-      });
-    } else {
-      final tempTags = addListener(
-          widget.viewModels ?? widget.blocs, widget.tag, uniqueID, _listener);
-      _tag = tempTags[0];
-      _tagID = tempTags[1];
-    }
-
-    _ticker = this as T;
-    if (widget.initState != null) widget.initState(context, _tagID, _ticker);
-  }
-
-  void _listener() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    if (widget.tag is List) {
-      _tag?.forEach((e) {
-        removeListener(
-            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
-      });
-    } else {
-      removeListener(
-          widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
-    }
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(_tagID, _ticker);
-  }
-
-  @override
-  void didUpdateWidget(StateBuilderBase oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null)
-      widget.didUpdateWidget(context, _tagID, oldWidget, _ticker);
+      _didChangeAppLifecycleState(context, _tagID, state);
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context, _tagID);
+    return StateBuilder(
+      initState: (context, tagID) {
+        _tagID = tagID;
+        if (_initState != null) _initState(context, tagID, this);
+      },
+      dispose: (context, tagID) {
+        if (_dispose != null) {
+          _dispose(context, tagID, this);
+        } else if (widget.disposeViewModels == true) {
+          (widget.viewModels ?? widget.blocs)
+              ?.forEach((b) => (b as dynamic).dispose());
+        }
+      },
+      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
+          ? _didUpdateWidget(context, tagID, oldWidget, this)
+          : null,
+      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
+          ? _didChangeDependencies(context, tagID, this)
+          : null,
+      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      tag: widget.tag,
+      builder: (context, tagID) => widget.builder(context, tagID),
+    );
   }
 }

@@ -157,6 +157,9 @@ class Streaming<T, S> {
     _listeners["$viewModel"] = tag == null
         ? () => viewModel.rebuildStates()
         : () => viewModel.rebuildStates(tag);
+    viewModel.statesRebuilderCleaner = (tag) {
+      if (tag == null) _listeners.remove("$viewModel");
+    };
   }
 
   ///Cancel subscriptions
