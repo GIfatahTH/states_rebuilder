@@ -6,6 +6,7 @@ import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.
 import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.generic.dart';
 import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter.dart';
 import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter_share.dart';
+import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter_share_the_same_view.dart';
 
 import 'ui/views/counter_view_global.dart';
 
@@ -65,6 +66,7 @@ List<Widget> tabs = [
   CounterViewInjectorGeneric(),
   DoubleCounter(),
   DoubleCounterShare(),
+  DoubleCounterShareTheSameView()
 ];
 
 List<String> tabTitles = [
@@ -73,4 +75,5 @@ List<String> tabTitles = [
   "Injector with generic type.",
   "Double independent counter",
   "Using service to share counter value",
+  "share data \nViews in the same view",
 ];
