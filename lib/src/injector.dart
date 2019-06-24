@@ -9,11 +9,13 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
       this.models,
       this.initState,
       this.dispose,
+      this.appLifeCycle,
       this.disposeModels = false})
       : assert(models != null && builder != null);
 
   final Function(T) initState;
   final Function(T) dispose;
+  final Function(T, AppLifecycleState) appLifeCycle;
 
   final bool disposeModels;
 
@@ -24,15 +26,17 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
   static T getNew<T>([String name]) => _InjectorState._get<T>(true, name);
 
   @override
-  _InjectorState createState() =>
-      _InjectorState<T>(builder, initState, dispose);
+  createState() {
+    if (appLifeCycle == null) {
+      return _InjectorState<T>();
+    } else {
+      return _InjectorStateAppLifeCycle<T>();
+    }
+  }
 }
 
-class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
-  final Widget Function(BuildContext, T) builder;
-  final Function(T) _initState;
-  final Function(T) _dispose;
-  _InjectorState(this.builder, this._initState, this._dispose);
+class _InjectorState<T extends StatesRebuilder> extends State<Injector<T>> {
+  _InjectorState();
 
   final vm = new Map<String, List<_Model>>();
   List<_Model> _modelInstanceList = [];
@@ -135,17 +139,38 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector> {
     return StateBuilder(
       viewModels: [model],
       initState: (_, __) {
-        if (_initState != null) {
-          _initState(model);
+        if (widget.initState != null) {
+          widget.initState(model);
         }
       },
       dispose: (_, __) {
-        if (_dispose != null) {
-          _dispose(model);
+        if (widget.dispose != null) {
+          widget.dispose(model);
         }
       },
-      builder: (context, _) => builder(context, model),
+      builder: (context, _) => widget.builder(context, model),
     );
+  }
+}
+
+class _InjectorStateAppLifeCycle<T extends StatesRebuilder>
+    extends _InjectorState<T> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final model = T != StatesRebuilder ? Injector.get<T>() : null;
+    widget.appLifeCycle(model, state);
   }
 }
 
