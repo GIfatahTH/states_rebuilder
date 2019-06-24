@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'package:states_rebuilder_demo/tutorial_2/logic/viewModels/streaming_counter_model.dart';
+import '../../logic/viewModels/streaming_counter_model.dart';
 
 class StreamingCounterView extends StatelessWidget {
   @override

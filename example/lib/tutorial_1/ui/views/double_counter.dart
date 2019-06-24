@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter1_view.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter2_view.dart';
+import '../../ui/views/counter1_view.dart';
+import '../../ui/views/counter2_view.dart';
 
 class DoubleCounter extends StatelessWidget {
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/counter_model_injector.dart';
+import '../../logic/viewModels/counter_model_injector.dart';
 
 class CounterViewInjector extends StatelessWidget {
   @override

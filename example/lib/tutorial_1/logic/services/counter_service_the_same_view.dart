@@ -1,6 +1,6 @@
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/counter1_share_model._same_view.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/counter2_share_model._same_view.dart';
+import '../viewModels/counter1_share_model._same_view.dart';
+import '../viewModels/counter2_share_model._same_view.dart';
 
 class CounterServiceSameView {
   int _counter = 0;

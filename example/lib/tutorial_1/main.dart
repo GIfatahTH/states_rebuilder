@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_1/enums/tag_enums.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/main_model.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/counter_view_injector.generic.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter_share.dart';
-import 'package:states_rebuilder_demo/tutorial_1/ui/views/double_counter_share_the_same_view.dart';
+import './enums/tag_enums.dart';
+import './logic/viewModels/main_model.dart';
+import './ui/views/counter_view_injector.dart';
+import './ui/views/counter_view_injector.generic.dart';
+import './ui/views/double_counter.dart';
+import './ui/views/double_counter_share.dart';
+import './ui/views/double_counter_share_the_same_view.dart';
 
 import 'ui/views/counter_view_global.dart';
 
