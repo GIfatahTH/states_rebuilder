@@ -4,9 +4,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class CounterBlocAll extends StatesRebuilder {
   int counter = 0;
   increment() {
-    statesRebuilderCleaner = (tag) {
-      print("this tag is cleaned $tag");
-    };
     counter++;
     rebuildStates();
   }
