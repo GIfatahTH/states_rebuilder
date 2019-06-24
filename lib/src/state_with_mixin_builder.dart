@@ -162,7 +162,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   final MixinWith mixinWith;
 
   final bool disposeViewModels;
-  createState() {
+  State<StateWithMixinBuilder<T>> createState() {
     switch (mixinWith) {
       case MixinWith.tickerProviderStateMixin:
         return _StateBuilderStateTickerMix<T>();

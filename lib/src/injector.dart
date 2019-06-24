@@ -112,10 +112,10 @@ class _InjectorState<T extends StatesRebuilder> extends State<Injector<T>> {
     _Model _model;
     if (name != null) {
       name = "$T-$name";
-      _model = _modelsMap[name].last;
+      _model = _modelsMap[name]?.last;
     } else {
       name = "$T";
-      _model = _modelsMap[name].last;
+      _model = _modelsMap[name]?.last;
     }
 
     if (_model == null) {

@@ -7,7 +7,7 @@ class StatesRebuilder {
   Map<String, Map<String, VoidCallback>> _listeners =
       {}; //key holds the listener tags and the value holds the listeners
 
-  Function(dynamic) statesRebuilderCleaner;
+  Function(String) statesRebuilderCleaner;
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   rebuildStates([List<dynamic> tags]) {
@@ -73,7 +73,7 @@ class StatesRebuilder {
   /// listeners getter
   static Map<String, Map<String, VoidCallback>> listeners(
           StatesRebuilder viewModel) =>
-      viewModel._listeners;
+      viewModel != null ? viewModel._listeners : null;
 
   /// Method to add listener to the _listeners Map
   static addToListeners(
@@ -81,8 +81,10 @@ class StatesRebuilder {
       @required String tag,
       @required VoidCallback listener,
       @required String hashCode}) {
-    viewModel._listeners[tag] ??= {};
-    viewModel._listeners[tag][hashCode] = listener;
+    if (viewModel != null) {
+      viewModel._listeners[tag] ??= {};
+      viewModel._listeners[tag][hashCode] = listener;
+    }
   }
 
   static removeFromListeners(
@@ -90,7 +92,7 @@ class StatesRebuilder {
     String tag,
     String hashCode,
   ) {
-    if (listeners(viewModel) != null) {
+    if (viewModel != null && listeners(viewModel) != null) {
       final _listeners = listeners(viewModel);
       assert(() {
         if (_listeners[tag] == null) {
