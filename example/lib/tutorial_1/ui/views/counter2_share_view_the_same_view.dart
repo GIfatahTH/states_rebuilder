@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_1/logic/viewModels/counter2_share_model._same_view.dart';
+import '../../logic/viewModels/counter2_share_model._same_view.dart';
 
 class Counter2ShareTheSameView extends StatelessWidget {
   @override

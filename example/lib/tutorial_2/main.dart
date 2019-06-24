@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/bloc_pattern_view.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/double_counter_share.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/streaming_counter_view.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/login_form_view.dart';
+import './ui/views/bloc_pattern_view.dart';
+import './ui/views/double_counter_share.dart';
+import './ui/views/streaming_counter_view.dart';
+import './ui/views/login_form_view.dart';
 
 import 'enums/tag_enums.dart';
 import 'logic/viewModels/main_model.dart';

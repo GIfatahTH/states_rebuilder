@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_1/enums/tag_enums.dart';
+import '../../enums/tag_enums.dart';
 
 class MainModel extends StatesRebuilder {
   TabController tabController;

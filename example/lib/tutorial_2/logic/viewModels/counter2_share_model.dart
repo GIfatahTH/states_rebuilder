@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_2/logic/services/counter_service.dart';
+import '../../logic/services/counter_service.dart';
 
 class Counter2ShareModel extends StatesRebuilder {
   final counterService = Injector.get<CounterService>();

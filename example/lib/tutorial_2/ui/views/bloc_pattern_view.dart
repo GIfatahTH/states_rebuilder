@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'package:states_rebuilder_demo/tutorial_2/logic/viewModels/bloc_pattern_model.dart';
+import '../../logic/viewModels/bloc_pattern_model.dart';
 
 class BlocPatternView extends StatelessWidget {
   @override

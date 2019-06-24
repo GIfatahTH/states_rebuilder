@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_demo/tutorial_2/logic/services/counter_service.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/counter1_share_view.dart';
-import 'package:states_rebuilder_demo/tutorial_2/ui/views/counter2_share_view.dart';
+import '../../logic/services/counter_service.dart';
+import '../../ui/views/counter1_share_view.dart';
+import '../../ui/views/counter2_share_view.dart';
 
 class DoubleCounterShare extends StatelessWidget {
   @override
