@@ -154,19 +154,32 @@ class Streaming<T, S> {
 
   ///Add listeners to be notified when the stream is resolved.
   addListener(StatesRebuilder viewModel, [List tag]) {
-    _listeners["$viewModel"] = tag == null
+    final key = "$viewModel${viewModel.hashCode}";
+    _listeners[key] = tag == null
         ? () => viewModel.rebuildStates()
         : () => viewModel.rebuildStates(tag);
+
+    _subscription?.forEach((_subscript) {
+      _subscript?.resume();
+    });
+
     viewModel.statesRebuilderCleaner = (tag) {
-      if (tag == null) _listeners.remove("$viewModel");
+      if (tag == null) {
+        _listeners.remove(key);
+
+        if (_listeners.isEmpty) {
+          _subscription.forEach((_subscript) {
+            _subscript.pause();
+          });
+        }
+      }
     };
   }
 
   ///Cancel subscriptions
-  dispose() {
-    _subscription.forEach((_subscript) {
-      _subscript.cancel();
-      _subscript = null;
+  cancel() {
+    _subscription?.forEach((_subscript) {
+      _subscript?.cancel();
     });
   }
 }
