@@ -55,7 +55,7 @@ class CounterGrid extends StatelessWidget {
         children: <Widget>[
           Text("Animate the tapped box (after removing previous listeners)"),
           Expanded(
-            child: StateWithMixinBuilder<SingleTickerProviderStateMixin>(
+            child: StateWithMixinBuilder<TickerProvider>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
               initState: (_, __, ticker) => bloc.initAnimation(ticker),
               dispose: (_, __, ___) => bloc.dispose(),

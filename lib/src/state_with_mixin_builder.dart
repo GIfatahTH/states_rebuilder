@@ -96,7 +96,8 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(String tagID, T mix) didChangeDependencies;
+  final void Function(BuildContext context, String tagID, T mix)
+      didChangeDependencies;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -164,20 +165,16 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   createState() {
     switch (mixinWith) {
       case MixinWith.tickerProviderStateMixin:
-        return _StateBuilderStateTickerMix<T>(
-            initState, dispose, didUpdateWidget, didChangeDependencies);
+        return _StateBuilderStateTickerMix<T>();
         break;
       case MixinWith.singleTickerProviderStateMixin:
-        return _StateBuilderStateSingleTickerMix<T>(
-            initState, dispose, didUpdateWidget, didChangeDependencies);
+        return _StateBuilderStateSingleTickerMix<T>();
         break;
       case MixinWith.automaticKeepAliveClientMixin:
-        return _StateBuilderStateAutomaticKeepAliveClient<T>(
-            initState, dispose, didUpdateWidget, didChangeDependencies);
+        return _StateBuilderStateAutomaticKeepAliveClient<T>();
         break;
       case MixinWith.widgetsBindingObserver:
-        return _StateBuilderStateWidgetsBindingObserver<T>(initState, dispose,
-            didUpdateWidget, didChangeDependencies, didChangeAppLifecycleState);
+        return _StateBuilderStateWidgetsBindingObserver<T>();
         break;
       default:
         return null;
@@ -192,33 +189,30 @@ enum MixinWith {
   widgetsBindingObserver,
 }
 
-class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder>
+class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder<T>>
     with TickerProviderStateMixin {
-  final _initState;
-  final _dispose;
-  final _didUpdateWidget;
-  final _didChangeDependencies;
-  _StateBuilderStateTickerMix(this._initState, this._dispose,
-      this._didUpdateWidget, this._didChangeDependencies);
   @override
   Widget build(BuildContext context) {
     return StateBuilder(
-      initState: (context, tagID) =>
-          _initState != null ? _initState(context, tagID, this) : null,
+      initState: (context, tagID) => widget.initState != null
+          ? widget.initState(context, tagID, this as T)
+          : null,
       dispose: (context, tagID) {
-        if (_dispose != null) {
-          _dispose(context, tagID, this);
+        if (widget.dispose != null) {
+          widget.dispose(context, tagID, this as T);
         } else if (widget.disposeViewModels == true) {
           (widget.viewModels ?? widget.blocs)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
-          ? _didUpdateWidget(context, tagID, oldWidget, this)
-          : null,
-      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
-          ? _didChangeDependencies(context, tagID, this)
-          : null,
+      didUpdateWidget: (context, tagID, oldWidget) =>
+          widget.didUpdateWidget != null
+              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              : null,
+      didChangeDependencies: (context, tagID) =>
+          widget.didChangeDependencies != null
+              ? widget.didChangeDependencies(context, tagID, this as T)
+              : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -226,33 +220,31 @@ class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder>
   }
 }
 
-class _StateBuilderStateSingleTickerMix<T> extends State<StateWithMixinBuilder>
+class _StateBuilderStateSingleTickerMix<T>
+    extends State<StateWithMixinBuilder<T>>
     with SingleTickerProviderStateMixin {
-  final _initState;
-  final _dispose;
-  final _didUpdateWidget;
-  final _didChangeDependencies;
-  _StateBuilderStateSingleTickerMix(this._initState, this._dispose,
-      this._didUpdateWidget, this._didChangeDependencies);
   @override
   Widget build(BuildContext context) {
     return StateBuilder(
-      initState: (context, tagID) =>
-          _initState != null ? _initState(context, tagID, this) : null,
+      initState: (context, tagID) => widget.initState != null
+          ? widget.initState(context, tagID, this as T)
+          : null,
       dispose: (context, tagID) {
-        if (_dispose != null) {
-          _dispose(context, tagID, this);
+        if (widget.dispose != null) {
+          widget.dispose(context, tagID, this as T);
         } else if (widget.disposeViewModels == true) {
           (widget.viewModels ?? widget.blocs)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
-          ? _didUpdateWidget(context, tagID, oldWidget, this)
-          : null,
-      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
-          ? _didChangeDependencies(context, tagID, this)
-          : null,
+      didUpdateWidget: (context, tagID, oldWidget) =>
+          widget.didUpdateWidget != null
+              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              : null,
+      didChangeDependencies: (context, tagID) =>
+          widget.didChangeDependencies != null
+              ? widget.didChangeDependencies(context, tagID, this as T)
+              : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -261,37 +253,33 @@ class _StateBuilderStateSingleTickerMix<T> extends State<StateWithMixinBuilder>
 }
 
 class _StateBuilderStateAutomaticKeepAliveClient<T>
-    extends State<StateWithMixinBuilder>
-    with AutomaticKeepAliveClientMixin<StateWithMixinBuilder> {
-  final _initState;
-  final _dispose;
-  final _didUpdateWidget;
-  final _didChangeDependencies;
-  _StateBuilderStateAutomaticKeepAliveClient(this._initState, this._dispose,
-      this._didUpdateWidget, this._didChangeDependencies);
-
+    extends State<StateWithMixinBuilder<T>>
+    with AutomaticKeepAliveClientMixin<StateWithMixinBuilder<T>> {
   @override
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return StateBuilder(
-      initState: (context, tagID) =>
-          _initState != null ? _initState(context, tagID, this) : null,
+      initState: (context, tagID) => widget.initState != null
+          ? widget.initState(context, tagID, this as T)
+          : null,
       dispose: (context, tagID) {
-        if (_dispose != null) {
-          _dispose(context, tagID, this);
+        if (widget.dispose != null) {
+          widget.dispose(context, tagID, this as T);
         } else if (widget.disposeViewModels == true) {
           (widget.viewModels ?? widget.blocs)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
-          ? _didUpdateWidget(context, tagID, oldWidget, this)
-          : null,
-      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
-          ? _didChangeDependencies(context, tagID, this)
-          : null,
+      didUpdateWidget: (context, tagID, oldWidget) =>
+          widget.didUpdateWidget != null
+              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              : null,
+      didChangeDependencies: (context, tagID) =>
+          widget.didChangeDependencies != null
+              ? widget.didChangeDependencies(context, tagID, this as T)
+              : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -300,24 +288,12 @@ class _StateBuilderStateAutomaticKeepAliveClient<T>
 }
 
 class _StateBuilderStateWidgetsBindingObserver<T>
-    extends State<StateWithMixinBuilder> with WidgetsBindingObserver {
-  final _initState;
-  final _dispose;
-  final _didUpdateWidget;
-  final _didChangeDependencies;
-  final _didChangeAppLifecycleState;
-  _StateBuilderStateWidgetsBindingObserver(
-      this._initState,
-      this._dispose,
-      this._didUpdateWidget,
-      this._didChangeDependencies,
-      this._didChangeAppLifecycleState);
-
+    extends State<StateWithMixinBuilder<T>> with WidgetsBindingObserver {
   String _tagID;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (widget.didChangeAppLifecycleState != null)
-      _didChangeAppLifecycleState(context, _tagID, state);
+      widget.didChangeAppLifecycleState(context, _tagID, state);
   }
 
   @override
@@ -325,22 +301,25 @@ class _StateBuilderStateWidgetsBindingObserver<T>
     return StateBuilder(
       initState: (context, tagID) {
         _tagID = tagID;
-        if (_initState != null) _initState(context, tagID, this);
+        if (widget.initState != null)
+          widget.initState(context, tagID, this as T);
       },
       dispose: (context, tagID) {
-        if (_dispose != null) {
-          _dispose(context, tagID, this);
+        if (widget.dispose != null) {
+          widget.dispose(context, tagID, this as T);
         } else if (widget.disposeViewModels == true) {
           (widget.viewModels ?? widget.blocs)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) => _didUpdateWidget != null
-          ? _didUpdateWidget(context, tagID, oldWidget, this)
-          : null,
-      didChangeDependencies: (context, tagID) => _didChangeDependencies != null
-          ? _didChangeDependencies(context, tagID, this)
-          : null,
+      didUpdateWidget: (context, tagID, oldWidget) =>
+          widget.didUpdateWidget != null
+              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              : null,
+      didChangeDependencies: (context, tagID) =>
+          widget.didChangeDependencies != null
+              ? widget.didChangeDependencies(context, tagID, this as T)
+              : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
