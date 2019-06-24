@@ -26,7 +26,7 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
   static T getNew<T>([String name]) => _InjectorState._get<T>(true, name);
 
   @override
-  createState() {
+  State<Injector<T>> createState() {
     if (appLifeCycle == null) {
       return _InjectorState<T>();
     } else {
