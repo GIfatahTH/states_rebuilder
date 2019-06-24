@@ -1,3 +1,8 @@
+## 1.3.2
+* Add `appLifeCycle` argument to Injector to track the life cycle of the app.
+* Refactor the code.
+
+
 ## 1.3.1
 * remove `rebuildFromStreams`.
 * Initial release of `Streaming` class

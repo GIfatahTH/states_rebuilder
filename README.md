@@ -78,14 +78,6 @@ streaming.addListener(this, ["optional tag"]);
 
 ```
 
-  * `BlocProvider` widget. Used to provide your BloCs
-  ```dart
-   BlocProvider<YourBloc>({
-     CounterBloc bloc
-     Widget child,
-   })
-  ```
-
   * Injector widget as dependency injection:
   to register model and services use Injector the same way you use BlocProvider
   ```dart
@@ -93,6 +85,7 @@ streaming.addListener(this, ["optional tag"]);
     List<() → dynamic> models, // List of models to register
     (BuildContext context, T model) → Widget builder, // The model with type T is the viewModel related to this view. When `rebuildStates()` is called in this model this widget will rebuild.
     () → void dispose, // a custom method to call when Injector is disposed.
+    (T, AppLifecycleState) → dynamic appLifeCycle, // A closure to execute code depending on the life cycle of the app (in Android : onResume, onPause ...).
     bool disposeModels: false // Whether Injector will automatically call dispose method from the registered models.
   }) 
   ```
@@ -168,7 +161,13 @@ class MyApp extends StatelessWidget {
   }
   ```
 
-
+  * `BlocProvider` widget. Used to provide your BloCs
+  ```dart
+   BlocProvider<YourBloc>({
+     CounterBloc bloc
+     Widget child,
+   })
+  ```
 
 
 ## Prototype Example for state management
