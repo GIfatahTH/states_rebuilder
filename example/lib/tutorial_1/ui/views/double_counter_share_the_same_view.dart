@@ -34,25 +34,22 @@ This is a show case on how to rebuild independent views from displayed in the sa
 
 ## counter_service_the_same_view.dart file:
 
-class CounterServiceSameView {
-  int _counter = 0;
-  int get counter => _counter;
+class CounterServiceSameView extends Observable {// (1)
+  int counter = 0;
 
   increment() {
-    _counter++;
-    __rebuildStates();__ // (1)
-  }
-
- __rebuildStates() {__ //(1)
-    __Injector.get<Counter1ShareModelSameView>().rebuildStates();__ // (2)
-    __Injector.get<Counter2ShareModelSameView>().rebuildStates();__
+    counter++;
+    rebuildStates();// (2)
   }
 }
 
 ## counter1_share_model_same_view.dart file:
-
 class Counter1ShareModelSameView extends StatesRebuilder {
   final counterService = Injector.get<CounterServiceSameView>();
+
+  Counter1ShareModelSameView() {
+    counterService.addObserver(this);
+  }
 
   int get counter => counterService.counter;
   increment() {
@@ -65,13 +62,17 @@ class Counter1ShareModelSameView extends StatesRebuilder {
 class Counter2ShareModelSameView extends StatesRebuilder {
   final counterService = Injector.get<CounterServiceSameView>();
 
+  Counter2ShareModelSameView() {
+    counterService.addObserver(this); // 3
+  }
+
   int get counter => counterService.counter;
   increment() {
     counterService.increment();
   }
 }
 
-1 - Define a method called `_rebuildStates`.
-2 - Get instances of the viewModels and call `rebuildStates`
+1 - Extending `Observable` class and calling `rebuildStates`after mutating the state.
+2 - Register to the service class and get notified when `rebuildStates` is called in the service class.
 
 """;
