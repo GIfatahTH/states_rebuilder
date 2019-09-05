@@ -6,19 +6,20 @@ A Flutter state management solution that allows you:
   * to inject dependencies using Injector 
 
 
-### For State Management see this [Medium Article](https://medium.com/flutter-community/widget-perfect-state-management-in-flutte-is-it-possible-73e76c205620)
-### For Dependency Injection and more elaborate State Management architecture see [this example](https://github.com/GIfatahTH/states_rebuilder-using-Dane-Mackier-Implementation-Guide).
+## For State Management see this [Medium Article](https://medium.com/flutter-community/widget-perfect-state-management-in-flutte-is-it-possible-73e76c205620)
+## For Dependency Injection and more elaborate State Management architecture see [this example](https://github.com/GIfatahTH/states_rebuilder-using-Dane-Mackier-Implementation-Guide).
 
 This Library provides Four classes and two methods:
 
   * The `StatesRebuilder` class. Your logics classes (viewModels) will extend this class to create your own business logic BloC (equally can be called ViewModel or Model).
   * The `rebuildStates` method. You call it inside any of your logic classes that extends `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can filter the widgets to rebuild by tag.
-  this is the signature of the `rebuildState`:
+  This is the signature of the `rebuildState`:
   ```dart
   rebuildStates([List<dynamic> tags])
   ```
-  * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to listeners list of your logic classes and hence can rebuild it using `rebuildState` method
-  this is the constructor of the `StateBuilder`:
+  You can use `hasObserver` to check whether the `StatesRebuilder` has observer or not before calling `rebuildStates` to avoid any error.
+  * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to the listeners list of your logic classes and hence can rebuild it using `rebuildState` method.
+  This is the constructor of the `StateBuilder`:
   
   ```dart
   StateBuilder( {
@@ -79,10 +80,11 @@ streaming.addListener(this, ["optional tag"]);
 ```
 
   * Injector widget as dependency injection:
-  to register model and services use Injector the same way you use BlocProvider
+  To register model and services use Injector the same way you use BlocProvider
   ```dart
   Injector<T>({
     List<() → dynamic> models, // List of models to register
+    List<Inject<D>> inject, // List of Model to register wrapped with Inject object
     (BuildContext context, T model) → Widget builder, // The model with type T is the viewModel related to this view. When `rebuildStates()` is called in this model this widget will rebuild.
     () → void dispose, // a custom method to call when Injector is disposed.
     (T, AppLifecycleState) → dynamic appLifeCycle, // A closure to execute code depending on the life cycle of the app (in Android : onResume, onPause ...).
@@ -102,6 +104,8 @@ streaming.addListener(this, ["optional tag"]);
   Model are automatically unregistered when the injector is disposed.
 
   You can declare many Injectors where you want in the widget tree.
+
+ * `Observable` interface : Any service class that implement the `Observable` can notify registered viewModels to rebuild their corresponding view. See prototype Example bellow.
 
 ## Prototype Example for dependency injection
 
@@ -137,6 +141,21 @@ class MyApp extends StatelessWidget {
         () => [ModelD(),"costumeName"], // To register many model of the same type use this approach
         ],
       builder: (context,model) => MyWidget(), // model is of type `ModelA`. when `rebuildStates()` is called in `ModelA` this widget will rebuild
+    );
+  }
+
+  //As an alternative to `models` parameter you can use register the models using `inject` parameter
+    Widget build(BuildContext context) {
+    return Injector<ModelA>( // `ModelA` should extend `StatesRebuilder`.
+      inject: [
+        Inject(() => ModelA()),
+        Inject(() => ModelB()),
+        Inject(() => ModelC(Injector.get<ModelA>())),// Directly inject ModelA in ModelC constructor
+        Inject<IModelD>(() => ModelD()),//To register with Interface type.
+       // () => ModelD(),// Not allowed. Model can be registered only once.
+        Inject(() => ModelD(),"customName"), // to use custom name
+        ],
+      builder: (context,model) => MyWidget(model), // model is of type `ModelA`. when `rebuildStates()` is called in `ModelA` this widget will rebuild
     );
   }
 
@@ -283,4 +302,35 @@ your main.dart file:
               );
     }
   }
+```
+## Prototype Example for state management with `Observable` interface
+
+```dart 
+//When the method `myMethod()` is called it will notify all registered viewModels class to rebuild their corresponding views.
+
+class Service1 extends Observable {
+  String message = "I am Service1";
+  myMethod() {
+    rebuildStates();
+  }
+}
+
+
+// `ViewModel1` class register as observer in `Service1` class
+class ViewModel1 extends StatesRebuilder {
+  final service1 = Injector.get<Service1>();
+  ViewModel1() {
+    service1.addObserver(this);
+  }
+}
+
+// `ViewModel1` class register as observer in `Service1` class with a tag
+class ViewModel2 extends StatesRebuilder {
+  final service1 = Injector.get<Service1>();
+  ViewModel2() {
+    service1.addObserver(this, ["myTag"]);
+  }
+}
+
+
 ```

@@ -1,3 +1,10 @@
+## 1.5.0
+* Add `hasStates` getter to check if the StatesRebuilder object has listener.
+* Add `inject` parameter to the `Injector` widget as an alternative to the `models` parameter. With `inject` you can register models using interface Type. 
+* Add `observable` interface. Any service class can implement it to notify any ViewModel to rebuild its corresponding view.
+* Refactor the library to make it design patterns wise and hence make it testable.
+* Test the library
+
 ## 1.3.2
 * Add `appLifeCycle` argument to Injector to track the life cycle of the app.
 * Refactor the code.
