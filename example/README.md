@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterModel extends StatesRebuilder {
   int counter = 0;
   increment() {
     counter++;
@@ -15,9 +15,9 @@ class CounterBloc extends StatesRebuilder {
 class RebuildAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector<CounterModel>(
+      models:[()=> CounterModel()],
+      builder:(context,model) => CounterGrid(),
     );
   }
 }
@@ -25,7 +25,7 @@ class RebuildAllExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
+    final model = Injector.get<CounterModel>(context);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
@@ -37,10 +37,10 @@ class CounterGrid extends StatelessWidget {
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
-                    viewModels: [bloc],
+                    viewModels: [model],
                     builder: (_, __) => GridItem(
-                          count: bloc.counter,
-                          onTap: () => bloc.increment(),
+                          count: model.counter,
+                          onTap: () => model.increment(),
                         ),
                   )
               ],
@@ -92,7 +92,7 @@ class GridItem extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterModel extends StatesRebuilder {
   int counter = 0;
   increment(tagID) {
     counter++;
@@ -103,9 +103,9 @@ class CounterBloc extends StatesRebuilder {
 class RebuildOneExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector<CounterModel>(
+      models:[()=> CounterModel()],
+      builder:(context,model) => CounterGrid(),
     );
   }
 }
@@ -113,7 +113,7 @@ class RebuildOneExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
+    final model = Injector.get<CounterModel>(context);
     return StateWithMixinBuilder(
       mixinWith: MixinWith.automaticKeepAliveClientMixin,
       builder: (_, __) => Padding(
@@ -129,10 +129,10 @@ class CounterGrid extends StatelessWidget {
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
-                          viewModels: [bloc],
+                          viewModels: [model],
                           builder: (_, tagID) => GridItem(
-                                count: bloc.counter,
-                                onTap: () => bloc.increment(tagID),
+                                count: model.counter,
+                                onTap: () => model.increment(tagID),
                               ),
                         )
                     ],
@@ -183,7 +183,7 @@ class GridItem extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterModel extends StatesRebuilder {
   int counter = 0;
   increment(tagID) {
     counter++;
@@ -194,9 +194,9 @@ class CounterBloc extends StatesRebuilder {
 class RebuildSetExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector<CounterModel>(
+      models:[()=> CounterModel()],
+      builder:(context,model) => CounterGrid(),
     );
   }
 }
@@ -204,7 +204,7 @@ class RebuildSetExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
+    final model = Injector.get<CounterModel>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -217,10 +217,10 @@ class CounterGrid extends StatelessWidget {
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
                     tag: i % 2,
-                    viewModels: [bloc],
+                    viewModels: [model],
                     builder: (_, tagID) => GridItem(
-                          count: bloc.counter,
-                          onTap: () => bloc.increment(i % 2),
+                          count: model.counter,
+                          onTap: () => model.increment(i % 2),
                         ),
                   )
               ],
@@ -270,7 +270,7 @@ class GridItem extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBloc extends StatesRebuilder {
+class CounterModel extends StatesRebuilder {
   int counter = 0;
 
   AnimationController controller;
@@ -306,9 +306,9 @@ class CounterBloc extends StatesRebuilder {
 class AnimateSetExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      bloc: CounterBloc(),
-      child: CounterGrid(),
+    return Injector<CounterModel>(
+      models:[()=> CounterModel()],
+      builder:(context,model) => CounterGrid(),
     );
   }
 }
@@ -316,7 +316,7 @@ class AnimateSetExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CounterBloc>(context);
+    final model = Injector.get<CounterModel>(context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -325,20 +325,20 @@ class CounterGrid extends StatelessWidget {
           Expanded(
             child: StateWithMixinBuilder(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, __, ticker) => bloc.initAnimation(ticker),
-              dispose: (_, __, ___) => bloc.dispose(),
+              initState: (_, __, ticker) => model.initAnimation(ticker),
+              dispose: (_, __, ___) => model.dispose(),
               builder: (_, __) => GridView.count(
                     crossAxisCount: 3,
                     children: <Widget>[
                       for (var i = 0; i < 12; i++)
                         StateBuilder(
                           tag: i % 2,
-                          viewModels: [bloc],
+                          viewModels: [model],
                           builder: (_, tagID) => Transform.rotate(
-                                angle: bloc.animation.value,
+                                angle: model.animation.value,
                                 child: GridItem(
-                                  count: bloc.counter,
-                                  onTap: () => bloc.triggerAnimation(i % 2),
+                                  count: model.counter,
+                                  onTap: () => model.triggerAnimation(i % 2),
                                 ),
                               ),
                         ),
