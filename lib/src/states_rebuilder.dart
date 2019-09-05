@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 import 'common.dart';
 
 abstract class ListenerOfStatesRebuilder {
