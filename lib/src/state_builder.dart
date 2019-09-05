@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/src/split_and_add_observer.dart';
 import 'states_rebuilder.dart';
 import 'common.dart';
 
@@ -19,7 +20,7 @@ class StateBuilder extends StateBuilderBase {
     this.didUpdateWidget,
   })  : assert(() {
           if (blocs == null && viewModels == null) {
-            throw FlutterError(
+            throw Exception(
                 "ERR(StateBuilder)01: You have to define one of the `blocs` or `viewModels parameters.\n"
                 "`blocs` and `viewModels` are used interchangeably.\n"
                 "`blocs`  is deprecated and will be removed in the future.");
@@ -131,52 +132,27 @@ class StateBuilder extends StateBuilderBase {
   _StateBuilderState createState() => _StateBuilderState();
 }
 
-class _StateBuilderState extends State<StateBuilder> {
-  var _tag;
+class _StateBuilderState extends State<StateBuilder>
+    implements ListenerOfStatesRebuilder {
+  SplitAndAddObserver splitAndAddObserver;
   String _tagID;
-  String uniqueID;
   @override
   void initState() {
     super.initState();
-    uniqueID = shortHash(this) + UniqueKey().toString();
-    if (widget.tag is List) {
-      _tag = <String>[];
-      widget.tag.forEach((e) {
-        final tempTags = addListener(
-            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
-        _tag.add(tempTags[0]);
-        _tagID = tempTags[1];
-      });
-    } else {
-      final tempTags = addListener(
-          widget.viewModels ?? widget.blocs, widget.tag, uniqueID, _listener);
-      _tag = tempTags[0];
-      _tagID = tempTags[1];
-    }
+    final uniqueID = shortHash(this) + UniqueKey().toString();
+    splitAndAddObserver = SplitAndAddObserver(widget, this, uniqueID);
 
+    _tagID = splitAndAddObserver.tagID;
     if (widget.initState != null) widget.initState(context, _tagID);
   }
 
-  void _listener() {
+  void update() {
     if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    if (widget.tag is List) {
-      _tag?.forEach((e) {
-        removeListener(
-            widget.viewModels ?? widget.blocs, e, uniqueID, _listener);
-      });
-    } else {
-      removeListener(
-          widget.viewModels ?? widget.blocs, _tag, uniqueID, _listener);
-    }
-
-    if (widget.disposeViewModels == true) {
-      (widget.viewModels ?? widget.blocs)
-          ?.forEach((b) => (b as dynamic).dispose());
-    }
+    splitAndAddObserver.removeFromObserver();
 
     if (widget.dispose != null) widget.dispose(context, _tagID);
     super.dispose();

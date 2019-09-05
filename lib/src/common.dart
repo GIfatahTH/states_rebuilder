@@ -22,41 +22,19 @@ abstract class StateBuilderBase extends StatefulWidget {
   final bool disposeViewModels;
 }
 
-List<String> addListener(List<StatesRebuilder> widgetVM, dynamic widgetTag,
-    String hashCode, VoidCallback listener) {
-  String tag, _tagID;
+abstract class Subject {
+  void rebuildStates([List<dynamic> tags]);
 
-  if (widgetVM != null) {
-    widgetVM.forEach(
-      (StatesRebuilder b) {
-        if (b == null) return null;
-        tag = (widgetTag != null && widgetTag != "")
-            ? "$widgetTag"
-            : "#@dFau_Lt${b.hashCode}TaG30";
-        _tagID = "$tag$splitter$hashCode";
-        StatesRebuilder.addToListeners(
-            viewModel: b, tag: tag, listener: listener, hashCode: hashCode);
-      },
-    );
-  }
-  return [tag, _tagID];
-}
+  void addObserver({
+    @required ListenerOfStatesRebuilder observer,
+    @required String tag,
+    @required String tagID,
+  });
 
-void removeListener(
-  List<StatesRebuilder> widgetVM,
-  String tag,
-  String uniqueID,
-  VoidCallback listener,
-) {
-  if (widgetVM != null) {
-    widgetVM.forEach(
-      (StatesRebuilder b) {
-        if (b == null) return;
-        if (tag == null) return;
-        StatesRebuilder.removeFromListeners(b, tag, uniqueID);
-      },
-    );
-  }
+  void removeObserver({
+    @required String tag,
+    @required String tagID,
+  });
 }
 
 String splitter = "";

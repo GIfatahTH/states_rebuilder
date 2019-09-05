@@ -1,119 +1,278 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/src/states_rebuilder.dart';
+import 'package:states_rebuilder/src/common.dart';
 
 void main() {
-  testWidgets(
-      'Widgets update when the increment() is called. First alternative',
-      (WidgetTester tester) async {
-    final initialValue = 0;
-    final testBloc = TestBloc(initialValue);
-    final widget = TestWidget1stAlt(testBloc);
+  group("addObserver : ", () {
+    test("Do not add observer if tag, tagID or observer is null", () {
+      final vm = ViewModel();
+      final observer1 = StatesRebuilderListener1();
+      vm.addObserver(
+        tag: "tag1",
+        tagID: "tag1ID_1",
+        observer: null,
+      );
+      expect(vm.observers().length, equals(0));
 
-    // Starts out at the initial value
-    await tester.pumpWidget(widget);
+      vm.addObserver(
+        tag: "tag1",
+        tagID: null,
+        observer: observer1,
+      );
+      expect(vm.observers().length, equals(0));
 
-    // Increment the model, which should notify the children to rebuild
-    testBloc.increment();
+      vm.addObserver(
+        tag: null,
+        tagID: "tag1ID",
+        observer: observer1,
+      );
+      expect(vm.observers().length, equals(0));
+    });
 
-    // Rebuild the widget
-    await tester.pumpWidget(widget);
+    test("addObserver works", () {
+      final vm = ViewModel();
+      final observer1 = StatesRebuilderListener1();
 
-    expect(find.text('1'), findsOneWidget);
+      expect(vm.observers().length, equals(0));
+
+      vm.addObserver(
+        tag: "tag1",
+        tagID: "tag1ID_1",
+        observer: observer1,
+      );
+
+      expect(vm.observers().length, equals(1));
+      expect(vm.observers()["tag1"].length, equals(1));
+      expect(vm.observers()["tag1"]["tag1ID_1"].hashCode == observer1.hashCode,
+          isTrue);
+
+      vm.addObserver(
+        tag: "tag1",
+        tagID: "tag1ID_2",
+        observer: StatesRebuilderListener1(),
+      );
+
+      expect(vm.observers().length, equals(1));
+      expect(vm.observers()["tag1"].length, equals(2));
+      expect(vm.observers()["tag1"]["tag1ID_2"].hashCode == observer1.hashCode,
+          isFalse);
+
+      vm.addObserver(
+        tag: "tag2",
+        tagID: "tag2ID_1",
+        observer: StatesRebuilderListener1(),
+      );
+
+      expect(vm.observers().length, equals(2));
+      expect(vm.observers()["tag1"].length, equals(2));
+      expect(vm.observers()["tag2"].length, equals(1));
+
+      final observer2 = StatesRebuilderListener1();
+      vm.addObserver(
+        tag: "tag2",
+        tagID: "tag2ID_2",
+        observer: observer2,
+      );
+
+      expect(vm.observers().length, equals(2));
+      expect(vm.observers()["tag1"].length, equals(2));
+      expect(vm.observers()["tag2"].length, equals(2));
+      expect(vm.observers()["tag2"]["tag2ID_2"].hashCode == observer2.hashCode,
+          isTrue);
+    });
   });
 
-  testWidgets(
-      'Widgets update when the increment(State state) is called. second alternative',
-      (WidgetTester tester) async {
-    final initialValue = 0;
-    final testBloc = TestBloc(initialValue);
-    final widget = TestWidget2sdAlt(testBloc);
+  group("removeObserver : ", () {
+    test("remove non existing tag throws exception", () {
+      final vm = ViewModel();
 
-    // Starts out at the initial value
-    await tester.pumpWidget(widget);
+      expect(
+          () => vm.removeObserver(
+                tag: "tag1",
+                tagID: "tag1ID_1",
+              ),
+          throwsException);
+    });
 
-    // Increment the model, which should notify the children to rebuild
-    // testBloc.increment();
-    await tester.tap(find.byType(RaisedButton));
+    test("remove empty tags throws exception", () {
+      final vm = ViewModel();
+      vm.addObserver(
+        tag: "tag1",
+        tagID: null,
+        observer: null,
+      );
+      expect(
+          () => vm.removeObserver(
+                tag: "tag1",
+                tagID: "tag1ID_1",
+              ),
+          throwsException);
+    });
 
-    // Rebuild the widget
-    await tester.pumpWidget(widget);
+    test("removeObserver works", () {
+      final vm = ViewModel();
+      final observer1 = StatesRebuilderListener1();
 
-    expect(find.text('1'), findsOneWidget);
+      expect(vm.observers().length, equals(0));
+
+      vm.addObserver(
+        tag: "tag1",
+        tagID: "tag1ID_1",
+        observer: observer1,
+      );
+
+      vm.addObserver(
+        tag: "tag1",
+        tagID: "tag1ID_2",
+        observer: StatesRebuilderListener1(),
+      );
+      vm.addObserver(
+        tag: "tag2",
+        tagID: "tag2ID_1",
+        observer: StatesRebuilderListener1(),
+      );
+
+      bool isCleaner = false;
+      String statesRebuilderCleanerTag;
+      vm.cleaner(() {
+        isCleaner = true;
+      });
+
+      vm.statesRebuilderCleaner = (String tag) {
+        statesRebuilderCleanerTag = tag;
+      };
+
+      vm.removeObserver(
+        tag: "tag1",
+        tagID: "tag1ID_1",
+      );
+
+      expect(vm.observers().length, equals(2));
+      expect(isCleaner, isFalse);
+      expect(statesRebuilderCleanerTag, "tag1ID_1");
+
+      vm.removeObserver(
+        tag: "tag1",
+        tagID: "tag1ID_2",
+      );
+
+      expect(vm.observers().length, equals(1));
+      expect(isCleaner, isFalse);
+      expect(statesRebuilderCleanerTag, "tag1");
+
+      vm.removeObserver(
+        tag: "tag2",
+        tagID: "tag2ID_1",
+      );
+
+      expect(vm.observers().length, equals(0));
+      expect(isCleaner, isTrue);
+      expect(statesRebuilderCleanerTag, isNull);
+    });
   });
+
+  group("rebuildStates : ", () {
+    ViewModel vm;
+    ListenerOfStatesRebuilder observer1;
+    ListenerOfStatesRebuilder observer2;
+    ListenerOfStatesRebuilder observer3;
+    setUp(() {
+      vm = ViewModel();
+      observer1 = StatesRebuilderListener1();
+      observer2 = StatesRebuilderListener2();
+      observer3 = StatesRebuilderListener3();
+
+      vm.addObserver(
+        tag: 'tag1',
+        tagID: 'tag1ID_1',
+        observer: observer1,
+      );
+
+      vm.addObserver(
+        tag: 'tag1',
+        tagID: 'tag1ID_2',
+        observer: observer2,
+      );
+
+      vm.addObserver(
+        tag: 'tag2',
+        tagID: 'tag2ID',
+        observer: observer3,
+      );
+
+      isUpdatedObserver1 = false;
+      isUpdatedObserver2 = false;
+      isUpdatedObserver3 = false;
+    });
+    test("empty observers throw exception", () {
+      expect(() {
+        vm = ViewModel();
+        vm.rebuildStates();
+      }, throwsException);
+    });
+
+    test("empty observers does not throw exception using hasObserver", () {
+      expect(() {
+        vm = ViewModel();
+        if (vm.hasObserver) vm.rebuildStates();
+      }, isNot(throwsException));
+    });
+
+    test("when called with no argument is will rebuild all observers", () {
+      vm.rebuildStates();
+      expect(isUpdatedObserver1 && isUpdatedObserver2 && isUpdatedObserver3,
+          isTrue);
+    });
+
+    test("when called with one tag, it will rebuild all observer with the tag ",
+        () {
+      vm.rebuildStates(['tag1']);
+      expect(isUpdatedObserver1 && isUpdatedObserver2 && isUpdatedObserver3,
+          isFalse);
+      expect(isUpdatedObserver1 && isUpdatedObserver2, isTrue);
+    });
+
+    test(
+        "when called with the form ('tag1' + splitter + 'tag1ID_1') , it will rebuild one observer with the tagID ",
+        () {
+      vm.rebuildStates(['tag1' + splitter + 'tag1ID_1']);
+      expect(isUpdatedObserver1 && isUpdatedObserver2 && isUpdatedObserver3,
+          isFalse);
+      expect(isUpdatedObserver1 && isUpdatedObserver2, isFalse);
+      expect(isUpdatedObserver1, isTrue);
+    });
+  });
+
+  test(
+      "when called with the form ('tag1' + splitter + 'tag1ID_1') , it will rebuild one observer with the tagID ",
+      () {});
 }
 
-class TestBloc extends StatesRebuilder {
-  int _counter;
+class ViewModel extends StatesRebuilder {}
 
-  TestBloc([int initialValue = 0]) {
-    _counter = initialValue;
-  }
+bool isUpdatedObserver1 = false;
+bool isUpdatedObserver2 = false;
+bool isUpdatedObserver3 = false;
 
-  int get counter => _counter;
-
-  void increment([int value]) {
-    _counter++;
-    rebuildStates();
-  }
-
-  void increment2(int value, String tagID) {
-    _counter++;
-    rebuildStates([tagID]);
-  }
-}
-
-class TestWidget1stAlt extends StatelessWidget {
-  final TestBloc testBloc;
-
-  TestWidget1stAlt(this.testBloc);
-
+class StatesRebuilderListener1 implements ListenerOfStatesRebuilder {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Container(
-        child: StateBuilder(
-          viewModels: [testBloc],
-          builder: (_, __) {
-            return Text(
-              testBloc.counter.toString(),
-              textDirection: TextDirection.ltr,
-            );
-          },
-        ),
-      ),
-    );
+  void update() {
+    isUpdatedObserver1 = true;
   }
 }
 
-class TestWidget2sdAlt extends StatelessWidget {
-  final TestBloc testBloc;
-  TestWidget2sdAlt(
-    this.testBloc,
-  );
-
+class StatesRebuilderListener2 implements ListenerOfStatesRebuilder {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Container(
-          child: StateBuilder(
-            viewModels: [testBloc],
-            builder: (BuildContext context, String tagID) {
-              return Column(children: [
-                Text(
-                  testBloc.counter.toString(),
-                ),
-                RaisedButton(
-                  child: Text("Increment"),
-                  onPressed: () => testBloc.increment2(0, tagID),
-                ),
-              ]);
-            },
-          ),
-        ),
-      ),
-    );
+  void update() {
+    isUpdatedObserver2 = true;
   }
 }
+
+class StatesRebuilderListener3 implements ListenerOfStatesRebuilder {
+  @override
+  void update() {
+    isUpdatedObserver3 = true;
+  }
+}
+
+enum EnumTags { tag1 }

@@ -110,7 +110,9 @@ class Streaming<T, S> {
           _inner(k);
         }, onDone: () {
           _summary[k] = _summary[k].inState(ConnectionState.done);
-          if (!_controllers[k].isClosed) _inner(k);
+          if (_controllers == null || !_controllers[k].isClosed) {
+            _inner(k);
+          }
         }, cancelOnError: false));
         _summary[k] = _summary[k].inState(ConnectionState.waiting);
         _inner(k, false);
@@ -155,25 +157,21 @@ class Streaming<T, S> {
   ///Add listeners to be notified when the stream is resolved.
   addListener(StatesRebuilder viewModel, [List tag]) {
     final key = "$viewModel${viewModel.hashCode}";
-    _listeners[key] = tag == null
-        ? () => viewModel.rebuildStates()
-        : () => viewModel.rebuildStates(tag);
+    _listeners[key] = () => viewModel.rebuildStates(tag);
 
     _subscription?.forEach((_subscript) {
       _subscript?.resume();
     });
 
-    viewModel.statesRebuilderCleaner = (tag) {
-      if (tag == null) {
-        _listeners.remove(key);
+    viewModel.cleaner(() {
+      _listeners.remove(key);
 
-        if (_listeners.isEmpty) {
-          _subscription.forEach((_subscript) {
-            _subscript.pause();
-          });
-        }
+      if (_listeners.isEmpty) {
+        _subscription.forEach((_subscript) {
+          _subscript.pause();
+        });
       }
-    };
+    });
   }
 
   ///Cancel subscriptions
