@@ -1,3 +1,7 @@
+## 1.5.0+1
+* Use `ObservableService` and `hasState` instead of `Observable` and `hasObserver`, because the latter are widely used and can lead to conflict
+
+
 ## 1.5.0
 * Add `hasStates` getter to check if the StatesRebuilder object has listener.
 * Add `inject` parameter to the `Injector` widget as an alternative to the `models` parameter. With `inject` you can register models using interface Type. 

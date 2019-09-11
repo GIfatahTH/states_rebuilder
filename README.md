@@ -17,7 +17,7 @@ This Library provides Four classes and two methods:
   ```dart
   rebuildStates([List<dynamic> tags])
   ```
-  You can use `hasObserver` to check whether the `StatesRebuilder` has observer or not before calling `rebuildStates` to avoid any error.
+  You can use `hasState` to check whether the `StatesRebuilder` has state to rebuild or not before calling `rebuildStates` to avoid any error.
   * The `StateBuilder` Widget. You wrap any part of your widgets with it to add it to the listeners list of your logic classes and hence can rebuild it using `rebuildState` method.
   This is the constructor of the `StateBuilder`:
   
@@ -105,7 +105,7 @@ streaming.addListener(this, ["optional tag"]);
 
   You can declare many Injectors where you want in the widget tree.
 
- * `Observable` interface : Any service class that implement the `Observable` can notify registered viewModels to rebuild their corresponding view. See prototype Example bellow.
+ * `ObservableService` interface : Any service class that implement the `ObservableService` can notify registered viewModels to rebuild their corresponding view. See prototype Example bellow.
 
 ## Prototype Example for dependency injection
 
@@ -303,12 +303,12 @@ your main.dart file:
     }
   }
 ```
-## Prototype Example for state management with `Observable` interface
+## Prototype Example for state management with `ObservableService` interface
 
 ```dart 
 //When the method `myMethod()` is called it will notify all registered viewModels class to rebuild their corresponding views.
 
-class Service1 extends Observable {
+class Service1 extends ObservableService {
   String message = "I am Service1";
   myMethod() {
     rebuildStates();
