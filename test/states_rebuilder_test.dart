@@ -214,7 +214,7 @@ void main() {
     test("empty observers does not throw exception using hasObserver", () {
       expect(() {
         vm = ViewModel();
-        if (vm.hasObserver) vm.rebuildStates();
+        if (vm.hasState) vm.rebuildStates();
       }, isNot(throwsException));
     });
 

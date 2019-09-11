@@ -1,6 +1,6 @@
 import 'states_rebuilder.dart';
 
-abstract class _IObservable {
+abstract class _IObservableService {
   void rebuildStates();
 
   void addObserver(StatesRebuilder observer, [List tag]);
@@ -10,7 +10,7 @@ abstract class _IObservable {
   );
 }
 
-class Observable implements _IObservable {
+class ObservableService implements _IObservableService {
   Map<String, void Function()> _observers = {};
   @override
   void addObserver(StatesRebuilder observer, [List tag]) {

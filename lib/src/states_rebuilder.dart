@@ -17,7 +17,7 @@ class StatesRebuilder implements Subject {
   /// observers getter
   Map<String, Map<String, ListenerOfStatesRebuilder>> observers() => _observers;
 
-  bool get hasObserver => _observers.isNotEmpty;
+  bool get hasState => _observers.isNotEmpty;
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   @override

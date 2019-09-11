@@ -92,7 +92,7 @@ class ViewModel2 extends StatesRebuilder {
   }
 }
 
-class Service1 extends Observable {
+class Service1 extends ObservableService {
   String message = "I am Service1";
   notifyObserver() {
     rebuildStates();
