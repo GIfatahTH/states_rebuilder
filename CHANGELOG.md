@@ -1,5 +1,5 @@
 ## 1.5.0+1
-* Use `ObservableService` and `hasState` instead of `Observable` and `hasObserver`, because the latter are widely used and can lead to conflict
+* Use `ObservableService` and `hasState` instead of `Observable` and `hasObserver`, because the latters are widely used and can lead to conflict
 
 
 ## 1.5.0
