@@ -1,3 +1,7 @@
+## 1.5.1
+* add `afterInitialBuild` and `afterRebuild` parameters to the `StateBuilder`, `StateWithMixinBuilder` and `Injector` widgets.`
+  `afterInitialBuild` and `afterRebuild` are callBack to be executed after the widget is mounted and after each rebuild. 
+
 ## 1.5.0+1
 * Use `ObservableService` and `hasState` instead of `Observable` and `hasObserver`, because the latters are widely used and can lead to conflict
 

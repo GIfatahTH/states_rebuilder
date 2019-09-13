@@ -235,6 +235,31 @@ void main() {
     expect(Injector.get("myInt"), equals(1));
     expect(Injector.get("myInt"), isA<int>());
   });
+
+  testWidgets(
+    "'afterMounted' and 'afterRebuild' called together",
+    (WidgetTester tester) async {
+      int numberOfCall = 0;
+      await tester.pumpWidget(
+        Injector<ViewModel>(
+          models: [() => ViewModel()],
+          afterInitialBuild: (context, tagID) => numberOfCall++,
+          afterRebuild: (context, tagID) => numberOfCall++,
+          builder: (_, __) => Container(),
+        ),
+      );
+
+      final vm = Injector.get<ViewModel>();
+
+      expect(numberOfCall, 2);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 3);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 4);
+    },
+  );
 }
 
 class ViewModel extends StatesRebuilder {

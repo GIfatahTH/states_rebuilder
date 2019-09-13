@@ -239,6 +239,33 @@ void main() {
       expect(_tagID, isNull);
     });
   });
+
+  testWidgets(
+    "'afterMounted' and 'afterRebuild' called together",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      int numberOfCall = 0;
+      await tester.pumpWidget(
+        StateWithMixinBuilder(
+          mixinWith: MixinWith.singleTickerProviderStateMixin,
+          viewModels: [vm],
+          initState: (_, __, ___) => null,
+          dispose: (_, __, ___) => null,
+          afterInitialBuild: (context, tagID, ticker) => numberOfCall++,
+          afterRebuild: (context, tagID) => numberOfCall++,
+          builder: (_, __) => Container(),
+        ),
+      );
+
+      expect(numberOfCall, 2);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 3);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 4);
+    },
+  );
 }
 
 class ViewModel extends StatesRebuilder {}

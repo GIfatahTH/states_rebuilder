@@ -18,6 +18,8 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.didChangeAppLifecycleState,
+    this.afterInitialBuild,
+    this.afterRebuild,
     this.disposeViewModels = true,
     @required this.mixinWith,
   })  : assert(() {
@@ -33,6 +35,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
           }
           return true;
         }()),
+        assert(mixinWith != null),
         super(
           key: key,
           tag: tag,
@@ -130,6 +133,13 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
           BuildContext context, String tagID, AppLifecycleState state)
       didChangeAppLifecycleState;
 
+  ///Called after the widget is inserted in the widget tree.
+  final void Function(BuildContext context, String tagID, T mix)
+      afterInitialBuild;
+
+  ///Called after each rebuild of the widget.
+  final void Function(BuildContext context, String tagID) afterRebuild;
+
   ///A custom name of your widget. It is used to rebuild this widget
   ///from your logic classes.
   ///
@@ -213,6 +223,12 @@ class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder<T>>
           widget.didChangeDependencies != null
               ? widget.didChangeDependencies(context, tagID, this as T)
               : null,
+      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tagID, this as T)
+          : null,
+      afterRebuild: (context, tagID) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tagID)
+          : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -245,6 +261,12 @@ class _StateBuilderStateSingleTickerMix<T>
           widget.didChangeDependencies != null
               ? widget.didChangeDependencies(context, tagID, this as T)
               : null,
+      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tagID, this as T)
+          : null,
+      afterRebuild: (context, tagID) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tagID)
+          : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -280,6 +302,12 @@ class _StateBuilderStateAutomaticKeepAliveClient<T>
           widget.didChangeDependencies != null
               ? widget.didChangeDependencies(context, tagID, this as T)
               : null,
+      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tagID, this as T)
+          : null,
+      afterRebuild: (context, tagID) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tagID)
+          : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),
@@ -320,6 +348,12 @@ class _StateBuilderStateWidgetsBindingObserver<T>
           widget.didChangeDependencies != null
               ? widget.didChangeDependencies(context, tagID, this as T)
               : null,
+      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tagID, this as T)
+          : null,
+      afterRebuild: (context, tagID) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tagID)
+          : null,
       viewModels: (widget.viewModels ?? widget.blocs) ?? [],
       tag: widget.tag,
       builder: (context, tagID) => widget.builder(context, tagID),

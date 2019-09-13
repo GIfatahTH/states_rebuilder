@@ -18,6 +18,8 @@ class StateBuilder extends StateBuilderBase {
     this.dispose,
     this.didChangeDependencies,
     this.didUpdateWidget,
+    this.afterInitialBuild,
+    this.afterRebuild,
   })  : assert(() {
           if (blocs == null && viewModels == null) {
             throw Exception(
@@ -61,7 +63,7 @@ class StateBuilder extends StateBuilderBase {
   ///Called when this object is inserted into the tree.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final Function(BuildContext context, String tagID) initState;
+  final void Function(BuildContext context, String tagID) initState;
 
   ///```
   ///StateBuilder(
@@ -73,7 +75,7 @@ class StateBuilder extends StateBuilderBase {
   ///Called when this object is removed from the tree permanently.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final Function(BuildContext context, String tagID) dispose;
+  final void Function(BuildContext context, String tagID) dispose;
 
   ///```
   ///StateBuilder(
@@ -85,7 +87,7 @@ class StateBuilder extends StateBuilderBase {
   ///Called when a dependency of this [State] object changes.
   ///
   ///The String parameter is a unique tag automatically generated to refer to this`StateBuilder`.
-  final Function(BuildContext context, String tagID) didChangeDependencies;
+  final void Function(BuildContext context, String tagID) didChangeDependencies;
 
   ///```
   ///StateBuilder(
@@ -100,6 +102,12 @@ class StateBuilder extends StateBuilderBase {
   final void Function(
           BuildContext context, String tagID, StateBuilderBase oldWidget)
       didUpdateWidget;
+
+  ///Called after the widget is inserted in the widget tree.
+  final void Function(BuildContext context, String tagID) afterInitialBuild;
+
+  ///Called after each rebuild of the widget.
+  final void Function(BuildContext context, String tagID) afterRebuild;
 
   ///A custom name of your widget. It is used to rebuild this widget
   ///from your logic classes.
@@ -144,6 +152,11 @@ class _StateBuilderState extends State<StateBuilder>
 
     _tagID = splitAndAddObserver.tagID;
     if (widget.initState != null) widget.initState(context, _tagID);
+    if (widget.afterInitialBuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.afterInitialBuild(context, _tagID),
+      );
+    }
   }
 
   void update() {
@@ -174,6 +187,11 @@ class _StateBuilderState extends State<StateBuilder>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.afterRebuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.afterRebuild(context, _tagID),
+      );
+    }
     return widget.builder(context, _tagID);
   }
 }

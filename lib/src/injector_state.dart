@@ -46,6 +46,13 @@ class InjectorState<T extends StatesRebuilder> extends State<Injector<T>> {
           widget.dispose(model);
         }
       },
+      afterInitialBuild: (context, tagID) {
+        if (widget.afterInitialBuild != null)
+          widget.afterInitialBuild(context, tagID);
+      },
+      afterRebuild: (context, tagID) {
+        if (widget.afterRebuild != null) widget.afterRebuild(context, tagID);
+      },
       builder: (context, _) => widget.builder(context, model),
     );
   }

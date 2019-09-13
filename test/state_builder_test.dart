@@ -515,6 +515,75 @@ void main() {
     expect(disposeIsCalled1, isTrue);
     expect(disposeIsCalled2, isFalse);
   });
+
+  testWidgets(
+    "'afterMounted' is called once after the widget insertion in the widget tree",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      int numberOfCall = 0;
+      await tester.pumpWidget(
+        StateBuilder(
+          viewModels: [vm],
+          afterInitialBuild: (context, tagID) => numberOfCall++,
+          builder: (_, __) => Container(height: 20, width: 20),
+        ),
+      );
+
+      expect(numberOfCall, 1);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 1);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 1);
+    },
+  );
+
+  testWidgets(
+    "'afterRebuild' is called once after the widget rebuild",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      int numberOfCall = 0;
+      await tester.pumpWidget(
+        StateBuilder(
+          viewModels: [vm],
+          afterRebuild: (context, tagID) => numberOfCall++,
+          builder: (_, __) => Container(),
+        ),
+      );
+      expect(numberOfCall, 1);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 2);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 3);
+    },
+  );
+
+  testWidgets(
+    "'afterMounted' and 'afterRebuild' called together",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      int numberOfCall = 0;
+      await tester.pumpWidget(
+        StateBuilder(
+          viewModels: [vm],
+          afterInitialBuild: (context, tagID) => numberOfCall++,
+          afterRebuild: (context, tagID) => numberOfCall++,
+          builder: (_, __) => Container(),
+        ),
+      );
+
+      expect(numberOfCall, 2);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 3);
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOfCall, 4);
+    },
+  );
 }
 
 class ViewModel extends StatesRebuilder {}

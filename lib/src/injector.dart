@@ -23,6 +23,12 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
   ///Function to track app life cycle state. It takes as parameter the registered generic model and the AppLifeCycleState.
   final Function(T, AppLifecycleState) appLifeCycle;
 
+  ///Called after the widget is inserted in the widget tree.
+  final void Function(BuildContext context, String tagID) afterInitialBuild;
+
+  ///Called after each rebuild of the widget.
+  final void Function(BuildContext context, String tagID) afterRebuild;
+
   ///Set to true to dispose all models. The model should have instance method .`dispose`
   final bool disposeModels;
 
@@ -33,6 +39,8 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
       this.initState,
       this.dispose,
       this.appLifeCycle,
+      this.afterInitialBuild,
+      this.afterRebuild,
       this.disposeModels = false})
       : assert((models != null || inject != null) && builder != null);
 

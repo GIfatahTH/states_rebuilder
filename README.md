@@ -31,6 +31,8 @@ This Library provides Four classes and two methods:
       (BuildContext, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
       (BuildContext, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
       (BuildContext, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
+      (BuildContext, String) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
+      (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
     });
   ```
   `tag` is of type dynamic. It can be String (for small projects) or enum member (enums are preferred for big projects).When a list of dynamic tags is provided, states_rebuilder consider it as many tags and will rebuild this widget if any of theses tags are invoked by the `rebuildStates` method.
@@ -46,7 +48,9 @@ StateWithMixinBuilder<T>( {
       @required (BuildContext, String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget
       (BuildContext, String,T) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
       (BuildContext, String,StateBuilder, T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
-      (String, AppLifecycleState) → void didChangeAppLifecycleState // 
+      (String, AppLifecycleState) → void didChangeAppLifecycleState // for code to be executed depending on the life cycle of the app (in Android : onResume, onPause ...).
+      (BuildContext, String,T) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
+      (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
       @required MixinWith mixinWith
 });
 ```
@@ -88,6 +92,8 @@ streaming.addListener(this, ["optional tag"]);
     (BuildContext context, T model) → Widget builder, // The model with type T is the viewModel related to this view. When `rebuildStates()` is called in this model this widget will rebuild.
     () → void dispose, // a custom method to call when Injector is disposed.
     (T, AppLifecycleState) → dynamic appLifeCycle, // A closure to execute code depending on the life cycle of the app (in Android : onResume, onPause ...).
+    (BuildContext, String,T) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
+    (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
     bool disposeModels: false // Whether Injector will automatically call dispose method from the registered models.
   }) 
   ```
