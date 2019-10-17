@@ -1,10 +1,12 @@
 library states_rebuilder;
 
-export 'src/states_rebuilder.dart';
-export 'src/state_builder.dart';
-export 'src/state_with_mixin_builder.dart';
-export 'src/bloc_provider.dart';
-export 'src/injector.dart';
-export 'src/inject.dart';
-export 'src/Streaming.dart';
-export 'src/observable.dart';
+export 'src/states_rebuilder.dart' show StatesRebuilder;
+export 'src/state_builder.dart' show StateBuilder;
+export 'src/state_with_mixin_builder.dart'
+    show StateWithMixinBuilder, MixinWith;
+export 'src/bloc_provider.dart' show BlocProvider;
+export 'src/injector.dart' show Injector;
+export 'src/inject.dart' show Inject, Injectable;
+export 'src/Streaming.dart' show Streaming;
+export 'src/observable.dart' show ObservableService;
+export 'src/model_states_rebuilder.dart' show ModelStatesRebuilder;

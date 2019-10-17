@@ -15,7 +15,7 @@ void main() {
   });
 
   test("Model name is the custom name", () {
-    final model = Inject(() => Service(), "MyService");
+    final model = Inject(() => Service(), name: "MyService");
     expect(model.getName(), equals("MyService"));
   });
 
@@ -25,14 +25,14 @@ void main() {
   });
 
   test("getSingleton return the same instance", () {
-    final model = Inject(() => Service(), "MyService");
+    final model = Inject(() => Service(), name: "MyService");
     final instance1 = model.getSingleton();
     final instance2 = model.getSingleton();
     expect(instance1.hashCode == instance2.hashCode, isTrue);
   });
 
   test("getInstance return the different instance", () {
-    final model = Inject(() => Service(), "MyService");
+    final model = Inject(() => Service(), name: "MyService");
     final instance1 = model.getInstance();
     final instance2 = model.getInstance();
     expect(instance1.hashCode == instance2.hashCode, isFalse);

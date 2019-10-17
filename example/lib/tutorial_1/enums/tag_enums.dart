@@ -1,1 +1,0 @@
-enum MainTag { appBar }

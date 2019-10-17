@@ -3,7 +3,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 enum CounterTag { time }
 
-class CounterBlocPerf extends StatesRebuilder {
+class CounterBlocPerf {
   int counter = 0;
   int time;
   String state;
@@ -22,15 +22,16 @@ class CounterBlocPerf extends StatesRebuilder {
   }
 
   VoidCallback listener;
-  triggerAnimation(tagID) {
-    animation.removeListener(listener);
-    listener = () {
+  triggerAnimation(VoidCallback listener) {
+    animation.removeListener(this.listener);
+    this.listener = () {
       time = DateTime.now().microsecondsSinceEpoch;
-      rebuildStates([tagID, CounterTag.time]);
+      // rebuildStates(["anim", CounterTag.time]);
+      listener();
       time = DateTime.now().microsecondsSinceEpoch - time;
       print(time);
     };
-    animation.addListener(listener);
+    animation.addListener(this.listener);
     controller.forward();
     counter++;
   }
@@ -41,22 +42,22 @@ class CounterBlocPerf extends StatesRebuilder {
 
   lifecycleState(BuildContext context, String tagID, AppLifecycleState state) {
     this.state = "$state";
-    rebuildStates([CounterTag.time]);
+    // rebuildStates([CounterTag.time]);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-            content: Text(
-              '$state',
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-              ),
-            ],
+        content: Text(
+          '$state',
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
           ),
+        ],
+      ),
     );
   }
 }
@@ -65,16 +66,17 @@ class RebuildStatesPerformanceExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocPerf()],
+      inject: [Inject<CounterBlocPerf>(() => CounterBlocPerf())],
       builder: (_, __) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.get<CounterBlocPerf>();
   @override
   Widget build(BuildContext context) {
+    final bloc = Injector.getAsModel<CounterBlocPerf>(context: context);
+    print(bloc);
     return Padding(
       padding: EdgeInsets.all(10),
       child: StateWithMixinBuilder<WidgetsBindingObserver>(
@@ -84,48 +86,49 @@ class CounterGrid extends StatelessWidget {
         dispose: (_, __, observer) =>
             WidgetsBinding.instance.removeObserver(observer),
         didChangeAppLifecycleState: (context, tagID, state) {
-          bloc.lifecycleState(context, tagID, state);
+          bloc.setState((model) => model.lifecycleState(context, tagID, state),
+              tags: [tagID]);
         },
         builder: (_, __) => Column(
-              children: <Widget>[
-                StateBuilder(
-                    viewModels: [bloc],
-                    tag: CounterTag.time,
-                    builder: (_, __) => Column(
-                          children: <Widget>[
-                            Text(
-                                "Time taken to execute rebuildStates() ${bloc.time}"),
-                            Text(
-                                "This page is mixin with widgetsBindingObserver. The state is: ${bloc.state}"),
-                          ],
-                        )),
-                Expanded(
-                  child: StateWithMixinBuilder(
-                    mixinWith: MixinWith.singleTickerProviderStateMixin,
-                    initState: (_, __, ticker) => bloc.initAnimation(ticker),
-                    dispose: (_, __, ___) => bloc.dispose(),
-                    builder: (_, __) => GridView.count(
-                          crossAxisCount: 3,
-                          children: <Widget>[
-                            for (var i = 0; i < 12; i++)
-                              StateBuilder(
-                                tag: i % 2,
-                                viewModels: [bloc],
-                                builder: (_, tagID) => Transform.rotate(
-                                      angle: bloc.animation.value,
-                                      child: GridItem(
-                                        count: bloc.counter,
-                                        onTap: () =>
-                                            bloc.triggerAnimation(i % 2),
-                                      ),
-                                    ),
-                              ),
-                          ],
+          children: <Widget>[
+            StateBuilder(
+                viewModels: [bloc],
+                tag: CounterTag.time,
+                builder: (_, __) => Column(
+                      children: <Widget>[
+                        Text(
+                            "Time taken to execute rebuildStates() ${bloc.state.time}"),
+                        Text(
+                            "This page is mixin with widgetsBindingObserver. The state is: ${bloc.state.state}"),
+                      ],
+                    )),
+            Expanded(
+              child: StateWithMixinBuilder(
+                mixinWith: MixinWith.singleTickerProviderStateMixin,
+                initState: (_, __, ticker) => bloc.state.initAnimation(ticker),
+                dispose: (_, __, ___) => bloc.state.dispose(),
+                builder: (_, __) => GridView.count(
+                  crossAxisCount: 3,
+                  children: <Widget>[
+                    for (var i = 0; i < 12; i++)
+                      StateBuilder(
+                        viewModels: [bloc],
+                        tag: "anim",
+                        builder: (_, tagID) => Transform.rotate(
+                          angle: bloc.state.animation.value,
+                          child: GridItem(
+                            count: bloc.state.counter,
+                            onTap: () => bloc.setState((value) => value
+                                .triggerAnimation(() => bloc.setState((_) {}))),
+                          ),
                         ),
-                  ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injector.dart';
-import 'package:states_rebuilder/src/injector_state.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/register_injected_models.dart';
 
@@ -99,13 +98,9 @@ void main() {
     });
   });
 
-  test("should print error on get unRegistered instance", () {
-    bool isLogged = false;
-    final logger = (String message) {
-      isLogged = true;
-    };
-    Injector.get<int>(null, logger);
-    expect(isLogged, isTrue);
+  test("should throw if getting unRegistered instance", () {
+    expect(() => Injector.get<int>(), throwsException);
+    expect(Injector.get<int>(silent: true), isNull);
   });
 
   group("Injector.get<T>()", () {

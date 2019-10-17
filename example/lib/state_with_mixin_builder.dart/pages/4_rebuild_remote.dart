@@ -3,13 +3,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 enum CounterGridTag { isEven }
 
-class CounterBlocRemote extends StatesRebuilder {
+class CounterBlocRemote {
   int counter = 0;
   bool isEven;
   increment(tagID) {
     isEven = tagID == 0;
     counter++;
-    rebuildStates([tagID, CounterGridTag.isEven]);
   }
 }
 
@@ -17,7 +16,7 @@ class RebuildRemoteExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocRemote()],
+      inject: [Inject<CounterBlocRemote>(() => CounterBlocRemote())],
       builder: (_, __) => CounterGrid(),
     );
   }
@@ -26,7 +25,7 @@ class RebuildRemoteExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = Injector.get<CounterBlocRemote>();
+    final bloc = Injector.getAsModel<CounterBlocRemote>(context: context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -36,9 +35,9 @@ class CounterGrid extends StatelessWidget {
               StateBuilder(
                 viewModels: [bloc],
                 tag: CounterGridTag.isEven,
-                builder: (_, __) => bloc.isEven == null
+                builder: (_, __) => bloc.state.isEven == null
                     ? CircularProgressIndicator()
-                    : bloc.isEven
+                    : bloc.state.isEven
                         ? Icon(Icons.looks_two)
                         : Icon(Icons.looks_one),
               ),
@@ -54,9 +53,11 @@ class CounterGrid extends StatelessWidget {
                     tag: i % 2,
                     viewModels: [bloc],
                     builder: (_, tagID) => GridItem(
-                          count: bloc.counter,
-                          onTap: () => bloc.increment(i % 2),
-                        ),
+                      count: bloc.state.counter,
+                      onTap: () => bloc.setState(
+                          (model) => model.increment(i % 2),
+                          tags: [i % 2, CounterGridTag.isEven]),
+                    ),
                   )
               ],
             ),

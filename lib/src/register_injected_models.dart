@@ -1,4 +1,5 @@
 import 'package:states_rebuilder/src/inject.dart';
+import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 class RegisterInjectedModel {
   List<Inject> _modelRegisteredByThis = [];
@@ -37,7 +38,14 @@ class RegisterInjectedModel {
     _modelRegisteredByThis.forEach((model) {
       final name = model.getName();
 
-      _allRegisteredModelInApp[name]?.remove(model);
+      bool isRemoved = _allRegisteredModelInApp[name]?.remove(model);
+      if (isRemoved) {
+        if (model.isAsyncType) {
+          model.getModelSingleton().removeObserver(tag: null, tagID: null);
+        } else if (model.getSingleton() is StatesRebuilder) {
+          model.getSingleton().removeObserver(tag: null, tagID: null);
+        }
+      }
 
       if (_allRegisteredModelInApp[name].isEmpty) {
         _allRegisteredModelInApp.remove(name);

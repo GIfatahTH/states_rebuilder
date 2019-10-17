@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBlocAnimAll extends StatesRebuilder {
+class CounterBlocAnimAll {
   int counter = 0;
 
   AnimationController controller;
@@ -18,12 +18,12 @@ class CounterBlocAnimAll extends StatesRebuilder {
     });
   }
 
-  VoidCallback listener;
-  triggerAnimation() {
-    listener = () {
-      rebuildStates();
-    };
-    animation.addListener(listener);
+  VoidCallback _listener;
+  triggerAnimation(VoidCallback listener) {
+    controller.reset();
+    animation.removeListener(_listener);
+    _listener = listener;
+    animation.addListener(_listener);
     controller.forward();
     counter++;
   }
@@ -38,16 +38,17 @@ class AnimateAllExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocAnimAll()],
+      inject: [Inject<CounterBlocAnimAll>(() => CounterBlocAnimAll())],
       builder: (_, __) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.get<CounterBlocAnimAll>();
   @override
   Widget build(BuildContext context) {
+    final bloc = Injector.getAsModel<CounterBlocAnimAll>(context: context);
+
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -56,24 +57,26 @@ class CounterGrid extends StatelessWidget {
           Expanded(
             child: StateWithMixinBuilder<TickerProvider>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, __, ticker) => bloc.initAnimation(ticker),
-              dispose: (_, __, ___) => bloc.dispose(),
+              initState: (_, __, ticker) => bloc.state.initAnimation(ticker),
+              dispose: (_, __, ___) => bloc.state.dispose(),
               builder: (_, __) => GridView.count(
-                    crossAxisCount: 3,
-                    children: <Widget>[
-                      for (var i = 0; i < 12; i++)
-                        StateBuilder(
-                          viewModels: [bloc],
-                          builder: (_, __) => Transform.rotate(
-                                angle: bloc.animation.value,
-                                child: GridItem(
-                                  count: bloc.counter,
-                                  onTap: () => bloc.triggerAnimation(),
-                                ),
-                              ),
+                crossAxisCount: 3,
+                children: <Widget>[
+                  for (var i = 0; i < 12; i++)
+                    StateBuilder(
+                      viewModels: [null],
+                      tag: i,
+                      builder: (_, __) => Transform.rotate(
+                        angle: bloc.state.animation.value,
+                        child: GridItem(
+                          count: bloc.state.counter,
+                          onTap: () => bloc.state
+                              .triggerAnimation(() => bloc.setState((_) {})),
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],

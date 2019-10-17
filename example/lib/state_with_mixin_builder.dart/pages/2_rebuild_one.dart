@@ -26,30 +26,30 @@ class CounterGrid extends StatelessWidget {
     return StateWithMixinBuilder(
       mixinWith: MixinWith.automaticKeepAliveClientMixin,
       builder: (_, __) => Padding(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              children: <Widget>[
-                Text("Rebuild The tapped widget"),
-                Text(
-                    "This page is mixin with automaticKeepAliveClientMixin to not rebuild on sweep in"),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 3,
-                    children: <Widget>[
-                      for (var i = 0; i < 12; i++)
-                        StateBuilder(
-                          viewModels: [bloc],
-                          builder: (_, tagID) => GridItem(
-                                count: bloc.counter,
-                                onTap: () => bloc.increment(tagID),
-                              ),
-                        )
-                    ],
-                  ),
-                ),
-              ],
+        padding: EdgeInsets.all(10),
+        child: Column(
+          children: <Widget>[
+            Text("Rebuild The tapped widget"),
+            Text(
+                "This page is mixin with automaticKeepAliveClientMixin to not rebuild on sweep in"),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 3,
+                children: <Widget>[
+                  for (var i = 0; i < 12; i++)
+                    StateBuilder(
+                      viewModels: [bloc],
+                      builder: (_, tagID) => GridItem(
+                        count: bloc.counter,
+                        onTap: () => bloc.increment(tagID),
+                      ),
+                    )
+                ],
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 }

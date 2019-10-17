@@ -1,3 +1,13 @@
+## 1.6.0
+* Add `Injector.getAsModel` method. When called with the context parameter, the calling widget is automatically registered as a listener.
+* Add `setState(Function(state))` to mutate the state and update the dependent the views from the UI.
+* Model class have not to extend `StatesRebuilder` to get reactivity.
+* Add the named constructor`Inject.future` which take a future and update dependents when future completes.
+* Add the named constructor`Inject.stream` which take a steam and update dependents when stream emits a value.
+* `Injector.get` or `Injector.getAsModel` now throws if no registered model is found. This can be silent by setting the parameter `silent` to true
+* Injected model ara lazily instantiated. To do otherwise set the parameter `isLazy` of the `Inject` widget to false.
+
+
 ## 1.5.1
 * add `afterInitialBuild` and `afterRebuild` parameters to the `StateBuilder`, `StateWithMixinBuilder` and `Injector` widgets.`
   `afterInitialBuild` and `afterRebuild` are callBack to be executed after the widget is mounted and after each rebuild. 

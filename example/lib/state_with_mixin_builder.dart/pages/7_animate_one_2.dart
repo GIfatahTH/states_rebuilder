@@ -60,21 +60,21 @@ class CounterGrid extends StatelessWidget {
               initState: (_, __, ticker) => bloc.initAnimation(ticker),
               dispose: (_, __, ___) => bloc.dispose(),
               builder: (_, __) => GridView.count(
-                    crossAxisCount: 3,
-                    children: <Widget>[
-                      for (var i = 0; i < 12; i++)
-                        StateBuilder(
-                          viewModels: [bloc],
-                          builder: (_, tagID) => Transform.rotate(
-                                angle: bloc.animation.value,
-                                child: GridItem(
-                                  count: bloc.counter,
-                                  onTap: () => bloc.triggerAnimation(tagID),
-                                ),
-                              ),
+                crossAxisCount: 3,
+                children: <Widget>[
+                  for (var i = 0; i < 12; i++)
+                    StateBuilder(
+                      viewModels: [bloc],
+                      builder: (_, tagID) => Transform.rotate(
+                        angle: bloc.animation.value,
+                        child: GridItem(
+                          count: bloc.counter,
+                          onTap: () => bloc.triggerAnimation(tagID),
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],

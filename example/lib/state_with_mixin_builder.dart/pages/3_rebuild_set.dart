@@ -38,9 +38,9 @@ class CounterGrid extends StatelessWidget {
                     tag: i % 2,
                     viewModels: [bloc],
                     builder: (_, tagID) => GridItem(
-                          count: bloc.counter,
-                          onTap: () => bloc.increment(i % 2),
-                        ),
+                      count: bloc.counter,
+                      onTap: () => bloc.increment(i % 2),
+                    ),
                   )
               ],
             ),

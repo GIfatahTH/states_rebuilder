@@ -3,17 +3,26 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class CounterBlocAll {
   int counter = 0;
-  increment() {
+  bool isActive = true;
+  increment1() => counter++;
+  increment2() async {
+    await Future.delayed(Duration(seconds: 1));
+    isActive = true;
     counter++;
   }
 }
 
-class RebuildAllExample extends StatelessWidget {
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject<CounterBlocAll>(() => CounterBlocAll())],
-      builder: (_, __) => CounterGrid(),
+    return MaterialApp(
+      home: Injector(
+        inject: [Inject<CounterBlocAll>(() => CounterBlocAll())],
+        builder: (_, __) => Scaffold(
+          appBar: AppBar(),
+          body: CounterGrid(),
+        ),
+      ),
     );
   }
 }
@@ -25,7 +34,6 @@ class CounterGrid extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
         children: <Widget>[
-          Text("Rebuild All subscribed states"),
           Expanded(
             child: GridView.count(
               crossAxisCount: 3,
@@ -38,9 +46,18 @@ class CounterGrid extends StatelessWidget {
                       viewModels: [bloc],
                       tag: i % 2,
                       builder: (_, __) => GridItem(
-                        count: bloc.state.counter,
-                        onTap: () => bloc.setState((model) => model.increment(),
-                            tags: null),
+                        count: bloc.state.isActive ? bloc.state.counter : null,
+                        onTap: () {
+                          if (i % 2 == 0)
+                            bloc.setState((state) => state.increment1(),
+                                tags: [i % 2]);
+                          else
+                            bloc
+                              ..setState((state) => state.isActive = false,
+                                  tags: [i % 2])
+                              ..setState((state) => state.increment2(),
+                                  tags: [i % 2]);
+                        },
                       ),
                     );
                   }),
@@ -69,13 +86,17 @@ class GridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Center(
-          child: Text(
-            "$count",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
-          ),
+          child: count != null
+              ? Text(
+                  "$count",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 50,
+                  ),
+                )
+              : CircularProgressIndicator(
+                  backgroundColor: Colors.white,
+                ),
         ),
       ),
       onTap: onTap,

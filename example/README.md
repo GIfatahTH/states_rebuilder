@@ -1,270 +1,165 @@
-# 1- Rebuild All listeners
+# 1- Simple Counter App
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterModel extends StatesRebuilder {
-  int counter = 0;
-  increment() {
-    counter++;
-    rebuildStates();
-  }
+//Pure dart class. No inheritance, no notification, no streams, and no code generation
+class Counter {
+  int count = 0;
+  increment() => count++;
 }
 
-class RebuildAllExample extends StatelessWidget {
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Injector<CounterModel>(
-      models:[()=> CounterModel()],
-      builder:(context,model) => CounterGrid(),
+    return Injector(
+      inject: [Inject<Counter>(() => Counter())],
+      builder: (context, __) {
+        final counter = Injector.getAsModel<Counter>();
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(" Counter App"),
+          ),
+          body: MyHome(),
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => counter.setState((state) => state.increment()),
+          ),
+        );
+      },
     );
   }
 }
 
-class CounterGrid extends StatelessWidget {
+class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final model = Injector.get<CounterModel>(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    final counter = Injector.getAsModel<Counter>(context: context);
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text("Rebuild All subscribed states"),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              children: <Widget>[
-                for (var i = 0; i < 12; i++)
-                  StateBuilder(
-                    viewModels: [model],
-                    builder: (_, __) => GridItem(
-                          count: model.counter,
-                          onTap: () => model.increment(),
-                        ),
-                  )
-              ],
-            ),
-          ),
+          Text("You have pushed this many times"),
+          Text("${counter.state.count}"),
         ],
       ),
     );
   }
 }
-
-class GridItem extends StatelessWidget {
-  final int count;
-  final Function onTap;
-  GridItem({this.count, this.onTap});
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      child: Container(
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: Colors.lightBlue,
-          border:
-              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Center(
-          child: Text(
-            "$count",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
-          ),
-        ),
-      ),
-      onTap: onTap,
-    );
-  }
-
-
-    // The third alternative
-
 ```
 
-# 2- Rebuild one listener by the automatically generated ID (address).
+# 2- Counter App with Future
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterModel extends StatesRebuilder {
-  int counter = 0;
-  increment(tagID) {
-    counter++;
-    rebuildStates([tagID]);
+class Counter {
+  int count = 0;
+  increment() async {
+    await Future.delayed(Duration(seconds: 1));
+    count++;
   }
 }
 
-class RebuildOneExample extends StatelessWidget {
+//The same UI as for simple Counter app 
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Injector<CounterModel>(
-      models:[()=> CounterModel()],
-      builder:(context,model) => CounterGrid(),
+    return Injector(
+      inject: [Inject<Counter>(() => Counter())],
+      builder: (context, __) {
+        final counter = Injector.getAsModel<Counter>();
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(" Counter App"),
+          ),
+          body: MyHome(),
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => counter.setState((state) => state.increment()),
+          ),
+        );
+      },
     );
   }
 }
 
-class CounterGrid extends StatelessWidget {
+class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final model = Injector.get<CounterModel>(context);
-    return StateWithMixinBuilder(
-      mixinWith: MixinWith.automaticKeepAliveClientMixin,
-      builder: (_, __) => Padding(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              children: <Widget>[
-                Text("Rebuild The tapped widget"),
-                Text(
-                    "This page is mixin with automaticKeepAliveClientMixin to not rebuild on sweep in"),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 3,
-                    children: <Widget>[
-                      for (var i = 0; i < 12; i++)
-                        StateBuilder(
-                          viewModels: [model],
-                          builder: (_, tagID) => GridItem(
-                                count: model.counter,
-                                onTap: () => model.increment(tagID),
-                              ),
-                        )
-                    ],
-                  ),
+    final counter = Injector.getAsModel<Counter>(context: context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text("You have pushed this many times"),
+          Text(counter.state.count.toString()),
+        ],
+      ),
+    );
+  }
+}
+```
+
+# 3- Injecting Futures and Streams
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      inject: [
+        Inject.stream(
+          () => Stream<int>.periodic(Duration(seconds: 1), (num) => num + 1)
+              .take(10),
+        ),
+        Inject<bool>.future(
+            () => Future.delayed(Duration(seconds: 5), () => true),
+            initialValue: false),
+      ],
+      builder: (_, __) {
+        final futureSnap = Injector.getAsModel<bool>(context: context).snapshot;
+        return Scaffold(
+          appBar: futureSnap.data == false
+              ? AppBar(
+                  title: Text(" awaiting a Future"),
+                  backgroundColor: Colors.red,
+                )
+              : AppBar(
+                  title: Text("Future is completed"),
+                  backgroundColor: Colors.blue,
                 ),
-              ],
-            ),
-          ),
+          body: MyHome(),
+        );
+      },
     );
   }
 }
 
-class GridItem extends StatelessWidget {
-  final int count;
-  final Function onTap;
-  GridItem({this.count, this.onTap});
+class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      child: Container(
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: Colors.lightBlue,
-          border:
-              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Center(
-          child: Text(
-            "$count",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
-          ),
-        ),
-      ),
-      onTap: onTap,
-    );
-  }
-}
-```
-
-
-# 3- Rebuild filtered list of listeners by tag.
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-class CounterModel extends StatesRebuilder {
-  int counter = 0;
-  increment(tagID) {
-    counter++;
-    rebuildStates([tagID]);
-  }
-}
-
-class RebuildSetExample extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector<CounterModel>(
-      models:[()=> CounterModel()],
-      builder:(context,model) => CounterGrid(),
-    );
-  }
-}
-
-class CounterGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final model = Injector.get<CounterModel>(context);
-    return Padding(
-      padding: EdgeInsets.all(10),
+    final streamSnap = Injector.getAsModel<int>(context: context).snapshot;
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text("Rebuild a set of widgets that have the same tag"),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              children: <Widget>[
-                for (var i = 0; i < 12; i++)
-                  StateBuilder(
-                    tag: i % 2,
-                    viewModels: [model],
-                    builder: (_, tagID) => GridItem(
-                          count: model.counter,
-                          onTap: () => model.increment(i % 2),
-                        ),
-                  )
-              ],
-            ),
-          ),
+          Text("Counter From stream"),
+          streamSnap.hasData
+              ? Text("${streamSnap.data}")
+              : Text("Waiting for data ..."),
         ],
       ),
     );
   }
 }
-
-class GridItem extends StatelessWidget {
-  final int count;
-  final Function onTap;
-  GridItem({this.count, this.onTap});
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      child: Container(
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: Colors.lightBlue,
-          border:
-              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Center(
-          child: Text(
-            "$count",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
-          ),
-        ),
-      ),
-      onTap: onTap,
-    );
-  }
-}
-
 ```
 
-# 3- Animation with StateWithMixinBuilder.
+# 4- Animation with StateWithMixinBuilder.
 
 ```dart
 import 'package:flutter/material.dart';

@@ -91,32 +91,35 @@ class Streaming<T, S> {
     }
 
     if (_streams != null) {
-      _streams.asMap().forEach((k, s) {
-        _summary.add(
-          AsyncSnapshot<T>.withData(
-              ConnectionState.none,
-              _initialData == null
-                  ? null
-                  : _initialData.length == 1
-                      ? _initialData[0]
-                      : _initialData[k]),
-        );
-        _subscription.add(s.listen((data) {
-          _summary[k] = AsyncSnapshot<T>.withData(ConnectionState.active, data);
-          _inner(k);
-        }, onError: (error) {
-          _summary[k] =
-              AsyncSnapshot<T>.withError(ConnectionState.active, error);
-          _inner(k);
-        }, onDone: () {
-          _summary[k] = _summary[k].inState(ConnectionState.done);
-          if (_controllers == null || !_controllers[k].isClosed) {
+      _streams.asMap().forEach(
+        (k, s) {
+          _summary.add(
+            AsyncSnapshot<T>.withData(
+                ConnectionState.none,
+                _initialData == null
+                    ? null
+                    : _initialData.length == 1
+                        ? _initialData[0]
+                        : _initialData[k]),
+          );
+          _subscription.add(s.listen((data) {
+            _summary[k] =
+                AsyncSnapshot<T>.withData(ConnectionState.active, data);
             _inner(k);
-          }
-        }, cancelOnError: false));
-        _summary[k] = _summary[k].inState(ConnectionState.waiting);
-        _inner(k, false);
-      });
+          }, onError: (error) {
+            _summary[k] =
+                AsyncSnapshot<T>.withError(ConnectionState.active, error);
+            _inner(k);
+          }, onDone: () {
+            _summary[k] = _summary[k].inState(ConnectionState.done);
+            if (_controllers == null || !_controllers[k].isClosed) {
+              _inner(k);
+            }
+          }, cancelOnError: false));
+          _summary[k] = _summary[k].inState(ConnectionState.waiting);
+          _inner(k, false);
+        },
+      );
     }
   }
 

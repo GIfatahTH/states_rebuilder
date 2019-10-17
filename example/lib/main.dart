@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import './tutorial_1/main.dart' as tutorial1;
-import './tutorial_2/main.dart' as tutorial2;
+import './examples/counter_app.dart' as counterApp;
+import './examples/grid_counter_app.dart' as gridCounterApp;
 import './state_with_mixin_builder.dart/main.dart' as stateWithMixin;
 
 void main() => runApp(MyApp());
@@ -38,12 +38,12 @@ class MyHomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           RaisedButton(
-            child: Text("Tutorial 1: Basic use of StateBuilder and Injector"),
-            onPressed: () => goto(tutorial1.App(), context),
+            child: Text("Example 1: Counter app"),
+            onPressed: () => goto(counterApp.App(), context),
           ),
           RaisedButton(
-            child: Text("Tutorial 2: Basic Use of Streaming"),
-            onPressed: () => goto(tutorial2.App(), context),
+            child: Text("Example 2: Grid Counter app"),
+            onPressed: () => goto(gridCounterApp.App(), context),
           ),
           RaisedButton(
             child: Text("StateWithMixinBuilder examples"),

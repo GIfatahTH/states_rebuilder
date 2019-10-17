@@ -51,35 +51,35 @@ class RootPage extends StatelessWidget {
         __,
       ) =>
           Scaffold(
-            appBar: AppBar(
-              title: Text("Counter Grid"),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(48.0),
-                child: Theme(
-                  data: Theme.of(context).copyWith(accentColor: Colors.white),
-                  child: Container(
-                    height: 48.0,
-                    alignment: Alignment.center,
-                    child: TabPageSelector(controller: bloc.tabController),
-                  ),
-                ),
+        appBar: AppBar(
+          title: Text("Counter Grid"),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48.0),
+            child: Theme(
+              data: Theme.of(context).copyWith(accentColor: Colors.white),
+              child: Container(
+                height: 48.0,
+                alignment: Alignment.center,
+                child: TabPageSelector(controller: bloc.tabController),
               ),
             ),
-            body: TabBarView(
-              controller: bloc.tabController,
-              children: <Widget>[
-                RebuildAllExample(),
-                RebuildOneExample(),
-                RebuildSetExample(),
-                RebuildRemoteExample(),
-                AnimateAllExample(),
-                AnimateOneExample1(),
-                AnimateOneExample2(),
-                AnimateSetExample(),
-                RebuildStatesPerformanceExample(),
-              ],
-            ),
           ),
+        ),
+        body: TabBarView(
+          controller: bloc.tabController,
+          children: <Widget>[
+            RebuildAllExample(),
+            RebuildOneExample(),
+            RebuildSetExample(),
+            RebuildRemoteExample(),
+            AnimateAllExample(),
+            AnimateOneExample1(),
+            AnimateOneExample2(),
+            AnimateSetExample(),
+            RebuildStatesPerformanceExample(),
+          ],
+        ),
+      ),
     );
   }
 }
