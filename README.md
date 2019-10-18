@@ -94,7 +94,7 @@ class MyHome extends StatelessWidget {
 
 > 6- states_rebuilder offers the widget `StateWithMixinRebuilder` to deal with the most common mixins.   Available mixins are: `singleTickerProviderStateMixin`, `tickerProviderStateMixin`, `AutomaticKeepAliveClientMixin` and `WidgetsBindingObserver`.
 
-
+## [List of article about states_rebuilder](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa#)
 
 ## This Library offers the following classes and methods:
 
