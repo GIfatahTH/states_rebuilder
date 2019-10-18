@@ -1,4 +1,4 @@
-## 1.6.0
+## 1.6.0+1
 * Add `Injector.getAsModel` method. When called with the context parameter, the calling widget is automatically registered as a listener.
 * Add `setState(Function(state))` to mutate the state and update the dependent the views from the UI.
 * Model class have not to extend `StatesRebuilder` to get reactivity.

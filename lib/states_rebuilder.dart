@@ -1,6 +1,7 @@
 library states_rebuilder;
 
-export 'src/states_rebuilder.dart' show StatesRebuilder;
+export 'src/states_rebuilder.dart'
+    show StatesRebuilder, ListenerOfStatesRebuilder;
 export 'src/state_builder.dart' show StateBuilder;
 export 'src/state_with_mixin_builder.dart'
     show StateWithMixinBuilder, MixinWith;
