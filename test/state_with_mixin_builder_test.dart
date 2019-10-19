@@ -165,14 +165,11 @@ void main() {
         StateWithMixinBuilder(
           mixinWith: MixinWith.widgetsBindingObserver,
           initState: (context, tagID, ticker) {
-            print(ticker);
             _tagID = tagID;
             _ticker = ticker;
           },
           dispose: (context, tagID, ticker) => null,
-          didChangeAppLifecycleState: (context, tagID, appState) {
-            print(appState);
-          },
+          didChangeAppLifecycleState: (context, tagID, appState) {},
           builder: (context, tagId) => Container(),
         ),
       );

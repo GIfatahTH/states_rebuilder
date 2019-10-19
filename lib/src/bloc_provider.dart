@@ -15,6 +15,7 @@ class BlocProvider<T extends StatesRebuilder> extends StatefulWidget {
   final T bloc;
   BlocProvider({@required this.child, @required this.bloc});
 
+  @deprecated
   static T of<T>(BuildContext context) {
     final type = _typeOf<_BlocProvider<T>>();
 

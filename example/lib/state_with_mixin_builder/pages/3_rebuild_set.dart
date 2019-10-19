@@ -4,7 +4,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class CounterBlocSet extends StatesRebuilder {
   int counter = 0;
   increment(tagID) {
-    statesRebuilderCleaner = (tag) => print(tag);
     counter++;
     rebuildStates([tagID]);
   }

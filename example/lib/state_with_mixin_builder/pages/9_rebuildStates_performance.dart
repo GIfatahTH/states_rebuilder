@@ -29,7 +29,6 @@ class CounterBlocPerf {
       // rebuildStates(["anim", CounterTag.time]);
       listener();
       time = DateTime.now().microsecondsSinceEpoch - time;
-      print(time);
     };
     animation.addListener(this.listener);
     controller.forward();
@@ -76,7 +75,6 @@ class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = Injector.getAsModel<CounterBlocPerf>(context: context);
-    print(bloc);
     return Padding(
       padding: EdgeInsets.all(10),
       child: StateWithMixinBuilder<WidgetsBindingObserver>(
