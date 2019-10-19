@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import './examples/counter_app.dart' as counterApp;
-import './examples/grid_counter_app.dart' as gridCounterApp;
-import './state_with_mixin_builder.dart/main.dart' as stateWithMixin;
+import './examples/grid_Counter_app.dart' as gridCounterApp;
+import './state_with_mixin_builder/main.dart' as stateWithMixin;
 
 void main() => runApp(MyApp());
 
