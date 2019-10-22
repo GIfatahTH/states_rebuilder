@@ -1,3 +1,7 @@
+## 1.6.1
+* Add `watch` parameter to `setState` method and `Inject.stream` constructor. `watch` allows to link the rebuild process to the variation of a set of variables.
+* Update docs
+
 ## 1.6.0+1
 * Add `Injector.getAsModel` method. When called with the context parameter, the calling widget is automatically registered as a listener.
 * Add `setState(Function(state))` to mutate the state and update the dependent the views from the UI.

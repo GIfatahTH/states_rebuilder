@@ -606,6 +606,115 @@ void main() {
       expect(numberOfCall, 4);
     },
   );
+
+  testWidgets(
+      'Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
+      (WidgetTester tester) async {
+    int numberOfRebuild = 0;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>.stream(
+              () => Stream.periodic(Duration(seconds: 1),
+                  (num) => num < 3 ? Integer(num) : Integer(3)).take(6),
+              watch: (model) => model.value),
+        ],
+        builder: (_, model) {
+          final streamModel = Injector.getAsModel<Integer>();
+          return StateBuilder(
+            viewModels: [streamModel],
+            builder: (_, __) {
+              print(streamModel.snapshot?.data?.value);
+              numberOfRebuild++;
+              return Container();
+            },
+          );
+        },
+      ),
+    );
+    expect(numberOfRebuild, equals(1));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(2));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(3));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(4));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+  });
+
+  testWidgets(
+      'Injector : should register Stream and Rebuild (using context) each time stream sends data with watch, toString is overridden',
+      (WidgetTester tester) async {
+    int numberOfRebuild = 0;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>.stream(
+              () => Stream.periodic(Duration(seconds: 1),
+                  (num) => num < 3 ? Integer(num) : Integer(3)).take(6),
+              watch: (model) => model),
+        ],
+        builder: (context, model) {
+          final streamModel = Injector.getAsModel<Integer>(context: context);
+          print(streamModel.snapshot?.data?.value);
+          numberOfRebuild++;
+          return Container();
+        },
+      ),
+    );
+    expect(numberOfRebuild, equals(1));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(2));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(3));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(4));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, equals(5));
+  });
+
+  testWidgets(
+      'Injector : should register value and Rebuild StateBuilder after rebuildStates is called. using watch',
+      (WidgetTester tester) async {
+    int numberOfRebuild = 0;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>(() => Integer(0)),
+        ],
+        builder: (_, model) {
+          return StateBuilder(
+            viewModels: [Injector.getAsModel<Integer>()],
+            builder: (_, __) {
+              numberOfRebuild++;
+              return Container();
+            },
+          );
+        },
+      ),
+    );
+    expect(numberOfRebuild, equals(1));
+    expect(Injector.getAsModel<Integer>().state.value, equals(0));
+    Injector.getAsModel<Integer>()
+        .setState((state) => state.value++, watch: (state) => state.value);
+    await tester.pump();
+    expect(numberOfRebuild, equals(2));
+    expect(Injector.getAsModel<Integer>().state.value, equals(1));
+    Injector.getAsModel<Integer>()
+        .setState((state) => state.value, watch: (state) => state.value);
+    await tester.pump();
+    expect(numberOfRebuild, equals(2));
+    expect(Injector.getAsModel<Integer>().state.value, equals(1));
+  });
 }
 
 class ViewModel extends StatesRebuilder {
@@ -625,4 +734,14 @@ class Service2 implements IService2 {
 
 abstract class IService2 {
   Service1 service1;
+}
+
+class Integer {
+  int value = 0;
+  Integer(this.value);
+
+  @override
+  String toString() {
+    return '$value';
+  }
 }

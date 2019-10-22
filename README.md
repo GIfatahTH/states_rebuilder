@@ -84,7 +84,7 @@ class MyHome extends StatelessWidget {
 >>> Use `StateBuilder` widget. `StateBuilder` make rebuild process filtrable. This is done by giving `StateBuilder` a tag. When a model sends notifications to its dependent with a particular tag, only those `StateBuilder` that have this tag will rebuild.    
 
 > 4- To notify listeners of a reactive model :
->> Use `setState(Function(T) state,{List tag})` method. This works with models obtained using `Injector.getAsModel<T>()`.    
+>> Use `setState(Function(T) state,{List tag, dynamic Function(T) watch})` method. This works with models obtained using `Injector.getAsModel<T>()`.    
 >> Use `rebuildStates([List tag])` method. This works inside a model that extends `StatesRebuilder`.   
 >> Use the getter `state` to get the state of a models obtained using `Injector.getAsModel<T>()`.      
 

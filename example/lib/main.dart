@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import './examples/counter_app.dart' as counterApp;
+import './examples/counter_app_with_watch.dart' as counterAppWithWatch;
 import './examples/grid_Counter_app.dart' as gridCounterApp;
 import './state_with_mixin_builder/main.dart' as stateWithMixin;
 
@@ -42,7 +43,11 @@ class MyHomePage extends StatelessWidget {
             onPressed: () => goto(counterApp.App(), context),
           ),
           RaisedButton(
-            child: Text("Example 2: Grid Counter app"),
+            child: Text("Example 2: Counter app with [watch]"),
+            onPressed: () => goto(counterAppWithWatch.App(), context),
+          ),
+          RaisedButton(
+            child: Text("Example 3: Grid Counter app"),
             onPressed: () => goto(gridCounterApp.App(), context),
           ),
           RaisedButton(

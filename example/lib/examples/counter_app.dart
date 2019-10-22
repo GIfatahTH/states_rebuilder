@@ -3,11 +3,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Counter {
   int count = 0;
-  bool isActive = true;
   increment1() => count++;
   increment2() async {
     await Future.delayed(Duration(seconds: 1));
-    isActive = true;
     count++;
   }
 }
@@ -64,14 +62,12 @@ class MyHome extends StatelessWidget {
               : "waiting for data ..."),
           Text("You have pushed this many times"),
           Text(counter.state.count.toString()),
-          counter.state.isActive
-              ? RaisedButton(
+          counter.snapshot.connectionState == ConnectionState.waiting
+              ? CircularProgressIndicator()
+              : RaisedButton(
                   child: Text("increment"),
-                  onPressed: () => counter
-                    ..setState((state) => state.isActive = false)
-                    ..setState((state) => state.increment2()),
-                )
-              : CircularProgressIndicator()
+                  onPressed: () =>
+                      counter.setState((state) => state.increment2()))
         ],
       ),
     );

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBlocAll {
+class CounterModel {
   int counter = 0;
-  bool isActive = true;
   increment1() => counter++;
   increment2() async {
     await Future.delayed(Duration(seconds: 1));
-    isActive = true;
     counter++;
   }
 }
@@ -17,7 +15,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Injector(
-        inject: [Inject<CounterBlocAll>(() => CounterBlocAll())],
+        inject: [Inject<CounterModel>(() => CounterModel())],
         builder: (_, __) => Scaffold(
           appBar: AppBar(),
           body: CounterGrid(),
@@ -40,23 +38,23 @@ class CounterGrid extends StatelessWidget {
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
                   Builder(builder: (context) {
-                    final bloc =
-                        Injector.getAsModel<CounterBlocAll>(context: context);
+                    final model =
+                        Injector.getAsModel<CounterModel>(); // without context
                     return StateBuilder(
-                      viewModels: [bloc],
+                      viewModels: [model],
                       tag: i % 2,
                       builder: (_, __) => GridItem(
-                        count: bloc.state.isActive ? bloc.state.counter : null,
+                        count: model.snapshot.connectionState ==
+                                ConnectionState.waiting
+                            ? null
+                            : model.state.counter,
                         onTap: () {
                           if (i % 2 == 0)
-                            bloc.setState((state) => state.increment1(),
+                            model.setState((state) => state.increment1(),
                                 tags: [i % 2]);
                           else
-                            bloc
-                              ..setState((state) => state.isActive = false,
-                                  tags: [i % 2])
-                              ..setState((state) => state.increment2(),
-                                  tags: [i % 2]);
+                            model.setState((state) => state.increment2(),
+                                tags: [i % 2]);
                         },
                       ),
                     );
