@@ -181,6 +181,7 @@ class MyHome extends StatelessWidget {
               RaisedButton(
                 child: Text("increment and watch"),
                 onPressed: () => counter.setState((state) => state.increment(),
+                //watch variable `count1`, if it changes update the UI, else do not update the UI.
                     watch: (state) => state.count1),
                 // you can watch many variables : ` watch : (state) => [state.count1, state.count2]`
               ),
