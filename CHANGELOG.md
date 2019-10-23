@@ -1,8 +1,8 @@
-## 1.6.1
+## 1.6.1 (2019-10-22)
 * Add `watch` parameter to `setState` method and `Inject.stream` constructor. `watch` allows to link the rebuild process to the variation of a set of variables.
 * Update docs
 
-## 1.6.0+1
+## 1.6.0+1 (2019-10-18)
 * Add `Injector.getAsModel` method. When called with the context parameter, the calling widget is automatically registered as a listener.
 * Add `setState(Function(state))` to mutate the state and update the dependent the views from the UI.
 * Model class have not to extend `StatesRebuilder` to get reactivity.
@@ -12,50 +12,50 @@
 * Injected model ara lazily instantiated. To do otherwise set the parameter `isLazy` of the `Inject` widget to false.
 
 
-## 1.5.1
+## 1.5.1 (2019-09-14)
 * add `afterInitialBuild` and `afterRebuild` parameters to the `StateBuilder`, `StateWithMixinBuilder` and `Injector` widgets.`
   `afterInitialBuild` and `afterRebuild` are callBack to be executed after the widget is mounted and after each rebuild. 
 
-## 1.5.0+1
+## 1.5.0+1 (2019-09-12)
 * Use `ObservableService` and `hasState` instead of `Observable` and `hasObserver`, because the latters are widely used and can lead to conflict
 
 
-## 1.5.0
+## 1.5.0 (2019-09-06)
 * Add `hasStates` getter to check if the StatesRebuilder object has listener.
 * Add `inject` parameter to the `Injector` widget as an alternative to the `models` parameter. With `inject` you can register models using interface Type. 
 * Add `observable` interface. Any service class can implement it to notify any ViewModel to rebuild its corresponding view.
 * Refactor the library to make it design patterns wise and hence make it testable.
 * Test the library
 
-## 1.3.2
+## 1.3.2 (2019-06-24)
 * Add `appLifeCycle` argument to Injector to track the life cycle of the app.
 * Refactor the code.
 
 
-## 1.3.1
+## 1.3.1 (2019-06-13)
 * remove `rebuildFromStreams`.
 * Initial release of `Streaming` class
 * The builder closure of the `Injector` takes (BuildContext context, T model) where T is the generic type.
 * Fix typos
 
-## 1.3.0
+## 1.3.0 (2019-06-04)
 * Initial release of `rebuildFromStreams` method.
 * Initial release of `Injector` for Dependency Injection.
 * deprecate blocs parameter and use viewModels instead
 * StateBuilder can have many tags.
 
-## 1.2.0
+## 1.2.0 (2019-05-23)
  *  Remove `stateID` and replace it by `tag` parameter. `tag` is optional and many widgets can have the same tag.
  *  `rebuildStates()` when called without parameters, it rebuilds all widgets that are wrapped with `StateBuilder` and `StateWithMixinBuilder`.
  *  Each `StateBuilder` has an automatically generated cached address. It is stored in the second parameter of the `builder`, `initState`, `dispose`,  and other closures. You can call it inside the closures to rebuild that particular widget.
  *  add `StateWithMixinBuilder` widget to account for some of the most used mixins.
  *  Optimize the code and improve performance
 
-## 1.1.0
+## 1.1.0 (2019-05-13)
  * Add `withTickerProvider` parameter to `StateBuilder` widget.
 
 
-## 1.0.0
+## 1.0.0 (2019-05-12)
  * Add `BlocProvider`to provide your BloCs.
  * You can use enums to name your `StateBuilder` widgets.
  * `rebuildStates` now has only one positioned parameter of List<dynamic>.
