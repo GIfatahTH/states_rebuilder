@@ -25,7 +25,7 @@ class App extends StatelessWidget {
       ],
       builder: (context, __) {
         final futureSnap = Injector.getAsModel<bool>(context: context).snapshot;
-        final counter = Injector.getAsModel<Counter>();
+        final counter = Injector.getAsModel<Counter>(context: context);
         return Scaffold(
           appBar: futureSnap.data == false
               ? AppBar(
@@ -39,7 +39,19 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment1()),
+            onPressed: () => counter.setState(
+              (state) => state.increment1(),
+              //with osSetState you can define a callback to be executed after mutating the state.
+              onSetState: (context) {
+                if (counter.state.count >= 10) {
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("You have reached 10 taps"),
+                    ),
+                  );
+                }
+              },
+            ),
           ),
         );
       },
@@ -56,6 +68,7 @@ class MyHome extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Spacer(),
           Text("Counter incremented by the Stream"),
           Text(streamSnap.hasData
               ? "${streamSnap.data}"
@@ -66,8 +79,12 @@ class MyHome extends StatelessWidget {
               ? CircularProgressIndicator()
               : RaisedButton(
                   child: Text("increment"),
-                  onPressed: () =>
-                      counter.setState((state) => state.increment2()))
+                  onPressed: () => counter.setState(
+                    (state) => state.increment2(),
+                  ),
+                ),
+          Spacer(),
+          Text("Tap on The ActionButton More the 10 time to see the SnackBar")
         ],
       ),
     );

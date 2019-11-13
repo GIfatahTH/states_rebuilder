@@ -23,7 +23,18 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment()),
+            onPressed: () => counter.setState((state) => state.increment(),
+            //with osSetState you can define a callback to be executed after mutating the state.
+              onSetState: (context) {
+                if (counter.state.count >= 10) {
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("You have reached 10 taps"),
+                    ),
+                  );
+                }
+              },
+            ),
           ),
         );
       },
@@ -92,9 +103,12 @@ class MyHome extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text("You have pushed this many times"),
-          //counter has an internal AsyncSnapshot<Counter>.
-          //it allow for checking the business of the state (while awaiting for the future).
-          counter.snapshot.connectionState == ConnectionState.waiting
+          //counter has connectionState getter.
+          //`counter.connectionState` equals:
+          // ConnectionState.none    : before executing async task.
+          // ConnectionState.waiting : while executing async task.
+          // ConnectionState.done    : when async task resolves.
+          counter.connectionState == ConnectionState.waiting
               ? CircularProgressIndicator()
               : Text(counter.state.count.toString()),
         ],
@@ -103,7 +117,96 @@ class MyHome extends StatelessWidget {
   }
 }
 ```
-# 3- Counter app watching variable
+
+# 3- Counter app : catching errors (show AlertDialog)
+```dart
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+class Counter {
+  int _count = 0;
+  int get count => _count;
+  increment() async {
+    //Simulating async task
+    await Future.delayed(Duration(seconds: 1));
+    //Simulating error (50% chance of error);
+    bool isError = Random().nextBool();
+
+    if (isError) {
+      throw Exception("A fake network Error");
+    }
+    _count++;
+  }
+}
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      inject: [Inject<Counter>(() => Counter())],
+      builder: (context, __) {
+        final counterModel = Injector.getAsModel<Counter>();
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(" Counter App"),
+          ),
+          body: MyHome(),
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => counterModel.setState(
+              (state) => state.increment(),
+              catchError: true, //catch the error
+              onSetState: (context) {
+                // onSetState will be executed after mutating the state.
+                if (counterModel.hasError) {
+                  showDialog(
+                    context: context,
+                    child: AlertDialog(
+                      title: Text("Error!"),
+                      content: Text("${counterModel.error}"),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MyHome extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final counterModel = Injector.getAsModel<Counter>(context: context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Builder(
+            builder: (context) {
+              if (counterModel.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+
+              return Text(
+                "${counterModel.state.count}",
+                style: TextStyle(fontSize: 50),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+# 4- Counter app : watching variable
 ```dart
 import 'dart:math';
 
@@ -123,7 +226,6 @@ class Counter {
   }
 }
 
-//The same UI as for simple Counter app
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -136,10 +238,6 @@ class App extends StatelessWidget {
             title: Text(" Counter App"),
           ),
           body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment()),
-          ),
         );
       },
     );
@@ -197,7 +295,7 @@ class MyHome extends StatelessWidget {
   }
 }
 ```
-# 4- Injecting Futures and Streams 
+# 5- Injecting Futures and Streams 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -253,7 +351,7 @@ class MyHome extends StatelessWidget {
 }
 ```
 
-# 5- Animation with StateWithMixinBuilder.
+# 6- Animation with StateWithMixinBuilder.
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

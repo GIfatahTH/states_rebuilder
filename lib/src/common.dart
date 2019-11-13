@@ -8,7 +8,7 @@ abstract class StateBuilderBase extends StatefulWidget {
   StateBuilderBase({
     Key key,
     this.tag,
-    this.blocs,
+    this.models,
     this.viewModels,
     this.disposeViewModels = false,
     @required this.builder,
@@ -17,7 +17,7 @@ abstract class StateBuilderBase extends StatefulWidget {
 
   final StateBuilderType builder;
   final dynamic tag;
-  final List<StatesRebuilder> blocs;
+  final List<StatesRebuilder> models;
   final List<StatesRebuilder> viewModels;
   final bool disposeViewModels;
 }
@@ -28,12 +28,11 @@ abstract class Subject {
   void addObserver({
     @required ListenerOfStatesRebuilder observer,
     @required String tag,
-    @required String tagID,
   });
 
   void removeObserver({
     @required String tag,
-    @required String tagID,
+    @required ListenerOfStatesRebuilder observer,
   });
 }
 

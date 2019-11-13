@@ -1,11 +1,11 @@
 name: states_rebuilder
 description: a simple yet powerful state management technique for Flutter
-version: 1.6.1
+version: 1.7.0
 authors: [MELLATI Meftah <meltft@google.com>]
 homepage: https://github.com/GIfatahTH/states_rebuilder
 
 environment:
-  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -14,7 +14,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_markdown: ^0.2.0
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
 

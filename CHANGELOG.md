@@ -1,3 +1,22 @@
+## 1.7.0 (2019-11-14)
+1- Add `onSetState` parameter to the `setState` method to define a callback to be executed after state mutation.
+  The callBack takes the context so you can push/pop routes, show dialogs or snackBar. (see example folder).  
+
+2- Add `catchError` parameter to the `setState` method to define whether to catch error while mutining the state or not.(see example folder). If an error is thrown, `hasError` getter is true and the error can be obtained via the `error` getter (see point 5 below).   
+
+3- Add the getter `connectionState` to the `ModelStatesRebuilder<T>`to get the asynchronous status of the state. it can be `ConnectionState.none` before executing the Future, `ConnectionState.waiting` while waiting for the Future and `ConnectionState.done` after resolving the Future.    
+
+4- Add the field `stateStatus` to the `ModelStatesRebuilder<T>` class. It allows defining a custom status of the state other than those defined by the `connectionState`  getter.    
+
+5- add the getter `hasError`, `hasData` and `error` to the `ModelStatesRebuilder<T>` class.     
+
+6- Change the name `blocs` to `models`.   
+
+7- Refactor the code and fix bugs.
+
+8- Update docs and examples.
+
+
 ## 1.6.1 (2019-10-22)
 * Add `watch` parameter to `setState` method and `Inject.stream` constructor. `watch` allows to link the rebuild process to the variation of a set of variables.
 * Update docs

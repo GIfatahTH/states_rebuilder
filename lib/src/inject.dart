@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:states_rebuilder/src/model_states_rebuilder.dart';
+import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 abstract class Injectable {}
 
@@ -43,14 +44,16 @@ class Inject<T> implements Injectable {
 
   bool _isFutureType = false;
   bool _isStreamType = false;
-  bool get isAsyncType => _isFutureType || _isStreamType;
-
+  bool get isAsyncType => _asyncSingleton != null;
+  bool get isStatesRebuilder => _singleton is StatesRebuilder;
   String _name; // cache for name
   T _singleton; // vanilla instance cache
   ModelStatesRebuilder<T> _asyncSingleton; // reactive instance cache
+  dynamic initialStateStatus;
 
   ///Inject a value or a model
-  Inject(this._creationFunction, {this.name, this.isLazy = true}) {
+  Inject(this._creationFunction,
+      {this.name, this.isLazy = true, this.initialStateStatus}) {
     if (name != null) _name = name.toString();
   }
 
@@ -124,13 +127,14 @@ class Inject<T> implements Injectable {
           tags,
         );
       } else {
-        _asyncSingleton = ValueStatesRebuilder<T>(getSingleton());
+        _asyncSingleton = ValueStatesRebuilder<T>(getSingleton())
+          ..stateStatus = initialStateStatus;
       }
     }
     return _asyncSingleton;
   }
 
-  ModelStatesRebuilder<T> getModelInstance() {
+  ModelStatesRebuilder<T> getModelInstance([bool resetStateStatus]) {
     if (_isFutureType) {
       return StreamStatesRebuilder<T>(
         _creationFutureFunction().asStream(),
@@ -142,7 +146,13 @@ class Inject<T> implements Injectable {
       return StreamStatesRebuilder<T>(
           _creationStreamFunction(), initialValue, watch, tags);
     } else {
-      return ValueStatesRebuilder<T>(getInstance());
+      if (resetStateStatus == true) {
+        return ValueStatesRebuilder<T>(getSingleton())
+          ..stateStatus = initialStateStatus;
+      } else {
+        return ValueStatesRebuilder<T>(getSingleton())
+          ..stateStatus = getModelSingleton().stateStatus;
+      }
     }
   }
 }

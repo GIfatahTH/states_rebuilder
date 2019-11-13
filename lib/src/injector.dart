@@ -88,11 +88,26 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
 
   ///get the same singletons as a `StatesRebuilder` model type
   static ModelStatesRebuilder<T> getAsModel<T>(
-      {dynamic name, BuildContext context, bool silent = false}) {
+      {dynamic name,
+      BuildContext context,
+      bool silent = false,
+      bool asNewInstanceModel = false,
+      bool resetStateStatus = false}) {
+    assert(() {
+      if (asNewInstanceModel == true && context != null) {
+        throw Exception(
+            "Avoid getting new instance of the model with the context defined\n"
+            "Use [SatesBuilder] to register the model");
+      }
+      return true;
+    }());
     String _name =
         name == null ? "$T".replaceAll(RegExp(r'<.*>'), "") : name.toString();
-    ModelStatesRebuilder model =
-        InjectorState.allRegisteredModelInApp[_name]?.last?.getModelSingleton();
+    ModelStatesRebuilder model = asNewInstanceModel && context == null
+        ? InjectorState.allRegisteredModelInApp[_name]?.last
+            ?.getModelInstance(resetStateStatus)
+        : InjectorState.allRegisteredModelInApp[_name]?.last
+            ?.getModelSingleton();
     if (model == null) {
       if (!silent) {
         var _keys = InjectorState.allRegisteredModelInApp.keys;
@@ -126,25 +141,37 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
     return model;
   }
 
-  ///get the a new instance as a `StatesRebuilder` model type
-  static ModelStatesRebuilder<T> getNewAsModel<T>([dynamic name]) {
-    String _name =
-        name == null ? "$T".replaceAll(RegExp(r'<.*>'), "") : name.toString();
-    return InjectorState.allRegisteredModelInApp[_name]?.last
-        ?.getModelInstance();
-  }
-
   static void _markContextAsNeedsBuild(
       BuildContext context, StatesRebuilder model) {
     if (model.customListener.containsKey(context)) return;
-    final fn = () {
+    final bool Function([void Function(BuildContext)]) fn =
+        ([void Function(BuildContext) onRebuildCallBack]) {
       try {
         (context as Element).markNeedsBuild();
+        if (onRebuildCallBack != null) {
+          onRebuildCallBack(context);
+        }
+        return true;
       } catch (e) {
-        model.customListener.remove(context);
+        if (e is FlutterError) {
+          rethrow;
+        } else {
+          model.customListener.remove(context);
+        }
+        return false;
       }
     };
+
+    final _keys = [...model.customListener.keys];
+
     model.customListener[context] = fn;
+
+    ////inverse the order of customListener. Last added, first in the LinkedHashMap
+    for (final key in _keys) {
+      final value = model.customListener.remove(key);
+      model.customListener[key] = value;
+    }
+
     model.cleaner(() {
       model.customListener.remove(context);
     });

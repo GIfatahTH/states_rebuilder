@@ -3,7 +3,7 @@
 A Flutter state management combined with dependency injection solution that allows : 
   * a 100% separation of User Interface (UI) representation from your logic classes
   * an easy control on how your widgets rebuild to reflect the actual state of your application.
-Model classes are simple dart classes without any need of inheritance, notification, streams or annotation and code generation.
+Model classes are simple vanilla dart classes without any need for inheritance, notification, streams or annotation and code generation.
 
 
 ## example of the simple Counter app:
@@ -59,34 +59,35 @@ class MyHome extends StatelessWidget {
   }
 }
 ```
-## Principal ideas of the states_rebuilder
+## Principal concepts of the states_rebuilder
 > 1- Register a model (or any kind of values) using the `Injector` widget.   
->> The registered (injected) models are available for access within the `Injector` itself and any of its child widgets.   
->> Registered (injected) models are automatically unregistered when the `Injector` is disposed (removed) from the widget tree. 
->> Registered model can be disposed to release recourses. This is done by using the `dispose` parameter of Injector or set the `disposeModels` parameter to true.
->> Futures and Streams can be registered (injected) using the named constructor `Inject.future` and `Inject.stream `respectively.   
->> Streams are automatically disposed when the `Injector` is removed from the widget tree.
->> Models can be registered associated with custom names.
->> Models are lazily instantiated. Set the parameter `isLazy` of the `Inject` to false if you want to intentionally instantiated a registered model.
+>>* The registered (injected) models are available for access within the `Injector` itself and any of its child widgets.   
+>>* Registered (injected) models are automatically unregistered when the `Injector` is disposed (removed) from the widget tree. 
+>>* Registered model can be disposed to release recourses. This is done by using the `dispose` parameter of Injector or set the `disposeModels` parameter to true.
+>>* Futures and Streams can be registered (injected) using the named constructor `Inject.future` and `Inject.stream `respectively.   
+>>* Streams are automatically disposed when the `Injector` is removed from the widget tree.
+>>* Models can be registered associated with custom names.
+>>* Models are lazily instantiated. Set the parameter `isLazy` of the `Inject` to false if you want to intentionally instantiate a registered model.
 
 > 2- To get any of the registered models :
->> Use `Injector.get<T>()` to get a singleton of the `T` class.    
->> No need for the `context`, hence you can get a registered model inside any class.    
->> To get a model registered with a custom name, use `Injector.get<T>(name: customName)`.     
->> To get a new instance of a registered model, use `Injector.getNew<T>()`.     
+>>* Use `Injector.get<T>()` to get a singleton of the `T` class.    
+>>* No need for the `context`, hence you can get a registered model inside any class.    
+>>* To get a model registered with a custom name, use `Injector.get<T>(name: customName)`.     
+>>* To get a new instance of a registered model, use `Injector.getNew<T>()`.     
 
 > 3- To get any of the registered model and make it reactive :     
 > (Reactive means that the model allows widgets to register as listeners notify them to update after state mutation).   
->> Use `Injector.getAsModel<T>()` to get a singleton of type `ModelStatesRebuilder<T>`. (ModelStatesRebuilder extends StatesRebuilder).    
->> Another way to make a model reactive is to extend it with `StatesRebuilder` class.
->> To register a widget as a listener in a particular reactive model :    
->>> Use `Injector.getAsModel<T>(context:context)`. The context is optional and when it is provided, the widget is automatically registered in the model. For futures and streams, use `Injector.getAsModel<T>(context:context).snapshot`  to get the `AsyncSnapshot`.
->>> Use `StateBuilder` widget. `StateBuilder` make rebuild process filtrable. This is done by giving `StateBuilder` a tag. When a model sends notifications to its dependent with a particular tag, only those `StateBuilder` that have this tag will rebuild.    
+>>* Use `Injector.getAsModel<T>()` to get a singleton of type `ModelStatesRebuilder<T>`. (ModelStatesRebuilder extends StatesRebuilder).    
+>>* Another way to make a model reactive is to extend it with `StatesRebuilder` class.
+>>* To register a widget as a listener in a particular reactive model :    
+>>>* Use `Injector.getAsModel<T>(context:context)`. The context is optional and when it is provided, the widget is automatically registered in the model. For futures and streams, use `Injector.getAsModel<T>(context:context).snapshot`  to get the `AsyncSnapshot`.
+>>>* Use `StateBuilder` widget. `StateBuilder` make rebuild process filtrable. This is done by giving `StateBuilder` a tag. When a model sends notifications to its dependent with a particular tag, only those `StateBuilder` that have this tag will rebuild.    
 
 > 4- To notify listeners of a reactive model :
->> Use `setState(Function(T) state,{List tag, dynamic Function(T) watch})` method. This works with models obtained using `Injector.getAsModel<T>()`.    
->> Use `rebuildStates([List tag])` method. This works inside a model that extends `StatesRebuilder`.   
->> Use the getter `state` to get the state of a models obtained using `Injector.getAsModel<T>()`.      
+>>* Use `setState(Function(T) state,{List tag, dynamic Function(T) watch, bool catchError, void Function(BuildContext) onSetState})` method. This works with models obtained using `Injector.getAsModel<T>()`. 
+>>See examples to see the use of `catchError` and `onSetState`.
+>>* Use `rebuildStates([List tag])` method. This works inside a model that extends `StatesRebuilder`.   
+>>* Use the getter `state` to get the state of a models obtained using `Injector.getAsModel<T>()`.      
 
 > 5- states_rebuilder offers an easy facade to get:
 >> The widget lifeState : use `initState`, `dispose`, `didChangeDependencies`, `didUpdateWidget`, `afterInitialBuild` and `afterRebuild`.    
@@ -104,7 +105,6 @@ class MyHome extends StatelessWidget {
   Injector<T>({
     List<Inject<D>> inject, // List of Model to register wrapped with `Inject` object.
                             // To inject future and stream use the named constructor `Inject<T>.future` and `Inject<T>.stream`.
-    List<() → dynamic> models, // List of models to register. prefer using `inject` instead.
     (BuildContext context, T model) → Widget builder, // The builder method.
     (T model) → void initState, // a custom method to call when Injector is first added to the widget tree.
     (T model) → void dispose, // a custom method to call when Injector is disposed.
@@ -131,9 +131,9 @@ class MyHome extends StatelessWidget {
   ```dart 
   Injector.getNew<T>([String name]).
   ``` 
-  Model are automatically unregistered when the injector is disposed.
+  Models are automatically unregistered when the injector is disposed.
 
-  `Injector.get` or `Injector.getAsModel` now throws if no registered model is found. This can be silent by setting the parameter `silent` to true
+  `Injector.get` or `Injector.getAsModel`  throw if no registered model is found. This can be silent by setting the parameter `silent` to true
 
 #### Prototype Example for dependency injection
 
@@ -185,7 +185,7 @@ notification can be sent by:
   StateBuilder( {
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way. You can provide a list of tags.
-      List<StatesRebuilder> viewModels, // You give a list of the logic classes (BloC) you want this widget to listen to.
+      List<StatesRebuilder> models, // You give a list of the logic classes (BloC) you want this widget to listen to.
       @required (BuildContext, String) → Widget builder,
       (BuildContext, String) → void initState, // for code to be executed in the initState of a StatefulWidget
       (BuildContext, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
@@ -214,7 +214,7 @@ notification can be sent by:
 StateWithMixinBuilder<T>( {
       Key key, 
       dynamic tag, // you define the tag of the state. This is the first way
-      List<StatesRebuilder> viewModels, // You give a list of the logic classes (BloC) you want this this widget to listen to.
+      List<StatesRebuilder> models, // You give a list of the logic classes (BloC) you want this this widget to listen to.
       @required (BuildContext, String) → Widget builder, 
       @required (BuildContext, String,T) → void initState, // for code to be executed in the initState of a StatefulWidget
       @required (BuildContext, String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget

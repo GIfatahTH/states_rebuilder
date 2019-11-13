@@ -3,55 +3,52 @@ import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 class SplitAndAddObserver {
   List<String> tag = [];
-  String tagID;
+  String defaultTag;
   final StateBuilderBase _widget;
   final ListenerOfStatesRebuilder _observer;
-  final String _uniqueID;
   List<StatesRebuilder> _models;
+  final String uniqueID;
 
-  SplitAndAddObserver(this._widget, this._observer, this._uniqueID) {
-    _models = _widget.viewModels ?? _widget.blocs;
-    addToObserver();
+  SplitAndAddObserver(this._widget, this._observer, [this.uniqueID]) {
+    _models = _widget.viewModels ?? _widget.models;
+    if (_models != null && _models.isNotEmpty) addToObserver();
   }
 
   void addToObserver() {
-    List<String> listOfTags = [];
+    String _defaultTag = "#@deFau_Lt${uniqueID ?? hashCode}TaG30";
 
     if (_widget.tag is List) {
       _widget.tag.forEach((t) {
-        (t != null && t != "") ? listOfTags.add("$t") : listOfTags.add(null);
+        if (t != null && t != "") tag.add("$t");
       });
+      tag.add(_defaultTag);
     } else {
-      (_widget.tag != null && _widget.tag != "")
-          ? listOfTags.add(_widget.tag.toString())
-          : listOfTags.add(null);
+      if (_widget.tag != null && _widget.tag != "") {
+        _defaultTag = _widget.tag.toString();
+      }
+      tag.add(_defaultTag);
     }
-    for (String t in listOfTags) {
-      if (_models == null || _models.isEmpty) return;
+    for (String t in tag) {
       for (StatesRebuilder model in _models) {
-        if (model == null) continue;
-        this.tag.add((t != null) ? "$t" : "#@deFau_Lt${model.hashCode}TaG30");
-
-        model.addObserver(
-          tag: this.tag.last,
-          tagID: _uniqueID,
-          observer: _observer,
-        );
+        if (model != null) {
+          defaultTag = _defaultTag;
+          model.addObserver(
+            tag: t,
+            observer: _observer,
+          );
+        }
       }
     }
-    tagID =
-        this.tag.isNotEmpty ? "${this.tag?.first}$splitter$_uniqueID" : null;
   }
 
   void removeFromObserver() {
     if (_widget.disposeViewModels == true) {
       _models?.forEach((model) => (model as dynamic).dispose());
     }
-
     for (String t in tag) {
       for (StatesRebuilder model in _models) {
         if (model == null) return;
-        model.removeObserver(tag: t, tagID: _uniqueID);
+        model.removeObserver(tag: t, observer: _observer);
       }
     }
     tag.clear();

@@ -1,32 +1,37 @@
+// refactor : remove tagID and change blocs to models
+
+// add initialStateStatus
+
+// remove getNewAsModel and add onRebuildCallBack, asNewInstanceModel and resetStateStatus
+
+// add catchError and onSetState
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
-import 'package:states_rebuilder/src/common.dart';
 
 void main() {
   group("addObserver : ", () {
-    test("Do not add observer if tag, tagID or observer is null", () {
+    test("Do not add observer if tag or observer is null", () {
       final vm = ViewModel();
       final observer1 = StatesRebuilderListener1();
       vm.addObserver(
         tag: "tag1",
-        tagID: "tag1ID_1",
         observer: null,
       );
       expect(vm.observers().length, equals(0));
 
       vm.addObserver(
-        tag: "tag1",
-        tagID: null,
+        tag: null,
         observer: observer1,
       );
       expect(vm.observers().length, equals(0));
 
       vm.addObserver(
-        tag: null,
-        tagID: "tag1ID",
+        tag: "tag1",
         observer: observer1,
       );
-      expect(vm.observers().length, equals(0));
+      expect(vm.observers().length, equals(1));
     });
 
     test("addObserver works", () {
@@ -37,48 +42,32 @@ void main() {
 
       vm.addObserver(
         tag: "tag1",
-        tagID: "tag1ID_1",
         observer: observer1,
       );
 
       expect(vm.observers().length, equals(1));
-      expect(vm.observers()["tag1"].length, equals(1));
-      expect(vm.observers()["tag1"]["tag1ID_1"].hashCode == observer1.hashCode,
-          isTrue);
 
       vm.addObserver(
         tag: "tag1",
-        tagID: "tag1ID_2",
         observer: StatesRebuilderListener1(),
       );
 
       expect(vm.observers().length, equals(1));
-      expect(vm.observers()["tag1"].length, equals(2));
-      expect(vm.observers()["tag1"]["tag1ID_2"].hashCode == observer1.hashCode,
-          isFalse);
 
       vm.addObserver(
         tag: "tag2",
-        tagID: "tag2ID_1",
         observer: StatesRebuilderListener1(),
       );
 
       expect(vm.observers().length, equals(2));
-      expect(vm.observers()["tag1"].length, equals(2));
-      expect(vm.observers()["tag2"].length, equals(1));
 
       final observer2 = StatesRebuilderListener1();
       vm.addObserver(
         tag: "tag2",
-        tagID: "tag2ID_2",
         observer: observer2,
       );
 
       expect(vm.observers().length, equals(2));
-      expect(vm.observers()["tag1"].length, equals(2));
-      expect(vm.observers()["tag2"].length, equals(2));
-      expect(vm.observers()["tag2"]["tag2ID_2"].hashCode == observer2.hashCode,
-          isTrue);
     });
   });
 
@@ -86,11 +75,7 @@ void main() {
     test("remove non existing tag throws exception", () {
       final vm = ViewModel();
 
-      expect(
-          () => vm.removeObserver(
-                tag: "tag1",
-                tagID: "tag1ID_1",
-              ),
+      expect(() => vm.removeObserver(tag: "tag1", observer: null),
           throwsException);
     });
 
@@ -98,42 +83,36 @@ void main() {
       final vm = ViewModel();
       vm.addObserver(
         tag: "tag1",
-        tagID: null,
         observer: null,
       );
-      expect(
-          () => vm.removeObserver(
-                tag: "tag1",
-                tagID: "tag1ID_1",
-              ),
+      expect(() => vm.removeObserver(tag: "tag1", observer: null),
           throwsException);
     });
 
     test("removeObserver works", () {
       final vm = ViewModel();
       final observer1 = StatesRebuilderListener1();
+      final observer2 = StatesRebuilderListener1();
+      final observer3 = StatesRebuilderListener1();
 
       expect(vm.observers().length, equals(0));
 
       vm.addObserver(
         tag: "tag1",
-        tagID: "tag1ID_1",
         observer: observer1,
       );
 
       vm.addObserver(
         tag: "tag1",
-        tagID: "tag1ID_2",
-        observer: StatesRebuilderListener1(),
+        observer: observer2,
       );
       vm.addObserver(
         tag: "tag2",
-        tagID: "tag2ID_1",
-        observer: StatesRebuilderListener1(),
+        observer: observer3,
       );
 
       bool isCleaner = false;
-      String statesRebuilderCleanerTag;
+      String statesRebuilderCleanerTag = "before";
       vm.cleaner(() {
         isCleaner = true;
       });
@@ -144,16 +123,16 @@ void main() {
 
       vm.removeObserver(
         tag: "tag1",
-        tagID: "tag1ID_1",
+        observer: observer1,
       );
 
       expect(vm.observers().length, equals(2));
       expect(isCleaner, isFalse);
-      expect(statesRebuilderCleanerTag, "tag1ID_1");
+      expect(statesRebuilderCleanerTag, "before");
 
       vm.removeObserver(
         tag: "tag1",
-        tagID: "tag1ID_2",
+        observer: observer2,
       );
 
       expect(vm.observers().length, equals(1));
@@ -162,10 +141,33 @@ void main() {
 
       vm.removeObserver(
         tag: "tag2",
-        tagID: "tag2ID_1",
+        observer: observer3,
+      );
+      expect(vm.observers().length, equals(0));
+      expect(isCleaner, isTrue);
+      expect(statesRebuilderCleanerTag, isNull);
+
+      vm.addObserver(
+        tag: "tag1",
+        observer: observer1,
+      );
+      vm.addObserver(
+        tag: "tag2",
+        observer: observer2,
       );
 
-      expect(vm.observers().length, equals(0));
+      isCleaner = false;
+      vm.cleaner(() {
+        isCleaner = true;
+      });
+
+      vm.statesRebuilderCleaner = (String tag) {
+        statesRebuilderCleanerTag = tag;
+      };
+      vm.removeObserver(
+        tag: null,
+        observer: null,
+      );
       expect(isCleaner, isTrue);
       expect(statesRebuilderCleanerTag, isNull);
     });
@@ -184,25 +186,23 @@ void main() {
 
       vm.addObserver(
         tag: 'tag1',
-        tagID: 'tag1ID_1',
         observer: observer1,
       );
 
       vm.addObserver(
         tag: 'tag1',
-        tagID: 'tag1ID_2',
         observer: observer2,
       );
 
       vm.addObserver(
         tag: 'tag2',
-        tagID: 'tag2ID',
         observer: observer3,
       );
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
       isUpdatedObserver3 = false;
+      orderOfRebuild = [];
     });
     test("empty observers throw exception", () {
       expect(() {
@@ -224,6 +224,11 @@ void main() {
           isTrue);
     });
 
+    test("last add first rebuild. Case observers", () {
+      vm.rebuildStates();
+      expect(orderOfRebuild, ['3', '2', '1']);
+    });
+
     test("when called with one tag, it will rebuild all observer with the tag ",
         () {
       vm.rebuildStates(['tag1']);
@@ -231,21 +236,7 @@ void main() {
           isFalse);
       expect(isUpdatedObserver1 && isUpdatedObserver2, isTrue);
     });
-
-    test(
-        "when called with the form ('tag1' + splitter + 'tag1ID_1') , it will rebuild one observer with the tagID ",
-        () {
-      vm.rebuildStates(['tag1' + splitter + 'tag1ID_1']);
-      expect(isUpdatedObserver1 && isUpdatedObserver2 && isUpdatedObserver3,
-          isFalse);
-      expect(isUpdatedObserver1 && isUpdatedObserver2, isFalse);
-      expect(isUpdatedObserver1, isTrue);
-    });
   });
-
-  test(
-      "when called with the form ('tag1' + splitter + 'tag1ID_1') , it will rebuild one observer with the tagID ",
-      () {});
 }
 
 class ViewModel extends StatesRebuilder {}
@@ -254,24 +245,32 @@ bool isUpdatedObserver1 = false;
 bool isUpdatedObserver2 = false;
 bool isUpdatedObserver3 = false;
 
+List<String> orderOfRebuild = [];
+
 class StatesRebuilderListener1 implements ListenerOfStatesRebuilder {
   @override
-  void update() {
+  bool update([void Function(BuildContext) afterRebuildCallBack]) {
     isUpdatedObserver1 = true;
+    orderOfRebuild.add("1");
+    return true;
   }
 }
 
 class StatesRebuilderListener2 implements ListenerOfStatesRebuilder {
   @override
-  void update() {
+  bool update([void Function(BuildContext) afterRebuildCallBack]) {
     isUpdatedObserver2 = true;
+    orderOfRebuild.add("2");
+    return true;
   }
 }
 
 class StatesRebuilderListener3 implements ListenerOfStatesRebuilder {
   @override
-  void update() {
+  bool update([void Function(BuildContext) afterRebuildCallBack]) {
     isUpdatedObserver3 = true;
+    orderOfRebuild.add("3");
+    return true;
   }
 }
 

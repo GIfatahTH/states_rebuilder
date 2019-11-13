@@ -10,7 +10,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   StateWithMixinBuilder({
     Key key,
     this.tag,
-    this.blocs,
+    this.models,
     this.viewModels,
     @required this.builder,
     this.initState,
@@ -39,7 +39,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
         super(
           key: key,
           tag: tag,
-          blocs: blocs,
+          models: models,
           viewModels: viewModels,
           builder: builder,
           disposeViewModels: disposeViewModels,
@@ -48,7 +48,7 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///```dart
   ///StateWithMixinBuilder(
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///The build strategy currently used to rebuild the state.
@@ -62,9 +62,9 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  initState:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.init([context, tagID, ticker]),
+  ///  initState:(BuildContext context, String tag, TickerProvider ticker)=> myModel.init([context, tag, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is inserted into the tree.
@@ -72,13 +72,13 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, String tagID, T mix) initState;
+  final void Function(BuildContext context, String tag, T mix) initState;
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  dispose:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.dispose([context, tagID, ticker]),
+  ///  dispose:(BuildContext context, String tag, TickerProvider ticker)=> myModel.dispose([context, tag, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///Called when this object is removed from the tree permanently.
@@ -86,27 +86,27 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, String tagID, T mix) dispose;
+  final void Function(BuildContext context, String tag, T mix) dispose;
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  didChangeDependencies:(BuildContext context, String tagID, TickerProvider ticker)=> myBloc.myMethod([context, tagID, ticker]),
+  ///  didChangeDependencies:(BuildContext context, String tag, TickerProvider ticker)=> myModel.myMethod([context, tag, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///Called when a dependency of this [State] object changes.
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, String tagID, T mix)
+  final void Function(BuildContext context, String tag, T mix)
       didChangeDependencies;
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  didUpdateWidget:(BuildContext context, String tagID,StateBuilderBase oldWidget, TickerProvider ticker)=> myBloc.myMethod([context, tagID,oldWidget, ticker]),
+  ///  didUpdateWidget:(BuildContext context, String tag,StateBuilderBase oldWidget, TickerProvider ticker)=> myModel.myMethod([context, tag,oldWidget, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///Called whenever the widget configuration changes.
@@ -114,14 +114,14 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///
   ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
   final void Function(
-          BuildContext context, String tagID, StateBuilderBase oldWidget, T mix)
+          BuildContext context, String tag, StateBuilderBase oldWidget, T mix)
       didUpdateWidget;
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  didChangeAppLifecycleState:(BuildContext context, String tagID, AppLifecycleState state)=> myBloc.myMethod([context, tagID, state]),
+  ///  didChangeAppLifecycleState:(BuildContext context, String tag, AppLifecycleState state)=> myModel.myMethod([context, tag, state]),
   ///  MixinWith : MixinWith.widgetsBindingObserver
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///Called when the system puts the app in the background or returns the app to the foreground.
@@ -129,16 +129,15 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///The String parameter is a unique tag automatically generated to refer to this`StateWithMixinBuilder`.
   ///
   ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(
-          BuildContext context, String tagID, AppLifecycleState state)
+  final void Function(BuildContext context, String tag, AppLifecycleState state)
       didChangeAppLifecycleState;
 
   ///Called after the widget is inserted in the widget tree.
-  final void Function(BuildContext context, String tagID, T mix)
+  final void Function(BuildContext context, String tag, T mix)
       afterInitialBuild;
 
   ///Called after each rebuild of the widget.
-  final void Function(BuildContext context, String tagID) afterRebuild;
+  final void Function(BuildContext context, String tag) afterRebuild;
 
   ///A custom name of your widget. It is used to rebuild this widget
   ///from your logic classes.
@@ -149,19 +148,19 @@ class StateWithMixinBuilder<T> extends StateBuilderBase {
   ///Deprecated. Use viewModels instead
   ///```dart
   ///StateWithMixinBuilder(
-  ///  blocs:[myBloc1, myBloc2,myBloc3],//If you want this widget to not rebuild, do not define any bloc.
+  ///  models:[myModel1, myModel2,myModel3],//If you want this widget to not rebuild, do not define any model.
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
-  final List<StatesRebuilder> blocs;
+  final List<StatesRebuilder> models;
 
   ///```dart
   ///StatesWithMixinRebuilder(
   ///  viewModels:[myVM1, myVM2,myVM3],
-  ///  builder:(BuildContext context, String tagID) =>MyWidget(),
+  ///  builder:(BuildContext context, String tag) =>MyWidget(),
   ///)
   ///```
   ///List of your logic classes you want to rebuild this widget from.
@@ -204,34 +203,34 @@ class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder<T>>
   @override
   Widget build(BuildContext context) {
     return StateBuilder(
-      initState: (context, tagID) => widget.initState != null
-          ? widget.initState(context, tagID, this as T)
+      initState: (context, tag) => widget.initState != null
+          ? widget.initState(context, tag, this as T)
           : null,
-      dispose: (context, tagID) {
+      dispose: (context, tag) {
         if (widget.dispose != null) {
-          widget.dispose(context, tagID, this as T);
+          widget.dispose(context, tag, this as T);
         } else if (widget.disposeViewModels == true) {
-          (widget.viewModels ?? widget.blocs)
+          (widget.viewModels ?? widget.models)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) =>
+      didUpdateWidget: (context, tag, oldWidget) =>
           widget.didUpdateWidget != null
-              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              ? widget.didUpdateWidget(context, tag, oldWidget, this as T)
               : null,
-      didChangeDependencies: (context, tagID) =>
+      didChangeDependencies: (context, tag) =>
           widget.didChangeDependencies != null
-              ? widget.didChangeDependencies(context, tagID, this as T)
+              ? widget.didChangeDependencies(context, tag, this as T)
               : null,
-      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
-          ? widget.afterInitialBuild(context, tagID, this as T)
+      afterInitialBuild: (context, tag) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tag, this as T)
           : null,
-      afterRebuild: (context, tagID) => widget.afterRebuild != null
-          ? widget.afterRebuild(context, tagID)
+      afterRebuild: (context, tag) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tag)
           : null,
-      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      viewModels: (widget.viewModels ?? widget.models) ?? [],
       tag: widget.tag,
-      builder: (context, tagID) => widget.builder(context, tagID),
+      builder: (context, tag) => widget.builder(context, tag),
     );
   }
 }
@@ -242,34 +241,34 @@ class _StateBuilderStateSingleTickerMix<T>
   @override
   Widget build(BuildContext context) {
     return StateBuilder(
-      initState: (context, tagID) => widget.initState != null
-          ? widget.initState(context, tagID, this as T)
+      initState: (context, tag) => widget.initState != null
+          ? widget.initState(context, tag, this as T)
           : null,
-      dispose: (context, tagID) {
+      dispose: (context, tag) {
         if (widget.dispose != null) {
-          widget.dispose(context, tagID, this as T);
+          widget.dispose(context, tag, this as T);
         } else if (widget.disposeViewModels == true) {
-          (widget.viewModels ?? widget.blocs)
+          (widget.viewModels ?? widget.models)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) =>
+      didUpdateWidget: (context, tag, oldWidget) =>
           widget.didUpdateWidget != null
-              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              ? widget.didUpdateWidget(context, tag, oldWidget, this as T)
               : null,
-      didChangeDependencies: (context, tagID) =>
+      didChangeDependencies: (context, tag) =>
           widget.didChangeDependencies != null
-              ? widget.didChangeDependencies(context, tagID, this as T)
+              ? widget.didChangeDependencies(context, tag, this as T)
               : null,
-      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
-          ? widget.afterInitialBuild(context, tagID, this as T)
+      afterInitialBuild: (context, tag) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tag, this as T)
           : null,
-      afterRebuild: (context, tagID) => widget.afterRebuild != null
-          ? widget.afterRebuild(context, tagID)
+      afterRebuild: (context, tag) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tag)
           : null,
-      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      viewModels: (widget.viewModels ?? widget.models) ?? [],
       tag: widget.tag,
-      builder: (context, tagID) => widget.builder(context, tagID),
+      builder: (context, tag) => widget.builder(context, tag),
     );
   }
 }
@@ -283,80 +282,79 @@ class _StateBuilderStateAutomaticKeepAliveClient<T>
   Widget build(BuildContext context) {
     super.build(context);
     return StateBuilder(
-      initState: (context, tagID) => widget.initState != null
-          ? widget.initState(context, tagID, this as T)
+      initState: (context, tag) => widget.initState != null
+          ? widget.initState(context, tag, this as T)
           : null,
-      dispose: (context, tagID) {
+      dispose: (context, tag) {
         if (widget.dispose != null) {
-          widget.dispose(context, tagID, this as T);
+          widget.dispose(context, tag, this as T);
         } else if (widget.disposeViewModels == true) {
-          (widget.viewModels ?? widget.blocs)
+          (widget.viewModels ?? widget.models)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) =>
+      didUpdateWidget: (context, tag, oldWidget) =>
           widget.didUpdateWidget != null
-              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              ? widget.didUpdateWidget(context, tag, oldWidget, this as T)
               : null,
-      didChangeDependencies: (context, tagID) =>
+      didChangeDependencies: (context, tag) =>
           widget.didChangeDependencies != null
-              ? widget.didChangeDependencies(context, tagID, this as T)
+              ? widget.didChangeDependencies(context, tag, this as T)
               : null,
-      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
-          ? widget.afterInitialBuild(context, tagID, this as T)
+      afterInitialBuild: (context, tag) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tag, this as T)
           : null,
-      afterRebuild: (context, tagID) => widget.afterRebuild != null
-          ? widget.afterRebuild(context, tagID)
+      afterRebuild: (context, tag) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tag)
           : null,
-      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      viewModels: (widget.viewModels ?? widget.models) ?? [],
       tag: widget.tag,
-      builder: (context, tagID) => widget.builder(context, tagID),
+      builder: (context, tag) => widget.builder(context, tag),
     );
   }
 }
 
 class _StateBuilderStateWidgetsBindingObserver<T>
     extends State<StateWithMixinBuilder<T>> with WidgetsBindingObserver {
-  String _tagID;
+  String _tag;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (widget.didChangeAppLifecycleState != null)
-      widget.didChangeAppLifecycleState(context, _tagID, state);
+      widget.didChangeAppLifecycleState(context, _tag, state);
   }
 
   @override
   Widget build(BuildContext context) {
     return StateBuilder(
-      initState: (context, tagID) {
-        _tagID = tagID;
-        if (widget.initState != null)
-          widget.initState(context, tagID, this as T);
+      initState: (context, tag) {
+        _tag = tag;
+        if (widget.initState != null) widget.initState(context, tag, this as T);
       },
-      dispose: (context, tagID) {
+      dispose: (context, tag) {
         if (widget.dispose != null) {
-          widget.dispose(context, tagID, this as T);
+          widget.dispose(context, tag, this as T);
         } else if (widget.disposeViewModels == true) {
-          (widget.viewModels ?? widget.blocs)
+          (widget.viewModels ?? widget.models)
               ?.forEach((b) => (b as dynamic).dispose());
         }
       },
-      didUpdateWidget: (context, tagID, oldWidget) =>
+      didUpdateWidget: (context, tag, oldWidget) =>
           widget.didUpdateWidget != null
-              ? widget.didUpdateWidget(context, tagID, oldWidget, this as T)
+              ? widget.didUpdateWidget(context, tag, oldWidget, this as T)
               : null,
-      didChangeDependencies: (context, tagID) =>
+      didChangeDependencies: (context, tag) =>
           widget.didChangeDependencies != null
-              ? widget.didChangeDependencies(context, tagID, this as T)
+              ? widget.didChangeDependencies(context, tag, this as T)
               : null,
-      afterInitialBuild: (context, tagID) => widget.afterInitialBuild != null
-          ? widget.afterInitialBuild(context, tagID, this as T)
+      afterInitialBuild: (context, tag) => widget.afterInitialBuild != null
+          ? widget.afterInitialBuild(context, tag, this as T)
           : null,
-      afterRebuild: (context, tagID) => widget.afterRebuild != null
-          ? widget.afterRebuild(context, tagID)
+      afterRebuild: (context, tag) => widget.afterRebuild != null
+          ? widget.afterRebuild(context, tag)
           : null,
-      viewModels: (widget.viewModels ?? widget.blocs) ?? [],
+      viewModels: (widget.viewModels ?? widget.models) ?? [],
       tag: widget.tag,
-      builder: (context, tagID) => widget.builder(context, tagID),
+      builder: (context, tag) => widget.builder(context, tag),
     );
   }
 }

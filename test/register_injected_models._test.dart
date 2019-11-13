@@ -96,6 +96,23 @@ void main() {
 
       expect(_allRegisteredModelInApp.length, equals(0));
     });
+
+    test("should remove Models and clean if of type asyncType ", () {
+      final service1 = Inject(() => Service1());
+      bool isCleaned = false;
+      final modelRegisterer =
+          RegisterInjectedModel([service1], _allRegisteredModelInApp);
+
+      expect(_allRegisteredModelInApp.length, equals(1));
+
+      final model = service1.getModelSingleton();
+      model.cleaner(() => isCleaned = true);
+
+      modelRegisterer.unRegisterInjectedModels(false);
+
+      expect(_allRegisteredModelInApp.length, equals(0));
+      expect(isCleaned, isTrue);
+    });
   });
 
   test("should throw if getting unRegistered instance", () {

@@ -6,7 +6,27 @@ import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+class Counter1 {}
+
+class Counter2 {
+  Counter1 counter;
+  Counter2([this.counter]);
+}
+
 void main() {
+  testWidgets('Injector : should infer type', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject(() => Counter2(Injector.get())),
+          Inject(() => Counter1()),
+        ],
+        builder: (_, __) => Container(),
+      ),
+    );
+    final Counter2 counter = Injector.get();
+    print(counter);
+  });
   testWidgets('Injector : should throw assertion error if models = null',
       (WidgetTester tester) async {
     expect(() {
@@ -144,6 +164,58 @@ void main() {
     expect(Injector.getAsModel<int>().state, equals(6));
   });
 
+  testWidgets('Injector : should getAsModel asNewInstanceModel',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>(() => Integer(5)),
+        ],
+        builder: (_, model) {
+          return Container();
+        },
+      ),
+    );
+    final instance0 = Injector.getAsModel<Integer>();
+    final instance1 = Injector.getAsModel<Integer>(asNewInstanceModel: true);
+    final instance2 = Injector.getAsModel<Integer>(asNewInstanceModel: true);
+    expect(instance0.state.value, equals(5));
+    expect(instance1.state.value, equals(5));
+    expect(instance2.state.value, equals(5));
+    instance0.state.value++;
+    await tester.pump();
+    expect(instance0.state.value, equals(6));
+    expect(instance1.state.value, equals(6));
+    expect(instance2.state.value, equals(6));
+    expect(instance0.hashCode != instance1.hashCode, isTrue);
+    expect(instance2.hashCode != instance1.hashCode, isTrue);
+  });
+
+  testWidgets(
+      'Injector : should setState with future in the initState not throw',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>(() => Integer(5)),
+        ],
+        builder: (_, __) {
+          final model = Injector.getAsModel<Integer>();
+          return StateBuilder(
+            viewModels: [model],
+            initState: (_, __) =>
+                model.setState((state) => state.incrementAsync()),
+            builder: (_, __) {
+              return Container();
+            },
+          );
+        },
+      ),
+    );
+
+    await tester.pump(Duration(seconds: 2));
+  });
+
   testWidgets(
       'Injector : should register value and Rebuild StateBuilder with context. case primitive data',
       (WidgetTester tester) async {
@@ -195,7 +267,6 @@ void main() {
     expect(numberOfRebuild, equals(2));
     expect(Injector.getAsModel<List>().state.length, equals(3));
   });
-
   testWidgets('Injector : should register Future', (WidgetTester tester) async {
     await tester.pumpWidget(
       Injector(
@@ -376,7 +447,7 @@ void main() {
           streamValueResult1 = model.snapshot.data;
           return streamValueResult1 < 2
               ? Builder(
-                  builder: (context) {
+                  builder: (BuildContext context) {
                     Injector.getAsModel<int>(context: context, name: "int2");
                     streamValueResult2 = model.snapshot.data;
                     return Container();
@@ -415,10 +486,10 @@ void main() {
     int rebuildCount = 0;
     await tester.pumpWidget(
       Injector<ViewModel>(
-        models: [
-          () => ViewModel(),
-          () => Service1(),
-          () => Service2(Injector.get<Service1>()),
+        inject: [
+          Inject(() => ViewModel()),
+          Inject(() => Service1()),
+          Inject(() => Service2(Injector.get())),
         ],
         builder: (_, model) {
           vm = model;
@@ -624,7 +695,7 @@ void main() {
           return StateBuilder(
             viewModels: [streamModel],
             builder: (_, __) {
-              print(streamModel.snapshot?.data?.value);
+              print(streamModel?.state?.value);
               numberOfRebuild++;
               return Container();
             },
@@ -715,6 +786,63 @@ void main() {
     expect(numberOfRebuild, equals(2));
     expect(Injector.getAsModel<Integer>().state.value, equals(1));
   });
+
+  testWidgets('Injector : should call afterRebuildCallback with StateBuilder',
+      (WidgetTester tester) async {
+    int numberOfRebuild = 0;
+    List<String> _rebuildTracker = [];
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<Integer>(() => Integer(0)),
+        ],
+        builder: (_, model) {
+          return StateBuilder(
+            viewModels: [Injector.getAsModel<Integer>()],
+            builder: (_, __) {
+              numberOfRebuild++;
+              _rebuildTracker.add("build");
+              return Container();
+            },
+          );
+        },
+      ),
+    );
+    expect(numberOfRebuild, equals(1));
+    expect(Injector.getAsModel<Integer>().state.value, equals(0));
+    Injector.getAsModel<Integer>().setState((state) => state.value++,
+        onSetState: (context) => _rebuildTracker.add("afterBuild"));
+    await tester.pump();
+    expect(numberOfRebuild, equals(2));
+    expect(Injector.getAsModel<Integer>().state.value, equals(1));
+    expect(_rebuildTracker, ["build", "afterBuild", "build"]);
+  });
+
+  testWidgets('Injector : should call onSetState with context',
+      (WidgetTester tester) async {
+    int numberOfRebuild = 0;
+    List<String> _rebuildTracker = [];
+    await tester.pumpWidget(
+      Injector(
+          inject: [
+            Inject<Integer>(() => Integer(0)),
+          ],
+          builder: (context, model) {
+            Injector.getAsModel<Integer>(context: context);
+            numberOfRebuild++;
+            _rebuildTracker.add("build");
+            return Container();
+          }),
+    );
+    expect(numberOfRebuild, equals(1));
+    expect(Injector.getAsModel<Integer>().state.value, equals(0));
+    Injector.getAsModel<Integer>().setState((state) => state.value++,
+        onSetState: (context) => _rebuildTracker.add("afterBuild"));
+    await tester.pump();
+    expect(numberOfRebuild, equals(2));
+    expect(Injector.getAsModel<Integer>().state.value, equals(1));
+    expect(_rebuildTracker, ["build", "afterBuild", "build"]);
+  });
 }
 
 class ViewModel extends StatesRebuilder {
@@ -739,6 +867,10 @@ abstract class IService2 {
 class Integer {
   int value = 0;
   Integer(this.value);
+  incrementAsync() async {
+    await Future.delayed(Duration(seconds: 1));
+    value++;
+  }
 
   @override
   String toString() {

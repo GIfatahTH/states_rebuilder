@@ -1,5 +1,5 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/common.dart';
 import 'package:states_rebuilder/src/split_and_add_observer.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
@@ -19,10 +19,10 @@ void main() {
         builder: (_, __) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
-      expect(splitAndAdd.tag.length, equals(0));
-      expect(splitAndAdd.tagID, isNull);
+      expect(splitAndAdd.tag.length, equals(1));
+      expect(splitAndAdd.defaultTag, isNull);
     });
     test("When viewModels is empty, Do nothing", () {
       final myWidget = StateBuilder(
@@ -30,10 +30,10 @@ void main() {
         builder: (_, __) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       expect(splitAndAdd.tag.length, equals(0));
-      expect(splitAndAdd.tagID, isNull);
+      expect(splitAndAdd.defaultTag, isNull);
     });
     test("When no tag is provided, create default one and add observer", () {
       final myWidget = StateBuilder(
@@ -41,11 +41,9 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       expect(splitAndAdd.tag[0], startsWith("#@deFau_Lt"));
-      expect(splitAndAdd.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd.tagID, startsWith(splitAndAdd.tag[0]));
     });
 
     test(
@@ -56,14 +54,14 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       isUpdatedObserver1 = false;
       vm.rebuildStates();
       expect(isUpdatedObserver1, isTrue);
 
       isUpdatedObserver1 = false;
-      vm.rebuildStates([splitAndAdd.tagID]);
+      vm.rebuildStates([splitAndAdd.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
     });
 
@@ -82,18 +80,17 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       expect(splitAndAdd1.tag.length, equals(1));
       expect(splitAndAdd1.tag[0], startsWith("#@deFau_Lt"));
-      expect(splitAndAdd1.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd1.tagID, startsWith(splitAndAdd1.tag[0]));
+      expect(splitAndAdd1.defaultTag, endsWith("TaG30"));
+      expect(splitAndAdd1.defaultTag, startsWith(splitAndAdd1.tag[0]));
 
       expect(splitAndAdd2.tag.length, equals(1));
       expect(splitAndAdd2.tag[0], startsWith("#@deFau_Lt"));
-      expect(splitAndAdd2.tagID, endsWith(splitter + "b123"));
-      expect(splitAndAdd2.tagID, startsWith(splitAndAdd2.tag[0]));
+      expect(splitAndAdd2.defaultTag, startsWith(splitAndAdd2.tag[0]));
     });
 
     test("When no tag is provided, rebuildStates works", () {
@@ -109,8 +106,8 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
@@ -120,15 +117,14 @@ void main() {
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
-
-      vm.rebuildStates([splitAndAdd1.tagID]);
+      vm.rebuildStates([splitAndAdd1.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
       expect(isUpdatedObserver2, isFalse);
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
 
-      vm.rebuildStates([splitAndAdd2.tagID]);
+      vm.rebuildStates([splitAndAdd2.defaultTag]);
       expect(isUpdatedObserver1, isFalse);
       expect(isUpdatedObserver2, isTrue);
     });
@@ -150,21 +146,19 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       expect(splitAndAdd1.tag.length, equals(1));
       expect(splitAndAdd1.tag[0], equals("myTag"));
-      expect(splitAndAdd1.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd1.tagID, startsWith("myTag"));
+      expect(splitAndAdd1.defaultTag, startsWith("myTag"));
 
       expect(splitAndAdd2.tag.length, equals(1));
       expect(splitAndAdd2.tag[0], startsWith("myTag"));
-      expect(splitAndAdd2.tagID, endsWith(splitter + "b123"));
-      expect(splitAndAdd2.tagID, startsWith("myTag"));
+      expect(splitAndAdd2.defaultTag, startsWith("myTag"));
     });
 
-    test("When many StateBuilder with the same tag,  rebuildStateWorks", () {
+    test("When many StateBuilder with the same tag,  rebuildState Works", () {
       final myWidget1 = StateBuilder(
         viewModels: [vm],
         tag: "myTag",
@@ -179,8 +173,8 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
@@ -198,15 +192,15 @@ void main() {
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
 
-      vm.rebuildStates([splitAndAdd1.tagID]);
+      vm.rebuildStates([splitAndAdd1.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
-      expect(isUpdatedObserver2, isFalse);
+      expect(isUpdatedObserver2, isTrue);
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
 
-      vm.rebuildStates([splitAndAdd2.tagID]);
-      expect(isUpdatedObserver1, isFalse);
+      vm.rebuildStates([splitAndAdd2.defaultTag]);
+      expect(isUpdatedObserver1, isTrue);
       expect(isUpdatedObserver2, isTrue);
     });
 
@@ -218,14 +212,14 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       isUpdatedObserver1 = false;
       vm.rebuildStates();
       expect(isUpdatedObserver1, isTrue);
 
       isUpdatedObserver1 = false;
-      vm.rebuildStates([splitAndAdd.tagID]);
+      vm.rebuildStates([splitAndAdd.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
     });
 
@@ -236,11 +230,10 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       expect(splitAndAdd.tag[0], equals("myTag"));
-      expect(splitAndAdd.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd.tagID, startsWith("myTag"));
+      expect(splitAndAdd.defaultTag, startsWith("myTag"));
     });
 
     test(
@@ -252,7 +245,7 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       isUpdatedObserver1 = false;
       vm.rebuildStates();
@@ -263,7 +256,7 @@ void main() {
       expect(isUpdatedObserver1, isTrue);
 
       isUpdatedObserver1 = false;
-      vm.rebuildStates([splitAndAdd.tagID]);
+      vm.rebuildStates([splitAndAdd.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
     });
 
@@ -276,13 +269,12 @@ void main() {
         builder: (_, __) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
-      expect(splitAndAdd.tag.length, equals(2));
+      expect(splitAndAdd.tag.length, equals(3));
       expect(splitAndAdd.tag[0], equals("myTag1"));
       expect(splitAndAdd.tag[1], equals(MyEnum.tag.toString()));
-      expect(splitAndAdd.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd.tagID, startsWith("myTag1"));
+      expect(splitAndAdd.defaultTag, startsWith("#@deFau_Lt"));
     });
 
     test(
@@ -294,7 +286,7 @@ void main() {
         builder: (_, __) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
       isUpdatedObserver1 = false;
       vm.rebuildStates();
@@ -308,7 +300,8 @@ void main() {
       expect(isUpdatedObserver1, isTrue);
 
       isUpdatedObserver1 = false;
-      vm.rebuildStates([splitAndAdd.tagID]);
+      print(splitAndAdd.tag);
+      vm.rebuildStates([splitAndAdd.defaultTag]);
       expect(isUpdatedObserver1, isTrue);
     });
 
@@ -328,16 +321,14 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       expect(splitAndAdd1.tag[0], equals("myTag_VM1"));
-      expect(splitAndAdd1.tagID, endsWith(splitter + "a123"));
-      expect(splitAndAdd1.tagID, startsWith("myTag_VM1"));
+      expect(splitAndAdd1.defaultTag, startsWith("myTag_VM1"));
 
       expect(splitAndAdd2.tag[0], equals("myTag_VM2"));
-      expect(splitAndAdd2.tagID, endsWith(splitter + "b123"));
-      expect(splitAndAdd2.tagID, startsWith("myTag_VM2"));
+      expect(splitAndAdd2.defaultTag, startsWith("myTag_VM2"));
     });
 
     test("With many viewModels works, rebuildStates works for each model", () {
@@ -356,8 +347,8 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      SplitAndAddObserver(myWidget1, observer, "a123");
-      SplitAndAddObserver(myWidget2, observer2, "b123");
+      SplitAndAddObserver(myWidget1, observer);
+      SplitAndAddObserver(myWidget2, observer2);
 
       isUpdatedObserver1 = false;
       isUpdatedObserver2 = false;
@@ -394,9 +385,8 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
       expect(vm.observers().length, equals(1));
-      expect(vm.observers()[splitAndAdd.tag[0]].length, equals(1));
       splitAndAdd.removeFromObserver();
       expect(vm.observers().length, equals(0));
     });
@@ -408,7 +398,7 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
       expect(vm.observers().length, equals(1));
       expect(vm.observers()[splitAndAdd.tag[0]].length, equals(1));
       splitAndAdd.removeFromObserver();
@@ -422,9 +412,9 @@ void main() {
         builder: (_, __) => null,
       );
 
-      final splitAndAdd = SplitAndAddObserver(myWidget, observer, "a123");
+      final splitAndAdd = SplitAndAddObserver(myWidget, observer);
 
-      expect(vm.observers().length, equals(2));
+      expect(vm.observers().length, equals(3));
       expect(vm.observers()[splitAndAdd.tag[0]].length, equals(1));
       splitAndAdd.removeFromObserver();
       expect(vm.observers().length, equals(0));
@@ -446,8 +436,8 @@ void main() {
         builder: (_, String tagID) => null,
       );
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       expect(vm.observers().length, equals(1));
       expect(vm.observers()[splitAndAdd1.tag[0]].length, equals(1));
@@ -473,12 +463,12 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
-
-      expect(vm.observers().length, equals(1));
-      expect(vm.observers()[splitAndAdd1.tag[0]].length, equals(2));
-      expect(vm.observers()[splitAndAdd2.tag[0]].length, equals(2));
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
+      print(vm.observers());
+      expect(vm.observers().length, equals(2));
+      expect(vm.observers()[splitAndAdd1.tag[0]].length, equals(1));
+      expect(vm.observers()[splitAndAdd2.tag[0]].length, equals(1));
 
       splitAndAdd1.removeFromObserver();
       expect(vm.observers().length, equals(1));
@@ -504,8 +494,8 @@ void main() {
 
       final observer2 = StatesRebuilderListener2();
 
-      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer, "a123");
-      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2, "b123");
+      final splitAndAdd1 = SplitAndAddObserver(myWidget1, observer);
+      final splitAndAdd2 = SplitAndAddObserver(myWidget2, observer2);
 
       expect(vm.observers().length, equals(1));
       expect(vm.observers()[splitAndAdd1.tag[0]].length, equals(2));
@@ -528,15 +518,17 @@ bool isUpdatedObserver2 = false;
 
 class StatesRebuilderListener1 implements ListenerOfStatesRebuilder {
   @override
-  void update() {
+  bool update([void Function(BuildContext) afterRebuildCallBack]) {
     isUpdatedObserver1 = true;
+    return true;
   }
 }
 
 class StatesRebuilderListener2 implements ListenerOfStatesRebuilder {
   @override
-  void update() {
+  bool update([void Function(BuildContext) afterRebuildCallBack]) {
     isUpdatedObserver2 = true;
+    return true;
   }
 }
 

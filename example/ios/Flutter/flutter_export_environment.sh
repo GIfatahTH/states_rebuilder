@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\Flutter SDK\flutter"
-export "FLUTTER_APPLICATION_PATH=E:\flutter\_libraries\_states_rebuilder\states_rebuilder - 2019-10-19\example"
+export "FLUTTER_APPLICATION_PATH=E:\flutter\_libraries\_states_rebuilder\states_rebuilder-jhhhhh\states_rebuilder\example"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build\ios"

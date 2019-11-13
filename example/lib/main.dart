@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import './examples/counter_app.dart' as counterApp;
 import './examples/counter_app_with_watch.dart' as counterAppWithWatch;
+import './examples/counter_app_with_error.dart' as counterAppWithError;
+import './examples/counter_app_with_refresh_indicator.dart'
+    as counterAppWithRefreshIndicator;
 import './examples/grid_Counter_app.dart' as gridCounterApp;
 import './state_with_mixin_builder/main.dart' as stateWithMixin;
 
@@ -43,11 +46,20 @@ class MyHomePage extends StatelessWidget {
             onPressed: () => goto(counterApp.App(), context),
           ),
           RaisedButton(
-            child: Text("Example 2: Counter app with [watch]"),
+            child: Text("Example 2: Counter app with [error]"),
+            onPressed: () => goto(counterAppWithError.App(), context),
+          ),
+          RaisedButton(
+            child: Text("Example 2: Counter app with [RefreshIndicator]"),
+            onPressed: () =>
+                goto(counterAppWithRefreshIndicator.App(), context),
+          ),
+          RaisedButton(
+            child: Text("Example 3: Counter app with [watch]"),
             onPressed: () => goto(counterAppWithWatch.App(), context),
           ),
           RaisedButton(
-            child: Text("Example 3: Grid Counter app"),
+            child: Text("Example 4: Grid Counter app"),
             onPressed: () => goto(gridCounterApp.App(), context),
           ),
           RaisedButton(

@@ -5,14 +5,43 @@ import '../states_rebuilder.dart';
 abstract class ModelStatesRebuilder<T> extends StatesRebuilder {
   AsyncSnapshot<T> _snapshot;
 
-  /// Immutable representation of the most recent state (instance) of the injected model.
+  /// A representation of the most recent state (instance) of the injected model.
+  ///
   AsyncSnapshot<T> get snapshot => _snapshot;
 
+  T _state;
+
   ///The state of the injected model.
-  T get state => _snapshot?.data;
+  T get state => _state ?? _snapshot.data;
+
+  StreamSubscription<T> get subscription => null;
+
+  ///Current state of connection to the asynchronous computation.
+  ///
+  ///The initial state is [ConnectionState.none]. If the an asynchronous event is mutating the state,
+  ///the connection state is set to [ConnectionState.waiting] and listeners are notified. When the asynchronous task resolves
+  ///the connection state is set to [ConnectionState.one] and listeners are notified.
+  ///
+  ///If the state is mutated by a non synchronous event, the connection state remains [ConnectionState.none].
+  ConnectionState get connectionState => _snapshot.connectionState;
+
+  ///Returns whether this state contains a non-null [error] value.
+  bool get hasError => _snapshot.hasError;
+
+  ///Returns whether this snapshot contains a non-null [data] value.
+  bool get hasData => _snapshot.hasData;
+
+  ///The latest error object received by the asynchronous computation.
+  Object get error => _snapshot.error;
+
+  /// custom status of state (ex: "ready" , "playing"; "displaying")
+  ///
+  /// The best place to change [stateStatus] is inside the callback of the [onSetState] parameters.
+  var stateStatus;
 
   set state(T data) {
-    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, data);
+    _state = data;
+    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
     if (hasState || customListener.isNotEmpty) rebuildStates();
   }
 
@@ -23,33 +52,51 @@ abstract class ModelStatesRebuilder<T> extends StatesRebuilder {
   ///
   /// To limit the rebuild process to a particular set of model instance variables use [watch].
   ///
+  /// If you want to catch error define [catchError] to be true
+  ///
+  /// With [onsetState] you can define callBacks to be executed after mutating the state such as Navigation,
+  /// show dialog or SnackBar.
+  ///
   /// [watch] is a function that returns a single model instance variable or a list of
   /// them. The rebuild process will be triggered if at least one of
-  /// the return variable changes.
-  ///
-  /// Return variable must be either a primitive variable, a List, a Map or a Set.
-  ///
-  /// To use a custom type, you should override the `toString` method to reflect
+  /// the return variable changes. Returned variable must be either a primitive variable,
+  /// a List, a Map or a Set.To use a custom type, you should override the `toString` method to reflect
   /// a unique identity of each instance.
-  ///
   /// If it is not defined all listener will be notified when a new state is available.
-  void setState(dynamic Function(T model) fn,
-      {List tags, dynamic Function(T state) watch}) async {
+  Future setState<D>(
+    dynamic Function(T model) fn, {
+    List tags,
+    dynamic Function(T state) watch,
+    bool catchError = false,
+    void Function(BuildContext context) onSetState,
+  }) async {
     final before = watch != null ? watch(state)?.toString() : null;
-    dynamic result = fn(state) as dynamic;
-    if (result is Future) {
-      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
-      if (hasState || customListener.isNotEmpty) rebuildStates(tags);
-      await result;
+
+    try {
+      dynamic result = fn(state) as dynamic;
+      if (result is Future) {
+        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
+        try {
+          if (hasState || customListener.isNotEmpty)
+            rebuildStates(tags, onSetState != null ? onSetState : null);
+        } catch (e) {}
+        await result;
+      }
+    } catch (e) {
+      _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+      if (hasState || customListener.isNotEmpty)
+        rebuildStates(tags, onSetState != null ? onSetState : null);
+      if (!catchError) rethrow;
+      return;
     }
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
     final after = watch != null ? watch(state)?.toString() : "";
     if (hasState || customListener.isNotEmpty) {
-      //It is a little challenging to compare twe reference values (List or Map)
-      //To do so I converted the values to string and compare them using the `identical` function which is an optimization.
       //String in dart are immutable objects, which means that two strings with the same characters in the same order
       //share the same object.
-      if (!identical(after, before)) rebuildStates(tags);
+      if (!identical(after, before)) {
+        rebuildStates(tags, onSetState != null ? onSetState : null);
+      }
     }
   }
 }
@@ -68,6 +115,9 @@ class StreamStatesRebuilder<T> extends ModelStatesRebuilder<T> {
   dynamic Function(T oldValue) watch;
   String _before;
   List tags;
+
+  @override
+  StreamSubscription<T> get subscription => _subscription;
 
   StreamStatesRebuilder(
       this._singleton, this._initialData, this.watch, this.tags) {

@@ -26,7 +26,7 @@ class App extends StatelessWidget {
         final counter = Injector.getAsModel<Counter>();
         return Scaffold(
           appBar: AppBar(
-            title: Text(" Counter App"),
+            title: Text(" Counter App with watch"),
           ),
           body: MyHome(),
           floatingActionButton: FloatingActionButton(

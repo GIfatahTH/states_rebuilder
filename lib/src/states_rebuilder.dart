@@ -5,14 +5,15 @@ import 'package:flutter/widgets.dart';
 import 'common.dart';
 
 abstract class ListenerOfStatesRebuilder {
-  void update();
+  bool update([void Function(BuildContext) onRebuildCallBack]);
 }
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder implements Subject {
   //key holds the observer tags and the value holds the observers
-  //_observers = {"tag" : {"tagID" : observer}}
-  Map<String, Map<String, ListenerOfStatesRebuilder>> _observers = {};
+  //_observers = {"tag" : [ observer]}
+  LinkedHashMap<String, List<ListenerOfStatesRebuilder>> _observers =
+      LinkedHashMap();
 
   List<VoidCallback> _cleanerVoidCallBackList = [];
 
@@ -20,17 +21,19 @@ class StatesRebuilder implements Subject {
   Function(String) statesRebuilderCleaner;
 
   /// observers getter
-  Map<String, Map<String, ListenerOfStatesRebuilder>> observers() => _observers;
+  Map<String, List<ListenerOfStatesRebuilder>> observers() => _observers;
 
   ///Check whether the model has observing states
   bool get hasState => _observers.isNotEmpty;
 
-  ///Map of custom listners to be called when rebuildStates is called
-  Map<BuildContext, void Function()> customListener = HashMap();
+  ///Map of custom listeners to be called when rebuildStates is called
+  LinkedHashMap<BuildContext, bool Function([void Function(BuildContext)])>
+      customListener = LinkedHashMap();
 
   /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
   @override
-  void rebuildStates([List<dynamic> tags]) {
+  void rebuildStates(
+      [List<dynamic> tags, void Function(BuildContext) onRebuildCallBack]) {
     assert(() {
       if (!hasState && customListener.isEmpty) {
         throw Exception("ERR(rebuildStates)01: No observer is registered yet.\n"
@@ -40,63 +43,73 @@ class StatesRebuilder implements Subject {
       return true;
     }());
 
+    bool _onRebuildCallBackIsCalled = false;
     if (tags == null) {
-      _observers.forEach((t, v) {
-        v?.forEach((h, observer) {
-          observer?.update();
-        });
-      });
-      Map<dynamic, void Function()> _customListener = Map.from(customListener);
+      final _keys = _observers.keys.toList()?.reversed;
 
-      _customListener.forEach((k, v) => v());
-
-      return;
-    }
-
-    for (final tag in tags) {
-      if (tag is String) {
-        final split = tag?.split(splitter);
-        if (split.length == 2) {
-          final _observerTag = _observers[split[0]];
-          if (_observerTag == null) {
-            throw Exception(
-                "ERR(rebuildStates)03: The tag: '${split[0]}' is not registered in this VM observers.\n"
-                "If you see this error, please report an issue in the repository.\n");
-          } else {
-            final _observerHash = _observerTag[split.last];
-            _observerHash?.update();
-            // _customListener.forEach((k, v) => v());
+      for (final key in _keys) {
+        final observerList = _observers[key];
+        if (observerList != null) {
+          for (ListenerOfStatesRebuilder observer in observerList) {
+            if (onRebuildCallBack != null &&
+                _onRebuildCallBackIsCalled == false) {
+              _onRebuildCallBackIsCalled =
+                  observer?.update(onRebuildCallBack) == true;
+            } else {
+              observer?.update();
+            }
           }
         }
       }
 
-      final observerList = _observers["$tag"];
+      LinkedHashMap<BuildContext, bool Function([void Function(BuildContext)])>
+          _customListener =
+          Map<BuildContext, bool Function([void Function(BuildContext)])>.from(
+              customListener);
+
+      _customListener.forEach(
+          (BuildContext ctx, bool Function([void Function(BuildContext)]) fn) {
+        if (onRebuildCallBack != null && _onRebuildCallBackIsCalled == false) {
+          _onRebuildCallBackIsCalled = fn(onRebuildCallBack);
+        } else {
+          fn();
+        }
+      });
+
+      return;
+    }
+
+    for (final dynamic tag in tags) {
+      final List<ListenerOfStatesRebuilder> observerList = _observers["$tag"];
       if (observerList != null) {
-        observerList.forEach((t, observer) {
-          observer?.update();
-        });
-        // _customListener.forEach((k, v) => v());
+        for (ListenerOfStatesRebuilder observer in observerList) {
+          if (onRebuildCallBack != null &&
+              _onRebuildCallBackIsCalled == false) {
+            _onRebuildCallBackIsCalled = observer?.update(onRebuildCallBack);
+          } else {
+            observer?.update();
+          }
+        }
       }
     }
   }
 
   /// Method to add observer
   @override
-  void addObserver(
-      {@required String tag,
-      @required ListenerOfStatesRebuilder observer,
-      @required String tagID}) {
-    if (tag == null || tagID == null || observer == null) return;
-
-    _observers[tag] ??= {};
-    _observers[tag][tagID] = observer;
+  void addObserver({
+    @required String tag,
+    @required ListenerOfStatesRebuilder observer,
+  }) {
+    if (tag == null || observer == null) return;
+    _observers[tag] =
+        _observers[tag] == null ? [observer] : [observer, ..._observers[tag]];
   }
 
   ///Method to remove observer
   @override
   void removeObserver({
     @required String tag,
-    @required String tagID,
+    @required ListenerOfStatesRebuilder observer,
   }) {
     if (tag != null) {
       assert(() {
@@ -109,40 +122,31 @@ class StatesRebuilder implements Subject {
         }
         return true;
       }());
-      List<String> keys = List.from(_observers[tag].keys);
-      assert(() {
-        if (keys == null) {
-          throw Exception(
-              "ERR(removeFromObservers)02: The Map list referred  by '$tag' tag is empty. It should be removed from this VM observers.\n"
-              "If you see this error, please report an issue in the repository.\n");
-        }
-        return true;
-      }());
 
-      keys.forEach((k) {
-        if (k == tagID) {
-          _observers[tag].remove(k);
-          if (statesRebuilderCleaner != null) statesRebuilderCleaner(tagID);
-
-          return;
-        }
-      });
-
+      _observers[tag].remove(observer);
       if (_observers[tag].isEmpty) {
-        _observers.remove(tag);
         if (statesRebuilderCleaner != null) statesRebuilderCleaner(tag);
-      }
-    }
-    if (_observers.isEmpty) {
-      if (statesRebuilderCleaner != null) statesRebuilderCleaner(null);
+        _observers.remove(tag);
 
-      _cleanerVoidCallBackList?.forEach((voidCallBack) {
+        if (_observers.isEmpty) {
+          if (statesRebuilderCleaner != null) statesRebuilderCleaner(null);
+          statesRebuilderCleaner = null;
+          if (customListener.isEmpty) {
+            _cleanerVoidCallBackList?.forEach((VoidCallback voidCallBack) {
+              if (voidCallBack != null) {
+                voidCallBack();
+              }
+            });
+            _cleanerVoidCallBackList.clear();
+          }
+        }
+      }
+    } else {
+      _cleanerVoidCallBackList?.forEach((VoidCallback voidCallBack) {
         if (voidCallBack != null) {
           voidCallBack();
         }
       });
-
-      statesRebuilderCleaner = null;
       _cleanerVoidCallBackList.clear();
     }
   }
@@ -151,15 +155,4 @@ class StatesRebuilder implements Subject {
   void cleaner(VoidCallback voidCallback) {
     _cleanerVoidCallBackList.add(voidCallback);
   }
-
-  // TODO register service from the viewModel
-  // T registerAndGet<T>(dynamic Function() model) {
-  //   final _model = Inject<T>(model);
-  //   final modelRegisterer =
-  //       RegisterInjectedModel([_model], InjectorState.allRegisteredModelInApp);
-  //   cleaner(() {
-  //     modelRegisterer.unRegisterInjectedModels(false);
-  //   });
-  //   return Injector.get<T>();
-  // }
 }
