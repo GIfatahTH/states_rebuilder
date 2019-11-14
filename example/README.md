@@ -1,4 +1,9 @@
 # 1- Simple Counter App 
+Simple counter with showing the Snackbar when the value of the counter reaches 10.
+This example shows the use of:
+- the getter `state`
+- The method `setState`
+- The parameter `onSetState`
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -59,6 +64,13 @@ class MyHome extends StatelessWidget {
 }
 ```
 # 2- Counter App with Future
+asynchronous counter with showing `CircularProgressIndicator` while waiting for the Future to resolve.
+This example shows the use of:
+- the getter `connectionState`. It take the following values:   
+ `ConnectionState.none`    : before executing async task.   
+ `ConnectionState.waiting` : while executing async task.    
+ `ConnectionState.done`    : when async task resolves.     
+  Listener are notified to rebuild after each change of `connectionState`.    
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -71,7 +83,6 @@ class Counter {
   }
 }
 
-//The same UI as for simple Counter app
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -119,6 +130,11 @@ class MyHome extends StatelessWidget {
 ```
 
 # 3- Counter app : catching errors (show AlertDialog)
+asynchronous counter with possibility of throwing an error. An alert dialog is shown with the error message.
+This example shows the use of:   
+- The parameter `onSetState`       
+- The getter `hasError`   
+- The getter `error`   
 ```dart
 import 'dart:math';
 
@@ -207,6 +223,9 @@ class MyHome extends StatelessWidget {
 ```
 
 # 4- Counter app : watching variable
+Simple counter with watching the change of the count variable.
+This example shows the use of:   
+- The parameter `watch` 
 ```dart
 import 'dart:math';
 
@@ -296,6 +315,8 @@ class MyHome extends StatelessWidget {
 }
 ```
 # 5- Injecting Futures and Streams 
+This example shows the use of:   
+- The parameter `Inject.stream`  and `Inject.future` 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
