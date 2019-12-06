@@ -282,8 +282,9 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   ///Add context to [InheritedWidget] listeners
   ReactiveModel<T> of(BuildContext context) {
-    final InheritedWidget model =
-        context.dependOnInheritedWidgetOfExactType<InheritedInject<T>>();
+    final type = _typeOf<InheritedInject<T>>();
+
+    final InheritedWidget model = context.inheritFromWidgetOfExactType(type);
     final InheritedInject<T> inheritedInject = model;
     _lastContext = context;
     return inheritedInject?.model;
@@ -291,10 +292,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   ///Add context to [InheritedWidget] listeners. Static version
   static InheritedWidget staticOf<T>(BuildContext context) {
-    final InheritedWidget model =
-        context.dependOnInheritedWidgetOfExactType<InheritedInject<T>>();
+    final type = _typeOf<InheritedInject<T>>();
+    final InheritedWidget model = context.inheritFromWidgetOfExactType(type);
     return model;
   }
+
+  static Type _typeOf<T>() => T;
 }
 
 //A package private class used to
