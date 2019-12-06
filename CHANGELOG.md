@@ -1,3 +1,14 @@
+## 1.8.0 (2019-12-06)
+1- Add the following features: (See readme).
+*  `onSetState` and  `onRebuildState` parameters to the `StateBuilder`.
+* The BuildContext is the default tag of `StateBuilder`.
+* `JoinSingleton`, `inheritedInject`, `initialCustomStateStatus` parameters to `Inject`
+* `reinject` and `getAsReactive` to `Injector`.
+2- Remove the following parameters:(Breaking changes)
+*  `viewModel` and `tagID` parameter from `StateBuilder`.
+* The model parameter of the `Injector.builder` method.
+* `Injector.getAsModel` is deprecated.
+
 ## 1.7.0 (2019-11-14)
 1- Add `onSetState` parameter to the `setState` method to define a callback to be executed after state mutation.
   The callBack takes the context so you can push/pop routes, show dialogs or snackBar. (see example folder).  
