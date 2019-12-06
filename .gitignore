@@ -14,3 +14,5 @@ ios/Runner/GeneratedPluginRegistrant.*
 pubspec.lock
 .vscode/settings.json
 .gitignore
+example/android/
+example/android/local.properties

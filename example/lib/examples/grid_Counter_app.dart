@@ -3,8 +3,8 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class CounterModel {
   int counter = 0;
-  increment1() => counter++;
-  increment2() async {
+  void increment() => counter++;
+  Future<void> incrementAsync() async {
     await Future.delayed(Duration(seconds: 1));
     counter++;
   }
@@ -14,10 +14,36 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Injector(
-        inject: [Inject<CounterModel>(() => CounterModel())],
-        builder: (_, __) => Scaffold(
-          appBar: AppBar(),
+        inject: [
+          Inject<CounterModel>(
+            () => CounterModel(),
+            joinSingleton: JoinSingleton.withCombinedReactiveInstances,
+          )
+        ],
+        builder: (_) => Scaffold(
+          appBar: AppBar(
+            title: Center(
+              child: StateBuilder<CounterModel>(
+                models: [Injector.getAsReactive<CounterModel>()],
+                builder: (_, model) {
+                  if (model.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(
+                      backgroundColor: Colors.white,
+                    );
+                  }
+                  return Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text(
+                      '${model.joinSingletonToNewData ?? "Tap on A Counter"}',
+                      style: TextStyle(fontSize: 30),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
           body: CounterGrid(),
         ),
       ),
@@ -37,28 +63,34 @@ class CounterGrid extends StatelessWidget {
               crossAxisCount: 3,
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
-                  Builder(builder: (context) {
-                    final model =
-                        Injector.getAsModel<CounterModel>(); // without context
-                    return StateBuilder(
-                      viewModels: [model],
-                      tag: i % 2,
-                      builder: (_, __) => GridItem(
-                        count: model.snapshot.connectionState ==
-                                ConnectionState.waiting
+                  StateBuilder<CounterModel>(
+                    builder: (context, model) {
+                      return GridItem(
+                        count: model.connectionState == ConnectionState.waiting
                             ? null
                             : model.state.counter,
                         onTap: () {
                           if (i % 2 == 0)
-                            model.setState((state) => state.increment1(),
-                                tags: [i % 2]);
+                            model.setState(
+                              (state) => state.increment(),
+                              notifyAllReactiveInstances: true,
+                              onSetState: (context) {
+                                model.joinSingletonToNewData =
+                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
+                              },
+                            );
                           else
-                            model.setState((state) => state.increment2(),
-                                tags: [i % 2]);
+                            model.setState(
+                              (state) => state.incrementAsync(),
+                              onSetState: (context) {
+                                model.joinSingletonToNewData =
+                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
+                              },
+                            );
                         },
-                      ),
-                    );
-                  }),
+                      );
+                    },
+                  ),
               ],
             ),
           ),

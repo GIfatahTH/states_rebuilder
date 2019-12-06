@@ -13,7 +13,7 @@ class RebuildAllExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<CounterBlocAll>(() => CounterBlocAll())],
-      builder: (_, __) => CounterGrid(),
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -31,19 +31,15 @@ class CounterGrid extends StatelessWidget {
               crossAxisCount: 3,
               children: <Widget>[
                 for (var i = 0; i < 12; i++)
-                  Builder(builder: (context) {
-                    final bloc =
-                        Injector.getAsModel<CounterBlocAll>(context: context);
-                    return StateBuilder(
-                      viewModels: [bloc],
-                      tag: i % 2,
-                      builder: (_, __) => GridItem(
-                        count: bloc.state.counter,
-                        onTap: () => bloc.setState((model) => model.increment(),
-                            tags: null),
-                      ),
-                    );
-                  }),
+                  StateBuilder<CounterBlocAll>(
+                    models: [Injector.getAsReactive<CounterBlocAll>()],
+                    tag: i % 2,
+                    builder: (_, bloc) => GridItem(
+                      count: bloc.state.counter,
+                      onTap: () => bloc.setState((model) => model.increment(),
+                          filterTags: null),
+                    ),
+                  ),
               ],
             ),
           ),

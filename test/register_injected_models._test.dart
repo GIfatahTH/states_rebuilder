@@ -17,33 +17,35 @@ void main() {
     test(" should register three entries", () {
       models1 = [
         Inject<int>(() => 1),
-        Inject(() => Service1()),
-        Inject(() => [2, "myName"]),
+        Inject<Service1>(() => Service1()),
+        Inject<List>(() => [2, "myName"]),
       ];
       RegisterInjectedModel(
         models1,
         _allRegisteredModelInApp,
       );
-
       expect(_allRegisteredModelInApp.length, equals(3));
       expect(_allRegisteredModelInApp["int"][0].getName(), "int");
-      expect(_allRegisteredModelInApp["Service1"][0].getInstance() is Service1,
+      expect(
+          _allRegisteredModelInApp["Service1"][0].getNewInstance() is Service1,
           isTrue);
-      expect(_allRegisteredModelInApp["List"][0].getInstance()[1],
+      expect(_allRegisteredModelInApp["List<dynamic>"][0].getNewInstance()[1],
           equals("myName"));
     });
 
-    test(" should register Service twice with the same key", () {
+    test(
+        " should register the same instance of Service twice with the same key",
+        () {
       models1 = [
         Inject<int>(() => 1),
-        Inject(() => Service1()),
-        Inject(() => [2, "myName"]),
+        Inject<Service1>(() => Service1()),
+        Inject<List<dynamic>>(() => [2, "myName"]),
       ];
 
       RegisterInjectedModel(models1, _allRegisteredModelInApp);
 
       models1 = [
-        Inject(() => Service1()),
+        Inject<Service1>(() => Service1()),
       ];
 
       RegisterInjectedModel(
@@ -53,6 +55,10 @@ void main() {
 
       expect(_allRegisteredModelInApp.length, equals(3));
       expect(_allRegisteredModelInApp["Service1"].length, equals(2));
+      expect(
+          _allRegisteredModelInApp["Service1"][0] ==
+              _allRegisteredModelInApp["Service1"][1],
+          isTrue);
     });
   });
 
@@ -76,23 +82,21 @@ void main() {
         () {
       final num1 = Inject(() => 1);
       final service1_1 = Inject(() => Service1());
-      final service1_2 = Inject(() => Service1());
+      final service1_2 = Inject(() => service1_1.getSingleton());
 
       final modelRegisterer1 =
-          RegisterInjectedModel([num1, service1_1], _allRegisteredModelInApp);
+          RegisterInjectedModel([service1_1], _allRegisteredModelInApp);
 
       final modelRegisterer2 =
           RegisterInjectedModel([num1, service1_2], _allRegisteredModelInApp);
 
       expect(_allRegisteredModelInApp.length, equals(2));
       expect(_allRegisteredModelInApp['Service1'].length, equals(2));
-
-      modelRegisterer1.unRegisterInjectedModels(false);
-
-      expect(_allRegisteredModelInApp.length, equals(2));
+      modelRegisterer2.unRegisterInjectedModels(false);
+      expect(_allRegisteredModelInApp.length, equals(1));
       expect(_allRegisteredModelInApp['Service1'].length, equals(1));
 
-      modelRegisterer2.unRegisterInjectedModels(false);
+      modelRegisterer1.unRegisterInjectedModels(false);
 
       expect(_allRegisteredModelInApp.length, equals(0));
     });
@@ -105,7 +109,7 @@ void main() {
 
       expect(_allRegisteredModelInApp.length, equals(1));
 
-      final model = service1.getModelSingleton();
+      final model = service1.getReactiveSingleton();
       model.cleaner(() => isCleaned = true);
 
       modelRegisterer.unRegisterInjectedModels(false);
@@ -123,8 +127,8 @@ void main() {
   group("Injector.get<T>()", () {
     test("should get registered instance", () {
       final num1 = Inject<int>(() => 1);
-      final service1 = Inject(() => Service1());
-      final list1 = Inject(() => [2, "myName"]);
+      final service1 = Inject<Service1>(() => Service1());
+      final list1 = Inject<List<dynamic>>(() => [2, "myName"]);
       models1 = [
         num1,
         service1,
@@ -135,7 +139,7 @@ void main() {
 
       expect(Injector.get<int>(), equals(1));
       expect(Injector.get<Service1>(), equals(service1.getSingleton()));
-      expect(Injector.get<List>(), equals(list1.getSingleton()));
+      expect(Injector.get<List<dynamic>>(), equals(list1.getSingleton()));
     });
   });
 

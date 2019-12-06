@@ -39,7 +39,7 @@ class CounterBlocPerf {
     controller.dispose();
   }
 
-  lifecycleState(BuildContext context, String tagID, AppLifecycleState state) {
+  lifecycleState(BuildContext context, AppLifecycleState state) {
     this.state = "$state";
     // rebuildStates([CounterTag.time]);
     showDialog(
@@ -66,7 +66,7 @@ class RebuildStatesPerformanceExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<CounterBlocPerf>(() => CounterBlocPerf())],
-      builder: (_, __) => CounterGrid(),
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -74,23 +74,23 @@ class RebuildStatesPerformanceExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = Injector.getAsModel<CounterBlocPerf>(context: context);
+    final bloc = Injector.getAsReactive<CounterBlocPerf>(context: context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: StateWithMixinBuilder<WidgetsBindingObserver>(
         mixinWith: MixinWith.widgetsBindingObserver,
-        initState: (_, __, observer) =>
+        initState: (_, observer) =>
             WidgetsBinding.instance.addObserver(observer),
-        dispose: (_, __, observer) =>
+        dispose: (_, observer) =>
             WidgetsBinding.instance.removeObserver(observer),
-        didChangeAppLifecycleState: (context, tagID, state) {
-          bloc.setState((model) => model.lifecycleState(context, tagID, state),
-              tags: [tagID]);
+        didChangeAppLifecycleState: (context, state) {
+          bloc.setState((model) => model.lifecycleState(context, state),
+              filterTags: [context]);
         },
         builder: (_, __) => Column(
           children: <Widget>[
             StateBuilder(
-                viewModels: [bloc],
+                models: [bloc],
                 tag: CounterTag.time,
                 builder: (_, __) => Column(
                       children: <Widget>[
@@ -103,14 +103,14 @@ class CounterGrid extends StatelessWidget {
             Expanded(
               child: StateWithMixinBuilder(
                 mixinWith: MixinWith.singleTickerProviderStateMixin,
-                initState: (_, __, ticker) => bloc.state.initAnimation(ticker),
-                dispose: (_, __, ___) => bloc.state.dispose(),
+                initState: (_, ticker) => bloc.state.initAnimation(ticker),
+                dispose: (_, ___) => bloc.state.dispose(),
                 builder: (_, __) => GridView.count(
                   crossAxisCount: 3,
                   children: <Widget>[
                     for (var i = 0; i < 12; i++)
                       StateBuilder(
-                        viewModels: [bloc],
+                        models: [bloc],
                         tag: "anim",
                         builder: (_, tagID) => Transform.rotate(
                           angle: bloc.state.animation.value,

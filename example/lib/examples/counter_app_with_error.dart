@@ -6,14 +6,14 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class Counter {
   int _count = 0;
   int get count => _count;
-  increment() async {
+  Future<void> increment() async {
     //Simulating async task
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     //Simulating error (50% chance of error);
-    bool isError = Random().nextBool();
+    final bool isError = Random().nextBool();
 
     if (isError) {
-      throw Exception("A fake network Error");
+      throw Exception('A fake network Error');
     }
     _count++;
   }
@@ -24,26 +24,27 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counterModel = Injector.getAsModel<Counter>();
+      builder: (BuildContext context) {
+        final ReactiveModel<Counter> counterModel =
+            Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
-            title: Text(" Counter App With error"),
+            title: const Text(' Counter App With error'),
           ),
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
             onPressed: () => counterModel.setState(
-              (state) => state.increment(),
+              (Counter state) => state.increment(),
               catchError: true, //catch the error
-              onSetState: (context) {
+              onSetState: (BuildContext context) {
                 // osSetState will be executed after mutating the state.
                 if (counterModel.hasError) {
-                  showDialog(
+                  showDialog<dynamic>(
                     context: context,
-                    child: AlertDialog(
-                      title: Text("Error!"),
-                      content: Text("${counterModel.error}"),
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Error!'),
+                      content: Text('${counterModel.error}'),
                     ),
                   );
                 }
@@ -59,21 +60,29 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Injector.getAsModel<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text("You have 50% chance of error"),
-          Builder(
-            builder: (context) {
+          const Text('You have 50% chance of error'),
+          StateBuilder<Counter>(
+            models: [Injector.getAsReactive<Counter>()],
+            onSetState: (context, counterModel) {
+              print("1- onSetState");
+            },
+            onRebuildState: (context, counterModel) {
+              print("3- onRebuildState");
+            },
+            builder: (BuildContext context, counterModel) {
+              print("2- build");
+
               if (counterModel.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
+                return const CircularProgressIndicator();
               }
 
               return Text(
-                "${counterModel.state.count}",
-                style: TextStyle(fontSize: 50),
+                '${counterModel.state.count}',
+                style: const TextStyle(fontSize: 50),
               );
             },
           ),

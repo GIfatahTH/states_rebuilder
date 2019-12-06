@@ -23,11 +23,11 @@ class App extends StatelessWidget {
             initialValue: false),
         Inject(() => Counter()),
       ],
-      builder: (context, __) {
-        final futureSnap = Injector.getAsModel<bool>(context: context).snapshot;
-        final counter = Injector.getAsModel<Counter>(context: context);
+      builder: (context) {
+        final futureSnap = Injector.getAsReactive<bool>(context: context);
+        final counter = Injector.getAsReactive<Counter>();
         return Scaffold(
-          appBar: futureSnap.data == false
+          appBar: futureSnap.state == false
               ? AppBar(
                   title: Text(" awaiting a Future"),
                   backgroundColor: Colors.red,
@@ -62,17 +62,27 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final streamSnap = Injector.getAsModel<int>(context: context).snapshot;
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final stream = Injector.getAsReactive<int>();
+    final counter = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Spacer(),
           Text("Counter incremented by the Stream"),
-          Text(streamSnap.hasData
-              ? "${streamSnap.data}"
-              : "waiting for data ..."),
+          StateBuilder<int>(
+            models: [stream],
+            onSetState: (context, stream) {
+              print('onSetState counter = ${stream.state}');
+            },
+            onRebuildState: (context, stream) {
+              print('onRebuildState counter = ${stream.snapshot.data}');
+            },
+            builder: (_, __) {
+              return Text(
+                  stream.hasData ? "${stream.state}" : "waiting for data ...");
+            },
+          ),
           Text("You have pushed this many times"),
           Text(counter.state.count.toString()),
           counter.snapshot.connectionState == ConnectionState.waiting
@@ -80,8 +90,8 @@ class MyHome extends StatelessWidget {
               : RaisedButton(
                   child: Text("increment"),
                   onPressed: () => counter.setState(
-                    (state) => state.increment2(),
-                  ),
+                      (state) => state.increment2(),
+                      onSetState: (context) {}),
                 ),
           Spacer(),
           Text("Tap on The ActionButton More the 10 time to see the SnackBar")

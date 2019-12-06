@@ -29,10 +29,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "Grid of Counters",
       home: Injector(
-        models: [() => MainBloc()],
-        builder: (_, __) => RootPage(),
+        inject: [Inject(() => MainBloc())],
+        builder: (_) => RootPage(),
       ),
     );
   }
@@ -44,8 +45,8 @@ class RootPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateWithMixinBuilder<TickerProviderStateMixin>(
       mixinWith: MixinWith.tickerProviderStateMixin,
-      initState: (_, __, ticker) => bloc.init(ticker),
-      dispose: (_, __, ___) => bloc.dispose(),
+      initState: (_, ticker) => bloc.init(ticker),
+      dispose: (_, ___) => bloc.dispose(),
       builder: (
         _,
         __,

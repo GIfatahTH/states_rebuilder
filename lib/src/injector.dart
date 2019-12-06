@@ -1,18 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/inject.dart';
-import 'package:states_rebuilder/src/model_states_rebuilder.dart';
-import 'package:states_rebuilder/src/register_injected_models.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
-import 'package:states_rebuilder/src/states_rebuilder.dart';
 
-class Injector<T extends StatesRebuilder> extends StatefulWidget {
-  ///The builder closure. It takes as parameter the context and the registered generic model.
-  final Widget Function(BuildContext, T) builder;
+import 'inject.dart';
+import 'reactive_model.dart';
+import 'register_injected_models.dart';
+import 'states_rebuilder.dart';
 
-  ///List of models to register.
-  final List<Function()> models;
+///A class used to register (inject) models.
+class Injector extends StatefulWidget {
+  const Injector({
+    Key key,
+    // for injection
+    @required this.builder,
+    this.inject,
+    this.reinject,
+    //for app lifecycle
+    this.initState,
+    this.dispose,
+    this.appLifeCycle,
+    this.afterInitialBuild,
+    this.disposeModels = false,
+  })  : assert(builder != null),
+        assert(inject != null || reinject != null),
+        super(key: key);
 
-  ///List of models to register.
+  ///The builder closure. It takes as parameter the context.
+  final Widget Function(BuildContext) builder;
+
+  ///List of models to register (inject).
   ///example:
   ///```dart
   ///Injector(
@@ -27,230 +41,252 @@ class Injector<T extends StatesRebuilder> extends StatefulWidget {
   ///```
   final List<Injectable> inject;
 
-  ///Function to execute in `initState` of the state. It takes as parameter the registered generic model.
-  final void Function(T) initState;
+  ///Used to reinject an already injected model to make it accessible to a new widget tree branch so that it can be found by [Injector.getAsReactive]
+  final List<StatesRebuilder> reinject;
 
-  ///Function to execute in `dispose` of the state. It takes as parameter the registered generic model.
-  final void Function(T) dispose;
+  ///Function to execute in `initState` of the state.
+  final void Function() initState;
 
-  ///Function to track app life cycle state. It takes as parameter the registered generic model and the AppLifeCycleState.
-  final void Function(T, AppLifecycleState) appLifeCycle;
+  ///Function to execute in `dispose` of the state.
+  final void Function() dispose;
+
+  ///Function to track app life cycle state. It takes as parameter the AppLifeCycleState.
+  final void Function(AppLifecycleState) appLifeCycle;
 
   ///Called after the widget is inserted in the widget tree.
-  final void Function(BuildContext context, String tagID) afterInitialBuild;
+  final void Function(BuildContext context) afterInitialBuild;
 
-  ///Called after each rebuild of the widget.
-  final void Function(BuildContext context, String tagID) afterRebuild;
-
-  ///Set to true to dispose all models. The model should have instance method .`dispose`
+  ///Set to true to dispose all models.
   final bool disposeModels;
-
-  Injector(
-      {Key key,
-      this.builder,
-      this.models,
-      this.inject,
-      this.initState,
-      this.dispose,
-      this.appLifeCycle,
-      this.afterInitialBuild,
-      this.afterRebuild,
-      this.disposeModels = false})
-      : assert((models != null || inject != null) && builder != null),
-        super(key: key);
 
   /// get the same singleton
   static T get<T>({dynamic name, BuildContext context, bool silent = false}) {
-    String _name =
-        name == null ? "$T".replaceAll(RegExp(r'<.*>'), "") : name.toString();
-    T model =
-        InjectorState.allRegisteredModelInApp[_name]?.last?.getSingleton();
-    if (model == null) {
-      if (!silent) {
-        var _keys = InjectorState.allRegisteredModelInApp.keys;
+    final String _name = name == null ? '$T' : name.toString();
 
-        final message = "Model of type '$_name 'is not registered yet.\n"
-            "You have to register the model before calling it.\n"
-            "* To register the model use the `Injector` widget.\n"
-            "* You can set the silent parameter to true to silent the error.\n"
-            "***********************\n"
-            "The list of registered models is : $_keys";
-        throw Exception(message);
-      }
+    final Inject<dynamic> inject = _getInject(_name, silent);
 
+    if (inject == null) {
       return null;
     }
-    if (context != null && model is StatesRebuilder) {
-      _markContextAsNeedsBuild(context, model);
+
+    if (inject.isAsyncType == true) {
+      throw Exception(
+          'get method is not allowed with stream and future injection. Use getAsReactive');
+    }
+
+    final model = inject?.getSingleton();
+
+    if (context != null) {
+      if (model is StatesRebuilder) {
+        if (name != null) {
+          throw Exception(
+              'You are using the context to register it to the InheritedWidget of type $T.'
+              'You can not use both context and name parameters');
+        }
+
+        final inheritedWidget = ReactiveModel.staticOf<T>(context);
+        if (inheritedWidget == null && silent) {
+          throw Exception('No model is registered with type $T');
+        }
+        model.addCustomObserver(() {
+          _getInject(_name)?.rebuildInheritedWidget(null, null);
+        });
+      } else {
+        throw Exception('The class $T does not extend StatesRebuilder.'
+            'Try removing the context parameter or make your class extends StatesRebuilder');
+      }
     }
     return model;
   }
 
-  ///get the same singletons as a `StatesRebuilder` model type
-  static ModelStatesRebuilder<T> getAsModel<T>(
+  ///Use [getAsReactive] instead. It will be removed in next releases.
+  @deprecated
+  static ReactiveModel<T> getAsModel<T>(
       {dynamic name,
       BuildContext context,
       bool silent = false,
-      bool asNewInstanceModel = false,
+      bool asNewReactiveInstance = false,
       bool resetStateStatus = false}) {
+    return getAsReactive<T>(
+      name: name,
+      context: context,
+      silent: silent,
+      asNewReactiveInstance: asNewReactiveInstance,
+      keepCustomStateStatus: resetStateStatus,
+    );
+  }
+
+  ///Get The registered reactive singleton with type $T or with name [name] if it is defined.
+  ///
+  /// If [context] is provided, the context-owning widget will be registered using [InheritedWidget].
+  ///
+  ///If no model is found, an error will be thrown. To silent it, set the parameter [silent] to true.
+  ///
+  ///To return a new reactive instance set [asNewReactiveInstance] to true. To pass the actual [ReactiveModel.customStateStatus] to
+  ///the new reactive instance set [keepCustomStateStatus] to true.
+  static ReactiveModel<T> getAsReactive<T>({
+    dynamic name,
+    BuildContext context,
+    bool silent = false,
+    bool asNewReactiveInstance = false,
+    bool keepCustomStateStatus = false,
+  }) {
     assert(() {
-      if (asNewInstanceModel == true && context != null) {
+      if (asNewReactiveInstance == true && context != null) {
         throw Exception(
-            "Avoid getting new instance of the model with the context defined\n"
-            "Use [SatesBuilder] to register the model");
+            'Avoid getting new instance of the model with the context defined\n'
+            'You can remove the [context] parameter and use [SatesBuilder] to register the model');
       }
       return true;
     }());
-    String _name =
-        name == null ? "$T".replaceAll(RegExp(r'<.*>'), "") : name.toString();
-    ModelStatesRebuilder model = asNewInstanceModel && context == null
-        ? InjectorState.allRegisteredModelInApp[_name]?.last
-            ?.getModelInstance(resetStateStatus)
-        : InjectorState.allRegisteredModelInApp[_name]?.last
-            ?.getModelSingleton();
-    if (model == null) {
-      if (!silent) {
-        var _keys = InjectorState.allRegisteredModelInApp.keys;
 
-        final message = "Model of type '$_name 'is not registered yet.\n"
-            "You have to register the model before calling it.\n"
-            "* To register the model use the `Injector` widget.\n"
-            "* You can set the silent parameter to true to silent the error.\n"
-            "***********************\n"
-            "The list of registered models is : $_keys";
-        throw Exception(message);
-      }
+    final String _name = name == null ? '$T' : name.toString();
+
+    ReactiveModel<T> reactiveModel;
+
+    final Inject<dynamic> inject = _getInject(_name, silent);
+
+    if (inject == null) {
       return null;
     }
+
+    if (!inject.isAsyncType && inject.getSingleton() is ReactiveModel) {
+      reactiveModel = inject.getSingleton();
+    } else {
+      reactiveModel = asNewReactiveInstance && context == null
+          ? _getInject(_name, silent)
+              ?.getReactiveNewInstance(keepCustomStateStatus)
+          : _getInject(_name, silent)?.getReactiveSingleton();
+    }
     if (context != null) {
-      _markContextAsNeedsBuild(context, model);
-    }
-    return model;
-  }
-
-  /// get a new instance
-  T getNew<T>({dynamic name, BuildContext context}) {
-    String _name =
-        name == null ? "$T".replaceAll(RegExp(r'<.*>'), "") : name.toString();
-    final model =
-        InjectorState.allRegisteredModelInApp[_name]?.last?.getInstance();
-
-    if (context != null && model is StatesRebuilder) {
-      _markContextAsNeedsBuild(context, model);
-    }
-    return model;
-  }
-
-  static void _markContextAsNeedsBuild(
-      BuildContext context, StatesRebuilder model) {
-    if (model.customListener.containsKey(context)) return;
-    final bool Function([void Function(BuildContext)]) fn =
-        ([void Function(BuildContext) onRebuildCallBack]) {
-      try {
-        (context as Element).markNeedsBuild();
-        if (onRebuildCallBack != null) {
-          onRebuildCallBack(context);
-        }
-        return true;
-      } catch (e) {
-        if (e is FlutterError) {
-          rethrow;
-        } else {
-          model.customListener.remove(context);
-        }
-        return false;
+      if (name != null) {
+        throw Exception(
+            'You are using the context to register it to the InheritedWidget of type $T.'
+            'You can not use both context and name parameters');
       }
-    };
+      final ReactiveModel<T> model = reactiveModel.of(context);
 
-    final _keys = [...model.customListener.keys];
+      if (model == null && !silent) {
+        throw Exception('No model is registered with type $T');
+      }
 
-    model.customListener[context] = fn;
-
-    ////inverse the order of customListener. Last added, first in the LinkedHashMap
-    for (final key in _keys) {
-      final value = model.customListener.remove(key);
-      model.customListener[key] = value;
+      assert(model == reactiveModel);
     }
 
-    model.cleaner(() {
-      model.customListener.remove(context);
-    });
+    return reactiveModel;
+  }
+
+  static Inject<dynamic> _getInject(String name, [bool silent = false]) {
+    final model = InjectorState.allRegisteredModelInApp[name]?.last;
+    if (model == null) {
+      if (!silent) {
+        final Iterable<String> _keys =
+            InjectorState.allRegisteredModelInApp.keys;
+
+        final String message = 'Model of type "$name" is not registered yet.\n'
+            'You have to register the model before calling it.\n'
+            '* To register the model use the `Injector` widget.\n'
+            '* You can set the silent parameter to true to silent the error.\n'
+            '***********************\n'
+            'The list of registered models is : $_keys';
+        throw Exception(message);
+      }
+
+      return null;
+    }
+    return model;
   }
 
   @override
-  State<Injector<T>> createState() {
+  State<Injector> createState() {
     if (appLifeCycle == null) {
-      return InjectorState<T>();
+      return InjectorState();
     } else {
-      return InjectorStateAppLifeCycle<T>();
+      return InjectorStateAppLifeCycle();
     }
   }
 }
 
-class InjectorState<T extends StatesRebuilder> extends State<Injector<T>> {
+class InjectorState extends State<Injector> {
   //Map contains all the registered models of the app
-  static final allRegisteredModelInApp = new Map<String, List<Inject>>();
+  static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
+      <String, List<Inject<dynamic>>>{};
 
   RegisterInjectedModel modelRegisterer;
+
+  Widget _nestedInject;
+  final List<Inject<dynamic>> _injects = <Inject<dynamic>>[];
+
   @override
   void initState() {
     super.initState();
 
-    final _models = List<Inject>();
-    if (widget.models != null) {
-      _models.addAll(widget.models.map((fn) => Inject(fn)));
-    }
     if (widget.inject != null) {
-      widget.inject.forEach((e) {
-        _models.add(e as Inject);
-      });
+      widget.inject.forEach(_injects.add);
     }
-    modelRegisterer = RegisterInjectedModel(_models, allRegisteredModelInApp);
+
+    if (widget.reinject != null) {
+      for (StatesRebuilder reactiveModel in widget.reinject) {
+        dynamic model;
+
+        if (reactiveModel is ReactiveModel<dynamic>) {
+          model = reactiveModel?.state;
+        } else {
+          model = model;
+        }
+
+        final Inject inject =
+            allRegisteredModelInApp[model?.runtimeType?.toString()]?.first;
+        if (inject != null) {
+          _injects.add(inject);
+        }
+      }
+    }
+
+    modelRegisterer = RegisterInjectedModel(_injects, allRegisteredModelInApp);
+    _injects.clear();
+    _injects.addAll(modelRegisterer.modelRegisteredByThis);
+
+    if (widget.initState != null) {
+      widget.initState();
+    }
+    if (widget.afterInitialBuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.afterInitialBuild(context),
+      );
+    }
   }
 
   @override
   void dispose() {
     modelRegisterer.unRegisterInjectedModels(widget.disposeModels);
+
+    if (widget.dispose != null) {
+      widget.dispose();
+    }
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    T model;
-    String name = "$T";
-    if (name.contains("ModelStatesRebuilder")) {
-      name = name.replaceAll("ModelStatesRebuilder<", "").replaceAll(">", "");
-      model = Injector.getAsModel(silent: true, name: name) as T;
-    } else {
-      model = T != StatesRebuilder ? Injector.get<T>(silent: true) : null;
-    }
-    return StateBuilder(
-      viewModels: [model],
-      initState: (_, __) {
-        if (widget.initState != null) {
-          widget.initState(model);
-        }
-        model?.rebuildStates();
-      },
-      dispose: (_, __) {
-        if (widget.dispose != null) {
-          widget.dispose(model);
-        }
-      },
-      afterInitialBuild: (context, tagID) {
-        if (widget.afterInitialBuild != null)
-          widget.afterInitialBuild(context, tagID);
-      },
-      afterRebuild: (context, tagID) {
-        if (widget.afterRebuild != null) widget.afterRebuild(context, tagID);
-      },
-      builder: (context, _) => widget.builder(context, model),
+    _nestedInject = Builder(
+      builder: (BuildContext context) => widget.builder(context),
     );
+    if (_injects.isNotEmpty) {
+      for (Inject inject in _injects.reversed) {
+        //Inject with name are not concerned with InheritedWidget
+        if (inject.name == null) {
+          _nestedInject = inject.inheritedInject(_nestedInject);
+        }
+      }
+    }
+    return _nestedInject;
   }
 }
 
-class InjectorStateAppLifeCycle<T extends StatesRebuilder>
-    extends InjectorState<T> with WidgetsBindingObserver {
+class InjectorStateAppLifeCycle extends InjectorState
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -265,7 +301,6 @@ class InjectorStateAppLifeCycle<T extends StatesRebuilder>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final model = T != StatesRebuilder ? Injector.get<T>() : null;
-    widget.appLifeCycle(model, state);
+    widget.appLifeCycle(state);
   }
 }

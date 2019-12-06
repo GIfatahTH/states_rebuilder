@@ -19,9 +19,9 @@ class CounterBlocAnimOne1 extends StatesRebuilder {
   }
 
   VoidCallback listener;
-  triggerAnimation(tagID) {
+  triggerAnimation(tag) {
     listener = () {
-      rebuildStates();
+      rebuildStates([tag]);
     };
     animation.addListener(listener);
     controller.forward();
@@ -37,8 +37,8 @@ class AnimateOneExample1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocAnimOne1()],
-      builder: (_, __) => CounterGrid(),
+      inject: [Inject(() => CounterBlocAnimOne1())],
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -55,19 +55,19 @@ class CounterGrid extends StatelessWidget {
           Expanded(
             child: StateWithMixinBuilder<TickerProvider>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, __, ticker) => bloc.initAnimation(ticker),
-              dispose: (_, __, ___) => bloc.dispose(),
+              initState: (_, ticker) => bloc.initAnimation(ticker),
+              dispose: (_, ___) => bloc.dispose(),
               builder: (_, __) => GridView.count(
                 crossAxisCount: 3,
                 children: <Widget>[
                   for (var i = 0; i < 12; i++)
                     StateBuilder(
-                      viewModels: [bloc],
-                      builder: (_, tagID) => Transform.rotate(
+                      models: [bloc],
+                      builder: (context, _) => Transform.rotate(
                         angle: bloc.animation.value,
                         child: GridItem(
                           count: bloc.counter,
-                          onTap: () => bloc.triggerAnimation(tagID),
+                          onTap: () => bloc.triggerAnimation(context),
                         ),
                       ),
                     ),

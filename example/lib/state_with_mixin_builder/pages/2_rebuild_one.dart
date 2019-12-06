@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterBlocOne extends StatesRebuilder {
+class CounterBlocOne {
   int counter = 0;
-  increment(tagID) {
+  increment() {
     counter++;
-    rebuildStates([tagID]);
   }
 }
 
@@ -13,14 +12,13 @@ class RebuildOneExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocOne()],
-      builder: (_, __) => CounterGrid(),
+      inject: [Inject(() => CounterBlocOne())],
+      builder: (_) => CounterGrid(),
     );
   }
 }
 
 class CounterGrid extends StatelessWidget {
-  final bloc = Injector.get<CounterBlocOne>();
   @override
   Widget build(BuildContext context) {
     return StateWithMixinBuilder(
@@ -37,11 +35,14 @@ class CounterGrid extends StatelessWidget {
                 crossAxisCount: 3,
                 children: <Widget>[
                   for (var i = 0; i < 12; i++)
-                    StateBuilder(
-                      viewModels: [bloc],
-                      builder: (_, tagID) => GridItem(
-                        count: bloc.counter,
-                        onTap: () => bloc.increment(tagID),
+                    StateBuilder<CounterBlocOne>(
+                      models: [Injector.getAsReactive<CounterBlocOne>()],
+                      builder: (context, bloc) => GridItem(
+                        count: bloc.state.counter,
+                        onTap: () => bloc.setState(
+                          (state) => state.increment(),
+                          filterTags: [context],
+                        ),
                       ),
                     )
                 ],

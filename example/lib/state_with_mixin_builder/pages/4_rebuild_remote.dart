@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-enum CounterGridTag { isEven }
+enum CounterGridTag { remoteWidget }
 
 class CounterBlocRemote {
   int counter = 0;
-  bool isEven;
-  increment(tagID) {
-    isEven = tagID == 0;
+  increment() {
     counter++;
   }
 }
@@ -17,7 +15,7 @@ class RebuildRemoteExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<CounterBlocRemote>(() => CounterBlocRemote())],
-      builder: (_, __) => CounterGrid(),
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -25,21 +23,23 @@ class RebuildRemoteExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = Injector.getAsModel<CounterBlocRemote>(context: context);
     return Padding(
       padding: EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
           Row(
             children: <Widget>[
-              StateBuilder(
-                viewModels: [bloc],
-                tag: CounterGridTag.isEven,
-                builder: (_, __) => bloc.state.isEven == null
-                    ? CircularProgressIndicator()
-                    : bloc.state.isEven
-                        ? Icon(Icons.looks_two)
-                        : Icon(Icons.looks_one),
+              StateBuilder<CounterBlocRemote>(
+                models: [Injector.getAsReactive<CounterBlocRemote>()],
+                tag: CounterGridTag.remoteWidget,
+                builder: (_, bloc) {
+                  print('rebuild');
+                  return bloc.customStateStatus == null
+                      ? CircularProgressIndicator()
+                      : bloc.customStateStatus
+                          ? Icon(Icons.looks_two)
+                          : Icon(Icons.looks_one);
+                },
               ),
               Text("Rebuild remote widget with tag"),
             ],
@@ -51,12 +51,17 @@ class CounterGrid extends StatelessWidget {
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
                     tag: i % 2,
-                    viewModels: [bloc],
-                    builder: (_, tagID) => GridItem(
+                    models: [Injector.getAsReactive<CounterBlocRemote>()],
+                    builder: (_, bloc) => GridItem(
                       count: bloc.state.counter,
                       onTap: () => bloc.setState(
-                          (model) => model.increment(i % 2),
-                          tags: [i % 2, CounterGridTag.isEven]),
+                        (state) => state.increment(),
+                        filterTags: [i % 2, CounterGridTag.remoteWidget],
+                        onSetState: (context) {
+                          print(bloc.connectionState);
+                          bloc.customStateStatus = i % 2 == 0;
+                        },
+                      ),
                     ),
                   )
               ],

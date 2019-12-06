@@ -38,8 +38,8 @@ class AnimateSetExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      models: [() => CounterBlocAnimSet()],
-      builder: (_, __) => CounterGrid(),
+      inject: [Inject(() => CounterBlocAnimSet())],
+      builder: (_) => CounterGrid(),
     );
   }
 }
@@ -56,15 +56,15 @@ class CounterGrid extends StatelessWidget {
           Expanded(
             child: StateWithMixinBuilder<TickerProvider>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, __, ticker) => bloc.initAnimation(ticker),
-              dispose: (_, __, ___) => bloc.dispose(),
+              initState: (_, ticker) => bloc.initAnimation(ticker),
+              dispose: (_, ___) => bloc.dispose(),
               builder: (_, __) => GridView.count(
                 crossAxisCount: 3,
                 children: <Widget>[
                   for (var i = 0; i < 12; i++)
                     StateBuilder(
                       tag: i % 2,
-                      viewModels: [bloc],
+                      models: [bloc],
                       builder: (_, tagID) => Transform.rotate(
                         angle: bloc.animation.value,
                         child: GridItem(

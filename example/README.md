@@ -13,14 +13,15 @@ class Counter {
   int count = 0;
   increment() => count++;
 }
+void main() => runApp(MaterialApp(home: App()));
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counter = Injector.getAsModel<Counter>();
+      builder: (context) {
+        final counter = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -50,7 +51,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final counter = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -82,14 +83,15 @@ class Counter {
     count++;
   }
 }
+void main() => runApp(MaterialApp(home: App()));
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counter = Injector.getAsModel<Counter>();
+      builder: (context) {
+        final counter = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -108,7 +110,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final counter = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -156,14 +158,15 @@ class Counter {
     _count++;
   }
 }
+void main() => runApp(MaterialApp(home: App()));
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counterModel = Injector.getAsModel<Counter>();
+      builder: (context) {
+        final counterModel = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -197,7 +200,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Injector.getAsModel<Counter>(context: context);
+    final counterModel = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -219,7 +222,6 @@ class MyHome extends StatelessWidget {
     );
   }
 }
-
 ```
 
 # 4- Counter app : watching variable
@@ -244,14 +246,15 @@ class Counter {
     _count1++;
   }
 }
+void main() => runApp(MaterialApp(home: App()));
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counter = Injector.getAsModel<Counter>();
+      builder: (context) {
+        final counter = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -266,7 +269,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final counter = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -320,6 +323,7 @@ This example shows the use of:
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+void main() => runApp(MaterialApp(home: App()));
 
 class App extends StatelessWidget {
   @override
@@ -334,8 +338,8 @@ class App extends StatelessWidget {
             () => Future.delayed(Duration(seconds: 5), () => true),
             initialValue: false),
       ],
-      builder: (_, __) {
-        final futureSnap = Injector.getAsModel<bool>(context: context).snapshot;
+      builder: (context) {
+        final futureSnap = Injector.getAsReactive<bool>(context: context).snapshot;
         return Scaffold(
           appBar: futureSnap.data == false
               ? AppBar(
@@ -356,7 +360,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final streamSnap = Injector.getAsModel<int>(context: context).snapshot;
+    final streamSnap = Injector.getAsReactive<int>(context: context).snapshot;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -372,50 +376,61 @@ class MyHome extends StatelessWidget {
 }
 ```
 
-# 6- Animation with StateWithMixinBuilder.
+# 6- Creating new reactive instances and commination with reactive singleton
+This example shows the use of:   
+- The parameters `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData` and `notifyAllReactiveInstances`.
+- Creating new reactive instances.
 ```dart
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class CounterModel extends StatesRebuilder {
+class CounterModel {
   int counter = 0;
-
-  AnimationController controller;
-  Animation animation;
-
-  initAnimation(TickerProvider ticker) {
-    controller =
-        AnimationController(duration: Duration(seconds: 2), vsync: ticker);
-    animation = Tween<double>(begin: 0, end: 2 * 3.14).animate(controller);
-    animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        controller.reset();
-      }
-    });
-  }
-
-  VoidCallback listener;
-  triggerAnimation(tagID) {
-    animation.removeListener(listener);
-    listener = () {
-      rebuildStates([tagID]);
-    };
-    animation.addListener(listener);
-    controller.forward();
+  void increment() => counter++;
+  Future<void> incrementAsync() async {
+    await Future.delayed(Duration(seconds: 1));
     counter++;
-  }
-
-  dispose() {
-    controller.dispose();
   }
 }
 
-class AnimateSetExample extends StatelessWidget {
+void main() => runApp(MaterialApp(home: App()));
+
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Injector<CounterModel>(
-      models:[()=> CounterModel()],
-      builder:(context,model) => CounterGrid(),
+    return MaterialApp(
+      home: Injector(
+        inject: [
+          Inject<CounterModel>(
+            () => CounterModel(),
+            joinSingleton: JoinSingleton.withCombinedReactiveInstances,
+          )
+        ],
+        builder: (_) => Scaffold(
+          appBar: AppBar(
+            title: Center(
+              child: StateBuilder<CounterModel>(
+                models: [Injector.getAsReactive<CounterModel>()],
+                builder: (_, model) {
+                  if (model.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(
+                      backgroundColor: Colors.white,
+                    );
+                  }
+                  return Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text(
+                      '${model.joinSingletonToNewData ?? "Tap on A Counter"}',
+                      style: TextStyle(fontSize: 30),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          body: CounterGrid(),
+        ),
+      ),
     );
   }
 }
@@ -423,34 +438,44 @@ class AnimateSetExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final model = Injector.get<CounterModel>(context);
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
         children: <Widget>[
-          Text("Animate a set of boxes"),
           Expanded(
-            child: StateWithMixinBuilder(
-              mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, __, ticker) => model.initAnimation(ticker),
-              dispose: (_, __, ___) => model.dispose(),
-              builder: (_, __) => GridView.count(
-                    crossAxisCount: 3,
-                    children: <Widget>[
-                      for (var i = 0; i < 12; i++)
-                        StateBuilder(
-                          tag: i % 2,
-                          viewModels: [model],
-                          builder: (_, tagID) => Transform.rotate(
-                                angle: model.animation.value,
-                                child: GridItem(
-                                  count: model.counter,
-                                  onTap: () => model.triggerAnimation(i % 2),
-                                ),
-                              ),
-                        ),
-                    ],
+            child: GridView.count(
+              crossAxisCount: 3,
+              children: <Widget>[
+                for (var i = 0; i < 12; i++)
+                  StateBuilder<CounterModel>(
+                    builder: (context, model) {
+                      return GridItem(
+                        count: model.connectionState == ConnectionState.waiting
+                            ? null
+                            : model.state.counter,
+                        onTap: () {
+                          if (i % 2 == 0)
+                            model.setState(
+                              (state) => state.increment(),
+                              notifyAllReactiveInstances: true,
+                              onSetState: (context) {
+                                model.joinSingletonToNewData =
+                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
+                              },
+                            );
+                          else
+                            model.setState(
+                              (state) => state.incrementAsync(),
+                              onSetState: (context) {
+                                model.joinSingletonToNewData =
+                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
+                              },
+                            );
+                        },
+                      );
+                    },
                   ),
+              ],
             ),
           ),
         ],
@@ -475,13 +500,17 @@ class GridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Center(
-          child: Text(
-            "$count",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
-          ),
+          child: count != null
+              ? Text(
+                  "$count",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 50,
+                  ),
+                )
+              : CircularProgressIndicator(
+                  backgroundColor: Colors.white,
+                ),
         ),
       ),
       onTap: onTap,

@@ -3,47 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  testWidgets('Throw exception if no models is provided',
-      (WidgetTester tester) async {
-    expect(() {
-      StateBuilder(
-        builder: (context, tagID) {
-          return Container();
-        },
-      );
-    }, throwsException);
-  });
-  testWidgets('StateBuilder without tags, default tag is created',
-      (WidgetTester tester) async {
-    final vm = ViewModel();
-    String _tagID;
-    final widget = StateBuilder(
-      viewModels: [vm],
-      builder: (context, tagID) {
-        _tagID = tagID;
-        return Container();
-      },
-    );
-
-    expect(_tagID, isNull);
-
-    await tester.pumpWidget(widget);
-
-    expect(vm.observers().length, equals(1));
-    expect(_tagID, startsWith("#@deFau_Lt"));
-  });
-
   testWidgets('StateBuilder with one tag, rebuild state with this tag works',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID;
+    var _tagID;
     bool isRebuilt = false;
 
     final widget = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag",
-      builder: (context, tagID) {
-        _tagID = tagID;
+      builder: (context, model) {
+        _tagID = context;
         isRebuilt = true;
         return Container();
       },
@@ -53,8 +23,7 @@ void main() {
 
     await tester.pumpWidget(widget);
 
-    expect(vm.observers().length, equals(1));
-    expect(_tagID, startsWith("myTag"));
+    expect(vm.observers().length, equals(2));
 
     isRebuilt = false;
     vm.rebuildStates(["noRegisteredTag"]);
@@ -76,12 +45,12 @@ void main() {
       'StateBuilder with list of tags, the state is registered with these tag',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID;
+    var _tagID;
     final widget = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: ["myTag1", "myTag2"],
-      builder: (context, tagID) {
-        _tagID = tagID;
+      builder: (context, model) {
+        _tagID = context;
         return Container();
       },
     );
@@ -91,21 +60,20 @@ void main() {
     await tester.pumpWidget(widget);
 
     expect(vm.observers().length, equals(3));
-    expect(_tagID, startsWith("#@deFau_Lt"));
   });
 
   testWidgets(
       'StateBuilder with list of tags rebuild state with this tag works with AfterRebuildCallBack check',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID;
+    var _tagID;
     bool isRebuilt = false;
 
     final widget = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: ["myTag1", "myTag2"],
-      builder: (context, tagID) {
-        _tagID = tagID;
+      builder: (context, model) {
+        _tagID = context;
         isRebuilt = true;
         return Container();
       },
@@ -116,7 +84,6 @@ void main() {
     await tester.pumpWidget(widget);
 
     expect(vm.observers().length, equals(3));
-    expect(_tagID, startsWith("#@deFau_Lt"));
 
     isRebuilt = false;
     vm.rebuildStates(["noRegisteredTag"]);
@@ -143,11 +110,9 @@ void main() {
       numberOFCallOfAfterRebuildCallBack++;
     });
     await tester.pump();
-    expect(numberOFCallOfAfterRebuildCallBack, 1);
 
+    expect(numberOFCallOfAfterRebuildCallBack, 1);
     isRebuilt = false;
-    print(_tagID);
-    expect(_tagID, startsWith("#@deFau_Lt"));
   });
 
   testWidgets('afterRebuildCallback works', (WidgetTester tester) async {
@@ -155,8 +120,9 @@ void main() {
     bool isRebuilt = false;
     List<String> _rebuildTracker = [];
     final widget = StateBuilder(
-      viewModels: [vm],
-      builder: (context, tagID) {
+      models: [vm],
+      disposeModels: true,
+      builder: (context, model) {
         isRebuilt = true;
         _rebuildTracker.add("build");
         return Container();
@@ -176,22 +142,22 @@ void main() {
       'many StateBuilder with different tags, the state is registered with these tag',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
     final widget1 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag1",
-      builder: (context, tagID) {
-        _tagID1 = tagID;
+      builder: (context, model) {
+        _tagID1 = context;
         return Container();
       },
     );
 
     final widget2 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag2",
-      builder: (context, tagID) {
-        _tagID2 = tagID;
+      builder: (context, model) {
+        _tagID2 = context;
         return Container();
       },
     );
@@ -206,37 +172,35 @@ void main() {
       ],
     ));
 
-    expect(vm.observers().length, equals(2));
-    expect(_tagID1, startsWith("myTag1"));
-    expect(_tagID2, startsWith("myTag2"));
+    expect(vm.observers().length, equals(4));
   });
 
   testWidgets(
       'many StateBuilder with different tags, rebuild states works, with afterRebuildCallBack',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
     bool isRebuilt1 = false;
     bool isRebuilt2 = false;
     BuildContext cxt1;
     BuildContext cxt2;
     final widget1 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag1",
-      builder: (context, tagID) {
-        _tagID1 = tagID;
+      builder: (context, model) {
+        _tagID1 = context;
         isRebuilt1 = true;
         return Container();
       },
     );
 
     final widget2 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag2",
-      builder: (context, tagID) {
+      builder: (context, model) {
         cxt1 = context;
-        _tagID2 = tagID;
+        _tagID2 = context;
         isRebuilt2 = true;
         return Container();
       },
@@ -305,22 +269,22 @@ void main() {
       'many StateBuilder with the same tags, the state is registered with this tag',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
     final widget1 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag",
-      builder: (context, tagID) {
-        _tagID1 = tagID;
+      builder: (context, model) {
+        _tagID1 = context;
         return Container();
       },
     );
 
     final widget2 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag",
-      builder: (context, tagID) {
-        _tagID2 = tagID;
+      builder: (context, model) {
+        _tagID2 = context;
         return Container();
       },
     );
@@ -334,33 +298,31 @@ void main() {
         widget2,
       ],
     ));
-    expect(vm.observers().length, equals(1));
-    expect(_tagID1, "myTag");
-    expect(_tagID2, "myTag");
+    expect(vm.observers().length, equals(3));
   });
 
   testWidgets('many StateBuilder with the same tag, rebuild states works',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
     bool isRebuilt1 = false;
     bool isRebuilt2 = false;
     final widget1 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag",
-      builder: (context, tagID) {
-        _tagID1 = tagID;
+      builder: (context, model) {
+        _tagID1 = context;
         isRebuilt1 = true;
         return Container();
       },
     );
 
     final widget2 = StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "myTag",
-      builder: (context, tagID) {
-        _tagID2 = tagID;
+      builder: (context, model) {
+        _tagID2 = context;
         isRebuilt2 = true;
         return Container();
       },
@@ -396,25 +358,24 @@ void main() {
 
     isRebuilt1 = false;
     isRebuilt2 = false;
-    print(_tagID1);
     vm.rebuildStates([_tagID1]);
     await tester.pump();
     expect(isRebuilt1, isTrue);
-    expect(isRebuilt2, isTrue);
+    expect(isRebuilt2, isFalse);
 
     isRebuilt1 = false;
     isRebuilt2 = false;
     vm.rebuildStates([_tagID2]);
     await tester.pump();
-    expect(isRebuilt1, isTrue);
+    expect(isRebuilt1, isFalse);
     expect(isRebuilt2, isTrue);
   });
 
   testWidgets('dispose StateBuilders with the different tags works',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
 
     bool initStateIsCalled1 = false;
     bool initStateIsCalled2 = false;
@@ -423,38 +384,38 @@ void main() {
 
     final widget1 = StateBuilder(
       key: UniqueKey(),
-      viewModels: [vm],
-      initState: (context, tagID) {
-        _tagID1 = tagID;
+      models: [vm],
+      initState: (context, model) {
+        _tagID1 = context;
         initStateIsCalled1 = true;
       },
-      dispose: (context, tagID) => disposeIsCalled1 = true,
+      dispose: (context, model) => disposeIsCalled1 = true,
       tag: "myTag1",
-      builder: (context, tagID) => Container(),
+      builder: (context, model) => Container(),
     );
 
     final widget2 = StateBuilder(
       key: UniqueKey(),
-      viewModels: [vm],
-      initState: (context, tagID) {
-        _tagID2 = tagID;
+      models: [vm],
+      initState: (context, model) {
+        _tagID2 = context;
         initStateIsCalled2 = true;
       },
-      dispose: (context, tagID) => disposeIsCalled2 = true,
+      dispose: (context, model) => disposeIsCalled2 = true,
       tag: "myTag2",
-      builder: (context, tagID) => Container(),
+      builder: (context, model) => Container(),
     );
     bool switcher = true;
     await tester.pumpWidget(StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "mainState",
-      builder: (_, __) => switcher ? widget1 : widget2,
+      builderWithChild: (_, __, ___) => switcher ? widget1 : widget2,
     ));
 
-    expect(vm.observers().length, equals(2));
+    expect(vm.observers().length, equals(4));
     expect(vm.observers()["myTag1"].length, equals(1));
     expect(vm.observers()["myTag2"], null);
-    expect(_tagID1, startsWith("myTag1"));
+    expect(_tagID1, isNotNull);
     expect(_tagID2, isNull);
 
     expect(initStateIsCalled1, isTrue);
@@ -472,11 +433,9 @@ void main() {
 
     await tester.pump();
 
-    expect(vm.observers().length, equals(2));
+    expect(vm.observers().length, equals(4));
     expect(vm.observers()["myTag1"], null);
     expect(vm.observers()["myTag2"].length, equals(1));
-    expect(_tagID1, startsWith("myTag1"));
-    expect(_tagID2, startsWith("myTag2"));
 
     expect(initStateIsCalled1, isFalse);
     expect(initStateIsCalled2, isTrue);
@@ -487,8 +446,8 @@ void main() {
   testWidgets('dispose StateBuilders with the same tags works',
       (WidgetTester tester) async {
     final vm = ViewModel();
-    String _tagID1;
-    String _tagID2;
+    var _tagID1;
+    var _tagID2;
 
     bool initStateIsCalled1 = false;
     bool initStateIsCalled2 = false;
@@ -497,40 +456,39 @@ void main() {
 
     final widget1 = StateBuilder(
       key: UniqueKey(),
-      viewModels: [vm],
-      initState: (context, tagID) {
-        _tagID1 = tagID;
+      models: [vm],
+      initState: (context, model) {
+        _tagID1 = context;
         initStateIsCalled1 = true;
       },
-      dispose: (context, tagID) => disposeIsCalled1 = true,
+      dispose: (context, model) => disposeIsCalled1 = true,
       tag: "myTag",
-      builder: (context, tagID) => Container(),
+      builder: (context, model) => Container(),
     );
 
     final widget2 = StateBuilder(
       key: UniqueKey(),
-      viewModels: [vm],
-      initState: (context, tagID) {
-        _tagID2 = tagID;
+      models: [vm],
+      initState: (context, model) {
+        _tagID2 = context;
         initStateIsCalled2 = true;
       },
-      dispose: (context, tagID) => disposeIsCalled2 = true,
+      dispose: (context, model) => disposeIsCalled2 = true,
       tag: "myTag",
-      builder: (context, tagID) => Container(),
+      builder: (context, model) => Container(),
     );
     bool switcher = true;
     await tester.pumpWidget(StateBuilder(
-      viewModels: [vm],
+      models: [vm],
       tag: "mainState",
       builder: (_, __) => Column(
         children: <Widget>[switcher ? widget1 : Container(), widget2],
       ),
     ));
-
-    expect(vm.observers().length, equals(2));
+    expect(vm.observers().length, equals(5));
     expect(vm.observers()["myTag"].length, equals(2));
-    expect(_tagID1, startsWith("myTag"));
-    expect(_tagID2, startsWith("myTag"));
+    expect(_tagID1, isNotNull);
+    expect(_tagID2, isNotNull);
 
     expect(initStateIsCalled1, isTrue);
     expect(initStateIsCalled2, isTrue);
@@ -547,10 +505,10 @@ void main() {
 
     await tester.pump();
 
-    expect(vm.observers().length, equals(2));
+    expect(vm.observers().length, equals(4));
     expect(vm.observers()["myTag"].length, equals(1));
-    expect(_tagID1, startsWith("myTag"));
-    expect(_tagID2, startsWith("myTag"));
+    expect(_tagID1, isNotNull);
+    expect(_tagID2, isNotNull);
 
     expect(initStateIsCalled1, isFalse);
     expect(initStateIsCalled2, isFalse);
@@ -565,8 +523,8 @@ void main() {
       int numberOfCall = 0;
       await tester.pumpWidget(
         StateBuilder(
-          viewModels: [vm],
-          afterInitialBuild: (context, tagID) => numberOfCall++,
+          models: [vm],
+          afterInitialBuild: (context, model) => numberOfCall++,
           builder: (_, __) => Container(height: 20, width: 20),
         ),
       );
@@ -588,8 +546,8 @@ void main() {
       int numberOfCall = 0;
       await tester.pumpWidget(
         StateBuilder(
-          viewModels: [vm],
-          afterRebuild: (context, tagID) => numberOfCall++,
+          models: [vm],
+          afterRebuild: (context, model) => numberOfCall++,
           builder: (_, __) => Container(),
         ),
       );
@@ -604,26 +562,63 @@ void main() {
   );
 
   testWidgets(
-    "'afterMounted' and 'afterRebuild' called together",
+    "'afterInitialBuild' and 'afterRebuild' called together",
     (WidgetTester tester) async {
       final vm = ViewModel();
-      int numberOfCall = 0;
+      List<String> _rebuildTracker = [];
+
       await tester.pumpWidget(
         StateBuilder(
-          viewModels: [vm],
-          afterInitialBuild: (context, tagID) => numberOfCall++,
-          afterRebuild: (context, tagID) => numberOfCall++,
-          builder: (_, __) => Container(),
+          models: [vm],
+          afterInitialBuild: (context, model) =>
+              _rebuildTracker.add('afterInitialBuild'),
+          afterRebuild: (context, model) => _rebuildTracker.add('afterRebuild'),
+          builder: (_, __) {
+            _rebuildTracker.add('rebuild');
+            return Container();
+          },
         ),
       );
 
-      expect(numberOfCall, 2);
+      expect(_rebuildTracker,
+          equals(['rebuild', 'afterInitialBuild', 'afterRebuild']));
       vm.rebuildStates();
       await tester.pump();
-      expect(numberOfCall, 3);
+      expect(
+          _rebuildTracker,
+          equals([
+            'rebuild',
+            'afterInitialBuild',
+            'afterRebuild',
+            'rebuild',
+            'afterRebuild'
+          ]));
+    },
+  );
+
+  testWidgets(
+    "should 'onSetState' and 'onRebuildState' work",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      List<String> _rebuildTracker = [];
+      await tester.pumpWidget(
+        StateBuilder(
+          models: [vm],
+          onSetState: (context, model) => _rebuildTracker.add('onSetState'),
+          onRebuildState: (context, model) =>
+              _rebuildTracker.add('onRebuildState'),
+          builder: (_, __) {
+            _rebuildTracker.add('rebuild');
+            return Container();
+          },
+        ),
+      );
+
+      expect(_rebuildTracker, equals(['rebuild']));
       vm.rebuildStates();
       await tester.pump();
-      expect(numberOfCall, 4);
+      expect(_rebuildTracker,
+          equals(['rebuild', 'onSetState', 'rebuild', 'onRebuildState']));
     },
   );
 }

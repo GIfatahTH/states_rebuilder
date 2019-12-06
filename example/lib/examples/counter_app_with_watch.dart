@@ -22,8 +22,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counter = Injector.getAsModel<Counter>();
+      builder: (context) {
+        final counter = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App with watch"),
@@ -42,7 +42,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final counter = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -64,7 +64,7 @@ class MyHome extends StatelessWidget {
                 Text("your have reached the maximum"),
                 Divider(),
                 Text(
-                    "If you tap on the left button, nothing changes, and the rebuild process is stopped because the counter value is not changed.\nIf you tap on the right button, the random color changes because the counter value is not watched."),
+                    "If you tap on the left button, nothing changes, and the rebuild process is not triggered because the counter value is watched for change.\nIf you tap on the right button, the random color changes because the counter value is not watched."),
               ],
             ),
           Divider(),

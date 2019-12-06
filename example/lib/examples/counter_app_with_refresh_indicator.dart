@@ -18,8 +18,9 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        final counterModel = Injector.getAsModel<Counter>();
+      builder: (BuildContext context) {
+        final ReactiveModel<Counter> counterModel =
+            Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App with refresh indicator"),
@@ -40,7 +41,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Injector.getAsModel<Counter>(context: context);
+    final counterModel = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: RefreshIndicator(
         onRefresh: () async {

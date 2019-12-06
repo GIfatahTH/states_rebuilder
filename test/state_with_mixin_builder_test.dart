@@ -50,58 +50,51 @@ void main() {
   group("should SingleTickerProviderStateMixin be instantiated, ", () {
     testWidgets("case not generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.singleTickerProviderStateMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<SingleTickerProviderStateMixin>());
-      expect(_tagID, isNull);
     });
 
     testWidgets("case the generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder<SingleTickerProviderStateMixin>(
           mixinWith: MixinWith.singleTickerProviderStateMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<SingleTickerProviderStateMixin>());
-      expect(_tagID, isNull);
     });
 
     testWidgets(
         "default tag should created case viewModel provided with no tag",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       final vm = ViewModel();
       int rebuildCount = 0;
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.singleTickerProviderStateMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          viewModels: [vm],
-          dispose: (context, tagID, ticker) => null,
+          models: [vm],
+          disposeModels: true,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) {
             rebuildCount++;
             return Container();
@@ -109,7 +102,6 @@ void main() {
         ),
       );
       expect(_ticker, isA<SingleTickerProviderStateMixin>());
-      expect(_tagID, startsWith("#@deFau_Lt"));
       vm.rebuildStates();
       await tester.pump();
       expect(rebuildCount, equals(2));
@@ -119,121 +111,103 @@ void main() {
   group("should TickerProviderStateMixin be instantiated, ", () {
     testWidgets("case not generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.tickerProviderStateMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<TickerProviderStateMixin>());
-      expect(_tagID, isNull);
     });
 
     testWidgets("case the generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder<TickerProviderStateMixin>(
           mixinWith: MixinWith.tickerProviderStateMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<TickerProviderStateMixin>());
-      expect(_tagID, isNull);
     });
   });
 
   group("should WidgetsBindingObserver be instantiated, ", () {
     testWidgets("case not generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.widgetsBindingObserver,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
-          didChangeAppLifecycleState: (context, tagID, appState) {},
+          dispose: (context, ticker) => null,
+          didChangeAppLifecycleState: (context, appState) {},
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<WidgetsBindingObserver>());
-      expect(_tagID, isNull);
     });
 
     testWidgets("case the generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder<WidgetsBindingObserver>(
           mixinWith: MixinWith.widgetsBindingObserver,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<WidgetsBindingObserver>());
-      expect(_tagID, isNull);
     });
   });
 
   group("should AutomaticKeepAliveClientMixin be instantiated, ", () {
     testWidgets("case not generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.automaticKeepAliveClientMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<AutomaticKeepAliveClientMixin>());
-      expect(_tagID, isNull);
     });
 
     testWidgets("case the generic type is provided",
         (WidgetTester tester) async {
-      String _tagID;
       var _ticker;
       await tester.pumpWidget(
         StateWithMixinBuilder<AutomaticKeepAliveClientMixin>(
           mixinWith: MixinWith.automaticKeepAliveClientMixin,
-          initState: (context, tagID, ticker) {
-            _tagID = tagID;
+          initState: (context, ticker) {
             _ticker = ticker;
           },
-          dispose: (context, tagID, ticker) => null,
+          dispose: (context, ticker) => null,
           builder: (context, tagId) => Container(),
         ),
       );
       expect(_ticker, isA<AutomaticKeepAliveClientMixin>());
-      expect(_tagID, isNull);
     });
   });
 
@@ -245,11 +219,11 @@ void main() {
       await tester.pumpWidget(
         StateWithMixinBuilder(
           mixinWith: MixinWith.singleTickerProviderStateMixin,
-          viewModels: [vm],
-          initState: (_, __, ___) => null,
-          dispose: (_, __, ___) => null,
-          afterInitialBuild: (context, tagID, ticker) => numberOfCall++,
-          afterRebuild: (context, tagID) => numberOfCall++,
+          models: [vm],
+          initState: (_, ___) => null,
+          dispose: (_, ___) => null,
+          afterInitialBuild: (context, ticker) => numberOfCall++,
+          afterRebuild: (context) => numberOfCall++,
           builder: (_, __) => Container(),
         ),
       );

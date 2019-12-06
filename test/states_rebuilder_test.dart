@@ -175,9 +175,9 @@ void main() {
 
   group("rebuildStates : ", () {
     ViewModel vm;
-    ListenerOfStatesRebuilder observer1;
-    ListenerOfStatesRebuilder observer2;
-    ListenerOfStatesRebuilder observer3;
+    ObserverOfStatesRebuilder observer1;
+    ObserverOfStatesRebuilder observer2;
+    ObserverOfStatesRebuilder observer3;
     setUp(() {
       vm = ViewModel();
       observer1 = StatesRebuilderListener1();
@@ -214,7 +214,7 @@ void main() {
     test("empty observers does not throw exception using hasObserver", () {
       expect(() {
         vm = ViewModel();
-        if (vm.hasState) vm.rebuildStates();
+        if (vm.hasObservers) vm.rebuildStates();
       }, isNot(throwsException));
     });
 
@@ -247,27 +247,30 @@ bool isUpdatedObserver3 = false;
 
 List<String> orderOfRebuild = [];
 
-class StatesRebuilderListener1 implements ListenerOfStatesRebuilder {
+class StatesRebuilderListener1 implements ObserverOfStatesRebuilder {
   @override
-  bool update([void Function(BuildContext) afterRebuildCallBack]) {
+  bool update(
+      [void Function(BuildContext) afterRebuildCallBack, bool afterRebuild]) {
     isUpdatedObserver1 = true;
     orderOfRebuild.add("1");
     return true;
   }
 }
 
-class StatesRebuilderListener2 implements ListenerOfStatesRebuilder {
+class StatesRebuilderListener2 implements ObserverOfStatesRebuilder {
   @override
-  bool update([void Function(BuildContext) afterRebuildCallBack]) {
+  bool update(
+      [void Function(BuildContext) afterRebuildCallBack, bool afterRebuild]) {
     isUpdatedObserver2 = true;
     orderOfRebuild.add("2");
     return true;
   }
 }
 
-class StatesRebuilderListener3 implements ListenerOfStatesRebuilder {
+class StatesRebuilderListener3 implements ObserverOfStatesRebuilder {
   @override
-  bool update([void Function(BuildContext) afterRebuildCallBack]) {
+  bool update(
+      [void Function(BuildContext) afterRebuildCallBack, bool afterRebuild]) {
     isUpdatedObserver3 = true;
     orderOfRebuild.add("3");
     return true;

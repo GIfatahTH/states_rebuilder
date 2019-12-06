@@ -1,54 +1,64 @@
 import 'package:states_rebuilder/src/inject.dart';
+import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 class RegisterInjectedModel {
-  List<Inject> _modelRegisteredByThis = [];
-  final List<Inject> _models;
-  final Map<String, List<Inject>> _allRegisteredModelInApp;
-
-  RegisterInjectedModel(this._models, this._allRegisteredModelInApp) {
+  RegisterInjectedModel(this._injects, this._allRegisteredModelInApp) {
     registerInjectedModels();
   }
+  final List<Inject> modelRegisteredByThis = <Inject>[];
+  final List<Inject> _injects;
+  final Map<String, List<Inject>> _allRegisteredModelInApp;
 
-  registerInjectedModels() {
-    if (_models == null || _models.isEmpty) return;
-    _models.forEach(
-      (model) {
-        _modelRegisteredByThis.add(model);
-        if (_allRegisteredModelInApp[model.getName()] == null) {
-          _allRegisteredModelInApp[model.getName()] = [model];
-        } else {
-          _allRegisteredModelInApp[model.getName()].add(model);
-        }
-      },
-    );
-  }
-
-  unRegisterInjectedModels(
-    bool disposeModels,
-  ) {
-    if (disposeModels) {
-      _modelRegisteredByThis.forEach((model) {
-        try {
-          model.getSingleton()?.dispose();
-        } catch (e) {}
-      });
+  void registerInjectedModels() {
+    if (_injects == null || _injects.isEmpty) {
+      return;
     }
 
-    _modelRegisteredByThis.forEach((model) {
-      final name = model.getName();
+    for (final Inject inject in _injects) {
+      final String name = inject.getName();
+      final List<Inject<dynamic>> injectedModels =
+          _allRegisteredModelInApp[name];
+      if (injectedModels == null) {
+        _allRegisteredModelInApp[name] = <Inject<dynamic>>[inject];
+        modelRegisteredByThis.add(inject);
+      } else {
+        _allRegisteredModelInApp[name].add(injectedModels.first);
+        modelRegisteredByThis.add(injectedModels.first);
+      }
+    }
+  }
 
-      bool isRemoved = _allRegisteredModelInApp[name]?.remove(model);
-      if (isRemoved) {
-        if (model.isAsyncType) {
-          model.getModelSingleton().removeObserver(tag: null, observer: null);
-        } else if (model.isStatesRebuilder) {
-          model.getSingleton().removeObserver(tag: null);
+  void unRegisterInjectedModels(
+    bool disposeModels,
+  ) {
+    for (final Inject inject in modelRegisteredByThis) {
+      final String name = inject.getName();
+      final List<Inject<dynamic>> injectedModels =
+          _allRegisteredModelInApp[name];
+
+      final bool isRemoved = injectedModels?.remove(inject);
+      if (isRemoved && injectedModels.length <= 1) {
+        if (disposeModels) {
+          try {
+            inject.getSingleton()?.dispose();
+          } catch (e) {
+            continue;
+          }
+        }
+
+        if (inject.isReactiveModel) {
+          inject
+              .getReactiveSingleton()
+              .removeObserver(tag: null, observer: null);
+        } else if (inject.isStatesRebuilder) {
+          (inject.getSingleton() as StatesRebuilder)
+              .removeObserver(tag: null, observer: null);
         }
       }
 
       if (_allRegisteredModelInApp[name].isEmpty) {
         _allRegisteredModelInApp.remove(name);
       }
-    });
+    }
   }
 }
