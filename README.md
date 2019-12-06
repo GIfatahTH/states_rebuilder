@@ -1,4 +1,4 @@
-# states_rebuilder
+# `states_rebuilder`
 
 A Flutter state management combined with dependency injection solution that allows : 
   * a 100% separation of User Interface (UI) representation from your logic classes
@@ -6,11 +6,267 @@ A Flutter state management combined with dependency injection solution that allo
 Model classes are simple vanilla dart classes without any need for inheritance, notification, streams or annotation and code generation.
 
 
-## example of the simple Counter app:
+`states_rebuilder` is built on the observer pattern for state management and on the service locator pattern for dependency injection.
+
+`states_rebuilder` combines the observer and service locator patterns to get what is called explicit reactivity and implicit reactivity.
+
+>Contrary to what one might think, implicit reactivity is simpler, more efficient and more powerful than explicit reactivity.
+
+> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa#)
+
+# 1- Explicit reactivity
+
+In the context of observer pattern, any class that extends `StatesRebuilder` is the observable and `StateBuilder` as well as `StateWithMixinBuilder` widgets are the observers. `StatesRebuilder` notifies the observers using `rebuildStates` method. Observer widgets when notified rebuild themselves to reproduce the actual state.
+
+This an example of a simple counter app without any dependency injection solution. The model is instantiated globally:
+
+NB: model, BloC or service are used interchangeably. Thy refer to any class that hold the business logic of the app.
+
 ```dart
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:`states_rebuilder`/`states_rebuilder`.dart';
 
+//The observable class
+class Counter extends StatesRebuilder{
+  int count = 0;
+  increment() {
+    count++;
+    rebuildStates();
+  }
+}
+
+//Global instantiation
+final Counter counterModel = Counter();
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: HomePage(),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () => counterModel.increment(),
+        ),
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: 
+      //The observer widget
+      StateBuilder(
+        //Registering the observer widget in the counterModel observable class.
+        models: [counterModel],
+        builder: (context, _) {
+          return Text('${counterModel.count}');
+        },
+      ),
+    );
+  }
+}
+```
+Regardless of the effectiveness of the state management solution, it must rely on a reliable dependency injection system.
+
+`states_rebuilder` uses the service locator pattern, but using it in a way that makes it aware of the widget's lifecycle. This means that models are registered when needed in the `initState` method of a` StatefulWidget` and are unregistered when they are no longer needed in the `dispose` method.
+Models once registered are available throughout the widget tree as long as the StatefulWidget that registered them is not disposed. The StatefulWidget used to register and unregister models is the `Injector` widget.
+
+To consume a registered model, you use the static method :
+```dart
+final T model = Injector.get<T>()
+
+//If the model is registered with custom name :
+final T model = Injector.get<T>(name:'customName');
+```
+
+The example above becomes:
+```dart
+//The observable class
+class Counter extends StatesRebuilder {
+  int count = 0;
+  increment() {
+    count++;
+    //notifying the observers
+    rebuildStates();
+  }
+}
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      //Register (inject) the model using the 'Inject' class.
+      inject: [Inject(() => Counter())],
+      builder: (context) {
+        //Getting the registered singleton of the 'Counter' type.
+        final counterModel = Injector.get<Counter>();
+        return MaterialApp(
+          home: Scaffold(
+            appBar: AppBar(),
+            body: HomePage(),
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () => counterModel.increment(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  //Getting the registered singleton outside the build method.
+  //This is possible because the context is not used to get registered models.
+  //If the type can be inferred by dart, you can omit the generic type.
+  final Counter counterModel = Injector.get();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: StateBuilder(
+        models: [counterModel],
+        builder: (context, _) {
+          return Text('${counterModel.count}');
+        },
+      ),
+    );
+  }
+}
+```
+With `Injector` you can inject multiple dependent or independent models (BloCs, Services) at the same time. Also you can inject stream and future.
+```dart
+Injector( 
+  inject: [
+    //The order is not mandatory even for dependent models.
+    Inject<ModelA>(() => ModelA()),
+    Inject(() => ModelB()),//Generic type in inferred.
+    Inject(() => ModelC(Injector.get<ModelA>())),// Directly inject ModelA in ModelC constructor
+    Inject(() => ModelC(Injector.get())),// Type in inferred.
+    Inject<IModelD>(() => ModelD()),// Register with Interface type.
+    //You can inject streams and future and make them accessible to all the widget tree.
+    Inject<bool>.future(() => Future(), initialValue:0),// Register a future.
+    Inject<int>.stream(() => Stream()),// Register a stream.
+    Inject(() => ModelD(),name:"customName"), // Use custom name
+  ],
+  .
+  .
+);
+```
+Models are registered lazily be default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
+
+In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
+
+```dart
+Injector( 
+  initState: (){
+    // Function to execute in initState of the state.
+  },
+  dispose: (){
+    // Function to execute in dispose of the state.
+  },
+  afterInitialBuild: (BuildContext context){
+    // Called after the widget is first inserted in the widget tree.
+  },
+  appLifeCycle: (AppLifecycleState state){
+    /*
+    Function to track app life cycle state. It takes as parameter the AppLifeCycleState
+    In Android (onCreate, onPause, ...) and in IOS (didFinishLaunchingWithOptions, 
+    applicationWillEnterForeground ..)
+    */
+  },
+  // If true all model will be disposed when the widget is removed from the widget tree
+  disposeModels: true,
+  .
+  .
+);
+```
+
+The `Injector.get` method searches for the registered singleton using the service locator pattern. For this reason, `BuildContext` is not required. The `BuildContext` is optional and it is useful if you want to subscribe the widget that has the `BuildContext` to the obtained model.
+
+In the `HomePage` class of the example, we can remove `StateBuilder` and use the `BuildContext` to subscribe the the widget. 
+
+```dart
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // The BuildContext of this widget is subscribed to the Counter class.
+    // Whenever the Counter class issues a notification, this widget will be rebuilt.
+    final Counter counterModel = Injector.get(context: context);
+    return Center(
+      child: Text('${counterModel.count}'),
+    );
+  }
+}
+```
+Once the context is provided, `states_rebuilder` searches up in the widget tree to find the nearest `Injector` widget that has registered an `Inject` of the type provided and register the context (`Inject` class is associated with `InheritedWidget`). So be careful in case the `InheritedWidget` is not available, especially after navigation.
+
+To deal with such situation, you can remove the `context` parameter and use the `StateBuilder` widget, or in case you want to keep using the `context` you can use the `reinject` parameter of the `Injector`.
+```dart
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => Injector(
+      //reinject an already injected model
+      reinject: [counterModel],
+      builder: (context) {
+        return PageTwo();
+      },
+    ),
+  ),
+);
+```
+`states_rebuilder` uses the observer pattern. Notification can be filtered so that only widgets meeting the filtering criteria will be notified to rebuild. Filtration is done through tags. `StateBuilder` can register with one or more tags and `StatesRebuilder` can notify the observer widgets with a specific list of tags, so that only widgets registered with at least one of these tags will rebuild.
+
+```dart
+class Counter extends StatesRebuilder {
+  int count = 0;
+  increment() {
+    count++;
+    //notifying the observers with 'Tag1'
+    rebuildStates(['Tag1']);
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final Counter counterModel = Injector.get(context: context);
+    return Column(
+      children: <Widget>[
+        StateBuilder( // This StateBuilder will be notified
+          models: [counterModel],
+          tag: ['tag1, tag2'],
+          builder: (_, __) => Text('${counterModel.count}'),
+        ),
+        StateBuilder(
+          models: [counterModel],
+          tag: 'tag2',
+          builder: (_, __) => Text('${counterModel.count}'),
+        ),
+        StateBuilder(
+          models: [counterModel],
+          tag: MyEnumeration.tag1,// You can use enumeration
+          builder: (_, __) => Text('${counterModel.count}'),
+        )
+      ],
+    );
+  }
+}
+```
+# 2- Implicit reactivity
+
+What we have seen so far is called explicit reactivity, because our model must extend to `StatesRebuilder` and explicitly notify the observers using the `rebuildStates` methods.
+
+With `states_rebuilder`, you can use pure vanilla dart classes for your logic, and `states_rebuilder` implicitly adds reactivity to your models so widgets can subscribe to your models and models can notify observer widgets.
+
+This is the same example rewritten with implicit reactivity.
+```dart
 //Pure dart class. No inheritance, no notification, no streams, and no code generation
 class Counter {
   int count = 0;
@@ -22,18 +278,19 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
-      builder: (context, __) {
-        ///`context` is optional. Here `getAsModel` is called without context because we do not want this widget to update
-        final counter = Injector.getAsModel<Counter>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(" Counter App"),
-          ),
-          body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            //To mutate the state, use `setState` method. This insures that the dependent widgets are updated after state mutation.
-            onPressed: () => counter.setState((state) => state.increment()),
+      builder: (context) {
+        //Use of 'getAsReactive' to get the model.
+        final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>();
+        return MaterialApp(
+          home: Scaffold(
+            appBar: AppBar(),
+            body: HomePage(),
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              //To mutate the state, use `setState` method.
+              //setState notifies observers after state mutation.
+              onPressed: () => counterModel.setState((state) => state.increment()),
+            ),
           ),
         );
       },
@@ -41,189 +298,223 @@ class App extends StatelessWidget {
   }
 }
 
-class MyHome extends StatelessWidget {
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    ///Here the `getAsModel`is called with the `context` to automatically add this widget to the list of dependent widgets of the model.
-    final counter = Injector.getAsModel<Counter>(context: context);
+    final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>(context: context);
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text("You have pushed this many times"),
-          //use the `state` getter to get the model state.
-          Text("${counter.state.count}"),
-        ],
-      ),
+      //use the `state` getter to get the model state.
+      child: Text("${counterModel.state.count}"),
     );
   }
 }
 ```
-## Principal concepts of the states_rebuilder
-> 1- Register a model (or any kind of values) using the `Injector` widget.   
->>* The registered (injected) models are available for access within the `Injector` itself and any of its child widgets.   
->>* Registered (injected) models are automatically unregistered when the `Injector` is disposed (removed) from the widget tree. 
->>* Registered model can be disposed to release recourses. This is done by using the `dispose` parameter of Injector or set the `disposeModels` parameter to true.
->>* Futures and Streams can be registered (injected) using the named constructor `Inject.future` and `Inject.stream `respectively.   
->>* Streams are automatically disposed when the `Injector` is removed from the widget tree.
->>* Models can be registered associated with custom names.
->>* Models are lazily instantiated. Set the parameter `isLazy` of the `Inject` to false if you want to intentionally instantiate a registered model.
-
-> 2- To get any of the registered models :
->>* Use `Injector.get<T>()` to get a singleton of the `T` class.    
->>* No need for the `context`, hence you can get a registered model inside any class.    
->>* To get a model registered with a custom name, use `Injector.get<T>(name: customName)`.     
->>* To get a new instance of a registered model, use `Injector.getNew<T>()`.     
-
-> 3- To get any of the registered model and make it reactive :     
-> (Reactive means that the model allows widgets to register as listeners notify them to update after state mutation).   
->>* Use `Injector.getAsModel<T>()` to get a singleton of type `ModelStatesRebuilder<T>`. (ModelStatesRebuilder extends StatesRebuilder).    
->>* Another way to make a model reactive is to extend it with `StatesRebuilder` class.
->>* To register a widget as a listener in a particular reactive model :    
->>>* Use `Injector.getAsModel<T>(context:context)`. The context is optional and when it is provided, the widget is automatically registered in the model. For futures and streams, use `Injector.getAsModel<T>(context:context).snapshot`  to get the `AsyncSnapshot`.
->>>* Use `StateBuilder` widget. `StateBuilder` make rebuild process filtrable. This is done by giving `StateBuilder` a tag. When a model sends notifications to its dependent with a particular tag, only those `StateBuilder` that have this tag will rebuild.    
-
-> 4- To notify listeners of a reactive model :
->>* Use `setState(Function(T) state,{List tag, dynamic Function(T) watch, bool catchError, void Function(BuildContext) onSetState})` method. This works with models obtained using `Injector.getAsModel<T>()`. 
->>See examples to see the use of `catchError` and `onSetState`.
->>* Use `rebuildStates([List tag])` method. This works inside a model that extends `StatesRebuilder`.   
->>* Use the getter `state` to get the state of a models obtained using `Injector.getAsModel<T>()`.      
-
-> 5- states_rebuilder offers an easy facade to get:
->> The widget lifeState : use `initState`, `dispose`, `didChangeDependencies`, `didUpdateWidget`, `afterInitialBuild` and `afterRebuild`.    
->> The app life cycle in Android (onCreate, onPause, ...) and in IOS (didFinishLaunchingWithOptions, applicationWillEnterForeground ..): use `appLifeCycle`.   
-
-> 6- states_rebuilder offers the widget `StateWithMixinRebuilder` to deal with the most common mixins.   Available mixins are: `singleTickerProviderStateMixin`, `tickerProviderStateMixin`, `AutomaticKeepAliveClientMixin` and `WidgetsBindingObserver`.
-
-## [List of article about states_rebuilder](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa#)
-
-## This Library offers the following classes and methods:
-
-  ### `Injector` widget for dependency injection:
-  To register models and services use Injector. The registered model will be available to all child widgets of the Injector
-  ```dart
-  Injector<T>({
-    List<Inject<D>> inject, // List of Model to register wrapped with `Inject` object.
-                            // To inject future and stream use the named constructor `Inject<T>.future` and `Inject<T>.stream`.
-    (BuildContext context, T model) → Widget builder, // The builder method.
-    (T model) → void initState, // a custom method to call when Injector is first added to the widget tree.
-    (T model) → void dispose, // a custom method to call when Injector is disposed.
-    (T, AppLifecycleState) → dynamic appLifeCycle, // A closure to execute code depending on the life cycle of the app (in Android : onResume, onPause ...).
-    (BuildContext, String,T) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
-    (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
-    bool disposeModels: false // Whether Injector will automatically call dispose method from the registered models.
-  }) 
-  ```
-  To get the same instance of the model inside any class use:
-  ```dart 
-  Injector.get<T>({dynamic name, BuildContext context, bool silent = false}).
-  ``` 
-  Where T is the type of the model and name is optional used if you want to call a named model.
-
-  To get the same instance of a registered model and make it reactive use:
-  ```dart 
-  Injector.getAsModel<T>(({dynamic name, BuildContext context, bool silent = false})).
-  ``` 
-  Where T is the type of the model and name is optionally used if you want to call a named model.
-  If you provide the context parameter the widget will listen to the model and rebuild when the state of the model is changed.
-
-  To get a new instance of the model, you  use:
-  ```dart 
-  Injector.getNew<T>([String name]).
-  ``` 
-  Models are automatically unregistered when the injector is disposed.
-
-  `Injector.get` or `Injector.getAsModel`  throw if no registered model is found. This can be silent by setting the parameter `silent` to true
-
-#### Prototype Example for dependency injection
+Compared to the case of explicit reactivity, `states_rebuilder` uses the same concepts for implicit reactivity, with the following differences:
+* The model is a pure vanilla dart class, regardless of the complexity of the class, even though there are many asynchronous methods with error handling.
+* The injected models are consumed using `getAsReactive` method instead of `get` in the explicit case.
 
 ```dart
-    Widget build(BuildContext context) {
-    return Injector( 
-      inject: [
-        Inject(() => ModelA()),
-        Inject(() => ModelB()),
-        Inject(() => ModelC(Injector.get<ModelA>())),// Directly inject ModelA in ModelC constructor
-        Inject<IModelD>(() => ModelD()),//To register with Interface type.
-        Inject<bool>.future(() => Future(), initialValue:0),//To register a future.
-        Inject<int>.stream(() => Stream()),//To register a stream.
-        Inject(() => ModelD(),name:"customName"), // to use custom name
-        ],
-      builder: (context,model) => MyWidget(model), // model is of type `ModelA`. when `rebuildStates()` is called in `ModelA` this widget will rebuild
-    );
+ReactiveModel<T> model = Injector.getAsReactive<T>()
+```
+The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
+
+> `Injector.get<T>()` returns the raw singleton of type `T` of the registered model.    
+> `Injector.getAsReactive<T>()` returns the reactive singleton of type `ReactiveModel<T>` of the registered model.  
+
+The reactive environment adds the following getters and methods:
+
+The getters are : 
+* **state**: returns the registered raw singleton of the model.
+* **connectionState** : It is of type `ConnectionState` (a Flutter defined enumeration). It takes three values:  
+      1- `ConnectionState.none`: Before executing any method of the model.  
+      2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   
+      3- `ConnectionState.done`: After running a synchronous method or the end of a pending asynchronous task.  
+* **hasError**: It's of bool type. it is true if the asynchronous task ends with an error.
+* **error**: Is of type dynamic. It holds the thrown error.
+* **hasData**: It is of type bool. It is true if the connectionState is done without any error.
+* **customStateStatus**: It is of type dynamic. It holds your custom-defined state status. For example, in a timer app, you can define custom states such as 'plying', 'paused, 'finished'.
+* **joinSingletonToNewData** : It is of type dynamic. It holds date sent from new reactive instance to the reactive singleton.
+* **subscription** : it is of type `StreamSubscription<T>`. It is not null if you inject streams using `Inject.stream` constructor. It is used to control the injected stream.
+and one method:
+* **setState(T state)**: return a `Future<void>`. It takes the state as a parameter that corresponds to the singleton instance of the injected model. It is used to mutate the state and notify listeners after state mutation.
+
+`setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
+
+```dart
+model.setState(
+  (state) => state.increment(),
+  filterTags: ['Tag1', Enumeration.Tag2],
+  //set to true, you want to catch error, and not break the app.
+  catchError: true 
+  watch: (Counter counter) {
+    //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
+    return counter.count; //if count value is not changed, no notification will be emitted.
+  },
+  onSetState: (BuildContext context) {
+    /* 
+    Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar , ..
+
+    You can use another nested setState here.
+    */
+  },
+  onRebuildState: (BuildContext context) {
+    //The same as in onSetState but called after the end rebuild process.
+  },
+  //When a notification is issued, whether to notify all reactive instances of the model
+  notifyAllReactiveInstances: true, 
+  /*
+  If defined, when a new reactive instance issues a notification, it will change the state of the reactive singleton in two ways.
+  1- JoinSingleton.withNewReactiveInstances
+  2- JoinSingleton.withCombinedReactiveInstances
+  */
+  joinSingletonWith: JoinSingleton.withNewReactiveInstance,
+),
+```
+It is important to understand that `states_rebuilder` caches two singletons.
+* The raw singleton of the registered model. Obtained using `Injector.get` method.
+* The reactive singleton of the registered model (the raw model decorated with reactive environnement). Obtained using `Injector.getAsReactive`.
+
+With `states_rebuilder`, you can create, at any time, a new reactive instance, which is the same raw cashed singleton but decorated with a new reactive environment.
+
+To create a new reactive instance of an injected model use:   
+1- `Injector.getAsReactive` with the  parameter `asNewReactiveInstance` equals true
+
+```dart
+// get a new reactive instance
+ReactiveModel<T> model2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
+```
+2- `StateBuilder` with generic type and without models property.
+```dart
+StateBuilder<T>(
+  builder:(BuildContext context, T newReactiveModel){
+    return YourWidget();
   }
+)
+```
 
-  // You can get your models from any class provided it is registered before calling it.
-  class MyWidget extends StatelessWidget {
+**Important notes about reactive singleton and new reactive instances:**
+* The reactive singleton and all the new reactive instances share the same raw singleton of the model, but each one decorates it with a different environment.
+* Unlike the reactive singleton, new reactive instances are not cached so they are not accessible outside the widget in which they were instantiated.
+* To make new reactive instances accessible throughout the widget tree, you have to register it with the `Injector` with a custom name: 
 
-    final ModelA modelA = Injector.get<ModelA>(); // get the ModelA singleton
-    final ModelA modelA1 = Injector.getNew<ModelA>(); // get new instance
-    final modelD = Injector.getAsModel<ModelD>(context:context); // get ModelD as `StatesRebuilder` type and subscribe this widget
-    final modelDNamed = Injector.get<ModelD>("costumeName");
-    final futureSnapshot = Injector.getAsModel<bool>(context:context, name: "costumeName").snapshot; // get the snapshot of an injected future
-    final streamSnapshot = Injector.getAsModel<int>(context:context).snapshot; // get the snapshot of an injected future
+```dart
+final model =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
 
-    @override
-    Widget build(BuildContext context) {
-      return Widget(
-        child: ChildWidget(modelID.state.myVar ) // get the state of a reactive model
-        onPressed:()=> modelD.setState((state) { state mutation }), // mutate the state of a reactive model
-      )
-    }
-  }
-  ```
-### The `StateBuilder` Widget. 
-You wrap any part of your widgets with it to add it to the listeners' list of your logic classes and hence can rebuild when the any of the logic classes send notifications.
+return Injector(
+inject: [
+  Inject( () => model, name: 'new1'),
+],
+)
+// Or
+Injector(
+inject: [
+  Inject<Counter>(() => Counter()),
+  Inject(
+    () => Injector.getAsReactive<Counter>(asNewReactiveInstance: true),
+    name: Enum.new1,
+  ),
+],
+```
+At later time if you want to consume the injected new reactive instance you use:
 
-notification can be sent by:
-1- calling `rebuildStates` method inside a class that extends `StatesRebuilder`.
-2- calling `setState(Function(T))` of any reactive model obtained using `Injector.getAsMode`.
+```dart
+// get the injected new reactive instance
+ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : 'new1');
+//Or
+ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.new1);
+```
+* You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
-  This is the constructor of the `StateBuilder`:
+* With the exception of the raw singleton they share, the reactive singleton and the new reactive instances have an independent reactive environment. That is, when a particular reactive instance issues a notification with an error or with `ConnectionState.awaiting`, it will not affect other reactive environments.
+
+* `states_rebuilder` allows reactive instances to share their notification or state with the reactive singleton. This can be done by:   
+1- `notifyAllReactiveInstances` parameter of `setState` method. If true, each time a notification is issued by the reactive instance in which `setState` is called, all other reactive instances are notified.   
+2- `joinSingletonWith` parameter of `setState` method or `Inject` class. This time, new reactive instances, when issuing a notification, can clone their state to the reactive singleton.
+  * If `joinSingletonWith` is set to` JoinSingleton.withNewReactiveInstance`, this means that the reactive singleton will have the state of the new reactive instance issuing the notification.
+  * If `joinSingletonWith` is set to `JoinSingleton.withCombinedReactiveInstances`, this means that the singleton will hold a combined state of all the new reactive instances.    
+  The combined state priority logic is:   
+  Priority 1- The combined `ReactiveModel.hasError` is true if at least one of the new instances has error    
+  Priority 2- The combined `ReactiveModel.connectionState` is awaiting if at least one of the new instances is awaiting.    
+  Priority 3- The combined `ReactiveModel.connectionState` is 'none' if at least one of the new instances is 'none'.     
+  Priority 4- The combined `ReactiveModel.hasDate` is true if it has no error, isn't awaiting  and is not in 'none' state.
+* `joinSingletonWith` can be defined in `setState` method or in `Inject` class constructor. When set in the `setState` method, it means that only the new instance, where` setState` is called, is joined to the reactive singleton. Whereas if `joinSingletonWith` is defined in the` Inject` constructor, this means that all new reactive instances will be joined to the reactive singleton.
+* New reactive instances can send data to the reactive singleton. `joinSingletonToNewData` parameter of reactive environment hold the sending message.
+
+# StateBuilder
+In addition to its state management responsibility, `StateBuilder` offers a facade that facilitates the management of the widgets lifecycle.
+```dart
+StateBuilder<T>(
+  onSetState: (BuildContext context, ReactiveModel<T> model){
+  /*
+  Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar,...  
   
-  ```dart
-  StateBuilder( {
-      Key key, 
-      dynamic tag, // you define the tag of the state. This is the first way. You can provide a list of tags.
-      List<StatesRebuilder> models, // You give a list of the logic classes (BloC) you want this widget to listen to.
-      @required (BuildContext, String) → Widget builder,
-      (BuildContext, String) → void initState, // for code to be executed in the initState of a StatefulWidget
-      (BuildContext, String) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (BuildContext, String) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (BuildContext, String, StateBuilder) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget
-      (BuildContext, String) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
-      (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
-    });
-  ```
-  `tag` is of type dynamic. It can be String (for small projects) or enum members (enums are preferred for big projects). When a list of dynamic tags is provided, states_rebuilder considers it as many tags and will rebuild this widget if any of these tags are invoked by the `rebuildStates` method or by `setState` method.
-
-
-  ## The `StatesRebuilder` class. 
-  Your logics classes (viewModels) will extend this class to create your own business logic BloC (equally can be called ViewModel or Model).
-  * The `rebuildStates` method. You call it inside any of your logic classes that extend `StatesRebuilder`. It rebuilds all the mounted 'StateBuilder' widgets. It can filter the widgets to rebuild by tag.
-  This is the signature of the `rebuildState`:
-  ```dart
-  rebuildStates([List<dynamic> tags])
-  ```
-  You can use `hasState` to check whether the `StatesRebuilder` has state to rebuild or not before calling `rebuildStates` to avoid any error.
+  It is similar to 'onSetState' parameter of the 'setState' method. The difference is that the `onSetState` of 'setState' method is called once after executing the 'setState'. But this 'onSetState' is executed each time a notification is send from one of the observable model this 'StateBuilder' is subscribing.
   
+  You can use another nested setState here.
+  */
+  },
+  onRebuildState: (BuildContext context, ReactiveModel<T> model){
+  // The same as in onSetState but called after the end rebuild process.
+  },
+  initState: (BuildContext context, ReactiveModel<T> model){
+  // Function to execute in initState of the state.
+  },
+  dispose: (BuildContext context, ReactiveModel<T> model){
+  // Function to execute in dispose of the state.
+  },
+  didChangeDependencies: (BuildContext context, ReactiveModel<T> model){
+  // Function to be executed  when a dependency of state changes.
+  },
+  didUpdateWidget: (BuildContext context, ReactiveModel<T> model, StateBuilder oldWidget){
+  // Called whenever the widget configuration changes.
+  },
+  afterInitialBuild: (BuildContext context, ReactiveModel<T> model){
+  // Called after the widget is first inserted in the widget tree.
+  },
+  afterRebuild: (BuildContext context, ReactiveModel<T> model){
+  /*
+  Called after each rebuild of the widget.
 
-  ### The `StateWithMixinBuilder` class. 
- * To extends the state with mixin (practical case is animation), use `StateWithMixinBuilder`
+  The difference between onRebuildState and afterRebuild is that the latter is called each time the widget rebuilds, regardless of the origin of the rebuild. 
+  Whereas onRebuildState is called only after the rebuilds caused by the notifications from the models to which the widget is subscribed.
+  */
+  },
+  // If true all model will be disposed when the widget is removed from the widget tree
+  disposeModels: true,
+)
+```
+# StateWithMixinBuilder
+`StateWithMixinBuilder` is similar to `StateBuilder` and extends it by adding mixin (practical case is animation),
 ```Dart
 StateWithMixinBuilder<T>( {
-      Key key, 
-      dynamic tag, // you define the tag of the state. This is the first way
-      List<StatesRebuilder> models, // You give a list of the logic classes (BloC) you want this this widget to listen to.
-      @required (BuildContext, String) → Widget builder, 
-      @required (BuildContext, String,T) → void initState, // for code to be executed in the initState of a StatefulWidget
-      @required (BuildContext, String,T) → void dispose, // for code to be executed in the dispose of a StatefulWidget
-      (BuildContext, String,T) → void didChangeDependencies, // for code to be executed in the didChangeDependencies of a StatefulWidget
-      (BuildContext, String,StateBuilder, T) → void didUpdateWidget // for code to be executed in the didUpdateWidget of a StatefulWidget,
-      (String, AppLifecycleState) → void didChangeAppLifecycleState // for code to be executed depending on the life cycle of the app (in Android : onResume, onPause ...).
-      (BuildContext, String,T) → void afterInitialBuild, // for code to be executed after the widget is inserted in the widget tree.
-      (BuildContext, String) → void afterRebuild, // for code to be executed after each rebuild of the widget.
-      @required MixinWith mixinWith
+  Key key, 
+  dynamic tag, // you define the tag of the state. This is the first way
+  List<StatesRebuilder> models, // You give a list of the logic classes (BloC) you want this this widget to listen to.
+  initState: (BuildContext, String,T) {
+     // for code to be executed in the initState of a StatefulWidget
+  },
+  dispose (BuildContext, String,T) {
+    // for code to be executed in the dispose of a StatefulWidget
+  }, 
+  didChangeDependencies: (BuildContext, String,T) {
+    // for code to be executed in the didChangeDependencies of a StatefulWidget
+  }, 
+  didUpdateWidget: (BuildContext, String,StateBuilder, T){
+    // for code to be executed in the didUpdateWidget of a StatefulWidget
+  },
+  didChangeAppLifecycleState: (String, AppLifecycleState){
+    // for code to be executed depending on the life cycle of the app (in Android : onResume, onPause ...).
+  },
+  afterInitialBuild: (BuildContext, String,T){
+    // for code to be executed after the widget is inserted in the widget tree.
+  },
+  afterRebuild: (BuildContext, String) {
+    // for code to be executed after each rebuild of the widget.
+  }, 
+  @required MixinWith mixinWith
 });
 ```
   Available mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
+
+
+> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa#)
