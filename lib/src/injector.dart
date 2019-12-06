@@ -100,7 +100,7 @@ class Injector extends StatefulWidget {
   }
 
   ///Use [getAsReactive] instead. It will be removed in next releases.
-  @deprecated
+  @Deprecated('use gatAsModel instead')
   static ReactiveModel<T> getAsModel<T>(
       {dynamic name,
       BuildContext context,

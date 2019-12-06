@@ -150,7 +150,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///```
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
-  @deprecated
+  @Deprecated('use models instead')
   final List<StatesRebuilder> viewModels;
 
   ///Whether to call dispose method of the models if exists.
