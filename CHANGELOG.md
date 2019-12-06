@@ -1,13 +1,50 @@
 ## 1.8.0 (2019-12-06)
-1- Add the following features: (See readme).
+1- Add the following features: (See readme fille).
 *  `onSetState` and  `onRebuildState` parameters to the `StateBuilder`.
 * The BuildContext is the default tag of `StateBuilder`.
 * `JoinSingleton`, `inheritedInject`, `initialCustomStateStatus` parameters to `Inject`
 * `reinject` and `getAsReactive` to `Injector`.
 2- Remove the following parameters:(Breaking changes)
-*  `viewModel` and `tagID` parameter from `StateBuilder`.
+*  `tagID` parameter from `StateBuilder`.
+before
+```dart
+StateBuilder(
+  builder: (BuildContext context, String tagID){
+    // code
+  }
+)
+```
+after
+```dart
+StateBuilder<T>(
+  models: [firstModel, secondModel],
+  builder: (BuildContext context, ReactiveModel<T> model){
+    /// No more need for the `tagID` because the `context` is used as `tagID`.
+    /// the model is the first instance (firstModel) in the list of the [models] parameter.
+    /// If the parameter [models] is not provided then the model will be a new reactive instance
+    /// See readme file for more information
+  }
+)
+```
 * The model parameter of the `Injector.builder` method.
-* `Injector.getAsModel` is deprecated.
+before
+```dart
+Injector(
+  builder: (BuildContext context, T model){
+    // code
+  }
+)
+```
+
+after
+```dart
+Injector(
+  builder: (BuildContext context){
+    // no need for model parameter. It has less boilerplate.
+  }
+)
+```
+* `Injector.getAsModel`, `StateBuilder.viewModel` and `StatesRebuilder.hasState` are deprecated, and replaced by `Injector.getAsReactive`, `StateBuilder.models` and `StatesRebuilder.hasObservers` respectively.
 
 ## 1.7.0 (2019-11-14)
 1- Add `onSetState` parameter to the `setState` method to define a callback to be executed after state mutation.

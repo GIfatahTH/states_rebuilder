@@ -8,6 +8,12 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 `states_rebuilder` is built on the observer pattern for state management and on the service locator pattern for dependency injection.
 
+> **Intent of observer pattern**    
+>>Define a one-to-many dependency between objects so that when one object changes state (observable object), all its dependents (observer objects) are notified and updated automatically.
+
+>**Intent of service locator pattern**   
+>>The purpose of the Service Locator pattern is to return the service instances on demand. This is useful for decoupling service consumers from concrete classes. It uses a central container known which on request returns the request instance.
+
 `states_rebuilder` combines the observer and service locator patterns to get what is called explicit reactivity and implicit reactivity.
 
 >Contrary to what one might think, implicit reactivity is simpler, more efficient and more powerful than explicit reactivity.
@@ -476,11 +482,35 @@ StateBuilder<T>(
   Called after each rebuild of the widget.
 
   The difference between onRebuildState and afterRebuild is that the latter is called each time the widget rebuilds, regardless of the origin of the rebuild. 
-  Whereas onRebuildState is called only after the rebuilds caused by the notifications from the models to which the widget is subscribed.
+  Whereas onRebuildState is called only after rebuilds after notifications from the models to which the widget is subscribed.
   */
   },
   // If true all model will be disposed when the widget is removed from the widget tree
   disposeModels: true,
+
+  // A list of observable objects to which this widget will subscribe.
+  models: [model1, model2]
+
+  // Tag to be used to filer notification from observable classes.
+  // It can be any type of data, but when it is a List, 
+  // this widget will be saved with many tags that are the items in the list.
+  tag; dynamic
+
+  builder: (BuildContext context, ReactiveModel<T> model){
+    /// [BuildContext] can be used as the default tag of this widget.
+
+    /// The model is the first instance (model1) in the list of the [models] parameter.
+    /// If the parameter [models] is not provided then the model will be a new reactive instance.
+  },
+  builderWithChild: (BuildContext context, ReactiveModel<T> model, Widget child){
+    ///Same as [builder], but can take a child widget containing the part of the widget tree that we do not want to rebuild.
+    /// If both [builder] and [builderWithChild] are defined, it will throw.
+
+  },
+
+  //The child widget that is used in [builderWithChild].
+  child: MyWidget(),
+
 )
 ```
 # StateWithMixinBuilder

@@ -47,6 +47,10 @@ class StatesRebuilder implements Subject {
   /// observers getter
   Map<String, List<ObserverOfStatesRebuilder>> observers() => _observers;
 
+  ///use [hasObservers] instead
+  @deprecated
+  bool get hasState => _observers.isNotEmpty;
+
   ///Check whether the model has observing states
   bool get hasObservers => _observers.isNotEmpty;
 

@@ -1544,7 +1544,6 @@ void main() {
     'should onSetState get the right context with getAsReactive',
     (WidgetTester tester) async {
       ReactiveModel<Integer> model1;
-      ReactiveModel<Integer> model2;
       bool isTrue = true;
       BuildContext context0;
       BuildContext context1;
@@ -1572,8 +1571,7 @@ void main() {
                       return Injector(
                         reinject: [model1],
                         builder: (context) {
-                          model2 =
-                              Injector.getAsReactive<Integer>(context: context);
+                          Injector.getAsReactive<Integer>(context: context);
                           context2 = context;
                           return Container();
                         },
@@ -1672,7 +1670,6 @@ void main() {
       bool isTrue = true;
       BuildContext context0;
       BuildContext context1;
-      BuildContext context2;
       final vm = ViewModel();
       await tester.pumpWidget(
         StateBuilder(
@@ -1702,7 +1699,6 @@ void main() {
                         reinject: [model1],
                         builder: (context) {
                           Injector.getAsReactive<Integer>(context: context);
-                          context2 = context;
                           return Container();
                         },
                       );
