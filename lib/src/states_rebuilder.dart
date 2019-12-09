@@ -65,9 +65,34 @@ class StatesRebuilder implements Subject {
       [List<dynamic> tags, void Function(BuildContext) onSetState]) {
     assert(() {
       if (!hasObservers && _customObservers.isEmpty) {
-        throw Exception('ERR(rebuildStates)01: No observer is registered yet.\n'
-            'You have to register at least one observer using the `StateBuilder` or StateWithMixinBuilder` widgets.\n'
-            'If you are sure you have registered at least one observer and you still see this error, please report an issue in the repository.\n');
+        throw Exception(
+          '''
+
+***No observer is subscribed yet***
+| There is no observer subscribed to this observable $runtimeType model.
+| To subscribe a widget you use:
+| 1- StateRebuilder for an already defined:
+|   ex:
+|   StatesRebuilder(
+|     models: [${runtimeType}instance],
+|     builder : ....
+|   )
+| 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
+| 3- Injector.getAsReactive<$runtimeType>(context : context). for implicit reactivity.
+| 4- StateRebuilder for new reactive environment:
+|   ex:
+|   StatesRebuilder<$runtimeType>(
+|     builder : ....
+|   )
+| 5 - StatesWithMixinBuilder. similar to StateBuilder.
+| 
+| To silent this error you check for the existence of observers before calling [rebuildStates]
+| ex:
+|  if(hasObservers){
+|    rebuildStates()
+| }
+''',
+        );
       }
       return true;
     }());
@@ -80,6 +105,22 @@ class StatesRebuilder implements Subject {
 
       for (final String key in _keys) {
         final List<ObserverOfStatesRebuilder> observerList = _observers[key];
+        assert(
+          () {
+            if (observerList == null) {
+              throw Exception(
+                '''
+
+| ***Empty key***
+| The key [$key] refer to an empty list.
+| Empty keys should be automatically removed by states_rebuilder.
+| If you see this error this means that there is something wrong. please report an issue.
+''',
+              );
+            }
+            return true;
+          }(),
+        );
         if (observerList != null) {
           for (ObserverOfStatesRebuilder observer in observerList) {
             if (onSetState != null && _onRebuildCallBackIsCalled == false) {
@@ -141,16 +182,25 @@ class StatesRebuilder implements Subject {
     @required ObserverOfStatesRebuilder observer,
   }) {
     if (tag != null) {
-      assert(() {
-        if (_observers[tag] == null) {
-          final Iterable<String> _keys = _observers.keys;
-          throw Exception(
-              'ERR(removeFromObservers)01: The tag: $tag is not registered in this VM observers.\n'
-              'If you see this error, please report an issue in the repository.\n'
-              'The registered tags are : $_keys');
-        }
-        return true;
-      }());
+      assert(
+        () {
+          if (_observers[tag] == null) {
+            throw Exception(
+              '''
+
+| ***Non registered Tag***
+| The tag: [$tag] is not registered in this [$runtimeType] observers.
+| Tags are automatically registered by states_rebuilder.
+| If you see this error, this means that something wrong happens.
+| Please report an issue.
+| 
+| The registered tags are : ${_observers.keys}
+       ''',
+            );
+          }
+          return true;
+        }(),
+      );
 
       _observers[tag].remove(observer);
       if (_observers[tag].isEmpty) {

@@ -27,7 +27,13 @@ class StateBuilder<T> extends StatefulWidget {
     this.afterInitialBuild,
     this.afterRebuild,
     this.disposeModels,
-  })  : assert(builder != null || builderWithChild != null),
+  })  : assert(builder != null || builderWithChild != null, '''
+  
+  | ***Builder not defined***
+  | You have to define either 'builder' or 'builderWithChild' parameter.
+  | Use 'builderWithChild' with 'child' parameter. If 'child' is null use
+  
+        '''),
         super(
           key: key,
         );
@@ -173,15 +179,36 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
     final String uniqueID = context.hashCode.toString();
 
     if (_models == null || _models.isEmpty) {
+      assert(
+        () {
+          if (T == dynamic) {
+            throw Exception('''
+      
+      ***No model is defined***
+      You have to either :
+      1- Provide a generic type to create and subscribe to a new reactive environnement
+        ex:
+         StateBuilder<MyModel>(
+           Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+             return ...
+           }
+         )
+      2- define the [models] property. to subscribe to an already defined reactive environnement instance
+        ex:
+          StateBuilder(
+            models : [myModelInstance],
+            Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+              return ...
+            }
+          )
+      ''');
+          }
+          return true;
+        }(),
+      );
       //created a new reactive instance from the provided generic type.
       _exposedModel =
           Injector.getAsReactive<T>(asNewReactiveInstance: true, silent: true);
-
-      if (_exposedModel == null) {
-        assert(() {
-          throw Exception('The provided generic type "$T" is not injected yet');
-        }());
-      }
 
       _exposedModel.addToReactiveNewInstanceList();
       _models = <StatesRebuilder>[_exposedModel];

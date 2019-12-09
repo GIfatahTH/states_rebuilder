@@ -494,7 +494,7 @@ StateBuilder<T>(
   // Tag to be used to filer notification from observable classes.
   // It can be any type of data, but when it is a List, 
   // this widget will be saved with many tags that are the items in the list.
-  tag; dynamic
+  tag: dynamic
 
   builder: (BuildContext context, ReactiveModel<T> model){
     /// [BuildContext] can be used as the default tag of this widget.

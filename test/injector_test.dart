@@ -31,7 +31,6 @@ void main() {
       (WidgetTester tester) async {
     expect(() {
       Injector(
-        inject: null,
         builder: (_) => null,
       );
     }, throwsAssertionError);
@@ -226,6 +225,73 @@ void main() {
       ),
     );
     expect(() => Injector.get<bool>(), throwsException);
+  });
+
+  testWidgets(
+      'Injector : should throw if get method with context is used with non reactive model',
+      (WidgetTester tester) async {
+    BuildContext _context;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject(() => 1),
+        ],
+        builder: (context) {
+          _context = context;
+          return Container();
+        },
+      ),
+    );
+    expect(() => Injector.get<int>(context: _context), throwsException);
+  });
+
+  testWidgets(
+      'Injector : should throw if get method with context and name at the same time',
+      (WidgetTester tester) async {
+    BuildContext _context;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject(() => ViewModel(), name: 'myName'),
+        ],
+        builder: (context) {
+          _context = context;
+          return Container();
+        },
+      ),
+    );
+    expect(
+      () => Injector.get<ViewModel>(context: _context, name: 'myName'),
+      throwsException,
+    );
+
+    expect(
+      () =>
+          Injector.getAsReactive<ViewModel>(context: _context, name: 'myName'),
+      throwsException,
+    );
+  });
+
+  testWidgets(
+      'Injector : should throw getting new instance with context defined',
+      (WidgetTester tester) async {
+    BuildContext _context;
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject(() => ViewModel()),
+        ],
+        builder: (context) {
+          _context = context;
+          return Container();
+        },
+      ),
+    );
+    expect(
+      () => Injector.getAsReactive<ViewModel>(
+          context: _context, asNewReactiveInstance: true),
+      throwsException,
+    );
   });
 
   testWidgets('Injector : should register Future and get StatesRebuilder Type',
@@ -1386,6 +1452,51 @@ void main() {
   );
 
   testWidgets(
+    'should throw after navigation',
+    (WidgetTester tester) async {
+      BuildContext _context;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Injector(
+            inject: [
+              Inject(() => ViewModel()),
+            ],
+            builder: (context) {
+              _context = context;
+
+              return Container();
+            },
+          ),
+        ),
+      );
+
+      Navigator.push(
+        _context,
+        MaterialPageRoute(
+          builder: (context) => Builder(
+            builder: (context) {
+              _context = context;
+
+              return Container();
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        () => Injector.get<ViewModel>(context: _context),
+        throwsException,
+      );
+
+      expect(
+        () => Injector.getAsReactive<ViewModel>(context: _context),
+        throwsException,
+      );
+    },
+  );
+
+  testWidgets(
     'should models from InheritedWidget and service locator be equal after navigation, Case navigation with Injector',
     (WidgetTester tester) async {
       BuildContext _context;
@@ -1410,17 +1521,18 @@ void main() {
       );
 
       Navigator.push(
-          _context,
-          MaterialPageRoute(
-              builder: (context) => Injector(
-                    reinject: [model1],
-                    builder: (context) {
-                      model2 =
-                          Injector.getAsReactive<Integer>(context: context);
+        _context,
+        MaterialPageRoute(
+          builder: (context) => Injector(
+            reinject: [model1],
+            builder: (context) {
+              model2 = Injector.getAsReactive<Integer>(context: context);
 
-                      return Container();
-                    },
-                  )));
+              return Container();
+            },
+          ),
+        ),
+      );
       await tester.pump();
 
       expect(model1 == model2, isTrue);

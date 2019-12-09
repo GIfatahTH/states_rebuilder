@@ -3,6 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
+  testWidgets(
+    'should throw if both builder and builderWith parameters are not defined',
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+
+      expect(
+        () => tester.pumpWidget(StateBuilder(
+          models: [vm],
+          tag: "myTag",
+        )),
+        throwsAssertionError,
+      );
+    },
+  );
+
   testWidgets('StateBuilder with one tag, rebuild state with this tag works',
       (WidgetTester tester) async {
     final vm = ViewModel();
@@ -82,6 +97,8 @@ void main() {
     expect(_tagID, isNull);
 
     await tester.pumpWidget(widget);
+
+    print(vm.observers());
 
     expect(vm.observers().length, equals(3));
 

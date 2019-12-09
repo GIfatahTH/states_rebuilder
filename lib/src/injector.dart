@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'assertions.dart';
 import 'inject.dart';
 import 'reactive_model.dart';
 import 'register_injected_models.dart';
@@ -20,7 +21,14 @@ class Injector extends StatefulWidget {
     this.afterInitialBuild,
     this.disposeModels = false,
   })  : assert(builder != null),
-        assert(inject != null || reinject != null),
+        assert(inject != null || reinject != null, '''
+
+| ***No model to inject***
+| You have to define either the 'inject' or 'reinject' parameter.
+| - 'inject' is use to inject new models.
+| - 'reinject' is used to inject an already injected model to make it available to new branch of the widget tree.
+|
+        '''),
         super(key: key);
 
   ///The builder closure. It takes as parameter the context.
@@ -69,38 +77,61 @@ class Injector extends StatefulWidget {
       return null;
     }
 
-    if (inject.isAsyncType == true) {
-      throw Exception(
-          'get method is not allowed with stream and future injection. Use getAsReactive');
-    }
+    assert(
+      () {
+        if (inject.isAsyncType == true) {
+          throw Exception(AssertMessage.getInjectStreamAndFutureError());
+        }
+        return true;
+      }(),
+    );
 
     final model = inject?.getSingleton();
 
     if (context != null) {
+      assert(
+        () {
+          if (model is! StatesRebuilder) {
+            throw Exception(
+                AssertMessage.getModelNotStatesRebuilderWithContext<T>());
+          }
+          return true;
+        }(),
+      );
       if (model is StatesRebuilder) {
-        if (name != null) {
-          throw Exception(
-              'You are using the context to register it to the InheritedWidget of type $T.'
-              'You can not use both context and name parameters');
-        }
+        assert(
+          () {
+            if (name != null) {
+              throw Exception(AssertMessage.getModelWithContextAndName<T>(
+                  'Injector.get', name));
+            }
+            return true;
+          }(),
+        );
 
         final inheritedWidget = ReactiveModel.staticOf<T>(context);
-        if (inheritedWidget == null && silent) {
-          throw Exception('No model is registered with type $T');
-        }
+        print('inheritedWidget $inheritedWidget');
+
+        assert(
+          () {
+            if (!silent && inheritedWidget == null) {
+              throw Exception(AssertMessage.inheritedWidgetOfReturnsNull<T>(
+                  'Injector.get'));
+            }
+            return true;
+          }(),
+        );
+
         model.addCustomObserver(() {
           _getInject(_name)?.rebuildInheritedWidget(null, null);
         });
-      } else {
-        throw Exception('The class $T does not extend StatesRebuilder.'
-            'Try removing the context parameter or make your class extends StatesRebuilder');
       }
     }
     return model;
   }
 
   ///Use [getAsReactive] instead. It will be removed in next releases.
-  @Deprecated('use gatAsModel instead')
+  @deprecated
   static ReactiveModel<T> getAsModel<T>(
       {dynamic name,
       BuildContext context,
@@ -131,15 +162,6 @@ class Injector extends StatefulWidget {
     bool asNewReactiveInstance = false,
     bool keepCustomStateStatus = false,
   }) {
-    assert(() {
-      if (asNewReactiveInstance == true && context != null) {
-        throw Exception(
-            'Avoid getting new instance of the model with the context defined\n'
-            'You can remove the [context] parameter and use [SatesBuilder] to register the model');
-      }
-      return true;
-    }());
-
     final String _name = name == null ? '$T' : name.toString();
 
     ReactiveModel<T> reactiveModel;
@@ -159,16 +181,43 @@ class Injector extends StatefulWidget {
           : _getInject(_name, silent)?.getReactiveSingleton();
     }
     if (context != null) {
-      if (name != null) {
-        throw Exception(
-            'You are using the context to register it to the InheritedWidget of type $T.'
-            'You can not use both context and name parameters');
-      }
+      assert(
+        () {
+          if (name != null) {
+            throw Exception(
+              AssertMessage.getModelWithContextAndName<T>(
+                'Injector.getAsReactive',
+                name,
+              ),
+            );
+          }
+          return true;
+        }(),
+      );
+
+      assert(
+        () {
+          if (asNewReactiveInstance == true) {
+            throw Exception(
+                AssertMessage.getNewReactiveInstanceWithContext<T>());
+          }
+          return true;
+        }(),
+      );
       final ReactiveModel<T> model = reactiveModel.of(context);
 
-      if (model == null && !silent) {
-        throw Exception('No model is registered with type $T');
-      }
+      assert(
+        () {
+          if (!silent && model == null) {
+            throw Exception(
+              AssertMessage.inheritedWidgetOfReturnsNull<T>(
+                'Injector.getAsReactive',
+              ),
+            );
+          }
+          return true;
+        }(),
+      );
 
       assert(model == reactiveModel);
     }
@@ -178,22 +227,18 @@ class Injector extends StatefulWidget {
 
   static Inject<dynamic> _getInject(String name, [bool silent = false]) {
     final model = InjectorState.allRegisteredModelInApp[name]?.last;
-    if (model == null) {
-      if (!silent) {
-        final Iterable<String> _keys =
-            InjectorState.allRegisteredModelInApp.keys;
+    assert(
+      () {
+        if (!silent && model == null) {
+          throw Exception(AssertMessage.modelNotRegistered(
+            name,
+            '${InjectorState.allRegisteredModelInApp.keys}',
+          ));
+        }
+        return true;
+      }(),
+    );
 
-        final String message = 'Model of type "$name" is not registered yet.\n'
-            'You have to register the model before calling it.\n'
-            '* To register the model use the `Injector` widget.\n'
-            '* You can set the silent parameter to true to silent the error.\n'
-            '***********************\n'
-            'The list of registered models is : $_keys';
-        throw Exception(message);
-      }
-
-      return null;
-    }
     return model;
   }
 

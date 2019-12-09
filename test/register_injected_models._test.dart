@@ -155,6 +155,21 @@ void main() {
 
     expect(isDisposed, isTrue);
   });
+
+  test("should dispose instances and clean _allRegisteredModelInApp", () {
+    final num1 = Inject(() => 1);
+    final service1 = Inject(() => Service1());
+
+    final models = [num1, service1];
+    final modelRegisterer =
+        RegisterInjectedModel(models, _allRegisteredModelInApp);
+
+    modelRegisterer.unRegisterInjectedModels(true);
+
+    expect(_allRegisteredModelInApp.length == 0, isTrue);
+
+    expect(isDisposed, isTrue);
+  });
 }
 
 bool isDisposed = false;

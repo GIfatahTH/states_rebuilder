@@ -85,8 +85,10 @@ void main() {
         tag: "tag1",
         observer: null,
       );
-      expect(() => vm.removeObserver(tag: "tag1", observer: null),
-          throwsException);
+      expect(
+        () => vm.removeObserver(tag: "", observer: null),
+        throwsException,
+      );
     });
 
     test("removeObserver works", () {
