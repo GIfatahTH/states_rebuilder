@@ -98,8 +98,6 @@ void main() {
 
     await tester.pumpWidget(widget);
 
-    print(vm.observers());
-
     expect(vm.observers().length, equals(3));
 
     isRebuilt = false;

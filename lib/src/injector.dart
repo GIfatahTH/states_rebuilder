@@ -110,7 +110,6 @@ class Injector extends StatefulWidget {
         );
 
         final inheritedWidget = ReactiveModel.staticOf<T>(context);
-        print('inheritedWidget $inheritedWidget');
 
         assert(
           () {

@@ -31,7 +31,8 @@ class StateBuilder<T> extends StatefulWidget {
   
   | ***Builder not defined***
   | You have to define either 'builder' or 'builderWithChild' parameter.
-  | Use 'builderWithChild' with 'child' parameter. If 'child' is null use
+  | Use 'builderWithChild' with 'child' parameter. 
+  | If 'child' is null use 'builder' instead.
   
         '''),
         super(
