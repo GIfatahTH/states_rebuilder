@@ -85,7 +85,7 @@ class MyHome extends StatelessWidget {
           ),
           Text("You have pushed this many times"),
           Text(counter.state.count.toString()),
-          counter.snapshot.connectionState == ConnectionState.waiting
+          counter.isWaiting
               ? CircularProgressIndicator()
               : RaisedButton(
                   child: Text("increment"),

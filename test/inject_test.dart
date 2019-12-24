@@ -86,27 +86,6 @@ void main() {
   );
 
   testWidgets(
-    'should getInstance work',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1()),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.singleton, isNull);
-      expect(inject1.getNewInstance(), isA<Counter1>());
-      expect(inject1.singleton, isNull);
-      int hashCode1 = inject1.getNewInstance().hashCode;
-      int hashCode2 = inject1.getNewInstance().hashCode;
-      expect(hashCode1 == hashCode2, isFalse);
-    },
-  );
-
-  testWidgets(
     'should getReactiveSingleton work for Stream a',
     (WidgetTester tester) async {
       Inject<dynamic> injectStream;

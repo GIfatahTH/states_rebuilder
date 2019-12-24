@@ -58,7 +58,6 @@ class CounterGrid extends StatelessWidget {
                         (state) => state.increment(),
                         filterTags: [i % 2, CounterGridTag.remoteWidget],
                         onSetState: (context) {
-                          print(bloc.connectionState);
                           bloc.customStateStatus = i % 2 == 0;
                         },
                       ),

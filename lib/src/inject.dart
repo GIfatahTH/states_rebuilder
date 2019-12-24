@@ -2,14 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'injector.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
 import 'states_rebuilder.dart';
 
+///Base class for [Inject]
 abstract class Injectable {
+  ///wrap with InheritedWidget
   Widget inheritedInject(Widget child);
 }
 
+///Join reactive singleton to reactive environment
 enum JoinSingleton {
   ///The reactive singleton retains the state of the new reactive instance that is being notified.
   withNewReactiveInstance,
@@ -24,7 +28,7 @@ enum JoinSingleton {
   ///
   ///Priority 3- The combined [ReactiveModel.connectionState] is 'none' if at least one of the new instances is 'none'.
   ///
-  ///Priority 4- The combined [ReactiveModel.hasDate] is true if it has no error, isn't awaiting  and is not in 'none' state.
+  ///Priority 4- The combined [ReactiveModel.hasData] is true if it has no error, isn't awaiting  and is not in 'none' state.
   withCombinedReactiveInstances
 }
 
@@ -86,7 +90,7 @@ class Inject<T> implements Injectable {
   /// The initial value.
   T initialValue;
 
-  /// True if the injected model is instantiated lazily; that is at the time of the first use with [getAsReactive] and [get].
+  /// True if the injected model is instantiated lazily; that is at the time of the first use with [Injector.getAsReactive] and [Injector.get].
   ///
   /// False if the injected model is instantiated at the time of the injection.
   ///
@@ -118,39 +122,46 @@ class Inject<T> implements Injectable {
   ///
   JoinSingleton joinSingleton;
 
+  ///Whether the reactive singleton is instantiated
   bool get isReactiveModel => reactiveSingleton != null;
+
+  ///Whether the model is of [StatesRebuilder] type
   bool get isStatesRebuilder => singleton is StatesRebuilder;
+
+  ///Whether the injected model is stream or future
   bool get isAsyncType => _isFutureType || _isStreamType;
 
   bool _isFutureType = false;
   bool _isStreamType = false;
   String _name; // cache for name
-  T singleton; // vanilla singleton
-  ReactiveModel<T> reactiveSingleton; // reactive singleton
-  List<ReactiveModel<T>> newReactiveInstanceList = <
-      ReactiveModel<
-          T>>[]; // List of new reactive instance created from this Inject
+  /// vanilla singleton
+  T singleton;
 
+  /// reactive singleton
+  ReactiveModel<T> reactiveSingleton;
+
+  /// List of new reactive instance created from this Inject
+  List<ReactiveModel<T>> newReactiveInstanceList = <ReactiveModel<T>>[];
+
+  /// Get the name of the model is registered with.
   String getName() {
-    if (_name == null) {
-      _name = '$T';
-    }
-    assert(_name != 'dynamic');
+    assert(T != dynamic);
+
+    _name ??= '$T';
+
     if (!isLazy) {
       getSingleton();
     }
     return _name;
   }
 
+  ///Get the registered singleton
   T getSingleton() {
     singleton ??= _creationFunction();
     return singleton;
   }
 
-  T getNewInstance() {
-    return _creationFunction();
-  }
-
+  ///Get the registered reactive singleton
   ReactiveModel<T> getReactiveSingleton() {
     if (reactiveSingleton == null) {
       if (_isFutureType) {
@@ -171,6 +182,7 @@ class Inject<T> implements Injectable {
     return reactiveSingleton;
   }
 
+  ///Get a new reactive instance
   ReactiveModel<T> getReactiveNewInstance([bool keepStateStatus]) {
     if (_isFutureType) {
       return reactiveSingleton;
@@ -190,8 +202,9 @@ class Inject<T> implements Injectable {
     }
   }
 
-  final _statesRebuilder = _StatesRebuilder();
+  final _StatesRebuilder _statesRebuilder = _StatesRebuilder();
 
+  ///Notify InheritedWidget
   void rebuildInheritedWidget(
     List<dynamic> tags,
     Function(BuildContext context) onSetState,
@@ -213,17 +226,23 @@ class Inject<T> implements Injectable {
   }
 }
 
+///Inherited widget class
 class InheritedInject<T> extends InheritedWidget {
-  InheritedInject({Key key, this.child, this.getReactiveSingleton})
+  ///Inherited widget class
+  const InheritedInject({Key key, Widget child, this.getReactiveSingleton})
       : super(key: key, child: child);
-  final Widget child;
-  final ReactiveModel<T> Function() getReactiveSingleton;
-  static final List<BuildContext> lastContext = [null];
 
+  ///get reactive singleton associated with this InheritedInject
+  final ReactiveModel<T> Function() getReactiveSingleton;
+
+  /// The last registered add BuildContext
+  static final List<BuildContext> lastContext = <BuildContext>[null];
+
+  ///get The model
   ReactiveModel<T> get model => getReactiveSingleton();
 
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) {
+  bool updateShouldNotify(InheritedInject<T> oldWidget) {
     return true;
   }
 }

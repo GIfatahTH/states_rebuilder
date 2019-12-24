@@ -1,4 +1,6 @@
+///Assertions
 class AssertMessage {
+  ///getInjectStreamAndFutureError
   static String getInjectStreamAndFutureError() {
     return '''
 
@@ -10,6 +12,7 @@ class AssertMessage {
       ''';
   }
 
+  /// getModelNotStatesRebuilderWithContext
   static String getModelNotStatesRebuilderWithContext<T>() {
     return '''
 
@@ -24,6 +27,7 @@ class AssertMessage {
         ''';
   }
 
+  ///getModelWithContextAndName
   static String getModelWithContextAndName<T>(String injectorGet, String name) {
     return '''
 | ***get model with both name and BuildContext***
@@ -44,6 +48,7 @@ class AssertMessage {
         ''';
   }
 
+  ///inheritedWidgetOfReturnsNull
   static String inheritedWidgetOfReturnsNull<T>(String injectorGet) {
     return '''
 | ***No InheritedWidget of type [$T] is found***
@@ -83,6 +88,7 @@ class AssertMessage {
         ''';
   }
 
+  ///modelNotRegistered
   static String modelNotRegistered(String name, String keys) {
     return '''|
 
@@ -96,6 +102,7 @@ class AssertMessage {
 |''';
   }
 
+  ///getNewReactiveInstanceWithContext
   static String getNewReactiveInstanceWithContext<T>() {
     return '''
 

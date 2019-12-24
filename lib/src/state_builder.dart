@@ -5,6 +5,8 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/add_observer.dart';
 import 'states_rebuilder.dart';
 
+/// You wrap any part of your widgets with [StateBuilder] Widget to make it Reactive.
+/// When [StatesRebuilder.rebuildStates] method is called, it will rebuild.
 class StateBuilder<T> extends StatefulWidget {
   /// You wrap any part of your widgets with [StateBuilder] Widget to make it Reactive.
   /// When [StatesRebuilder.rebuildStates] method is called, it will rebuild.
@@ -12,7 +14,6 @@ class StateBuilder<T> extends StatefulWidget {
     Key key,
     // For state management
     this.models,
-    this.viewModels,
     this.tag,
     this.builder,
     this.builderWithChild,
@@ -112,9 +113,8 @@ class StateBuilder<T> extends StatefulWidget {
   ///)
   ///```
   ///Called whenever the widget configuration changes.
-  final void Function(
-          BuildContext context, ReactiveModel<T> model, StateBuilder oldWidget)
-      didUpdateWidget;
+  final void Function(BuildContext context, ReactiveModel<T> model,
+      StateBuilder<T> oldWidget) didUpdateWidget;
 
   ///Called after the widget is first inserted in the widget tree.
   final void Function(BuildContext context, ReactiveModel<T> model)
@@ -136,7 +136,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   ///
-  ///Each [StateBuilder] has a default tag which is its [context]
+  ///Each [StateBuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
   ///```dart
@@ -148,17 +148,6 @@ class StateBuilder<T> extends StatefulWidget {
   ///List of your logic classes you want to rebuild this widget to subscribe.
   ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> models;
-
-  ///```dart
-  ///StateBuilder(
-  ///  models:[myModel1, myModel2,myModel3],
-  ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
-  ///)
-  ///```
-  ///List of your logic classes you want to rebuild this widget from.
-  ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
-  @Deprecated('use models instead')
-  final List<StatesRebuilder> viewModels;
 
   ///Whether to call dispose method of the models if exists.
   final bool disposeModels;
@@ -172,10 +161,14 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
   AddToObserver addToObserver;
   ReactiveModel<T> _exposedModel;
 
+  // Is true if the element has been marked as needing rebuilding.
+  bool _isDirty;
+
   @override
   void initState() {
+    _isDirty = true;
     super.initState();
-    List<StatesRebuilder> _models = widget.models ?? widget.viewModels;
+    List<StatesRebuilder> _models = widget.models;
 
     final String uniqueID = context.hashCode.toString();
 
@@ -209,13 +202,12 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
       );
       //created a new reactive instance from the provided generic type.
       _exposedModel =
-          Injector.getAsReactive<T>(asNewReactiveInstance: true, silent: true);
-
-      _exposedModel.addToReactiveNewInstanceList();
+          Injector.getAsReactive<T>(asNewReactiveInstance: true, silent: true)
+            ..addToReactiveNewInstanceList();
       _models = <StatesRebuilder>[_exposedModel];
     } else if (_models.first is ReactiveModel) {
       //Make the exposed model to be the first in the list
-      _exposedModel = _models.first;
+      _exposedModel = _models.first as ReactiveModel<T>;
     }
 
     if (_models != null) {
@@ -237,20 +229,27 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
     if (!mounted) {
       return false;
     }
-    setState(() {
-      if (onSetState != null) {
-        onSetState(context);
-      }
 
-      if (widget.onSetState != null) {
-        widget.onSetState(context, _exposedModel);
-      }
-    });
-    if (widget.onRebuildState != null) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => widget.onRebuildState(context, _exposedModel),
-      );
-    }
+    setState(
+      () {
+        if (onSetState != null) {
+          onSetState(context);
+        }
+
+        //Do not call [StateBuilder.onSetState] more than one for each rebuild
+        if (!_isDirty) {
+          if (widget.onSetState != null) {
+            widget.onSetState(context, _exposedModel);
+          }
+          if (widget.onRebuildState != null) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => widget.onRebuildState(context, _exposedModel),
+            );
+          }
+          _isDirty = true;
+        }
+      },
+    );
     return true;
   }
 
@@ -286,7 +285,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
   }
 
   @override
-  void didUpdateWidget(StateBuilder oldWidget) {
+  void didUpdateWidget(StateBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.didUpdateWidget != null)
       widget.didUpdateWidget(context, _exposedModel, oldWidget);
@@ -294,6 +293,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
 
   @override
   Widget build(BuildContext context) {
+    _isDirty = false;
     if (widget.afterRebuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterRebuild(context, _exposedModel),

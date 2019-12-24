@@ -46,21 +46,50 @@ void main() {
         reactiveModel.snapshot.connectionState, equals(ConnectionState.done));
   });
 
-  test("get the state and setState with error works", () async {
-    final reactiveModel = ReactiveStatesRebuilder<MyModelWithError>(
-        Inject(() => MyModelWithError()));
-    expect(reactiveModel.state.counter, equals(0));
-    expect(
-        reactiveModel.snapshot.connectionState, equals(ConnectionState.none));
-    reactiveModel.setState((state) => state.increment(), catchError: true);
-    expect(reactiveModel.snapshot.connectionState,
-        equals(ConnectionState.waiting));
-    await Future.delayed(Duration(seconds: 1));
-    expect(reactiveModel.snapshot.hasError, equals(true));
-    expect(reactiveModel.state.counter, equals(0));
-    expect(
-        reactiveModel.snapshot.connectionState, equals(ConnectionState.done));
-  });
+  test(
+    "get the state and setState with error works",
+    () async {
+      final reactiveModel = ReactiveStatesRebuilder<MyModelWithError>(
+        Inject(() => MyModelWithError()),
+      );
+      expect(reactiveModel.state.counter, equals(0));
+      expect(
+          reactiveModel.snapshot.connectionState, equals(ConnectionState.none));
+      reactiveModel.setState((state) => state.increment(), catchError: true);
+      expect(reactiveModel.snapshot.connectionState,
+          equals(ConnectionState.waiting));
+      await Future.delayed(Duration(seconds: 1));
+      expect(reactiveModel.snapshot.hasError, equals(true));
+      expect(reactiveModel.state.counter, equals(0));
+      expect(
+          reactiveModel.snapshot.connectionState, equals(ConnectionState.done));
+    },
+  );
+
+  test(
+    "get the state and setState with errorHandler works",
+    () async {
+      final reactiveModel = ReactiveStatesRebuilder<MyModelWithError>(
+        Inject(() => MyModelWithError()),
+      );
+
+      expect(reactiveModel.state.counter, equals(0));
+      expect(
+          reactiveModel.snapshot.connectionState, equals(ConnectionState.none));
+
+      reactiveModel.setState(
+        (state) => state.increment(),
+        errorHandler: (context, error) {},
+      );
+      expect(reactiveModel.snapshot.connectionState,
+          equals(ConnectionState.waiting));
+      await Future.delayed(Duration(seconds: 1));
+      expect(reactiveModel.snapshot.hasError, equals(true));
+      expect(reactiveModel.state.counter, equals(0));
+      expect(
+          reactiveModel.snapshot.connectionState, equals(ConnectionState.done));
+    },
+  );
 
   test(
       "get newReactiveInstance with reference to the reactiveSingletonInstance (wireNewWithSingleton=false)",

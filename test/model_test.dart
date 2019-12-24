@@ -30,13 +30,6 @@ void main() {
     final instance2 = model.getSingleton();
     expect(instance1.hashCode == instance2.hashCode, isTrue);
   });
-
-  test('getInstance return the different instance', () {
-    final Inject<Service> model = Inject(() => Service(), name: 'MyService');
-    final instance1 = model.getNewInstance();
-    final instance2 = model.getNewInstance();
-    expect(instance1.hashCode == instance2.hashCode, isFalse);
-  });
 }
 
 class IService {}

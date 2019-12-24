@@ -26,11 +26,6 @@ void main() {
       );
       expect(_allRegisteredModelInApp.length, equals(3));
       expect(_allRegisteredModelInApp["int"][0].getName(), "int");
-      expect(
-          _allRegisteredModelInApp["Service1"][0].getNewInstance() is Service1,
-          isTrue);
-      expect(_allRegisteredModelInApp["List<dynamic>"][0].getNewInstance()[1],
-          equals("myName"));
     });
 
     test(
@@ -56,7 +51,7 @@ void main() {
       expect(_allRegisteredModelInApp.length, equals(3));
       expect(_allRegisteredModelInApp["Service1"].length, equals(2));
       expect(
-          _allRegisteredModelInApp["Service1"][0] ==
+          _allRegisteredModelInApp["Service1"][0] !=
               _allRegisteredModelInApp["Service1"][1],
           isTrue);
     });

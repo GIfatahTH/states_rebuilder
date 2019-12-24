@@ -76,7 +76,7 @@ class MyHome extends StatelessWidget {
             builder: (BuildContext context, counterModel) {
               print("2- build");
 
-              if (counterModel.connectionState == ConnectionState.waiting) {
+              if (counterModel.isWaiting) {
                 return const CircularProgressIndicator();
               }
 

@@ -28,7 +28,7 @@ class App extends StatelessWidget {
               child: StateBuilder<CounterModel>(
                 models: [Injector.getAsReactive<CounterModel>()],
                 builder: (_, model) {
-                  if (model.connectionState == ConnectionState.waiting) {
+                  if (model.isWaiting) {
                     return CircularProgressIndicator(
                       backgroundColor: Colors.white,
                     );
@@ -66,9 +66,7 @@ class CounterGrid extends StatelessWidget {
                   StateBuilder<CounterModel>(
                     builder: (context, model) {
                       return GridItem(
-                        count: model.connectionState == ConnectionState.waiting
-                            ? null
-                            : model.state.counter,
+                        count: model.isWaiting ? null : model.state.counter,
                         onTap: () {
                           if (i % 2 == 0)
                             model.setState(

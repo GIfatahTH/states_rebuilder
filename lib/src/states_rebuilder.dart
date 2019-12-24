@@ -2,10 +2,13 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 
+import 'state_builder.dart';
+
 ///[StatesRebuilder] use the observer pattern.
 ///
 ///Observer classes should implement [ObserverOfStatesRebuilder]
 abstract class ObserverOfStatesRebuilder {
+  ///Method to executed when observer is notified.
   bool update([void Function(BuildContext) onSetState]);
 }
 
@@ -16,11 +19,13 @@ abstract class Subject {
   ///Notify observers
   void rebuildStates([List<dynamic> tags]);
 
+  ///Add Observer
   void addObserver({
     @required ObserverOfStatesRebuilder observer,
     @required String tag,
   });
 
+  ///Remove observer
   void removeObserver({
     @required ObserverOfStatesRebuilder observer,
     @required String tag,
@@ -30,7 +35,7 @@ abstract class Subject {
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder implements Subject {
   ///key holds the observer tags and the value holds the observers
-  ///_observers = {"tag" : [ observer]}
+  ///_observers = {"tag" : [[ observer ]]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
   final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observers =
       LinkedHashMap<String, List<ObserverOfStatesRebuilder>>();

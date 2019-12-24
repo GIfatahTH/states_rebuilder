@@ -636,6 +636,33 @@ void main() {
           equals(['rebuild', 'onSetState', 'rebuild', 'onRebuildState']));
     },
   );
+
+  testWidgets(
+    "should 'onSetState' is called one for each frame (_isDirty)",
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+      List<String> _rebuildTracker = [];
+      await tester.pumpWidget(
+        StateBuilder(
+          models: [vm],
+          onSetState: (context, model) => _rebuildTracker.add('onSetState'),
+          onRebuildState: (context, model) =>
+              _rebuildTracker.add('onRebuildState'),
+          builder: (_, __) {
+            _rebuildTracker.add('rebuild');
+            return Container();
+          },
+        ),
+      );
+
+      expect(_rebuildTracker, equals(['rebuild']));
+      vm.rebuildStates();
+      vm.rebuildStates();
+      await tester.pump();
+      expect(_rebuildTracker,
+          equals(['rebuild', 'onSetState', 'rebuild', 'onRebuildState']));
+    },
+  );
 }
 
 class ViewModel extends StatesRebuilder {}

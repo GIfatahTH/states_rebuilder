@@ -1,42 +1,48 @@
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 
+///package class used to register and unregister injected models
 class RegisterInjectedModel {
+  ///package class used to register and unregister injected models
   RegisterInjectedModel(this._injects, this._allRegisteredModelInApp) {
     registerInjectedModels();
   }
-  final List<Inject> modelRegisteredByThis = <Inject>[];
-  final List<Inject> _injects;
-  final Map<String, List<Inject>> _allRegisteredModelInApp;
 
+  ///List of models registered by one Injector
+  final List<Inject<dynamic>> modelRegisteredByThis = <Inject<dynamic>>[];
+  final List<Inject<dynamic>> _injects;
+  final Map<String, List<Inject<dynamic>>> _allRegisteredModelInApp;
+
+  ///register and injected models (called from the initState of Injector)
   void registerInjectedModels() {
     if (_injects == null || _injects.isEmpty) {
       return;
     }
 
-    for (final Inject inject in _injects) {
+    for (final Inject<dynamic> inject in _injects) {
       final String name = inject.getName();
       final List<Inject<dynamic>> injectedModels =
           _allRegisteredModelInApp[name];
       if (injectedModels == null) {
         _allRegisteredModelInApp[name] = <Inject<dynamic>>[inject];
-        modelRegisteredByThis.add(inject);
       } else {
-        _allRegisteredModelInApp[name].add(injectedModels.first);
-        modelRegisteredByThis.add(injectedModels.first);
+        _allRegisteredModelInApp[name].add(inject);
       }
+      modelRegisteredByThis.add(inject);
     }
   }
 
+  ///Unregister and injected models (called from the dispose of Injector)
   void unRegisterInjectedModels(
     bool disposeModels,
   ) {
-    for (final Inject inject in modelRegisteredByThis) {
+    for (final Inject<dynamic> inject in modelRegisteredByThis) {
       final String name = inject.getName();
       final List<Inject<dynamic>> injectedModels =
           _allRegisteredModelInApp[name];
 
       final bool isRemoved = injectedModels?.remove(inject);
+
       if (isRemoved && injectedModels.length <= 1) {
         if (disposeModels) {
           try {
