@@ -16,3 +16,4 @@ pubspec.lock
 .gitignore
 example/android/
 example/android/local.properties
+analysis_options.yaml

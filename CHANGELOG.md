@@ -1,3 +1,11 @@
+## 1.9.0 (2019-12-25)
+* Add assertion error helpful messages.
+* Add `isIdle` getter to the `ReactiveModel` as a shortcut to :
+ `connectionState == ConnectionState.none`
+* Add `isWaiting` getter to the `ReactiveModel` as a shortcut to :
+ `connectionState == ConnectionState.waiting`
+* Refactor codes to remove bugs and to use Flutter 1.12 version.
+
 ## 1.8.0 (2019-12-06)
 1- Add the following features: (See readme fille).
 *  `onSetState` and  `onRebuildState` parameters to the `StateBuilder`.

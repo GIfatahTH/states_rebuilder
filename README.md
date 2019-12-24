@@ -12,13 +12,15 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 >Define a one-to-many dependency between objects so that when one object changes state (observable object), all its dependents (observer objects) are notified and updated automatically.
 
 >**Intent of service locator pattern**   
->The purpose of the Service Locator pattern is to return the service instances on demand. This is useful for decoupling service consumers from concrete classes. It uses a central container known which on request returns the request instance.
+>The purpose of the Service Locator pattern is to return the service instances on demand. This is useful for decoupling service consumers from concrete classes. It uses a central container which on request returns the request instance.
 
 `states_rebuilder` combines the observer and service locator patterns to get what is called explicit reactivity and implicit reactivity.
 
 >Contrary to what one might think, implicit reactivity is simpler, more efficient and more powerful than explicit reactivity.
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+
+> [Tutorials](https://github.com/GIfatahTH/states-rebuilder-examples)
 
 # 1- Explicit reactivity
 
