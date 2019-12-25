@@ -4,6 +4,7 @@
  `connectionState == ConnectionState.none`
 * Add `isWaiting` getter to the `ReactiveModel` as a shortcut to :
  `connectionState == ConnectionState.waiting`
+* Add `errorHandler(BuildContext, dynamic)` parameter to `setState` method.
 * Refactor codes to remove bugs and to use Flutter 1.12 version.
 
 ## 1.8.0 (2019-12-06)
