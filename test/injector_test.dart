@@ -2029,6 +2029,64 @@ void main() {
           context0.hashCode == context1.hashCode, equals(false)); //TODO to fix
     },
   );
+
+  testWidgets(
+    'should whenConnectionState works',
+    (WidgetTester tester) async {
+      ReactiveModel<Integer> model;
+      String onConnectionState = '';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Injector(
+            inject: [
+              Inject<Integer>(() => Integer(0)),
+            ],
+            builder: (context) {
+              model = Injector.getAsReactive<Integer>(context: context);
+              print(model.snapshot);
+              return model.whenConnectionState(
+                onIdle: () => Builder(
+                  builder: (_) {
+                    onConnectionState += 'isIdle,';
+                    return Container();
+                  },
+                ),
+                onWaiting: () => Builder(
+                  builder: (_) {
+                    onConnectionState += ' isWaiting,';
+                    return Container();
+                  },
+                ),
+                onData: (_) => Builder(
+                  builder: (_) {
+                    onConnectionState += ' hasData';
+                    return Container();
+                  },
+                ),
+                onError: (error) => Builder(
+                  builder: (_) {
+                    onConnectionState += ' hasError';
+                    return Container();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      expect(onConnectionState, equals('isIdle,'));
+      model.setState((state) => state.incrementAsync());
+      await tester.pump();
+      await tester.pump(Duration(seconds: 1));
+      expect(onConnectionState, equals('isIdle, isWaiting, hasData'));
+      onConnectionState = '';
+      model.setState((state) => state.incrementWithError(), catchError: true);
+      await tester.pump();
+      await tester.pump(Duration(seconds: 1));
+      expect(onConnectionState, equals(' isWaiting, hasError'));
+    },
+  );
 }
 
 class App extends StatelessWidget {
