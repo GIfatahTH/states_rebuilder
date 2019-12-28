@@ -995,7 +995,7 @@ void main() {
       String errorMessage;
       Injector.getAsReactive<Integer>().setState(
         (state) => state.incrementWithError(),
-        errorHandler: (context, error) {
+        onError: (context, error) {
           errorMessage = error.message;
         },
       );
@@ -1067,40 +1067,43 @@ void main() {
     expect(_rebuildTracker, ["build", "onSetState", "build", 'onRebuildState']);
   });
 
-  testWidgets(
-      'should register new ReactiveModel with generic StateBuilder with add ane dispose in registeredNewModels ',
+  testWidgets('should register new ReactiveModel with generic StateBuilder ',
       (WidgetTester tester) async {
     int numberOfRebuild = 0;
     ReactiveModel<Integer> integerModel;
     bool switcher = true;
+    Inject inject;
     await tester.pumpWidget(
       Injector(
           inject: [
-            Inject<Integer>(() => Integer(0)),
+            inject = Inject<Integer>(() => Integer(0)),
           ],
           builder: (context) {
             integerModel = Injector.getAsReactive<Integer>(context: context);
             numberOfRebuild++;
             return switcher
-                ? StateBuilder<Integer>(builder: (context, model) {
-                    return Container();
-                  })
+                ? StateBuilder<Integer>(
+                    builder: (context, model) {
+                      return Container();
+                    },
+                  )
                 : Container();
           }),
     );
-    // expect(inject.getReactiveSingleton().registeredReactiveInstance.length, 1);
+    expect(inject.newReactiveInstanceList.length, 1);
     expect(numberOfRebuild, equals(1));
 
     switcher = false;
     integerModel.setState((_) {});
     await tester.pump();
     expect(numberOfRebuild, equals(2));
-    // expect(inject.getReactiveSingleton().registeredReactiveInstance.length, 0);
+    expect(inject.newReactiveInstanceList.length, 0);
   });
 
-  testWidgets('should wireSingletonWith work, default case (false)',
+  testWidgets('reactive singleton and new reactive instance are independent',
       (WidgetTester tester) async {
-    int numberOfRebuild = 0;
+    int numberOfRebuildSingleton = 0;
+    int numberOfRebuildNewReactive = 0;
     ReactiveModel<Integer> integerModelFromInsideStateBuilder;
     await tester.pumpWidget(
       Injector(
@@ -1109,24 +1112,26 @@ void main() {
           ],
           builder: (context) {
             Injector.getAsReactive<Integer>(context: context);
-            numberOfRebuild++;
+            numberOfRebuildSingleton++;
             return StateBuilder<Integer>(
               builder: (context, model) {
                 integerModelFromInsideStateBuilder = model;
+                numberOfRebuildNewReactive++;
                 return Container();
               },
             );
           }),
     );
-    expect(numberOfRebuild, equals(1));
+    expect(numberOfRebuildSingleton, equals(1));
+    expect(numberOfRebuildNewReactive, equals(1));
 
     integerModelFromInsideStateBuilder.setState((_) {});
     await tester.pump();
-    expect(numberOfRebuild, equals(1));
+    expect(numberOfRebuildSingleton, equals(1));
+    expect(numberOfRebuildNewReactive, equals(2));
   });
 
-  testWidgets('should wireSingletonWith work,  (true)',
-      (WidgetTester tester) async {
+  testWidgets('should joinSingleton work,', (WidgetTester tester) async {
     int numberOfRebuild = 0;
     ReactiveModel<Integer> integerModelFromInsideStateBuilder;
     await tester.pumpWidget(
@@ -1153,38 +1158,47 @@ void main() {
     expect(numberOfRebuild, equals(2));
   });
 
-  testWidgets(
-    'should wireSingletonWith work,  case newReactiveInstanceAndMerge',
-    (WidgetTester tester) async {
-      int numberOfRebuild = 0;
-      ReactiveModel<Integer> integerModelFromInsideStateBuilder;
-      Inject<Integer> inject;
-      await tester.pumpWidget(
-        Injector(
-            inject: [
-              inject = Inject<Integer>(
-                () => Integer(0),
-                joinSingleton: JoinSingleton.withCombinedReactiveInstances,
-              ),
-            ],
-            builder: (context) {
-              numberOfRebuild++;
-              return StateBuilder<Integer>(
-                builder: (context, model) {
-                  integerModelFromInsideStateBuilder = model;
-                  return Container();
-                },
-              );
-            }),
-      );
-      expect(inject.reactiveSingleton, isNull);
-      expect(numberOfRebuild, equals(1));
-      integerModelFromInsideStateBuilder.setState((_) {});
-      await tester.pump();
-      expect(numberOfRebuild, equals(1));
-      expect(inject.reactiveSingleton, isNull);
-    },
-  );
+  testWidgets('should joinSingleton work, case joinSingletonToNewData',
+      (WidgetTester tester) async {
+    ReactiveModel<Integer> newReactiveInstance;
+    ReactiveModel<Integer> reactiveSingleton;
+    await tester.pumpWidget(
+      Injector(
+          inject: [
+            Inject<Integer>(
+              () => Integer(0),
+              joinSingleton: JoinSingleton.withCombinedReactiveInstances,
+            ),
+          ],
+          builder: (context) {
+            reactiveSingleton =
+                Injector.getAsReactive<Integer>(context: context);
+            return StateBuilder<Integer>(builder: (context, model) {
+              newReactiveInstance = model;
+              return Container();
+            });
+          }),
+    );
+
+    expect(reactiveSingleton.joinSingletonToNewData, isNull);
+
+    newReactiveInstance.setState(
+      (_) {},
+      joinSingletonToNewData: 'From New reactive instance',
+    );
+    await tester.pump();
+    expect(
+        reactiveSingleton.joinSingletonToNewData, 'From New reactive instance');
+
+    newReactiveInstance.setState(
+      (_) {},
+      joinSingletonToNewData: 'another message from new reactive instance',
+    );
+    await tester.pump();
+    expect(reactiveSingleton.joinSingletonToNewData,
+        'another message from new reactive instance');
+  });
+
   testWidgets(
     'should notifyAllReactiveInstances work',
     (WidgetTester tester) async {
@@ -1230,7 +1244,7 @@ void main() {
   );
 
   testWidgets(
-    'should wireSingletonWith from Inject work,  case newReactiveInstanceAndMerge',
+    'should joinSingleton from Inject work,  case newReactiveInstanceAndMerge',
     (WidgetTester tester) async {
       ReactiveModel<Integer> integerModelFromInsideStateBuilder;
       ReactiveModel<Integer> integerModelFromInsideStateBuilder1;
@@ -1295,7 +1309,7 @@ void main() {
   );
 
   testWidgets(
-    'should wireSingletonWith from Inject work,  case newReactiveInstance',
+    'should joinSingleton from Inject work,  case JoinSingleton.withNewReactiveInstance',
     (WidgetTester tester) async {
       ReactiveModel<Integer> integerModelFromInsideStateBuilder;
       ReactiveModel<Integer> integerModelFromInsideStateBuilder1;
@@ -1359,7 +1373,7 @@ void main() {
     },
   );
   testWidgets(
-    'should wireSingletonWith from setState work,  case newReactiveInstanceAndMerge',
+    'should joinSingleton from setState work,  case newReactiveInstanceAndMerge',
     (WidgetTester tester) async {
       ReactiveModel<Integer> integerModelFromInsideStateBuilder;
       ReactiveModel<Integer> integerModelFromInsideStateBuilder1;
@@ -1427,7 +1441,7 @@ void main() {
   );
 
   testWidgets(
-    'should wireSingletonWith from setState work,  case newReactiveInstance',
+    'should joinSingleton from setState work,  case newReactiveInstance',
     (WidgetTester tester) async {
       ReactiveModel<Integer> integerModelFromInsideStateBuilder;
       ReactiveModel<Integer> integerModelFromInsideStateBuilder1;

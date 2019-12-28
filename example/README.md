@@ -207,7 +207,7 @@ class MyHome extends StatelessWidget {
         children: <Widget>[
           Builder(
             builder: (context) {
-              if (counterModel.connectionState == ConnectionState.waiting) {
+              if (counterModel.isWaiting) {
                 return CircularProgressIndicator();
               }
 
@@ -412,7 +412,7 @@ class App extends StatelessWidget {
               child: StateBuilder<CounterModel>(
                 models: [Injector.getAsReactive<CounterModel>()],
                 builder: (_, model) {
-                  if (model.connectionState == ConnectionState.waiting) {
+                  if (model.isWaiting) {
                     return CircularProgressIndicator(
                       backgroundColor: Colors.white,
                     );
@@ -450,7 +450,7 @@ class CounterGrid extends StatelessWidget {
                   StateBuilder<CounterModel>(
                     builder: (context, model) {
                       return GridItem(
-                        count: model.connectionState == ConnectionState.waiting
+                        count: model.isWaiting
                             ? null
                             : model.state.counter,
                         onTap: () {
@@ -458,10 +458,7 @@ class CounterGrid extends StatelessWidget {
                             model.setState(
                               (state) => state.increment(),
                               notifyAllReactiveInstances: true,
-                              onSetState: (context) {
-                                model.joinSingletonToNewData =
-                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
-                              },
+                              joinSingletonToNewData : 'I am Counter ${i + 1} I hold ${model.state.counter}';
                             );
                           else
                             model.setState(

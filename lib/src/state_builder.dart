@@ -36,6 +36,13 @@ class StateBuilder<T> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
+        assert(builderWithChild == null || child != null, '''
+  | ***child is null***
+  | You have defined the 'builderWithChild' parameter without defining the child parameter.
+  | Use 'builderWithChild' with 'child' parameter. 
+  | If 'child' is null use 'builder' instead.
+  
+        '''),
         super(
           key: key,
         );
@@ -178,23 +185,25 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
           if (T == dynamic) {
             throw Exception('''
       
-      ***No model is defined***
-      You have to either :
-      1- Provide a generic type to create and subscribe to a new reactive environnement
-        ex:
-         StateBuilder<MyModel>(
-           Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
-             return ...
-           }
-         )
-      2- define the [models] property. to subscribe to an already defined reactive environnement instance
-        ex:
-          StateBuilder(
-            models : [myModelInstance],
-            Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
-              return ...
-            }
-          )
+***No model is defined***
+You are using [StateBuilder] widget without providing a generic type or defining the [models] parameter.
+
+To fix, you have to either :
+1- Provide a generic type to create and subscribe to a new reactive environnement
+  ex:
+    StateBuilder<MyModel>(
+      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+        return ...
+      }
+    )
+2- define the [models] property. to subscribe to an already defined reactive environnement instance
+  ex:
+    StateBuilder(
+      models : [myModelInstance],
+      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+        return ...
+      }
+    )
       ''');
           }
           return true;

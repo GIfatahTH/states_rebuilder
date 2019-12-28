@@ -337,6 +337,8 @@ The getters are : 
       1- `ConnectionState.none`: Before executing any method of the model.  
       2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   
       3- `ConnectionState.done`: After running a synchronous method or the end of a pending asynchronous task.  
+* **isIdle** : It's of bool type. it is true if `connectionState` is `ConnectionState.none`
+* **isWaiting** : It's of bool type. it is true if `connectionState` is `ConnectionState.waiting`
 * **hasError**: It's of bool type. it is true if the asynchronous task ends with an error.
 * **error**: Is of type dynamic. It holds the thrown error.
 * **hasData**: It is of type bool. It is true if the connectionState is done without any error.
@@ -349,7 +351,7 @@ and one method:
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
 ```dart
-model.setState(
+reactiveModel.setState(
   (state) => state.increment(),
   filterTags: ['Tag1', Enumeration.Tag2],
   //set to true, you want to catch error, and not break the app.
@@ -368,6 +370,9 @@ model.setState(
   onRebuildState: (BuildContext context) {
     //The same as in onSetState but called after the end rebuild process.
   },
+  onError: (BuildContext context, dynamic error){
+    //Callback to be execute if the reactive model throws an error.
+  }
   //When a notification is issued, whether to notify all reactive instances of the model
   notifyAllReactiveInstances: true, 
   /*
@@ -376,6 +381,9 @@ model.setState(
   2- JoinSingleton.withCombinedReactiveInstances
   */
   joinSingletonWith: JoinSingleton.withNewReactiveInstance,
+
+  //message to be sent to the reactive singleton
+  dynamic joinSingletonToNewData,
 ),
 ```
 It is important to understand that `states_rebuilder` caches two singletons.
@@ -391,10 +399,10 @@ To create a new reactive instance of an injected model use:
 // get a new reactive instance
 ReactiveModel<T> model2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
 ```
-2- `StateBuilder` with generic type and without models property.
+2- `StateBuilder` with generic type and without `models` property.
 ```dart
 StateBuilder<T>(
-  builder:(BuildContext context, T newReactiveModel){
+  builder:(BuildContext context, ReactiveModel<T> newReactiveModel){
     return YourWidget();
   }
 )

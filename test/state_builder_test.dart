@@ -18,6 +18,24 @@ void main() {
     },
   );
 
+  testWidgets(
+    'should throw if both builderWith parameter is defined without child parameter',
+    (WidgetTester tester) async {
+      final vm = ViewModel();
+
+      expect(
+        () => tester.pumpWidget(StateBuilder(
+          models: [vm],
+          tag: "myTag",
+          builderWithChild: (context, _, __) {
+            return Container();
+          },
+        )),
+        throwsAssertionError,
+      );
+    },
+  );
+
   testWidgets('StateBuilder with one tag, rebuild state with this tag works',
       (WidgetTester tester) async {
     final vm = ViewModel();
@@ -425,6 +443,7 @@ void main() {
       models: [vm],
       tag: "mainState",
       builderWithChild: (_, __, ___) => switcher ? widget1 : widget2,
+      child: Container(),
     ));
 
     expect(vm.observers().length, equals(4));

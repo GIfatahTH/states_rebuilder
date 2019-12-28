@@ -69,14 +69,10 @@ class CounterGrid extends StatelessWidget {
                         count: model.isWaiting ? null : model.state.counter,
                         onTap: () {
                           if (i % 2 == 0)
-                            model.setState(
-                              (state) => state.increment(),
-                              notifyAllReactiveInstances: true,
-                              onSetState: (context) {
-                                model.joinSingletonToNewData =
-                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
-                              },
-                            );
+                            model.setState((state) => state.increment(),
+                                notifyAllReactiveInstances: true,
+                                joinSingletonToNewData:
+                                    'I am Counter ${i + 1} I hold ${model.state.counter}');
                           else
                             model.setState(
                               (state) => state.incrementAsync(),

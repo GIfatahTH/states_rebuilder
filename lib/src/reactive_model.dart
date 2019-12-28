@@ -127,7 +127,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     dynamic Function(T state) watch,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
-    void Function(BuildContext context, dynamic error) errorHandler,
+    void Function(BuildContext context, dynamic error) onError,
+    dynamic joinSingletonToNewData,
     JoinSingleton joinSingletonWith,
     bool notifyAllReactiveInstances = false,
   }) async {
@@ -158,10 +159,12 @@ This is not allowed, because setState method of a reactive model injected using 
         });
       }
 
-      if (errorHandler != null && hasError) {
-        errorHandler(context ?? _lastContext, error);
+      if (onError != null && hasError) {
+        onError(context ?? _lastContext, error);
       }
     };
+
+    this.joinSingletonToNewData = joinSingletonToNewData;
 
     try {
       final dynamic result = fn(state) as dynamic;
@@ -186,7 +189,7 @@ This is not allowed, because setState method of a reactive model injected using 
         joinSingleton: joinSingletonWith,
       );
 
-      if (!catchError && errorHandler == null) {
+      if (!catchError && onError == null) {
         rethrow;
       }
       return;
@@ -271,7 +274,7 @@ This is not allowed, because setState method of a reactive model injected using 
   }
 
   AsyncSnapshot<T> _getCombinedSnapshot() {
-    //First priority : The combined [ReactiveModel.hasError] is true is at least one of the new instances has error
+    //First priority : The combined [ReactiveModel.hasError] is true if at least one of the new instances has error
     if (hasError) {
       return snapshot;
     }
@@ -285,7 +288,7 @@ This is not allowed, because setState method of a reactive model injected using 
       return _model.snapshot;
     }
 
-    //Second priority The combined [ReactiveModel.connectionState] is awaiting if at least one of the new instances is awaiting.
+    //Second priority The combined [ReactiveModel.connectionState] if awaiting if at least one of the new instances is awaiting.
     if (connectionState == ConnectionState.waiting) {
       return snapshot;
     }

@@ -79,7 +79,7 @@ void main() {
 
       reactiveModel.setState(
         (state) => state.increment(),
-        errorHandler: (context, error) {},
+        onError: (context, error) {},
       );
       expect(reactiveModel.snapshot.connectionState,
           equals(ConnectionState.waiting));
