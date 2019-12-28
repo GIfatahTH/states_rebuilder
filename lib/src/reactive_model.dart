@@ -95,6 +95,24 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   BuildContext _lastContext;
 
+  Widget whenConnectionState({
+    @required Widget Function() onIdle,
+    @required Widget Function() onWaiting,
+    @required Widget Function(T state) onData,
+    @required Widget Function(dynamic error) onError,
+  }) {
+    if (this.isIdle) {
+      return onIdle();
+    }
+    if (this.hasError) {
+      return onError(this.error);
+    }
+    if (this.isWaiting) {
+      return onWaiting();
+    }
+    return onData(this.state);
+  }
+
   /// Mutate the state of the model and notify observers.
   ///
   /// [fn] takes the current state as argument. You can optionally define
