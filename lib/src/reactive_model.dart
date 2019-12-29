@@ -95,11 +95,11 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   BuildContext _lastContext;
 
-  Widget whenConnectionState({
-    @required Widget Function() onIdle,
-    @required Widget Function() onWaiting,
-    @required Widget Function(T state) onData,
-    @required Widget Function(dynamic error) onError,
+  R whenConnectionState<R>({
+    @required R Function() onIdle,
+    @required R Function() onWaiting,
+    @required R Function(T state) onData,
+    @required R Function(dynamic error) onError,
   }) {
     if (this.isIdle) {
       return onIdle();
