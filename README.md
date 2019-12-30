@@ -168,7 +168,7 @@ Injector(
   .
 );
 ```
-Models are registered lazily be default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
+Models are registered lazily by default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
 
 In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
 
@@ -344,11 +344,14 @@ The getters are : 
 * **hasError**: It's of bool type. it is true if the asynchronous task ends with an error.
 * **error**: Is of type dynamic. It holds the thrown error.
 * **hasData**: It is of type bool. It is true if the connectionState is done without any error.
+The fields are:
 * **customStateStatus**: It is of type dynamic. It holds your custom-defined state status. For example, in a timer app, you can define custom states such as 'plying', 'paused, 'finished'.
-* **joinSingletonToNewData** : It is of type dynamic. It holds date sent from new reactive instance to the reactive singleton.
-* **subscription** : it is of type `StreamSubscription<T>`. It is not null if you inject streams using `Inject.stream` constructor. It is used to control the injected stream.
-and one method:
+* **joinSingletonToNewData** : It is of type dynamic. It holds data sent from new reactive instance to the reactive singleton.
+* **subscription** : it is of type `StreamSubscription<T>`. It is not null if you inject streams using `Inject.stream` constructor. It is used to control the injected stream.   
+
+The methods are:
 * **setState(T state)**: return a `Future<void>`. It takes the state as a parameter that corresponds to the singleton instance of the injected model. It is used to mutate the state and notify listeners after state mutation.
+* **whenConnectionState** return a `Widget`. It has four required parameters to through all possible state status (`onIdle`, `onWaiting`, `onData` and `onError`).
 
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
@@ -374,6 +377,8 @@ reactiveModel.setState(
   },
   onError: (BuildContext context, dynamic error){
     //Callback to be execute if the reactive model throws an error.
+    //You do not have to set the parameter catchError to true. By defining onError parameter 
+    //states_rebuilder catches the error by default.
   }
   //When a notification is issued, whether to notify all reactive instances of the model
   notifyAllReactiveInstances: true, 
@@ -389,8 +394,8 @@ reactiveModel.setState(
 ),
 ```
 It is important to understand that `states_rebuilder` caches two singletons.
-* The raw singleton of the registered model. Obtained using `Injector.get` method.
-* The reactive singleton of the registered model (the raw model decorated with reactive environnement). Obtained using `Injector.getAsReactive`.
+* The raw singleton of the registered model, obtained using `Injector.get` method.
+* The reactive singleton of the registered model (the raw model decorated with reactive environnement), obtained using `Injector.getAsReactive`.
 
 With `states_rebuilder`, you can create, at any time, a new reactive instance, which is the same raw cashed singleton but decorated with a new reactive environment.
 
@@ -420,7 +425,7 @@ final model =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
 
 return Injector(
 inject: [
-  Inject( () => model, name: 'new1'),
+  Inject( () => model, name: 'newModel1'),
 ],
 )
 // Or
@@ -429,7 +434,7 @@ inject: [
   Inject<Counter>(() => Counter()),
   Inject(
     () => Injector.getAsReactive<Counter>(asNewReactiveInstance: true),
-    name: Enum.new1,
+    name: Enum.newModel1,
   ),
 ],
 ```
@@ -437,9 +442,9 @@ At later time if you want to consume the injected new reactive instance you use:
 
 ```dart
 // get the injected new reactive instance
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : 'new1');
+ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : 'newModel1');
 //Or
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.new1);
+ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.newModel1);
 ```
 * You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
@@ -454,7 +459,7 @@ ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.new1);
   Priority 1- The combined `ReactiveModel.hasError` is true if at least one of the new instances has error    
   Priority 2- The combined `ReactiveModel.connectionState` is awaiting if at least one of the new instances is awaiting.    
   Priority 3- The combined `ReactiveModel.connectionState` is 'none' if at least one of the new instances is 'none'.     
-  Priority 4- The combined `ReactiveModel.hasDate` is true if it has no error, isn't awaiting  and is not in 'none' state.
+  Priority 4- The combined `ReactiveModel.hasDate` is true if it has no error, it isn't awaiting  and it is not in 'none' state.
 * `joinSingletonWith` can be defined in `setState` method or in `Inject` class constructor. When set in the `setState` method, it means that only the new instance, where` setState` is called, is joined to the reactive singleton. Whereas if `joinSingletonWith` is defined in the` Inject` constructor, this means that all new reactive instances will be joined to the reactive singleton.
 * New reactive instances can send data to the reactive singleton. `joinSingletonToNewData` parameter of reactive environment hold the sending message.
 
