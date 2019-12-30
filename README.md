@@ -344,6 +344,7 @@ The getters are : 
 * **hasError**: It's of bool type. it is true if the asynchronous task ends with an error.
 * **error**: Is of type dynamic. It holds the thrown error.
 * **hasData**: It is of type bool. It is true if the connectionState is done without any error.
+
 The fields are:
 * **customStateStatus**: It is of type dynamic. It holds your custom-defined state status. For example, in a timer app, you can define custom states such as 'plying', 'paused, 'finished'.
 * **joinSingletonToNewData** : It is of type dynamic. It holds data sent from new reactive instance to the reactive singleton.
@@ -351,7 +352,7 @@ The fields are:
 
 The methods are:
 * **setState(T state)**: return a `Future<void>`. It takes the state as a parameter that corresponds to the singleton instance of the injected model. It is used to mutate the state and notify listeners after state mutation.
-* **whenConnectionState** return a `Widget`. It has four required parameters to through all possible state status (`onIdle`, `onWaiting`, `onData` and `onError`).
+* **whenConnectionState** Exhaustively switch over all the possible statuses of [connectionState]. Used mostly to return [Widget]s. It has four required parameters (`onIdle`, `onWaiting`, `onData` and `onError`).
 
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
