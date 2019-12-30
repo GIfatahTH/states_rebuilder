@@ -95,6 +95,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   BuildContext _lastContext;
 
+  ///Exhaustively switch over all the possible statuses of [connectionState].
+  ///Used mostly to return [Widget]s.
   R whenConnectionState<R>({
     @required R Function() onIdle,
     @required R Function() onWaiting,
