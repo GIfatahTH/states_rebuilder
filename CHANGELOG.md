@@ -1,5 +1,5 @@
-## 1.10.0 (2019-12-29)
-* Add `whenConnectionState` method to the `ReactiveModel`. It goes through all state status (idle, waiting, data, error) and return the appropriate user defined widget.
+## 1.10.0 (2019-12-30)
+* Add `whenConnectionState` method to the `ReactiveModel`. IT exhaustively switch over all the possible statuses of `connectionState`. Used mostly to return a Widget.
 
 ## 1.9.0 (2019-12-28)
 * Add assertion error helpful messages.
