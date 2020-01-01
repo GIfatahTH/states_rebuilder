@@ -150,7 +150,11 @@ class Inject<T> implements Injectable {
     _name ??= '$T';
 
     if (!isLazy) {
-      getSingleton();
+      if (isAsyncType) {
+        getReactiveSingleton();
+      } else {
+        getSingleton();
+      }
     }
     return _name;
   }

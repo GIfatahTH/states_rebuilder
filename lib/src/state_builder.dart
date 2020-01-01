@@ -138,22 +138,28 @@ class StateBuilder<T> extends StatefulWidget {
   final void Function(BuildContext context, ReactiveModel<T> model)
       onRebuildState;
 
-  ///A custom name of your widget. It is used to rebuild this widget
-  ///from your logic classes.
+  ///A tag or list of tags you want this [StateBuilder] to register with.
+  ///
+  ///Whenever any of the observable model to which this [StateBuilder] is subscribed emits
+  ///a notifications with a list of filter tags, this [StateBuilder] will rebuild if the
+  ///the filter tags list contains at least on of those tags.
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   ///
   ///Each [StateBuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
   ///StateBuilder(
-  ///  models:[myModel1, myModel2,myModel3],
+  ///  models:[myModel1, myModel2, myModel3],
   ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
   ///)
   ///```
-  ///List of your logic classes you want to rebuild this widget to subscribe.
-  ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
+  ///states_rebuilder uses the observer pattern.
+  ///
+  ///Observable classes are classes that extends [StatesRebuilder].
+  ///[ReactiveModel] is one of them.
   final List<StatesRebuilder> models;
 
   ///Whether to call dispose method of the models if exists.

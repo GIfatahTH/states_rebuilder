@@ -232,22 +232,51 @@ void main() {
   });
 
   testWidgets(
-      'Injector : should throw if get method is used with stream or future injection',
+      'Injector : should Injector.get work for model injected with Inject.Future',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       Injector(
         inject: [
           Inject<bool>.future(
-              () => Future.delayed(Duration(seconds: 1), () => false)),
+            () => Future.delayed(
+              Duration(seconds: 1),
+              () => false,
+            ),
+            initialValue: true,
+            isLazy: false,
+          ),
         ],
         builder: (_) {
           return Container();
         },
       ),
     );
-    expect(() => Injector.get<bool>(), throwsException);
+    expect(Injector.get<bool>(), isTrue);
+    await tester.pump(Duration(seconds: 2));
+    expect(Injector.get<bool>(), isFalse);
   });
 
+  testWidgets('Injector : should Inject.future not lazily work',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Injector(
+        inject: [
+          Inject<bool>.future(
+            () => Future.delayed(
+              Duration(seconds: 1),
+              () => false,
+            ),
+            isLazy: false,
+          ),
+        ],
+        builder: (_) {
+          return Container();
+        },
+      ),
+    );
+    await tester.pump(Duration(seconds: 2));
+    expect(Injector.getAsReactive<bool>().state, isFalse);
+  });
   testWidgets(
       'Injector : should throw if get method with context is used with non reactive model',
       (WidgetTester tester) async {
@@ -1758,20 +1787,77 @@ void main() {
         ),
       );
 
-      expect(model1.hashCode, equals(model1.hashCode));
+      expect(model1.hashCode, equals(model2.hashCode));
       expect(numberOFRebuild1, equals(1));
       expect(numberOFRebuild2, equals(1));
       isTrue = false;
       vm.rebuildStates();
       await tester.pump();
-      expect(model1.hashCode, equals(model1.hashCode));
+      expect(model1.hashCode, equals(model2.hashCode));
       expect(numberOFRebuild1, equals(1));
-      // expect(numberOFRebuild2, equals(2));//TODO build in initState of injector
       model2.setState((_) {});
       await tester.pump();
       expect(model1.hashCode, equals(model1.hashCode));
       expect(numberOFRebuild1, equals(1));
       expect(numberOFRebuild2, equals(2));
+    },
+  );
+
+  testWidgets(
+    'When a parent of injector rebuild the injector child tree will not rebuild',
+    (WidgetTester tester) async {
+      ReactiveModel<Integer> model1;
+      int numberOFRebuild1 = 0;
+
+      final vm = ViewModel();
+      await tester.pumpWidget(
+        StateBuilder(
+          models: [vm],
+          builder: (_, __) {
+            return Column(
+              children: <Widget>[
+                Injector(
+                  inject: [
+                    Inject<Integer>(() => Integer(0)),
+                  ],
+                  builder: (context) {
+                    model1 = Injector.getAsReactive<Integer>(context: context);
+                    numberOFRebuild1++;
+                    return Container();
+                  },
+                )
+              ],
+            );
+          },
+        ),
+      );
+
+      expect(numberOFRebuild1, equals(1));
+      vm.rebuildStates();
+      await tester.pump();
+      expect(numberOFRebuild1, equals(1));
+      model1.setState((_) {});
+      await tester.pump();
+      expect(numberOFRebuild1, equals(2));
+    },
+  );
+
+  testWidgets(
+    'should throw if setState is call on a reactive model with no subscribed widget',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        Injector(
+          inject: [
+            Inject<Integer>(() => Integer(0)),
+          ],
+          builder: (context) {
+            return Container();
+          },
+        ),
+      );
+
+      expect(() => Injector.getAsReactive<Integer>().setState((_) {}),
+          throwsException);
     },
   );
 
@@ -2121,7 +2207,7 @@ class Integer {
   int value = 0;
   Integer(this.value);
   incrementAsync() async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(microseconds: 1));
     value++;
   }
 

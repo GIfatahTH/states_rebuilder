@@ -93,6 +93,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   ReactiveModel<dynamic> get _reactiveSingleton => _inject?.reactiveSingleton;
 
+  //holds the  context of  the last call of Injector.get(context:context) or Injector.getAsReactive(context: context)
   BuildContext _lastContext;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
@@ -167,7 +168,37 @@ This is not allowed, because setState method of a reactive model injected using 
     final String before = watch != null ? watch(state)?.toString() : null;
 
     final Function(BuildContext context) _onSetState = (BuildContext context) {
-      assert(context != null || _lastContext != null);
+      //context is from the last subscribed StateBuilder
+      //_lastContext is from the last call of Injector.get(context:context) or Injector.getAsReactive(context: context)
+      assert(() {
+        if (context == null && _lastContext == null) {
+          final runtimeType = '${this.runtimeType}'
+              .replaceAll('ReactiveStatesRebuilder<', '')
+              .replaceAll('>', '');
+          throw Exception(
+            '''
+
+***No observer is subscribed yet***
+| There is no observer subscribed to this observable $runtimeType model.
+| To subscribe a widget you use:
+| 1- StateRebuilder for an already defined:
+|   ex:
+|   StatesRebuilder(
+|     models: [${runtimeType}instance],
+|     builder : ....
+|   )
+| 2- Injector.getAsReactive<$runtimeType>(context : context). for implicit reactivity.
+| 3- StateRebuilder for new reactive environment:
+|   ex:
+|   StatesRebuilder<$runtimeType>(
+|     builder : ....
+|   )
+| 4- StatesWithMixinBuilder. similar to StateBuilder.
+''',
+          );
+        }
+        return true;
+      }());
 
       if (onSetState != null) {
         onSetState(context ?? _lastContext);

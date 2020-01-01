@@ -78,17 +78,12 @@ class Injector extends StatefulWidget {
     if (inject == null) {
       return null;
     }
-
-    assert(
-      () {
-        if (inject.isAsyncType == true) {
-          throw Exception(AssertMessage.getInjectStreamAndFutureError());
-        }
-        return true;
-      }(),
-    );
-
-    final T model = inject?.getSingleton();
+    T model;
+    if (inject.isAsyncType == true) {
+      model = inject?.getReactiveSingleton()?.state;
+    } else {
+      model = inject?.getSingleton();
+    }
 
     if (context != null) {
       assert(
@@ -129,23 +124,6 @@ class Injector extends StatefulWidget {
       }
     }
     return model;
-  }
-
-  ///Use [getAsReactive] instead. It will be removed in next releases.
-  @deprecated
-  static ReactiveModel<T> getAsModel<T>(
-      {dynamic name,
-      BuildContext context,
-      bool silent = false,
-      bool asNewReactiveInstance = false,
-      bool resetStateStatus = false}) {
-    return getAsReactive<T>(
-      name: name,
-      context: context,
-      silent: silent,
-      asNewReactiveInstance: asNewReactiveInstance,
-      keepCustomStateStatus: resetStateStatus,
-    );
   }
 
   ///Get The registered reactive singleton with type $T or with name [name] if it is defined.

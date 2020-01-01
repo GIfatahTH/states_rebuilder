@@ -1,3 +1,9 @@
+## 1.11.0 (2019-12-30)
+* Remove deprecated `getAsModel` and `hasState`.
+* `Inject.get` for injected streams and future will no longer throw, it will return the the current value.
+  
+
+
 ## 1.10.0 (2019-12-30)
 * Add `whenConnectionState` method to the `ReactiveModel`. IT exhaustively switch over all the possible statuses of `connectionState`. Used mostly to return a Widget.
 
