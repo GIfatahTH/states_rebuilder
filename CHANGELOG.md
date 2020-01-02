@@ -1,5 +1,6 @@
 ## 1.10.1 (2019-12-30)
 * `Inject.get` for injected streams and future will no longer throw, it will return the the current value.
+* If `whenConnectionState` is defined, `catchError` is set true automatically.
 * Remove deprecated `getAsModel` and `hasState`.
 * Update docs and add Dependency Injection section in the readme file.
 

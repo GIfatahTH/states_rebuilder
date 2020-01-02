@@ -467,8 +467,8 @@ void main() {
         ),
       );
 
-      expect(() => Injector.getAsReactive<int>().setState(null),
-          throwsException);
+      expect(
+          () => Injector.getAsReactive<int>().setState(null), throwsException);
     },
   );
 
@@ -487,8 +487,8 @@ void main() {
         ),
       );
 
-      expect(() => Injector.getAsReactive<int>().setState(null),
-          throwsException);
+      expect(
+          () => Injector.getAsReactive<int>().setState(null), throwsException);
       await tester.pump(Duration(seconds: 1));
     },
   );
@@ -2168,7 +2168,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(onConnectionState, equals('isIdle, isWaiting, hasData'));
       onConnectionState = '';
-      model.setState((state) => state.incrementWithError(), catchError: true);
+      model.setState((state) => state.incrementWithError());
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
       expect(onConnectionState, equals(' isWaiting, hasError'));

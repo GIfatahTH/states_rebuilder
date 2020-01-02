@@ -144,7 +144,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   Future<void> setState(
     Object Function(T model) fn, {
     List<dynamic> filterTags,
-    bool catchError = false,
+    bool catchError,
     dynamic Function(T state) watch,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
@@ -164,6 +164,10 @@ This is not allowed, because setState method of a reactive model injected using 
       }
       return true;
     }());
+
+    if (catchError == null) {
+      catchError = false || onError != null || whenConnectionState != null;
+    }
 
     final String before = watch != null ? watch(state)?.toString() : null;
 
@@ -240,7 +244,7 @@ This is not allowed, because setState method of a reactive model injected using 
         joinSingleton: joinSingletonWith,
       );
 
-      if (!catchError && onError == null) {
+      if (!catchError) {
         rethrow;
       }
       return;
