@@ -117,7 +117,7 @@ class CounterGrid extends StatelessWidget {
                           child: GridItem(
                             count: bloc.state.counter,
                             onTap: () => bloc.setState((value) => value
-                                .triggerAnimation(() => bloc.setState((_) {}))),
+                                .triggerAnimation(() => bloc.setState(null))),
                           ),
                         ),
                       ),

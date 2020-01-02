@@ -467,7 +467,7 @@ void main() {
         ),
       );
 
-      expect(() => Injector.getAsReactive<int>().setState((state) {}),
+      expect(() => Injector.getAsReactive<int>().setState(null),
           throwsException);
     },
   );
@@ -487,7 +487,7 @@ void main() {
         ),
       );
 
-      expect(() => Injector.getAsReactive<int>().setState((state) {}),
+      expect(() => Injector.getAsReactive<int>().setState(null),
           throwsException);
       await tester.pump(Duration(seconds: 1));
     },
@@ -606,7 +606,7 @@ void main() {
 
     isRebuilt = false;
     //notify to rebuild
-    vm.setState((_) {});
+    vm.setState(null);
     await tester.pump();
     expect(Injector.get<ViewModel>().message, equals("I am injected"));
     expect(Injector.get<Service1>().message, equals("I am Service1"));
@@ -652,7 +652,7 @@ void main() {
     expect(disposeStateIsCalled, isFalse);
 
     switcher = false;
-    vm.setState((_) {});
+    vm.setState(null);
     await tester.pump();
     expect(Injector.get<ViewModel>().message, equals("I am injected"));
     expect(() => Injector.get<Service1>(), throwsException);
@@ -725,7 +725,7 @@ void main() {
     isRebuilt = false;
     expect(vm, isNot(isNull));
     //notify to rebuild
-    vm.setState((_) {});
+    vm.setState(null);
     await tester.pump();
     expect(Injector.get<ViewModel>().message, equals("I am injected"));
     expect(Injector.get<Service1>().message, equals("I am Service1"));
@@ -778,7 +778,7 @@ void main() {
       );
 
       expect(numberOfCall, 1);
-      vm.setState((_) {});
+      vm.setState(null);
       await tester.pump();
       expect(numberOfCall, 1);
     },
@@ -1123,7 +1123,7 @@ void main() {
     expect(numberOfRebuild, equals(1));
 
     switcher = false;
-    integerModel.setState((_) {});
+    integerModel.setState(null);
     await tester.pump();
     expect(numberOfRebuild, equals(2));
     expect(inject.newReactiveInstanceList.length, 0);
@@ -1154,7 +1154,7 @@ void main() {
     expect(numberOfRebuildSingleton, equals(1));
     expect(numberOfRebuildNewReactive, equals(1));
 
-    integerModelFromInsideStateBuilder.setState((_) {});
+    integerModelFromInsideStateBuilder.setState(null);
     await tester.pump();
     expect(numberOfRebuildSingleton, equals(1));
     expect(numberOfRebuildNewReactive, equals(2));
@@ -1182,7 +1182,7 @@ void main() {
     );
     expect(numberOfRebuild, equals(1));
 
-    integerModelFromInsideStateBuilder.setState((_) {});
+    integerModelFromInsideStateBuilder.setState(null);
     await tester.pump();
     expect(numberOfRebuild, equals(2));
   });
@@ -1212,7 +1212,7 @@ void main() {
     expect(reactiveSingleton.joinSingletonToNewData, isNull);
 
     newReactiveInstance.setState(
-      (_) {},
+      null,
       joinSingletonToNewData: 'From New reactive instance',
     );
     await tester.pump();
@@ -1220,7 +1220,7 @@ void main() {
         reactiveSingleton.joinSingletonToNewData, 'From New reactive instance');
 
     newReactiveInstance.setState(
-      (_) {},
+      null,
       joinSingletonToNewData: 'another message from new reactive instance',
     );
     await tester.pump();
@@ -1263,7 +1263,7 @@ void main() {
       expect(numberOfRebuild, equals(1));
       expect(numberOfRebuild1, equals(1));
       expect(numberOfRebuild2, equals(1));
-      integerModelFromInsideStateBuilder.setState((_) {},
+      integerModelFromInsideStateBuilder.setState(null,
           notifyAllReactiveInstances: true);
       await tester.pump();
       expect(numberOfRebuild, equals(1));
@@ -1328,7 +1328,7 @@ void main() {
       expect(integerModelFromInsideStateBuilder1.hasError, isTrue);
       expect(integerModelFromInsideStateBuilder2.hasError, isFalse);
 
-      integerModelFromInsideStateBuilder2.setState((_) {});
+      integerModelFromInsideStateBuilder2.setState(null);
       await tester.pump();
 
       expect(integerModelFromInsideStateBuilder.hasError, isTrue);
@@ -1393,7 +1393,7 @@ void main() {
       expect(integerModelFromInsideStateBuilder1.hasError, isTrue);
       expect(integerModelFromInsideStateBuilder2.hasError, isFalse);
 
-      integerModelFromInsideStateBuilder2.setState((_) {});
+      integerModelFromInsideStateBuilder2.setState(null);
       await tester.pump();
 
       expect(integerModelFromInsideStateBuilder.hasError, isFalse);
@@ -1458,7 +1458,7 @@ void main() {
       expect(integerModelFromInsideStateBuilder2.hasError, isFalse);
 
       integerModelFromInsideStateBuilder2.setState(
-        (_) {},
+        null,
         joinSingletonWith: JoinSingleton.withCombinedReactiveInstances,
       );
       await tester.pump();
@@ -1526,7 +1526,7 @@ void main() {
       expect(integerModelFromInsideStateBuilder2.hasError, isFalse);
 
       integerModelFromInsideStateBuilder2.setState(
-        (_) {},
+        null,
         joinSingletonWith: JoinSingleton.withNewReactiveInstance,
       );
       await tester.pump();
@@ -1562,7 +1562,7 @@ void main() {
         ),
       );
       model1.setState(
-        (_) {},
+        null,
         onSetState: (_) => _rebuildTracker.add('onSetState'),
         onRebuildState: (_) => _rebuildTracker.add('onRebuildState'),
       );
@@ -1688,10 +1688,10 @@ void main() {
       await tester.pump();
 
       expect(model1 == model2, isTrue);
-      model1.setState((_) {});
+      model1.setState(null);
       await tester.pump();
       expect(model1 == model2, isTrue);
-      model2.setState((_) {});
+      model2.setState(null);
       await tester.pump();
     },
   );
@@ -1730,10 +1730,10 @@ void main() {
       await tester.pump();
 
       expect(model1 == model2, isTrue);
-      model1.setState((_) {});
+      model1.setState(null);
       await tester.pump();
       expect(model1 == model2, isTrue);
-      model2.setState((_) {});
+      model2.setState(null);
       await tester.pump();
     },
   );
@@ -1795,7 +1795,7 @@ void main() {
       await tester.pump();
       expect(model1.hashCode, equals(model2.hashCode));
       expect(numberOFRebuild1, equals(1));
-      model2.setState((_) {});
+      model2.setState(null);
       await tester.pump();
       expect(model1.hashCode, equals(model1.hashCode));
       expect(numberOFRebuild1, equals(1));
@@ -1836,7 +1836,7 @@ void main() {
       vm.rebuildStates();
       await tester.pump();
       expect(numberOFRebuild1, equals(1));
-      model1.setState((_) {});
+      model1.setState(null);
       await tester.pump();
       expect(numberOFRebuild1, equals(2));
     },
@@ -1856,7 +1856,7 @@ void main() {
         ),
       );
 
-      expect(() => Injector.getAsReactive<Integer>().setState((_) {}),
+      expect(() => Injector.getAsReactive<Integer>().setState(null),
           throwsException);
     },
   );
@@ -1907,14 +1907,14 @@ void main() {
         ),
       );
 
-      model1.setState((state) {}, onSetState: (context) {
+      model1.setState(null, onSetState: (context) {
         context0 = context;
       });
       await tester.pump();
       expect(context0 == context2, isTrue);
       isTrue = false;
       vm.rebuildStates();
-      model1.setState((state) {}, onSetState: (context) {
+      model1.setState(null, onSetState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -1968,7 +1968,7 @@ void main() {
         ),
       );
 
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -1976,7 +1976,7 @@ void main() {
 
       isTrue = false;
       vm.rebuildStates();
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -2033,7 +2033,7 @@ void main() {
         ),
       );
 
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -2041,7 +2041,7 @@ void main() {
 
       isTrue = false;
       vm.rebuildStates();
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -2099,7 +2099,7 @@ void main() {
         ),
       );
 
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -2107,7 +2107,7 @@ void main() {
 
       isTrue = false;
       vm.rebuildStates();
-      model1.setState((state) {}, onRebuildState: (context) {
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
       });
       await tester.pump();
@@ -2129,7 +2129,6 @@ void main() {
             ],
             builder: (context) {
               model = Injector.getAsReactive<Integer>(context: context);
-              print(model.snapshot);
               return model.whenConnectionState(
                 onIdle: () => Builder(
                   builder: (_) {
@@ -2162,7 +2161,9 @@ void main() {
       );
 
       expect(onConnectionState, equals('isIdle,'));
-      model.setState((state) => state.incrementAsync());
+      model.setState((state) {
+        return state.incrementAsync();
+      });
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
       expect(onConnectionState, equals('isIdle, isWaiting, hasData'));
@@ -2206,12 +2207,12 @@ abstract class IService2 {
 class Integer {
   int value = 0;
   Integer(this.value);
-  incrementAsync() async {
+  void incrementAsync() async {
     await Future.delayed(Duration(microseconds: 1));
     value++;
   }
 
-  incrementWithError() async {
+  void incrementWithError() async {
     await Future.delayed(Duration(seconds: 1));
     throw Exception('There is an error');
   }

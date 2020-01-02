@@ -6,7 +6,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class Counter {
   int _count = 0;
   int get count => _count;
-  Future<void> increment() async {
+  void increment() async {
     //Simulating async task
     await Future<void>.delayed(const Duration(seconds: 1));
     //Simulating error (50% chance of error);
@@ -17,6 +17,10 @@ class Counter {
     }
     _count++;
   }
+
+  void dispose() {
+    print('dispose');
+  }
 }
 
 class App extends StatelessWidget {
@@ -24,6 +28,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
+      disposeModels: true,
       builder: (BuildContext context) {
         final ReactiveModel<Counter> counterModel =
             Injector.getAsReactive<Counter>();

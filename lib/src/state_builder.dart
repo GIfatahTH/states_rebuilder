@@ -162,7 +162,11 @@ class StateBuilder<T> extends StatefulWidget {
   ///[ReactiveModel] is one of them.
   final List<StatesRebuilder> models;
 
-  ///Whether to call dispose method of the models if exists.
+  ///if it is set to true all observable models will be disposed.
+  ///
+  ///Models are disposed by calling the 'dispose()' method if exists.
+  ///
+  ///In any of the injected class you can define a 'dispose()' method to clean up resources.
   final bool disposeModels;
 
   @override
@@ -284,7 +288,11 @@ To fix, you have to either :
           if (model != null) {
             (model as dynamic)?.dispose();
           }
-        } catch (e) {}
+        } catch (e) {
+          if (e is! NoSuchMethodError) {
+            rethrow;
+          }
+        }
       }
     }
 

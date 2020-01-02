@@ -47,7 +47,11 @@ class RegisterInjectedModel {
         if (disposeModels) {
           try {
             inject.getSingleton()?.dispose();
-          } catch (e) {}
+          } catch (e) {
+            if (e is! NoSuchMethodError) {
+              rethrow;
+            }
+          }
         }
 
         if (inject.isReactiveModel) {

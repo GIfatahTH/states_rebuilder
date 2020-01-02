@@ -142,7 +142,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///
   /// [joinSingletonWith] used to define how new reactive instances will notify and modify the state of the reactive singleton
   Future<void> setState(
-    dynamic Function(T model) fn, {
+    Object Function(T model) fn, {
     List<dynamic> filterTags,
     bool catchError = false,
     dynamic Function(T state) watch,
@@ -218,7 +218,7 @@ This is not allowed, because setState method of a reactive model injected using 
     this.joinSingletonToNewData = joinSingletonToNewData;
 
     try {
-      final dynamic result = fn(state) as dynamic;
+      final dynamic result = fn != null ? fn(state) as dynamic : null;
       if (result is Future) {
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         try {

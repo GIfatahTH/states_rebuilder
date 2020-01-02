@@ -66,7 +66,11 @@ class Injector extends StatefulWidget {
   ///Called after the widget is inserted in the widget tree.
   final void Function(BuildContext context) afterInitialBuild;
 
-  ///Set to true to dispose all models.
+  ///if it is set to true all injected models will be disposed.
+  ///
+  ///Injected models are disposed by calling the 'dispose()' method if exists.
+  ///
+  ///In any of the injected classes you can define a 'dispose()' method to clean up resources.
   final bool disposeModels;
 
   /// get the same singleton
