@@ -1,9 +1,7 @@
 ## 1.10.1 (2019-12-30)
 * `Inject.get` for injected streams and future will no longer throw, it will return the the current value.
 * Remove deprecated `getAsModel` and `hasState`.
-* Update docs.
-  
-
+* Update docs and add Dependency Injection section in the readme file.
 
 ## 1.10.0 (2019-12-30)
 * Add `whenConnectionState` method to the `ReactiveModel`. IT exhaustively switch over all the possible statuses of `connectionState`. Used mostly to return a Widget. (Pul request of [ResoCoder](https://resocoder.com/2019/12/30/states-rebuilder-zero-boilerplate-flutter-state-management/)).

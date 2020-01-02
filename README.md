@@ -566,3 +566,71 @@ StateWithMixinBuilder<T>( {
 
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+
+
+# Dependency Injection
+
+`states_rebuilder` uses the service locator pattern for injecting dependencies using the` injector` with is a StatefulWidget. To understand the principle of DI, it is important to consider the following principles:
+
+1. `Injector` adds classes to the container of the service locator in` initState` and deletes them in the `dispose` state. This means that if `Injector` is removed and re-inserted in the widget tree, a new singleton is registered for the injected models.
+
+2. You can use nested injectors. As the `Injector` is a simple StatefulWidget, it can be added anywhere in the widget tree. A typical use is to insert the `Injector` deeper in the widget tree just before using the injected classes.
+
+3. Injected classes are registered lazily. This means that they are not instantiated after injection until they are consumed for the first time using `Injector.get` or` Injector.getAsModel`.
+
+4. For each injected class, you can consume the registered instance using `Injector.get` or the reactive model wrapper of the injected instance using` Injector.getAsModel`. As the raw instance and the reactive instance are registered lazily, if you consume a class using only `Injector.get` and not` Injector.getAsModel`, the reactive instance will never be instantiated.
+
+5. You can register classes with concrete types or abstract classes.
+
+That said: 
+> It is possible to register a class as a singleton, as a lazy singleton or as a factory simply by choosing where to insert it in the widget tree.
+
+* To save a singleton that will be available for all applications, insert the `Injector` widget in the top widget tree. It is possible to set the `isLazy` parameter to false to instantiate the injected class the time of injection.
+
+* To save a singleton that will be used by a branch of the widget tree, insert the `Injector` widget just above the branch. Each time you get into the branch, a singleton is registered and when you get out of it, the singleton will be destroyed.
+
+* With `Injector`, you can inject futures and use `whenConnectionState` to display useful information to the user and finally you can get the registered raw singleton using `Injector.get` method anywhere in the app. This is useful for instantiating plug-ins such as `SharedPreferences`. So you do not have to make the `main` function async and wait before calling `runApp` and use `WidgetsFlutterBinding.ensureInitialized()`.
+For example, you can show a splash screen informing the user that something is instantiating and display a helping error message if a plug-in fails to initialize.
+example :
+```dart
+void main() {
+  runApp(
+    //global injection
+    Injector(
+      inject: [
+        Inject.future(() => SharedPreferences.getInstance(),
+        isLazy: true,
+        ),
+      ],
+      builder: (context) {
+        return MyApp();
+      },
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Getting sharedPreferences Reactive Model
+    final sharedPreferencesRM =
+        Injector.getAsReactive<SharedPreferences>(context: context);
+    return sharedPreferencesRM.whenConnectionState(
+      onIdle: () => Text('onIdle'),
+      onWaiting: () => SplashScreen(),
+      onError: (error) => Text('error message'),
+      onData: (_) {
+        //sharedPreferences instance is available and can be used any where in the app
+
+        return Injector(
+          inject: [Inject(() => MyClass(sharedPreferences: Injector.get()))],
+          builder: (_) {
+            
+            ....
+          },
+        );
+      },
+    );
+  }
+}
+```
