@@ -599,7 +599,7 @@ void main() {
     Injector(
       inject: [
         Inject.future(() => SharedPreferences.getInstance(),
-        isLazy: true,
+        isLazy: false,
         ),
       ],
       builder: (context) {
