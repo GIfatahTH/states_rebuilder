@@ -197,6 +197,8 @@ Injector(
 );
 ```
 
+For more information on the Dependency Injection capabilities of the `Injector` see the dependency injection.
+
 The `Injector.get` method searches for the registered singleton using the service locator pattern. For this reason, `BuildContext` is not required. The `BuildContext` is optional and it is useful if you want to subscribe the widget that has the `BuildContext` to the obtained model.
 
 In the `HomePage` class of the example, we can remove `StateBuilder` and use the `BuildContext` to subscribe the the widget. 
@@ -290,7 +292,8 @@ class App extends StatelessWidget {
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
         //Use of 'getAsReactive' to get the model.
-        final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>();
+        //the suffix RM in counterModel means Reactive model.
+        final ReactiveModel<Counter> counterModelRM = Injector.getAsReactive<Counter>();
         return MaterialApp(
           home: Scaffold(
             appBar: AppBar(),
@@ -299,7 +302,7 @@ class App extends StatelessWidget {
               child: Icon(Icons.add),
               //To mutate the state, use `setState` method.
               //setState notifies observers after state mutation.
-              onPressed: () => counterModel.setState((state) => state.increment()),
+              onPressed: () => counterModelRM.setState((state) => state.increment()),
             ),
           ),
         );
@@ -311,10 +314,10 @@ class App extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>(context: context);
+    final ReactiveModel<Counter> counterModelRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       //use the `state` getter to get the model state.
-      child: Text("${counterModel.state.count}"),
+      child: Text("${counterModelRM.state.count}"),
     );
   }
 }
@@ -324,7 +327,7 @@ Compared to the case of explicit reactivity, `states_rebuilder` uses the same co
 * The injected models are consumed using `getAsReactive` method instead of `get` in the explicit case.
 
 ```dart
-ReactiveModel<T> model = Injector.getAsReactive<T>()
+ReactiveModel<T> modelRM = Injector.getAsReactive<T>()
 ```
 The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
 
@@ -405,7 +408,7 @@ To create a new reactive instance of an injected model use:
 
 ```dart
 // get a new reactive instance
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
 ```
 2- `StateBuilder` with generic type and without `models` property.
 ```dart
@@ -422,11 +425,11 @@ StateBuilder<T>(
 * To make new reactive instances accessible throughout the widget tree, you have to register it with the `Injector` with a custom name: 
 
 ```dart
-final model =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
+final modelRM =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
 
 return Injector(
 inject: [
-  Inject( () => model, name: 'newModel1'),
+  Inject( () => modelRM, name: 'newModel1'),
 ],
 )
 // Or
@@ -443,9 +446,9 @@ At later time if you want to consume the injected new reactive instance you use:
 
 ```dart
 // get the injected new reactive instance
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : 'newModel1');
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : 'newModel1');
 //Or
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.newModel1);
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
 ```
 * You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
@@ -513,6 +516,10 @@ StateBuilder<T>(
   // It can be any type of data, but when it is a List, 
   // this widget will be saved with many tags that are the items in the list.
   tag: dynamic
+
+   watch: (ReactiveModel<T> model) {
+    //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
+  },
 
   builder: (BuildContext context, ReactiveModel<T> model){
     /// [BuildContext] can be used as the default tag of this widget.

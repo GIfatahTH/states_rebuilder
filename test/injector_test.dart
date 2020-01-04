@@ -2174,6 +2174,67 @@ void main() {
       expect(onConnectionState, equals(' isWaiting, hasError'));
     },
   );
+
+  testWidgets(
+    "should string equality work : (== : true) (identical : false) (hashCode : true)",
+    (WidgetTester tester) async {
+      final s = {
+        'list': [1],
+      };
+      final s1 = s.toString();
+      final s2 = Map.from(s).toString();
+
+      final _equality = s1 == s2;
+      final _identical = identical(s1, s2);
+      final _hashCode = s1.hashCode == s2.hashCode;
+
+      expect(_equality, isTrue);
+      expect(_identical, isFalse);
+      expect(_hashCode, isTrue);
+    },
+  );
+
+  testWidgets(
+    "should ' StateBuilder with watch works",
+    (WidgetTester tester) async {
+      List<String> _rebuildTracker = [];
+      await tester.pumpWidget(
+        Injector(
+            inject: [Inject(() => Integer(0))],
+            builder: (context) {
+              return StateBuilder<Integer>(
+                models: [Injector.getAsReactive<Integer>()],
+                watch: (model) {
+                  return model.state.value;
+                },
+                builder: (_, __) {
+                  _rebuildTracker.add('rebuild');
+                  return Container();
+                },
+              );
+            }),
+      );
+      final model = Injector.getAsReactive<Integer>();
+      expect(_rebuildTracker, equals(['rebuild']));
+      model.setState(null);
+      await tester.pump();
+      expect(_rebuildTracker, equals(['rebuild']));
+
+      model.setState(null);
+      await tester.pump();
+      expect(_rebuildTracker, equals(['rebuild']));
+
+      model.state.value++;
+
+      model.setState(null);
+      await tester.pump();
+      expect(_rebuildTracker, equals(['rebuild', 'rebuild']));
+
+      model.setState(null);
+      await tester.pump();
+      expect(_rebuildTracker, equals(['rebuild', 'rebuild']));
+    },
+  );
 }
 
 class App extends StatelessWidget {

@@ -145,7 +145,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     Object Function(T model) fn, {
     List<dynamic> filterTags,
     bool catchError,
-    dynamic Function(T state) watch,
+    Object Function(T state) watch,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -232,7 +232,12 @@ This is not allowed, because setState method of a reactive model injected using 
             notifyAllReactiveInstances: notifyAllReactiveInstances,
             joinSingleton: joinSingletonWith,
           );
-        } catch (e) {}
+        } catch (e) {
+          //Silent the error if setState is called from [State.initState ]
+          if (e is! FlutterError) {
+            rethrow;
+          }
+        }
         await result;
       }
     } catch (e) {
@@ -250,11 +255,13 @@ This is not allowed, because setState method of a reactive model injected using 
       return;
     }
     snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    final String after = watch != null ? watch(state)?.toString() : '';
+    final String after = watch != null ? watch(state)?.toString() : null;
 
     //String in dart are immutable objects, which means that two strings with the same characters in the same order
     //share the same object.
-    if (!identical(after, before)) {
+    if (watch == null ||
+        after.hashCode != before.hashCode ||
+        !identical(before, after)) {
       _rebuildStates(
         tags: filterTags,
         onSetState: _onSetState,
