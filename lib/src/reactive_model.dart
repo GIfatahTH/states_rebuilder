@@ -93,6 +93,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   ReactiveModel<dynamic> get _reactiveSingleton => _inject?.reactiveSingleton;
 
+  //holds the  context of  the last call of Injector.get(context:context) or Injector.getAsReactive(context: context)
   BuildContext _lastContext;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
@@ -141,10 +142,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///
   /// [joinSingletonWith] used to define how new reactive instances will notify and modify the state of the reactive singleton
   Future<void> setState(
-    dynamic Function(T model) fn, {
+    Object Function(T model) fn, {
     List<dynamic> filterTags,
-    bool catchError = false,
-    dynamic Function(T state) watch,
+    bool catchError,
+    Object Function(T state) watch,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -164,10 +165,44 @@ This is not allowed, because setState method of a reactive model injected using 
       return true;
     }());
 
+    if (catchError == null) {
+      catchError = false || onError != null || whenConnectionState != null;
+    }
+
     final String before = watch != null ? watch(state)?.toString() : null;
 
     final Function(BuildContext context) _onSetState = (BuildContext context) {
-      assert(context != null || _lastContext != null);
+      //context is from the last subscribed StateBuilder
+      //_lastContext is from the last call of Injector.get(context:context) or Injector.getAsReactive(context: context)
+      assert(() {
+        if (context == null && _lastContext == null) {
+          final runtimeType = '${this.runtimeType}'
+              .replaceAll('ReactiveStatesRebuilder<', '')
+              .replaceAll('>', '');
+          throw Exception(
+            '''
+
+***No observer is subscribed yet***
+| There is no observer subscribed to this observable $runtimeType model.
+| To subscribe a widget you use:
+| 1- StateRebuilder for an already defined:
+|   ex:
+|   StatesRebuilder(
+|     models: [${runtimeType}instance],
+|     builder : ....
+|   )
+| 2- Injector.getAsReactive<$runtimeType>(context : context). for implicit reactivity.
+| 3- StateRebuilder for new reactive environment:
+|   ex:
+|   StatesRebuilder<$runtimeType>(
+|     builder : ....
+|   )
+| 4- StatesWithMixinBuilder. similar to StateBuilder.
+''',
+          );
+        }
+        return true;
+      }());
 
       if (onSetState != null) {
         onSetState(context ?? _lastContext);
@@ -187,7 +222,7 @@ This is not allowed, because setState method of a reactive model injected using 
     this.joinSingletonToNewData = joinSingletonToNewData;
 
     try {
-      final dynamic result = fn(state) as dynamic;
+      final dynamic result = fn != null ? fn(state) as dynamic : null;
       if (result is Future) {
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         try {
@@ -197,7 +232,12 @@ This is not allowed, because setState method of a reactive model injected using 
             notifyAllReactiveInstances: notifyAllReactiveInstances,
             joinSingleton: joinSingletonWith,
           );
-        } catch (e) {}
+        } catch (e) {
+          //Silent the error if setState is called from [State.initState ]
+          if (e is! FlutterError) {
+            rethrow;
+          }
+        }
         await result;
       }
     } catch (e) {
@@ -209,17 +249,19 @@ This is not allowed, because setState method of a reactive model injected using 
         joinSingleton: joinSingletonWith,
       );
 
-      if (!catchError && onError == null) {
+      if (!catchError) {
         rethrow;
       }
       return;
     }
     snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    final String after = watch != null ? watch(state)?.toString() : '';
+    final String after = watch != null ? watch(state)?.toString() : null;
 
     //String in dart are immutable objects, which means that two strings with the same characters in the same order
     //share the same object.
-    if (!identical(after, before)) {
+    if (watch == null ||
+        after.hashCode != before.hashCode ||
+        !identical(before, after)) {
       _rebuildStates(
         tags: filterTags,
         onSetState: _onSetState,

@@ -24,10 +24,10 @@ class App extends StatelessWidget {
         Inject(() => Counter()),
       ],
       builder: (context) {
-        final futureSnap = Injector.getAsReactive<bool>(context: context);
-        final counter = Injector.getAsReactive<Counter>();
+        final futureSnapRM = Injector.getAsReactive<bool>(context: context);
+        final counterRM = Injector.getAsReactive<Counter>();
         return Scaffold(
-          appBar: futureSnap.state == false
+          appBar: futureSnapRM.state == false
               ? AppBar(
                   title: Text(" awaiting a Future"),
                   backgroundColor: Colors.red,
@@ -39,11 +39,11 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counter.setState(
+            onPressed: () => counterRM.setState(
               (state) => state.increment1(),
               //with osSetState you can define a callback to be executed after mutating the state.
               onSetState: (context) {
-                if (counter.state.count >= 10) {
+                if (counterRM.state.count >= 10) {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
                       content: Text("You have reached 10 taps"),
@@ -62,8 +62,8 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final stream = Injector.getAsReactive<int>();
-    final counter = Injector.getAsReactive<Counter>(context: context);
+    final streamRM = Injector.getAsReactive<int>();
+    final counterRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +71,7 @@ class MyHome extends StatelessWidget {
           Spacer(),
           Text("Counter incremented by the Stream"),
           StateBuilder<int>(
-            models: [stream],
+            models: [streamRM],
             onSetState: (context, stream) {
               print('onSetState counter = ${stream.state}');
             },
@@ -79,17 +79,18 @@ class MyHome extends StatelessWidget {
               print('onRebuildState counter = ${stream.snapshot.data}');
             },
             builder: (_, __) {
-              return Text(
-                  stream.hasData ? "${stream.state}" : "waiting for data ...");
+              return Text(streamRM.hasData
+                  ? "${streamRM.state}"
+                  : "waiting for data ...");
             },
           ),
           Text("You have pushed this many times"),
-          Text(counter.state.count.toString()),
-          counter.isWaiting
+          Text(counterRM.state.count.toString()),
+          counterRM.isWaiting
               ? CircularProgressIndicator()
               : RaisedButton(
                   child: Text("increment"),
-                  onPressed: () => counter.setState(
+                  onPressed: () => counterRM.setState(
                       (state) => state.increment2(),
                       onSetState: (context) {}),
                 ),

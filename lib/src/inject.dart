@@ -97,7 +97,7 @@ class Inject<T> implements Injectable {
   ///Default value is `true`.
   bool isLazy;
 
-  ///A function that returns a single model instance variable or a list of
+  ///A function that returns a one instance variable or a list of
   ///them. The rebuild process will be triggered if at least one of
   ///the return variable changes.
   ///
@@ -107,7 +107,7 @@ class Inject<T> implements Injectable {
   ///a unique identity of each instance.
   ///
   ///If it is not defined all listener will be notified when a new state is available.
-  dynamic Function(T) watch;
+  Object Function(T) watch;
 
   /// List of [StateBuilder]'s tags to be notified to rebuild.
   List<dynamic> tags;
@@ -150,7 +150,11 @@ class Inject<T> implements Injectable {
     _name ??= '$T';
 
     if (!isLazy) {
-      getSingleton();
+      if (isAsyncType) {
+        getReactiveSingleton();
+      } else {
+        getSingleton();
+      }
     }
     return _name;
   }

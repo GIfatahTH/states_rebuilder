@@ -19,7 +19,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (BuildContext context) {
-        final ReactiveModel<Counter> counterModel =
+        final ReactiveModel<Counter> counterModelRM =
             Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
@@ -28,7 +28,7 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counterModel.setState(
+            onPressed: () => counterModelRM.setState(
               (state) => state.increment(),
             ),
           ),

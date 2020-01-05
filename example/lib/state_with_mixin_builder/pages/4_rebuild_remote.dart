@@ -32,11 +32,11 @@ class CounterGrid extends StatelessWidget {
               StateBuilder<CounterBlocRemote>(
                 models: [Injector.getAsReactive<CounterBlocRemote>()],
                 tag: CounterGridTag.remoteWidget,
-                builder: (_, bloc) {
+                builder: (_, counterRM) {
                   print('rebuild');
-                  return bloc.customStateStatus == null
+                  return counterRM.customStateStatus == null
                       ? CircularProgressIndicator()
-                      : bloc.customStateStatus
+                      : counterRM.customStateStatus
                           ? Icon(Icons.looks_two)
                           : Icon(Icons.looks_one);
                 },
@@ -52,13 +52,13 @@ class CounterGrid extends StatelessWidget {
                   StateBuilder(
                     tag: i % 2,
                     models: [Injector.getAsReactive<CounterBlocRemote>()],
-                    builder: (_, bloc) => GridItem(
-                      count: bloc.state.counter,
-                      onTap: () => bloc.setState(
+                    builder: (_, counterRM) => GridItem(
+                      count: counterRM.state.counter,
+                      onTap: () => counterRM.setState(
                         (state) => state.increment(),
                         filterTags: [i % 2, CounterGridTag.remoteWidget],
                         onSetState: (context) {
-                          bloc.customStateStatus = i % 2 == 0;
+                          counterRM.customStateStatus = i % 2 == 0;
                         },
                       ),
                     ),

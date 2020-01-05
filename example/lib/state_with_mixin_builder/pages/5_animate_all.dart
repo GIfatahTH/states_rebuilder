@@ -47,7 +47,8 @@ class AnimateAllExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = Injector.getAsReactive<CounterBlocAnimAll>(context: context);
+    final counterRM =
+        Injector.getAsReactive<CounterBlocAnimAll>(context: context);
 
     return Padding(
       padding: EdgeInsets.all(10),
@@ -57,18 +58,18 @@ class CounterGrid extends StatelessWidget {
           Expanded(
             child: StateWithMixinBuilder<TickerProvider>(
               mixinWith: MixinWith.singleTickerProviderStateMixin,
-              initState: (_, ticker) => bloc.state.initAnimation(ticker),
-              dispose: (_, ___) => bloc.state.dispose(),
+              initState: (_, ticker) => counterRM.state.initAnimation(ticker),
+              dispose: (_, ___) => counterRM.state.dispose(),
               builder: (_, __) => GridView.count(
                 crossAxisCount: 3,
                 children: <Widget>[
                   for (var i = 0; i < 12; i++)
                     Transform.rotate(
-                      angle: bloc.state.animation.value,
+                      angle: counterRM.state.animation.value,
                       child: GridItem(
-                        count: bloc.state.counter,
-                        onTap: () => bloc.state
-                            .triggerAnimation(() => bloc.setState((_) {})),
+                        count: counterRM.state.counter,
+                        onTap: () => counterRM.state
+                            .triggerAnimation(() => counterRM.setState(null)),
                       ),
                     ),
                 ],

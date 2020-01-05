@@ -28,6 +28,7 @@ class StateBuilder<T> extends StatefulWidget {
     this.afterInitialBuild,
     this.afterRebuild,
     this.disposeModels,
+    this.watch,
   })  : assert(builder != null || builderWithChild != null, '''
   
   | ***Builder not defined***
@@ -138,26 +139,48 @@ class StateBuilder<T> extends StatefulWidget {
   final void Function(BuildContext context, ReactiveModel<T> model)
       onRebuildState;
 
-  ///A custom name of your widget. It is used to rebuild this widget
-  ///from your logic classes.
+  ///A tag or list of tags you want this [StateBuilder] to register with.
+  ///
+  ///Whenever any of the observable model to which this [StateBuilder] is subscribed emits
+  ///a notifications with a list of filter tags, this [StateBuilder] will rebuild if the
+  ///the filter tags list contains at least on of those tags.
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   ///
   ///Each [StateBuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
   ///StateBuilder(
-  ///  models:[myModel1, myModel2,myModel3],
+  ///  models:[myModel1, myModel2, myModel3],
   ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
   ///)
   ///```
-  ///List of your logic classes you want to rebuild this widget to subscribe.
-  ///The logic class should extend  `StatesRebuilder`of the states_rebuilder package.
+  ///states_rebuilder uses the observer pattern.
+  ///
+  ///Observable classes are classes that extends [StatesRebuilder].
+  ///[ReactiveModel] is one of them.
   final List<StatesRebuilder> models;
 
-  ///Whether to call dispose method of the models if exists.
+  ///if it is set to true all observable models will be disposed.
+  ///
+  ///Models are disposed by calling the 'dispose()' method if exists.
+  ///
+  ///In any of the injected class you can define a 'dispose()' method to clean up resources.
   final bool disposeModels;
+
+  ///A function that returns a one instance variable or a list of
+  ///them. The rebuild process will be triggered if at least one of
+  ///the return variable changes.
+  ///
+  ///Return variable must be either a primitive variable, a List, a Map or a Set.
+  ///
+  ///To use a custom type, you should override the `toString` method to reflect
+  ///a unique identity of each instance.
+  ///
+  ///If it is not defined all listener will be notified when a new state is available.
+  final Object Function(ReactiveModel<T> model) watch;
 
   @override
   _StateBuilderState<T> createState() => _StateBuilderState<T>();
@@ -231,34 +254,48 @@ To fix, you have to either :
         (_) => widget.afterInitialBuild(context, _exposedModel),
       );
     }
+
+    if (widget.watch != null) {
+      _after = widget.watch(_exposedModel)?.toString();
+    }
   }
 
+  String _before;
+  String _after;
   @override
   bool update([void Function(BuildContext) onSetState]) {
     if (!mounted) {
       return false;
     }
+    if (widget.watch != null) {
+      _before = widget.watch(_exposedModel)?.toString();
+    }
 
-    setState(
-      () {
-        if (onSetState != null) {
-          onSetState(context);
-        }
+    if (widget.watch == null ||
+        _before.hashCode != _after.hashCode ||
+        !identical(_before, _after)) {
+      setState(
+        () {
+          if (onSetState != null) {
+            onSetState(context);
+          }
 
-        //Do not call [StateBuilder.onSetState] more than one for each rebuild
-        if (!_isDirty) {
-          if (widget.onSetState != null) {
-            widget.onSetState(context, _exposedModel);
+          //Do not call [StateBuilder.onSetState] more than one for each rebuild
+          if (!_isDirty) {
+            if (widget.onSetState != null) {
+              widget.onSetState(context, _exposedModel);
+            }
+            if (widget.onRebuildState != null) {
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => widget.onRebuildState(context, _exposedModel),
+              );
+            }
+            _isDirty = true;
           }
-          if (widget.onRebuildState != null) {
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => widget.onRebuildState(context, _exposedModel),
-            );
-          }
-          _isDirty = true;
-        }
-      },
-    );
+        },
+      );
+    }
+    _after = _before;
     return true;
   }
 
@@ -278,7 +315,11 @@ To fix, you have to either :
           if (model != null) {
             (model as dynamic)?.dispose();
           }
-        } catch (e) {}
+        } catch (e) {
+          if (e is! NoSuchMethodError) {
+            rethrow;
+          }
+        }
       }
     }
 

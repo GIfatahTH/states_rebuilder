@@ -30,13 +30,12 @@ class AddToObserver {
           tags.add('$t');
         }
       });
-      tags.add(_defaultTag);
     } else {
       if (_widget.tag != null && _widget.tag != '') {
         tags.add(_widget.tag.toString());
       }
-      tags.add(_defaultTag);
     }
+    tags.add(_defaultTag);
     for (String t in tags) {
       for (StatesRebuilder model in _models) {
         if (model != null) {

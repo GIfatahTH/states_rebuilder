@@ -197,6 +197,8 @@ Injector(
 );
 ```
 
+For more information on the Dependency Injection capabilities of the `Injector` see the dependency injection.
+
 The `Injector.get` method searches for the registered singleton using the service locator pattern. For this reason, `BuildContext` is not required. The `BuildContext` is optional and it is useful if you want to subscribe the widget that has the `BuildContext` to the obtained model.
 
 In the `HomePage` class of the example, we can remove `StateBuilder` and use the `BuildContext` to subscribe the the widget. 
@@ -290,7 +292,8 @@ class App extends StatelessWidget {
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
         //Use of 'getAsReactive' to get the model.
-        final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>();
+        //the suffix RM in counterModel means Reactive model.
+        final ReactiveModel<Counter> counterModelRM = Injector.getAsReactive<Counter>();
         return MaterialApp(
           home: Scaffold(
             appBar: AppBar(),
@@ -299,7 +302,7 @@ class App extends StatelessWidget {
               child: Icon(Icons.add),
               //To mutate the state, use `setState` method.
               //setState notifies observers after state mutation.
-              onPressed: () => counterModel.setState((state) => state.increment()),
+              onPressed: () => counterModelRM.setState((state) => state.increment()),
             ),
           ),
         );
@@ -311,10 +314,10 @@ class App extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final ReactiveModel<Counter> counterModel = Injector.getAsReactive<Counter>(context: context);
+    final ReactiveModel<Counter> counterModelRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       //use the `state` getter to get the model state.
-      child: Text("${counterModel.state.count}"),
+      child: Text("${counterModelRM.state.count}"),
     );
   }
 }
@@ -324,7 +327,7 @@ Compared to the case of explicit reactivity, `states_rebuilder` uses the same co
 * The injected models are consumed using `getAsReactive` method instead of `get` in the explicit case.
 
 ```dart
-ReactiveModel<T> model = Injector.getAsReactive<T>()
+ReactiveModel<T> modelRM = Injector.getAsReactive<T>()
 ```
 The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
 
@@ -405,7 +408,7 @@ To create a new reactive instance of an injected model use:
 
 ```dart
 // get a new reactive instance
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
 ```
 2- `StateBuilder` with generic type and without `models` property.
 ```dart
@@ -422,11 +425,11 @@ StateBuilder<T>(
 * To make new reactive instances accessible throughout the widget tree, you have to register it with the `Injector` with a custom name: 
 
 ```dart
-final model =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
+final modelRM =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
 
 return Injector(
 inject: [
-  Inject( () => model, name: 'newModel1'),
+  Inject( () => modelRM, name: 'newModel1'),
 ],
 )
 // Or
@@ -443,9 +446,9 @@ At later time if you want to consume the injected new reactive instance you use:
 
 ```dart
 // get the injected new reactive instance
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : 'newModel1');
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : 'newModel1');
 //Or
-ReactiveModel<T> model2 = Injector.getAsReactive<T>(name : Enum.newModel1);
+ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
 ```
 * You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
@@ -514,6 +517,10 @@ StateBuilder<T>(
   // this widget will be saved with many tags that are the items in the list.
   tag: dynamic
 
+   watch: (ReactiveModel<T> model) {
+    //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
+  },
+
   builder: (BuildContext context, ReactiveModel<T> model){
     /// [BuildContext] can be used as the default tag of this widget.
 
@@ -566,3 +573,72 @@ StateWithMixinBuilder<T>( {
 
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+
+
+# Dependency Injection
+
+`states_rebuilder` uses the service locator pattern for injecting dependencies using the` injector` with is a StatefulWidget. To understand the principle of DI, it is important to consider the following principles:
+
+1. `Injector` adds classes to the container of the service locator in` initState` and deletes them in the `dispose` state. This means that if `Injector` is removed and re-inserted in the widget tree, a new singleton is registered for the injected models. If you  injected streams or futures using `Inject.stream` or `Inject.future` and when a the `Injector` is disposed and re-inserted, the streams and futures are disposed and reinitialized by `states_rebuilder` and do not fear of any memory leakage.
+
+2. You can use nested injectors. As the `Injector` is a simple StatefulWidget, it can be added anywhere in the widget tree. A typical use is to insert the `Injector` deeper in the widget tree just before using the injected classes.
+
+3. Injected classes are registered lazily. This means that they are not instantiated after injection until they are consumed for the first time using `Injector.get` or` Injector.getAsReactive`.
+
+4. For each injected class, you can consume the registered instance using `Injector.get` or the reactive model wrapper of the injected instance using` Injector.getAsReactive`. As the raw instance and the reactive instance are registered lazily, if you consume a class using only `Injector.get` and not` Injector.getAsReactive`, the reactive instance will never be instantiated.
+
+5. You can register classes with concrete types or abstract classes.
+
+That said: 
+> It is possible to register a class as a singleton, as a lazy singleton or as a factory simply by choosing where to insert it in the widget tree.
+
+* To save a singleton that will be available for all applications, insert the `Injector` widget in the top widget tree. It is possible to set the `isLazy` parameter to false to instantiate the injected class the time of injection.
+
+* To save a singleton that will be used by a branch of the widget tree, insert the `Injector` widget just above the branch. Each time you get into the branch, a singleton is registered and when you get out of it, the singleton will be destroyed. Making profit of the behavior, you can clean injected models by defining a `dispose()` method inside them and set the parameter `disposeModels` of the `Injector`to true.
+
+* With `Injector`, you can inject futures and use `whenConnectionState` to display useful information to the user and finally you can get the registered raw singleton using `Injector.get` method anywhere in the app. This is useful for instantiating plug-ins such as `SharedPreferences`. So you do not have to make the `main` function async and wait before calling `runApp` and use `WidgetsFlutterBinding.ensureInitialized()`.
+For example, you can show a splash screen informing the user that something is instantiating and display a helping error message if a plug-in fails to initialize.
+example :
+```dart
+void main() {
+  runApp(
+    //global injection
+    Injector(
+      inject: [
+        Inject.future(() => SharedPreferences.getInstance(),
+        isLazy: false,
+        ),
+      ],
+      builder: (context) {
+        return MyApp();
+      },
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Getting sharedPreferences Reactive Model
+    final sharedPreferencesRM =
+        Injector.getAsReactive<SharedPreferences>(context: context);
+    return sharedPreferencesRM.whenConnectionState(
+      onIdle: () => Text('onIdle'),
+      onWaiting: () => SplashScreen(),
+      onError: (error) => MyErrorWidget(error),
+      onData: (_) {
+        //sharedPreferences instance is available and can be used any where in the app
+        //You can consume it using simply Injector.get<SharedPreferences>().
+
+        return Injector(
+          inject: [Inject(() => MyClass(sharedPreferences: Injector.get()))],
+          builder: (_) {
+            
+            ....
+          },
+        );
+      },
+    );
+  }
+}
+```

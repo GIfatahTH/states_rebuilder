@@ -14,7 +14,7 @@ abstract class ObserverOfStatesRebuilder {
 
 ///[StatesRebuilder] use the observer pattern.
 ///
-///Observable class should implement [ObserverOfStatesRebuilder]
+///Observable class should implement [Subject]
 abstract class Subject {
   ///Notify observers
   void rebuildStates([List<dynamic> tags]);
@@ -35,7 +35,7 @@ abstract class Subject {
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
 class StatesRebuilder implements Subject {
   ///key holds the observer tags and the value holds the observers
-  ///_observers = {"tag" : [[ observer ]]}
+  ///_observers = {"tag" : [observer1, observer2, ...]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
   final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observers =
       LinkedHashMap<String, List<ObserverOfStatesRebuilder>>();
@@ -51,10 +51,6 @@ class StatesRebuilder implements Subject {
 
   /// observers getter
   Map<String, List<ObserverOfStatesRebuilder>> observers() => _observers;
-
-  ///Check whether the model has observing states
-  @Deprecated('use hasObservers instead')
-  bool get hasState => _observers.isNotEmpty;
 
   ///Check whether the model has observing states
   bool get hasObservers => _observers.isNotEmpty;
