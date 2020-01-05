@@ -379,6 +379,11 @@ reactiveModel.setState(
   onRebuildState: (BuildContext context) {
     //The same as in onSetState but called after the end rebuild process.
   },
+
+  onData: (BuildContext context, T model){
+    //Callback to be execute if the reactive model has data.
+  }
+
   onError: (BuildContext context, dynamic error){
     //Callback to be execute if the reactive model throws an error.
     //You do not have to set the parameter catchError to true. By defining onError parameter 
