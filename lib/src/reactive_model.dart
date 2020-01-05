@@ -131,6 +131,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   /// [onRebuildState] is similar to [onSetState] except that it is executed after
   /// the rebuilding process is completed.
   ///
+  ///[onData] callback to be executed when ReactiveModel has data.
+  ///
+  ///[onError] callback to be executed when ReactiveModel has data.
+  ///
   /// [watch] is a function that returns a single model instance variable or a list of
   /// them. The rebuild process will be triggered if at least one of
   /// the return variable changes. Returned variable must be either a primitive variable,
@@ -149,6 +153,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context, T model) onData,
     dynamic joinSingletonToNewData,
     JoinSingleton joinSingletonWith,
     bool notifyAllReactiveInstances = false,
@@ -216,6 +221,10 @@ This is not allowed, because setState method of a reactive model injected using 
 
       if (onError != null && hasError) {
         onError(context ?? _lastContext, error);
+      }
+
+      if (onData != null && hasData) {
+        onData(context ?? _lastContext, state);
       }
     };
 

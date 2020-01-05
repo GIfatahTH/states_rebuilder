@@ -1006,9 +1006,54 @@ void main() {
       await tester.pump(Duration(seconds: 2));
     },
   );
+  testWidgets(
+    'Injector : should not throw when catchError = true',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        Injector(
+            inject: [
+              Inject<Integer>(() => Integer(0)),
+            ],
+            builder: (context) {
+              Injector.getAsReactive<Integer>(context: context);
+              return Container();
+            }),
+      );
+
+      Injector.getAsReactive<Integer>()
+          .setState((state) => state.incrementWithError(), catchError: true);
+      await tester.pump(Duration(seconds: 2));
+    },
+  );
 
   testWidgets(
-    'Injector : should not throw when errorHandler',
+    'Injector : should onData work',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        Injector(
+          inject: [
+            Inject<Integer>(() => Integer(0)),
+          ],
+          builder: (context) {
+            Injector.getAsReactive<Integer>(context: context);
+            return Container();
+          },
+        ),
+      );
+      String errorMessage;
+      Injector.getAsReactive<Integer>().setState(
+        (state) => state.incrementAsync(),
+        onData: (context, state) {
+          errorMessage = state.value.toString();
+        },
+      );
+      await tester.pump();
+      await tester.pump(Duration(seconds: 2));
+      expect(errorMessage, '1');
+    },
+  );
+  testWidgets(
+    'Injector : should not throw when onError is defined',
     (WidgetTester tester) async {
       await tester.pumpWidget(
         Injector(

@@ -55,7 +55,8 @@ void main() {
       expect(reactiveModel.state.counter, equals(0));
       expect(
           reactiveModel.snapshot.connectionState, equals(ConnectionState.none));
-      reactiveModel.setState((state) => state.increment(), catchError: true);
+      reactiveModel.setState((state) => state.incrementWitheError(),
+          catchError: true);
       expect(reactiveModel.snapshot.connectionState,
           equals(ConnectionState.waiting));
       await Future.delayed(Duration(seconds: 1));
@@ -67,7 +68,7 @@ void main() {
   );
 
   test(
-    "get the state and setState with errorHandler works",
+    "get the state and setState with onError works",
     () async {
       final reactiveModel = ReactiveStatesRebuilder<MyModelWithError>(
         Inject(() => MyModelWithError()),
@@ -78,7 +79,7 @@ void main() {
           reactiveModel.snapshot.connectionState, equals(ConnectionState.none));
 
       reactiveModel.setState(
-        (state) => state.increment(),
+        (state) => state.incrementWitheError(),
         onError: (context, error) {},
       );
       expect(reactiveModel.snapshot.connectionState,
@@ -88,6 +89,27 @@ void main() {
       expect(reactiveModel.state.counter, equals(0));
       expect(
           reactiveModel.snapshot.connectionState, equals(ConnectionState.done));
+    },
+  );
+
+  test(
+    "get the state and setState with onData works",
+    () async {
+      final reactiveModel = ReactiveStatesRebuilder<MyModelWithFuture>(
+        Inject(() => MyModelWithFuture()),
+      );
+
+      String hasData = '';
+      reactiveModel.setState(
+        (state) => state.increment(),
+        onData: (context, model) {
+          hasData += 'HasData';
+        },
+      );
+
+      await Future.delayed(Duration(seconds: 1));
+      print(hasData);
+      expect(reactiveModel.state.counter, equals(1));
     },
   );
 
@@ -151,7 +173,7 @@ class MyModelWithFuture {
 
 class MyModelWithError {
   int counter = 0;
-  increment() async {
+  incrementWitheError() async {
     await Future.delayed(Duration(seconds: 1));
     throw CustomError("This is an Error");
   }

@@ -1,3 +1,14 @@
+## 1.11.1 (2020-01-05)
+* Add `onData(BuildContext, T)` parameter to `setState` method.
+  It is a shortcut to:
+  ```dart
+  onSetState(context){
+    if(reactiveModel.hasData){
+      .....
+    }
+  }
+  ```
+
 ## 1.11.0 (2020-01-05)
 * `Inject.get` for injected streams and future will no longer throw, it will return the the current value.
 * If `whenConnectionState` is defined, `catchError` is set true automatically.
