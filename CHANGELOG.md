@@ -1,4 +1,4 @@
-## 1.11.0 (2019-0104)
+## 1.11.0 (2020-01-05)
 * `Inject.get` for injected streams and future will no longer throw, it will return the the current value.
 * If `whenConnectionState` is defined, `catchError` is set true automatically.
 * Add `watch` parameter to `StateBuilder` widget and. `watch` allows to link the rebuild process to the variation of a set of variables.(Experimental feature).
