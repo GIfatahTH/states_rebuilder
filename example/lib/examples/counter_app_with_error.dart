@@ -30,7 +30,7 @@ class App extends StatelessWidget {
       inject: [Inject<Counter>(() => Counter())],
       disposeModels: true,
       builder: (BuildContext context) {
-        final ReactiveModel<Counter> counterModel =
+        final ReactiveModel<Counter> counterModelRM =
             Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
@@ -39,17 +39,17 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counterModel.setState(
+            onPressed: () => counterModelRM.setState(
               (Counter state) => state.increment(),
               catchError: true, //catch the error
               onSetState: (BuildContext context) {
                 // osSetState will be executed after mutating the state.
-                if (counterModel.hasError) {
+                if (counterModelRM.hasError) {
                   showDialog<dynamic>(
                     context: context,
                     builder: (BuildContext context) => AlertDialog(
                       title: const Text('Error!'),
-                      content: Text('${counterModel.error}'),
+                      content: Text('${counterModelRM.error}'),
                     ),
                   );
                 }

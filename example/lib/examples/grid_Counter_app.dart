@@ -27,8 +27,8 @@ class App extends StatelessWidget {
             title: Center(
               child: StateBuilder<CounterModel>(
                 models: [Injector.getAsReactive<CounterModel>()],
-                builder: (_, model) {
-                  if (model.isWaiting) {
+                builder: (_, modelRM) {
+                  if (modelRM.isWaiting) {
                     return CircularProgressIndicator(
                       backgroundColor: Colors.white,
                     );
@@ -36,7 +36,7 @@ class App extends StatelessWidget {
                   return Padding(
                     padding: EdgeInsets.only(right: 10),
                     child: Text(
-                      '${model.joinSingletonToNewData ?? "Tap on A Counter"}',
+                      '${modelRM.joinSingletonToNewData ?? "Tap on A Counter"}',
                       style: TextStyle(fontSize: 30),
                     ),
                   );

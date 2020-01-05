@@ -579,13 +579,13 @@ StateWithMixinBuilder<T>( {
 
 `states_rebuilder` uses the service locator pattern for injecting dependencies using the` injector` with is a StatefulWidget. To understand the principle of DI, it is important to consider the following principles:
 
-1. `Injector` adds classes to the container of the service locator in` initState` and deletes them in the `dispose` state. This means that if `Injector` is removed and re-inserted in the widget tree, a new singleton is registered for the injected models.
+1. `Injector` adds classes to the container of the service locator in` initState` and deletes them in the `dispose` state. This means that if `Injector` is removed and re-inserted in the widget tree, a new singleton is registered for the injected models. If you  injected streams or futures using `Inject.stream` or `Inject.future` and when a the `Injector` is disposed and re-inserted, the streams and futures are disposed and reinitialized by `states_rebuilder` and do not fear of any memory leakage.
 
 2. You can use nested injectors. As the `Injector` is a simple StatefulWidget, it can be added anywhere in the widget tree. A typical use is to insert the `Injector` deeper in the widget tree just before using the injected classes.
 
-3. Injected classes are registered lazily. This means that they are not instantiated after injection until they are consumed for the first time using `Injector.get` or` Injector.getAsModel`.
+3. Injected classes are registered lazily. This means that they are not instantiated after injection until they are consumed for the first time using `Injector.get` or` Injector.getAsReactive`.
 
-4. For each injected class, you can consume the registered instance using `Injector.get` or the reactive model wrapper of the injected instance using` Injector.getAsModel`. As the raw instance and the reactive instance are registered lazily, if you consume a class using only `Injector.get` and not` Injector.getAsModel`, the reactive instance will never be instantiated.
+4. For each injected class, you can consume the registered instance using `Injector.get` or the reactive model wrapper of the injected instance using` Injector.getAsReactive`. As the raw instance and the reactive instance are registered lazily, if you consume a class using only `Injector.get` and not` Injector.getAsReactive`, the reactive instance will never be instantiated.
 
 5. You can register classes with concrete types or abstract classes.
 
@@ -594,7 +594,7 @@ That said:
 
 * To save a singleton that will be available for all applications, insert the `Injector` widget in the top widget tree. It is possible to set the `isLazy` parameter to false to instantiate the injected class the time of injection.
 
-* To save a singleton that will be used by a branch of the widget tree, insert the `Injector` widget just above the branch. Each time you get into the branch, a singleton is registered and when you get out of it, the singleton will be destroyed.
+* To save a singleton that will be used by a branch of the widget tree, insert the `Injector` widget just above the branch. Each time you get into the branch, a singleton is registered and when you get out of it, the singleton will be destroyed. Making profit of the behavior, you can clean injected models by defining a `dispose()` method inside them and set the parameter `disposeModels` of the `Injector`to true.
 
 * With `Injector`, you can inject futures and use `whenConnectionState` to display useful information to the user and finally you can get the registered raw singleton using `Injector.get` method anywhere in the app. This is useful for instantiating plug-ins such as `SharedPreferences`. So you do not have to make the `main` function async and wait before calling `runApp` and use `WidgetsFlutterBinding.ensureInitialized()`.
 For example, you can show a splash screen informing the user that something is instantiating and display a helping error message if a plug-in fails to initialize.
@@ -625,9 +625,10 @@ class MyApp extends StatelessWidget {
     return sharedPreferencesRM.whenConnectionState(
       onIdle: () => Text('onIdle'),
       onWaiting: () => SplashScreen(),
-      onError: (error) => Text('error message'),
+      onError: (error) => MyErrorWidget(error),
       onData: (_) {
         //sharedPreferences instance is available and can be used any where in the app
+        //You can consume it using simply Injector.get<SharedPreferences>().
 
         return Injector(
           inject: [Inject(() => MyClass(sharedPreferences: Injector.get()))],

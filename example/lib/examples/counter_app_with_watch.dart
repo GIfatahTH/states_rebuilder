@@ -23,7 +23,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
-        final counter = Injector.getAsReactive<Counter>();
+        final counterRM = Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App with watch"),
@@ -31,7 +31,7 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment()),
+            onPressed: () => counterRM.setState((state) => state.increment()),
           ),
         );
       },
@@ -42,7 +42,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsReactive<Counter>(context: context);
+    final counterRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -55,10 +55,10 @@ class MyHome extends StatelessWidget {
                 child: Text("Random Color. It changes with each rebuild")),
           ),
           Text(
-            "${counter.state.count1}",
+            "${counterRM.state.count1}",
             style: TextStyle(fontSize: 50),
           ),
-          if (counter.state.count1 > 4)
+          if (counterRM.state.count1 > 4)
             Column(
               children: <Widget>[
                 Text("your have reached the maximum"),
@@ -73,13 +73,15 @@ class MyHome extends StatelessWidget {
             children: <Widget>[
               RaisedButton(
                 child: Text("increment and watch"),
-                onPressed: () => counter.setState((state) => state.increment(),
+                onPressed: () => counterRM.setState(
+                    (state) => state.increment(),
                     watch: (state) => state.count1),
                 // you can watch many variables : ` watch : (state) => [state.count1, state.count2]`
               ),
               RaisedButton(
                 child: Text("increment without watch"),
-                onPressed: () => counter.setState((state) => state.increment()),
+                onPressed: () =>
+                    counterRM.setState((state) => state.increment()),
               )
             ],
           )

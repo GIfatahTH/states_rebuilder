@@ -25,7 +25,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (BuildContext context) {
-        final ReactiveModel<Counter> counterModel =
+        final ReactiveModel<Counter> counterModelRM =
             Injector.getAsReactive<Counter>();
         return Scaffold(
           appBar: AppBar(
@@ -34,7 +34,7 @@ class App extends StatelessWidget {
           body: MyHome(),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () => counterModel.setState(
+            onPressed: () => counterModelRM.setState(
               (Counter state) => state.increment(),
               catchError: true, //catch the error
             ),
@@ -48,12 +48,12 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Injector.getAsReactive<Counter>(context: context);
+    final counterModelRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          counterModel.whenConnectionState(
+          counterModelRM.whenConnectionState(
             onIdle: () => Text(
               'onIdle : Tap on the FAB',
               style: const TextStyle(fontSize: 30),
