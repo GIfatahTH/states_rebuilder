@@ -880,12 +880,12 @@ void main() {
     expect(numberOfRebuild, equals(1));
     expect(Injector.getAsReactive<Integer>().state.value, equals(0));
     Injector.getAsReactive<Integer>()
-        .setState((state) => state.value++, watch: (state) => state.value);
+        .setState((state) => state.value++, watch: (state) => [state.value]);
     await tester.pump();
     expect(numberOfRebuild, equals(2));
     expect(Injector.getAsReactive<Integer>().state.value, equals(1));
     Injector.getAsReactive<Integer>()
-        .setState((state) => state.value, watch: (state) => state.value);
+        .setState((state) => state.value, watch: (state) => [state.value]);
     await tester.pump();
     expect(numberOfRebuild, equals(2));
     expect(Injector.getAsReactive<Integer>().state.value, equals(1));
@@ -2250,7 +2250,11 @@ void main() {
               return StateBuilder<Integer>(
                 models: [Injector.getAsReactive<Integer>()],
                 watch: (model) {
-                  return model.state.value;
+                  return {
+                    'list': {
+                      [model.state.value]
+                    }
+                  };
                 },
                 builder: (_, __) {
                   _rebuildTracker.add('rebuild');

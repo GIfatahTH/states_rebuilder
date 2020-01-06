@@ -229,10 +229,11 @@ This is not allowed, because setState method of a reactive model injected using 
     };
 
     this.joinSingletonToNewData = joinSingletonToNewData;
-
+    dynamic result;
     try {
-      final dynamic result = fn != null ? fn(state) as dynamic : null;
+      result = fn != null ? fn(state) as dynamic : null;
       if (result is Future) {
+        assert(watch == null);
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         try {
           _rebuildStates(
@@ -250,6 +251,13 @@ This is not allowed, because setState method of a reactive model injected using 
         await result;
       }
     } catch (e) {
+      assert(() {
+        if (result is Future && watch != null) {
+          throw Exception('Do not use watch with asynchronous call');
+        }
+        return true;
+      }());
+
       snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
       _rebuildStates(
         tags: filterTags,
@@ -270,7 +278,7 @@ This is not allowed, because setState method of a reactive model injected using 
     //share the same object.
     if (watch == null ||
         after.hashCode != before.hashCode ||
-        !identical(before, after)) {
+        before.hashCode == ''.hashCode && !identical(before, after)) {
       _rebuildStates(
         tags: filterTags,
         onSetState: _onSetState,
@@ -450,7 +458,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     _subscription = _singleton.listen((T data) {
       if (_watch != null) {
         final String _after = _watch(data).toString();
-        _isDifferent = !identical(_before, _after);
+        _isDifferent = _after.hashCode != _before.hashCode ||
+            _before.hashCode == ''.hashCode && !identical(_before, _after);
         _before = _after;
       }
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, data);

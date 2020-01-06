@@ -273,7 +273,7 @@ To fix, you have to either :
 
     if (widget.watch == null ||
         _before.hashCode != _after.hashCode ||
-        !identical(_before, _after)) {
+        _before.hashCode == ''.hashCode && !identical(_before, _after)) {
       setState(
         () {
           if (onSetState != null) {
