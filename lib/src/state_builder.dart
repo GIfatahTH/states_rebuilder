@@ -246,9 +246,6 @@ To fix, you have to either :
       addToObserver = AddToObserver(widget, this, _models, uniqueID);
     }
 
-    if (widget.initState != null) {
-      widget.initState(context, _exposedModel);
-    }
     if (widget.afterInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterInitialBuild(context, _exposedModel),
@@ -256,24 +253,33 @@ To fix, you have to either :
     }
 
     if (widget.watch != null) {
-      _after = widget.watch(_exposedModel)?.toString();
+      _lastWatch = widget.watch(_exposedModel)?.toString();
+      _lastConnectionState = ConnectionState.done;
+    }
+
+    if (widget.initState != null) {
+      widget.initState(context, _exposedModel);
     }
   }
 
-  String _before;
-  String _after;
+  String _currentWatch;
+  String _lastWatch;
+  ConnectionState _lastConnectionState;
+  bool _canRebuild = true;
   @override
   bool update([void Function(BuildContext) onSetState]) {
     if (!mounted) {
       return false;
     }
     if (widget.watch != null) {
-      _before = widget.watch(_exposedModel)?.toString();
-    }
+      _currentWatch = widget.watch(_exposedModel)?.toString();
 
-    if (widget.watch == null ||
-        _before.hashCode != _after.hashCode ||
-        _before.hashCode == ''.hashCode && !identical(_before, _after)) {
+      _canRebuild = _currentWatch.hashCode != _lastWatch.hashCode ||
+          _currentWatch.hashCode == ''.hashCode &&
+              !identical(_currentWatch, _lastWatch) ||
+          _lastConnectionState != _exposedModel.connectionState;
+    }
+    if (_canRebuild) {
       setState(
         () {
           if (onSetState != null) {
@@ -295,7 +301,8 @@ To fix, you have to either :
         },
       );
     }
-    _after = _before;
+    _lastWatch = _currentWatch;
+    _lastConnectionState = _exposedModel?.connectionState;
     return true;
   }
 

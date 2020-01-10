@@ -2264,35 +2264,87 @@ void main() {
             }),
       );
       final model = Injector.getAsReactive<Integer>();
-      expect(_rebuildTracker, equals(['rebuild']));
+      expect(_rebuildTracker.length, equals(1));
       model.setState(null);
       await tester.pump();
-      expect(_rebuildTracker, equals(['rebuild']));
-
+      expect(_rebuildTracker.length, equals(1));
       model.setState(null);
       await tester.pump();
-      expect(_rebuildTracker, equals(['rebuild']));
+      expect(_rebuildTracker.length, equals(1));
 
       model.state.value++;
 
       model.setState(null);
       await tester.pump();
-      expect(_rebuildTracker, equals(['rebuild', 'rebuild']));
+      expect(_rebuildTracker.length, equals(2));
 
       model.setState(null);
       await tester.pump();
-      expect(_rebuildTracker, equals(['rebuild', 'rebuild']));
+      expect(_rebuildTracker.length, equals(2));
     },
   );
-}
 
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    Injector.getAsReactive<Integer>(context: context);
-    Injector.getAsReactive<Service1>(context: context);
-    return Container();
-  }
+  testWidgets(
+    "should ' StateBuilder with watch works for async task",
+    (WidgetTester tester) async {
+      List<String> _rebuildTracker = [];
+      await tester.pumpWidget(
+        Injector(
+            inject: [Inject(() => Integer(0))],
+            builder: (context) {
+              return StateBuilder<Integer>(
+                models: [Injector.getAsReactive<Integer>()],
+                watch: (rm) {
+                  return rm.state.value;
+                },
+                builder: (_, __) {
+                  _rebuildTracker.add('rebuild');
+                  return Container();
+                },
+              );
+            }),
+      );
+      final model = Injector.getAsReactive<Integer>();
+      expect(_rebuildTracker.length, equals(1));
+      model.setState((s) => s.incrementAsync());
+      await tester.pump();
+      expect(_rebuildTracker.length, equals(2));
+      await tester.pump(Duration(seconds: 1));
+      expect(_rebuildTracker.length, equals(3));
+    },
+  );
+
+  testWidgets(
+    "should ' setState with watch works for async task",
+    (WidgetTester tester) async {
+      List<String> _rebuildTracker = [];
+      await tester.pumpWidget(
+        Injector(
+            inject: [Inject(() => Integer(0))],
+            builder: (context) {
+              return StateBuilder<Integer>(
+                models: [Injector.getAsReactive<Integer>()],
+                builder: (_, __) {
+                  _rebuildTracker.add('rebuild');
+                  return Container();
+                },
+              );
+            }),
+      );
+      final model = Injector.getAsReactive<Integer>();
+      expect(_rebuildTracker.length, equals(1));
+      model.setState(
+        (s) => s.incrementAsync(),
+        watch: (rm) {
+          return rm.value;
+        },
+      );
+      await tester.pump();
+      expect(_rebuildTracker.length, equals(2));
+      await tester.pump(Duration(seconds: 1));
+      expect(_rebuildTracker.length, equals(3));
+    },
+  );
 }
 
 class ViewModel extends StatesRebuilder {

@@ -174,7 +174,14 @@ This is not allowed, because setState method of a reactive model injected using 
       catchError = false || onError != null || whenConnectionState != null;
     }
 
-    final String before = watch != null ? watch(state)?.toString() : null;
+    String beforeWatch;
+    String afterWatch;
+    ConnectionState beforeConnectionState;
+    bool canRebuild = true;
+    if (watch != null) {
+      beforeWatch = watch(state)?.toString();
+      beforeConnectionState = connectionState;
+    }
 
     final Function(BuildContext context) _onSetState = (BuildContext context) {
       //context is from the last subscribed StateBuilder
@@ -229,11 +236,9 @@ This is not allowed, because setState method of a reactive model injected using 
     };
 
     this.joinSingletonToNewData = joinSingletonToNewData;
-    dynamic result;
     try {
-      result = fn != null ? fn(state) as dynamic : null;
+      dynamic result = fn != null ? fn(state) as dynamic : null;
       if (result is Future) {
-        assert(watch == null);
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         try {
           _rebuildStates(
@@ -251,13 +256,6 @@ This is not allowed, because setState method of a reactive model injected using 
         await result;
       }
     } catch (e) {
-      assert(() {
-        if (result is Future && watch != null) {
-          throw Exception('Do not use watch with asynchronous call');
-        }
-        return true;
-      }());
-
       snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
       _rebuildStates(
         tags: filterTags,
@@ -272,13 +270,19 @@ This is not allowed, because setState method of a reactive model injected using 
       return;
     }
     snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    final String after = watch != null ? watch(state)?.toString() : null;
+
+    if (watch != null) {
+      afterWatch = watch(state)?.toString();
+
+      canRebuild = afterWatch.hashCode != beforeWatch.hashCode ||
+          beforeWatch.hashCode == ''.hashCode &&
+              !identical(beforeWatch, afterWatch) ||
+          beforeConnectionState != connectionState;
+    }
 
     //String in dart are immutable objects, which means that two strings with the same characters in the same order
     //share the same object.
-    if (watch == null ||
-        after.hashCode != before.hashCode ||
-        before.hashCode == ''.hashCode && !identical(before, after)) {
+    if (canRebuild) {
       _rebuildStates(
         tags: filterTags,
         onSetState: _onSetState,

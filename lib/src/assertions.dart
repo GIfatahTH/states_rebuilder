@@ -1,17 +1,5 @@
 ///Assertions
 class AssertMessage {
-  ///getInjectStreamAndFutureError
-  static String getInjectStreamAndFutureError() {
-    return '''
-
-| ***Inject.stream and Inject.future***
-| Getting injected stream and future is not allowed.
-| 
-| To fix, you have to use 'Injector.getAsReactive' instead of 'Injector.get' 
-|
-      ''';
-  }
-
   /// getModelNotStatesRebuilderWithContext
   static String getModelNotStatesRebuilderWithContext<T>() {
     return '''
@@ -96,6 +84,24 @@ class AssertMessage {
 | You have to register the model before calling it.
 | 
 | To register the model use the `Injector` widget.
+| 
+| If you injected the model and navigate with pushReplacement 
+| the injected model will be removed. To keep it use the reinject
+| parameter of Injector:
+| ex:
+|       Navigator.pushReplacement(
+|         context,
+|         MaterialPageRoute(
+|           builder: (context) => Injector(
+|             reinject: [reactiveModelToReinject],
+|             builder: (context) {
+|               return NewPage();
+|             },
+|           ),
+|         ),
+|       );
+|
+|
 | You can set the silent parameter to true to silent the error.
 | 
 | This is the list of registered models: $keys.
