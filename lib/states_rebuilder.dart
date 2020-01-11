@@ -22,3 +22,6 @@ export 'src/inject.dart' show Inject, Injectable, JoinSingleton;
 
 /// [ReactiveModel] adds a reactive environnement to the injected models.
 export 'src/reactive_model.dart' show ReactiveModel;
+
+///Debugging prints
+export 'src/states_rebuilder_debug.dart';

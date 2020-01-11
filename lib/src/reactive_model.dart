@@ -174,7 +174,14 @@ This is not allowed, because setState method of a reactive model injected using 
       catchError = false || onError != null || whenConnectionState != null;
     }
 
-    final String before = watch != null ? watch(state)?.toString() : null;
+    String beforeWatch;
+    String afterWatch;
+    ConnectionState beforeConnectionState;
+    bool canRebuild = true;
+    if (watch != null) {
+      beforeWatch = watch(state)?.toString();
+      beforeConnectionState = connectionState;
+    }
 
     final Function(BuildContext context) _onSetState = (BuildContext context) {
       //context is from the last subscribed StateBuilder
@@ -229,9 +236,8 @@ This is not allowed, because setState method of a reactive model injected using 
     };
 
     this.joinSingletonToNewData = joinSingletonToNewData;
-
     try {
-      final dynamic result = fn != null ? fn(state) as dynamic : null;
+      dynamic result = fn != null ? fn(state) as dynamic : null;
       if (result is Future) {
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         try {
@@ -264,13 +270,19 @@ This is not allowed, because setState method of a reactive model injected using 
       return;
     }
     snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    final String after = watch != null ? watch(state)?.toString() : null;
+
+    if (watch != null) {
+      afterWatch = watch(state)?.toString();
+
+      canRebuild = afterWatch.hashCode != beforeWatch.hashCode ||
+          beforeWatch.hashCode == ''.hashCode &&
+              !identical(beforeWatch, afterWatch) ||
+          beforeConnectionState != connectionState;
+    }
 
     //String in dart are immutable objects, which means that two strings with the same characters in the same order
     //share the same object.
-    if (watch == null ||
-        after.hashCode != before.hashCode ||
-        !identical(before, after)) {
+    if (canRebuild) {
       _rebuildStates(
         tags: filterTags,
         onSetState: _onSetState,
@@ -450,7 +462,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     _subscription = _singleton.listen((T data) {
       if (_watch != null) {
         final String _after = _watch(data).toString();
-        _isDifferent = !identical(_before, _after);
+        _isDifferent = _after.hashCode != _before.hashCode ||
+            _before.hashCode == ''.hashCode && !identical(_before, _after);
         _before = _after;
       }
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, data);

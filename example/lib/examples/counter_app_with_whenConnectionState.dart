@@ -36,7 +36,6 @@ class App extends StatelessWidget {
             child: Icon(Icons.add),
             onPressed: () => counterModelRM.setState(
               (Counter state) => state.increment(),
-              catchError: true, //catch the error
             ),
           ),
         );

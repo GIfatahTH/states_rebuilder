@@ -1,3 +1,8 @@
+## 1.11.2 (2020-01-10)
+* Add the static method `StatesRebuilderDebug.printInjectedModel()` to debugPrint all registered model in the service locator.
+* Add the static method `StatesRebuilderDebug.printObservers(observable)` to )debugPrint all subscribed observers to the provided observable.
+* Refactor watch logic to work with asynchronous tasks as well as with List, Map, Set types.
+
 ## 1.11.1 (2020-01-05)
 * Add `onData(BuildContext, T)` parameter to `setState` method.
   It is a shortcut to:
