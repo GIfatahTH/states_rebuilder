@@ -1,208 +1,218 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/inject.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-class Counter1 {}
-
-class Counter2 {
-  Counter1 counter;
-  Counter2([this.counter]);
-}
 
 void main() {
-  testWidgets(
-    'should getName with dynamic, generic type and custom name',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      Inject<dynamic> inject2;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter2>(() => Counter2()),
-            inject2 = Inject<Counter2>(() => Counter2(), name: "Counter3"),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.getName(), 'Counter2');
-      expect(inject2.getName(), 'Counter3');
+  test(
+    'Inject getName works',
+    () {
+      //defined generic type
+      expect(Inject<Model>(() => Model()).getName(), equals('Model'));
+      //generic type is inferred
+      expect(Inject(() => Model()).getName(), equals('Model'));
+      //with provided custom name
+      expect(Inject(() => Model(), name: 'customName').getName(),
+          equals('customName'));
+      //throws for dynamic type
+      var dynamic;
+      expect(() => Inject(() => dynamic).getName(), throwsAssertionError);
     },
   );
 
-  testWidgets(
-    'should default register lazily',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1()),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.singleton, null);
+  test(
+    'Inject getSingleton works default lazily',
+    () {
+      final singletonInject = Inject(() => Model());
+      singletonInject.getName();
+      expect(singletonInject.singleton, isNull);
+      expect(singletonInject.getSingleton(), isNotNull);
+      expect(singletonInject.getSingleton(),
+          equals(singletonInject.getSingleton()));
     },
   );
 
-  testWidgets(
-    'should default register and instantiate if isLazy is false',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1(), isLazy: false),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.singleton, isA<Counter1>());
+  test(
+    'Inject getSingleton works not lazily',
+    () {
+      final singletonInject = Inject(() => Model(), isLazy: false);
+      singletonInject.getName();
+      expect(singletonInject.singleton, isNotNull);
     },
   );
 
-  testWidgets(
-    'should getSingleton work',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1()),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.singleton, isNull);
-      expect(inject1.getSingleton(), isA<Counter1>());
-      expect(inject1.singleton, isA<Counter1>());
-      int hashCode1 = inject1.getSingleton().hashCode;
-      int hashCode2 = inject1.getSingleton().hashCode;
-      expect(hashCode1 == hashCode2, isTrue);
-    },
-  );
+  group('Inject.future :', () {
+    test(
+      ' get name work when injecting future',
+      () {
+        //defined generic type
+        expect(Inject<int>.future(() => getFuture()).getName(), equals('int'));
+        //generic type is inferred
+        expect(Inject.future(() => getFuture()).getName(), equals('int'));
+        //with provided custom name
+        expect(Inject.future(() => getFuture(), name: 'customName').getName(),
+            equals('customName'));
+        //throws for dynamic type
+        var dynamic;
+        expect(
+            () => Inject.future(() => dynamic).getName(), throwsAssertionError);
+      },
+    );
 
-  testWidgets(
-    'should getReactiveSingleton work for Stream a',
-    (WidgetTester tester) async {
-      Inject<dynamic> injectStream;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            injectStream = Inject<int>.stream(
-                () => Stream.periodic(Duration(seconds: 1), (num) => num)),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(injectStream.reactiveSingleton, isNull);
-      expect(injectStream.getReactiveSingleton(),
-          isA<StreamStatesRebuilder<int>>());
-      expect(injectStream.reactiveSingleton, isA<StreamStatesRebuilder<int>>());
-      int hashCode1 = injectStream.getReactiveSingleton().hashCode;
-      int hashCode2 = injectStream.getReactiveSingleton().hashCode;
-      expect(hashCode1 == hashCode2, isTrue);
-    },
-  );
+    test(
+      ' getSingleton  do not throw if use with injected future',
+      () {
+        final singletonInject = Inject.future(() => getFuture());
+        singletonInject.getName();
+        expect(singletonInject.singleton, isNull);
+        expect(singletonInject.isAsyncInjected, isTrue);
+        singletonInject.getSingleton();
+      },
+    );
+  });
 
-  testWidgets(
-    'should getReactiveSingleton work for  Future',
-    (WidgetTester tester) async {
-      Inject<dynamic> injectFuture;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            injectFuture =
-                Inject<int>.future(() => Future.delayed(Duration(seconds: 1))),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(injectFuture.reactiveSingleton, isNull);
-      expect(injectFuture.getReactiveSingleton(),
-          isA<StreamStatesRebuilder<int>>());
-      expect(injectFuture.reactiveSingleton, isA<StreamStatesRebuilder<int>>());
-      int hashCode1 = injectFuture.getReactiveSingleton().hashCode;
-      int hashCode2 = injectFuture.getReactiveSingleton().hashCode;
-      expect(hashCode1 == hashCode2, isTrue);
+  group('Inject.stream :', () {
+    test(
+      ' get name work when injecting stream',
+      () {
+        //defined generic type
+        expect(Inject<int>.stream(() => getStream()).getName(), equals('int'));
+        //generic type is inferred
+        expect(Inject.stream(() => getStream()).getName(), equals('int'));
+        //with provided custom name
+        expect(Inject.stream(() => getStream(), name: 'customName').getName(),
+            equals('customName'));
+        //throws for dynamic type
+        var dynamic;
+        expect(
+            () => Inject.stream(() => dynamic).getName(), throwsAssertionError);
+      },
+    );
 
-      await tester.pump(Duration(seconds: 1));
-    },
-  );
+    test(
+      ' getSingleton do not throw if use with injected future',
+      () {
+        final singletonInject = Inject.stream(() => getStream());
+        singletonInject.getName();
+        expect(singletonInject.singleton, isNull);
+        expect(singletonInject.isAsyncInjected, isTrue);
+        singletonInject.getSingleton();
+      },
+    );
+  });
 
-  testWidgets(
-    'should getReactiveSingleton work for ReactiveStatesRebuilder',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1()),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.reactiveSingleton, isNull);
-      expect(inject1.getReactiveSingleton(),
-          isA<ReactiveStatesRebuilder<Counter1>>());
+  //
+  //ReactiveModel
+
+  test(
+    'Inject getReactiveSingleton works default lazily',
+    () {
+      final singletonInject = Inject(() => Model());
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNull);
+      expect(singletonInject.getReactive(), isNotNull);
       expect(
-          inject1.reactiveSingleton, isA<ReactiveStatesRebuilder<Counter1>>());
-      int hashCode1 = inject1.getReactiveSingleton().hashCode;
-      int hashCode2 = inject1.getReactiveSingleton().hashCode;
-      expect(hashCode1 == hashCode2, isTrue);
+          singletonInject.getReactive(), equals(singletonInject.getReactive()));
     },
   );
 
-  testWidgets(
-    'should getReactiveInstance work, the state remains the same',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1()),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      int hashCode1 = inject1.getReactiveSingleton().hashCode;
-      int hashCode2 = inject1.getReactiveNewInstance().hashCode;
-      expect(hashCode1 == hashCode2, isFalse);
-
-      hashCode1 = inject1.getReactiveSingleton().state.hashCode;
-      hashCode2 = inject1.getReactiveNewInstance().state.hashCode;
-      expect(hashCode1 == hashCode2, isTrue);
+  test(
+    'Inject getReactiveSingleton works not lazily',
+    () {
+      final singletonInject = Inject(() => Model(), isLazy: false);
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNotNull);
+      expect(singletonInject.reactiveSingleton,
+          equals(singletonInject.getReactive()));
     },
   );
 
-  testWidgets(
-    'should getReactiveInstance work, resetStateStatus case',
-    (WidgetTester tester) async {
-      Inject<dynamic> inject1;
-      await tester.pumpWidget(
-        Injector(
-          inject: [
-            inject1 = Inject<Counter1>(() => Counter1(),
-                initialCustomStateStatus: "MyInitialStateStatues"),
-          ],
-          builder: (_) => Container(),
-        ),
-      );
-      expect(inject1.getReactiveSingleton().customStateStatus,
-          "MyInitialStateStatues");
+  test(
+    'Inject : getReactiveSingleton works Future lazily',
+    () {
+      final singletonInject = Inject.future(() => getFuture());
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNull);
+      expect(singletonInject.getReactive(), isNotNull);
+      expect(
+          singletonInject.getReactive(), equals(singletonInject.getReactive()));
+    },
+  );
+  test(
+    'Inject : getReactiveSingleton works Future not lazily',
+    () {
+      final singletonInject = Inject.future(() => getFuture(), isLazy: false);
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNotNull);
+      expect(singletonInject.reactiveSingleton,
+          equals(singletonInject.getReactive()));
+    },
+  );
 
-      inject1.getReactiveSingleton().customStateStatus =
-          "MyModifiedStateStatus";
-      expect(inject1.getReactiveSingleton().customStateStatus,
-          "MyModifiedStateStatus");
+  test(
+    'Inject : getReactiveSingleton works Stream lazily',
+    () {
+      final singletonInject = Inject.stream(() => getStream());
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNull);
+      expect(singletonInject.getReactive(), isNotNull);
+      expect(
+          singletonInject.getReactive(), equals(singletonInject.getReactive()));
+    },
+  );
+  test(
+    'Inject : getReactiveSingleton works Stream not lazily',
+    () {
+      final singletonInject = Inject.stream(() => getStream(), isLazy: false);
+      singletonInject.getName();
+      expect(singletonInject.reactiveSingleton, isNotNull);
+      expect(singletonInject.reactiveSingleton,
+          equals(singletonInject.getReactive()));
+    },
+  );
 
-      expect(inject1.getReactiveNewInstance().customStateStatus,
-          "MyInitialStateStatues");
-      expect(inject1.getReactiveNewInstance(true).customStateStatus,
-          "MyModifiedStateStatus");
+  test(
+    'Inject : get new reactive instance',
+    () {
+      final inject = Inject(() => Model());
+      final modelRM0 = inject.getReactive();
+      final modelRM1 = inject.getReactive(true);
+      final modelRM2 = inject.getReactive(true);
+      //
+      expect(modelRM0 != modelRM1, isTrue);
+      expect(modelRM0 != modelRM2, isTrue);
+      expect(modelRM1 != modelRM2, isTrue);
+      //
+      expect(modelRM0.isNewReactiveInstance, isFalse);
+      expect(modelRM1.isNewReactiveInstance, isTrue);
+      expect(modelRM2.isNewReactiveInstance, isTrue);
+      //
+      expect(inject.newReactiveInstanceList.length, equals(2));
+      //
+      inject.removeFromReactiveNewInstanceList(modelRM0);
+      expect(inject.newReactiveInstanceList.length, equals(2));
+      inject.removeFromReactiveNewInstanceList(modelRM1);
+      expect(inject.newReactiveInstanceList.length, equals(1));
+      inject.removeFromReactiveNewInstanceList(modelRM2);
+      expect(inject.newReactiveInstanceList.length, equals(0));
+    },
+  );
+
+  test(
+    'Inject : clear all new reactive instances',
+    () {
+      final inject = Inject(() => Model());
+      inject.getReactive();
+      inject.getReactive(true);
+      inject.getReactive(true);
+      //
+      expect(inject.newReactiveInstanceList.length, equals(2));
+      //
+      inject.removeAllReactiveNewInstance();
+      expect(inject.newReactiveInstanceList.length, equals(0));
     },
   );
 }
+
+class Model {}
+
+Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
+Stream<int> getStream() => Stream.periodic(Duration(seconds: 1), (num) => num);

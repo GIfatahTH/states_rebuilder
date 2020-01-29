@@ -47,12 +47,12 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModelRM = Injector.getAsReactive<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          counterModelRM.whenConnectionState(
+          WhenRebuilder<Counter>(
+            models: [Injector.getAsReactive<Counter>()],
             onIdle: () => Text(
               'onIdle : Tap on the FAB',
               style: const TextStyle(fontSize: 30),

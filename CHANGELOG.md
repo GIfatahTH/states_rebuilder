@@ -1,3 +1,64 @@
+## 1.12.0 (2020-01-29)
+*  Add `WhenRebuilder` widget. It is a shortcut of using `SateBuilder` to subscribe to an observable model and use `ReactiveModel.whenConnectionState` method to exhaustively switch over all the possible statuses of `connectionState`.
+
+instead of:
+```dart
+Widget build(BuildContext context) {
+    return StateBuilder<PlugIn1>(
+      models: [Injector.getAsReactive<PlugIn1>()],
+      builder: (_, plugin1RM) {
+        return plugin1RM.whenConnectionState(
+          onIdle: () => Text('onIDle'),
+          onWaiting: () => CircularProgressIndicator(),
+          onError: (error) => Text('plugin one has an error $error'),
+          onData: (plugin1) => Text('plugin one is ready'),
+        );
+      },
+    );
+}
+```
+
+You use :
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return WhenRebuilder<PlugIn1>(
+    models: [Injector.getAsReactive<PlugIn1>()],
+    onIdle: () => Text('onIdle'),
+    onWaiting: () => CircularProgressIndicator(),
+    onError: (error) => Text('plugin one has an error $error'),
+    onData: (plugin1) => Text('plugin one is ready'),
+  );
+}
+```
+As a good side effect of using `WhenRebuilder`, you can subscribe to many observable models and a combination status is exposed and `onData` will not be invoked only after all observable models have data.
+
+ex:
+
+```dart
+  final plugin1RM = Injector.getAsReactive<PlugIn1>();
+  final plugin2RM = Injector.getAsReactive<PlugIn2>();
+  @override
+  Widget build(BuildContext context) {
+    return WhenRebuilder<PlugIn1>(
+      models: [plugin1RM, plugin2RM],
+      onIdle: () => Text('onIDle'),
+      //onWaiting is called if any models is in the waiting state
+      onWaiting: () => CircularProgressIndicator(),
+      // onError will be called with the thrown error, if any of the observed models throws.
+      onError: (error) => Text('plugin1 or plugin2  has an error $error'),
+      //onData is called when all observable models have data
+      onData: (plugin1) => Text('plugin1 and plugin2  are both ready'),
+    );
+  }
+```
+* Add `OnSetStateListener` widget to handle side effects. It subscribes to a list of observable models and listen to them and execute the corresponding  onData or onError side effects.
+* `Now Injector` can inject primitive  values and make them reactive 
+* Replace `setState.joinSingletonWith` in  with the bool parameter `setState.joinSingleton` 
+* A huge Refactor of the code. I have written the code from the ground using Text Driven principles. Now the cod is cleaner, shorter, and more effective.
+
+
 ## 1.11.2 (2020-01-10)
 * Add the static method `StatesRebuilderDebug.printInjectedModel()` to debugPrint all registered model in the service locator.
 * Add the static method `StatesRebuilderDebug.printObservers(observable)` to )debugPrint all subscribed observers to the provided observable.

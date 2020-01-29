@@ -1,5 +1,17 @@
 ///Assertions
 class AssertMessage {
+  ///getInjectStreamAndFutureError
+  static String getInjectStreamAndFutureError() {
+    return '''
+
+| ***Inject.stream and Inject.future***
+| Getting injected stream and future is not allowed.
+| 
+| To fix, you have to use 'Injector.getAsReactive' instead of 'Injector.get' 
+|
+      ''';
+  }
+
   /// getModelNotStatesRebuilderWithContext
   static String getModelNotStatesRebuilderWithContext<T>() {
     return '''
@@ -84,24 +96,6 @@ class AssertMessage {
 | You have to register the model before calling it.
 | 
 | To register the model use the `Injector` widget.
-| 
-| If you injected the model and navigate with pushReplacement 
-| the injected model will be removed. To keep it use the reinject
-| parameter of Injector:
-| ex:
-|       Navigator.pushReplacement(
-|         context,
-|         MaterialPageRoute(
-|           builder: (context) => Injector(
-|             reinject: [reactiveModelToReinject],
-|             builder: (context) {
-|               return NewPage();
-|             },
-|           ),
-|         ),
-|       );
-|
-|
 | You can set the silent parameter to true to silent the error.
 | 
 | This is the list of registered models: $keys.
@@ -129,5 +123,86 @@ class AssertMessage {
 |   );
 | 
       ''';
+  }
+
+  ///reinjectNonInjectedInstance
+  static String reinjectNonInjectedInstance<T>(String reinject) {
+    return '''
+
+| ***Reinjecting non registered instance***
+| You are trying to rienject an instance of $reinject
+| that is not registered. You can only rienject already registered models.
+      ''';
+  }
+
+  ///getNewReactiveInstanceWithContext
+  static String reinjectModelNotFound<T>(String reinject) {
+    return '''
+
+| ***Reinjected model not founded***
+| The model $reinject you reinject is not found.
+| It is most probably that you have registered the model with a custom name.
+| 
+| Rinjection of registered models with custom name is not allowed.
+|
+              ''';
+  }
+
+  static String gettingAsReactiveAStatesRebuilderModel(String s) {
+    return 'gettingAsReactiveAStatesRebuilderModel $s';
+  }
+
+  static String reinjectingNewReactiveInstance(String reinject) {
+    return '''
+| ***Reinjecting new reactive instance***
+| You are reinjecting a new reactive instance of [$reinject].
+| New reactive instance can not be reinject, only reactive singleton that can be reinjected.
+| 
+| To use subscribe to new reactive instance use StateBuilder widget.
+| 
+|   ex:
+|   final model = Injector.getAsReactive<$reinject]>(asNewReactiveInstance: true);
+| 
+|   return StateBuilder(
+|     models: [model],
+|     builder:(context,model){
+|       ....
+|     }
+|   );
+        ''';
+  }
+
+  static String noModelsAndDynamicType() {
+    return '''
+      
+***No model is defined***
+You are using [StateBuilder] widget without providing a generic type or defining the [models] parameter.
+
+To fix, you have to either :
+1- Provide a generic type to create and subscribe to a new reactive environnement
+  ex:
+    StateBuilder<MyModel>(
+      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+        return ...
+      }
+    )
+2- define the [models] property. to subscribe to an already defined reactive environnement instance
+  ex:
+    StateBuilder(
+      models : [myModelInstance],
+      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
+        return ...
+      }
+    )
+      ''';
+  }
+
+  static String setStateCalledOnAsyncInjectedModel() {
+    return '''
+
+Most probably, you are calling setState on a reactive model injected using `Inject.stream` or `Inject.future`.
+This is not allowed, because setState method of a reactive model injected using `Inject.stream` or `Inject.future` is called automatically whenever the stream emits a value.
+
+            ''';
   }
 }

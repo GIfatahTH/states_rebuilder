@@ -1,8 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-
-import 'injector.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
 import 'states_rebuilder.dart';
@@ -11,6 +7,216 @@ import 'states_rebuilder.dart';
 abstract class Injectable {
   ///wrap with InheritedWidget
   Widget inheritedInject(Widget child);
+}
+
+///A class used to wrap injected models, streams or futures.
+///It caches the rew singleton and the reactive singleton.
+class Inject<T> implements Injectable {
+  /// The Creation Function.
+  T Function() _creationFunction;
+
+  /// The creation Function. It must return a Future.
+  Future<T> Function() _creationFutureFunction;
+  Future<T> Function() get creationFutureFunction => _creationFutureFunction;
+
+  /// The creation Function. It must return a Stream.
+  Stream<T> Function() _creationStreamFunction;
+  Stream<T> Function() get creationStreamFunction => _creationStreamFunction;
+
+  String _name;
+
+  /// vanilla singleton
+  T singleton;
+
+  /// reactive singleton
+  ReactiveModel<T> reactiveSingleton;
+
+  /// List of new reactive instance created from this Inject
+  List<ReactiveModel<T>> newReactiveInstanceList = <ReactiveModel<T>>[];
+
+  /// True if the injected model is instantiated lazily; that is at the time of the first use with [Injector.getAsReactive] and [Injector.get].
+  ///
+  /// False if the injected model is instantiated at the time of the injection.
+  ///
+  ///Default value is `true`.
+  bool isLazy;
+
+  /// The initial value.
+  T initialValue;
+
+  ///Whether the injected model is stream or future
+  bool get isAsyncInjected => _isFutureType || _isStreamType;
+
+  ///Whether the model is of [StatesRebuilder] type
+  bool get isStatesRebuilder =>
+      isAsyncInjected ? false : singleton is StatesRebuilder;
+  bool get hasCustomName => _hasCustomName;
+
+  bool _isFutureType = false;
+  bool get isFutureType => _isFutureType;
+
+  bool _isStreamType = false;
+  bool get isStreamType => _isStreamType;
+
+  bool _hasCustomName = false;
+
+  ///new reactive instances can transmit their state and notification to reactive singleton.
+  JoinSingleton joinSingleton;
+
+  ///A function that returns a one instance variable or a list of
+  ///them. The rebuild process will be triggered if at least one of
+  ///the return variable changes.
+  ///
+  ///Return variable must be either a primitive variable, a List, a Map or a Set.
+  ///
+  ///To use a custom type, you should override the `toString` method to reflect
+  ///a unique identity of each instance.
+  ///
+  ///If it is not defined all listener will be notified when a new state is available.
+  Object Function(T) watch;
+
+  /// List of [StateBuilder]'s tags to be notified to rebuild.
+  List<dynamic> filterTags;
+
+  int onSetStateListenerNumber = 0;
+  bool get hasOnSetStateListener => onSetStateListenerNumber > 0;
+
+  ///Inject a value or a model.
+  Inject(
+    this._creationFunction, {
+    dynamic name,
+    this.isLazy,
+    this.joinSingleton,
+  }) {
+    _name = name?.toString();
+    _hasCustomName = name != null;
+  }
+
+  ///Inject a Future
+  Inject.future(
+    this._creationFutureFunction, {
+    dynamic name,
+    this.isLazy = true,
+    this.initialValue,
+    this.filterTags,
+  }) {
+    _name = name?.toString();
+    _isFutureType = true;
+    _hasCustomName = name != null;
+  }
+
+  Inject.stream(
+    this._creationStreamFunction, {
+    dynamic name,
+    this.isLazy = true,
+    this.initialValue,
+    this.watch,
+    this.filterTags,
+  }) {
+    _name = name?.toString();
+    _isStreamType = true;
+    _hasCustomName = name != null;
+  }
+
+  /// Get the name of the model is registered with.
+  String getName() {
+    assert(T != dynamic);
+
+    if (isLazy == false) {
+      getReactive();
+    }
+    return _name ??= '$T';
+  }
+
+  ///Get the registered singleton
+  T getSingleton() {
+    if (isAsyncInjected == true) {
+      singleton = getReactive().state;
+      return singleton;
+    }
+    if (singleton == null) {
+      singleton = _creationFunction();
+    }
+    return singleton;
+  }
+
+  ///Get the registered reactive singleton or new reactive instance
+  ReactiveModel<T> getReactive([bool asNew = false]) {
+    ReactiveModel<T> rs;
+    if (reactiveSingleton == null || asNew) {
+      if (isAsyncInjected) {
+        rs = StreamStatesRebuilder<T>(this, asNew);
+      } else {
+        rs = ReactiveStatesRebuilder<T>(this, asNew);
+      }
+      addToReactiveNewInstanceList(asNew ? rs : null);
+    }
+
+    return asNew ? rs : reactiveSingleton ??= rs;
+  }
+
+  void Function(StatesRebuilder model) refreshSubscribers;
+
+  _InheritedWidgetModel _inheritedWidgetModel = _InheritedWidgetModel();
+
+  @override
+  Widget inheritedInject(Widget child) {
+    return StateBuilder<dynamic>(
+      models: <StatesRebuilder>[_inheritedWidgetModel..injectSR = this],
+      builder: (ctx, __) {
+        return InheritedInject<T>(
+          child: child,
+          getSingleton: () => isStatesRebuilder
+              ? getSingleton() as StatesRebuilder
+              : getReactive(),
+        );
+      },
+    );
+  }
+
+  InheritedWidget staticOf(BuildContext context) {
+    final InheritedWidget model =
+        context.dependOnInheritedWidgetOfExactType<InheritedInject<T>>();
+    return model;
+  }
+
+  ///Add the reactive model in the inject new reactive models list.
+  void addToReactiveNewInstanceList(ReactiveModel rm) {
+    if (rm == null) return;
+    newReactiveInstanceList?.add(rm);
+  }
+
+  ///remove the reactive model in the inject new reactive models list.
+  void removeFromReactiveNewInstanceList(ReactiveModel rm) {
+    if (rm == null) return;
+    newReactiveInstanceList?.remove(rm);
+  }
+
+  ///remove the reactive model in the inject new reactive models list.
+  void removeAllReactiveNewInstance() {
+    newReactiveInstanceList?.clear();
+  }
+}
+
+///Inherited widget class
+class InheritedInject<T> extends InheritedWidget {
+  ///Inherited widget class
+  const InheritedInject({Key key, Widget child, this.getSingleton})
+      : super(key: key, child: child);
+
+  ///get reactive singleton associated with this InheritedInject
+  final StatesRebuilder Function() getSingleton;
+
+  /// The last registered add BuildContext
+  static final List<BuildContext> lastContext = <BuildContext>[null];
+
+  ///get The model
+  StatesRebuilder get model => getSingleton();
+
+  @override
+  bool updateShouldNotify(InheritedInject<T> oldWidget) {
+    return true;
+  }
 }
 
 ///Join reactive singleton to reactive environment
@@ -32,223 +238,30 @@ enum JoinSingleton {
   withCombinedReactiveInstances
 }
 
-///A class used to wrap injected models, streams or futures.
-///It caches the rew singleton and the reactive singleton.
-class Inject<T> implements Injectable {
-  ///Inject a value or a model.
-  Inject(
-    this._creationFunction, {
-    this.name,
-    this.isLazy = true,
-    this.initialCustomStateStatus,
-    this.joinSingleton,
-  }) {
-    if (name != null) {
-      _name = name.toString();
-    }
-  }
+class _InheritedWidgetModel extends StatesRebuilder {
+  Inject injectSR;
+  StatesRebuilder modelFromInjectSR;
 
-  ///Inject a Future
-  Inject.future(
-    this._creationFutureFunction, {
-    this.name,
-    this.initialValue,
-    this.isLazy = true,
-    this.watch,
-    this.tags,
-  }) {
-    if (name != null) {
-      _name = name.toString();
-    }
-    _isFutureType = true;
-  }
+  @override
+  void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
+    super.addObserver(observer: observer, tag: tag);
 
-  ///Inject a Stream
-  Inject.stream(
-    this._creationStreamFunction, {
-    this.name,
-    this.initialValue,
-    this.isLazy = true,
-    this.watch,
-    this.tags,
-  }) {
-    if (name != null) {
-      _name = name.toString();
-    }
-    _isStreamType = true;
-  }
-
-  /// The Creation Function.
-  T Function() _creationFunction;
-
-  /// The creation Function. It must return a Future.
-  Future<T> Function() _creationFutureFunction;
-
-  /// The creation Function. It must return a Stream.
-  Stream<T> Function() _creationStreamFunction;
-
-  /// The initial value.
-  T initialValue;
-
-  /// True if the injected model is instantiated lazily; that is at the time of the first use with [Injector.getAsReactive] and [Injector.get].
-  ///
-  /// False if the injected model is instantiated at the time of the injection.
-  ///
-  ///Default value is `true`.
-  bool isLazy;
-
-  ///A function that returns a one instance variable or a list of
-  ///them. The rebuild process will be triggered if at least one of
-  ///the return variable changes.
-  ///
-  ///Return variable must be either a primitive variable, a List, a Map or a Set.
-  ///
-  ///To use a custom type, you should override the `toString` method to reflect
-  ///a unique identity of each instance.
-  ///
-  ///If it is not defined all listener will be notified when a new state is available.
-  Object Function(T) watch;
-
-  /// List of [StateBuilder]'s tags to be notified to rebuild.
-  List<dynamic> tags;
-
-  ///The custom name to be used instead of the type to get the injected instance.
-  dynamic name;
-
-  ///A dynamic variable to hold your custom state status other than those defined by [ReactiveModel.connectionState]
-  dynamic initialCustomStateStatus;
-
-  ///new reactive instances can transmit their state and notification to reactive singleton.
-  ///
-  JoinSingleton joinSingleton;
-
-  ///Whether the reactive singleton is instantiated
-  bool get isReactiveModel => reactiveSingleton != null;
-
-  ///Whether the model is of [StatesRebuilder] type
-  bool get isStatesRebuilder => singleton is StatesRebuilder;
-
-  ///Whether the injected model is stream or future
-  bool get isAsyncType => _isFutureType || _isStreamType;
-
-  bool _isFutureType = false;
-  bool _isStreamType = false;
-  String _name; // cache for name
-  /// vanilla singleton
-  T singleton;
-
-  /// reactive singleton
-  ReactiveModel<T> reactiveSingleton;
-
-  /// List of new reactive instance created from this Inject
-  List<ReactiveModel<T>> newReactiveInstanceList = <ReactiveModel<T>>[];
-
-  /// Get the name of the model is registered with.
-  String getName() {
-    assert(T != dynamic);
-
-    _name ??= '$T';
-
-    if (!isLazy) {
-      if (isAsyncType) {
-        getReactiveSingleton();
-      } else {
-        getSingleton();
-      }
-    }
-    return _name;
-  }
-
-  ///Get the registered singleton
-  T getSingleton() {
-    singleton ??= _creationFunction();
-    return singleton;
-  }
-
-  ///Get the registered reactive singleton
-  ReactiveModel<T> getReactiveSingleton() {
-    if (reactiveSingleton == null) {
-      if (_isFutureType) {
-        reactiveSingleton = StreamStatesRebuilder<T>(
-          _creationFutureFunction().asStream(),
-          this,
-        );
-      } else if (_isStreamType) {
-        reactiveSingleton = StreamStatesRebuilder<T>(
-          _creationStreamFunction(),
-          this,
-        );
-      } else {
-        reactiveSingleton = ReactiveStatesRebuilder<T>(this)
-          ..customStateStatus = initialCustomStateStatus;
-      }
-    }
-    return reactiveSingleton;
-  }
-
-  ///Get a new reactive instance
-  ReactiveModel<T> getReactiveNewInstance([bool keepStateStatus]) {
-    if (_isFutureType) {
-      return reactiveSingleton;
-    } else if (_isStreamType) {
-      return reactiveSingleton;
-    } else {
-      ReactiveStatesRebuilder<T> _reactiveStatesRebuilder;
-      if (keepStateStatus == true) {
-        _reactiveStatesRebuilder = ReactiveStatesRebuilder<T>(this)
-          ..customStateStatus = getReactiveSingleton().customStateStatus;
-      } else {
-        _reactiveStatesRebuilder = ReactiveStatesRebuilder<T>(this)
-          ..customStateStatus = initialCustomStateStatus;
-      }
-
-      return _reactiveStatesRebuilder;
-    }
-  }
-
-  final _StatesRebuilder _statesRebuilder = _StatesRebuilder();
-
-  ///Notify InheritedWidget
-  void rebuildInheritedWidget(
-    List<dynamic> tags,
-    Function(BuildContext context) onSetState,
-  ) {
-    if (_statesRebuilder.hasObservers) {
-      _statesRebuilder.rebuildStates(tags, onSetState);
+    if (injectSR != null) {
+      injectSR.refreshSubscribers = (model) {
+        modelFromInjectSR = model;
+        StatesRebuilderInternal.addAllToObserverMap(this, modelFromInjectSR);
+      };
     }
   }
 
   @override
-  Widget inheritedInject(Widget child) {
-    return StateBuilder<dynamic>(
-      models: <StatesRebuilder>[_statesRebuilder],
-      builder: (_, __) => InheritedInject<T>(
-        child: child,
-        getReactiveSingleton: () => reactiveSingleton,
-      ),
-    );
+  void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
+    super.removeObserver(observer: observer, tag: tag);
+
+    if (injectSR != null && modelFromInjectSR != null) {
+      if (modelFromInjectSR.observers()[tag] != null) {
+        modelFromInjectSR.removeObserver(observer: observer, tag: tag);
+      }
+    }
   }
 }
-
-///Inherited widget class
-class InheritedInject<T> extends InheritedWidget {
-  ///Inherited widget class
-  const InheritedInject({Key key, Widget child, this.getReactiveSingleton})
-      : super(key: key, child: child);
-
-  ///get reactive singleton associated with this InheritedInject
-  final ReactiveModel<T> Function() getReactiveSingleton;
-
-  /// The last registered add BuildContext
-  static final List<BuildContext> lastContext = <BuildContext>[null];
-
-  ///get The model
-  ReactiveModel<T> get model => getReactiveSingleton();
-
-  @override
-  bool updateShouldNotify(InheritedInject<T> oldWidget) {
-    return true;
-  }
-}
-
-class _StatesRebuilder extends StatesRebuilder {}

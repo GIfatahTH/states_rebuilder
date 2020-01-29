@@ -234,7 +234,7 @@ class _StateBuilderStateTickerMix<T> extends State<StateWithMixinBuilder<T>>
               : null,
       afterRebuild: (BuildContext context, _) =>
           widget.afterRebuild != null ? widget.afterRebuild(context) : null,
-      models: widget.models ?? <StatesRebuilder>[null],
+      models: widget.models ?? <StatesRebuilder>[],
       tag: widget.tag,
       builder: (BuildContext context, _) => widget.builder(context, null),
     );
@@ -275,7 +275,7 @@ class _StateBuilderStateSingleTickerMix<T>
               : null,
       afterRebuild: (BuildContext context, _) =>
           widget.afterRebuild != null ? widget.afterRebuild(context) : null,
-      models: widget.models ?? <StatesRebuilder>[null],
+      models: widget.models ?? <StatesRebuilder>[],
       tag: widget.tag,
       builder: (BuildContext context, _) => widget.builder(context, null),
     );
@@ -318,7 +318,7 @@ class _StateBuilderStateAutomaticKeepAliveClient<T>
               : null,
       afterRebuild: (BuildContext context, _) =>
           widget.afterRebuild != null ? widget.afterRebuild(context) : null,
-      models: widget.models ?? <StatesRebuilder>[null],
+      models: widget.models ?? <StatesRebuilder>[],
       tag: widget.tag,
       builder: (BuildContext context, _) => widget.builder(context, null),
     );
@@ -364,7 +364,7 @@ class _StateBuilderStateWidgetsBindingObserver<T>
               : null,
       afterRebuild: (BuildContext context, _) =>
           widget.afterRebuild != null ? widget.afterRebuild(context) : null,
-      models: widget.models ?? <StatesRebuilder>[null],
+      models: widget.models ?? <StatesRebuilder>[],
       tag: widget.tag,
       builder: (BuildContext context, _) => widget.builder(context, null),
     );

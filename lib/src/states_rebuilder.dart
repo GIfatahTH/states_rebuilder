@@ -1,8 +1,8 @@
 import 'dart:collection';
 
-import 'package:flutter/material.dart';
-
-import 'state_builder.dart';
+import 'package:flutter/widgets.dart';
+import 'inject.dart';
+import 'reactive_model.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -17,7 +17,8 @@ abstract class ObserverOfStatesRebuilder {
 ///Observable class should implement [Subject]
 abstract class Subject {
   ///Notify observers
-  void rebuildStates([List<dynamic> tags]);
+  void rebuildStates(
+      [List<dynamic> tags, void Function(BuildContext) onSetState]);
 
   ///Add Observer
   void addObserver({
@@ -37,35 +38,79 @@ class StatesRebuilder implements Subject {
   ///key holds the observer tags and the value holds the observers
   ///_observers = {"tag" : [observer1, observer2, ...]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
-  final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observers =
+  final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observersMap =
       LinkedHashMap<String, List<ObserverOfStatesRebuilder>>();
 
-  ///Holds user defined void callback to be executed when notification is emitted.
-  final List<VoidCallback> _customObservers = <VoidCallback>[];
-
-  ///Folds user defined void callback to be executed after removing all observers.
-  final List<VoidCallback> _cleanerVoidCallBackList = <VoidCallback>[];
-
-  ///Define a function to be called each time a tag is removed
-  Function(String) statesRebuilderCleaner;
-
   /// observers getter
-  Map<String, List<ObserverOfStatesRebuilder>> observers() => _observers;
+  Map<String, List<ObserverOfStatesRebuilder>> observers() => _observersMap;
+  bool get hasObservers => _observersMap.isNotEmpty;
 
-  ///Check whether the model has observing states
-  bool get hasObservers => _observers.isNotEmpty;
+  ///Holds user defined void callback to be executed after removing all observers.
+  final List<VoidCallback> _statesRebuilderCleaner = <VoidCallback>[];
 
-  ///Check whether the model has user defined observing states
-  bool get hasCustomObservers => _customObservers.isNotEmpty;
+  @override
+  @mustCallSuper
+  void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
+    assert(observer != null);
+    assert(tag != null);
+    Map<String, List<ObserverOfStatesRebuilder>> observersTemp = {};
+    observersTemp.addAll(_observersMap);
+    _observersMap.clear();
+    //observers are add at the beginning of the list.
+    if (observersTemp[tag] == null) {
+      _observersMap[tag] = <ObserverOfStatesRebuilder>[observer];
+      _observersMap.addAll(observersTemp);
+    } else {
+      observersTemp[tag] = [observer, ...observersTemp[tag]];
+      _observersMap.addAll(observersTemp);
+    }
+  }
 
-  /// You call `rebuildState` inside any of your logic classes that extends `StatesRebuilder`.
+  @override
+  @mustCallSuper
+  void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
+    assert(
+      () {
+        if (_observersMap[tag] == null) {
+          throw Exception(
+            '''
+
+| ***Non registered Tag***
+| The tag: [$tag] is not registered in this [$runtimeType] observers.
+| Tags are automatically registered by states_rebuilder.
+| If you see this error, this means that something wrong happens.
+| Please report an issue.
+| 
+| The registered tags are : ${_observersMap.keys}
+       ''',
+          );
+        }
+        return true;
+      }(),
+    );
+
+    _observersMap[tag].remove(observer);
+    if (_observersMap[tag].isEmpty) {
+      _observersMap.remove(tag);
+      if (_observersMap.isEmpty) {
+        //Al observers are remove, it is time to execute custom cleaning
+        for (final void Function() voidCallBack in _statesRebuilderCleaner) {
+          if (voidCallBack != null) {
+            voidCallBack();
+          }
+        }
+        _statesRebuilderCleaner.clear();
+      }
+    }
+  }
+
+  /// You call [rebuildState] inside any of your logic classes that extends [StatesRebuilder].
   ///
   /// It will notify observers with [tags] and executed [onSetState] after notification is sent.
   @override
-  void rebuildStates(
-      [List<dynamic> tags, void Function(BuildContext) onSetState]) {
+  void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
     assert(() {
-      if (!hasObservers && _customObservers.isEmpty) {
+      if (!hasObservers) {
         throw Exception(
           '''
 
@@ -99,151 +144,63 @@ class StatesRebuilder implements Subject {
     }());
 
     //used to ensure that [onSetState] is executed only one time.
-    bool _onRebuildCallBackIsCalled = false;
+    bool isOnSetStateCalledOrNull = onSetState == null;
 
     if (tags == null) {
-      final Iterable<String> _keys = _observers.keys.toList()?.reversed;
-
-      for (final String key in _keys) {
-        final List<ObserverOfStatesRebuilder> observerList = _observers[key];
-        assert(
-          () {
-            if (observerList == null) {
-              throw Exception(
-                '''
-
-| ***Empty key***
-| The key [$key] refer to an empty list.
-| Empty keys should be automatically removed by states_rebuilder.
-| If you see this error this means that there is something wrong. please report an issue.
-''',
-              );
-            }
-            return true;
-          }(),
-        );
-        if (observerList != null) {
-          for (ObserverOfStatesRebuilder observer in observerList) {
-            if (onSetState != null && _onRebuildCallBackIsCalled == false) {
-              _onRebuildCallBackIsCalled = observer?.update(onSetState) == true;
-            } else {
-              observer?.update();
-            }
+      _observersMap.forEach(
+        (tag, observers) {
+          //TODO DO we need to check if observers is null?
+          for (ObserverOfStatesRebuilder observer in observers.reversed) {
+            assert(observer != null);
+            observer.update(
+              isOnSetStateCalledOrNull
+                  ? null
+                  : (context) {
+                      isOnSetStateCalledOrNull = true;
+                      onSetState(context);
+                    },
+            );
           }
-        }
-      }
-
-      for (void Function() customObserver in _customObservers) {
-        customObserver();
-      }
+        },
+      );
       return;
     }
 
-    for (final dynamic tag in tags) {
+    for (var tag in tags) {
       String _tag;
 
       if (tag is BuildContext) {
-        _tag = '#@deFau_Lt${tag.hashCode}TaG30';
+        _tag = 'AutoGeneratedTag#|:${tag.hashCode}';
       } else {
         _tag = tag.toString();
       }
 
-      final List<ObserverOfStatesRebuilder> observerList = _observers['$_tag'];
-      if (observerList != null) {
-        for (ObserverOfStatesRebuilder observer in observerList) {
-          if (onSetState != null && _onRebuildCallBackIsCalled == false) {
-            _onRebuildCallBackIsCalled = observer?.update(onSetState);
-          } else {
-            observer?.update();
-          }
+      final observers = _observersMap[_tag];
+      if (observers != null) {
+        for (ObserverOfStatesRebuilder observer in observers) {
+          assert(observer != null);
+          observer.update(
+            isOnSetStateCalledOrNull
+                ? null
+                : (context) {
+                    isOnSetStateCalledOrNull = true;
+                    onSetState(context);
+                  },
+          );
         }
       }
-    }
-  }
-
-  /// Method to add observer
-  @override
-  void addObserver({
-    @required String tag,
-    @required ObserverOfStatesRebuilder observer,
-  }) {
-    if (tag == null || observer == null) {
-      return;
-    }
-    //observers are add at the beginning of the list.
-    _observers[tag] = _observers[tag] == null
-        ? <ObserverOfStatesRebuilder>[observer]
-        : <ObserverOfStatesRebuilder>[observer, ..._observers[tag]];
-  }
-
-  ///Method to remove observer
-  @override
-  void removeObserver({
-    @required String tag,
-    @required ObserverOfStatesRebuilder observer,
-  }) {
-    if (tag != null) {
-      assert(
-        () {
-          if (_observers[tag] == null) {
-            throw Exception(
-              '''
-
-| ***Non registered Tag***
-| The tag: [$tag] is not registered in this [$runtimeType] observers.
-| Tags are automatically registered by states_rebuilder.
-| If you see this error, this means that something wrong happens.
-| Please report an issue.
-| 
-| The registered tags are : ${_observers.keys}
-       ''',
-            );
-          }
-          return true;
-        }(),
-      );
-
-      _observers[tag].remove(observer);
-      if (_observers[tag].isEmpty) {
-        if (statesRebuilderCleaner != null) {
-          statesRebuilderCleaner(tag);
-        }
-        _observers.remove(tag);
-
-        if (_observers.isEmpty) {
-          if (statesRebuilderCleaner != null) {
-            statesRebuilderCleaner(null);
-          }
-          statesRebuilderCleaner = null;
-          //[_cleanerVoidCallBackList] void call backs are executed after both [_observers] and [__customObservers] are empty
-          if (_customObservers.isEmpty) {
-            for (final void Function() voidCallBack
-                in _cleanerVoidCallBackList) {
-              if (voidCallBack != null) {
-                voidCallBack();
-              }
-            }
-            _cleanerVoidCallBackList.clear();
-          }
-        }
-      }
-    } else {
-      for (final void Function() voidCallBack in _cleanerVoidCallBackList) {
-        if (voidCallBack != null) {
-          voidCallBack();
-        }
-      }
-      _cleanerVoidCallBackList.clear();
     }
   }
 
   ///Add a callback to be executed when all listeners are removed
   void cleaner(VoidCallback voidCallback) {
-    _cleanerVoidCallBackList.add(voidCallback);
+    _statesRebuilderCleaner.add(voidCallback);
   }
+}
 
-  ///Add a custom void callback to be executed when notification is sent.
-  void addCustomObserver(void Function() fn) {
-    _customObservers.add(fn);
+//Package private class
+class StatesRebuilderInternal {
+  static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
+    to?._observersMap?.addAll(from._observersMap);
   }
 }
