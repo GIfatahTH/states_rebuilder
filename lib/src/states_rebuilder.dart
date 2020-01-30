@@ -1,8 +1,6 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'inject.dart';
-import 'reactive_model.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -149,7 +147,7 @@ class StatesRebuilder implements Subject {
     if (tags == null) {
       _observersMap.forEach(
         (tag, observers) {
-          //TODO DO we need to check if observers is null?
+          assert(observers != null);
           for (ObserverOfStatesRebuilder observer in observers.reversed) {
             assert(observer != null);
             observer.update(

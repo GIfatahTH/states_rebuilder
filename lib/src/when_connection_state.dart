@@ -71,8 +71,6 @@ class WhenRebuilder<T> extends StatelessWidget {
         );
 
         for (var i = 1; i < models.length; i++) {
-          print(models[i].snapshot);
-
           models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,

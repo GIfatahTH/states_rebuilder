@@ -6,7 +6,6 @@ import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
-import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
 void main() {
   testWidgets('Injector throw when getting not registered model',
@@ -114,19 +113,16 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(model.observers().length, equals(1));
-      StatesRebuilderDebug.printObservers(model);
       expect(find.text('0'), findsOneWidget);
       //
       model.increment();
       model.rebuildStates();
       await tester.pump();
       expect(model.observers().length, equals(1));
-      StatesRebuilderDebug.printObservers(model);
       expect(find.text('1'), findsOneWidget);
       //
       model.rebuildStates();
       await tester.pump();
-      StatesRebuilderDebug.printObservers(model);
       expect(model.observers().values.toList()[0].length, equals(1));
     },
   );
@@ -687,8 +683,6 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => VanillaModel())],
         builder: (context) {
-          final modelRM =
-              Injector.getAsReactive<VanillaModel>(context: context);
           return StateBuilder(
               models: [],
               initState: (_, __) {
@@ -712,50 +706,28 @@ void main() {
     },
   );
 
-  // testWidgets(
-  //   'Injector getAsReactive as new instance of an inject model works',
-  //   (tester) async {
-  //     final widget = Injector(
-  //       inject: [Inject(() => VanillaModel())],
-  //       builder: (context) {
-  //         return Container();
-  //       },
-  //     );
-  //     await tester.pumpWidget(widget);
-  //     expect(
-  //       Injector.getAsReactive<VanillaModel>(asNewReactiveInstance: true),
-  //       isA<ReactiveModel<VanillaModel>>(),
-  //     );
-  //     final modelRM1 =
-  //         Injector.getAsReactive<VanillaModel>(asNewReactiveInstance: true);
-  //     final modelRM2 =
-  //         Injector.getAsReactive<VanillaModel>(asNewReactiveInstance: true);
+  testWidgets(
+    'Injector getAsReactive as new instance of an inject model works',
+    (tester) async {
+      final widget = Injector(
+        inject: [Inject(() => VanillaModel())],
+        builder: (context) {
+          return Container();
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(
+        Injector.getAsReactive<VanillaModel>().inject.getReactive(true),
+        isA<ReactiveModel<VanillaModel>>(),
+      );
+      final modelRM1 =
+          Injector.getAsReactive<VanillaModel>().inject.getReactive(true);
+      final modelRM2 =
+          Injector.getAsReactive<VanillaModel>().inject.getReactive(true);
 
-  //     expect(modelRM1 != modelRM2, isTrue);
-  //   },
-  // );
-
-  // testWidgets(
-  //   'Injector getAsReactive as new instance with context return the reactive singleton',
-  //   (tester) async {
-  //     BuildContext context;
-  //     final widget = Injector(
-  //       inject: [Inject(() => VanillaModel())],
-  //       builder: (ctx) {
-  //         context = ctx;
-  //         return Container();
-  //       },
-  //     );
-  //     await tester.pumpWidget(widget);
-
-  //     final modelRM1 = Injector.getAsReactive<VanillaModel>(
-  //         asNewReactiveInstance: true, context: context);
-  //     final modelRM2 = Injector.getAsReactive<VanillaModel>(
-  //         asNewReactiveInstance: true, context: context);
-
-  //     expect(modelRM1 == modelRM2, isTrue);
-  //   },
-  // );//TODO
+      expect(modelRM1 != modelRM2, isTrue);
+    },
+  );
 
   testWidgets(
     'Injector  will not dispose stream if the injector is not disposed',
@@ -839,7 +811,6 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(intRM.subscription.isPaused, isFalse);
       switcher = false;
-      StatesRebuilderDebug.printObservers(Injector.getAsReactive<int>());
       model.rebuildStates();
       await tester.pump();
 
@@ -884,8 +855,6 @@ void main() {
           ),
         ],
         builder: (ctx) {
-          final rm = Injector.getAsReactive<bool>(context: ctx);
-          print(rm.state);
           return Container();
         },
       ),
@@ -916,7 +885,6 @@ void main() {
           return StateBuilder(
             models: [streamModel],
             builder: (_, __) {
-              print(streamModel.connectionState);
               numberOfRebuild++;
               return Container();
             },
@@ -1197,10 +1165,6 @@ void main() {
       });
       await tester.pump();
 
-      print(context0.hashCode);
-      print(context1.hashCode);
-      print(context2.hashCode);
-
       expect(context1, equals(context0));
       expect(scaffoldState, isNotNull);
     },
@@ -1285,10 +1249,6 @@ void main() {
       });
       await tester.pump();
 
-      print(context0.hashCode);
-      print(context1.hashCode);
-      print(context2.hashCode);
-
       expect(context1, equals(context0));
       expect(scaffoldState, isNotNull);
     },
@@ -1301,7 +1261,6 @@ void main() {
       bool isTrue = true;
       BuildContext context0;
       BuildContext context1;
-      BuildContext context2;
       ScaffoldState scaffoldState;
       final vm = Model();
       await tester.pumpWidget(
@@ -1332,7 +1291,6 @@ void main() {
                           return StateBuilder(
                             models: [Injector.getAsReactive<VanillaModel>()],
                             builder: (context, model) {
-                              context2 = context;
                               return Container();
                             },
                           );
@@ -1370,10 +1328,6 @@ void main() {
         scaffoldState = Scaffold.of(context);
       });
       await tester.pump();
-
-      print(context0.hashCode);
-      print(context1.hashCode);
-      print(context2.hashCode);
 
       expect(context1, equals(context0));
       expect(scaffoldState, isNotNull);

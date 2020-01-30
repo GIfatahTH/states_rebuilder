@@ -1,4 +1,4 @@
-## 1.12.0 (2020-01-29)
+## 1.12.0 (2020-01-30)
 *  Add `WhenRebuilder` widget. It is a shortcut of using `SateBuilder` to subscribe to an observable model and use `ReactiveModel.whenConnectionState` method to exhaustively switch over all the possible statuses of `connectionState`.
 
 instead of:
@@ -54,9 +54,12 @@ ex:
   }
 ```
 * Add `OnSetStateListener` widget to handle side effects. It subscribes to a list of observable models and listen to them and execute the corresponding  onData or onError side effects.
-* `Now Injector` can inject primitive  values and make them reactive 
-* Replace `setState.joinSingletonWith` in  with the bool parameter `setState.joinSingleton` 
-* A huge Refactor of the code. I have written the code from the ground using Text Driven principles. Now the cod is cleaner, shorter, and more effective.
+
+* Add `value` getter and `ReactiveModel.setValue` method. They are the counterpart of the `state` getter and `ReactiveModel.setState` method respectively. They are more convenient to use with primitive values and immutable objects.
+
+* Replace `setState.joinSingletonWith` in  with the bool parameter `setState.joinSingleton`.
+
+* A huge Refactor of the code. I have written the code from the ground using Test Driven Design principles. Now the cod is cleaner, shorter, and more effective.
 
 
 ## 1.11.2 (2020-01-10)

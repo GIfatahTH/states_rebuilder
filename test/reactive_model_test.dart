@@ -4,7 +4,6 @@ import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
-import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
 void main() {
   ReactiveStatesRebuilder<Model> modelRM;
@@ -1128,6 +1127,62 @@ void main() {
   );
 
   testWidgets(
+    'ReactiveModel : join singleton to new reactive from setState with data send using joinSingletonToNewData',
+    (tester) async {
+      final inject = Inject(() => Model());
+      final modelRM0 = inject.getReactive();
+      final modelRM1 = inject.getReactive(true);
+      final modelRM2 = inject.getReactive(true);
+
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder(
+            models: [modelRM0],
+            builder: (context, _) {
+              return _widgetBuilder(
+                  'modelRM0-${modelRM0.joinSingletonToNewData}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM1],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM2],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
+            },
+          )
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+
+      //mutate reactive instance 1
+      modelRM1.setState((s) => s.increment(),
+          joinSingleton: true,
+          catchError: true,
+          joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
+      await tester.pump();
+      expect(find.text('modelRM0-modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-0'), findsOneWidget);
+
+      //mutate reactive instance 2
+      modelRM2.setState((s) => s.increment(),
+          joinSingleton: true,
+          catchError: true,
+          joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
+      await tester.pump();
+      expect(find.text('modelRM0-modelRM2-2'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-2'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
       'ReactiveModel : throws if setState is called on async injected models',
       (tester) async {
     final inject = Inject.future(() => getFuture());
@@ -1260,7 +1315,7 @@ void main() {
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue);//TODO onDone
+      // expect(modelRM0.isStreamDone, isTrue);
     },
   );
 
@@ -1301,6 +1356,80 @@ void main() {
       expect(find.text('null-1'), findsOneWidget);
     },
   );
+
+  group('ReactiveModel setValue :', () {
+    testWidgets(
+      'tagFilter works',
+      (tester) async {
+        final modelRM = ReactiveStatesRebuilder<int>(Inject(() => 0));
+
+        final widget = StateBuilder(
+          models: [modelRM],
+          tag: 'tag1',
+          builder: (_, __) {
+            return _widgetBuilder('${modelRM.value}');
+          },
+        );
+        await tester.pumpWidget(widget);
+        modelRM.setValue(modelRM.value + 1);
+        await tester.pump();
+        expect(find.text(('1')), findsOneWidget);
+        //
+        await tester.pumpWidget(widget);
+        modelRM.setValue(modelRM.value + 1, filterTags: ['tag1']);
+        await tester.pump();
+        expect(find.text(('2')), findsOneWidget);
+        await tester.pumpWidget(widget);
+        modelRM.setValue(modelRM.value + 1, filterTags: ['nonExistingTag']);
+        await tester.pump();
+        expect(find.text(('2')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'onSetState and onRebuildState work',
+      (tester) async {
+        final modelRM = ReactiveStatesRebuilder<int>(Inject(() => 0));
+
+        int numberOfOnSetStateCall = 0;
+        int numberOfOnRebuildStateCall = 0;
+        BuildContext contextFromOnSetState;
+        BuildContext contextFromOnRebuildState;
+        String lifeCycleTracker = '';
+        final widget = StateBuilder(
+          models: [modelRM],
+          builder: (_, __) {
+            lifeCycleTracker += 'build, ';
+            return Container();
+          },
+        );
+        await tester.pumpWidget(widget);
+        expect(numberOfOnSetStateCall, equals(0));
+        //
+        modelRM.setValue(
+          modelRM.value + 1,
+          onSetState: (context) {
+            numberOfOnSetStateCall++;
+            contextFromOnSetState = context;
+            lifeCycleTracker += 'onSetState, ';
+          },
+          onRebuildState: (context) {
+            numberOfOnRebuildStateCall++;
+            contextFromOnRebuildState = context;
+            lifeCycleTracker += 'onRebuildState, ';
+          },
+        );
+        await tester.pump();
+        expect(numberOfOnSetStateCall, equals(1));
+        expect(contextFromOnSetState, isNotNull);
+        expect(numberOfOnRebuildStateCall, equals(1));
+        expect(contextFromOnRebuildState, isNotNull);
+        expect(lifeCycleTracker,
+            equals('build, onSetState, build, onRebuildState, '));
+      },
+    );
+    //
+  });
 }
 
 class Model {

@@ -49,6 +49,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
   }
 
+  T get value => state;
+
   ///The latest error object received by the asynchronous computation.
   dynamic get error => _snapshot.error;
 
@@ -84,6 +86,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   bool get hasData =>
       !hasError && connectionState == ConnectionState.done ||
       connectionState == ConnectionState.active;
+
   bool _isStreamDone;
   bool get isStreamDone => inject == null ? _isStreamDone : null;
 
@@ -115,6 +118,64 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   BuildContext _onSetStateContextFromGet;
 
+  dynamic customStateStatus;
+
+  dynamic _joinSingletonToNewData;
+
+  ///Holds data to be sent between reactive singleton and reactive new instances.
+  dynamic get joinSingletonToNewData => _joinSingletonToNewData;
+
+  /// Mutate the value of a Reactive Model and notify observers.
+  ///
+  /// Equivalent to [setState] but very convenient for primitives and immutable objects
+  Future<void> setValue(
+    T value, {
+    List<dynamic> filterTags,
+    void Function(BuildContext context) onSetState,
+    void Function(BuildContext context) onRebuildState,
+  }) async {
+    if (this.value == value) {
+      return;
+    }
+    state = value;
+    await setState(
+      null,
+      filterTags: filterTags,
+      onSetState: onSetState,
+      onRebuildState: onRebuildState,
+    );
+  }
+
+  /// Mutate the state of the model and notify observers.
+  ///
+  /// [fn] takes the current state as argument. You can optionally define
+  /// a list of [StateBuilder] [filterTags] to be notified after state mutation.
+  ///
+  /// To limit the rebuild process to a particular set of model instance variables use [watch].
+  ///
+  /// If you want to catch error define [catchError] to be true
+  ///
+  /// With [onSetState] you can define callBacks to be executed after mutating the state such as Navigation,
+  /// show dialog or SnackBar.
+  ///
+  /// [onRebuildState] is similar to [onSetState] except that it is executed after
+  /// the rebuilding process is completed.
+  ///
+  ///[onData] callback to be executed when ReactiveModel has data.
+  ///
+  ///[onError] callback to be executed when ReactiveModel has data.
+  ///
+  /// [watch] is a function that returns a single model instance variable or a list of
+  /// them. The rebuild process will be triggered if at least one of
+  /// the return variable changes. Returned variable must be either a primitive variable,
+  /// a List, a Map or a Set.To use a custom type, you should override the `toString` method to reflect
+  /// a unique identity of each instance.
+  /// If it is not defined all listener will be notified when a new state is available.
+  ///
+  /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
+  ///
+  /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
+
   Future<void> setState(
     Object Function(T) fn, {
     bool catchError,
@@ -124,7 +185,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
     void Function(BuildContext context, T model) onData,
-    // dynamic joinSingletonToNewData,//TODO
+    dynamic Function() joinSingletonToNewData,
     bool joinSingleton: false,
     bool notifyAllReactiveInstances = false,
   }) async {
@@ -166,15 +227,18 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         if (notifyAllReactiveInstances) {
           _notifyAll();
         } else if (isNewReactiveInstance) {
+          final reactiveSingleton = inject.getReactive();
+          if (joinSingletonToNewData != null) {
+            reactiveSingleton._joinSingletonToNewData =
+                joinSingletonToNewData();
+          }
+
           if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
               joinSingleton) {
-            final reactiveSingleton = inject.getReactive();
             reactiveSingleton._snapshot = _snapshot;
             reactiveSingleton.rebuildStates();
           } else if (inject.joinSingleton ==
               JoinSingleton.withCombinedReactiveInstances) {
-            final reactiveSingleton = inject.getReactive();
-
             reactiveSingleton._snapshot = _combinedSnapshotState;
             reactiveSingleton.rebuildStates();
           }
@@ -251,7 +315,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       return AsyncSnapshot.withData(ConnectionState.waiting, data);
     }
     if (hasError) {
-      //TODO what about catching the error
       return AsyncSnapshot.withError(ConnectionState.done, error);
     }
     if (isIdle) {
@@ -352,7 +415,6 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
 
 class ReactiveModelInternal {
   static setOnSetStateContext(ReactiveModel rm, BuildContext ctx) {
-    print('setOnSetStateContext ${ctx.hashCode}');
     rm._onSetStateContextFromGet = ctx;
   }
 }

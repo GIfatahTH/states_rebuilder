@@ -47,7 +47,6 @@ class OnSetStateListener<T> extends StatelessWidget {
 
         if (onError != null) {
           for (var reactiveModel in models) {
-            print(reactiveModel.snapshot);
             if (reactiveModel.hasError) {
               onError(context, reactiveModel.error);
             }

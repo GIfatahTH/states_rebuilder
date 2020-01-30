@@ -1,26 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/on_set_state_listener.dart';
-
-int count;
-increment() {
-  count = DateTime.now().millisecondsSinceEpoch;
-
-  sleep(const Duration(seconds: 1));
-  print('1');
-
-  count = DateTime.now().millisecondsSinceEpoch;
-  print('2');
-
-  sleep(const Duration(seconds: 1));
-
-  count = DateTime.now().millisecondsSinceEpoch;
-  print('3');
-}
+import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
   testWidgets('onSetStateListener works for one reactiveModel', (tester) async {
@@ -145,11 +128,57 @@ void main() {
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message2'));
   });
+
+  testWidgets('onSetStateListener works for two Future reactiveModels',
+      (tester) async {
+    String _onSetState = '';
+    ReactiveModel intRM;
+    ReactiveModel stringRM;
+    final widget = Injector(
+      inject: [
+        Inject.future(() => Future.delayed(Duration(seconds: 1), () => 10)),
+        Inject.future(() => Future.delayed(Duration(seconds: 2), () => '10')),
+      ],
+      builder: (context) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: OnSetStateListener(
+            models: [
+              intRM = Injector.getAsReactive<int>(),
+              stringRM = Injector.getAsReactive<String>(),
+            ],
+            onSetState: (context, _) {
+              _onSetState = 'onSetState';
+            },
+            onError: (context, error) {},
+            child: Container(),
+          ),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+
+    expect(_onSetState, equals(''));
+    expect(intRM.isWaiting, isTrue);
+    expect(stringRM.isWaiting, isTrue);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(_onSetState, equals('onSetState'));
+    expect(intRM.hasData, isTrue);
+    expect(stringRM.isWaiting, isTrue);
+
+    _onSetState = '';
+    await tester.pump(Duration(seconds: 2));
+    expect(_onSetState, equals('onSetState'));
+    expect(intRM.hasData, isTrue);
+    expect(stringRM.hasData, isTrue);
+  });
 }
 
 class Model1 {
   int counter = 0;
-  void incrementAsync() async {
+  Future incrementAsync() async {
     await Future.delayed(Duration(seconds: 1));
     counter++;
   }
@@ -162,8 +191,8 @@ class Model1 {
 
 class Model2 {
   int counter = 0;
-  void incrementAsync() async {
-    await Future.delayed(Duration(seconds: 1));
+  Future incrementAsync() async {
+    await Future.delayed(Duration(seconds: 2));
     counter++;
   }
 

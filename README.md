@@ -392,11 +392,9 @@ reactiveModel.setState(
   //When a notification is issued, whether to notify all reactive instances of the model
   notifyAllReactiveInstances: true, 
   /*
-  If defined, when a new reactive instance issues a notification, it will change the state of the reactive singleton in two ways.
-  1- JoinSingleton.withNewReactiveInstances
-  2- JoinSingleton.withCombinedReactiveInstances
+  If defined, when a new reactive instance issues a notification, it will change the state of the reactive singleton.
   */
-  joinSingletonWith: JoinSingleton.withNewReactiveInstance,
+  joinSingleton: true,
 
   //message to be sent to the reactive singleton
   dynamic joinSingletonToNewData,
@@ -408,14 +406,7 @@ It is important to understand that `states_rebuilder` caches two singletons.
 
 With `states_rebuilder`, you can create, at any time, a new reactive instance, which is the same raw cashed singleton but decorated with a new reactive environment.
 
-To create a new reactive instance of an injected model use:   
-1- `Injector.getAsReactive` with the  parameter `asNewReactiveInstance` equals true
-
-```dart
-// get a new reactive instance
-ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(asNewReactiveInstance: true);
-```
-2- `StateBuilder` with generic type and without `models` property.
+To create a new reactive instance of an injected model use `StateBuilder` with generic type and without defining `models` property.
 ```dart
 StateBuilder<T>(
   builder:(BuildContext context, ReactiveModel<T> newReactiveModel){
@@ -430,11 +421,11 @@ StateBuilder<T>(
 * To make new reactive instances accessible throughout the widget tree, you have to register it with the `Injector` with a custom name: 
 
 ```dart
-final modelRM =Injector.getAsReactive<Counter>(asNewReactiveInstance: true);
+
 
 return Injector(
 inject: [
-  Inject( () => modelRM, name: 'newModel1'),
+  Inject( () => modelNewRM, name: 'newModel1'),
 ],
 )
 // Or
@@ -442,7 +433,7 @@ Injector(
 inject: [
   Inject<Counter>(() => Counter()),
   Inject(
-    () => Injector.getAsReactive<Counter>(asNewReactiveInstance: true),
+    () => modelNewRM,
     name: Enum.newModel1,
   ),
 ],
@@ -461,7 +452,7 @@ ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
 
 * `states_rebuilder` allows reactive instances to share their notification or state with the reactive singleton. This can be done by:   
 1- `notifyAllReactiveInstances` parameter of `setState` method. If true, each time a notification is issued by the reactive instance in which `setState` is called, all other reactive instances are notified.   
-2- `joinSingletonWith` parameter of `setState` method or `Inject` class. This time, new reactive instances, when issuing a notification, can clone their state to the reactive singleton.
+2- `joinSingletonWith` parameter of `Inject` class. This time, new reactive instances, when issuing a notification, can clone their state to the reactive singleton.
   * If `joinSingletonWith` is set to` JoinSingleton.withNewReactiveInstance`, this means that the reactive singleton will have the state of the new reactive instance issuing the notification.
   * If `joinSingletonWith` is set to `JoinSingleton.withCombinedReactiveInstances`, this means that the singleton will hold a combined state of all the new reactive instances.    
   The combined state priority logic is:   
@@ -469,7 +460,6 @@ ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
   Priority 2- The combined `ReactiveModel.connectionState` is awaiting if at least one of the new instances is awaiting.    
   Priority 3- The combined `ReactiveModel.connectionState` is 'none' if at least one of the new instances is 'none'.     
   Priority 4- The combined `ReactiveModel.hasDate` is true if it has no error, it isn't awaiting  and it is not in 'none' state.
-* `joinSingletonWith` can be defined in `setState` method or in `Inject` class constructor. When set in the `setState` method, it means that only the new instance, where` setState` is called, is joined to the reactive singleton. Whereas if `joinSingletonWith` is defined in the` Inject` constructor, this means that all new reactive instances will be joined to the reactive singleton.
 * New reactive instances can send data to the reactive singleton. `joinSingletonToNewData` parameter of reactive environment hold the sending message.
 
 # StateBuilder
@@ -543,6 +533,145 @@ StateBuilder<T>(
 
 )
 ```
+# WhenRebuilder
+`states_rebuilder` offers the the `WhenRebuilder` widget which is a a combination of `StateBuilder` widget and `ReactiveModel.whenConnectionState` method.
+
+instead of verbosely:
+```dart
+Widget build(BuildContext context) {
+    return StateBuilder<PlugIn1>(
+      models: [Injector.getAsReactive<PlugIn1>()],
+      builder: (_, plugin1RM) {
+        return plugin1RM.whenConnectionState(
+          onIdle: () => Text('onIDle'),
+          onWaiting: () => CircularProgressIndicator(),
+          onError: (error) => Text('plugin one has an error $error'),
+          onData: (plugin1) => Text('plugin one is ready'),
+        );
+      },
+    );
+}
+```
+
+You use :
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return WhenRebuilder<PlugIn1>(
+    models: [Injector.getAsReactive<PlugIn1>()],
+    onIdle: () => Text('onIdle'),
+    onWaiting: () => CircularProgressIndicator(),
+    onError: (error) => Text('plugin one has an error $error'),
+    onData: (plugin1) => Text('plugin one is ready'),
+  );
+}
+```
+
+Also with `WhenRebuilder` you can listen to a list of observable models and go throw all the possible combination statuses of the observable models:
+
+```dart
+WhenRebuilder<Model1>(
+  //List of observable models
+  models: [reactiveModel1, reactiveModel1],
+  onIdle: () {
+    //Will be invoked if :
+    //1- Non of the observable models is in the error state, AND
+    //2- Non of the observable models is in the waiting state, AND
+    //3- At least one of the observable models is in the idle state.
+  },
+  onWaiting: () => {
+    //Will be invoked if :
+    //1- Non of the observable models is in the error state, AND
+    //2- At least one of the observable models is in the waiting state.
+  },
+  onError: (error) => {
+    //Will be invoked if :
+    //1- At least one of the observable models is in the error state.
+
+    //The error parameter holds the the thrown error of the model that has the error
+  },
+  onData: (data) => {
+    //Will be invoked if :
+    //1- Non of the observable models is in the error state, AND
+    //2- Non of the observable models is in the waiting state, AND
+    //3- Non of the observable models is in the idle state, AND
+    //4- All the observable models have data
+       
+    //The data parameter holds the state of the first model in the models list.
+  },
+),
+```
+
+# OnSetStateListener
+`OnSetStateListener` is useful when you want to globally control the notification flow  of a list of observable models and execute side effect calls. 
+
+```dart
+OnSetStateListener<Model1>(
+  //List of observable models
+  models: [reactiveModel1, reactiveModel1],
+  onSetState: (context, reactiveModel1) {
+    _onSetState = 'onSetState';
+  },
+  onError: (context, error) {
+    //Will be invoked if :
+    //1- At least one of the observable models is in the error state.
+    //The error parameter holds the the thrown error of the model that has the error
+  },
+  //It has a child parameter not a builder parameter.
+  child: Container(),
+)
+```
+What make `OnSetStateListener` different is the fact that is has a child parameter rather than a builder parameter. This means that the child parameter will not rebuild even if observable models send notifications.
+
+# `value` getter and `setValue` method.
+With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
+
+```dart
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      //Injecting  0
+      inject: [Inject<int>(() => 0)],
+      builder: (context){
+        //getting the injected 0 as reactive model
+        final counterRM = Injector.getAsReactive<int>(context: context);
+        return MaterialApp(
+          home: Scaffold(
+            //getting the value of counterRM
+            body: Center(child: Text('${counterRM.value}')),
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.add),
+              //setting the value of counterRM
+              onPressed: () => counterRM.setValue(counterRM.value + 1),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+`setValue` watches the change of the value and will not notify observers only if the value has changed.
+`setValue` has `onSetState` and `onRebuildState` the same way they are defined in `setState`:
+```dart
+reactiveModel.setValue(
+  newValue,
+  filterTags: ['Tag1', Enumeration.Tag2],
+  onSetState: (BuildContext context) {
+    /* 
+    Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar , ..
+
+    You can use another nested setState here.
+    */
+  },
+  onRebuildState: (BuildContext context) {
+    //The same as in onSetState but called after the end rebuild process.
+  },
+),
+```
+
 # StateWithMixinBuilder
 `StateWithMixinBuilder` is similar to `StateBuilder` and extends it by adding mixin (practical case is animation),
 ```Dart

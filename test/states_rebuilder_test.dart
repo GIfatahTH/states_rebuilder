@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
-import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
 void main() {
   Model model;
@@ -105,21 +101,13 @@ void main() {
       model.addObserver(observer: observer2, tag: 'tag1');
       model.addObserver(observer: observer3, tag: 'tag3');
 
-      model.increment();
-      print(observer1.numOfUpdates);
-      model.increment();
-      print(observer1.numOfUpdates);
-
-      model.increment();
-      print(observer1.numOfUpdates);
-
       //notify observers with no tag
       model.rebuildStates();
 
-      // //all observers will rebuild.
-      // expect(observer1.numOfUpdates, equals(1));
-      // expect(observer2.numOfUpdates, equals(1));
-      // expect(observer3.numOfUpdates, equals(1));
+      //all observers will rebuild.
+      expect(observer1.numOfUpdates, equals(1));
+      expect(observer2.numOfUpdates, equals(1));
+      expect(observer3.numOfUpdates, equals(1));
     },
   );
 
@@ -293,45 +281,11 @@ void main() {
       expect(numberOfCleanerCall, equals(1));
     },
   );
-
-  test('inject', () {
-    final inject = Inject(() => Model());
-    final model = Model();
-
-    // model.inject = inject;
-
-    model.addObserver(observer: ObserverWidget(), tag: 'tag1');
-
-    inject.getReactive();
-
-    StatesRebuilderDebug.printObservers(inject.singleton);
-
-    model.addObserver(observer: ObserverWidget(), tag: 'tag1');
-
-    StatesRebuilderDebug.printObservers(inject.singleton);
-
-    // expect(model.inject.reactiveSingleton.observers().length, equals(2));
-  });
 }
 
 class Model extends StatesRebuilder {
   int count;
-  increment() {
-    count = DateTime.now().millisecondsSinceEpoch;
-    sleep(const Duration(seconds: 1));
-    print('1');
-    rebuildStates();
-
-    count = DateTime.now().millisecondsSinceEpoch;
-    print('2');
-    rebuildStates();
-
-    sleep(const Duration(seconds: 1));
-
-    count = DateTime.now().millisecondsSinceEpoch;
-    print('3');
-    rebuildStates();
-  }
+  increment() {}
 }
 
 class ObserverWidget extends ObserverOfStatesRebuilder {
