@@ -89,8 +89,13 @@ class WhenRebuilder<T> extends StatelessWidget {
           return onError(error);
         }
 
-        if (isIdle && onIdle != null) {
-          return onIdle();
+        if (isIdle) {
+          if (onIdle != null) {
+            return onIdle();
+          }
+          return Center(
+            child: Text(' OnIdle Not Implemented Error '),
+          );
         }
 
         return onData(firstReactiveModel.state);

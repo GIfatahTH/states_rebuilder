@@ -33,6 +33,7 @@ class Inject<T> implements Injectable {
 
   /// List of new reactive instance created from this Inject
   List<ReactiveModel<T>> newReactiveInstanceList = <ReactiveModel<T>>[];
+  Map<String, ReactiveModel<T>> newReactiveMap = {};
 
   /// True if the injected model is instantiated lazily; that is at the time of the first use with [Injector.getAsReactive] and [Injector.get].
   ///
@@ -195,6 +196,7 @@ class Inject<T> implements Injectable {
   ///remove the reactive model in the inject new reactive models list.
   void removeAllReactiveNewInstance() {
     newReactiveInstanceList?.clear();
+    newReactiveMap.clear();
   }
 }
 

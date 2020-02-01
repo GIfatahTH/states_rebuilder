@@ -706,6 +706,62 @@ void main() {
       expect(reactiveModel1 == reactiveModel2, isTrue);
     },
   );
+
+  testWidgets(
+      "StateBuilder should work with ReactiveModel.create when widget is updated",
+      (WidgetTester tester) async {
+    ReactiveModel modelRM1;
+    ReactiveModel modelRM2;
+    final widget = Builder(
+      builder: (context) {
+        modelRM1 = ReactiveModel.create(0);
+        return MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StateBuilder(
+                  models: [modelRM1],
+                  builder: (_, __) {
+                    return Column(
+                      children: <Widget>[
+                        Text('modelRM1-${modelRM1.value}'),
+                        Builder(
+                          builder: (context) {
+                            modelRM2 = ReactiveModel.create(0);
+                            return StateBuilder(
+                                models: [modelRM2],
+                                builder: (_, __) {
+                                  return Text('modelRM2-${modelRM2.value}');
+                                });
+                          },
+                        ),
+                      ],
+                    );
+                  }),
+            ],
+          ),
+        );
+      },
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-0'), findsOneWidget);
+    //
+    modelRM2.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+
+    //
+    modelRM1.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('modelRM1-1'), findsOneWidget);
+    expect(find.text('modelRM2-0'), findsOneWidget);
+
+    modelRM2.setValue(() => modelRM2.value + 1);
+    await tester.pump();
+    expect(find.text('modelRM1-1'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+  });
 }
 
 class Model extends StatesRebuilder {

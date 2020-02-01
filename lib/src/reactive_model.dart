@@ -21,8 +21,6 @@ import 'assertions.dart';
 ///
 ///* Far asynchronous tasks :[connectionState], [hasError], [error], [hasData].
 ///
-///* For defining custom state status other than [connectionState] : [customStateStatus].
-///
 ///* To join reactive singleton with new singletons: [joinSingletonToNewData].
 abstract class ReactiveModel<T> extends StatesRebuilder {
   ///An abstract class that defines the reactive environment.
@@ -30,6 +28,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     if (!_inject.isAsyncInjected) {
       state = _inject?.getSingleton();
     }
+  }
+
+  //Create a ReactiveModel for primitive values, enums and immutable objects
+  factory ReactiveModel.create(T model) {
+    final inject = Inject<T>(() => model);
+    return inject.getReactive();
   }
 
   final Inject<T> _inject;
@@ -49,6 +53,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
   }
 
+  ///The value the ReactiveModel holds. It is the same as [state]
   T get value => state;
 
   ///The latest error object received by the asynchronous computation.
@@ -88,6 +93,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       connectionState == ConnectionState.active;
 
   bool _isStreamDone;
+
   bool get isStreamDone => inject == null ? _isStreamDone : null;
 
   ///The stream subscription. It is not null for injected streams or futures.
@@ -118,9 +124,32 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   BuildContext _onSetStateContextFromGet;
 
+  @deprecated
   dynamic customStateStatus;
 
   dynamic _joinSingletonToNewData;
+
+  ///Return a new reactive instance.
+  ///
+  ///The [key] parameter is used to unsure to always obtain the same new reactive
+  ///instance after widget tree reconstruction.
+  ///
+  ///[key] is optional and if not provided a default key is used.
+  ReactiveModel<T> asNew([dynamic key = 'defaultReactiveKey']) {
+    if (isNewReactiveInstance) {
+      return inject.getReactive().asNew(key);
+    }
+
+    ReactiveModel<T> rm = inject.newReactiveMap[key.toString()];
+    if (rm != null) {
+      return rm;
+    }
+
+    rm = inject.getReactive(true);
+    inject.newReactiveMap[key.toString()] = rm;
+
+    return rm;
+  }
 
   ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData => _joinSingletonToNewData;
@@ -129,20 +158,25 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///
   /// Equivalent to [setState] but very convenient for primitives and immutable objects
   Future<void> setValue(
-    T value, {
+    T Function() fn, {
     List<dynamic> filterTags,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
+    void Function(BuildContext context, dynamic error) onError,
   }) async {
-    if (this.value == value) {
-      return;
-    }
-    state = value;
     await setState(
-      null,
+      (_) {
+        final value = fn();
+
+        if (this.value == value) {
+          return StopRebuild();
+        }
+        return this.state = value;
+      },
       filterTags: filterTags,
       onSetState: onSetState,
       onRebuildState: onRebuildState,
+      onError: onError,
     );
   }
 
@@ -247,7 +281,15 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     }
 
     try {
-      final dynamic result = fn != null ? fn(state) as dynamic : null;
+      if (fn == null) {
+        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+        _rebuildStates(canRebuild: true);
+        return;
+      }
+      final dynamic result = fn(state) as dynamic;
+      if (result is StopRebuild) {
+        return;
+      }
       if (result is Future) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         //Do need to call setState during the build of the widget.
@@ -418,3 +460,5 @@ class ReactiveModelInternal {
     rm._onSetStateContextFromGet = ctx;
   }
 }
+
+class StopRebuild {}

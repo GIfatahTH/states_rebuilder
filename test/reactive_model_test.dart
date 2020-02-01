@@ -6,10 +6,11 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 
 void main() {
-  ReactiveStatesRebuilder<Model> modelRM;
+  ReactiveModel<Model> modelRM;
 
   setUp(() {
-    modelRM = ReactiveStatesRebuilder<Model>(Inject(() => Model()));
+    final inject = Inject(() => Model());
+    modelRM = inject.getReactive();
   });
 
   tearDown(() {
@@ -1361,7 +1362,7 @@ void main() {
     testWidgets(
       'tagFilter works',
       (tester) async {
-        final modelRM = ReactiveStatesRebuilder<int>(Inject(() => 0));
+        final modelRM = ReactiveModel.create(0);
 
         final widget = StateBuilder(
           models: [modelRM],
@@ -1371,16 +1372,42 @@ void main() {
           },
         );
         await tester.pumpWidget(widget);
-        modelRM.setValue(modelRM.value + 1);
+        modelRM.setValue(() => modelRM.value + 1);
         await tester.pump();
         expect(find.text(('1')), findsOneWidget);
-        //
+
         await tester.pumpWidget(widget);
-        modelRM.setValue(modelRM.value + 1, filterTags: ['tag1']);
+        modelRM.setValue(() => modelRM.value + 1, filterTags: ['tag1']);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
         await tester.pumpWidget(widget);
-        modelRM.setValue(modelRM.value + 1, filterTags: ['nonExistingTag']);
+        modelRM
+            .setValue(() => modelRM.value + 1, filterTags: ['nonExistingTag']);
+        await tester.pump();
+        expect(find.text(('2')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'if the value does not changed do not rebuild',
+      (tester) async {
+        final modelRM = ReactiveModel.create(0);
+        int numberOfRebuild = 0;
+        final widget = StateBuilder(
+          models: [modelRM],
+          tag: 'tag1',
+          builder: (_, __) {
+            return _widgetBuilder('${++numberOfRebuild}');
+          },
+        );
+        await tester.pumpWidget(widget);
+        expect(find.text(('1')), findsOneWidget);
+
+        modelRM.setValue(() => modelRM.value);
+        await tester.pump();
+        expect(find.text(('1')), findsOneWidget);
+
+        modelRM.setValue(() => modelRM.value + 1);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
       },
@@ -1407,7 +1434,7 @@ void main() {
         expect(numberOfOnSetStateCall, equals(0));
         //
         modelRM.setValue(
-          modelRM.value + 1,
+          () => modelRM.value + 1,
           onSetState: (context) {
             numberOfOnSetStateCall++;
             contextFromOnSetState = context;
@@ -1428,7 +1455,128 @@ void main() {
             equals('build, onSetState, build, onRebuildState, '));
       },
     );
+
+    testWidgets(
+      'sync methods with and without error work',
+      (tester) async {
+        final modelRM = ReactiveModel.create(0);
+
+        final widget = StateBuilder(
+          models: [modelRM],
+          builder: (_, __) {
+            return modelRM.whenConnectionState(
+              onIdle: () => _widgetBuilder('onIdle'),
+              onWaiting: () => _widgetBuilder('onWaiting'),
+              onData: (data) => _widgetBuilder('${data}'),
+              onError: (error) => _widgetBuilder('${error.message}'),
+            );
+          },
+        );
+        await tester.pumpWidget(widget);
+        //sync increment without error
+        modelRM.setValue(() {
+          final model = Model();
+          model.increment();
+          return model.counter;
+        });
+        await tester.pump();
+        expect(find.text(('1')), findsOneWidget);
+
+        //sync increment with error
+        var error;
+        modelRM.setValue(
+          () {
+            final model = Model();
+            model.incrementError();
+            return model.counter;
+          },
+          onError: (_, e) {
+            error = e;
+          },
+        );
+        await tester.pump();
+        expect(find.text('error message'), findsOneWidget);
+        expect(error.message, equals('error message'));
+      },
+    );
+
+    // testWidgets(//TODO make it work for async mehtods
+    //   'Async methods with and without error work',
+    //   (tester) async {
+    //     final modelRM = ReactiveModel.create(0);
+
+    //     final widget = StateBuilder(
+    //       models: [modelRM],
+    //       builder: (_, __) {
+    //         return modelRM.whenConnectionState(
+    //           onIdle: () => _widgetBuilder('onIdle'),
+    //           onWaiting: () => _widgetBuilder('onWaiting'),
+    //           onData: (data) => _widgetBuilder('${data}'),
+    //           onError: (error) => _widgetBuilder('${error.message}'),
+    //         );
+    //       },
+    //     );
+    //     await tester.pumpWidget(widget);
+    //     //sync increment without error
+    //     modelRM.setValue(() async {
+    //       final model = Model();
+    //       await model.incrementAsync();
+    //       return model.counter;
+    //     });
+    //     await tester.pump();
+    //     expect(find.text(('0')), findsOneWidget);
+
+    //     await tester.pump(Duration(seconds: 1));
+    //     expect(find.text(('1')), findsOneWidget);
+
+    //     // //sync increment with error
+    //     // modelRM.setValue(() {
+    //     //   final model = Model();
+    //     //   model.incrementError();
+    //     //   return model.counter;
+    //     // });
+    //     // await tester.pump();
+    //     // // expect(find.text('error message'), findsOneWidget);
+    //   },
+    // );
     //
+  });
+
+  test(
+      'ReactiveModel: get new reactive model with the same key returns the same instance',
+      () {
+    //get new reactive instance with the default key
+    final modelNewRM1 = modelRM.asNew();
+
+    expect(modelNewRM1, isA<ReactiveModel>());
+    expect(modelRM != modelNewRM1, isTrue);
+    ////get another new reactive instance with the default key
+    final modelNewRM2 = modelRM.asNew();
+    expect(modelNewRM2, isA<ReactiveModel>());
+    expect(modelNewRM2 == modelNewRM1, isTrue);
+
+    //get new reactive instance with the custom key
+    final modelNewRM3 = modelRM.asNew(Keys.key1);
+
+    expect(modelNewRM3, isA<ReactiveModel>());
+    expect(modelNewRM3 != modelNewRM1, isTrue);
+    ////get another new reactive instance with the default key
+    final modelNewRM4 = modelRM.asNew(Keys.key1);
+    expect(modelNewRM4, isA<ReactiveModel>());
+    expect(modelNewRM4 == modelNewRM3, isTrue);
+  });
+
+  test('ReactiveModel: get new reactive instance always return', () {
+    final modelNewRM1 = modelRM.asNew();
+    final modelNewRM2 = modelNewRM1.asNew();
+    expect(modelNewRM1 == modelNewRM2, isTrue);
+  });
+
+  test('ReactiveModel: ReactiveModel.create works ', () {
+    final _modelRM = ReactiveModel.create(1);
+    expect(_modelRM, isA<ReactiveModel>());
+    _modelRM.setValue(() => _modelRM.value + 1);
+    expect(_modelRM.value, equals(2));
   });
 }
 
@@ -1472,3 +1620,5 @@ Future<int> getFutureWithError() => Future.delayed(
     Duration(seconds: 1), () => throw Exception('error message'));
 Stream<int> getStream() =>
     Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+
+enum Keys { key1 }

@@ -293,6 +293,7 @@ class InjectorState extends State<Injector> {
           }
         }
       }
+      inject.removeAllReactiveNewInstance();
     }
 
     if (widget.dispose != null) {

@@ -415,6 +415,21 @@ StateBuilder<T>(
 )
 ```
 
+You can also use `ReactiveModel.asNew([dynamic key])` method: 
+
+```dart
+final reactiveModel = Injector.getAsReactive<Model>();
+final newReactiveModel = reactiveModel.asNew('myKey');
+
+// or directly
+
+final newReactiveModel = Injector.getAsReactive<Model>().asNew('myKey');
+```
+By setting the key parameter of the `asNew` method your are sure to get the same new reactive instance even after the widget rebuilds.
+
+Key parameter is optional, and if not provided, `states_rebuilder` use a default key.
+
+
 **Important notes about reactive singleton and new reactive instances:**
 * The reactive singleton and all the new reactive instances share the same raw singleton of the model, but each one decorates it with a different environment.
 * Unlike the reactive singleton, new reactive instances are not cached so they are not accessible outside the widget in which they were instantiated.
@@ -624,40 +639,43 @@ OnSetStateListener<Model1>(
 ```
 What make `OnSetStateListener` different is the fact that is has a child parameter rather than a builder parameter. This means that the child parameter will not rebuild even if observable models send notifications.
 
-# `value` getter and `setValue` method.
+# `ReactiveModel.create`, `value` getter and `setValue` method.
 With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
+
+If a primitive value is needed only locally, It can be wrapped with reactive environment using `ReactiveModel.create` named constructor.
 
 ```dart
 class App extends StatelessWidget {
+  //Create a reactiveModel<int> with initial value and assign it to counterRM  filed.
+  final counterRM = ReactiveModel.create(0);
   @override
   Widget build(BuildContext context) {
-    return Injector(
-      //Injecting  0
-      inject: [Inject<int>(() => 0)],
-      builder: (context){
-        //getting the injected 0 as reactive model
-        final counterRM = Injector.getAsReactive<int>(context: context);
-        return MaterialApp(
-          home: Scaffold(
-            //getting the value of counterRM
-            body: Center(child: Text('${counterRM.value}')),
-            floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.add),
-              //setting the value of counterRM
-              onPressed: () => counterRM.setValue(counterRM.value + 1),
-            ),
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          // Subscribe StateBuilder widget ot counterRM
+          child: StateBuilder(
+            models: [counterRM],
+            builder: (context, _) {
+              return Text('${counterRM.value}');
+            },
           ),
-        );
-      },
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          //set the value of the counterRM and notify observers.
+          onPressed: () => counterRM.setValue(() => counterRM.value + 1),
+        ),
+      ),
     );
   }
 }
 ```
 `setValue` watches the change of the value and will not notify observers only if the value has changed.
-`setValue` has `onSetState` and `onRebuildState` the same way they are defined in `setState`:
+`setValue` has `onSetState`, `onRebuildState`, `onError`,  `catchError` and `filterTags` the same way they are defined in `setState`:
 ```dart
 reactiveModel.setValue(
-  newValue,
+  ()=> newValue,
   filterTags: ['Tag1', Enumeration.Tag2],
   onSetState: (BuildContext context) {
     /* 
@@ -669,6 +687,15 @@ reactiveModel.setValue(
   onRebuildState: (BuildContext context) {
     //The same as in onSetState but called after the end rebuild process.
   },
+    
+  //set to true, you want to catch error, and not break the app.
+  catchError: true,
+
+  onError: (BuildContext context, dynamic error){
+    //Callback to be execute if the reactive model throws an error.
+    //You do not have to set the parameter catchError to true. By defining onError parameter 
+    //states_rebuilder catches the error by default.
+  }
 ),
 ```
 
