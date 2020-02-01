@@ -57,6 +57,39 @@ ex:
 
 * Add `value` getter and `ReactiveModel.setValue` method. They are the counterpart of the `state` getter and `ReactiveModel.setState` method respectively. They are more convenient to use with primitive values and immutable objects.
 
+* Add `ReactiveModel<T>.create(T value)` to create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have.
+ex: This is a simple counter app:
+
+```dart
+class App extends StatelessWidget {
+  //Create a reactiveModel<int> with initial value and assign it to counterRM  filed.
+  final counterRM = ReactiveModel.create(0);
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          // Subscribe StateBuilder widget ot counterRM
+          child: StateBuilder(
+            models: [counterRM],
+            builder: (context, _) {
+              return Text('${counterRM.value}');
+            },
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          //set the value of the counterRM and notify observers.
+          onPressed: () => counterRM.setValue(() => counterRM.value + 1),
+        ),
+      ),
+    );
+  }
+}
+```
+
+* Add `ReactiveModel.asNew([dynamic key])` to create new reactive instance.
+
 * Replace `setState.joinSingletonWith` in  with the bool parameter `setState.joinSingleton`.
 
 * A huge Refactor of the code. I have written the code from the ground using Test Driven Design principles. Now the cod is cleaner, shorter, and more effective.
