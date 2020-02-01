@@ -131,22 +131,22 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   ///Return a new reactive instance.
   ///
-  ///The [key] parameter is used to unsure to always obtain the same new reactive
+  ///The [seed] parameter is used to unsure to always obtain the same new reactive
   ///instance after widget tree reconstruction.
   ///
-  ///[key] is optional and if not provided a default key is used.
-  ReactiveModel<T> asNew([dynamic key = 'defaultReactiveKey']) {
+  ///[seed] is optional and if not provided a default seed is used.
+  ReactiveModel<T> asNew([dynamic seed = 'defaultReactiveSeed']) {
     if (isNewReactiveInstance) {
-      return inject.getReactive().asNew(key);
+      return inject.getReactive().asNew(seed);
     }
 
-    ReactiveModel<T> rm = inject.newReactiveMap[key.toString()];
+    ReactiveModel<T> rm = inject.newReactiveMap[seed.toString()];
     if (rm != null) {
       return rm;
     }
 
     rm = inject.getReactive(true);
-    inject.newReactiveMap[key.toString()] = rm;
+    inject.newReactiveMap[seed.toString()] = rm;
 
     return rm;
   }

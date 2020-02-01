@@ -17,7 +17,7 @@ class AssertMessage {
     return '''
 
 | ***[$T] is not a StatesRebuilder***
-| You are using the BuildContext to subscribe a widget to a model that is not reactive.
+| You are using the BuildContext to subscribe to a widget to a model that is not reactive.
 | 
 | To fix, you have to either:
 | - Remove the context parameter, if [$T] is not reactive.
@@ -143,13 +143,20 @@ class AssertMessage {
 | The model $reinject you reinject is not found.
 | It is most probably that you have registered the model with a custom name.
 | 
-| Rinjection of registered models with custom name is not allowed.
+| Rinjection of registered models with custom names is not allowed.
 |
               ''';
   }
 
   static String gettingAsReactiveAStatesRebuilderModel(String s) {
-    return 'gettingAsReactiveAStatesRebuilderModel $s';
+    return '''
+
+| ***Getting a StatesRebuilder model using getAsReactive method***
+| You are trying to get the model "$s" which is of type StatesRebuilder.
+|
+| This is not allowed please use 'Injector.get' instead
+|
+              ''';
   }
 
   static String reinjectingNewReactiveInstance(String reinject) {
@@ -179,7 +186,7 @@ class AssertMessage {
 You are using [StateBuilder] widget without providing a generic type or defining the [models] parameter.
 
 To fix, you have to either :
-1- Provide a generic type to create and subscribe to a new reactive environnement
+1- Provide a generic type to create and subscribe to a new reactive environment
   ex:
     StateBuilder<MyModel>(
       Builder:(BuildContext context, ReactiveModel<MyModel> myModel){

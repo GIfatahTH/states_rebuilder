@@ -1,4 +1,35 @@
 ## 1.12.0 (2020-01-30)
+* Add `ReactiveModel<T>.create(T value)` to create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have.
+ex: This is a simple counter app:
+
+```dart
+class App extends StatelessWidget {
+  //Create a reactiveModel<int> with initial value and assign it to counterRM  filed.
+  final counterRM = ReactiveModel.create(0);
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          // Subscribe StateBuilder widget ot counterRM
+          child: StateBuilder(
+            models: [counterRM],
+            builder: (context, _) {
+              return Text('${counterRM.value}');
+            },
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          //set the value of the counterRM and notify observers.
+          onPressed: () => counterRM.setValue(() => counterRM.value + 1),
+        ),
+      ),
+    );
+  }
+}
+```
+
 *  Add `WhenRebuilder` widget. It is a shortcut of using `SateBuilder` to subscribe to an observable model and use `ReactiveModel.whenConnectionState` method to exhaustively switch over all the possible statuses of `connectionState`.
 
 instead of:
@@ -32,7 +63,7 @@ Widget build(BuildContext context) {
   );
 }
 ```
-As a good side effect of using `WhenRebuilder`, you can subscribe to many observable models and a combination status is exposed and `onData` will not be invoked only after all observable models have data.
+As a good side effect of using `WhenRebuilder`, you can subscribe to many observable models and a combination status is exposed so that `onData` will not be invoked only after all observable models have data.
 
 ex:
 
@@ -57,38 +88,7 @@ ex:
 
 * Add `value` getter and `ReactiveModel.setValue` method. They are the counterpart of the `state` getter and `ReactiveModel.setState` method respectively. They are more convenient to use with primitive values and immutable objects.
 
-* Add `ReactiveModel<T>.create(T value)` to create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have.
-ex: This is a simple counter app:
-
-```dart
-class App extends StatelessWidget {
-  //Create a reactiveModel<int> with initial value and assign it to counterRM  filed.
-  final counterRM = ReactiveModel.create(0);
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          // Subscribe StateBuilder widget ot counterRM
-          child: StateBuilder(
-            models: [counterRM],
-            builder: (context, _) {
-              return Text('${counterRM.value}');
-            },
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          //set the value of the counterRM and notify observers.
-          onPressed: () => counterRM.setValue(() => counterRM.value + 1),
-        ),
-      ),
-    );
-  }
-}
-```
-
-* Add `ReactiveModel.asNew([dynamic key])` to create new reactive instance.
+* Add `ReactiveModel.asNew([dynamic seed])` to create new reactive instance.
 
 * Replace `setState.joinSingletonWith` in  with the bool parameter `setState.joinSingleton`.
 

@@ -1544,25 +1544,25 @@ void main() {
   });
 
   test(
-      'ReactiveModel: get new reactive model with the same key returns the same instance',
+      'ReactiveModel: get new reactive model with the same seed returns the same instance',
       () {
-    //get new reactive instance with the default key
+    //get new reactive instance with the default seed
     final modelNewRM1 = modelRM.asNew();
 
     expect(modelNewRM1, isA<ReactiveModel>());
     expect(modelRM != modelNewRM1, isTrue);
-    ////get another new reactive instance with the default key
+    ////get another new reactive instance with the default seed
     final modelNewRM2 = modelRM.asNew();
     expect(modelNewRM2, isA<ReactiveModel>());
     expect(modelNewRM2 == modelNewRM1, isTrue);
 
-    //get new reactive instance with the custom key
-    final modelNewRM3 = modelRM.asNew(Keys.key1);
+    //get new reactive instance with the custom seed
+    final modelNewRM3 = modelRM.asNew(Seeds.seed1);
 
     expect(modelNewRM3, isA<ReactiveModel>());
     expect(modelNewRM3 != modelNewRM1, isTrue);
-    ////get another new reactive instance with the default key
-    final modelNewRM4 = modelRM.asNew(Keys.key1);
+    ////get another new reactive instance with the default seed
+    final modelNewRM4 = modelRM.asNew(Seeds.seed1);
     expect(modelNewRM4, isA<ReactiveModel>());
     expect(modelNewRM4 == modelNewRM3, isTrue);
   });
@@ -1622,4 +1622,4 @@ Future<int> getFutureWithError() => Future.delayed(
 Stream<int> getStream() =>
     Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
 
-enum Keys { key1 }
+enum Seeds { seed1 }
