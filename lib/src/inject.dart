@@ -15,12 +15,14 @@ class Inject<T> implements Injectable {
   /// The Creation Function.
   T Function() _creationFunction;
 
-  /// The creation Function. It must return a Future.
   Future<T> Function() _creationFutureFunction;
+
+  /// Get the creation Function. It must return a Future.
   Future<T> Function() get creationFutureFunction => _creationFutureFunction;
 
-  /// The creation Function. It must return a Stream.
   Stream<T> Function() _creationStreamFunction;
+
+  /// Get the creation Function. It must return a Stream.
   Stream<T> Function() get creationStreamFunction => _creationStreamFunction;
 
   String _name;
@@ -33,6 +35,8 @@ class Inject<T> implements Injectable {
 
   /// List of new reactive instance created from this Inject
   List<ReactiveModel<T>> newReactiveInstanceList = <ReactiveModel<T>>[];
+
+  ///Map of new reactive instance created by  ReactiveModel.AsNew
   Map<String, ReactiveModel<T>> newReactiveMap = {};
 
   /// True if the injected model is instantiated lazily; that is at the time of the first use with [Injector.getAsReactive] and [Injector.get].
@@ -135,9 +139,8 @@ class Inject<T> implements Injectable {
       singleton = getReactive().state;
       return singleton;
     }
-    if (singleton == null) {
-      singleton = _creationFunction();
-    }
+    singleton ??= _creationFunction();
+
     return singleton;
   }
 
@@ -182,7 +185,7 @@ class Inject<T> implements Injectable {
   }
 
   ///Add the reactive model in the inject new reactive models list.
-  void addToReactiveNewInstanceList(ReactiveModel rm) {
+  void addToReactiveNewInstanceList(ReactiveModel<T> rm) {
     if (rm == null) return;
     newReactiveInstanceList?.add(rm);
   }

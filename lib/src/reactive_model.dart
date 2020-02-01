@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'inject.dart';
-import 'states_rebuilder.dart';
 
 import 'assertions.dart';
+import 'inject.dart';
+import 'states_rebuilder.dart';
 
 ///An abstract class that defines the reactive environment.
 ///
@@ -38,7 +38,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   final Inject<T> _inject;
   Inject<T> get inject => _inject;
-  final isNewReactiveInstance;
+  final bool isNewReactiveInstance;
   T _state;
 
   /// A representation of the most recent state (instance) of the injected model.
@@ -108,16 +108,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     @required R Function(dynamic error) onError,
   }) {
     _whenConnectionState = true;
-    if (this.isIdle) {
+    if (isIdle) {
       return onIdle();
     }
-    if (this.hasError) {
-      return onError(this.error);
+    if (hasError) {
+      return onError(error);
     }
-    if (this.isWaiting) {
+    if (isWaiting) {
       return onWaiting();
     }
-    return onData(this.state);
+    return onData(state);
   }
 
   bool _whenConnectionState = false;
@@ -172,7 +172,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         if (this.value == value) {
           return StopRebuild();
         }
-        return this.state = value;
+        return state = value;
       },
       filterTags: filterTags,
       onSetState: onSetState,
@@ -222,7 +222,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     void Function(BuildContext context, dynamic error) onError,
     void Function(BuildContext context, T model) onData,
     dynamic Function() joinSingletonToNewData,
-    bool joinSingleton: false,
+    bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
   }) async {
     assert(() {
@@ -271,12 +271,14 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
           if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
               joinSingleton) {
-            reactiveSingleton._snapshot = _snapshot;
-            reactiveSingleton.rebuildStates();
+            reactiveSingleton
+              .._snapshot = _snapshot
+              ..rebuildStates();
           } else if (inject.joinSingleton ==
               JoinSingleton.withCombinedReactiveInstances) {
-            reactiveSingleton._snapshot = _combinedSnapshotState;
-            reactiveSingleton.rebuildStates();
+            reactiveSingleton
+              .._snapshot = _combinedSnapshotState
+              ..rebuildStates();
           }
         }
       }
@@ -370,12 +372,13 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   void _notifyAll() {
     for (ReactiveModel<T> rm in inject.newReactiveInstanceList) {
-      rm._snapshot = _snapshot;
-      rm.rebuildStates();
+      rm
+        .._snapshot = _snapshot
+        ..rebuildStates();
     }
-    final rs = inject.getReactive();
-    rs._snapshot = _snapshot;
-    rs.rebuildStates();
+    inject.getReactive()
+      .._snapshot = _snapshot
+      ..rebuildStates();
   }
 }
 

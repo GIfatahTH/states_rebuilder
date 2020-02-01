@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
+import 'assertions.dart';
 import 'inject.dart';
 import 'reactive_model.dart';
 import 'states_rebuilder.dart';
-import 'assertions.dart';
 
 ///A class used to register (inject) models.
 class Injector extends StatefulWidget {
@@ -255,7 +256,7 @@ class InjectorState extends State<Injector> {
       _injects.addAll(widget.inject);
     }
 
-    for (Inject inject in _injects) {
+    for (Inject inject in _injects as List<Inject>) {
       assert(inject != null);
       final name = inject.getName();
       if (allRegisteredModelInApp[name] == null) {
@@ -277,7 +278,7 @@ class InjectorState extends State<Injector> {
 
   @override
   void dispose() {
-    for (Inject inject in _injects) {
+    for (Inject inject in _injects as List<Inject>) {
       final name = inject.getName();
       allRegisteredModelInApp[name]?.remove(inject);
       if (allRegisteredModelInApp[name].isEmpty) {
@@ -312,7 +313,7 @@ class InjectorState extends State<Injector> {
     );
 
     if (_injects.isNotEmpty) {
-      for (Inject<dynamic> inject in _injects.reversed) {
+      for (Inject<dynamic> inject in _injects.reversed as List<Inject>) {
         //Inject with name are not concerned with InheritedWidget
 
         if (inject.hasCustomName == false) {
