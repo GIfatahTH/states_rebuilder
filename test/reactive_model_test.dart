@@ -1493,6 +1493,7 @@ void main() {
           onError: (_, e) {
             error = e;
           },
+          catchError: true,
         );
         await tester.pump();
         expect(find.text('error message'), findsOneWidget);

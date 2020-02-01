@@ -163,6 +163,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
+    bool catchError = false,
   }) async {
     await setState(
       (_) {
@@ -177,6 +178,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       onSetState: onSetState,
       onRebuildState: onRebuildState,
       onError: onError,
+      catchError: catchError,
     );
   }
 
