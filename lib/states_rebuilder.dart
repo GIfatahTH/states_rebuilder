@@ -10,6 +10,8 @@ export 'src/states_rebuilder.dart'
 export 'src/state_builder.dart' show StateBuilder;
 export 'src/state_with_mixin_builder.dart'
     show StateWithMixinBuilder, MixinWith;
+export 'src/when_connection_state.dart';
+export 'src/on_set_state_listener.dart';
 
 /// 2- For dependency injection states_rebuilder uses the service_locator pattern
 
@@ -22,6 +24,8 @@ export 'src/inject.dart' show Inject, Injectable, JoinSingleton;
 
 /// [ReactiveModel] adds a reactive environnement to the injected models.
 export 'src/reactive_model.dart' show ReactiveModel;
+export 'src/when_connection_state.dart' show WhenRebuilder;
+export 'src/on_set_state_listener.dart' show OnSetStateListener;
 
 ///Debugging prints
 export 'src/states_rebuilder_debug.dart';

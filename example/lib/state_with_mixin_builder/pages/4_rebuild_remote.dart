@@ -20,7 +20,13 @@ class RebuildRemoteExample extends StatelessWidget {
   }
 }
 
-class CounterGrid extends StatelessWidget {
+class CounterGrid extends StatefulWidget {
+  @override
+  _CounterGridState createState() => _CounterGridState();
+}
+
+class _CounterGridState extends State<CounterGrid> {
+  bool isEven;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -34,11 +40,9 @@ class CounterGrid extends StatelessWidget {
                 tag: CounterGridTag.remoteWidget,
                 builder: (_, counterRM) {
                   print('rebuild');
-                  return counterRM.customStateStatus == null
+                  return isEven == null
                       ? CircularProgressIndicator()
-                      : counterRM.customStateStatus
-                          ? Icon(Icons.looks_two)
-                          : Icon(Icons.looks_one);
+                      : isEven ? Icon(Icons.looks_two) : Icon(Icons.looks_one);
                 },
               ),
               Text("Rebuild remote widget with tag"),
@@ -58,7 +62,7 @@ class CounterGrid extends StatelessWidget {
                         (state) => state.increment(),
                         filterTags: [i % 2, CounterGridTag.remoteWidget],
                         onSetState: (context) {
-                          counterRM.customStateStatus = i % 2 == 0;
+                          isEven = i % 2 == 0;
                         },
                       ),
                     ),

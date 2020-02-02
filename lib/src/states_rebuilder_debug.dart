@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-
 import 'injector.dart';
+
 import 'states_rebuilder.dart';
 
 class StatesRebuilderDebug {
@@ -19,7 +19,7 @@ class StatesRebuilderDebug {
               .toString() +
           '\n';
     });
-    debugPrint(text + ' }');
+    debugPrint(text + '}');
   }
 
   ///Print subscribed observers of an observable object
@@ -38,6 +38,6 @@ class StatesRebuilderDebug {
               .toString() +
           '\n';
     });
-    debugPrint(text + ' }');
+    debugPrint(text + '}');
   }
 }

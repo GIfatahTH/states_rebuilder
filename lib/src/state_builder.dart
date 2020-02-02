@@ -1,53 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/injector.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/add_observer.dart';
+import 'assertions.dart';
+
+import 'injector.dart';
+import 'reactive_model.dart';
 import 'states_rebuilder.dart';
 
 /// You wrap any part of your widgets with [StateBuilder] Widget to make it Reactive.
 /// When [StatesRebuilder.rebuildStates] method is called, it will rebuild.
 class StateBuilder<T> extends StatefulWidget {
-  /// You wrap any part of your widgets with [StateBuilder] Widget to make it Reactive.
-  /// When [StatesRebuilder.rebuildStates] method is called, it will rebuild.
-  const StateBuilder({
-    Key key,
-    // For state management
-    this.models,
-    this.tag,
-    this.builder,
-    this.builderWithChild,
-    this.child,
-    this.onSetState,
-    this.onRebuildState,
-    // For state lifecycle
-    this.initState,
-    this.dispose,
-    this.didChangeDependencies,
-    this.didUpdateWidget,
-    this.afterInitialBuild,
-    this.afterRebuild,
-    this.disposeModels,
-    this.watch,
-  })  : assert(builder != null || builderWithChild != null, '''
-  
-  | ***Builder not defined***
-  | You have to define either 'builder' or 'builderWithChild' parameter.
-  | Use 'builderWithChild' with 'child' parameter. 
-  | If 'child' is null use 'builder' instead.
-  
-        '''),
-        assert(builderWithChild == null || child != null, '''
-  | ***child is null***
-  | You have defined the 'builderWithChild' parameter without defining the child parameter.
-  | Use 'builderWithChild' with 'child' parameter. 
-  | If 'child' is null use 'builder' instead.
-  
-        '''),
-        super(
-          key: key,
-        );
-
   ///```dart
   ///StateBuilder(
   ///  models:[myModel],
@@ -59,22 +19,29 @@ class StateBuilder<T> extends StatefulWidget {
   ///The builder is provided with a [BuildContext] and [ReactiveModel] parameters.
   final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
 
+  ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
   ///StateBuilder(
-  ///  models:[myModel],
-  ///  builderWithChild:(BuildContext context, ReactiveModel model, Widget child) =>MyWidget(child),
-  ///  child : MyChildWidget(),
+  ///  models:[myModel1, myModel2, myModel3],
+  ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
   ///)
   ///```
-  ///The build strategy currently used to rebuild the state with child parameter.
+  ///states_rebuilder uses the observer pattern.
   ///
-  ///The builder is provided with a [BuildContext], [ReactiveModel] and [Widget] parameters.
-  final Widget Function(
-          BuildContext context, ReactiveModel<T> model, Widget child)
-      builderWithChild;
+  ///Observable classes are classes that extends [StatesRebuilder].
+  ///[ReactiveModel] is one of them.
+  final List<StatesRebuilder> models;
 
-  ///The child to be used in [builderWithChild].
-  final Widget child;
+  ///A tag or list of tags you want this [StateBuilder] to register with.
+  ///
+  ///Whenever any of the observable model to which this [StateBuilder] is subscribed emits
+  ///a notifications with a list of filter tags, this [StateBuilder] will rebuild if the
+  ///the filter tags list contains at least on of those tags.
+  ///
+  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
+  ///
+  ///Each [StateBuilder] has a default tag which is its [BuildContext]
+  final dynamic tag;
 
   ///```
   ///StateBuilder(
@@ -132,43 +99,37 @@ class StateBuilder<T> extends StatefulWidget {
   final void Function(BuildContext context, ReactiveModel<T> model)
       afterRebuild;
 
-  ///Called whenever this widget is notified.
-  final void Function(BuildContext context, ReactiveModel<T> model) onSetState;
-
-  /// Called whenever this widget is notified and after rebuilding the widget.
-  final void Function(BuildContext context, ReactiveModel<T> model)
-      onRebuildState;
-
-  ///A tag or list of tags you want this [StateBuilder] to register with.
-  ///
-  ///Whenever any of the observable model to which this [StateBuilder] is subscribed emits
-  ///a notifications with a list of filter tags, this [StateBuilder] will rebuild if the
-  ///the filter tags list contains at least on of those tags.
-  ///
-  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
-  ///
-  ///Each [StateBuilder] has a default tag which is its [BuildContext]
-  final dynamic tag;
-
-  ///List of observable classes to which you want [StateBuilder] to subscribe.
-  ///```dart
-  ///StateBuilder(
-  ///  models:[myModel1, myModel2, myModel3],
-  ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
-  ///)
-  ///```
-  ///states_rebuilder uses the observer pattern.
-  ///
-  ///Observable classes are classes that extends [StatesRebuilder].
-  ///[ReactiveModel] is one of them.
-  final List<StatesRebuilder> models;
-
   ///if it is set to true all observable models will be disposed.
   ///
   ///Models are disposed by calling the 'dispose()' method if exists.
   ///
   ///In any of the injected class you can define a 'dispose()' method to clean up resources.
   final bool disposeModels;
+
+  ///```dart
+  ///StateBuilder(
+  ///  models:[myModel],
+  ///  builderWithChild:(BuildContext context, ReactiveModel model, Widget child) =>MyWidget(child),
+  ///  child : MyChildWidget(),
+  ///)
+  ///```
+  ///The build strategy currently used to rebuild the state with child parameter.
+  ///
+  ///The builder is provided with a [BuildContext], [ReactiveModel] and [Widget] parameters.
+  final Widget Function(
+          BuildContext context, ReactiveModel<T> model, Widget child)
+      builderWithChild;
+
+  ///The child to be used in [builderWithChild].
+  final Widget child;
+
+  ///Called whenever this widget is notified.
+  final dynamic Function(BuildContext context, ReactiveModel<T> model)
+      onSetState;
+
+  /// Called whenever this widget is notified and after rebuilding the widget.
+  final void Function(BuildContext context, ReactiveModel<T> model)
+      onRebuildState;
 
   ///A function that returns a one instance variable or a list of
   ///them. The rebuild process will be triggered if at least one of
@@ -182,142 +143,122 @@ class StateBuilder<T> extends StatefulWidget {
   ///If it is not defined all listener will be notified when a new state is available.
   final Object Function(ReactiveModel<T> model) watch;
 
+  const StateBuilder({
+    Key key,
+    // For state management
+    this.builder,
+    this.models,
+    this.tag,
+    this.builderWithChild,
+    this.child,
+    this.onSetState,
+    this.onRebuildState,
+    this.watch,
+
+    // For state lifecycle
+    this.initState,
+    this.dispose,
+    this.didChangeDependencies,
+    this.didUpdateWidget,
+    this.afterInitialBuild,
+    this.afterRebuild,
+    this.disposeModels,
+  })  : assert(builder != null || builderWithChild != null, '''
+  
+  | ***Builder not defined***
+  | You have to define either 'builder' or 'builderWithChild' parameter.
+  | Use 'builderWithChild' with 'child' parameter. 
+  | If 'child' is null use 'builder' instead.
+  
+        '''),
+        assert(builderWithChild == null || child != null, '''
+  | ***child is null***
+  | You have defined the 'builderWithChild' parameter without defining the child parameter.
+  | Use 'builderWithChild' with 'child' parameter. 
+  | If 'child' is null use 'builder' instead.
+  
+        '''),
+        super(key: key);
   @override
-  _StateBuilderState<T> createState() => _StateBuilderState<T>();
+  _StateBuilderState createState() => _StateBuilderState<T>();
 }
 
 class _StateBuilderState<T> extends State<StateBuilder<T>>
-    implements ObserverOfStatesRebuilder {
-  AddToObserver addToObserver;
+    with ObserverOfStatesRebuilder {
+  String autoGeneratedTag;
   ReactiveModel<T> _exposedModel;
-
-  // Is true if the element has been marked as needing rebuilding.
   bool _isDirty;
 
   @override
   void initState() {
-    _isDirty = true;
     super.initState();
-    List<StatesRebuilder> _models = widget.models;
-
-    final String uniqueID = context.hashCode.toString();
-
-    if (_models == null || _models.isEmpty) {
-      assert(
-        () {
-          if (T == dynamic) {
-            throw Exception('''
-      
-***No model is defined***
-You are using [StateBuilder] widget without providing a generic type or defining the [models] parameter.
-
-To fix, you have to either :
-1- Provide a generic type to create and subscribe to a new reactive environnement
-  ex:
-    StateBuilder<MyModel>(
-      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
-        return ...
-      }
-    )
-2- define the [models] property. to subscribe to an already defined reactive environnement instance
-  ex:
-    StateBuilder(
-      models : [myModelInstance],
-      Builder:(BuildContext context, ReactiveModel<MyModel> myModel){
-        return ...
-      }
-    )
-      ''');
-          }
-          return true;
-        }(),
-      );
-      //created a new reactive instance from the provided generic type.
-      _exposedModel =
-          Injector.getAsReactive<T>(asNewReactiveInstance: true, silent: true)
-            ..addToReactiveNewInstanceList();
-      _models = <StatesRebuilder>[_exposedModel];
-    } else if (_models.first is ReactiveModel) {
-      //Make the exposed model to be the first in the list
-      _exposedModel = _models.first as ReactiveModel<T>;
+    _initState(widget);
+    if (widget.initState != null) {
+      widget.initState(context, _exposedModel);
     }
-
-    if (_models != null) {
-      addToObserver = AddToObserver(widget, this, _models, uniqueID);
-    }
-
     if (widget.afterInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterInitialBuild(context, _exposedModel),
       );
     }
-
     if (widget.watch != null) {
-      _lastWatch = widget.watch(_exposedModel)?.toString();
-      _lastConnectionState = ConnectionState.done;
-    }
-
-    if (widget.initState != null) {
-      widget.initState(context, _exposedModel);
+      _cashedWatch = widget.watch(_exposedModel).toString();
     }
   }
 
-  String _currentWatch;
-  String _lastWatch;
-  ConnectionState _lastConnectionState;
-  bool _canRebuild = true;
-  @override
-  bool update([void Function(BuildContext) onSetState]) {
-    if (!mounted) {
-      return false;
-    }
-    if (widget.watch != null) {
-      _currentWatch = widget.watch(_exposedModel)?.toString();
+  void _initState(StateBuilder<T> widget) {
+    _isDirty = true;
 
-      _canRebuild = _currentWatch.hashCode != _lastWatch.hashCode ||
-          _currentWatch.hashCode == ''.hashCode &&
-              !identical(_currentWatch, _lastWatch) ||
-          _lastConnectionState != _exposedModel.connectionState;
+    autoGeneratedTag = 'AutoGeneratedTag#|:${context.hashCode}';
+    if (widget.models != null) {
+      for (var model in widget.models) {
+        assert(model != null);
+        _subscribe(model);
+      }
+      _exposedModel =
+          widget.models.isNotEmpty && widget.models.first is ReactiveModel
+              ? widget.models.first
+              : null;
+    } else {
+      if (T == dynamic) {
+        throw Exception(AssertMessage.noModelsAndDynamicType());
+      }
+      _exposedModel = Injector.getAsReactive<T>()?.inject?.getReactive(true);
+      _subscribe(_exposedModel);
     }
-    if (_canRebuild) {
-      setState(
-        () {
-          if (onSetState != null) {
-            onSetState(context);
-          }
+  }
 
-          //Do not call [StateBuilder.onSetState] more than one for each rebuild
-          if (!_isDirty) {
-            if (widget.onSetState != null) {
-              widget.onSetState(context, _exposedModel);
-            }
-            if (widget.onRebuildState != null) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => widget.onRebuildState(context, _exposedModel),
-              );
-            }
-            _isDirty = true;
-          }
-        },
-      );
+  _subscribe(StatesRebuilder model) {
+    model?.addObserver(observer: this, tag: autoGeneratedTag);
+    if (widget.tag != null) {
+      if (widget.tag is List) {
+        for (var tag in widget.tag) {
+          model?.addObserver(observer: this, tag: tag.toString());
+        }
+      } else {
+        model?.addObserver(observer: this, tag: widget.tag.toString());
+      }
     }
-    _lastWatch = _currentWatch;
-    _lastConnectionState = _exposedModel?.connectionState;
-    return true;
   }
 
   @override
   void dispose() {
-    addToObserver.removeFromObserver();
-
     if (widget.dispose != null) {
       widget.dispose(context, _exposedModel);
     }
+    _exposedModel?.inject?.removeFromReactiveNewInstanceList(_exposedModel);
 
-    if (widget.disposeModels == true) {
-      final List<StatesRebuilder> _models =
-          widget.models ?? <StatesRebuilder>[];
-      for (final StatesRebuilder model in _models) {
+    if (widget.models == null) {
+      super.dispose();
+      return;
+    }
+    _dispose(widget);
+    super.dispose();
+  }
+
+  _dispose(StateBuilder<T> widget) {
+    for (var model in widget.models) {
+      if (widget.disposeModels == true) {
         try {
           if (model != null) {
             (model as dynamic)?.dispose();
@@ -328,24 +269,55 @@ To fix, you have to either :
           }
         }
       }
+
+      model?.removeObserver(observer: this, tag: autoGeneratedTag);
+      if (widget.tag != null) {
+        if (widget.tag is List) {
+          for (var tag in widget.tag) {
+            model?.removeObserver(observer: this, tag: tag.toString());
+          }
+        } else {
+          model?.removeObserver(observer: this, tag: widget.tag.toString());
+        }
+      }
+    }
+  }
+
+  String _cashedWatch = '';
+  String _actualWatch = '';
+  @override
+  bool update([void Function(BuildContext) onSetState]) {
+    if (!mounted) {
+      return false;
     }
 
-    _exposedModel?.removeFromReactiveNewInstanceList();
-    super.dispose();
-  }
+    bool canRebuild = true;
+    if (widget.watch != null) {
+      _actualWatch = widget.watch(_exposedModel).toString();
+      canRebuild = _actualWatch.hashCode != _cashedWatch.hashCode &&
+          (_exposedModel == null || _exposedModel.hasData);
+      _cashedWatch = _actualWatch;
+    }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.didChangeDependencies != null)
-      widget.didChangeDependencies(context, _exposedModel);
-  }
+    if (canRebuild == false || _isDirty) {
+      return true;
+    }
+    _isDirty = true;
 
-  @override
-  void didUpdateWidget(StateBuilder<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null)
-      widget.didUpdateWidget(context, _exposedModel, oldWidget);
+    if (onSetState != null) {
+      onSetState(context);
+    }
+
+    if (widget.onSetState != null) {
+      widget.onSetState(context, _exposedModel);
+    }
+    if (widget.onRebuildState != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.onRebuildState(context, _exposedModel),
+      );
+    }
+    setState(() {});
+    return true;
   }
 
   @override
@@ -360,7 +332,25 @@ To fix, you have to either :
     if (widget.builderWithChild != null) {
       return widget.builderWithChild(context, _exposedModel, widget.child);
     }
-
     return widget.builder(context, _exposedModel);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.didChangeDependencies != null)
+      widget.didChangeDependencies(context, _exposedModel);
+  }
+
+  @override
+  void didUpdateWidget(StateBuilder<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.models != widget.models) {
+      _dispose(oldWidget);
+      _initState(widget);
+    }
+    if (widget.didUpdateWidget != null)
+      widget.didUpdateWidget(context, _exposedModel, oldWidget);
   }
 }

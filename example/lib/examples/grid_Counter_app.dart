@@ -71,15 +71,13 @@ class CounterGrid extends StatelessWidget {
                           if (i % 2 == 0)
                             model.setState((state) => state.increment(),
                                 notifyAllReactiveInstances: true,
-                                joinSingletonToNewData:
+                                joinSingletonToNewData: () =>
                                     'I am Counter ${i + 1} I hold ${model.state.counter}');
                           else
                             model.setState(
                               (state) => state.incrementAsync(),
-                              onSetState: (context) {
-                                model.joinSingletonToNewData =
-                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
-                              },
+                              joinSingletonToNewData: () =>
+                                  'I am Counter ${i + 1} I hold ${model.state.counter}',
                             );
                         },
                       );
