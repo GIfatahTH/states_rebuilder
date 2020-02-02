@@ -362,7 +362,12 @@ The methods are:
 ```dart
 reactiveModel.setState(
   (state) => state.increment(),
+  //Filter notification with tags
   filterTags: ['Tag1', Enumeration.Tag2],
+
+  //onData, trigger notification from new reactive models with the seeds in the list,
+  seeds:['seed1',Enumeration.Seed2 ],
+
   //set to true, you want to catch error, and not break the app.
   catchError: true 
   watch: (Counter counter) {
@@ -389,6 +394,7 @@ reactiveModel.setState(
     //You do not have to set the parameter catchError to true. By defining onError parameter 
     //states_rebuilder catches the error by default.
   }
+  
   //When a notification is issued, whether to notify all reactive instances of the model
   notifyAllReactiveInstances: true, 
   /*
@@ -644,7 +650,9 @@ What makes `OnSetStateListener` different is the fact that is has a child parame
 # `ReactiveModel.create`, `value` getter and `setValue` method.
 With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
 
-If a primitive value is needed only locally, It can be wrapped with a reactive environment using `ReactiveModel.create` named constructor.
+With `ReactiveModel<T>.create(T value)` you can create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have as en example you can wrap the primitive value with many reactive model instances.
+
+Here is an example of a simple counter app.
 
 ```dart
 class App extends StatelessWidget {
@@ -674,11 +682,14 @@ class App extends StatelessWidget {
 }
 ```
 `setValue` watches the change of the value and will not notify observers only if the value has changed.
-`setValue` has `onSetState`, `onRebuildState`, `onError`,  `catchError` and `filterTags` the same way they are defined in `setState`:
+`setValue` has `onSetState`, `onRebuildState`, `onError`,  `catchError`, `filterTags` , `seeds` and `notifyAllReactiveInstances` the same way they are defined in `setState`:
 ```dart
 reactiveModel.setValue(
   ()=> newValue,
   filterTags: ['Tag1', Enumeration.Tag2],
+  //onData, trigger notification from new reactive models with the seeds in the list,
+  seeds:['seed1',Enumeration.Seed2 ],
+
   onSetState: (BuildContext context) {
     /* 
     Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar , ..
@@ -698,6 +709,9 @@ reactiveModel.setValue(
     //You do not have to set the parameter catchError to true. By defining onError parameter 
     //states_rebuilder catches the error by default.
   }
+
+  //When a notification is issued, whether to notify all reactive instances of the model
+  notifyAllReactiveInstances: true, 
 ),
 ```
 

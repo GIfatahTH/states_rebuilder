@@ -54,7 +54,9 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   }
 
   ///The value the ReactiveModel holds. It is the same as [state]
-  T get value => state;
+  T get value {
+    return inject.getReactive().state;
+  }
 
   ///The latest error object received by the asynchronous computation.
   dynamic get error => _snapshot.error;
@@ -140,13 +142,13 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       return inject.getReactive().asNew(seed);
     }
 
-    ReactiveModel<T> rm = inject.newReactiveMap[seed.toString()];
+    ReactiveModel<T> rm = inject.newReactiveMapFromSeed[seed.toString()];
     if (rm != null) {
       return rm;
     }
 
     rm = inject.getReactive(true);
-    inject.newReactiveMap[seed.toString()] = rm;
+    inject.newReactiveMapFromSeed[seed.toString()] = rm;
 
     return rm;
   }
@@ -160,25 +162,29 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   Future<void> setValue(
     T Function() fn, {
     List<dynamic> filterTags,
+    List<dynamic> seeds,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
     bool catchError = false,
+    bool notifyAllReactiveInstances = false,
   }) async {
     await setState(
       (_) {
         final value = fn();
 
-        if (this.value == value) {
+        if (inject.getReactive().state == value) {
           return StopRebuild();
         }
-        return state = value;
+        return inject.getReactive().state = value;
       },
       filterTags: filterTags,
+      seeds: seeds,
       onSetState: onSetState,
       onRebuildState: onRebuildState,
       onError: onError,
       catchError: catchError,
+      notifyAllReactiveInstances: notifyAllReactiveInstances,
     );
   }
 
@@ -211,12 +217,13 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
   ///
   /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
-
+  /// TODO note on context
   Future<void> setState(
     Object Function(T) fn, {
     bool catchError,
     Object Function(T state) watch,
     List<dynamic> filterTags,
+    List<dynamic> seeds,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -240,6 +247,23 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
           filterTags,
           (BuildContext context) {
             assert((_onSetStateContextFromGet ?? context) != null);
+            if (onError != null && hasError) {
+              onError(_onSetStateContextFromGet ?? context, error);
+            }
+
+            if (hasData) {
+              if (onData != null) {
+                onData(_onSetStateContextFromGet ?? context, state);
+              }
+              ;
+              if (seeds != null) {
+                for (var seed in seeds) {
+                  final rm = inject.newReactiveMapFromSeed['$seed'];
+                  rm?.rebuildStates();
+                }
+              }
+            }
+
             if (onSetState != null) {
               onSetState(_onSetStateContextFromGet ?? context);
             }
@@ -250,13 +274,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
               );
             }
 
-            if (onData != null && hasData) {
-              onData(_onSetStateContextFromGet ?? context, state);
-            }
-
-            if (onError != null && hasError) {
-              onError(_onSetStateContextFromGet ?? context, error);
-            }
             _onSetStateContextFromGet = null;
           },
         );
@@ -372,13 +389,9 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   void _notifyAll() {
     for (ReactiveModel<T> rm in inject.newReactiveInstanceList) {
-      rm
-        .._snapshot = _snapshot
-        ..rebuildStates();
+      rm.rebuildStates();
     }
-    inject.getReactive()
-      .._snapshot = _snapshot
-      ..rebuildStates();
+    inject.getReactive().rebuildStates();
   }
 }
 

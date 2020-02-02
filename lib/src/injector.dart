@@ -256,7 +256,7 @@ class InjectorState extends State<Injector> {
       _injects.addAll(widget.inject);
     }
 
-    for (Inject inject in _injects as List<Inject>) {
+    for (Inject inject in _injects) {
       assert(inject != null);
       final name = inject.getName();
       if (allRegisteredModelInApp[name] == null) {
@@ -278,7 +278,7 @@ class InjectorState extends State<Injector> {
 
   @override
   void dispose() {
-    for (Inject inject in _injects as List<Inject>) {
+    for (Inject inject in _injects) {
       final name = inject.getName();
       allRegisteredModelInApp[name]?.remove(inject);
       if (allRegisteredModelInApp[name].isEmpty) {
@@ -313,7 +313,7 @@ class InjectorState extends State<Injector> {
     );
 
     if (_injects.isNotEmpty) {
-      for (Inject<dynamic> inject in _injects.reversed as List<Inject>) {
+      for (Inject<dynamic> inject in _injects.reversed) {
         //Inject with name are not concerned with InheritedWidget
 
         if (inject.hasCustomName == false) {

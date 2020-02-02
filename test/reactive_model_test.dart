@@ -1081,8 +1081,8 @@ void main() {
       expect(find.text('modelRM1-0'), findsOneWidget);
       expect(find.text('modelRM2-0'), findsOneWidget);
       expect(modelRM0.hasError, isTrue);
-      expect(modelRM1.hasError, isTrue);
-      expect(modelRM2.hasError, isTrue);
+      expect(modelRM1.isIdle, isTrue);
+      expect(modelRM2.isIdle, isTrue);
 
       //mutate reactive instance 0
       modelRM0.setState(
@@ -1095,8 +1095,8 @@ void main() {
       expect(find.text('modelRM1-1'), findsOneWidget);
       expect(find.text('modelRM2-1'), findsOneWidget);
       expect(modelRM0.hasData, isTrue);
-      expect(modelRM1.hasData, isTrue);
-      expect(modelRM2.hasData, isTrue);
+      expect(modelRM1.isIdle, isTrue);
+      expect(modelRM2.isIdle, isTrue);
 
       //mutate reactive instance 1
       modelRM2.setState(
@@ -1108,8 +1108,8 @@ void main() {
       expect(find.text('modelRM0-1'), findsOneWidget);
       expect(find.text('modelRM1-1'), findsOneWidget);
       expect(find.text('modelRM2-1'), findsOneWidget);
-      expect(modelRM0.hasError, isTrue);
-      expect(modelRM1.hasError, isTrue);
+      expect(modelRM0.hasData, isTrue);
+      expect(modelRM1.isIdle, isTrue);
       expect(modelRM2.hasError, isTrue);
 
       //mutate reactive instance 0
@@ -1122,7 +1122,7 @@ void main() {
       expect(find.text('modelRM1-2'), findsOneWidget);
       expect(find.text('modelRM2-2'), findsOneWidget);
       expect(modelRM0.hasData, isTrue);
-      expect(modelRM1.hasData, isTrue);
+      expect(modelRM1.isIdle, isTrue);
       expect(modelRM2.hasData, isTrue);
     },
   );
@@ -1501,6 +1501,47 @@ void main() {
       },
     );
 
+    testWidgets(
+      'seeds works',
+      (tester) async {
+        final modelRM0 = ReactiveModel.create(0);
+        final modelRM1 = modelRM0.asNew('seed1');
+
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              models: [modelRM0],
+              builder: (_, __) {
+                return _widgetBuilder('model0-${modelRM0.value}');
+              },
+            ),
+            StateBuilder(
+              models: [modelRM1],
+              builder: (_, __) {
+                return _widgetBuilder('model1-${modelRM1.value}');
+              },
+            )
+          ],
+        );
+        await tester.pumpWidget(widget);
+        modelRM0.setValue(() => modelRM0.value + 1);
+        await tester.pump();
+        expect(find.text(('model0-1')), findsOneWidget);
+        expect(find.text(('model1-0')), findsOneWidget);
+        //
+        modelRM0.setValue(() => modelRM0.value + 1, seeds: ['seed1']);
+        await tester.pump();
+        expect(find.text(('model0-2')), findsOneWidget);
+        expect(find.text(('model1-2')), findsOneWidget);
+        //
+        modelRM1.setValue(() => modelRM1.value + 1,
+            notifyAllReactiveInstances: true);
+        await tester.pump();
+        expect(find.text(('model0-3')), findsOneWidget);
+        expect(find.text(('model1-3')), findsOneWidget);
+      },
+    );
+
     // testWidgets(//TODO make it work for async mehtods
     //   'Async methods with and without error work',
     //   (tester) async {
@@ -1579,6 +1620,63 @@ void main() {
     _modelRM.setValue(() => _modelRM.value + 1);
     expect(_modelRM.value, equals(2));
   });
+
+  testWidgets(
+    'ReactiveModel : reactive singleton and reactive instances work with seed',
+    (tester) async {
+      final inject = Inject(() => Model());
+      final modelRM0 = inject.getReactive();
+      final modelRM1 = modelRM0.asNew(Seeds.seed1);
+      final modelRM2 = modelRM1.asNew(Seeds.seed2);
+
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder(
+            models: [modelRM0],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM1],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM2],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
+            },
+          )
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+
+      //
+      modelRM0.setState((s) => s.increment(), seeds: [Seeds.seed1]);
+      await tester.pump();
+      expect(find.text('modelRM0-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-0'), findsOneWidget);
+
+      //
+      modelRM0.setState((s) => s.increment(),
+          seeds: [Seeds.seed1, Seeds.seed2, 'nonExistingSeed']);
+      await tester.pump();
+      expect(find.text('modelRM0-2'), findsOneWidget);
+      expect(find.text('modelRM1-2'), findsOneWidget);
+      expect(find.text('modelRM2-2'), findsOneWidget);
+
+      //
+      modelRM0.setState((s) => s.increment(), notifyAllReactiveInstances: true);
+      await tester.pump();
+      expect(find.text('modelRM0-3'), findsOneWidget);
+      expect(find.text('modelRM1-3'), findsOneWidget);
+      expect(find.text('modelRM2-3'), findsOneWidget);
+    },
+  );
 }
 
 class Model {
@@ -1622,4 +1720,4 @@ Future<int> getFutureWithError() => Future.delayed(
 Stream<int> getStream() =>
     Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
 
-enum Seeds { seed1 }
+enum Seeds { seed1, seed2 }
