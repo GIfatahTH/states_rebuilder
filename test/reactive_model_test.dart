@@ -1542,7 +1542,7 @@ void main() {
       },
     );
 
-    // testWidgets(//TODO make it work for async mehtods
+    // testWidgets(//TODO make it work for async methods
     //   'Async methods with and without error work',
     //   (tester) async {
     //     final modelRM = ReactiveModel.create(0);
