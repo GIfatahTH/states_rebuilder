@@ -1,4 +1,4 @@
-## 1.12.0 (2020-01-30)
+## 1.12.0+1 (2020-01-30)
 * Add `ReactiveModel<T>.create(T value)` to create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have.
 ex: This is a simple counter app:
 
