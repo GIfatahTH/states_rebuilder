@@ -147,9 +147,7 @@ class StatesRebuilder implements Subject {
     if (tags == null) {
       _observersMap.forEach(
         (tag, observers) {
-          assert(observers != null);
           for (ObserverOfStatesRebuilder observer in observers.reversed) {
-            assert(observer != null);
             observer.update(
               isOnSetStateCalledOrNull
                   ? null
@@ -176,7 +174,6 @@ class StatesRebuilder implements Subject {
       final observers = _observersMap[_tag];
       if (observers != null) {
         for (ObserverOfStatesRebuilder observer in observers) {
-          assert(observer != null);
           observer.update(
             isOnSetStateCalledOrNull
                 ? null

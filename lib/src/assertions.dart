@@ -1,17 +1,5 @@
 ///Assertions
 class AssertMessage {
-  ///getInjectStreamAndFutureError
-  static String getInjectStreamAndFutureError() {
-    return '''
-
-| ***Inject.stream and Inject.future***
-| Getting injected stream and future is not allowed.
-| 
-| To fix, you have to use 'Injector.getAsReactive' instead of 'Injector.get' 
-|
-      ''';
-  }
-
   /// getModelNotStatesRebuilderWithContext
   static String getModelNotStatesRebuilderWithContext<T>() {
     return '''
@@ -100,29 +88,6 @@ class AssertMessage {
 | 
 | This is the list of registered models: $keys.
 |''';
-  }
-
-  ///getNewReactiveInstanceWithContext
-  static String getNewReactiveInstanceWithContext<T>() {
-    return '''
-
-| ***Getting new reactive instance with context***
-| You are using 'Injector.getAsReactive' to get a new reactive instance with the context parameter defined.
-| This is not allowed because the context parameter is use to subscribe the widget to the reactive singleton and not the the new one.
-| 
-| To fix, remove the context parameter and use 'StateBuilder' for subscription.
-| 
-|   ex:
-|   final model = Injector.getAsReactive<$T>(asNewReactiveInstance: true);
-| 
-|   return StateBuilder(
-|     models: [model],
-|     builder:(context,model){
-|       ....
-|     }
-|   );
-| 
-      ''';
   }
 
   ///reinjectNonInjectedInstance

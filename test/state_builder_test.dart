@@ -623,6 +623,20 @@ void main() {
   );
 
   testWidgets(
+    "StateBuilder throws if  on of the models is null",
+    (WidgetTester tester) async {
+      final widget = StateBuilder(
+        models: [model, null],
+        builder: (_, rm) {
+          return Container();
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isAssertionError);
+    },
+  );
+
+  testWidgets(
     "StateBuilder accept empty models",
     (WidgetTester tester) async {
       final widget = StateBuilder(
@@ -762,6 +776,60 @@ void main() {
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
   });
+
+  testWidgets(
+    'StateBuilder should call didChangeDependencies and didUpdateWidget ',
+    (tester) async {
+      bool switcher = true;
+      int numberOfDidChangeDependencies = 0;
+      int numberOfDidUpdateWidget = 0;
+      final widget = StateBuilder(
+        models: [model],
+        tag: ['mainTag'],
+        builder: (ctx, _) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Builder(
+              builder: (context) {
+                if (switcher) {
+                  return StateBuilder(
+                    didChangeDependencies: (_, __) {
+                      numberOfDidChangeDependencies++;
+                    },
+                    didUpdateWidget: (_, __, ___) {
+                      numberOfDidUpdateWidget++;
+                    },
+                    models: [model],
+                    tag: 'childTag',
+                    builder: (context, _) {
+                      return Text('${model.counter}');
+                    },
+                  );
+                }
+                return Text('false');
+              },
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(numberOfDidChangeDependencies, equals(1));
+      expect(numberOfDidUpdateWidget, equals(0));
+
+      model.rebuildStates(['mainTag']);
+      await tester.pump();
+
+      expect(numberOfDidChangeDependencies, equals(1));
+      expect(numberOfDidUpdateWidget, equals(1));
+
+      switcher = false;
+      model.rebuildStates(['mainTag']);
+      await tester.pump();
+      expect(numberOfDidChangeDependencies, equals(1));
+      expect(numberOfDidUpdateWidget, equals(1));
+    },
+  );
 }
 
 class Model extends StatesRebuilder {
