@@ -47,11 +47,7 @@ class RootPage extends StatelessWidget {
       mixinWith: MixinWith.tickerProviderStateMixin,
       initState: (_, ticker) => bloc.init(ticker),
       dispose: (_, ___) => bloc.dispose(),
-      builder: (
-        _,
-        __,
-      ) =>
-          Scaffold(
+      builder: (_, __) => Scaffold(
         appBar: AppBar(
           title: Text("Counter Grid"),
           bottom: PreferredSize(

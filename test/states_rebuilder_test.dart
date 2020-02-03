@@ -1,6 +1,7 @@
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
+import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
 void main() {
   Model model;
@@ -279,6 +280,24 @@ void main() {
       expect(numberOfCleanerCall, equals(0));
       model.removeObserver(observer: observer2, tag: 'tag1');
       expect(numberOfCleanerCall, equals(1));
+    },
+  );
+
+  test(
+    'should StatesRebuilderDebug.printObservers works',
+    () {
+      final observer1 = ObserverWidget();
+      final observer2 = ObserverWidget();
+      final observer3 = ObserverWidget();
+
+      //add observers
+      model.addObserver(observer: observer1, tag: 'tag1');
+      model.addObserver(observer: observer2, tag: 'tag1');
+      model.addObserver(observer: observer3, tag: 'tag3');
+      final text = StatesRebuilderDebug.printObservers(model);
+      expect(text, contains('Number of observers subscribed to Model is: 2'));
+      expect(text, contains('tag3 : [ObserverWidget'));
+      expect(text, contains('tag1 : [ObserverWidget'));
     },
   );
 }

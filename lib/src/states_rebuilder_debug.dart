@@ -5,11 +5,11 @@ import 'states_rebuilder.dart';
 
 class StatesRebuilderDebug {
   //Print registered models in the service locator
-  static printInjectedModel() {
-    print('Number of registered models : ' +
-        InjectorState.allRegisteredModelInApp.length.toString());
+  static String printInjectedModel() {
+    String text = 'Number of registered models : ' +
+        InjectorState.allRegisteredModelInApp.length.toString();
 
-    String text = '{\n';
+    text += '\n{\n';
     InjectorState.allRegisteredModelInApp.forEach((k, list) {
       text += k +
           ' : ' +
@@ -19,15 +19,18 @@ class StatesRebuilderDebug {
               .toString() +
           '\n';
     });
-    debugPrint(text + '}');
+    text += '}';
+    debugPrint(text);
+    return text;
   }
 
   ///Print subscribed observers of an observable object
   static printObservers(StatesRebuilder observable) {
-    print('Number of observers subscribed to ${observable.runtimeType} is: ' +
-        observable.observers().length.toString());
+    String text =
+        'Number of observers subscribed to ${observable.runtimeType} is: ' +
+            observable.observers().length.toString();
 
-    String text = '{\n';
+    text += '\n{\n';
     observable.observers().forEach((k, list) {
       text += k +
           ' : ' +
@@ -38,6 +41,10 @@ class StatesRebuilderDebug {
               .toString() +
           '\n';
     });
-    debugPrint(text + '}');
+
+    text += '}';
+
+    debugPrint(text);
+    return text;
   }
 }
