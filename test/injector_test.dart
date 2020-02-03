@@ -6,6 +6,7 @@ import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
+import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
 void main() {
   test(
@@ -1356,6 +1357,27 @@ void main() {
 
       expect(context1, equals(context0));
       expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'should StatesRebuilderDebug.printObservers works',
+    (tester) async {
+      Model model;
+      final widget = Injector(
+        inject: [Inject(() => Model())],
+        builder: (ctx) {
+          model = Injector.get<Model>(context: ctx);
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(model.counter.toString()),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      final text = StatesRebuilderDebug.printInjectedModel();
+      expect(text, contains('Number of registered models : 1'));
+      expect(text, contains('Model : [Inject<Model>('));
     },
   );
 }
