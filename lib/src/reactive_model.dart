@@ -96,10 +96,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   bool _isStreamDone;
 
-  bool get isStreamDone => inject == null ? _isStreamDone : null;
+  bool get isStreamDone => _isStreamDone;
+
+  StreamSubscription<T> _subscription;
 
   ///The stream subscription. It is not null for injected streams or futures.
-  StreamSubscription<T> get subscription => null;
+  StreamSubscription<T> get subscription => _subscription;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
   ///Used mostly to return [Widget]s.
@@ -430,9 +432,6 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   Stream<T> _stream;
   ReactiveModel get reactiveModel => _injectAsync.getReactive();
 
-  StreamSubscription<T> _subscription;
-  @override
-  StreamSubscription<T> get subscription => _subscription;
   String _watchCached = '';
   String _watchActual = '';
   void _subscribe() {

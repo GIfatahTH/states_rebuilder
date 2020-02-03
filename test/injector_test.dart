@@ -8,6 +8,31 @@ import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 void main() {
+  test(
+    'Injector throw  builder is not defined',
+    () {
+      expect(
+          () => Injector(
+                inject: [Inject(() => 1)],
+                builder: null,
+              ),
+          throwsAssertionError);
+    },
+  );
+
+  testWidgets(
+    'Injector throw if one of the injected model is null',
+    (tester) async {
+      await tester.pumpWidget(Injector(
+        inject: [null],
+        builder: (_) {
+          return Container();
+        },
+      ));
+      expect(tester.takeException(), isAssertionError);
+    },
+  );
+
   testWidgets('Injector throw when getting not registered model',
       (tester) async {
     final widget = Injector(

@@ -799,10 +799,20 @@ void main() {
       expect(modelRM2.isIdle, isTrue);
 
       //mutate reactive instance 1
+      modelRM1.setState((s) => s.increment());
+      await tester.pump();
+      expect(find.text('modelRM0-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-0'), findsOneWidget);
+      expect(modelRM0.isIdle, isTrue);
+      expect(modelRM1.hasData, isTrue);
+      expect(modelRM2.isIdle, isTrue);
+
+      //mutate reactive instance 1
       modelRM1.setState((s) => s.incrementError());
       await tester.pump();
-      expect(find.text('modelRM0-0'), findsOneWidget);
-      expect(find.text('modelRM1-0'), findsOneWidget);
+      expect(find.text('modelRM0-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
       expect(find.text('modelRM2-0'), findsOneWidget);
       expect(modelRM0.hasError, isTrue);
       expect(modelRM1.hasError, isTrue);
@@ -811,9 +821,9 @@ void main() {
       //mutate reactive instance 2
       modelRM2.setState((s) => s.incrementError());
       await tester.pump();
-      expect(find.text('modelRM0-0'), findsOneWidget);
-      expect(find.text('modelRM1-0'), findsOneWidget);
-      expect(find.text('modelRM2-0'), findsOneWidget);
+      expect(find.text('modelRM0-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-1'), findsOneWidget);
 
       expect(modelRM0.hasError, isTrue);
       expect(modelRM1.hasError, isTrue);
@@ -822,9 +832,9 @@ void main() {
       //mutate reactive instance 1
       modelRM1.setState((s) => s.increment());
       await tester.pump();
-      expect(find.text('modelRM0-1'), findsOneWidget);
-      expect(find.text('modelRM1-1'), findsOneWidget);
-      expect(find.text('modelRM2-0'), findsOneWidget);
+      expect(find.text('modelRM0-2'), findsOneWidget);
+      expect(find.text('modelRM1-2'), findsOneWidget);
+      expect(find.text('modelRM2-1'), findsOneWidget);
 
       expect(modelRM0.hasError, isTrue);
       expect(modelRM1.hasData, isTrue);
@@ -833,9 +843,9 @@ void main() {
       //mutate reactive instance 2
       modelRM2.setState((s) => s.increment());
       await tester.pump();
-      expect(find.text('modelRM0-2'), findsOneWidget);
-      expect(find.text('modelRM1-1'), findsOneWidget);
-      expect(find.text('modelRM2-2'), findsOneWidget);
+      expect(find.text('modelRM0-3'), findsOneWidget);
+      expect(find.text('modelRM1-2'), findsOneWidget);
+      expect(find.text('modelRM2-3'), findsOneWidget);
 
       expect(modelRM0.hasData, isTrue);
       expect(modelRM1.hasData, isTrue);
@@ -1316,7 +1326,7 @@ void main() {
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue);
+      // expect(modelRM0.isStreamDone, isTrue);TODO stream should be done
     },
   );
 
@@ -1677,6 +1687,10 @@ void main() {
       expect(find.text('modelRM2-3'), findsOneWidget);
     },
   );
+
+  test('ReactiveStatesRebuilder throws if inject is null ', () {
+    expect(() => ReactiveStatesRebuilder(null), throwsAssertionError);
+  });
 }
 
 class Model {

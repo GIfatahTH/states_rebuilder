@@ -61,7 +61,6 @@ class Inject<T> implements Injectable {
   bool get isFutureType => _isFutureType;
 
   bool _isStreamType = false;
-  bool get isStreamType => _isStreamType;
 
   bool _hasCustomName = false;
 
@@ -178,8 +177,8 @@ class Inject<T> implements Injectable {
     );
   }
 
-  InheritedWidget staticOf(BuildContext context) {
-    final InheritedWidget model =
+  InheritedInject staticOf(BuildContext context) {
+    final InheritedInject model =
         context.dependOnInheritedWidgetOfExactType<InheritedInject<T>>();
     return model;
   }
@@ -211,9 +210,6 @@ class InheritedInject<T> extends InheritedWidget {
 
   ///get reactive singleton associated with this InheritedInject
   final StatesRebuilder Function() getSingleton;
-
-  /// The last registered add BuildContext
-  static final List<BuildContext> lastContext = <BuildContext>[null];
 
   ///get The model
   StatesRebuilder get model => getSingleton();

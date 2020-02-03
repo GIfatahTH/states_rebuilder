@@ -96,10 +96,11 @@ class Injector extends StatefulWidget {
         }(),
       );
 
-      final InheritedWidget inheritedWidget = inject.staticOf(context);
+      final InheritedInject inheritedInject = inject.staticOf(context);
+      assert(inheritedInject == null || (model == inheritedInject.model));
       assert(
         () {
-          if (silent == false && inheritedWidget == null) {
+          if (silent == false && inheritedInject == null) {
             throw Exception(
                 AssertMessage.inheritedWidgetOfReturnsNull<T>('Injector.get'));
           }
@@ -112,6 +113,7 @@ class Injector extends StatefulWidget {
     } else {
       throw Exception(AssertMessage.getModelNotStatesRebuilderWithContext<T>());
     }
+
     return model;
   }
 
@@ -151,10 +153,11 @@ class Injector extends StatefulWidget {
         return true;
       }(),
     );
-    final InheritedWidget inheritedWidget = inject.staticOf(context);
+    final InheritedInject inheritedInject = inject.staticOf(context);
+    assert(inheritedInject == null || (reactiveModel == inheritedInject.model));
     assert(
       () {
-        if (silent == false && inheritedWidget == null) {
+        if (silent == false && inheritedInject == null) {
           throw Exception(AssertMessage.inheritedWidgetOfReturnsNull<T>(
               'Injector.getAsReactive'));
         }

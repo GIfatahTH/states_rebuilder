@@ -6,6 +6,9 @@ import 'package:states_rebuilder/src/on_set_state_listener.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
+  test('onSetStateListener throws if child is null', () {
+    expect(() => OnSetStateListener(child: null), throwsAssertionError);
+  });
   testWidgets('onSetStateListener works for one reactiveModel', (tester) async {
     String _onSetState = '';
     String _onError = '';

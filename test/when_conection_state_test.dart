@@ -35,6 +35,29 @@ void main() {
   );
 
   testWidgets(
+    'WhenConnectionState widget, synchronous task, case one reactive model default onIdle',
+    (tester) async {
+      final widget = Injector(
+        inject: [Inject(() => Model1())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilder<Model1>(
+              models: [Injector.getAsReactive<Model1>()],
+              onWaiting: () => Text('waiting'),
+              onError: (error) => Text('error'),
+              onData: (data) => Text('data'),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text(' OnIdle Not Implemented Error '), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'WhenConnectionState widget, synchronous task, case two reactive models',
     (tester) async {
       final widget = Injector(
@@ -209,6 +232,51 @@ void main() {
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('error message'), findsOneWidget);
+    },
+  );
+
+  test(
+    'WhenConnectionState throws if onWaiting is null',
+    () {
+      expect(
+        () => WhenRebuilder<Model1>(
+          models: [null],
+          onWaiting: null,
+          onError: (error) => Text(error.message),
+          onData: (data) => Text('data'),
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  test(
+    'WhenConnectionState throws if onError is null',
+    () {
+      expect(
+        () => WhenRebuilder<Model1>(
+          models: [null],
+          onWaiting: () => Text(''),
+          onError: null,
+          onData: (data) => Text('data'),
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  test(
+    'WhenConnectionState throws if onData is null',
+    () {
+      expect(
+        () => WhenRebuilder<Model1>(
+          models: [null],
+          onWaiting: () => Text(''),
+          onError: (_) => Text(''),
+          onData: null,
+        ),
+        throwsAssertionError,
+      );
     },
   );
 }
