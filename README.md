@@ -1,6 +1,7 @@
 # `states_rebuilder`
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
+[![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
 
 A Flutter state management combined with dependency injection solution that allows : 
   * a 100% separation of User Interface (UI) representation from your logic classes
