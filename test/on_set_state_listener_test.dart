@@ -58,6 +58,7 @@ void main() {
       (tester) async {
     String _onSetState = '';
     String _onError = '';
+    ReactiveModel exposedRM;
     final widget = Injector(
       inject: [
         Inject(() => Model1()),
@@ -66,13 +67,14 @@ void main() {
       builder: (context) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: OnSetStateListener<Model1>(
+          child: OnSetStateListener(
               models: [
                 Injector.getAsReactive<Model1>(),
                 Injector.getAsReactive<Model2>(),
               ],
               onSetState: (context, reactiveModel) {
                 _onSetState = 'onSetState';
+                exposedRM = reactiveModel;
               },
               onError: (context, error) {
                 _onError = error.message;
@@ -88,10 +90,12 @@ void main() {
 
     expect(_onSetState, equals(''));
     expect(_onError, equals(''));
+    //
     reactiveModel1.setState((s) => s.counter++);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(exposedRM == reactiveModel1, isTrue);
 
     _onSetState = '';
     _onError = '';
@@ -112,6 +116,7 @@ void main() {
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message1'));
+    expect(exposedRM == reactiveModel2, isTrue);
 
     _onSetState = '';
     _onError = '';

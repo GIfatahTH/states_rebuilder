@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
+import 'package:states_rebuilder/src/injector.dart';
 
 void main() {
   test(
@@ -210,9 +211,142 @@ void main() {
       expect(inject.newReactiveInstanceList.length, equals(0));
     },
   );
+
+  test('should throw if Injector.env is null', () {
+    expect(
+      () => Inject<IInterface>.interface({'prod': () => ImplProd()}),
+      throwsAssertionError,
+    );
+  });
+
+  test(
+    'should throw if Injector.env is not a recognize env',
+    () {
+      Injector.env = 'nonExisting';
+      expect(
+        () => Inject<IInterface>.interface({'prod': () => ImplProd()}),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  test(
+    'Inject.interface getName works',
+    () {
+      Injector.env = 'prod';
+      final inject1 = Inject<IInterface>.interface({
+        'prod': () => ImplProd(),
+        'dev': () => ImplDev(),
+        'test': () => ImplTest(),
+      });
+      //defined generic type
+      expect(inject1.getName(), equals('IInterface'));
+      //
+      //generic type is inferred
+      final inject2 = Inject.interface({
+        'prod': () => ImplProd(),
+        'dev': () => ImplDev(),
+        'test': () => ImplTest(),
+      });
+      expect(inject2.getName(), equals('IInterface'));
+
+      //
+      //with provided custom name
+      final inject3 = Inject.interface(
+        {
+          'prod': () => ImplProd(),
+          'dev': () => ImplDev(),
+          'test': () => ImplTest(),
+        },
+        name: 'customName',
+      );
+      expect(inject3.getName(), equals('customName'));
+
+      //
+      //throws if Object or dynamic
+      final inject4 = Inject.interface({
+        'prod': () => ImplProd(),
+        'dev': () => ImplDev(),
+        'test': () => '',
+      });
+      expect(() => inject4.getName(), throwsAssertionError);
+    },
+  );
+
+  test(
+    'Inject.interface works default lazily',
+    () {
+      Injector.env = 'prod';
+      final inject1 = Inject<IInterface>.interface({
+        'prod': () => ImplProd(),
+        'dev': () => ImplDev(),
+        'test': () => ImplTest(),
+      });
+      //defined generic type
+      expect(inject1.getName(), equals('IInterface'));
+
+      inject1.getName();
+      expect(inject1.singleton, isNull);
+      expect(inject1.getSingleton(), isNotNull);
+      expect(inject1.getSingleton(), equals(inject1.getSingleton()));
+    },
+  );
+
+  test(
+    'Inject.interface works works not lazily',
+    () {
+      Injector.env = 'prod';
+      final inject1 = Inject<IInterface>.interface(
+        {
+          'prod': () => ImplProd(),
+          'dev': () => ImplDev(),
+          'test': () => ImplTest(),
+        },
+        isLazy: false,
+      );
+      //defined generic type
+      expect(inject1.getName(), equals('IInterface'));
+
+      inject1.getName();
+      expect(inject1.singleton, isNotNull);
+    },
+  );
+
+  test(
+    'Inject.interface throws if inconsistent map length',
+    () {
+      Injector.env = 'prod';
+      Inject<IInterface>.interface(
+        {
+          'prod': () => ImplProd(),
+          'dev': () => ImplDev(),
+          'test': () => ImplTest(),
+        },
+        isLazy: false,
+      );
+
+      expect(
+        () => Inject<IInterface>.interface(
+          {
+            'prod': () => ImplProd(),
+            'dev': () => ImplDev(),
+          },
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
 }
 
 class Model {}
 
 Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
 Stream<int> getStream() => Stream.periodic(Duration(seconds: 1), (num) => num);
+
+class IInterface {}
+
+class ImplProd extends IInterface {}
+
+class ImplDev extends IInterface {}
+
+class ImplTest extends IInterface {}

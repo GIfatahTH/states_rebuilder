@@ -33,6 +33,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     this.onSetState,
     this.onError,
     this.watch,
+    //TODO add onData
     @required this.child,
   })  : assert(child != null),
         super(key: key);

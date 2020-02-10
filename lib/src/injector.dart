@@ -47,6 +47,8 @@ class Injector extends StatefulWidget {
   ///Function to track app life cycle state. It takes as parameter the AppLifeCycleState.
   final void Function(AppLifecycleState) appLifeCycle;
 
+  static dynamic env;
+
   ///A class used to register (inject) models.
   const Injector({
     Key key,

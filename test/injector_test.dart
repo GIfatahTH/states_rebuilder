@@ -401,44 +401,6 @@ void main() {
     },
   );
 
-  testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
-    final BinaryMessenger defaultBinaryMessenger =
-        ServicesBinding.instance.defaultBinaryMessenger;
-    AppLifecycleState lifecycleState;
-    final widget = Injector(
-      inject: [Inject(() => Model())],
-      appLifeCycle: (state) {
-        lifecycleState = state;
-      },
-      builder: (_) => Container(),
-    );
-
-    await tester.pumpWidget(widget);
-
-    expect(lifecycleState, isNull);
-    ByteData message =
-        const StringCodec().encodeMessage('AppLifecycleState.paused');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    await tester.pump();
-    expect(lifecycleState, AppLifecycleState.paused);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.resumed);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.inactive);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.detached');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.inactive);
-  });
-
   testWidgets('Injector throws if inject or reinject parameter are not defined',
       (tester) async {
     expect(() => Injector(builder: (_) => Container()), throwsAssertionError);
@@ -1380,6 +1342,100 @@ void main() {
       expect(text, contains('Model : [Inject<Model>('));
     },
   );
+
+  testWidgets('Injector.interface should work Env.prod', (tester) async {
+    Injector.env = Env.prod;
+    ReactiveModel<IModelInterface> model;
+    Widget widget = Injector(
+      inject: [
+        Inject.interface({
+          Env.prod: () => ModelProd(),
+          Env.test: () => ModelTest(),
+        })
+      ],
+      builder: (context) {
+        model = Injector.getAsReactive<IModelInterface>(context: context);
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text(model.state.counter.toString()),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+
+    model.setState((s) => s.increment());
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('Injector.interface should work Env.test', (tester) async {
+    Injector.env = Env.test;
+    ReactiveModel<IModelInterface> model;
+    Widget widget = Injector(
+      inject: [
+        Inject.interface({
+          Env.prod: () => ModelProd(),
+          Env.test: () => ModelTest(),
+        })
+      ],
+      builder: (context) {
+        model = Injector.getAsReactive<IModelInterface>(context: context);
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text(model.state.counter.toString()),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+
+    model.setState((s) => s.increment());
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+  });
+
+  group('', () {
+    testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
+      final BinaryMessenger defaultBinaryMessenger =
+          ServicesBinding.instance.defaultBinaryMessenger;
+      AppLifecycleState lifecycleState;
+      final widget = Injector(
+        inject: [Inject(() => Model())],
+        appLifeCycle: (state) {
+          lifecycleState = state;
+        },
+        builder: (_) => Container(),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(lifecycleState, isNull);
+      ByteData message =
+          const StringCodec().encodeMessage('AppLifecycleState.paused');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
+      await tester.pump();
+      expect(lifecycleState, AppLifecycleState.paused);
+
+      message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
+      expect(lifecycleState, AppLifecycleState.resumed);
+
+      message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
+      expect(lifecycleState, AppLifecycleState.inactive);
+
+      message = const StringCodec().encodeMessage('AppLifecycleState.detached');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
+      expect(lifecycleState, AppLifecycleState.detached);
+    });
+  });
 }
 
 class Model extends StatesRebuilder {
@@ -1429,3 +1485,30 @@ Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
 Stream<int> getStream() => Stream.periodic(Duration(seconds: 1), (num) {
       return num;
     }).take(3);
+
+abstract class IModelInterface {
+  int counter = 0;
+  void increment();
+}
+
+class ModelProd implements IModelInterface {
+  @override
+  void increment() {
+    counter += 1;
+  }
+
+  @override
+  int counter = 0;
+}
+
+class ModelTest implements IModelInterface {
+  @override
+  void increment() {
+    counter += 2;
+  }
+
+  @override
+  int counter = 0;
+}
+
+enum Env { prod, test }
