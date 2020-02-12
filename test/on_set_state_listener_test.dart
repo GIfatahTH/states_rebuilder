@@ -12,6 +12,7 @@ void main() {
   testWidgets('onSetStateListener works for one reactiveModel', (tester) async {
     String _onSetState = '';
     String _onError = '';
+    String _onData = '';
     final widget = Injector(
       inject: [Inject(() => Model1())],
       builder: (context) {
@@ -25,6 +26,9 @@ void main() {
               onError: (context, error) {
                 _onError = error.message;
               },
+              onData: (context, reactiveModel) {
+                _onData = 'onData';
+              },
               child: Container()),
         );
       },
@@ -34,6 +38,7 @@ void main() {
 
     expect(_onSetState, equals(''));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
 
     final reactiveModel1 = Injector.getAsReactive<Model1>();
 
@@ -41,23 +46,28 @@ void main() {
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals('onData'));
 
     _onSetState = '';
+    _onData = '';
     reactiveModel1.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
 
     _onSetState = '';
     await tester.pump(Duration(seconds: 1));
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message1'));
+    expect(_onData, equals(''));
   });
 
   testWidgets('onSetStateListener works for two reactiveModels',
       (tester) async {
     String _onSetState = '';
     String _onError = '';
+    String _onData = '';
     ReactiveModel exposedRM;
     final widget = Injector(
       inject: [
@@ -79,6 +89,9 @@ void main() {
               onError: (context, error) {
                 _onError = error.message;
               },
+              onData: (context, reactiveModel) {
+                _onData = 'onData';
+              },
               child: Container()),
         );
       },
@@ -90,51 +103,62 @@ void main() {
 
     expect(_onSetState, equals(''));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
     //
     reactiveModel1.setState((s) => s.counter++);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
     expect(exposedRM == reactiveModel1, isTrue);
 
     _onSetState = '';
     _onError = '';
+    _onData = '';
     reactiveModel1.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
 
-    await tester.pump(Duration(seconds: 1));
     await tester.pump(Duration(seconds: 1));
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message1'));
+    expect(_onData, equals(''));
 
     final reactiveModel2 = Injector.getAsReactive<Model2>();
     _onSetState = '';
     _onError = '';
+    _onData = '';
     reactiveModel2.setState((s) => s.counter++);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message1'));
+    expect(_onData, equals(''));
     expect(exposedRM == reactiveModel2, isTrue);
 
     _onSetState = '';
     _onError = '';
+    _onData = '';
     reactiveModel1.setState((s) => s.counter++);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals('onData'));
 
     _onSetState = '';
     _onError = '';
+    _onData = '';
     reactiveModel2.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
+    expect(_onData, equals(''));
 
     await tester.pump(Duration(seconds: 1));
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals('error message2'));
+    expect(_onData, equals(''));
   });
 
   testWidgets('onSetStateListener works for two Future reactiveModels',
