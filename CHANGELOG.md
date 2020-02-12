@@ -1,3 +1,76 @@
+## 1.13.0 (2020-02-12)
+* Add static variable `Injector.env` and `Inject.interface` named constructor so that you can register under different environments.
+
+ex:
+```dart
+//abstract class
+abstract class ConfigInterface {}
+
+// first prod implementation
+class ProdConfig extends ConfigInterface {}
+
+//second dev implementation
+class DevConfig extends ConfigInterface {}
+
+//enum for defined flavor
+enum Flavor { Prod, Dev }
+
+
+void main() {
+  //Choose yor environment flavor
+  Injector.env = Flavor.Dev;
+
+  runApp(
+    Injector(
+      inject: [
+        //Register against an interface with different flavor
+        Inject<ConfigInterface>.interface({
+          Flavor.Prod: ()=>ProdConfig(),
+          Flavor.Dev:()=>DevConfig(),
+        }),
+      ],
+      builder: (_){
+        return MyApp(
+          appTitle: Injector.get<ConfigInterface>().appDisplayName;
+        );
+      },
+    )
+  );
+}
+```
+
+* `StateBuilder<T>`, `WhenRebuilder<T>` and `OnSetStateListener<T>` observer widgets can be set to observer many observable reactive models. The exposed model instance depends on the generic parameter `T`.
+ex:
+```dart
+//first case : generic model is ModelA
+StateBuilder<ModelA>(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is an instance of ReactiveModel<ModelA>.
+  }
+)
+//second case : generic model is ModelB
+StateBuilder<ModelB>(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is an instance of ReactiveModel<ModelB>.
+  }
+)
+//third case : generic model is dynamic
+StateBuilder(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is dynamic and it will change over time to hold the instance of model that emits a notification.
+    
+    //If modelA emits a notification the exposedModel == ReactiveModel<ModelA>.
+    //Wheres if modelB emits a notification the exposedModel == ReactiveModel<ModelB>.
+  }
+)
+```
+* Add `WhenRebuilderOr`. It is equivalent to `WhenRebuilder` but with optional `onIdle`, `onWaiting` and `onError` parameters and with required default `builder`.
+
+
+
 ## 1.12.1 (2020-02-.3)
 * Add Continuous Integration and code coverage support.
 * Improve test coverage.
