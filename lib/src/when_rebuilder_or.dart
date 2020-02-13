@@ -99,7 +99,6 @@ class WhenRebuilderOr<T> extends StatelessWidget {
         if (onIdle != null && isIdle) {
           return onIdle();
         }
-        print(modelRM.connectionState);
         return builder(context, modelRM);
       },
     );

@@ -607,12 +607,10 @@ void main() {
       final widget = StateBuilder(
         models: [intRM, stringRM],
         watch: (rm) {
-          print(rm);
           exposedRM = rm;
           return rm.value;
         },
         builder: (ctx, rm) {
-          print('build $rm');
           return Directionality(
               textDirection: TextDirection.ltr,
               child: Text('${++numberOfRebuild}'));
