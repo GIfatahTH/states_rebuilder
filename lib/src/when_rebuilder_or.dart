@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
+import 'when_connection_state.dart';
 
-///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
-///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
-class WhenRebuilder<T> extends StatelessWidget {
+///Just like [WhenRebuilder] but you do not have to define all possible states.
+class WhenRebuilderOr<T> extends StatelessWidget {
   ///Widget to display when the widget is first rendered and before executing any method.
   ///
   ///It has the third priority after [onWaiting] and [onError]. That is, if none of the observed [ReactiveModel]s
@@ -24,11 +24,13 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///and if at least one of the observed [ReactiveModel]s has error this callback will be invoked.
   final Widget Function(dynamic error) onError;
 
-  ///Widget to display if all the observed [ReactiveModel]s has data.
+  ///Widget to display if all the observed [ReactiveModel]s has data or as the default case if any
+  ///of the [onIdle], [onWaiting] or [onError] is not defined
   ///
   ///It has the last priority. That is if all the observed [ReactiveModel]s are not in the waiting state,
   ///have no error, and are not in the idle state, this callback will be invoked.
-  final Widget Function(T data) onData;
+  ///
+  final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
 
   //List of reactiveModels to observe
   final List<ReactiveModel> models;
@@ -36,19 +38,17 @@ class WhenRebuilder<T> extends StatelessWidget {
   final void Function(BuildContext, ReactiveModel<T>) initState;
   final void Function(BuildContext, ReactiveModel<T>) dispose;
 
-  const WhenRebuilder({
+  const WhenRebuilderOr({
     Key key,
-    @required this.onIdle,
-    @required this.onWaiting,
-    @required this.onError,
-    @required this.onData,
+    this.onIdle,
+    this.onWaiting,
+    this.onError,
+    @required this.builder,
     @required this.models,
     this.initState,
     this.dispose,
   })  : assert(models != null && models.length != 0),
-        assert(onWaiting != null),
-        assert(onError != null),
-        assert(onData != null),
+        assert(builder != null),
         super(key: key);
 
   @override
@@ -57,13 +57,13 @@ class WhenRebuilder<T> extends StatelessWidget {
       models: models,
       initState: initState,
       dispose: dispose,
-      builder: (context, firstReactiveModel) {
+      builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
         dynamic error;
 
-        firstReactiveModel.whenConnectionState<bool>(
+        modelRM.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
           onError: (err) {
@@ -85,18 +85,21 @@ class WhenRebuilder<T> extends StatelessWidget {
           );
         }
 
-        if (isWaiting) {
+        if (onWaiting != null && isWaiting) {
           return onWaiting();
         }
         if (hasError) {
-          return onError(error);
+          if (onError != null) {
+            return onError(error);
+          } else {
+            throw error;
+          }
         }
 
-        if (isIdle) {
+        if (onIdle != null && isIdle) {
           return onIdle();
         }
-
-        return onData(firstReactiveModel.state);
+        return builder(context, modelRM);
       },
     );
   }

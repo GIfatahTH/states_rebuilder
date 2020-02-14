@@ -310,7 +310,7 @@ class Model extends StatesRebuilder {
 class ObserverWidget extends ObserverOfStatesRebuilder {
   int numOfUpdates = 0;
   @override
-  bool update([void Function(BuildContext) onSetState]) {
+  bool update([void Function(BuildContext) onSetState, dynamic message]) {
     numOfUpdates++;
     if (onSetState != null) {
       onSetState(null);

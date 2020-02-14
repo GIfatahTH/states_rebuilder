@@ -162,6 +162,10 @@ Injector(
     Inject(() => ModelC(Injector.get<ModelA>())),// Directly inject ModelA in ModelC constructor
     Inject(() => ModelC(Injector.get())),// Type in inferred.
     Inject<IModelD>(() => ModelD()),// Register with Interface type.
+    Inject<IModelE>({ //Inject through interface with environment flavor.
+      'prod': ()=>ModelImplA(),
+      'test': ()=>ModelImplB(),
+    }), // you have to set the `Inject.env = 'prod'` before `runApp` method
     //You can inject streams and future and make them accessible to all the widget tree.
     Inject<bool>.future(() => Future(), initialValue:0),// Register a future.
     Inject<int>.stream(() => Stream()),// Register a stream.
@@ -492,7 +496,7 @@ ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
 In addition to its state management responsibility, `StateBuilder` offers a facade that facilitates the management of the widget's lifecycle.
 ```dart
 StateBuilder<T>(
-  onSetState: (BuildContext context, ReactiveModel<T> model){
+  onSetState: (BuildContext context, ReactiveModel<T> exposedModel){
   /*
   Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar,...  
   
@@ -501,25 +505,25 @@ StateBuilder<T>(
   You can use another nested setState here.
   */
   },
-  onRebuildState: (BuildContext context, ReactiveModel<T> model){
+  onRebuildState: (BuildContext context, ReactiveModel<T> exposedModel){
   // The same as in onSetState but called after the end rebuild process.
   },
-  initState: (BuildContext context, ReactiveModel<T> model){
+  initState: (BuildContext context, ReactiveModel<T> exposedModel){
   // Function to execute in initState of the state.
   },
-  dispose: (BuildContext context, ReactiveModel<T> model){
+  dispose: (BuildContext context, ReactiveModel<T> exposedModel){
   // Function to execute in dispose of the state.
   },
-  didChangeDependencies: (BuildContext context, ReactiveModel<T> model){
+  didChangeDependencies: (BuildContext context, ReactiveModel<T> exposedModel){
   // Function to be executed  when a dependency of state changes.
   },
-  didUpdateWidget: (BuildContext context, ReactiveModel<T> model, StateBuilder oldWidget){
+  didUpdateWidget: (BuildContext context, ReactiveModel<T> exposedModel, StateBuilder oldWidget){
   // Called whenever the widget configuration changes.
   },
-  afterInitialBuild: (BuildContext context, ReactiveModel<T> model){
+  afterInitialBuild: (BuildContext context, ReactiveModel<T> exposedModel){
   // Called after the widget is first inserted in the widget tree.
   },
-  afterRebuild: (BuildContext context, ReactiveModel<T> model){
+  afterRebuild: (BuildContext context, ReactiveModel<T> exposedModel){
   /*
   Called after each rebuild of the widget.
 
@@ -538,18 +542,18 @@ StateBuilder<T>(
   // this widget will be saved with many tags that are the items in the list.
   tag: dynamic
 
-   watch: (ReactiveModel<T> model) {
+   watch: (ReactiveModel<T> exposedModel) {
     //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
   },
 
-  builder: (BuildContext context, ReactiveModel<T> model){
+  builder: (BuildContext context, ReactiveModel<T> exposedModel){
     /// [BuildContext] can be used as the default tag of this widget.
 
     /// The model is the first instance (model1) in the list of the [models] parameter.
     /// If the parameter [models] is not provided then the model will be a new reactive instance.
   },
   builderWithChild: (BuildContext context, ReactiveModel<T> model, Widget child){
-    ///Same as [builder], but can take a child widget containing the part of the widget tree that we do not want to rebuild.
+    ///Same as [builder], but can take a child widget exposedModel the part of the widget tree that we do not want to rebuild.
     /// If both [builder] and [builderWithChild] are defined, it will throw.
 
   },
@@ -559,7 +563,7 @@ StateBuilder<T>(
 
 )
 ```
-# WhenRebuilder
+# WhenRebuilder / WhenRebuilderOr
 `states_rebuilder` offers the the `WhenRebuilder` widget which is a a combination of `StateBuilder` widget and `ReactiveModel.whenConnectionState` method.
 
 instead of verbosely:
@@ -628,6 +632,7 @@ WhenRebuilder<Model1>(
   },
 ),
 ```
+`WhenRebuilderOr` is just like `WhenRebuilder` but with optional `onIdle`, `onWaiting` and `onError` parameters and with required default `builder`..
 
 # OnSetStateListener
 `OnSetStateListener` is useful when you want to globally control the notification flow of a list of observable models and execute side effect calls. 
@@ -718,6 +723,36 @@ reactiveModel.setValue(
 ),
 ```
 
+## Note on the exposedModel
+`StateBuilder<T>`, `WhenRebuilder<T>` and `OnSetStateListener<T>` observer widgets can be set to observer many observable reactive models. The exposed model instance depends on the generic parameter `T`.
+ex:
+```dart
+//first case : generic model is ModelA
+StateBuilder<ModelA>(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is an instance of ReactiveModel<ModelA>.
+  }
+)
+//second case : generic model is ModelB
+StateBuilder<ModelB>(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is an instance of ReactiveModel<ModelB>.
+  }
+)
+//third case : generic model is dynamic
+StateBuilder(
+  models:[modelA, modelB],
+  builder:(context, exposedModel){
+    //exposedModel is dynamic and it will change over time to hold the instance of model that emits a notification.
+    
+    //If modelA emits a notification the exposedModel == ReactiveModel<ModelA>.
+    //Wheres if modelB emits a notification the exposedModel == ReactiveModel<ModelB>.
+  }
+)
+```
+
 # StateWithMixinBuilder
 `StateWithMixinBuilder` is similar to `StateBuilder` and extends it by adding mixin (practical case is an animation),
 ```Dart
@@ -767,7 +802,9 @@ StateWithMixinBuilder<T>( {
 
 4. For each injected class, you can consume the registered instance using `Injector.get` or the reactive model wrapper of the injected instance using` Injector.getAsReactive`. As the raw instance and the reactive instance are registered lazily, if you consume a class using only `Injector.get` and not` Injector.getAsReactive`, the reactive instance will never be instantiated.
 
-5. You can register classes with concrete types or abstract classes.
+5. You can register classes with concrete types or abstract classes. 
+
+6. You can register under different devolvement environments. This can be done by the help of `Inject.interface` named constructor and by setting the environment flavor `Injector.env` before calling the runApp method. see example below.
 
 That said: 
 > It is possible to register a class as a singleton, as a lazy singleton or as a factory simply by choosing where to insert it in the widget tree.
@@ -822,3 +859,64 @@ class MyApp extends StatelessWidget {
   }
 }
 ```
+example of development flavor:
+```dart
+//abstract class
+abstract class ConfigInterface {
+  String get appDisplayName;
+}
+
+// first prod implementation
+class ProdConfig implements ConfigInterface {
+  @override
+  String get appDisplayName => "Production App";
+}
+
+//second dev implementation
+class DevConfig implements ConfigInterface {
+  @override
+  String get appDisplayName => "Dev App";
+}
+
+//Another abstract class
+abstract class IDataBase{}
+
+// first prod implementation
+class RealDataBase implements IDataBase {}
+
+// Second prod implementation
+class FakeDataBase implements IDataBase {}
+
+
+//enum for defined flavor
+enum Flavor { Prod, Dev }
+
+
+void main() {
+  //Choose yor environment flavor
+  Injector.env = Flavor.Prod;
+
+  runApp(
+    Injector(
+      inject: [
+        //Register against an interface with different flavor
+        Inject<ConfigInterface>.interface({
+          Flavor.Prod: ()=>ProdConfig(),
+          Flavor.Dev:()=>DevConfig(),
+        }),
+        Inject<IDataBase>.interface({
+          Flavor.Prod: ()=>RealDataBase(),
+          Flavor.Dev:()=>FakeDataBase(),
+        }),
+      ],
+      builder: (_){
+        return MyApp(
+          appTitle: Injector.get<ConfigInterface>().appDisplayName;
+          dataBaseRepo : Injector.get<IDataBase>(),
+        );
+      },
+    )
+  );
+}
+```
+

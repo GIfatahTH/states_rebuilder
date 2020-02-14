@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/src/injector.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
 import 'states_rebuilder.dart';
@@ -85,6 +86,8 @@ class Inject<T> implements Injectable {
   int onSetStateListenerNumber = 0;
   bool get hasOnSetStateListener => onSetStateListenerNumber > 0;
 
+  static int _envMapLength;
+
   ///Inject a value or a model.
   Inject(
     this._creationFunction, {
@@ -122,9 +125,34 @@ class Inject<T> implements Injectable {
     _hasCustomName = name != null;
   }
 
+  Inject.interface(
+    Map<dynamic, T Function()> impl, {
+    dynamic name,
+    this.isLazy,
+    this.joinSingleton,
+  }) {
+    assert(Injector.env != null, '''
+You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
+    ''');
+    assert(impl[Injector.env] != null, '''
+There is no implementation for ${Injector.env} of $T interface
+    ''');
+    _envMapLength ??= impl.length;
+    assert(impl.length == _envMapLength, '''
+You must be consistent about the number of flavor environment you have.
+you had $_envMapLength flavors and you are defining ${impl.length} flavors.
+    ''');
+
+    this._creationFunction = impl[Injector.env];
+
+    _name = name?.toString();
+    _hasCustomName = name != null;
+  }
+
   /// Get the name of the model is registered with.
   String getName() {
     assert(T != dynamic);
+    assert(T != Object);
 
     if (isLazy == false) {
       getReactive();

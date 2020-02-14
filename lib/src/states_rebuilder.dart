@@ -1,13 +1,14 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
 ///Observer classes should implement [ObserverOfStatesRebuilder]
 abstract class ObserverOfStatesRebuilder {
   ///Method to executed when observer is notified.
-  bool update([void Function(BuildContext) onSetState]);
+  bool update([dynamic Function(BuildContext) onSetState, dynamic message]);
 }
 
 ///[StatesRebuilder] use the observer pattern.
@@ -155,6 +156,7 @@ class StatesRebuilder implements Subject {
                       isOnSetStateCalledOrNull = true;
                       onSetState(context);
                     },
+              this is ReactiveModel ? this : null,
             );
           }
         },
@@ -181,6 +183,7 @@ class StatesRebuilder implements Subject {
                     isOnSetStateCalledOrNull = true;
                     onSetState(context);
                   },
+            this is ReactiveModel ? this : null,
           );
         }
       }

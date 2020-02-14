@@ -14,6 +14,10 @@ class OnSetStateListener<T> extends StatelessWidget {
   ///Callback to execute when any of the observed models emits a notification with error.
   final void Function(BuildContext context, dynamic error) onError;
 
+  ///Callback to called if all the observed [ReactiveModel]s has data.
+  ///
+  final void Function(BuildContext context, ReactiveModel reactiveMode) onData;
+
   ///A function that returns a one instance variable or a list of
   ///them. The rebuild process will be triggered if at least one of
   ///the return variable changes.
@@ -32,6 +36,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     this.models,
     this.onSetState,
     this.onError,
+    this.onData,
     this.watch,
     @required this.child,
   })  : assert(child != null),
@@ -49,8 +54,21 @@ class OnSetStateListener<T> extends StatelessWidget {
           for (var reactiveModel in models) {
             if (reactiveModel.hasError) {
               onError(context, reactiveModel.error);
+              return;
             }
           }
+        }
+
+        if (onData != null) {
+          for (var reactiveModel in models) {
+            if (reactiveModel.isIdle) {
+              return;
+            }
+            if (reactiveModel.isWaiting) {
+              return;
+            }
+          }
+          onData(context, rm);
         }
       },
       initState: (_, __) {

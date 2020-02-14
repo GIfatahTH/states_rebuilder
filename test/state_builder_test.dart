@@ -343,6 +343,58 @@ void main() {
   );
 
   testWidgets(
+    'StateBuilder should get the right exposed model',
+    (tester) async {
+      bool switcher = true;
+
+      ReactiveModel<int> intRM = ReactiveModel.create(0);
+      ReactiveModel<String> stringRM = ReactiveModel.create('');
+      ReactiveModel rmFromInitState;
+      ReactiveModel rmFromDispose;
+
+      final widget = StateBuilder(
+        models: [model],
+        tag: ['mainTag'],
+        builder: (ctx, _) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Builder(
+              builder: (context) {
+                if (switcher) {
+                  return StateBuilder(
+                    models: [stringRM, intRM],
+                    initState: (_, rm) {
+                      rmFromInitState = rm;
+                    },
+                    dispose: (_, rm) {
+                      rmFromDispose = rm;
+                    },
+                    builder: (context, _) {
+                      return Text('${model.counter}');
+                    },
+                  );
+                }
+                return Text('false');
+              },
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(rmFromInitState, equals(stringRM));
+
+      intRM.setValue(() => 1);
+      await tester.pump();
+
+      switcher = false;
+      model.rebuildStates(['mainTag']);
+      await tester.pump();
+      expect(rmFromDispose, equals(stringRM));
+    },
+  );
+
+  testWidgets(
     'StateBuilder should call disposeModel works',
     (tester) async {
       bool switcher = true;
@@ -546,6 +598,61 @@ void main() {
   );
 
   testWidgets(
+    'StateBuilder should watch  get the right exposed model and work',
+    (tester) async {
+      int numberOfRebuild = 0;
+      final intRM = ReactiveModel.create([0]);
+      final stringRM = ReactiveModel.create(['']);
+      ReactiveModel exposedRM;
+      final widget = StateBuilder(
+        models: [intRM, stringRM],
+        watch: (rm) {
+          exposedRM = rm;
+          return rm.value;
+        },
+        builder: (ctx, rm) {
+          return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text('${++numberOfRebuild}'));
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('1'), findsOneWidget);
+      expect(exposedRM == intRM, isTrue);
+
+      //state do not change
+      intRM.setValue(() => [0]);
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+
+      //state do not change
+      stringRM.setValue(() => ['str1']);
+      await tester.pump();
+      expect(exposedRM == stringRM, isTrue);
+
+      expect(find.text('2'), findsOneWidget);
+
+      //state do not change
+      stringRM.setValue(() => ['str1']);
+      await tester.pump();
+      expect(exposedRM == stringRM, isTrue);
+
+      expect(find.text('2'), findsOneWidget);
+
+      //state changes
+      intRM.setValue(() => [0]);
+      await tester.pump();
+      expect(find.text('3'), findsOneWidget);
+
+      //state do not change
+      intRM.setValue(() => [0]);
+      await tester.pump();
+      expect(find.text('3'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     "should string equality work : (== : true) (identical : false) (hashCode : true)",
     (WidgetTester tester) async {
       final s = {
@@ -684,40 +791,90 @@ void main() {
   );
 
   testWidgets(
-    "StateBuilder expose the first model in the models parameter list",
+    "StateBuilder expose the model that is defined in the generic type, int",
     (WidgetTester tester) async {
-      ReactiveModel<int> reactiveModel1;
-      ReactiveModel<int> reactiveModel2;
-      final widget = Injector(
-        inject: [Inject(() => 2), Inject(() => 'String')],
-        builder: (_) {
-          return Column(
-            children: <Widget>[
-              StateBuilder<int>(
-                models: [Injector.getAsReactive<int>()],
-                builder: (_, rm) {
-                  reactiveModel1 = rm;
-                  return Container();
-                },
-              ),
-              StateBuilder(
-                models: [
-                  Injector.getAsReactive<int>(),
-                  Injector.getAsReactive<String>(),
-                ],
-                builder: (_, rm) {
-                  reactiveModel2 = rm;
-                  return Container();
-                },
-              ),
-            ],
-          );
-        },
+      ReactiveModel<int> intRM = ReactiveModel.create(0);
+      ReactiveModel<String> stringRM = ReactiveModel.create('');
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: StateBuilder<int>(
+          models: [intRM, stringRM],
+          builder: (_, rm) {
+            final model = rm.value;
+            if (model is int) {
+              return Text('int=$model');
+            } else if (model is String) {
+              return Text('string=$model');
+            }
+            return Container();
+          },
+        ),
       );
       await tester.pumpWidget(widget);
-      expect(reactiveModel1, isA<ReactiveModel<int>>());
-      expect(reactiveModel2, isA<ReactiveModel<int>>());
-      expect(reactiveModel1 == reactiveModel2, isTrue);
+      expect(find.text('int=0'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    "StateBuilder expose the model that is defined in the generic type, String",
+    (WidgetTester tester) async {
+      ReactiveModel<int> intRM = ReactiveModel.create(0);
+      ReactiveModel<String> stringRM = ReactiveModel.create('');
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: StateBuilder<String>(
+          models: [intRM, stringRM],
+          builder: (_, rm) {
+            final model = rm.value;
+            if (model is int) {
+              return Text('int=$model');
+            } else if (model is String) {
+              return Text('string=$model');
+            }
+            return Container();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('string='), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    "StateBuilder expose the model that emits a notification if generic type is dynamic",
+    (WidgetTester tester) async {
+      ReactiveModel<int> intRM = ReactiveModel.create(0);
+      ReactiveModel<String> stringRM = ReactiveModel.create('');
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: StateBuilder(
+          models: [intRM, stringRM],
+          builder: (_, rm) {
+            final model = rm.value;
+            if (model is int) {
+              return Text('int=$model');
+            } else if (model is String) {
+              return Text('string=$model');
+            }
+            return Container();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('int=0'), findsOneWidget);
+      //
+      stringRM.setValue(() => 'str1');
+      await tester.pump();
+      expect(find.text('int=0'), findsNothing);
+      expect(find.text('string=str1'), findsOneWidget);
+      //
+      intRM.setValue(() => 1);
+      await tester.pump();
+      expect(find.text('int=1'), findsOneWidget);
+      expect(find.text('string=str1'), findsNothing);
     },
   );
 

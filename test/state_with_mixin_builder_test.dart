@@ -350,44 +350,6 @@ void main() {
       expect(find.text('1'), findsOneWidget);
     },
   );
-  testWidgets('StateWithMixinBuilder appLifeCycle works',
-      (WidgetTester tester) async {
-    final BinaryMessenger defaultBinaryMessenger =
-        ServicesBinding.instance.defaultBinaryMessenger;
-    AppLifecycleState lifecycleState;
-    final widget = StateWithMixinBuilder(
-      mixinWith: MixinWith.widgetsBindingObserver,
-      didChangeAppLifecycleState: (context, state) {
-        lifecycleState = state;
-      },
-      builder: (_, __) => Container(),
-    );
-
-    await tester.pumpWidget(widget);
-
-    expect(lifecycleState, isNull);
-    ByteData message =
-        const StringCodec().encodeMessage('AppLifecycleState.paused');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    await tester.pump();
-    expect(lifecycleState, AppLifecycleState.paused);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.resumed);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.inactive);
-
-    message = const StringCodec().encodeMessage('AppLifecycleState.detached');
-    await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.inactive);
-  });
 
   testWidgets(
     "StateWithMixinBuilder throws id dispose or initState are null with singleTickerProviderStateMixin",
@@ -489,6 +451,45 @@ void main() {
     expect(numberOfNonKeepAliveRebuild, equals(2));
     expect(find.text('Container 2'), findsOneWidget);
     expect(find.text('Container 3'), findsOneWidget);
+  });
+
+  testWidgets('StateWithMixinBuilder appLifeCycle works',
+      (WidgetTester tester) async {
+    final BinaryMessenger defaultBinaryMessenger =
+        ServicesBinding.instance.defaultBinaryMessenger;
+    AppLifecycleState lifecycleState;
+    final widget = StateWithMixinBuilder(
+      mixinWith: MixinWith.widgetsBindingObserver,
+      didChangeAppLifecycleState: (context, state) {
+        lifecycleState = state;
+      },
+      builder: (_, __) => Container(),
+    );
+
+    await tester.pumpWidget(widget);
+
+    expect(lifecycleState, isNull);
+    ByteData message =
+        const StringCodec().encodeMessage('AppLifecycleState.paused');
+    await defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/lifecycle', message, (_) {});
+    await tester.pump();
+    expect(lifecycleState, AppLifecycleState.paused);
+
+    message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
+    await defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/lifecycle', message, (_) {});
+    expect(lifecycleState, AppLifecycleState.resumed);
+
+    message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
+    await defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/lifecycle', message, (_) {});
+    expect(lifecycleState, AppLifecycleState.inactive);
+
+    message = const StringCodec().encodeMessage('AppLifecycleState.detached');
+    await defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/lifecycle', message, (_) {});
+    expect(lifecycleState, AppLifecycleState.inactive);
   });
 }
 

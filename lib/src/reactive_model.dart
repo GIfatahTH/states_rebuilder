@@ -257,7 +257,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
               if (onData != null) {
                 onData(_onSetStateContextFromGet ?? context, state);
               }
-              ;
               if (seeds != null) {
                 for (var seed in seeds) {
                   final rm = inject.newReactiveMapFromSeed['$seed'];

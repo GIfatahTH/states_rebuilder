@@ -759,6 +759,60 @@ void main() {
   );
 
   testWidgets(
+    'ReactiveModel : (case Inject.interface)new reactive notify reactive singleton with its state if joinSingleton = withNewReactiveInstance',
+    (tester) async {
+      Injector.env = 'prod';
+      final inject = Inject.interface(
+        {'prod': () => Model()},
+        joinSingleton: JoinSingleton.withNewReactiveInstance,
+      );
+      final modelRM2 = inject.getReactive(true);
+      final modelRM1 = inject.getReactive(true);
+      final modelRM0 = inject.getReactive();
+
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder(
+            models: [modelRM0],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM1],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
+            },
+          ),
+          StateBuilder(
+            models: [modelRM2],
+            builder: (context, _) {
+              return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
+            },
+          )
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+
+      //mutate reactive instance 1
+      modelRM1.setState((s) => s.increment());
+      await tester.pump();
+
+      expect(find.text('modelRM0-1'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-0'), findsOneWidget);
+
+      //mutate reactive instance 1
+      modelRM2.setState((s) => s.increment());
+      await tester.pump();
+      expect(find.text('modelRM0-2'), findsOneWidget);
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-2'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'ReactiveModel : singleton holds the combined state of new instances if joinSingleton = withCombinedReactiveInstances case sync with error call',
     (tester) async {
       final inject = Inject(
