@@ -489,7 +489,7 @@ void main() {
     message = const StringCodec().encodeMessage('AppLifecycleState.detached');
     await defaultBinaryMessenger.handlePlatformMessage(
         'flutter/lifecycle', message, (_) {});
-    expect(lifecycleState, AppLifecycleState.detached);
+    expect(lifecycleState, AppLifecycleState.inactive);
   });
 }
 

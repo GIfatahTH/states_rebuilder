@@ -131,10 +131,17 @@ class Inject<T> implements Injectable {
     this.isLazy,
     this.joinSingleton,
   }) {
-    assert(Injector.env != null);
-    assert(impl[Injector.env] != null);
+    assert(Injector.env != null, '''
+You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
+    ''');
+    assert(impl[Injector.env] != null, '''
+There is no implementation for ${Injector.env} of $T interface
+    ''');
     _envMapLength ??= impl.length;
-    assert(impl.length == _envMapLength);
+    assert(impl.length == _envMapLength, '''
+You must be consistent about the number of flavor environment you have.
+you had $_envMapLength flavors and you are defining ${impl.length} flavors.
+    ''');
 
     this._creationFunction = impl[Injector.env];
 
