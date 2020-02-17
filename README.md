@@ -23,11 +23,9 @@ Another advantage of states_rebuilder is that it has no boilerplate. It has no b
 
 With states_rebuilder, you write your user interface using StatelessWidget, and when you need a business logic class, you just inject a singleton of the class using the `Injector` widget and get it from any child widget using the `Injector.get` method.
 
-[!get singleton]()
-
 The instance obtained is not reactive, it is the registered singleton of the pure dart class. To make a vanilla dart class reactive, just get it using the `Injector.getAsReactive` method.
 
-[!getAsReactive singleton]()
+<image src="https://github.com/GIfatahTH/repo_images/blob/master/011-states_rebuilder_singltons.png" width="500"/>
 
 The model obtained is of the `ReactiveModel` type and is observable. Observer widgets can subscribe to it and the observable reactive model can notify them to rebuild.
 
@@ -36,11 +34,11 @@ To subscribe to a `ReactiveModel`, states_rebuilder offers `StateBuilder`, `Stat
 
 To notify observers you call `setState` or `setValue` methods of an observable model.
 
-[!setState wheel]()
+<image src="https://github.com/GIfatahTH/repo_images/blob/master/011-states_rebuilder_state_wheel.png" width="500"/>
 
 With states_rebuilder, you can create as many `ReactiveModel` as you want from the same object, so that you can surgically control the part of the widget tree to rebuild.
 
-[!setState wheel]()
+<image src="https://github.com/GIfatahTH/repo_images/blob/master/011-states_rebuilder_new_reactive_model.png" width="500"/>
 
 # Examples:
 
@@ -53,12 +51,12 @@ With states_rebuilder, you can create as many `ReactiveModel` as you want from t
 * *multi async counters* The is a solution of an imaginary and very tricky state management requirement. You will see how the concept of ReactiveModel can solve very difficult state management requirements. You will see How can Reactive singleton interact with new reactive models. You will use
  `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData`
 
-## Clean Architecture
+## Architecture
 
+* *User posts and comments*  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
+* *firebase login* The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
 
-
-
-
+* *firebase realtime database* The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
 
 
