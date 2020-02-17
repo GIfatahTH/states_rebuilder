@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "296526832899",
+    "firebase_url": "https://multi-counter-app-12594.firebaseio.com",
+    "project_id": "multi-counter-app-12594",
+    "storage_bucket": "multi-counter-app-12594.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296526832899:android:5401e5f6ab5dd404c6f536",
+        "android_client_info": {
+          "package_name": "com.example.clean_architecture_andrea_multi_counter_with_firebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296526832899-m0u49v7777djtimuon0oa66oika4tabh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGbsqdjzRjXPouGE3ez_PMIChLH1t_6UM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296526832899-m0u49v7777djtimuon0oa66oika4tabh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
