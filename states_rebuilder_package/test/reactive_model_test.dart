@@ -1609,46 +1609,149 @@ void main() {
       },
     );
 
-    // testWidgets(//TODO make it work for async methods
-    //   'Async methods with and without error work',
-    //   (tester) async {
-    //     final modelRM = ReactiveModel.create(0);
+    testWidgets(
+      'Async methods with and without error work',
+      (tester) async {
+        final modelRM = ReactiveModel.create(0);
+        int onData;
 
-    //     final widget = StateBuilder(
-    //       models: [modelRM],
-    //       builder: (_, __) {
-    //         return modelRM.whenConnectionState(
-    //           onIdle: () => _widgetBuilder('onIdle'),
-    //           onWaiting: () => _widgetBuilder('onWaiting'),
-    //           onData: (data) => _widgetBuilder('${data}'),
-    //           onError: (error) => _widgetBuilder('${error.message}'),
-    //         );
-    //       },
-    //     );
-    //     await tester.pumpWidget(widget);
-    //     //sync increment without error
-    //     modelRM.setValue(() async {
-    //       final model = Model();
-    //       await model.incrementAsync();
-    //       return model.counter;
-    //     });
-    //     await tester.pump();
-    //     expect(find.text(('0')), findsOneWidget);
+        final widget = StateBuilder(
+          models: [modelRM],
+          builder: (_, __) {
+            return modelRM.whenConnectionState(
+              onIdle: () => _widgetBuilder('onIdle'),
+              onWaiting: () => _widgetBuilder('onWaiting'),
+              onData: (data) => _widgetBuilder('${data}'),
+              onError: (error) => _widgetBuilder('${error.message}'),
+            );
+          },
+        );
+        await tester.pumpWidget(widget);
 
-    //     await tester.pump(Duration(seconds: 1));
-    //     expect(find.text(('1')), findsOneWidget);
+        expect(find.text(('onIdle')), findsOneWidget);
 
-    //     // //sync increment with error
-    //     // modelRM.setValue(() {
-    //     //   final model = Model();
-    //     //   model.incrementError();
-    //     //   return model.counter;
-    //     // });
-    //     // await tester.pump();
-    //     // // expect(find.text('error message'), findsOneWidget);
-    //   },
-    // );
-    //
+        //sync increment without error
+        modelRM.setValue(() async {
+          final model = Model();
+          await model.incrementAsync();
+          return model.counter;
+        }, onData: (context, data) {
+          onData = data;
+        });
+        await tester.pump();
+        expect(find.text(('onWaiting')), findsOneWidget);
+        expect(onData, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(onData, equals(1));
+
+        //sync increment with error
+        modelRM.setValue(
+          () async {
+            final model = Model();
+            await model.incrementAsyncError();
+            return model.counter;
+          },
+          catchError: true,
+        );
+        await tester.pump();
+        expect(find.text(('onWaiting')), findsOneWidget);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('error message'), findsOneWidget);
+        expect(onData, equals(1));
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : join singleton to new reactive from setValue',
+      (tester) async {
+        final inject = Inject(() => Model());
+        final modelRM0 = inject.getReactive();
+        final modelRM1 = inject.getReactive(true);
+        final modelRM2 = inject.getReactive(true);
+
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              models: [modelRM0],
+              builder: (context, _) {
+                return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
+              },
+            ),
+            StateBuilder(
+              models: [modelRM1],
+              builder: (context, _) {
+                return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
+              },
+            ),
+            StateBuilder(
+              models: [modelRM2],
+              builder: (context, _) {
+                return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+
+        //mutate reactive instance 1
+        modelRM1.setValue(
+          () => modelRM1.state..incrementError(),
+          joinSingleton: true,
+          catchError: true,
+        );
+        await tester.pump();
+        expect(find.text('modelRM0-0'), findsOneWidget);
+        expect(find.text('modelRM1-0'), findsOneWidget);
+        expect(find.text('modelRM2-0'), findsOneWidget);
+        expect(modelRM0.hasError, isTrue);
+        expect(modelRM1.hasError, isTrue);
+        expect(modelRM2.isIdle, isTrue);
+
+        //mutate reactive instance 2
+        modelRM2.setValue(
+          () => modelRM2.state..incrementError(),
+          joinSingleton: true,
+          catchError: true,
+        );
+        await tester.pump();
+        expect(find.text('modelRM0-0'), findsOneWidget);
+        expect(find.text('modelRM1-0'), findsOneWidget);
+        expect(find.text('modelRM2-0'), findsOneWidget);
+        expect(modelRM0.hasError, isTrue);
+        expect(modelRM1.hasError, isTrue);
+        expect(modelRM2.hasError, isTrue);
+
+        //mutate reactive instance 1
+        modelRM1.setValue(() {
+          modelRM1.state.increment();
+          return Model()..counter = modelRM1.state.counter;
+        }, joinSingleton: true);
+        await tester.pump();
+        expect(find.text('modelRM0-1'), findsOneWidget);
+        expect(find.text('modelRM1-1'), findsOneWidget);
+        expect(find.text('modelRM2-0'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+        expect(modelRM1.hasData, isTrue);
+        expect(modelRM2.hasError, isTrue);
+
+        //mutate reactive instance 2
+        modelRM2.setValue(() {
+          modelRM2.state.increment();
+          return Model()..counter = modelRM2.state.counter;
+        }, joinSingleton: true);
+        await tester.pump();
+        expect(find.text('modelRM0-2'), findsOneWidget);
+        expect(find.text('modelRM1-1'), findsOneWidget);
+        expect(find.text('modelRM2-2'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+        expect(modelRM1.hasData, isTrue);
+        expect(modelRM2.hasData, isTrue);
+      },
+    );
   });
 
   test(

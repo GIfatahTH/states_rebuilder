@@ -18,3 +18,4 @@ example/android/
 example/android/local.properties
 analysis_options.yaml
 coverage/lcov.info
+states_rebuilder_package/coverage/lcov.info

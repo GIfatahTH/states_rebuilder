@@ -33,6 +33,15 @@ class WhenRebuilder<T> extends StatelessWidget {
   //List of reactiveModels to observe
   final List<ReactiveModel> models;
 
+  ///A tag or list of tags you want this [WhenRebuilder] to register with.
+  ///
+  ///Whenever any of the observable model to which this [WhenRebuilder] is subscribed emits
+  ///a notifications with a list of filter tags, this [WhenRebuilder] will rebuild if the
+  ///the filter tags list contains at least on of those tags.
+  ///
+  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
+  ///
+  ///Each [WhenRebuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
   final void Function(BuildContext, ReactiveModel<T>) initState;

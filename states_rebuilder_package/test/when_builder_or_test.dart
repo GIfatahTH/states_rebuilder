@@ -15,6 +15,7 @@ void main() {
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
               models: [Injector.getAsReactive<Model1>()],
+              tag: 'tag1',
               onWaiting: () => Text('waiting'),
               onError: (error) => Text('error'),
               builder: (context, modelRM) => Text('data'),
@@ -27,7 +28,7 @@ void main() {
       expect(find.text('data'), findsOneWidget);
 
       final reactiveModel = Injector.getAsReactive<Model1>();
-      reactiveModel.setState(null);
+      reactiveModel.setState(null, filterTags: ['tag1']);
       await tester.pump();
       expect(find.text('data'), findsOneWidget);
     },

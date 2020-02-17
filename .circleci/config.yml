@@ -6,5 +6,6 @@ jobs:
     steps:
       - checkout
       - run: flutter doctor
+      - run : cd states_rebuilder_package
       - run: flutter test --coverage
       - run: bash <(curl -s https://codecov.io/bash)

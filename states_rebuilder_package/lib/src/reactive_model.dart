@@ -162,31 +162,30 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///
   /// Equivalent to [setState] but very convenient for primitives and immutable objects
   Future<void> setValue(
-    T Function() fn, {
+    FutureOr<T> Function() fn, {
     List<dynamic> filterTags,
     List<dynamic> seeds,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context, T data) onData,
     bool catchError = false,
     bool notifyAllReactiveInstances = false,
+    bool joinSingleton,
   }) async {
     await setState(
-      (_) {
-        final value = fn();
-
-        if (inject.getReactive().state == value) {
-          return StopRebuild();
-        }
-        return inject.getReactive().state = value;
-      },
+      (_) => fn(),
       filterTags: filterTags,
       seeds: seeds,
       onSetState: onSetState,
       onRebuildState: onRebuildState,
+      onData: onData,
       onError: onError,
       catchError: catchError,
       notifyAllReactiveInstances: notifyAllReactiveInstances,
+      joinSingleton: joinSingleton,
+      joinSingletonToNewData: joinSingletonToNewData,
+      setValue: true,
     );
   }
 
@@ -233,6 +232,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     dynamic Function() joinSingletonToNewData,
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
+    bool setValue = false,
   }) async {
     assert(() {
       if (inject.isAsyncInjected == true) {
@@ -278,7 +278,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
             _onSetStateContextFromGet = null;
           },
         );
-        if (notifyAllReactiveInstances) {
+        if (notifyAllReactiveInstances == true) {
           _notifyAll();
         } else if (isNewReactiveInstance) {
           final reactiveSingleton = inject.getReactive();
@@ -302,16 +302,14 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       }
     }
 
+    dynamic result;
     try {
       if (fn == null) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
         _rebuildStates(canRebuild: true);
         return;
       }
-      final dynamic result = fn(state) as dynamic;
-      if (result is StopRebuild) {
-        return;
-      }
+      result = fn(state) as dynamic;
       if (result is Future) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         //Do need to call setState during the build of the widget.
@@ -322,7 +320,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
             rethrow;
           }
         }
-        await result;
+        result = await result;
       }
     } catch (e) {
       _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
@@ -344,6 +342,15 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         canRebuild = //watch for async tasks will rebuild only if the watched parameter changed
         watch == null || watchBefore.hashCode != watchAfter.hashCode;
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+
+    if (setValue == true) {
+      if (inject.getReactive().state == result) {
+        return;
+      }
+      inject.getReactive()._snapshot =
+          AsyncSnapshot<T>.withData(ConnectionState.done, result);
+      inject.getReactive()._state = result;
+    }
 
     _rebuildStates(canRebuild: canRebuild);
   }
@@ -476,5 +483,3 @@ class ReactiveModelInternal {
     rm._onSetStateContextFromGet = ctx;
   }
 }
-
-class StopRebuild {}

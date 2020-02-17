@@ -13,6 +13,7 @@ void main() {
     String _onSetState = '';
     String _onError = '';
     String _onData = '';
+    String _onWaiting = '';
     final widget = Injector(
       inject: [Inject(() => Model1())],
       builder: (context) {
@@ -20,6 +21,7 @@ void main() {
           textDirection: TextDirection.ltr,
           child: OnSetStateListener<Model1>(
               models: [Injector.getAsReactive<Model1>()],
+              tag: 'tag1',
               onSetState: (context, reactiveModel) {
                 _onSetState = 'onSetState';
               },
@@ -28,6 +30,9 @@ void main() {
               },
               onData: (context, reactiveModel) {
                 _onData = 'onData';
+              },
+              onWaiting: () {
+                _onWaiting = 'onWaiting';
               },
               child: Container()),
         );
@@ -39,6 +44,7 @@ void main() {
     expect(_onSetState, equals(''));
     expect(_onError, equals(''));
     expect(_onData, equals(''));
+    expect(_onWaiting, equals(''));
 
     final reactiveModel1 = Injector.getAsReactive<Model1>();
 
@@ -47,12 +53,15 @@ void main() {
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
     expect(_onData, equals('onData'));
+    expect(_onWaiting, equals(''));
 
     _onSetState = '';
     _onData = '';
-    reactiveModel1.setState((s) => s.incrementAsyncWithError());
+    reactiveModel1
+        .setState((s) => s.incrementAsyncWithError(), filterTags: ['tag1']);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
+    expect(_onWaiting, equals('onWaiting'));
     expect(_onError, equals(''));
     expect(_onData, equals(''));
 
