@@ -1,3 +1,8 @@
+## 1.14.0 (2020-02-18)
+* Add `tag` and `onWaiting` parameters to `OnSetStateListener` widget.
+* Add `tag` parameter to `WhenRebuild`  and `WhenRebuildOr` widgets
+* Improve the logic of `setValue` and `setState`. Now `setValue` has all the functionalities of `setState`.
+
 ## 1.13.0 (2020-02-12)
 * Add static variable `Injector.env` and `Inject.interface` named constructor so that you can register under different environments.
 
