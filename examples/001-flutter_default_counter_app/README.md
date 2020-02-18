@@ -6,7 +6,7 @@ This simple example aims to understand what ReactiveModel means and how it rende
 
 # Simple counter.
 
-After adding states_rebuilder to dependencies in the `pubspec.yaml`, in the  `main.dart` file we have
+After adding the latest version of `states_rebuilder` to dependencies in the `pubspec.yaml`, in the  `main.dart` file we have
 
 ```dart
 import 'package:flutter/material.dart';
@@ -215,7 +215,7 @@ As you can see, form a simple `ReactiveModel.create(0)` we can
 
 And there is more!
 
-You can rarely find an app without executing nonblocking asynchronous tasks. Been forced to face them, we have to manage them so that the user of that app is visually informed that something is executing behind the scenes.
+You can rarely find an app without executing non-blocking asynchronous tasks. Been forced to face them, we have to manage them so that the user of that app is visually informed that something is executing behind the scenes.
 
 Take this case :
 

@@ -7,6 +7,8 @@ Let's build a simple login form validation. It consists of two input fields and 
 * Password input field : is valid if it contains more than three characters.
 * Submit button : is inactive unless both email and password are valid.
 
+<image src="https://github.com/GIfatahTH/repo_images/blob/master/004-form_login_with_validation.gif" width="300"/>
+
 First let's define Email and Password immutable class with the logic of validation:
 
 ```dart

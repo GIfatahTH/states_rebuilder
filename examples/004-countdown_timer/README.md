@@ -508,7 +508,7 @@ return OnSetStateListener(
 
 Because notification is filtered by tag, we set `OnSetStateListener` to listen to notification emitted with 'timer' tag.
 
-Because `OnSetStateListener` is used with dynamic tag, the exposed model will be dynamic (see [Login form validation]()).
+Because `OnSetStateListener` is used with dynamic tag, the exposed model will be dynamic (see [Login form validation](examples/002-form_validation_with_reactive_model)).
 
 Then we check for the exposed model, if it is `TimerStatus` we will switch for its status and pause or resume the stream subscription accordingly.
 
