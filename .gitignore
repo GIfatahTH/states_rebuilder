@@ -89,12 +89,11 @@ coverage/
 
 analysis_options.yaml
 pubspec.lock
-
-# Exceptions to above rules.
+ 
+# Exceptions to above rules. 
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
-
