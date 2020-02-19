@@ -24,6 +24,55 @@ fooRM.setState(
   },
 )
 ```
+
+* Add `Injector.enableTestMode` static bool field. Set it to true in tests to inject fake dependency.
+ex:
+Let's suppose we have the widget.
+```dart
+Import 'my_real_model.dart';
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      inject: [Inject(() => MyRealModel())],
+      builder: (context) {
+        final myRealModelRM = Injector.getAsReactive<MyRealModel>();
+
+        // your widget
+      },
+    );
+  }
+}
+```
+MyApp widget depends on `MyRealModel`.
+
+To mock `MyRealModel` and test MyApp we set ``Injector.enableTestMode`` to true :
+
+```dart
+testWidgets('Test MyApp class', (tester) async {
+  //set enableTestMode to true
+  Injector.enableTestMode = true;
+  await tester.pumpWidget(
+    Injector(
+      //Inject the fake model and register it with the real model type
+      inject: [Inject<MyRealModel>(() => MyFakeModel())],
+      builder: (context) {
+        //In my MyApp, Injector.get or Inject.getAsReactive will return the fake model instance
+        return MyApp();
+      },
+    ),
+  );
+
+  //My test
+});
+
+//fake model implement real model
+class MyFakeModel extends MyRealModel {
+  // fake implementation
+}
+```
+See real test of the [counter_app_with_error]((states_rebuilder_package/example/test)) and [counter_app_with_refresh_indicator]((states_rebuilder_package/example/test)).
+
 * Add `tag` and `onWaiting` parameters to `OnSetStateListener` widget.
 * Add `tag` parameter to `WhenRebuild`  and `WhenRebuildOr` widgets
 * Improve the logic of `setValue` and `setState`. Now `setValue` has all the functionalities of `setState`.

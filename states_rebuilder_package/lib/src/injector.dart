@@ -47,7 +47,11 @@ class Injector extends StatefulWidget {
   ///Function to track app life cycle state. It takes as parameter the AppLifeCycleState.
   final void Function(AppLifecycleState) appLifeCycle;
 
+  /// The environment the app should be in. It works with [Inject.interface]
   static dynamic env;
+
+  ///set to true for test. It allows for injecting mock instances.
+  static bool enableTestMode = false;
 
   ///A class used to register (inject) models.
   const Injector({
@@ -211,6 +215,20 @@ class InjectorState extends State<Injector> {
   @override
   void initState() {
     super.initState();
+    if (widget.inject != null) {
+      for (Inject inject in widget.inject) {
+        assert(inject != null);
+        final name = inject.getName();
+        if (allRegisteredModelInApp[name] == null) {
+          allRegisteredModelInApp[name] = [inject];
+          _injects.add(inject);
+        } else {
+          if (Injector.enableTestMode == false) {
+            throw Exception(AssertMessage.injectingAnInjectedModel(name));
+          }
+        }
+      }
+    }
 
     if (widget.reinject != null) {
       for (StatesRebuilder toReinject in widget.reinject) {
@@ -253,27 +271,18 @@ class InjectorState extends State<Injector> {
           }(),
         );
 
-        _injects.add(inject);
-      }
-    }
-
-    if (widget.inject != null) {
-      _injects.addAll(widget.inject);
-    }
-
-    for (Inject inject in _injects) {
-      assert(inject != null);
-      final name = inject.getName();
-      if (allRegisteredModelInApp[name] == null) {
-        allRegisteredModelInApp[name] = [inject];
-      } else {
+        final name = inject.getName();
+        print(allRegisteredModelInApp[name]);
         allRegisteredModelInApp[name].add(inject);
+
+        _injects.add(inject);
       }
     }
 
     if (widget.initState != null) {
       widget.initState();
     }
+
     if (widget.afterInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterInitialBuild(context),

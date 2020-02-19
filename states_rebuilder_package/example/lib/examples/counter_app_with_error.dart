@@ -96,3 +96,18 @@ class MyHome extends StatelessWidget {
     );
   }
 }
+
+Import 'my_real_model.dart',
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      inject: [Inject(() => MyRealModel())],
+      builder: (context) {
+        final myRealModelRM = Injector.getAsReactive<MyRealModel>();
+
+        // your widget
+      },
+    );
+  }
+}

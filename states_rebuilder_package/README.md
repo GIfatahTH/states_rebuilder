@@ -919,5 +919,59 @@ void main() {
 }
 ```
 
+# Widget unit texting
+
+The test is an important step in the daily life of a programmer; if not the most important part!
+
+With `Injector`, you can isolate any widget by mocking its dependencies and test it.
+
+Let's suppose we have the widget.
+```dart
+Import 'my_real_model.dart';
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
+      inject: [Inject(() => MyRealModel())],
+      builder: (context) {
+        final myRealModelRM = Injector.getAsReactive<MyRealModel>();
+
+        // your widget
+      },
+    );
+  }
+}
+```
+The `MyApp` widget depends on` MyRealModel`. At first glance, this may seem to violate DI principles. How can we mock the "MyRealModel" which is not injected into the constructor of "MyApp"?
+
+To mock `MyRealModel` and test MyApp we set `Injector.enableTestMode` to true :
+
+```dart
+testWidgets('Test MyApp class', (tester) async {
+  //set enableTestMode to true
+  Injector.enableTestMode = true;
+
+  await tester.pumpWidget(
+    Injector(
+      //Inject the fake model and register it with the real model type
+      inject: [Inject<MyRealModel>(() => MyFakeModel())],
+      builder: (context) {
+        //In my MyApp, Injector.get or Inject.getAsReactive will return the fake model instance
+        return MyApp();
+      },
+    ),
+  );
+
+  //My test
+});
+
+//fake model implement real model
+class MyFakeModel extends MyRealModel {
+  // fake implementation
+}
+```
+You can see a real test of the [counter_app_with_error]((states_rebuilder_package/example/test)) and [counter_app_with_refresh_indicator]((states_rebuilder_package/example/test)).
+
+# For further reading:
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)

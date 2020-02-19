@@ -75,6 +75,51 @@ void main() {
   );
 
   testWidgets(
+    'Injecting the same model twice should through',
+    (tester) async {
+      final widget = Injector(
+        inject: [Inject(() => Model())],
+        builder: (context) {
+          return Injector(
+            inject: [Inject(() => Model())],
+            builder: (context) {
+              return Container();
+            },
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isException);
+    },
+  );
+
+  testWidgets(
+    'Injecting the same model twice error is ignored if Injector.testModel is true',
+    (tester) async {
+      Model model1;
+      Model model2;
+
+      Injector.enableTestMode = true;
+      final widget = Injector(
+        inject: [Inject(() => Model())],
+        builder: (context) {
+          model1 = Injector.get<Model>();
+          return Injector(
+            inject: [Inject(() => Model())],
+            builder: (context) {
+              model2 = Injector.get<Model>();
+              return Container();
+            },
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(model1, isA<Model>());
+      expect(model2 == model1, isTrue);
+    },
+  );
+
+  testWidgets(
     'Injector get inject model works for injected future',
     (tester) async {
       final widget = Injector(
@@ -643,7 +688,7 @@ void main() {
   );
 
   testWidgets(
-    'Injector : throws if reinject non injected instance',
+    'Injector : throws if reinject new reactive instance instance',
     (tester) async {
       final widget = Injector(
         inject: [Inject(() => VanillaModel())],
