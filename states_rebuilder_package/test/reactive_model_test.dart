@@ -1438,7 +1438,6 @@ void main() {
         await tester.pumpWidget(widget);
         modelRM.setValue(() => modelRM.value + 1);
         await tester.pump();
-        print(modelRM.connectionState);
         expect(find.text(('1')), findsOneWidget);
 
         await tester.pumpWidget(widget);
@@ -1529,8 +1528,6 @@ void main() {
         final widget = StateBuilder(
           models: [modelRM],
           builder: (_, __) {
-            print(modelRM.value);
-            print(modelRM.connectionState);
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
               onWaiting: () => _widgetBuilder('onWaiting'),

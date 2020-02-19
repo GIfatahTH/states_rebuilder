@@ -272,7 +272,6 @@ class InjectorState extends State<Injector> {
         );
 
         final name = inject.getName();
-        print(allRegisteredModelInApp[name]);
         allRegisteredModelInApp[name].add(inject);
 
         _injects.add(inject);
