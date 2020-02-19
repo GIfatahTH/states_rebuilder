@@ -1,8 +1,8 @@
 # `states_rebuilder`
 
-[![pub package](https://img.shields.io/pub/v/`states_rebuilder`.svg)](https://pub.dev/packages/`states_rebuilder`)
-[![CircleCI](https://circleci.com/gh/GIfatahTH/`states_rebuilder`.svg?style=svg)](https://circleci.com/gh/GIfatahTH/`states_rebuilder`)
-[![codecov](https://codecov.io/gh/GIfatahTH/`states_rebuilder`/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/`states_rebuilder`)
+[![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
+[![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
+[![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 
 `states_rebuilder` is a flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
@@ -23,7 +23,7 @@ With `states_rebuilder`, you write your user interface using StatelessWidget, an
 
 The instance obtained using `Injector.get` is not reactive, it is the registered singleton of the pure dart class. To make a vanilla dart class reactive, just get it using the `Injector.getAsReactive` method.
 
-<image src="01-`states_rebuilder`_singletons.png" width="400"/>
+<image src="assets/01-states_rebuilder__singletons.png" width="400"/>
 
 The model obtained is of `ReactiveModel` type and it is observable in the context of observer pattern. Observer widgets can subscribe to it and the observable reactive model can notify them to rebuild.
 
@@ -32,11 +32,11 @@ To subscribe to a `ReactiveModel`, `states_rebuilder` offers `StateBuilder`, `St
 
 To notify observers you call `setState` or `setValue` methods of an observable model.
 
-<image src="01-`states_rebuilder`_state_wheel.png" width="400"/>
+<image src="assets/01-states_rebuilder_state_wheel.png" width="400"/>
 
 With `states_rebuilder`, you can create as many `ReactiveModel`s as you want from the same object, so that you can surgically control the part of the widget tree to rebuild.
 
-<image src="01-`states_rebuilder`_new_reactive_model.png" width="400"/>
+<image src="assets/01-states_rebuilder_new_reactive_model.png" width="400"/>
 
 # Examples:
 
