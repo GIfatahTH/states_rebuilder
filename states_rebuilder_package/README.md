@@ -23,10 +23,6 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 >Contrary to what one might think, implicit reactivity is simpler, more efficient and more powerful than explicit reactivity.
 
-> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
-
-> [Tutorials](https://github.com/GIfatahTH/states-rebuilder-examples)
-
 # 1- Explicit reactivity
 
 In the context of the observer pattern, any class that extends `StatesRebuilder` is the observable and `StateBuilder`, as well as `StateWithMixinBuilder` widgets, are the observers. `StatesRebuilder` notifies the observers using the `rebuildStates` method. Observer widgets when notified rebuild themselves to reproduce the actual state.
@@ -345,6 +341,7 @@ The reactive environment adds the following getters and methods:
 
 The getters are : 
 * **state**: returns the registered raw singleton of the model.
+* **value**: returns the registered raw singleton of the model.
 * **connectionState** : It is of type `ConnectionState` (a Flutter defined enumeration). It takes three values:  
       1- `ConnectionState.none`: Before executing any method of the model.  
       2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   
@@ -356,13 +353,15 @@ The getters are :
 * **hasData**: It is of type bool. It is true if the connectionState is done without any error.
 
 The fields are:
-* **customStateStatus**: It is of type dynamic. It holds your custom-defined state status. For example, in a timer app, you can define custom states such as 'plying', 'paused, 'finished'.
 * **joinSingletonToNewData** : It is of type dynamic. It holds data sent from a new reactive instance to the reactive singleton.
 * **subscription** : it is of type `StreamSubscription<T>`. It is not null if you inject streams using `Inject.stream` constructor. It is used to control the injected stream.   
 
 The methods are:
-* **setState(T state)**: return a `Future<void>`. It takes the state as a parameter that corresponds to the singleton instance of the injected model. It is used to mutate the state and notify listeners after state mutation.
+* **setState**: return a `Future<void>`. It is used to mutate the state and notify listeners after state mutation.
+* **setValue**: return a `Future<void>` It is used to mutate the state and notify listeners after state mutation. To is equivalent to `setState` with the parameter `setValue` set to true. **setValue** is most suitable for immutables whereas **setState** is more convenient for mutable objects.
 * **whenConnectionState** Exhaustively switch over all the possible statuses of [connectionState]. Used mostly to return [Widget]s. It has four required parameters (`onIdle`, `onWaiting`, `onData` and `onError`).
+* **restToIdle** used to reset the async connection state to `isIdle`.
+* **restToHasData** used to reset the async connection state to `hasData`.
 
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
@@ -377,6 +376,7 @@ reactiveModel.setState(
 
   //set to true, you want to catch error, and not break the app.
   catchError: true 
+  
   watch: (Counter counter) {
     //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
     return counter.count; //if count value is not changed, no notification will be emitted.
@@ -411,6 +411,9 @@ reactiveModel.setState(
 
   //message to be sent to the reactive singleton
   dynamic joinSingletonToNewData,
+
+  //Whether to set value or not
+  bool setValue:false,
 ),
 ```
 It is important to understand that `states_rebuilder` caches two singletons.
@@ -786,10 +789,6 @@ StateWithMixinBuilder<T>( {
 ```
   Available mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
 
-
-> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
-
-
 # Dependency Injection
 
 `states_rebuilder` uses the service locator pattern for injecting dependencies using the` injector` with is a StatefulWidget. To understand the principle of DI, it is important to consider the following principles:
@@ -920,3 +919,5 @@ void main() {
 }
 ```
 
+
+> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)

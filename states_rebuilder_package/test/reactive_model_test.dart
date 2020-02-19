@@ -1851,6 +1851,70 @@ void main() {
   test('ReactiveStatesRebuilder throws if inject is null ', () {
     expect(() => ReactiveStatesRebuilder(null), throwsAssertionError);
   });
+
+  testWidgets(
+    'ReactiveModel: issue #49 reset to Idle after error or data',
+    (tester) async {
+      final widget = StateBuilder(
+        models: [modelRM],
+        builder: (_, __) {
+          return _widgetBuilder(
+            '${modelRM.state.counter}',
+            '${modelRM.error?.message}',
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text(('error message')), findsNothing);
+      //
+      modelRM.setState((s) => s.incrementError(), catchError: true);
+      await tester.pump();
+      expect(find.text(('error message')), findsOneWidget);
+      expect(modelRM.isIdle, isFalse);
+      expect(modelRM.hasError, isTrue);
+      expect(modelRM.hasData, isFalse);
+      //reset to Idle
+      modelRM.resetToIdle();
+      modelRM.rebuildStates();
+      await tester.pump();
+      expect(modelRM.isIdle, isTrue);
+      expect(modelRM.hasError, isFalse);
+      expect(modelRM.hasData, isFalse);
+      expect(find.text(('error message')), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'ReactiveModel: reset to hasData',
+    (tester) async {
+      final widget = StateBuilder(
+        models: [modelRM],
+        builder: (_, __) {
+          return _widgetBuilder(
+            '${modelRM.state.counter}',
+            '${modelRM.error?.message}',
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text(('error message')), findsNothing);
+      //
+      modelRM.setState((s) => s.incrementError(), catchError: true);
+      await tester.pump();
+      expect(find.text(('error message')), findsOneWidget);
+      expect(modelRM.isIdle, isFalse);
+      expect(modelRM.hasError, isTrue);
+      expect(modelRM.hasData, isFalse);
+      //reset to Idle
+      modelRM.resetToHasData();
+      modelRM.rebuildStates();
+      await tester.pump();
+      expect(modelRM.isIdle, isFalse);
+      expect(modelRM.hasError, isFalse);
+      expect(modelRM.hasData, isTrue);
+      expect(find.text(('error message')), findsNothing);
+    },
+  );
 }
 
 class Model {

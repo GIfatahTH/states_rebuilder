@@ -155,6 +155,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     return rm;
   }
 
+  ///Rest the async connection state to [isIdle]
+  void resetToIdle() {
+    _snapshot = AsyncSnapshot.withData(ConnectionState.none, state);
+  }
+
+  ///Rest the async connection state to [hasData]
+  void resetToHasData() {
+    _snapshot = AsyncSnapshot.withData(ConnectionState.done, state);
+  }
+
   ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData => _joinSingletonToNewData;
 

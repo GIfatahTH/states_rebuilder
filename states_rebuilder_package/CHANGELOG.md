@@ -1,4 +1,29 @@
 ## 1.14.0 (2020-02-18)
+* Add `resetToIdle` and `resetToHasData` methods to the `ReactiveModel`.
+use case examples:
+1. Use it with `getAsReactive` so that each time the reactive model is obtained, it will be obtained with the desired asynchronous state, whatever its value before.
+```dart
+final fooRM = Injector.getAsReactive<Foo>()..resetToIdle();
+//you can combine it with asNew
+final fooRM = Injector.getAsReactive<Foo>().asNew('mySeed')..resetToIdle();
+```
+2. Use it if the reactive model throws an error, and you want something like clearing the error.
+```dart
+fooRM.setState(
+  (s) => s.someMethod(),
+  onError: (context, error) async {
+    //awaiting the alert dialog
+    await showDialog(
+      context: context,
+      builder: (context){
+        ///
+      }
+    );
+    //clearing the error.
+    fooRM.resetToHasData();
+  },
+)
+```
 * Add `tag` and `onWaiting` parameters to `OnSetStateListener` widget.
 * Add `tag` parameter to `WhenRebuild`  and `WhenRebuildOr` widgets
 * Improve the logic of `setValue` and `setState`. Now `setValue` has all the functionalities of `setState`.
