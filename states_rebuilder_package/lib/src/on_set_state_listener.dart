@@ -43,6 +43,11 @@ class OnSetStateListener<T> extends StatelessWidget {
   ///If it is not defined all listener will be notified when a new state is available.
   final Object Function(ReactiveModel<T> model) watch;
 
+  ///Wether to execute [onSetState], [onWaiting], [onError], and/or [onData] in the [State.initState]
+  ///
+  ///The default value is false.
+  final bool shouldOnInitState;
+
   final Widget child;
   const OnSetStateListener({
     Key key,
@@ -53,6 +58,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     this.onWaiting,
     this.watch,
     this.tag,
+    this.shouldOnInitState = false,
     @required this.child,
   })  : assert(child != null),
         super(key: key);
@@ -61,50 +67,15 @@ class OnSetStateListener<T> extends StatelessWidget {
     return StateBuilder<T>(
       models: models,
       tag: tag,
-      onSetState: (context, rm) {
-        if (onSetState != null) {
-          onSetState(context, rm);
-        }
-
-        bool _isIdle = false;
-        bool _isWaiting = false;
-        bool _hasError = false;
-        dynamic error;
-
-        for (var reactiveModel in models) {
-          if (reactiveModel.isWaiting) {
-            _isWaiting = true;
-          }
-          if (reactiveModel.hasError) {
-            _hasError = true;
-            error = reactiveModel.error;
-          }
-
-          if (reactiveModel.isIdle) {
-            _isIdle = true;
-          }
-        }
-
-        if (_isWaiting) {
-          onWaiting?.call();
-          return;
-        }
-
-        if (_hasError) {
-          onError?.call(context, error);
-          return;
-        }
-        if (_isIdle) {
-          return;
-        }
-
-        onData?.call(context, rm);
-      },
-      initState: (_, __) {
+      onSetState: _onSetState,
+      initState: (context, rm) {
         if (onError != null) {
           for (var reactiveModel in models) {
             reactiveModel.inject.onSetStateListenerNumber++;
           }
+        }
+        if (shouldOnInitState) {
+          _onSetState(context, rm);
         }
       },
       dispose: (_, __) {
@@ -118,5 +89,45 @@ class OnSetStateListener<T> extends StatelessWidget {
       child: child,
       builderWithChild: (_, __, child) => child,
     );
+  }
+
+  _onSetState(BuildContext context, ReactiveModel<T> rm) {
+    if (onSetState != null) {
+      onSetState(context, rm);
+    }
+
+    bool _isIdle = false;
+    bool _isWaiting = false;
+    bool _hasError = false;
+    dynamic error;
+
+    for (var reactiveModel in models) {
+      if (reactiveModel.isWaiting) {
+        _isWaiting = true;
+      }
+      if (reactiveModel.hasError) {
+        _hasError = true;
+        error = reactiveModel.error;
+      }
+
+      if (reactiveModel.isIdle) {
+        _isIdle = true;
+      }
+    }
+
+    if (_isWaiting) {
+      onWaiting?.call();
+      return;
+    }
+
+    if (_hasError) {
+      onError?.call(context, error);
+      return;
+    }
+    if (_isIdle) {
+      return;
+    }
+
+    onData?.call(context, rm);
   }
 }

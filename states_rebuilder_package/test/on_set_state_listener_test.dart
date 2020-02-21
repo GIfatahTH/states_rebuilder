@@ -22,6 +22,7 @@ void main() {
           child: OnSetStateListener<Model1>(
               models: [Injector.getAsReactive<Model1>()],
               tag: 'tag1',
+              shouldOnInitState: true,
               onSetState: (context, reactiveModel) {
                 _onSetState = 'onSetState';
               },
@@ -41,7 +42,7 @@ void main() {
 
     await tester.pumpWidget(widget);
 
-    expect(_onSetState, equals(''));
+    expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
     expect(_onData, equals(''));
     expect(_onWaiting, equals(''));
