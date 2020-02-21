@@ -19,7 +19,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  states_rebuilder: ^1.14.0
+  states_rebuilder:
+    path: ../../states_rebuilder_package
   firebase_auth: ^0.15.4
   google_sign_in: ^4.1.1
   apple_sign_in: ^0.1.0
