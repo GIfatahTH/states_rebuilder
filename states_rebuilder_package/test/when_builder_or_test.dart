@@ -35,6 +35,34 @@ void main() {
   );
 
   testWidgets(
+    'WhenRebuilderOr widget, synchronous task, case only onData is defined',
+    (tester) async {
+      final widget = Injector(
+        inject: [Inject(() => Model1())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilderOr<Model1>(
+              models: [Injector.getAsReactive<Model1>()],
+              tag: 'tag1',
+              onData: (data) => Text('data'),
+              builder: (context, modelRM) => Text('other'),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('other'), findsOneWidget);
+
+      final reactiveModel = Injector.getAsReactive<Model1>();
+      reactiveModel.setState(null, filterTags: ['tag1']);
+      await tester.pump();
+      expect(find.text('data'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'WhenRebuilderOr widget, synchronous task, case all parameters are defined',
     (tester) async {
       final widget = Injector(
