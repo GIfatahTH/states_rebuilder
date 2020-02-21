@@ -76,7 +76,7 @@ class MyHomePage extends StatelessWidget {
               onError: (error) => Text(counterRM.error.message),
               onData: (data) => Text(
                 '${data.count}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headline,
               ),
             ),
           ],

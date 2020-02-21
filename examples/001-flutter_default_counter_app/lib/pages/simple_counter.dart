@@ -29,7 +29,7 @@ class MyHomePage extends StatelessWidget {
                   return Text(
                     //get the current value of the counter
                     '${counterRM.value}',
-                    style: Theme.of(context).textTheme.headline4,
+                    style: Theme.of(context).textTheme.headline,
                   );
                 }),
           ],
