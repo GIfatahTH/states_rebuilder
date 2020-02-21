@@ -1,3 +1,8 @@
+## 1.14.1 (2020-02-21)
+* add `shouldOnInitState` to `OnSEtStateListener`
+* add `onData` to `WhenRebuilderOr`
+* Add tests to examples (Easiness of test, is a sign of good code).
+
 ## 1.14.0 (2020-02-18)
 * Add `resetToIdle` and `resetToHasData` methods to the `ReactiveModel`.
 use case examples:
