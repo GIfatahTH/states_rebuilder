@@ -219,12 +219,18 @@ class InjectorState extends State<Injector> {
       for (Inject inject in widget.inject) {
         assert(inject != null);
         final name = inject.getName();
-        if (allRegisteredModelInApp[name] == null) {
+        final lastInject = allRegisteredModelInApp[name];
+        if (lastInject == null) {
           allRegisteredModelInApp[name] = [inject];
           _injects.add(inject);
         } else {
-          if (Injector.enableTestMode == false) {
-            throw Exception(AssertMessage.injectingAnInjectedModel(name));
+          if (lastInject.first.isWidgetDeactivated) {
+            allRegisteredModelInApp[name].add(inject);
+            _injects.add(inject);
+          } else {
+            if (Injector.enableTestMode == false) {
+              throw Exception(AssertMessage.injectingAnInjectedModel(name));
+            }
           }
         }
       }
@@ -287,6 +293,14 @@ class InjectorState extends State<Injector> {
         (_) => widget.afterInitialBuild(context),
       );
     }
+  }
+
+  @override
+  void deactivate() {
+    for (Inject inject in _injects) {
+      inject.isWidgetDeactivated = true;
+    }
+    super.deactivate();
   }
 
   @override

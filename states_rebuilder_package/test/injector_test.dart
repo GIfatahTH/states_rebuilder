@@ -1442,6 +1442,36 @@ void main() {
     expect(find.text('2'), findsOneWidget);
   });
 
+  testWidgets(
+      'avoid throwing if Injector is deactivated be reinserted before dispose',
+      (tester) async {
+    final model = Model();
+    final widget = StateBuilder(
+      models: [model],
+      builder: (_, __) {
+        return Injector(
+          key: UniqueKey(),
+          inject: [Inject(() => VanillaModel())],
+          builder: (_) {
+            return Container();
+          },
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    final vanillaModel1 = Injector.get<VanillaModel>();
+
+    model.rebuildStates();
+    await tester.pump();
+    final vanillaModel2 = Injector.get<VanillaModel>();
+
+    expect(vanillaModel1.hashCode != vanillaModel2.hashCode, isTrue);
+
+    model.rebuildStates();
+    await tester.pump();
+  });
+
   group('', () {
     testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
       final BinaryMessenger defaultBinaryMessenger =
