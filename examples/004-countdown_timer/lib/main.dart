@@ -40,7 +40,7 @@ class TimerView extends StatelessWidget {
         Inject<int>.stream(
           () => Stream.periodic(Duration(seconds: 1), (num) => num),
           //NOTE4 : Defining the initialValue of the stream
-          initialValue: initialTimer,
+          initialValue: 0,
         ),
       ],
       builder: (_) {

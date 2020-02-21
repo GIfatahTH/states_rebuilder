@@ -57,10 +57,12 @@ class CounterPage extends StatelessWidget {
               counterService.error.message,
               style: TextStyle(color: Colors.red),
             ),
-            onData: (data) => Text(
-              ' ${counterService.state.counter.count}',
-              style: TextStyle(fontSize: 30),
-            ),
+            onData: (data) {
+              return Text(
+                '${counterService.state.counter.count}',
+                style: TextStyle(fontSize: 30),
+              );
+            },
           ),
           IconButton(
             onPressed: () {
