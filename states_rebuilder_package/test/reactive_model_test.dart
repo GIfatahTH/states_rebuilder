@@ -571,7 +571,7 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => Model())],
         builder: (context) {
-          modelRM = Injector.getAsReactive(context: context);
+          modelRM = ReactiveModel(context: context);
           lifeCycleTracker += 'build, ';
           return Container();
         },
@@ -613,7 +613,7 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => Model())],
         builder: (context) {
-          modelRM = Injector.getAsReactive(context: context);
+          modelRM = ReactiveModel(context: context);
           return StateBuilder(
             models: [modelRM],
             builder: (context, _) {

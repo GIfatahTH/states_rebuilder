@@ -167,6 +167,9 @@ final CounterStore counterStore = Injector.get<CounterStore>();
 * To get the ReactiveModel singleton of the model use
 ```dart
 final ReactiveModel<CounterStore> counterStoreRM = Injector.getAsReactive<CounterStore>();
+//or 
+final ReactiveModel<CounterStore> counterStoreRM = ReactiveModel<CounterStore>();
+
 ```
 
 Now `_MyScaffold` becomes a simple useless widget:
@@ -192,7 +195,7 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  final ReactiveModel<CounterStore> counterRM = Injector.getAsReactive<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM = ReactiveModel<CounterStore>();
    //
    //
    [the same code as above]
@@ -373,7 +376,7 @@ class MyHomePage extends StatelessWidget {
       builder: (context) {
 
         //getting the counterRM from the interface. The exact implementation is defined by Injector.env
-        final counterRM = Injector.getAsReactive<ICounterStore>();
+        final counterRM =ReactiveModel<ICounterStore>();
 
         //getting the config without reactivity
         final config = Injector.get<IConfig>();

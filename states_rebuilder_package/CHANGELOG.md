@@ -1,6 +1,32 @@
 ## 1.14.1 (2020-02-21)
-* add `shouldOnInitState` to `OnSEtStateListener`
-* add `onData` to `WhenRebuilderOr`
+* Add `ReactiveModel<T>()` factory constructor. it is the exact copy past of `Injector.getAsReactive(<T>)`. You will save nine key stroke and it looks more readable.
+```dart
+//You can use the long form
+final fooRM = Injector.getAsReactive<Foo>();
+//Or the new way:
+final fooRM = ReactiveModel<Foo>();
+```
+for example instead of :
+```dart
+StateBuilder<Foo>(
+  models:[Injector.getAsReactive<Foo>()],
+  builder:(context, fooRM){
+
+  }
+)
+```
+you write:
+```dart
+StateBuilder<Foo>(
+  models:[ReactiveModel<Foo>()],
+  builder:(context, fooRM){
+
+  }
+)
+```
+
+* Add `shouldOnInitState` to `OnSEtStateListener`
+* Add `onData` to `WhenRebuilderOr`
 * Add tests to examples (Easiness of test, is a sign of good code).
 
 ## 1.14.0 (2020-02-18)

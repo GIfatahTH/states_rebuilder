@@ -60,7 +60,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.onIdle,
     this.onWaiting,
     this.onError,
-    this.onData, //TODO test
+    this.onData,
     @required this.builder,
     @required this.models,
     this.tag,

@@ -77,6 +77,7 @@ class Injector extends StatefulWidget {
         '''),
         super(key: key);
 
+  ///Get the singleton instance of a model registered with [Injector].
   static T get<T>({dynamic name, BuildContext context, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
 
@@ -123,6 +124,7 @@ class Injector extends StatefulWidget {
     return model;
   }
 
+  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
   static ReactiveModel<T> getAsReactive<T>(
       {dynamic name, BuildContext context, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'assertions.dart';
 import 'inject.dart';
+import 'injector.dart';
 import 'states_rebuilder.dart';
 
 ///An abstract class that defines the reactive environment.
@@ -24,7 +25,7 @@ import 'states_rebuilder.dart';
 ///* To join reactive singleton with new singletons: [joinSingletonToNewData].
 abstract class ReactiveModel<T> extends StatesRebuilder {
   ///An abstract class that defines the reactive environment.
-  ReactiveModel([this._inject, this.isNewReactiveInstance = false]) {
+  ReactiveModel.int([this._inject, this.isNewReactiveInstance = false]) {
     if (!_inject.isAsyncInjected) {
       state = _inject?.getSingleton();
     }
@@ -34,6 +35,19 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   factory ReactiveModel.create(T model) {
     final inject = Inject<T>(() => model);
     return inject.getReactive();
+  }
+
+  // static ReactiveModel<T> get<T>(
+  //     {BuildContext context, dynamic name, bool silent = false}) {
+  //   return Injector.getAsReactive<T>(
+  //       name: name, context: context, silent: silent);
+  // }
+
+  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
+  factory ReactiveModel(
+      {BuildContext context, dynamic name, bool silent = false}) {
+    return Injector.getAsReactive<T>(
+        name: name, context: context, silent: silent);
   }
 
   final Inject<T> _inject;
@@ -419,14 +433,14 @@ class ReactiveStatesRebuilder<T> extends ReactiveModel<T> {
   ReactiveStatesRebuilder(Inject<T> inject,
       [bool isNewReactiveInstance = false])
       : assert(inject != null),
-        super(inject, isNewReactiveInstance);
+        super.int(inject, isNewReactiveInstance);
 }
 
 ///A package private class used to add reactive environment to Stream and future
 class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   StreamStatesRebuilder(Inject<T> injectAsync,
       [bool isNewReactiveInstance = false])
-      : super(injectAsync, isNewReactiveInstance) {
+      : super.int(injectAsync, isNewReactiveInstance) {
     _injectAsync = injectAsync;
     if (injectAsync.isFutureType) {
       _stream = injectAsync.creationFutureFunction().asStream();

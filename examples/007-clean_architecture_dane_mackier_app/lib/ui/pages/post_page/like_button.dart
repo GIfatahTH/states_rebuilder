@@ -12,7 +12,7 @@ class LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //NOTE1: get reactiveModel of PostsService
-    final postsServiceRM = Injector.getAsReactive<PostsService>();
+    final postsServiceRM = ReactiveModel<PostsService>();
 
     return Row(
       children: <Widget>[

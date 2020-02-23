@@ -52,8 +52,11 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  final ReactiveModel<CounterStore> counterRM =
-      Injector.getAsReactive<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM = ReactiveModel<CounterStore>();
+
+  //You can use Injector.getAsReactive
+  // final ReactiveModel<CounterStore> counterRM =
+  //     Injector.getAsReactive<CounterStore>();
 
   @override
   Widget build(BuildContext context) {
