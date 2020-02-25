@@ -18,7 +18,7 @@ class Comments extends StatelessWidget {
       inject: [Inject(() => CommentsService(api: Injector.get()))],
       builder: (context) {
         return StateBuilder<CommentsService>(
-          models: [Injector.getAsReactive<CommentsService>()],
+          models: [ReactiveModel<CommentsService>()],
           //NOTE2: fetch comments in the init state
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),

@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
           return Scaffold(
             backgroundColor: backgroundColor,
             body: StateBuilder<PostsService>(
-              models: [Injector.getAsReactive<PostsService>()],
+              models: [ReactiveModel<PostsService>()],
               initState: (_, postsServiceRM) {
                 //NOTE3: get the list of post from the user id
                 postsServiceRM.setState(

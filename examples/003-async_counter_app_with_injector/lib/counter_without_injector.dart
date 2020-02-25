@@ -19,41 +19,39 @@ class CounterStore {
 }
 
 class MyApp extends StatelessWidget {
-  //Remove this line
-  //final counterRM = ReactiveModel.create(CounterStore(0));
+  final counterRM = ReactiveModel.create(CounterStore(0));
   @override
   Widget build(BuildContext context) {
-    return Injector(
-        inject: [Inject(() => CounterStore(0))],
-        builder: (context) {
-          return MaterialApp(
-            title: 'Flutter Demo',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-            ),
-            home: _MyScaffold(),
-          );
-        });
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: _MyScaffold(
+        counterRM: counterRM,
+      ),
+    );
   }
 }
 
 class _MyScaffold extends StatelessWidget {
-  //Remove this line
-  // final ReactiveModel<CounterStore> counterRM;
-  // const _MyScaffold({Key key, this.counterRM}) : super(key: key);
+  final ReactiveModel<CounterStore> counterRM;
+
+  const _MyScaffold({Key key, this.counterRM}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MyHomePage(title: 'Flutter Demo Home Page');
+    return MyHomePage(
+      title: 'Flutter Demo Home Page',
+      counterRM: counterRM,
+    );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.counterRM}) : super(key: key);
   final String title;
-
-  final ReactiveModel<CounterStore> counterRM =
-      Injector.getAsReactive<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +74,7 @@ class MyHomePage extends StatelessWidget {
               onError: (error) => Text(counterRM.error.message),
               onData: (data) => Text(
                 '${data.count}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headline,
               ),
             ),
           ],

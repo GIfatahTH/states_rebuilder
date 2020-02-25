@@ -398,6 +398,8 @@ class TimerView extends StatelessWidget {
         return OnSetStateListener(
           models: [timerStatusRM, timerStream],
           tag: 'timer',
+          //set to true to execute onSetState in the initState
+          shouldOnInitState: true,
           onSetState: (_, model) {
             if (model.state is TimerStatus) {
               print(timerStatusRM.state);
@@ -475,6 +477,7 @@ Let's extract the code that we are interested in:
 return OnSetStateListener(
   models: [timerStatusRM, timerStream],
   tag: 'timer',
+  shouldOnInitState: true,
   onSetState: (_, model) {
     //model holds the instance of the reactive model that is emitting the notification
     if (model.state is TimerStatus) {
@@ -508,6 +511,8 @@ return OnSetStateListener(
 
 Because notification is filtered by tag, we set `OnSetStateListener` to listen to notification emitted with 'timer' tag.
 
+By default `onSetState`, `onWaiting`, `onError`, and `onData` are fired only if any of the `timerStatusRM` and `timerStream` emits a notification. They are not fired in the `initState`. The optional bool parameter `shouldOnInitState` when set to true the above callback will be invoked in the `initState` hook of the `StatefulWidget`.
+
 Because `OnSetStateListener` is used with dynamic tag, the exposed model will be dynamic (see [Login form validation](examples/002-form_validation_with_reactive_model)).
 
 Then we check for the exposed model, if it is `TimerStatus` we will switch for its status and pause or resume the stream subscription accordingly.
@@ -516,8 +521,6 @@ If the expose model is `int` (that means the stream), we updated the `duration` 
 
 The remainder of the code is the same as the first case, except `onSetState` callback are removed from `setValue` methods.
 
+# test
 
-
-
-
-
+See the test main_test.dart in test folder.

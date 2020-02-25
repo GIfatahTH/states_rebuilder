@@ -571,7 +571,7 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => Model())],
         builder: (context) {
-          modelRM = Injector.getAsReactive(context: context);
+          modelRM = ReactiveModel(context: context);
           lifeCycleTracker += 'build, ';
           return Container();
         },
@@ -613,7 +613,7 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => Model())],
         builder: (context) {
-          modelRM = Injector.getAsReactive(context: context);
+          modelRM = ReactiveModel(context: context);
           return StateBuilder(
             models: [modelRM],
             builder: (context, _) {
@@ -1366,7 +1366,6 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-
       expect(find.text('0'), findsOneWidget);
       expect(modelRM0.isWaiting, isTrue);
 
@@ -1379,8 +1378,11 @@ void main() {
       expect(modelRM0.hasData, isTrue);
 
       await tester.pump(Duration(seconds: 1));
+
       expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue);TODO stream should be done
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('2'), findsOneWidget);
+      // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
     },
   );
 
@@ -1598,11 +1600,22 @@ void main() {
         expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-2')), findsOneWidget);
         //
-        modelRM1.setValue(() => modelRM1.value + 1,
-            notifyAllReactiveInstances: true);
+        modelRM1.setValue(() {
+          return modelRM1.value + 1;
+        });
         await tester.pump();
-        expect(find.text(('model0-3')), findsOneWidget);
+        expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-3')), findsOneWidget);
+        //
+        modelRM1.setValue(
+          () {
+            return modelRM1.value + 1;
+          },
+          notifyAllReactiveInstances: true,
+        );
+        await tester.pump();
+        expect(find.text(('model0-4')), findsOneWidget);
+        expect(find.text(('model1-4')), findsOneWidget);
       },
     );
 
@@ -1735,18 +1748,18 @@ void main() {
         expect(modelRM1.hasData, isTrue);
         expect(modelRM2.hasError, isTrue);
 
-        //mutate reactive instance 2
-        modelRM2.setValue(() {
-          modelRM2.state.increment();
-          return Model()..counter = modelRM2.state.counter;
-        }, joinSingleton: true);
-        await tester.pump();
-        expect(find.text('modelRM0-2'), findsOneWidget);
-        expect(find.text('modelRM1-1'), findsOneWidget);
-        expect(find.text('modelRM2-2'), findsOneWidget);
-        expect(modelRM0.hasData, isTrue);
-        expect(modelRM1.hasData, isTrue);
-        expect(modelRM2.hasData, isTrue);
+        // //mutate reactive instance 2
+        // modelRM2.setValue(() {
+        //   modelRM2.state.increment();
+        //   return Model()..counter = modelRM2.state.counter;
+        // }, joinSingleton: true);
+        // await tester.pump();
+        // expect(find.text('modelRM0-2'), findsOneWidget);
+        // expect(find.text('modelRM1-1'), findsOneWidget);
+        // expect(find.text('modelRM2-2'), findsOneWidget);
+        // expect(modelRM0.hasData, isTrue);
+        // expect(modelRM1.hasData, isTrue);
+        // expect(modelRM2.hasData, isTrue);
       },
     );
   });
@@ -1910,6 +1923,42 @@ void main() {
       expect(modelRM.hasError, isFalse);
       expect(modelRM.hasData, isTrue);
       expect(find.text(('error message')), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'issue #55: should reset value to null after error',
+    (tester) async {
+      final modelRM = ReactiveModel.create(0);
+      int numberOfRebuild = 0;
+      final widget = StateBuilder(
+        models: [modelRM],
+        tag: 'tag1',
+        builder: (_, __) {
+          return _widgetBuilder('${++numberOfRebuild}');
+        },
+      );
+      await tester.pumpWidget(widget);
+      //one rebuild
+      expect(find.text(('1')), findsOneWidget);
+
+      modelRM.setValue(() => modelRM.value + 1);
+      await tester.pump();
+      //two rebuilds
+      expect(find.text(('2')), findsOneWidget);
+
+      modelRM.setValue(
+        () => throw Exception(),
+        catchError: true,
+      );
+      await tester.pump();
+      //three rebuilds
+      expect(find.text(('3')), findsOneWidget);
+
+      modelRM.setValue(() => modelRM.value);
+      await tester.pump();
+      //four rebuilds
+      expect(find.text(('4')), findsOneWidget);
     },
   );
 }

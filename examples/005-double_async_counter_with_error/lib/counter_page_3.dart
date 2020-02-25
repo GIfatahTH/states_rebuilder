@@ -84,7 +84,7 @@ class CounterPage extends StatelessWidget {
               style: TextStyle(color: Colors.red),
             ),
             onData: (data) => Text(
-              ' ${counterService.state.counter.count}',
+              '${counterService.state.counter.count}',
               style: TextStyle(fontSize: 30),
             ),
           ),

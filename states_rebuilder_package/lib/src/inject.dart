@@ -88,6 +88,8 @@ class Inject<T> implements Injectable {
 
   static int _envMapLength;
 
+  bool isWidgetDeactivated = false;
+
   ///Inject a value or a model.
   Inject(
     this._creationFunction, {

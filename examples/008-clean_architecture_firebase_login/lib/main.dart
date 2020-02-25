@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
           appleCheckerRM.setState((s) => s.check());
           userServiceRM.setState((s) => s.currentUser());
         },
+        onIdle: () => Container(),
         onWaiting: () => SplashScreen(),
         onError: (error) => Text(error.toString()),
         onData: (_) {

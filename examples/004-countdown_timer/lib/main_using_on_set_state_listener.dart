@@ -21,7 +21,7 @@ class App extends StatelessWidget {
 
 class TimerView extends StatelessWidget {
   // the initial timer value
-  final int initialTimer = 10;
+  final int initialTimer = 60;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +47,7 @@ class TimerView extends StatelessWidget {
         return OnSetStateListener(
           models: [timerStatusRM, timerStream],
           tag: 'timer',
+          shouldOnInitState: true,
           onSetState: (_, model) {
             if (model.state is TimerStatus) {
               switch (timerStatusRM.state) {

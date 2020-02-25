@@ -23,7 +23,7 @@ class _LoginBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<AuthenticationService>(
       //NOTE1: getting the registered reactiveModel
-      models: [Injector.getAsReactive<AuthenticationService>()],
+      models: [ReactiveModel<AuthenticationService>()],
       //Note2: disposing TextEditingController to free resources.
       dispose: (_, __) => controller.dispose(),
       builder: (context, authServiceRM) {

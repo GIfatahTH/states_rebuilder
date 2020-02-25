@@ -77,6 +77,7 @@ class Injector extends StatefulWidget {
         '''),
         super(key: key);
 
+  ///Get the singleton instance of a model registered with [Injector].
   static T get<T>({dynamic name, BuildContext context, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
 
@@ -123,6 +124,7 @@ class Injector extends StatefulWidget {
     return model;
   }
 
+  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
   static ReactiveModel<T> getAsReactive<T>(
       {dynamic name, BuildContext context, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
@@ -219,12 +221,18 @@ class InjectorState extends State<Injector> {
       for (Inject inject in widget.inject) {
         assert(inject != null);
         final name = inject.getName();
-        if (allRegisteredModelInApp[name] == null) {
+        final lastInject = allRegisteredModelInApp[name];
+        if (lastInject == null) {
           allRegisteredModelInApp[name] = [inject];
           _injects.add(inject);
         } else {
-          if (Injector.enableTestMode == false) {
-            throw Exception(AssertMessage.injectingAnInjectedModel(name));
+          if (lastInject.first.isWidgetDeactivated) {
+            allRegisteredModelInApp[name].add(inject);
+            _injects.add(inject);
+          } else {
+            if (Injector.enableTestMode == false) {
+              throw Exception(AssertMessage.injectingAnInjectedModel(name));
+            }
           }
         }
       }
@@ -287,6 +295,14 @@ class InjectorState extends State<Injector> {
         (_) => widget.afterInitialBuild(context),
       );
     }
+  }
+
+  @override
+  void deactivate() {
+    for (Inject inject in _injects) {
+      inject.isWidgetDeactivated = true;
+    }
+    super.deactivate();
   }
 
   @override

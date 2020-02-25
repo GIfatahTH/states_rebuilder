@@ -19,7 +19,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  states_rebuilder: ^1.13.0
+  states_rebuilder:
+    path: ../../states_rebuilder_package
   firebase_database: any
 
   # The following adds the Cupertino Icons font to your application.

@@ -24,6 +24,12 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///and if at least one of the observed [ReactiveModel]s has error this callback will be invoked.
   final Widget Function(dynamic error) onError;
 
+  ///Widget to display if all the observed [ReactiveModel]s has data.
+  ///
+  ///It has the last priority. That is if all the observed [ReactiveModel]s are not in the waiting state,
+  ///have no error, and are not in the idle state, this callback will be invoked.
+  final Widget Function(T data) onData;
+
   ///Widget to display if all the observed [ReactiveModel]s has data or as the default case if any
   ///of the [onIdle], [onWaiting] or [onError] is not defined
   ///
@@ -54,6 +60,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.onIdle,
     this.onWaiting,
     this.onError,
+    this.onData,
     @required this.builder,
     @required this.models,
     this.tag,
@@ -74,6 +81,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
+        bool hasData = false;
         dynamic error;
 
         modelRM.whenConnectionState<bool>(
@@ -83,7 +91,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
             error = err;
             return hasError = true;
           },
-          onData: (data) => true,
+          onData: (d) => hasData = true,
         );
 
         for (var i = 1; i < models.length; i++) {
@@ -94,7 +102,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
               error = err;
               return hasError = true;
             },
-            onData: (data) => true,
+            onData: (d) => hasData = true,
           );
         }
 
@@ -111,6 +119,10 @@ class WhenRebuilderOr<T> extends StatelessWidget {
 
         if (onIdle != null && isIdle) {
           return onIdle();
+        }
+
+        if (onData != null && hasData) {
+          return onData(modelRM.state);
         }
         return builder(context, modelRM);
       },

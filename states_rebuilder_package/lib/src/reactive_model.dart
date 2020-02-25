@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'assertions.dart';
 import 'inject.dart';
+import 'injector.dart';
 import 'states_rebuilder.dart';
 
 ///An abstract class that defines the reactive environment.
@@ -24,7 +25,7 @@ import 'states_rebuilder.dart';
 ///* To join reactive singleton with new singletons: [joinSingletonToNewData].
 abstract class ReactiveModel<T> extends StatesRebuilder {
   ///An abstract class that defines the reactive environment.
-  ReactiveModel([this._inject, this.isNewReactiveInstance = false]) {
+  ReactiveModel.int([this._inject, this.isNewReactiveInstance = false]) {
     if (!_inject.isAsyncInjected) {
       state = _inject?.getSingleton();
     }
@@ -34,6 +35,19 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   factory ReactiveModel.create(T model) {
     final inject = Inject<T>(() => model);
     return inject.getReactive();
+  }
+
+  // static ReactiveModel<T> get<T>(
+  //     {BuildContext context, dynamic name, bool silent = false}) {
+  //   return Injector.getAsReactive<T>(
+  //       name: name, context: context, silent: silent);
+  // }
+
+  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
+  factory ReactiveModel(
+      {BuildContext context, dynamic name, bool silent = false}) {
+    return Injector.getAsReactive<T>(
+        name: name, context: context, silent: silent);
   }
 
   final Inject<T> _inject;
@@ -46,7 +60,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   AsyncSnapshot<T> get snapshot => _snapshot;
 
   ///The state of the injected model.
-  T get state => _snapshot?.data ?? _state;
+  T get state => _state;
 
   set state(T data) {
     _state = data;
@@ -298,7 +312,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
           }
 
           if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
-              joinSingleton) {
+              joinSingleton == true) {
             reactiveSingleton
               .._snapshot = _snapshot
               ..rebuildStates();
@@ -346,21 +360,24 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       _whenConnectionState = false;
       return;
     }
+
+    if (setValue == true) {
+      if (!hasError && inject.getReactive().state == result) {
+        return;
+      }
+      _state = result;
+      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+      inject.getReactive()._state = _state;
+      _rebuildStates(canRebuild: true);
+      return;
+    }
+
     final String watchAfter = watch != null ? watch(state).toString() : null;
 
     bool
         canRebuild = //watch for async tasks will rebuild only if the watched parameter changed
         watch == null || watchBefore.hashCode != watchAfter.hashCode;
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-
-    if (setValue == true) {
-      if (inject.getReactive().state == result) {
-        return;
-      }
-      inject.getReactive()._snapshot =
-          AsyncSnapshot<T>.withData(ConnectionState.done, result);
-      inject.getReactive()._state = result;
-    }
 
     _rebuildStates(canRebuild: canRebuild);
   }
@@ -419,14 +436,14 @@ class ReactiveStatesRebuilder<T> extends ReactiveModel<T> {
   ReactiveStatesRebuilder(Inject<T> inject,
       [bool isNewReactiveInstance = false])
       : assert(inject != null),
-        super(inject, isNewReactiveInstance);
+        super.int(inject, isNewReactiveInstance);
 }
 
 ///A package private class used to add reactive environment to Stream and future
 class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   StreamStatesRebuilder(Inject<T> injectAsync,
       [bool isNewReactiveInstance = false])
-      : super(injectAsync, isNewReactiveInstance) {
+      : super.int(injectAsync, isNewReactiveInstance) {
     _injectAsync = injectAsync;
     if (injectAsync.isFutureType) {
       _stream = injectAsync.creationFutureFunction().asStream();
@@ -435,8 +452,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     }
     assert(_stream != null);
 
-    _snapshot = AsyncSnapshot<T>.withData(
-        ConnectionState.none, injectAsync.initialValue);
+    _state = injectAsync.initialValue;
+    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
 
     _watch = injectAsync.watch;
     _watchCached = _watch != null ? _watch(_snapshot.data).toString() : null;
@@ -454,7 +471,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     _subscription = _stream.listen(
       (data) {
         _watchActual = _watch != null ? _watch(data).toString() : null;
-        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, data);
+        _state = data;
+        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, _state);
         if (_watch == null || _watchCached.hashCode != _watchActual.hashCode) {
           if (reactiveModel.hasObservers) {
             reactiveModel.rebuildStates(_injectAsync.filterTags);

@@ -57,7 +57,7 @@ class MyHomePage extends StatelessWidget {
                   return Text(
                     //NOTE3: get the current value of the counter
                     '${counterRM.value}',
-                    style: Theme.of(context).textTheme.headline4,
+                    style: Theme.of(context).textTheme.headline,
                   );
                 },
             ),
@@ -95,7 +95,7 @@ StateBuilder(
     builder: (context, counterRM) {
         return Text(
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline4,
+        style: Theme.of(context).textTheme.headline,
         );
     },
 ),
@@ -267,7 +267,7 @@ StateBuilder(
     return Text(
         //get the current value of the counter
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline4,
+        style: Theme.of(context).textTheme.headline,
     );
   },
 ),
@@ -290,7 +290,7 @@ StateBuilder(
         onError: (error) => Text(counterRM.error.message),
         onData: (data) => Text(
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline4,
+        style: Theme.of(context).textTheme.headline,
         ),
     );
     },
@@ -305,7 +305,7 @@ WhenRebuilder<int>(
     onError: (error) => Text(counterRM.error.message),
     onData: (data) => Text(
     '$data',
-    style: Theme.of(context).textTheme.headline4,
+    style: Theme.of(context).textTheme.headline,
 ),
 ```
 By the end of this first tutorial: 
@@ -330,4 +330,44 @@ finally, alongside with the concept of `ReactiveModel`, it remains three other c
 2. the idea of tag and filter notification with tags and
 3. the watch parameter which helps to prevent the rebuild unless the watched parameters change.
 
+
+# Test:
+
+## simple_counter_test:
+```dart
+void main() {
+  testWidgets('should increment counter and show snackbar', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: MyHomePage(
+        title: 'simple counter',
+      ),
+    ));
+
+    expect(find.text('0'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+
+    //first tap
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump();
+
+    //find two: one in the body of the scaffold and the other in the SnackBar
+    expect(find.text('1'), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
+
+    //second tap
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump();
+
+    expect(find.text('2'), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+}
+```
+
+## simple_counter_with_error.dart and async_counter_app.dart 
+
+Can not be tested because the business logic is mixed with the UI logic
+The `Random().nextBool()` can not be neither expected nor mocked.
+
+This is an example of bad code. In the next tutorials we will introduce `Injector` and our code will be easily tested.
 

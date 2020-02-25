@@ -509,7 +509,7 @@ class _LoginBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<AuthenticationService>(
       //NOTE1: getting the registered reactiveModel and subscribe to StateBuilder
-      models: [Injector.getAsReactive<AuthenticationService>()],
+      models: [ReactiveModel<AuthenticationService>()],
       //Note2: disposing TextEditingController to free resources.
       dispose: (_, __) => controller.dispose(),
       builder: (_, authServiceRM) {
@@ -575,7 +575,7 @@ class HomePage extends StatelessWidget {
           return Scaffold(
             backgroundColor: backgroundColor,
             body: StateBuilder<PostsService>(
-              models: [Injector.getAsReactive<PostsService>()],
+              models: [ReactiveModel<PostsService>()],
               initState: (_, postsServiceRM) {
                 //NOTE3: get the list of post from the user id
                 postsServiceRM.setState(
@@ -629,7 +629,7 @@ class HomePage extends StatelessWidget {
             Navigator.pushNamed(context, 'post',
                 arguments: posts[index]);
             //If you use pushReplacementNamed, PostsService will be unregistered and 
-            //You can not get it using Injector.get or Injector.getAsReactive.
+            //You can not get it using Injector.get or ReactiveModel.get.
             //If you want keep PostsService you have to reinject it. See not bellow.
           },
         ),
@@ -648,7 +648,7 @@ by
 case 'post':
  var post = settings.arguments as Post;
  return MaterialPageRoute(builder: (_) => Injector(
-      reinject: [Injector.getAsReactive<PostsService>()],
+      reinject: [ReactiveModel<PostsService>()],
       builder: (context) {
         return PostPage(post: post));
       },
@@ -716,7 +716,7 @@ class Comments extends StatelessWidget {
       builder: (context) {
 
         return StateBuilder(
-          models: [Injector.getAsReactive<CommentsService>()],
+          models: [ReactiveModel<CommentsService>()],
           //NOTE2: fetch comments in the init state
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),
@@ -759,7 +759,7 @@ class LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //NOTE1: get reactiveModel of PostsService
-    final postsServiceRM = Injector.getAsReactive<PostsService>();
+    final postsServiceRM = ReactiveModel<PostsService>();
 
     return Row(
       children: <Widget>[
