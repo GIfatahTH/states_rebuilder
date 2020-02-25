@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'assertions.dart';
 
@@ -359,7 +360,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
   void didUpdateWidget(StateBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.models != widget.models) {
+    if (!listEquals(oldWidget.models, widget.models)) {
       _dispose(oldWidget);
       _initState(widget);
     }

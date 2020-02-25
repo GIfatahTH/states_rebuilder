@@ -987,6 +987,43 @@ void main() {
       expect(numberOfDidUpdateWidget, equals(1));
     },
   );
+
+  testWidgets(
+      'issue #52, cleaner should not be called if widget did change with the same list of models',
+      (tester) async {
+    int numberOfDidUpdateWidget = 0;
+    int numberOfCleaner = 0;
+    final model1 = Model();
+    final widget = StateBuilder(
+      models: [model],
+      tag: ['mainTag'],
+      builder: (ctx, _) {
+        return StateBuilder(
+          models: [model1],
+          didUpdateWidget: (_, __, ___) {
+            numberOfDidUpdateWidget++;
+          },
+          builder: (context, _) {
+            return Container();
+          },
+        );
+      },
+    );
+    //
+    model1.cleaner(() {
+      numberOfCleaner++;
+    });
+    //
+    await tester.pumpWidget(widget);
+    expect(numberOfDidUpdateWidget, equals(0));
+    expect(numberOfCleaner, equals(0));
+    //
+    model.rebuildStates(['mainTag']);
+    await tester.pump();
+
+    expect(numberOfDidUpdateWidget, equals(1));
+    expect(numberOfCleaner, equals(0));
+  });
 }
 
 class Model extends StatesRebuilder {
