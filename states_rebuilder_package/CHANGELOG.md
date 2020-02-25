@@ -1,5 +1,5 @@
-## 1.14.1 (2020-02-21)
-* Add `ReactiveModel<T>()` factory constructor. it is the exact copy past of `Injector.getAsReactive(<T>)`. You will save nine key stroke and it looks more readable.
+## 1.14.1 (2020-02-25)
+* Add `ReactiveModel<T>()` factory constructor. it is equivalent to `Injector.getAsReactive(<T>)`. You will save nine key stroke and it looks more readable.
 ```dart
 //You can use the long form
 final fooRM = Injector.getAsReactive<Foo>();
@@ -25,8 +25,9 @@ StateBuilder<Foo>(
 )
 ```
 
-* Add `shouldOnInitState` to `OnSEtStateListener`
+* Add `shouldOnInitState` to `OnSEtStateListener`: Usually `onSetState` and its equivalent `onData`, `onError` are invoked only if the observable reactive model emits a notification. This means they are not invoked in the `initState` method. `shouldOnInitState` is an optional bool parameter and when se to true the `onSetState` method will be called from the `initState` method.
 * Add `onData` to `WhenRebuilderOr`
+* Fix issue #52.
 * Add tests to examples (Easiness of test, is a sign of good code).
 
 ## 1.14.0 (2020-02-18)
