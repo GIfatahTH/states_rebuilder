@@ -348,6 +348,11 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       }
     } catch (e) {
       _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+      if (setValue == true) {
+        inject.getReactive()._snapshot =
+            AsyncSnapshot<T>.withError(ConnectionState.done, e);
+        inject.getReactive()._state = null;
+      }
       _rebuildStates(canRebuild: watch == null);
       bool _cathError = catchError ??
           false ||

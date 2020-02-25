@@ -1676,19 +1676,19 @@ void main() {
             StateBuilder(
               models: [modelRM0],
               builder: (context, _) {
-                return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
+                return _widgetBuilder('modelRM0-${modelRM0.state?.counter}');
               },
             ),
             StateBuilder(
               models: [modelRM1],
               builder: (context, _) {
-                return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
+                return _widgetBuilder('modelRM1-${modelRM1.state?.counter}');
               },
             ),
             StateBuilder(
               models: [modelRM2],
               builder: (context, _) {
-                return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
+                return _widgetBuilder('modelRM2-${modelRM2.state?.counter}');
               },
             )
           ],
@@ -1703,7 +1703,7 @@ void main() {
           catchError: true,
         );
         await tester.pump();
-        expect(find.text('modelRM0-0'), findsOneWidget);
+        expect(find.text('modelRM0-null'), findsOneWidget);
         expect(find.text('modelRM1-0'), findsOneWidget);
         expect(find.text('modelRM2-0'), findsOneWidget);
         expect(modelRM0.hasError, isTrue);
@@ -1717,7 +1717,7 @@ void main() {
           catchError: true,
         );
         await tester.pump();
-        expect(find.text('modelRM0-0'), findsOneWidget);
+        expect(find.text('modelRM0-null'), findsOneWidget);
         expect(find.text('modelRM1-0'), findsOneWidget);
         expect(find.text('modelRM2-0'), findsOneWidget);
         expect(modelRM0.hasError, isTrue);
@@ -1912,6 +1912,43 @@ void main() {
       expect(modelRM.hasError, isFalse);
       expect(modelRM.hasData, isTrue);
       expect(find.text(('error message')), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'issue #55: should reset value to null after error',
+    (tester) async {
+      final modelRM = ReactiveModel.create(0);
+      int numberOfRebuild = 0;
+      final widget = StateBuilder(
+        models: [modelRM],
+        tag: 'tag1',
+        builder: (_, __) {
+          return _widgetBuilder('${++numberOfRebuild}');
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text(('1')), findsOneWidget);
+
+      modelRM.setValue(() => 2);
+      await tester.pump();
+      expect(find.text(('2')), findsOneWidget);
+      expect(modelRM.value, equals(2));
+
+      modelRM.setValue(
+        () => throw Exception(),
+        catchError: true,
+      );
+      await tester.pump();
+
+      expect(find.text(('3')), findsOneWidget);
+
+      expect(modelRM.value, isNull);
+
+      modelRM.setValue(() => 2);
+      await tester.pump();
+      expect(find.text(('4')), findsOneWidget);
+      expect(modelRM.value, equals(2));
     },
   );
 }
