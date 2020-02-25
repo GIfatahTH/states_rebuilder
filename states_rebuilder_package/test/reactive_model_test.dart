@@ -1366,7 +1366,6 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-
       expect(find.text('0'), findsOneWidget);
       expect(modelRM0.isWaiting, isTrue);
 
@@ -1379,8 +1378,11 @@ void main() {
       expect(modelRM0.hasData, isTrue);
 
       await tester.pump(Duration(seconds: 1));
+
       expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue);TODO stream should be done
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('2'), findsOneWidget);
+      // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
     },
   );
 
