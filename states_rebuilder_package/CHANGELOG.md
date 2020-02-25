@@ -27,7 +27,7 @@ StateBuilder<Foo>(
 
 * Add `shouldOnInitState` to `OnSEtStateListener`: Usually `onSetState` and its equivalent `onData`, `onError` are invoked only if the observable reactive model emits a notification. This means they are not invoked in the `initState` method. `shouldOnInitState` is an optional bool parameter and when se to true the `onSetState` method will be called from the `initState` method.
 * Add `onData` to `WhenRebuilderOr`
-* Fix issue #52.
+* Fix issue #52 and #55.
 * Add tests to examples (Easiness of test, is a sign of good code).
 
 ## 1.14.0 (2020-02-18)
