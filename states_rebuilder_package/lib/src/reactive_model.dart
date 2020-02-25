@@ -60,7 +60,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   AsyncSnapshot<T> get snapshot => _snapshot;
 
   ///The state of the injected model.
-  T get state => _snapshot?.data ?? _state;
+  T get state => _state;
 
   set state(T data) {
     _state = data;
@@ -365,9 +365,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       if (!hasError && inject.getReactive().state == result) {
         return;
       }
-      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, result);
       _state = result;
-      inject.getReactive()._snapshot = _snapshot;
+      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
       inject.getReactive()._state = _state;
       _rebuildStates(canRebuild: true);
       return;
@@ -453,8 +452,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     }
     assert(_stream != null);
 
-    _snapshot = AsyncSnapshot<T>.withData(
-        ConnectionState.none, injectAsync.initialValue);
+    _state = injectAsync.initialValue;
+    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
 
     _watch = injectAsync.watch;
     _watchCached = _watch != null ? _watch(_snapshot.data).toString() : null;
@@ -472,7 +471,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     _subscription = _stream.listen(
       (data) {
         _watchActual = _watch != null ? _watch(data).toString() : null;
-        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, data);
+        _state = data;
+        _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, _state);
         if (_watch == null || _watchCached.hashCode != _watchActual.hashCode) {
           if (reactiveModel.hasObservers) {
             reactiveModel.rebuildStates(_injectAsync.filterTags);
