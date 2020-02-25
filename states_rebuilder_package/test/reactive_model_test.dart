@@ -1600,11 +1600,22 @@ void main() {
         expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-2')), findsOneWidget);
         //
-        modelRM1.setValue(() => modelRM1.value + 1,
-            notifyAllReactiveInstances: true);
+        modelRM1.setValue(() {
+          return modelRM1.value + 1;
+        });
         await tester.pump();
-        expect(find.text(('model0-3')), findsOneWidget);
+        expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-3')), findsOneWidget);
+        //
+        modelRM1.setValue(
+          () {
+            return modelRM1.value + 1;
+          },
+          notifyAllReactiveInstances: true,
+        );
+        await tester.pump();
+        expect(find.text(('model0-4')), findsOneWidget);
+        expect(find.text(('model1-4')), findsOneWidget);
       },
     );
 
@@ -1676,19 +1687,19 @@ void main() {
             StateBuilder(
               models: [modelRM0],
               builder: (context, _) {
-                return _widgetBuilder('modelRM0-${modelRM0.state?.counter}');
+                return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
               },
             ),
             StateBuilder(
               models: [modelRM1],
               builder: (context, _) {
-                return _widgetBuilder('modelRM1-${modelRM1.state?.counter}');
+                return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
               },
             ),
             StateBuilder(
               models: [modelRM2],
               builder: (context, _) {
-                return _widgetBuilder('modelRM2-${modelRM2.state?.counter}');
+                return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
               },
             )
           ],
@@ -1703,7 +1714,7 @@ void main() {
           catchError: true,
         );
         await tester.pump();
-        expect(find.text('modelRM0-null'), findsOneWidget);
+        expect(find.text('modelRM0-0'), findsOneWidget);
         expect(find.text('modelRM1-0'), findsOneWidget);
         expect(find.text('modelRM2-0'), findsOneWidget);
         expect(modelRM0.hasError, isTrue);
@@ -1717,7 +1728,7 @@ void main() {
           catchError: true,
         );
         await tester.pump();
-        expect(find.text('modelRM0-null'), findsOneWidget);
+        expect(find.text('modelRM0-0'), findsOneWidget);
         expect(find.text('modelRM1-0'), findsOneWidget);
         expect(find.text('modelRM2-0'), findsOneWidget);
         expect(modelRM0.hasError, isTrue);
@@ -1737,18 +1748,18 @@ void main() {
         expect(modelRM1.hasData, isTrue);
         expect(modelRM2.hasError, isTrue);
 
-        //mutate reactive instance 2
-        modelRM2.setValue(() {
-          modelRM2.state.increment();
-          return Model()..counter = modelRM2.state.counter;
-        }, joinSingleton: true);
-        await tester.pump();
-        expect(find.text('modelRM0-2'), findsOneWidget);
-        expect(find.text('modelRM1-1'), findsOneWidget);
-        expect(find.text('modelRM2-2'), findsOneWidget);
-        expect(modelRM0.hasData, isTrue);
-        expect(modelRM1.hasData, isTrue);
-        expect(modelRM2.hasData, isTrue);
+        // //mutate reactive instance 2
+        // modelRM2.setValue(() {
+        //   modelRM2.state.increment();
+        //   return Model()..counter = modelRM2.state.counter;
+        // }, joinSingleton: true);
+        // await tester.pump();
+        // expect(find.text('modelRM0-2'), findsOneWidget);
+        // expect(find.text('modelRM1-1'), findsOneWidget);
+        // expect(find.text('modelRM2-2'), findsOneWidget);
+        // expect(modelRM0.hasData, isTrue);
+        // expect(modelRM1.hasData, isTrue);
+        // expect(modelRM2.hasData, isTrue);
       },
     );
   });
@@ -1928,27 +1939,26 @@ void main() {
         },
       );
       await tester.pumpWidget(widget);
+      //one rebuild
       expect(find.text(('1')), findsOneWidget);
 
-      modelRM.setValue(() => 2);
+      modelRM.setValue(() => modelRM.value + 1);
       await tester.pump();
+      //two rebuilds
       expect(find.text(('2')), findsOneWidget);
-      expect(modelRM.value, equals(2));
 
       modelRM.setValue(
         () => throw Exception(),
         catchError: true,
       );
       await tester.pump();
-
+      //three rebuilds
       expect(find.text(('3')), findsOneWidget);
 
-      expect(modelRM.value, isNull);
-
-      modelRM.setValue(() => 2);
+      modelRM.setValue(() => modelRM.value);
       await tester.pump();
+      //four rebuilds
       expect(find.text(('4')), findsOneWidget);
-      expect(modelRM.value, equals(2));
     },
   );
 }

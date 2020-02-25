@@ -312,7 +312,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
           }
 
           if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
-              joinSingleton) {
+              joinSingleton == true) {
             reactiveSingleton
               .._snapshot = _snapshot
               ..rebuildStates();
@@ -348,11 +348,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       }
     } catch (e) {
       _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
-      if (setValue == true) {
-        inject.getReactive()._snapshot =
-            AsyncSnapshot<T>.withError(ConnectionState.done, e);
-        inject.getReactive()._state = null;
-      }
       _rebuildStates(canRebuild: watch == null);
       bool _cathError = catchError ??
           false ||
@@ -365,21 +360,25 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       _whenConnectionState = false;
       return;
     }
+
+    if (setValue == true) {
+      if (!hasError && inject.getReactive().state == result) {
+        return;
+      }
+      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, result);
+      _state = result;
+      inject.getReactive()._snapshot = _snapshot;
+      inject.getReactive()._state = _state;
+      _rebuildStates(canRebuild: true);
+      return;
+    }
+
     final String watchAfter = watch != null ? watch(state).toString() : null;
 
     bool
         canRebuild = //watch for async tasks will rebuild only if the watched parameter changed
         watch == null || watchBefore.hashCode != watchAfter.hashCode;
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-
-    if (setValue == true) {
-      if (inject.getReactive().state == result) {
-        return;
-      }
-      inject.getReactive()._snapshot =
-          AsyncSnapshot<T>.withData(ConnectionState.done, result);
-      inject.getReactive()._state = result;
-    }
 
     _rebuildStates(canRebuild: canRebuild);
   }
