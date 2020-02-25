@@ -633,6 +633,18 @@ WhenRebuilder<Model1>(
        
     //The data parameter holds the state of the first model in the models' list.
   },
+  
+  // Tag to be used to filer notification from observable classes.
+  // It can be any type of data, but when it is a List, 
+  // this widget will be saved with many tags that are the items in the list.
+  tag: dynamic
+  
+  initState: (BuildContext context, ReactiveModel<T> exposedModel){
+  // Function to execute in initState of the state.
+  },
+  dispose: (BuildContext context, ReactiveModel<T> exposedModel){
+  // Function to execute in dispose of the state.
+  },
 ),
 ```
 `WhenRebuilderOr` is just like `WhenRebuilder` but with optional `onIdle`, `onWaiting` and `onError` parameters and with required default `builder`..
@@ -647,11 +659,29 @@ OnSetStateListener<Model1>(
   onSetState: (context, reactiveModel1) {
     _onSetState = 'onSetState';
   },
+  onWaiting: (context, reactiveModel1) {
+    //Will be invoked if :
+    //At least one of the observable models is in the waiting state.
+  },
+  onData: (context, reactiveModel1) {
+    //Will be invoked if :
+    //All of the observable models are in the hasData state.
+  },
   onError: (context, error) {
     //Will be invoked if :
-    //1- At least one of the observable models is in the error state.
+    //At least one of the observable models is in the error state.
     //The error parameter holds the thrown error of the model that has the error
   },
+  // Tag to be used to filer notification from observable classes.
+  // It can be any type of data, but when it is a List, 
+  // this widget will be saved with many tags that are the items in the list.
+  tag: dynamic
+
+   watch: (ReactiveModel<T> exposedModel) {
+    //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
+  },
+  //Wether to execute [onSetState],[onWaiting], [onError], and/or [onData] in the [State.initState]
+  shouldOnInitState:false,
   //It has a child parameter, not a builder parameter.
   child: Container(),
 )
