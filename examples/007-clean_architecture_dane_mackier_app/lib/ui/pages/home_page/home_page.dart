@@ -11,36 +11,24 @@ import '../../common/ui_helpers.dart';
 import 'postlist_item.dart';
 
 class HomePage extends StatelessWidget {
-  //NOTE1: In the login page we instantiated the user and navigated to this page.
-  //NOTE1: We use Injector.get to access AuthenticationService and get user.
   final user = Injector.get<AuthenticationService>().user;
   @override
   Widget build(BuildContext context) {
     return Injector(
-        //NOTE2: Inject PostsService
         inject: [Inject(() => PostsService(api: Injector.get()))],
         builder: (context) {
           return Scaffold(
             backgroundColor: backgroundColor,
-            body: StateBuilder<PostsService>(
+            body: WhenRebuilderOr<PostsService>(
               models: [ReactiveModel<PostsService>()],
               initState: (_, postsServiceRM) {
-                //NOTE3: get the list of post from the user id
                 postsServiceRM.setState(
                   (state) => state.getPostsForUser(user.id),
-                  //NOTE3: Delegate error handling to the ErrorHandler to show an alertDialog
                   onError: ErrorHandler.showErrorDialog,
                 );
               },
+              onWaiting: () => Center(child: CircularProgressIndicator()),
               builder: (_, postsService) {
-                //NOTE4: isIdle is unreachable status, because the setState is called from the initState
-
-                //NOTE4: check if waiting
-                if (postsService.isWaiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                //NOTE4: hasData and hasError (posts=[] so no problem to display empty posts)
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -67,13 +55,11 @@ class HomePage extends StatelessWidget {
         });
   }
 
-  //List of posts
   Widget getPostsUi(List<Post> posts) => ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) => PostListItem(
           post: posts[index],
           onTap: () {
-            //Navigate to poste detail
             Navigator.pushNamed(context, 'post', arguments: posts[index]);
           },
         ),

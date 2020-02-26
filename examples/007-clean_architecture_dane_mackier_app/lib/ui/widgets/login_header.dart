@@ -1,25 +1,32 @@
+import 'package:clean_architecture_dane_mackier_app/service/authentication_service.dart';
+import 'package:clean_architecture_dane_mackier_app/ui/exceptions/error_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../common/text_styles.dart';
 import '../common/ui_helpers.dart';
 
 class LoginHeader extends StatelessWidget {
   final TextEditingController controller;
-  final String validationMessage;
 
-  LoginHeader({@required this.controller, this.validationMessage});
+  LoginHeader({@required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      Text('Login', style: headerStyle),
-      UIHelper.verticalSpaceMedium(),
-      Text('Enter a number between 1 - 10', style: subHeaderStyle),
-      LoginTextField(controller),
-      this.validationMessage != null
-          ? Text(validationMessage, style: TextStyle(color: Colors.red))
-          : Container()
-    ]);
+    String validationMessage = ErrorHandler.errorMessage(
+      ReactiveModel<AuthenticationService>(context: context).error,
+    );
+    return Column(
+      children: <Widget>[
+        Text('Login', style: headerStyle),
+        UIHelper.verticalSpaceMedium(),
+        Text('Enter a number between 1 - 10', style: subHeaderStyle),
+        LoginTextField(controller),
+        validationMessage != null
+            ? Text(validationMessage, style: TextStyle(color: Colors.red))
+            : Container()
+      ],
+    );
   }
 }
 

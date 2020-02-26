@@ -8,7 +8,7 @@ class PostsService {
   List<Post> _posts = [];
   List<Post> get posts => _posts;
 
-  void getPostsForUser(int userId) async {
+  Future<void> getPostsForUser(int userId) async {
     _posts = await _api.getPostsForUser(userId);
   }
 

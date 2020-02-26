@@ -92,6 +92,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
             return hasError = true;
           },
           onData: (d) => hasData = true,
+          catchError: onError != null,
         );
 
         for (var i = 1; i < models.length; i++) {
@@ -103,18 +104,15 @@ class WhenRebuilderOr<T> extends StatelessWidget {
               return hasError = true;
             },
             onData: (d) => hasData = true,
+            catchError: onError != null,
           );
         }
 
         if (onWaiting != null && isWaiting) {
           return onWaiting();
         }
-        if (hasError) {
-          if (onError != null) {
-            return onError(error);
-          } else {
-            throw error;
-          }
+        if (hasError && onError != null) {
+          return onError(error);
         }
 
         if (onIdle != null && isIdle) {

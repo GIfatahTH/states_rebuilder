@@ -14,32 +14,26 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      //NOTE1: Inject CommentsService
       inject: [Inject(() => CommentsService(api: Injector.get()))],
       builder: (context) {
-        return StateBuilder<CommentsService>(
+        //Use of WhenRebuilder
+        return WhenRebuilder<CommentsService>(
           models: [ReactiveModel<CommentsService>()],
-          //NOTE2: fetch comments in the init state
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),
-            //NOTE3: Delegate to ErrorHandler class to show an alert dialog
             onError: ErrorHandler.showErrorDialog,
           ),
-          builder: (_, commentsServiceRM) {
-            //NOTE4 use whenConnectionState
-            return commentsServiceRM.whenConnectionState(
-              onIdle: () =>
-                  Container(), //Not reachable because setState is called form initState
-              onWaiting: () => Center(child: CircularProgressIndicator()),
-              onData: (state) => Expanded(
-                child: ListView(
-                  children: state.comments
-                      .map((comment) => CommentItem(comment))
-                      .toList(),
-                ),
+          //If using WhenRebuilderOR and do not define error callback the app will break on error
+          onIdle: () => Container(),
+          onWaiting: () => Center(child: CircularProgressIndicator()),
+          onError: (_) => Container(),
+          onData: (commentsService) {
+            return Expanded(
+              child: ListView(
+                children: commentsService.comments
+                    .map((comment) => CommentItem(comment))
+                    .toList(),
               ),
-              //NOTE4: Display empty container on error. An AlertDialog should be displayed
-              onError: (_) => Container(),
             );
           },
         );
@@ -48,7 +42,6 @@ class Comments extends StatelessWidget {
   }
 }
 
-/// Renders a single comment given a comment model
 class CommentItem extends StatelessWidget {
   final Comment comment;
   const CommentItem(this.comment);
