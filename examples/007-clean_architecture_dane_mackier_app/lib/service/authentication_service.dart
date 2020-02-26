@@ -9,7 +9,7 @@ class AuthenticationService {
   User _fetchedUser;
   User get user => _fetchedUser;
 
-  void login(String userIdText) async {
+  Future<void> login(String userIdText) async {
     //Delegate the input parsing and validation
     var userId = InputParser.parse(userIdText);
 
@@ -28,14 +28,14 @@ class AuthenticationService {
     // );
 
     //TODO3: try to persist an entity is bad state.
-  //   Comment(
-  //     id: 1,
-  //     email: Email('email@m.com'), //Bad email
-  //     name: 'Joe',
-  //     body: 'comment',
-  //     postId: 2,
-  //   )
-  //     ..postId = null
-  //     ..toJson();
+    //   Comment(
+    //     id: 1,
+    //     email: Email('email@m.com'), //Bad email
+    //     name: 'Joe',
+    //     body: 'comment',
+    //     postId: 2,
+    //   )
+    //     ..postId = null
+    //     ..toJson();
   }
 }

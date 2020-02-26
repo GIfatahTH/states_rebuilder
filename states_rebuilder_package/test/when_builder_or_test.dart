@@ -275,11 +275,12 @@ void main() {
       expect(find.text('1'), findsOneWidget);
 
       //async task with error
-      reactiveModel.setState((s) => s.incrementAsyncWithError());
+      reactiveModel.setState((s) => s.incrementAsyncWithError(),
+          catchError: true);
       await tester.pump();
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
-      expect(tester.takeException(), isException);
+      // expect(tester.takeException(), isException);
     },
   );
 

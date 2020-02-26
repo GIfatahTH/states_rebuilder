@@ -3,5 +3,5 @@ class NotNumberException extends Error {
 }
 
 class NotInRangeException extends Error {
-  final message = 'Tne entered value is not between 1 and 10';
+  final message = 'The entered value is not between 1 and 10';
 }

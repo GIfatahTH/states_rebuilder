@@ -124,8 +124,9 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     @required R Function() onWaiting,
     @required R Function(T state) onData,
     @required R Function(dynamic error) onError,
+    bool catchError = true,
   }) {
-    _whenConnectionState = true;
+    _whenConnectionState = catchError;
     if (isIdle) {
       return onIdle();
     }

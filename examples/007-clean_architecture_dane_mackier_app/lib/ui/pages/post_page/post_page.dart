@@ -12,7 +12,6 @@ import 'like_button.dart';
 class PostPage extends StatelessWidget {
   PostPage({this.post});
   final Post post;
-  //NOTE1: Get the logged user
   final user = Injector.get<AuthenticationService>().user;
 
   @override
@@ -27,18 +26,15 @@ class PostPage extends StatelessWidget {
           children: <Widget>[
             UIHelper.verticalSpaceLarge(),
             Text(post.title, style: headerStyle),
-            //NOTE2: Display user name
             Text(
               'by ${user.name}',
               style: TextStyle(fontSize: 9.0),
             ),
             UIHelper.verticalSpaceMedium(),
             Text(post.body),
-            //NOTE3: like button widget (like_button.dart)
             LikeButton(
               postId: post.id,
             ),
-            //NOTE3: Comments widget (comments.dart)
             Comments(post.id)
           ],
         ),
