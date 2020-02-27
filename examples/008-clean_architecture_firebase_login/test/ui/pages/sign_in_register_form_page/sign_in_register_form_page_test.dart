@@ -104,7 +104,8 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsOneWidget);
-    await tester.pumpAndSettle();
+    await tester.pump(Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 1));
     //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsNothing);
   });
@@ -139,10 +140,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsOneWidget);
-    await tester.pumpAndSettle();
+    await tester.pump(Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 1));
     //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsNothing);
   });
 }
-
-class CheckBox {}
