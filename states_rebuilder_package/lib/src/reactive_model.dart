@@ -148,6 +148,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   dynamic _joinSingletonToNewData;
 
+  dynamic _seed;
+
   ///Return a new reactive instance.
   ///
   ///The [seed] parameter is used to unsure to always obtain the same new reactive
@@ -165,7 +167,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     }
 
     rm = inject.getReactive(true);
-    inject.newReactiveMapFromSeed[seed.toString()] = rm;
+    rm._seed = seed.toString();
+    inject.newReactiveMapFromSeed[rm._seed] = rm;
 
     return rm;
   }
@@ -338,6 +341,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       if (result is Future) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         //Do need to call setState during the build of the widget.
+
         try {
           _rebuildStates(canRebuild: watch == null);
         } catch (e) {
@@ -428,6 +432,20 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       rm.rebuildStates();
     }
     inject.getReactive().rebuildStates();
+  }
+
+  @override
+  String toString() {
+    final String rm = '$runtimeType'
+            .replaceAll('ReactiveStatesRebuilder<', '')
+            .replaceAll('>', '') +
+        ' ${!isNewReactiveInstance ? 'singleton reactive model' : 'new reactive model seed: "$_seed"'}' +
+        ' (#Code $hashCode)';
+    return whenConnectionState<String>(
+        onIdle: () => '$rm => isIdle',
+        onWaiting: () => '$rm => isWaiting',
+        onData: (data) => '$rm => hasData : $data',
+        onError: (e) => '$rm => hasError : $e');
   }
 }
 

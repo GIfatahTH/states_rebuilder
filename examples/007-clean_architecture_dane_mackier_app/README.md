@@ -1,6 +1,6 @@
 # clean_architecture_dane_mackier_app
 
->This is readme version 1, after finishing it take a look to [readme version 2](readme_v1.md) to see more features of states_rebuilder notably how easy and straightforward unit testing of widgets and logic classes it is.
+>This is readme version 1, after finishing it take a look to [readme version 2](README_v2.md) to see more features of states_rebuilder notably how easy and straightforward unit testing of widgets and logic classes it is.
 
 
 The architecture consists of something like onion layers, the innermost one is the domain layer, the middle layer is the service layer and the outer layer consists of three parts: the user interface  UI, data_source and infrastructure. Each of the parts of the architecture is implemented using folders.
