@@ -39,7 +39,8 @@ void main() {
     await tester.tap(loginBtn);
     await tester.pump();
     //after tap, error message appears
-    expect(find.text(notNumberError), findsOneWidget);
+    expect(find.text(notNumberError), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
 
     //enter non number string,
     await tester.enterText(loginTextField, '1m');
@@ -47,7 +48,8 @@ void main() {
     await tester.tap(loginBtn);
     await tester.pump();
     //after tap, error message appears
-    expect(find.text(notNumberError), findsOneWidget);
+    expect(find.text(notNumberError), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 
   testWidgets('display "The entered value is not between 1 and 10" message',
@@ -62,7 +64,8 @@ void main() {
 
     await tester.tap(loginBtn);
     await tester.pump();
-    expect(find.text(notInRangeError), findsOneWidget);
+    expect(find.text(notInRangeError), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
 
     //enter 11
     await tester.enterText(loginTextField, '11');
@@ -70,7 +73,8 @@ void main() {
     await tester.tap(loginBtn);
     await tester.pump();
     //after tap, error message appears
-    expect(find.text(notInRangeError), findsOneWidget);
+    expect(find.text(notInRangeError), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 
   testWidgets(
