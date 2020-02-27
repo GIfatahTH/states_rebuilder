@@ -341,7 +341,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       if (result is Future) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         //Do need to call setState during the build of the widget.
-
         try {
           _rebuildStates(canRebuild: watch == null);
         } catch (e) {
