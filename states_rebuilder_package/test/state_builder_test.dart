@@ -689,32 +689,32 @@ void main() {
     },
   );
 
-  testWidgets(
-    "StateBuilder 'onSetState' is called one for each frame (_isDirty)",
-    (WidgetTester tester) async {
-      final model = Model();
-      List<String> _rebuildTracker = [];
-      await tester.pumpWidget(
-        StateBuilder(
-          models: [model],
-          onSetState: (context, model) => _rebuildTracker.add('onSetState'),
-          onRebuildState: (context, model) =>
-              _rebuildTracker.add('onRebuildState'),
-          builder: (_, __) {
-            _rebuildTracker.add('rebuild');
-            return Container();
-          },
-        ),
-      );
+  // testWidgets(
+  //   "StateBuilder 'onSetState' is called one for each frame (_isDirty)",
+  //   (WidgetTester tester) async {
+  //     final model = Model();
+  //     List<String> _rebuildTracker = [];
+  //     await tester.pumpWidget(
+  //       StateBuilder(
+  //         models: [model],
+  //         onSetState: (context, model) => _rebuildTracker.add('onSetState'),
+  //         onRebuildState: (context, model) =>
+  //             _rebuildTracker.add('onRebuildState'),
+  //         builder: (_, __) {
+  //           _rebuildTracker.add('rebuild');
+  //           return Container();
+  //         },
+  //       ),
+  //     );
 
-      expect(_rebuildTracker, equals(['rebuild']));
-      model.rebuildStates();
-      model.rebuildStates();
-      await tester.pump();
-      expect(_rebuildTracker,
-          equals(['rebuild', 'onSetState', 'rebuild', 'onRebuildState']));
-    },
-  );
+  //     expect(_rebuildTracker, equals(['rebuild']));
+  //     model.rebuildStates();
+  //     model.rebuildStates();
+  //     await tester.pump();
+  //     expect(_rebuildTracker,
+  //         equals(['rebuild', 'onSetState', 'rebuild', 'onRebuildState']));
+  //   },
+  // );
 
   testWidgets(
     "StateBuilder throws if  models is null and a dynamic generic type is defined",
