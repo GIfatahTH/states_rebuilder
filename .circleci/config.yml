@@ -12,5 +12,6 @@ jobs:
       - run: cd examples/004-countdown_timer && flutter test
       - run: cd examples/005-double_async_counter_with_error && flutter test
       - run: cd examples/007-clean_architecture_dane_mackier_app && flutter test
+      - run: cd examples/008-clean_architecture_firebase_login && flutter test
       - run : cd states_rebuilder_package && flutter test --coverage
       - run: bash <(curl -s https://codecov.io/bash)
