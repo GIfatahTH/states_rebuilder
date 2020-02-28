@@ -32,8 +32,24 @@ void main() {
     signInRegisterFormPage = Injector(
       inject: [Inject<UserService>(() => FakeUserService())],
       builder: (_) {
+        //the SignInRegisterFormPage widget has to pop back after successful log in.
+        // (line 130  onData: (_, __) => Navigator.pop(context),)
+
+        //Ta test this behavior, we add a RaisedButton to push to SignInRegisterFormPage so we can check that popping works.
+
+        //In this example we can simple use SignInPage and from there we can route to SignInRegisterFormPage.
+        //But in more complex situation, we have to fake all the dependencies of SignInPage which may not be needed for aur test.
+        //For this reason I use simple RaisedButton,
         return MaterialApp(
-          home: SignInRegisterFormPage(),
+          home: Builder(builder: (context) {
+            return RaisedButton(
+                child: Text('Log in with email and password'),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SignInRegisterFormPage();
+                  }));
+                });
+          }),
         );
       },
     );
@@ -41,7 +57,8 @@ void main() {
 
   testWidgets('Email validation', (tester) async {
     await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpAndSettle();
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
     //expect that the submit button is initially inactive
@@ -64,7 +81,8 @@ void main() {
 
   testWidgets('password validation', (tester) async {
     await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpAndSettle();
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
     //expect that the submit button is initially inactive
@@ -87,7 +105,8 @@ void main() {
 
   testWidgets('login with email and password', (tester) async {
     await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpAndSettle();
     //Enter valid email and password
     await tester.enterText(emailTextFiled, 'my@email.com');
     await tester.enterText(passwordTextFiled, 'mypassword1');
@@ -104,15 +123,16 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsOneWidget);
-    await tester.pump(Duration(seconds: 1));
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle();
     //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsNothing);
+    expect(find.text('Log in with email and password'), findsOneWidget);
   });
 
   testWidgets('Register and login with email and password', (tester) async {
     await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpAndSettle();
     expect(uncheckedCheckBox, findsOneWidget);
 
     //check the CheckBox
@@ -140,9 +160,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsOneWidget);
-    await tester.pump(Duration(seconds: 1));
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle();
     //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
     expect(find.byType(Scaffold), findsNothing);
+    expect(find.text('Log in with email and password'), findsOneWidget);
   });
 }
