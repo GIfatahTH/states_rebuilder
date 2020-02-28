@@ -1961,6 +1961,88 @@ void main() {
       expect(find.text(('4')), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'testing toString override',
+    (tester) async {
+      final modelRM = ReactiveModel.create(Model());
+      //
+      expect(modelRM.toString(), contains('<Model> singleton reactive model'));
+      expect(modelRM.toString(), contains(' => isIdle'));
+      //
+      modelRM.setState((s) => s.incrementAsync());
+
+      expect(modelRM.toString(), contains(' => isWaiting'));
+      await tester.pump(Duration(seconds: 1));
+      expect(modelRM.toString(), contains(" => hasData : Instance of 'Model'"));
+
+      //
+      modelRM.setState((s) => s.incrementAsyncError());
+      await tester.pump(Duration(seconds: 1));
+      expect(modelRM.toString(),
+          contains(' => hasError : Exception: error message'));
+
+      //
+      expect('${modelRM.asNew('seed1')}',
+          contains('<Model> new reactive model seed: "seed1"'));
+      expect('${modelRM.asNew('seed1')}', contains(' => isIdle'));
+
+      final intStream = ReactiveModel.stream(getStream());
+      expect(intStream.toString(),
+          contains('Stream of <int> singleton reactive model'));
+      expect(intStream.toString(), contains('=> isWaiting'));
+      await tester.pump(Duration(seconds: 3));
+      expect(intStream.toString(), contains('=> hasData : 2'));
+
+      final intFuture = ReactiveModel.future(getFuture()).asNew();
+      expect(
+          intFuture.toString(),
+          contains(
+              'Future of <int> new reactive model seed: "defaultReactiveSeed"'));
+      expect(intFuture.toString(), contains('=> isWaiting'));
+      await tester.pump(Duration(seconds: 3));
+      expect(intFuture.toString(), contains('=> hasData : 1'));
+    },
+  );
+
+  testWidgets(
+    'ReactiveModel : ReactiveModel.stream works',
+    (tester) async {
+      ReactiveModel<int> modelRM0;
+
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder(
+            models: [
+              modelRM0 = ReactiveModel.stream(getStream(), initialValue: 0)
+            ],
+            builder: (context, _) {
+              return _widgetBuilder('${modelRM0.state}');
+            },
+          )
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      expect(modelRM0.isWaiting, isTrue);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('0'), findsOneWidget);
+      expect(modelRM0.hasData, isTrue);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('1'), findsOneWidget);
+      expect(modelRM0.hasData, isTrue);
+
+      await tester.pump(Duration(seconds: 1));
+
+      expect(find.text('2'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('2'), findsOneWidget);
+      // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
+    },
+  );
 }
 
 class Model {

@@ -33,7 +33,7 @@ class _FormWidgetState extends State<FormWidget> {
 
   final _isRegisterRM = ReactiveModel.create(false);
 
-  bool get _isFormValid => _passwordRM.hasData && _passwordRM.hasData;
+  bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
 
   @override
   Widget build(BuildContext context) {

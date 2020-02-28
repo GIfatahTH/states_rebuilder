@@ -688,6 +688,18 @@ OnSetStateListener<Model1>(
 ```
 What makes `OnSetStateListener` different is the fact that is has a child parameter rather than a builder parameter. This means that the child parameter will not rebuild even if observable models send notifications.
 
+# `ReactiveModel.stream` and `ReactiveModel.future`
+You can create ReactiveModels from streams and future without using `Inject.stream` and `Inject.future`.
+
+```dart
+StateBuilder<int>(
+  models: [ReactiveModel<int>.stream(intStream, initialValue: 0)],
+  builder: (context, int data) {
+    //
+  },
+)
+```
+
 # `ReactiveModel.create`, `value` getter and `setValue` method.
 With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
 
