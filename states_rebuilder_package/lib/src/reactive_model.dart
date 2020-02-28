@@ -436,8 +436,9 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   @override
   String toString() {
     final String rm = '$runtimeType'
-            .replaceAll('ReactiveStatesRebuilder<', '')
-            .replaceAll('>', '') +
+            .replaceAll('ReactiveStatesRebuilder', '')
+            .replaceAll('StreamStatesRebuilder',
+                inject.isFutureType ? 'Future of ' : 'Stream of ') +
         ' ${!isNewReactiveInstance ? 'singleton reactive model' : 'new reactive model seed: "$_seed"'}' +
         ' (#Code $hashCode)';
     return whenConnectionState<String>(
