@@ -1961,6 +1961,32 @@ void main() {
       expect(find.text(('4')), findsOneWidget);
     },
   );
+  
+    testWidgets(
+    'testing toString override',
+    (tester) async {
+      final modelRM = ReactiveModel.create(Model());
+      //
+      expect(modelRM.toString(), contains('Model singleton reactive model'));
+      expect(modelRM.toString(), contains(' => isIdle'));
+      //
+      modelRM.setState((s) => s.incrementAsync());
+
+      expect(modelRM.toString(), contains(' => isWaiting'));
+      await tester.pump(Duration(seconds: 1));
+      expect(modelRM.toString(), contains(" => hasData : Instance of 'Model'"));
+
+      //
+      modelRM.setState((s) => s.incrementAsyncError());
+      await tester.pump(Duration(seconds: 1));
+      expect(modelRM.toString(),
+          contains(' => hasError : Exception: error message'));
+
+      //
+      expect('${modelRM.asNew('seed1')}',
+          contains('Model new reactive model seed: "seed1"'));
+      expect('${modelRM.asNew('seed1')}', contains(' => isIdle'));
+    },
 }
 
 class Model {
