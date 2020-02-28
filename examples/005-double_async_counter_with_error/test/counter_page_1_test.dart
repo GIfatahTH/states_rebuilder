@@ -77,7 +77,6 @@ class FakeCounterService extends CounterService {
     await Future.delayed(Duration(seconds: seconds));
 
     if (shouldThrow) {
-      print('throws');
       throw CounterError();
     } else {
       counter.increment();

@@ -519,7 +519,9 @@ to run the devolvement flavor : flutter run  -t lib/main_dev.dart
 
 This example is inspired from the work of Andrea Bizzotto https://github.com/bizz84/multiple-counters-flutter
 
+# Test
 
+See the test folder
 
 
 
