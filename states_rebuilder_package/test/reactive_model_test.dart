@@ -1961,8 +1961,8 @@ void main() {
       expect(find.text(('4')), findsOneWidget);
     },
   );
-  
-    testWidgets(
+
+  testWidgets(
     'testing toString override',
     (tester) async {
       final modelRM = ReactiveModel.create(Model());
@@ -1987,6 +1987,7 @@ void main() {
           contains('Model new reactive model seed: "seed1"'));
       expect('${modelRM.asNew('seed1')}', contains(' => isIdle'));
     },
+  );
 }
 
 class Model {
