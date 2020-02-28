@@ -1,3 +1,8 @@
+## 1.14.2 (2020-02-28)
+* Add `ReactiveModel<T>.stream(T stream)` and `ReactiveModel<T>.future(T future)` to create a `ReactiveModel` from a stream or future.
+* Override the `toString` method of the `ReactiveModel` to give an informative debug print.
+* Refactor the code.
+
 ## 1.14.1 (2020-02-25)
 * Add `ReactiveModel<T>()` factory constructor. it is equivalent to `Injector.getAsReactive(<T>)`. You will save nine key stroke and it looks more readable.
 ```dart
