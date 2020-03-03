@@ -123,7 +123,7 @@ class ValidationException extends Error {
 ```
 
 ## common
-**file:lib/domain/exceptions/validator.dart**
+**file:lib/domain/common/validator.dart**
 ```dart
 class Validators {
   static final RegExp _emailRegExp = RegExp(
