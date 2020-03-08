@@ -192,9 +192,9 @@ void main() {
       expect(model.observers().length, equals(1));
       expect(find.text('1'), findsOneWidget);
       //
-      model.rebuildStates();
-      await tester.pump();
-      expect(model.observers().values.toList()[0].length, equals(1));
+      // model.rebuildStates();
+      // await tester.pump();
+      // expect(model.observers().values.toList()[0].length, equals(1));
     },
   );
 
@@ -1470,6 +1470,33 @@ void main() {
 
     model.rebuildStates();
     await tester.pump();
+  });
+
+  testWidgets('issue #47 reinjectOn', (tester) async {
+    final rm = ReactiveModel.create(0);
+    Widget widget = Injector(
+      inject: [Inject(() => 'counter is ${rm.value}')],
+      reinjectOn: [rm],
+      builder: (context) {
+        return StateBuilder(
+            models: [rm],
+            builder: (context, __) {
+              print(rm);
+              print(ReactiveModel<String>());
+              String value = ReactiveModel<String>(context: context).value;
+              return Text(value);
+            });
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('counter is 0'), findsOneWidget);
+    rm.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('counter is 1'), findsOneWidget);
+    rm.setValue(() => 2);
+    await tester.pump();
+    expect(find.text('counter is 2'), findsOneWidget);
   });
 
   group('', () {

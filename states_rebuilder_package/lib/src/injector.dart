@@ -35,6 +35,8 @@ class Injector extends StatefulWidget {
   ///Used to reinject an already injected model to make it accessible to a new widget tree branch so that it can be found by [Injector.getAsReactive]
   final List<StatesRebuilder> reinject;
 
+  final List<StatesRebuilder> reinjectOn;
+
   ///Function to execute in `initState` of the state.
   final void Function() initState;
 
@@ -60,6 +62,7 @@ class Injector extends StatefulWidget {
     this.inject,
     @required this.builder,
     this.reinject,
+    this.reinjectOn,
     //for app lifecycle
     this.initState,
     this.dispose,
@@ -217,6 +220,42 @@ class InjectorState extends State<Injector> {
   @override
   void initState() {
     super.initState();
+    _initState();
+
+    if (widget.reinjectOn != null) {
+      for (StatesRebuilder model in widget.reinjectOn) {
+        model.addObserver(
+          observer: _ObserverOfStatesRebuilder(() {
+            for (Inject inject in widget.inject) {
+              final inj = allRegisteredModelInApp[inject.getName()].last;
+              if (inject.isFutureType) {
+                print('future');
+              } else if (inject.isAsyncInjected) {
+                print('stream');
+              } else {
+                inj.reactiveSingleton = null;
+                inj.singleton = null;
+                inj.creationFunction = inject.creationFunction;
+              }
+            }
+          }),
+          tag: 'tag',
+        );
+      }
+    }
+
+    if (widget.initState != null) {
+      widget.initState();
+    }
+
+    if (widget.afterInitialBuild != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.afterInitialBuild(context),
+      );
+    }
+  }
+
+  void _initState() {
     if (widget.inject != null) {
       for (Inject inject in widget.inject) {
         assert(inject != null);
@@ -285,16 +324,6 @@ class InjectorState extends State<Injector> {
         _injects.add(inject);
       }
     }
-
-    if (widget.initState != null) {
-      widget.initState();
-    }
-
-    if (widget.afterInitialBuild != null) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => widget.afterInitialBuild(context),
-      );
-    }
   }
 
   @override
@@ -307,6 +336,16 @@ class InjectorState extends State<Injector> {
 
   @override
   void dispose() {
+    _dispose();
+
+    if (widget.dispose != null) {
+      widget.dispose();
+    }
+
+    super.dispose();
+  }
+
+  void _dispose() {
     for (Inject inject in _injects) {
       final name = inject.getName();
       allRegisteredModelInApp[name]?.remove(inject);
@@ -325,12 +364,6 @@ class InjectorState extends State<Injector> {
       }
       inject.removeAllReactiveNewInstance();
     }
-
-    if (widget.dispose != null) {
-      widget.dispose();
-    }
-
-    super.dispose();
   }
 
   @override
@@ -372,5 +405,16 @@ class InjectorStateAppLifeCycle extends InjectorState
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     widget.appLifeCycle(state);
+  }
+}
+
+class _ObserverOfStatesRebuilder extends ObserverOfStatesRebuilder {
+  final void Function() updateCallback;
+
+  _ObserverOfStatesRebuilder(this.updateCallback);
+  @override
+  bool update([Function(BuildContext) onSetState, message]) {
+    updateCallback();
+    return true;
   }
 }
