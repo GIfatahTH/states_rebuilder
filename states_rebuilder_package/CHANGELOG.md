@@ -1,3 +1,7 @@
+## 1.14.3 (2020-03-08)
+* Add `reinjectOn` parameters to `Injector` widgets. It takes a list of ReactiveModel, and it reinjects the registered models whenever any of the ReactiveModel in the reinjectOn parameters emits a notification.
+
+
 ## 1.14.2 (2020-02-28)
 * Add `ReactiveModel<T>.stream(T stream)` and `ReactiveModel<T>.future(T future)` to create a `ReactiveModel` from a stream or future.
 * Override the `toString` method of the `ReactiveModel` to give an informative debug print.
