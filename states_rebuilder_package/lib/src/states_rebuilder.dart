@@ -39,6 +39,8 @@ class StatesRebuilder implements Subject {
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
   final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observersMap =
       LinkedHashMap<String, List<ObserverOfStatesRebuilder>>();
+  final Set<ObserverOfStatesRebuilder> _observersSet =
+      <ObserverOfStatesRebuilder>{};
 
   /// observers getter
   Map<String, List<ObserverOfStatesRebuilder>> observers() => _observersMap;
@@ -62,6 +64,9 @@ class StatesRebuilder implements Subject {
     } else {
       observersTemp[tag] = [observer, ...observersTemp[tag]];
       _observersMap.addAll(observersTemp);
+    }
+    for (var e in _observersMap.values) {
+      _observersSet.addAll(e);
     }
   }
 
@@ -89,6 +94,7 @@ class StatesRebuilder implements Subject {
     );
 
     _observersMap[tag].remove(observer);
+    _observersSet.remove(observer);
     if (_observersMap[tag].isEmpty) {
       _observersMap.remove(tag);
       if (_observersMap.isEmpty) {
@@ -146,21 +152,19 @@ class StatesRebuilder implements Subject {
     bool isOnSetStateCalledOrNull = onSetState == null;
 
     if (tags == null) {
-      _observersMap.forEach(
-        (tag, observers) {
-          for (ObserverOfStatesRebuilder observer in observers.reversed) {
-            observer.update(
-              isOnSetStateCalledOrNull
-                  ? null
-                  : (context) {
-                      isOnSetStateCalledOrNull = true;
-                      onSetState(context);
-                    },
-              this is ReactiveModel ? this : null,
-            );
-          }
-        },
-      );
+      for (ObserverOfStatesRebuilder observer
+          in _observersSet.toList().reversed) {
+        observer.update(
+          isOnSetStateCalledOrNull
+              ? null
+              : (context) {
+                  isOnSetStateCalledOrNull = true;
+                  onSetState(context);
+                },
+          this is ReactiveModel ? this : null,
+        );
+      }
+
       return;
     }
 
@@ -200,5 +204,8 @@ class StatesRebuilder implements Subject {
 class StatesRebuilderInternal {
   static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
     to?._observersMap?.addAll(from._observersMap);
+    for (var e in from._observersMap.values) {
+      to?._observersSet?.addAll(e);
+    }
   }
 }

@@ -501,7 +501,7 @@ void main() {
   );
 
   testWidgets(
-    'StateBuilder should watch works for primitives',
+    'StateBuilder: should watch works for primitives',
     (tester) async {
       int numberOfRebuild = 0;
       final widget = StateBuilder(
