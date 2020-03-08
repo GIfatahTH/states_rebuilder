@@ -38,12 +38,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   }
 
   factory ReactiveModel.stream(Stream<T> stream,
-      {dynamic name, T initialValue, List<dynamic> filterTags}) {
+      {dynamic name,
+      T initialValue,
+      List<dynamic> filterTags,
+      Object Function(T) watch}) {
     final inject = Inject<T>.stream(
       () => stream,
       initialValue: initialValue,
       name: name,
       filterTags: filterTags,
+      watch: watch,
     );
     return inject.getReactive();
   }
@@ -353,6 +357,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     }
 
     dynamic result;
+
     try {
       if (fn == null) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
@@ -464,10 +469,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         ' ${!isNewReactiveInstance ? 'singleton reactive model' : 'new reactive model seed: "$_seed"'}' +
         ' (#Code $hashCode)';
     return whenConnectionState<String>(
-        onIdle: () => '$rm => isIdle',
-        onWaiting: () => '$rm => isWaiting',
-        onData: (data) => '$rm => hasData : $data',
-        onError: (e) => '$rm => hasError : $e');
+        onIdle: () => '$rm => isIdle ($state)',
+        onWaiting: () => '$rm => isWaiting ($state)',
+        onData: (data) => '$rm => hasData : ($data)',
+        onError: (e) => '$rm => hasError : ($e)');
   }
 }
 
@@ -508,21 +513,26 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
 
   String _watchCached = '';
   String _watchActual = '';
+  bool _hasError = false;
   void _subscribe() {
     _subscription = _stream.listen(
       (data) {
         _watchActual = _watch != null ? _watch(data).toString() : null;
         _state = data;
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.active, _state);
-        if (_watch == null || _watchCached.hashCode != _watchActual.hashCode) {
+        if (_hasError ||
+            _watch == null ||
+            _watchCached.hashCode != _watchActual.hashCode) {
           if (reactiveModel.hasObservers) {
             reactiveModel.rebuildStates(_injectAsync.filterTags);
           }
           _watchCached = _watchActual;
+          _hasError = false;
         }
       },
       onError: (e) {
         _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+        _hasError = true;
         if (reactiveModel.hasObservers) {
           reactiveModel.rebuildStates(_injectAsync.filterTags);
         }
