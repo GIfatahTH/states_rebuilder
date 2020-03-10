@@ -117,8 +117,8 @@ class Injector extends StatefulWidget {
           return true;
         }(),
       );
-      if (inject.refreshSubscribers != null) {
-        inject.refreshSubscribers(model);
+      if (inject.refreshInheritedModelSubscribers != null) {
+        inject.refreshInheritedModelSubscribers(model);
       }
     } else {
       throw Exception(AssertMessage.getModelNotStatesRebuilderWithContext<T>());
@@ -149,8 +149,8 @@ class Injector extends StatefulWidget {
     );
 
     if (context == null) {
-      if (inject.refreshSubscribers != null) {
-        inject.refreshSubscribers(reactiveModel);
+      if (inject.refreshInheritedModelSubscribers != null) {
+        inject.refreshInheritedModelSubscribers(reactiveModel);
       }
       return reactiveModel;
     }
@@ -175,8 +175,8 @@ class Injector extends StatefulWidget {
         return true;
       }(),
     );
-    if (inject.refreshSubscribers != null) {
-      inject.refreshSubscribers(reactiveModel);
+    if (inject.refreshInheritedModelSubscribers != null) {
+      inject.refreshInheritedModelSubscribers(reactiveModel);
     }
     ReactiveModelInternal.setOnSetStateContext(reactiveModel, context);
     return reactiveModel;
@@ -228,13 +228,16 @@ class InjectorState extends State<Injector> {
           observer: _ObserverOfStatesRebuilder(() {
             for (Inject inject in widget.inject) {
               final inj = allRegisteredModelInApp[inject.getName()].last;
-              if (inject.isFutureType) {
-                print('future');
-              } else if (inject.isAsyncInjected) {
-                print('stream');
+
+              if (inject.isAsyncInjected) {
+                inject.getReactive().unsubscribe();
+                inj.creationStreamFunction = inject.creationStreamFunction;
+                inj.creationFutureFunction = inject.creationFutureFunction;
+                (inject.getReactive() as StreamStatesRebuilder).subscribe();
               } else {
-                inj.reactiveSingleton = null;
-                inj.singleton = null;
+                inj.singleton = inject.creationFunction();
+                inj.reactiveSingleton.state = inj.singleton;
+                // inj.reactiveSingleton.resetToIdle();
                 inj.creationFunction = inject.creationFunction;
               }
             }

@@ -1472,7 +1472,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('issue #47 reinjectOn', (tester) async {
+  testWidgets('issue #47 reinjectOn vanilla dart class', (tester) async {
     final rm = ReactiveModel.create(0);
     Widget widget = Injector(
       inject: [Inject(() => 'counter is ${rm.value}')],
@@ -1481,8 +1481,6 @@ void main() {
         return StateBuilder(
             models: [rm],
             builder: (context, __) {
-              print(rm);
-              print(ReactiveModel<String>());
               String value = ReactiveModel<String>(context: context).value;
               return Text(value);
             });
@@ -1491,12 +1489,112 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(home: widget));
     expect(find.text('counter is 0'), findsOneWidget);
+    int hashCodeRM = ReactiveModel<String>().hashCode;
+    //
     rm.setValue(() => 1);
     await tester.pump();
     expect(find.text('counter is 1'), findsOneWidget);
+    expect(ReactiveModel<String>().hashCode, hashCodeRM);
+    //
     rm.setValue(() => 2);
     await tester.pump();
     expect(find.text('counter is 2'), findsOneWidget);
+    //
+    ReactiveModel<String>().setValue(() => 'modified counter is 2');
+    await tester.pump();
+    expect(ReactiveModel<String>().hasData, isTrue);
+    //
+    rm.setValue(() => 3);
+    await tester.pump();
+    expect(find.text('counter is 3'), findsOneWidget);
+  });
+
+  testWidgets('issue #47 reinjectOn: stream', (tester) async {
+    final rm = ReactiveModel.create(0);
+    Widget widget = Injector(
+      inject: [
+        Inject.stream(() => getStream().map((s) => 'stream ${rm.value} : $s'),
+            initialValue: 'stream ${rm.value} : null')
+      ],
+      reinjectOn: [rm],
+      builder: (context) {
+        return StateBuilder(
+            models: [rm],
+            builder: (context, __) {
+              String value = ReactiveModel<String>(context: context).value;
+              return Text(value);
+            });
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('stream 0 : null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 0 : 0'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 0 : 1'), findsOneWidget);
+    //
+    rm.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('stream 0 : null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 1 : 0'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 1 : 1'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 1 : 2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 1 : 2'), findsOneWidget);
+    //
+    rm.setValue(() => 2);
+    await tester.pump();
+    expect(find.text('stream 0 : null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 2 : 0'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 2 : 1'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('stream 2 : 2'), findsOneWidget);
+  });
+
+  testWidgets('issue #47 reinjectOn: future', (tester) async {
+    final rm = ReactiveModel.create(0);
+    Widget widget = Injector(
+      inject: [
+        Inject.future(
+            () => Future.delayed(
+                Duration(seconds: 2), () => 'future ${rm.value}'),
+            initialValue: 'future null')
+      ],
+      reinjectOn: [rm],
+      builder: (context) {
+        return StateBuilder(
+            models: [rm],
+            builder: (context, __) {
+              String value = ReactiveModel<String>(context: context).value;
+              return Text(value);
+            });
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('future null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future null'), findsOneWidget);
+    //
+    rm.setValue(() => 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future 1'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future 1'), findsOneWidget);
+    //
+    rm.setValue(() => 2);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future null'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('future 2'), findsOneWidget);
   });
 
   group('', () {

@@ -184,7 +184,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return asNew ? rs : reactiveSingleton ??= rs;
   }
 
-  void Function(StatesRebuilder model) refreshSubscribers;
+  void Function(StatesRebuilder model) refreshInheritedModelSubscribers;
 
   _InheritedWidgetModel _inheritedWidgetModel = _InheritedWidgetModel();
 
@@ -274,9 +274,11 @@ class _InheritedWidgetModel extends StatesRebuilder {
     super.addObserver(observer: observer, tag: tag);
 
     if (injectSR != null) {
-      injectSR.refreshSubscribers = (model) {
+      injectSR.refreshInheritedModelSubscribers = (model) {
         modelFromInjectSR = model;
         StatesRebuilderInternal.addAllToObserverMap(this, modelFromInjectSR);
+        //ensure that it is called once after each add of observer
+        injectSR.refreshInheritedModelSubscribers = null;
       };
     }
   }

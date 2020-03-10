@@ -139,6 +139,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   bool get isStreamDone => _isStreamDone;
 
   StreamSubscription<T> _subscription;
+  void unsubscribe() {
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
+    }
+  }
 
   ///The stream subscription. It is not null for injected streams or futures.
   StreamSubscription<T> get subscription => _subscription;
@@ -487,10 +493,20 @@ class ReactiveStatesRebuilder<T> extends ReactiveModel<T> {
 
 ///A package private class used to add reactive environment to Stream and future
 class StreamStatesRebuilder<T> extends ReactiveModel<T> {
-  StreamStatesRebuilder(Inject<T> injectAsync,
-      [bool isNewReactiveInstance = false])
+  StreamStatesRebuilder(this.injectAsync, [bool isNewReactiveInstance = false])
       : super.inj(injectAsync, isNewReactiveInstance) {
-    _injectAsync = injectAsync;
+    subscribe();
+    cleaner(_unsubscribe);
+  }
+  Inject<T> injectAsync;
+  Object Function(T) _watch;
+  Stream<T> _stream;
+  ReactiveModel get reactiveModel => injectAsync.getReactive();
+
+  String _watchCached;
+  String _watchActual;
+  bool _hasError = false;
+  void subscribe() {
     if (injectAsync.isFutureType) {
       _stream = injectAsync.creationFutureFunction().asStream();
     } else {
@@ -502,19 +518,9 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
 
     _watch = injectAsync.watch;
+    _watchActual = '';
     _watchCached = _watch != null ? _watch(_snapshot.data).toString() : null;
-    _subscribe();
-    cleaner(_unsubscribe);
-  }
-  Inject<T> _injectAsync;
-  Object Function(T) _watch;
-  Stream<T> _stream;
-  ReactiveModel get reactiveModel => _injectAsync.getReactive();
 
-  String _watchCached = '';
-  String _watchActual = '';
-  bool _hasError = false;
-  void _subscribe() {
     _subscription = _stream.listen(
       (data) {
         _watchActual = _watch != null ? _watch(data).toString() : null;
@@ -524,7 +530,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
             _watch == null ||
             _watchCached.hashCode != _watchActual.hashCode) {
           if (reactiveModel.hasObservers) {
-            reactiveModel.rebuildStates(_injectAsync.filterTags);
+            reactiveModel.rebuildStates(injectAsync.filterTags);
           }
           _watchCached = _watchActual;
           _hasError = false;
@@ -534,14 +540,14 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
         _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
         _hasError = true;
         if (reactiveModel.hasObservers) {
-          reactiveModel.rebuildStates(_injectAsync.filterTags);
+          reactiveModel.rebuildStates(injectAsync.filterTags);
         }
       },
       onDone: () {
         _isStreamDone = true;
         _snapshot = _snapshot.inState(ConnectionState.done);
         if (reactiveModel.hasObservers) {
-          reactiveModel.rebuildStates(_injectAsync.filterTags);
+          reactiveModel.rebuildStates(injectAsync.filterTags);
         }
       },
       cancelOnError: false,
@@ -550,10 +556,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   }
 
   void _unsubscribe() {
-    if (_subscription != null) {
-      _subscription.cancel();
-      _subscription = null;
-    }
+    unsubscribe();
   }
 }
 
