@@ -173,9 +173,13 @@ Injector(
   .
 );
 ```
-Models are registered lazily by default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
+* Models are registered lazily by default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
 
-In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
+* `Injector` is a simple `StatefulWidget`, and models are registered in the `initState` and unregistered in the `dispose` state. (Registered means add to the service locator container).
+If you wish to unregister and re-register the injected models after each rebuild you can set the key parameter to be `UniqueKey()`.
+In a better alternative is to use the `reinjectOn` parameter which takes a list of `StatesRebuilder` models and unregister and re-register the injected models if any of the latter models emits a notification.
+
+* In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
 
 ```dart
 Injector( 
