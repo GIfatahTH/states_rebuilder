@@ -230,19 +230,18 @@ class InjectorState extends State<Injector> {
               final inj = allRegisteredModelInApp[inject.getName()].last;
 
               if (inject.isAsyncInjected) {
-                inject.getReactive().unsubscribe();
+                inj.getReactive().unsubscribe();
                 inj.creationStreamFunction = inject.creationStreamFunction;
                 inj.creationFutureFunction = inject.creationFutureFunction;
-                (inject.getReactive() as StreamStatesRebuilder).subscribe();
+                (inj.getReactive() as StreamStatesRebuilder).subscribe();
               } else {
                 inj.singleton = inject.creationFunction();
                 inj.reactiveSingleton.state = inj.singleton;
-                // inj.reactiveSingleton.resetToIdle();
                 inj.creationFunction = inject.creationFunction;
               }
             }
           }),
-          tag: 'tag',
+          tag: 'reinjectOn',
         );
       }
     }
@@ -413,7 +412,6 @@ class InjectorStateAppLifeCycle extends InjectorState
 
 class _ObserverOfStatesRebuilder extends ObserverOfStatesRebuilder {
   final void Function() updateCallback;
-
   _ObserverOfStatesRebuilder(this.updateCallback);
   @override
   bool update([Function(BuildContext) onSetState, message]) {
