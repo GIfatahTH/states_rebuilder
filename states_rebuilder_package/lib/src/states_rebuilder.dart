@@ -37,13 +37,12 @@ class StatesRebuilder implements Subject {
   ///key holds the observer tags and the value holds the observers
   ///_observers = {"tag" : [observer1, observer2, ...]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
-  final LinkedHashMap<String, List<ObserverOfStatesRebuilder>> _observersMap =
-      LinkedHashMap<String, List<ObserverOfStatesRebuilder>>();
-  final Set<ObserverOfStatesRebuilder> _observersSet =
-      <ObserverOfStatesRebuilder>{};
+  final LinkedHashMap<String, Set<ObserverOfStatesRebuilder>> _observersMap =
+      LinkedHashMap<String, Set<ObserverOfStatesRebuilder>>();
+  Set<ObserverOfStatesRebuilder> _observersSet = <ObserverOfStatesRebuilder>{};
 
   /// observers getter
-  Map<String, List<ObserverOfStatesRebuilder>> observers() => _observersMap;
+  Map<String, Set<ObserverOfStatesRebuilder>> observers() => _observersMap;
   bool get hasObservers => _observersMap.isNotEmpty;
 
   ///Holds user defined void callback to be executed after removing all observers.
@@ -54,20 +53,14 @@ class StatesRebuilder implements Subject {
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
     assert(tag != null);
-    Map<String, List<ObserverOfStatesRebuilder>> observersTemp = {};
-    observersTemp.addAll(_observersMap);
-    _observersMap.clear();
-    //observers are add at the beginning of the list.
-    if (observersTemp[tag] == null) {
-      _observersMap[tag] = <ObserverOfStatesRebuilder>[observer];
-      _observersMap.addAll(observersTemp);
+
+    if (_observersMap[tag] == null) {
+      _observersMap[tag] = <ObserverOfStatesRebuilder>{observer};
     } else {
-      observersTemp[tag] = [observer, ...observersTemp[tag]];
-      _observersMap.addAll(observersTemp);
+      _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
-    for (var e in _observersMap.values) {
-      _observersSet.addAll(e);
-    }
+
+    _observersSet = {observer, ..._observersSet};
   }
 
   @override
@@ -108,6 +101,14 @@ class StatesRebuilder implements Subject {
       }
     }
   }
+
+  // dynamic _tag;
+  // bool _isExclusive = false;
+  // StatesRebuilder tag(dynamic tag, [bool isExclusive = false]) {
+  //   _tag = tag;
+  //   _isExclusive = isExclusive;
+  //   return this;
+  // }
 
   /// You call [rebuildState] inside any of your logic classes that extends [StatesRebuilder].
   ///
@@ -152,8 +153,7 @@ class StatesRebuilder implements Subject {
     bool isOnSetStateCalledOrNull = onSetState == null;
 
     if (tags == null) {
-      for (ObserverOfStatesRebuilder observer
-          in _observersSet.toList().reversed) {
+      for (ObserverOfStatesRebuilder observer in _observersSet) {
         observer.update(
           isOnSetStateCalledOrNull
               ? null
@@ -204,8 +204,6 @@ class StatesRebuilder implements Subject {
 class StatesRebuilderInternal {
   static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
     to?._observersMap?.addAll(from._observersMap);
-    for (var e in from._observersMap.values) {
-      to?._observersSet?.addAll(e);
-    }
+    to?._observersSet?.addAll(from._observersSet);
   }
 }
