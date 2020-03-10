@@ -64,7 +64,7 @@ class TimerView extends StatelessWidget {
     int duration;
     return Injector(
       //NOTE3 : Defining the a unique key of the widget.
-      key: UniqueKey(),
+      key: UniqueKey(), 
       inject: [
         //NOTE4: Injecting the stream
         Inject<int>.stream(
@@ -165,6 +165,31 @@ to get the reactive singleton :
 ```dart
 final timerStream = Injector.getAsReactive<int>(name: 'customStreamName');
 ```
+
+## Update (v. 1.14.3)
+Using UniqueKey has an undesired side effect; Each time Flutter calls the build method,for any raison, the `Injector` will be disposed and inserted back to the widget.
+In version 1.14.3 I added the `reinjectOn` parameter so that only if rebuild is issued from `timerStatusRM`, the stream is canceled and an new subscription will be established.
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    int duration;
+    return Injector(
+      inject: [
+        Inject<int>.stream(
+          () => Stream.periodic(Duration(seconds: 1), (num) => num),
+          initialValue: initialTimer,
+        ),
+      ],
+      //reinjectOn takes a list of reactive models. If any of them emits a notification, the injected model will be disposed and re-injected.
+      reinjectOn: [timerStatusRM],
+      builder: (_) {
+        //
+        //
+      }
+```
+
 
 After getting the reactive singleton of the stream we subscribe to it using `StateBuilder` [NOTE6].
 

@@ -1,5 +1,33 @@
 ## 1.14.3 (2020-03-08)
-* Add `reinjectOn` parameters to `Injector` widgets. It takes a list of ReactiveModel, and it reinjects the registered models whenever any of the ReactiveModel in the reinjectOn parameters emits a notification.
+* Add `reinjectOn` parameters to `Injector` widgets. It takes a list of ReactiveModel, and it reinjects the registered models whenever any of the ReactiveModel in the `reinjectOn` parameters emits a notification. (issue #47).
+
+example of injected stream:
+```dart
+final multiplierRM = ReactiveModel.create(1);
+Widget builder(BuildContext context){
+
+  return Injector(
+    inject: [Inject.stream(() => Stream.periodic(Duration(seconds: 1), (num) => multiplierRM * num))],
+    //Listen to multiplierRM and reinject the stream whenever multiplierRM emits a notification
+    reinjectOn: [multiplierRM],
+    builder: (context) {
+      ///
+      ///
+    },
+  );
+}
+```
+
+The stream emits: 1, 2, 3, 4, ... because multiplierRM = 1.
+
+when the value `multiplierRM` is set to 2:
+
+```dart
+multiplierRM.setValue(()=>2);
+```
+
+The stream subscription is cancelled and an new subscription is established that emits the values : 2, 4, 6, 8 .....
+
 
 
 ## 1.14.2 (2020-02-28)

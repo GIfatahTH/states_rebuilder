@@ -34,7 +34,7 @@ class TimerView extends StatelessWidget {
     int duration;
     return Injector(
       //NOTE3 : Defining the a unique key of the widget.
-      key: UniqueKey(),
+      //key: UniqueKey(), (reinjectOn is used instead)
       inject: [
         //NOTE4: Injecting the stream
         Inject<int>.stream(
@@ -43,6 +43,8 @@ class TimerView extends StatelessWidget {
           initialValue: 0,
         ),
       ],
+      //added in version 1.14.3
+      reinjectOn: [timerStatusRM],
       builder: (_) {
         //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
         final timerStream = Injector.getAsReactive<int>();
