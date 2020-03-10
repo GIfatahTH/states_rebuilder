@@ -14,17 +14,13 @@ abstract class Injectable {
 ///It caches the rew singleton and the reactive singleton.
 class Inject<T> implements Injectable {
   /// The Creation Function.
-  T Function() _creationFunction;
-
-  Future<T> Function() _creationFutureFunction;
+  T Function() creationFunction;
 
   /// Get the creation Function. It must return a Future.
-  Future<T> Function() get creationFutureFunction => _creationFutureFunction;
-
-  Stream<T> Function() _creationStreamFunction;
+  Future<T> Function() creationFutureFunction;
 
   /// Get the creation Function. It must return a Stream.
-  Stream<T> Function() get creationStreamFunction => _creationStreamFunction;
+  Stream<T> Function() creationStreamFunction;
 
   String _name;
 
@@ -92,7 +88,7 @@ class Inject<T> implements Injectable {
 
   ///Inject a value or a model.
   Inject(
-    this._creationFunction, {
+    this.creationFunction, {
     dynamic name,
     this.isLazy,
     this.joinSingleton,
@@ -103,7 +99,7 @@ class Inject<T> implements Injectable {
 
   ///Inject a Future
   Inject.future(
-    this._creationFutureFunction, {
+    this.creationFutureFunction, {
     dynamic name,
     this.isLazy = true,
     this.initialValue,
@@ -115,7 +111,7 @@ class Inject<T> implements Injectable {
   }
 
   Inject.stream(
-    this._creationStreamFunction, {
+    this.creationStreamFunction, {
     dynamic name,
     this.isLazy = true,
     this.initialValue,
@@ -145,7 +141,7 @@ You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
 
-    this._creationFunction = impl[Injector.env];
+    this.creationFunction = impl[Injector.env];
 
     _name = name?.toString();
     _hasCustomName = name != null;
@@ -168,7 +164,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       singleton = getReactive().state;
       return singleton;
     }
-    singleton ??= _creationFunction();
+    singleton ??= creationFunction();
 
     return singleton;
   }
@@ -188,7 +184,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return asNew ? rs : reactiveSingleton ??= rs;
   }
 
-  void Function(StatesRebuilder model) refreshSubscribers;
+  void Function(StatesRebuilder model) refreshInheritedModelSubscribers;
 
   _InheritedWidgetModel _inheritedWidgetModel = _InheritedWidgetModel();
 
@@ -278,9 +274,11 @@ class _InheritedWidgetModel extends StatesRebuilder {
     super.addObserver(observer: observer, tag: tag);
 
     if (injectSR != null) {
-      injectSR.refreshSubscribers = (model) {
+      injectSR.refreshInheritedModelSubscribers = (model) {
         modelFromInjectSR = model;
         StatesRebuilderInternal.addAllToObserverMap(this, modelFromInjectSR);
+        //ensure that it is called once after each add of observer
+        injectSR.refreshInheritedModelSubscribers = null;
       };
     }
   }

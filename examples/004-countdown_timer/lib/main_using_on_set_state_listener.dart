@@ -32,7 +32,7 @@ class TimerView extends StatelessWidget {
     int duration;
     return Injector(
       //NOTE3 : Defining the a unique key of the widget.
-      key: UniqueKey(),
+      // key: UniqueKey(),
       inject: [
         //NOTE4: Injecting the stream
         Inject<int>.stream(
@@ -41,6 +41,7 @@ class TimerView extends StatelessWidget {
           initialValue: initialTimer,
         ),
       ],
+      reinjectOn: [timerStatusRM],
       builder: (_) {
         //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
         final timerStream = Injector.getAsReactive<int>();
@@ -71,6 +72,7 @@ class TimerView extends StatelessWidget {
               if (duration <= 0) {
                 //NOTE8: Mutating the state of TimerStatus using setState
                 timerStatusRM.setValue(() => TimerStatus.ready);
+                timerStream.subscription.pause();
               }
             }
           },
@@ -141,6 +143,7 @@ class PausedStatus extends StatelessWidget {
           heroTag: UniqueKey().toString(),
           onPressed: () {
             timerStatusRM.setValue(() => TimerStatus.ready);
+            timerStream.subscription.pause();
           },
         ),
       ],
@@ -202,6 +205,7 @@ class TimerDigit extends StatelessWidget {
   String get minutesStr =>
       ((duration / 60) % 60).floor().toString().padLeft(2, '0');
   String get secondsStr => (duration % 60).floor().toString().padLeft(2, '0');
+
   @override
   Widget build(BuildContext context) {
     return Padding(

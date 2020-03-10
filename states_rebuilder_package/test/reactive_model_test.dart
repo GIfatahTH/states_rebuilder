@@ -1974,13 +1974,14 @@ void main() {
 
       expect(modelRM.toString(), contains(' => isWaiting'));
       await tester.pump(Duration(seconds: 1));
-      expect(modelRM.toString(), contains(" => hasData : Instance of 'Model'"));
+      expect(
+          modelRM.toString(), contains(" => hasData : (Instance of 'Model')"));
 
       //
       modelRM.setState((s) => s.incrementAsyncError());
       await tester.pump(Duration(seconds: 1));
       expect(modelRM.toString(),
-          contains(' => hasError : Exception: error message'));
+          contains(' => hasError : (Exception: error message)'));
 
       //
       expect('${modelRM.asNew('seed1')}',
@@ -1992,7 +1993,7 @@ void main() {
           contains('Stream of <int> singleton reactive model'));
       expect(intStream.toString(), contains('=> isWaiting'));
       await tester.pump(Duration(seconds: 3));
-      expect(intStream.toString(), contains('=> hasData : 2'));
+      expect(intStream.toString(), contains('=> hasData : (2)'));
 
       final intFuture = ReactiveModel.future(getFuture()).asNew();
       expect(
@@ -2001,7 +2002,7 @@ void main() {
               'Future of <int> new reactive model seed: "defaultReactiveSeed"'));
       expect(intFuture.toString(), contains('=> isWaiting'));
       await tester.pump(Duration(seconds: 3));
-      expect(intFuture.toString(), contains('=> hasData : 1'));
+      expect(intFuture.toString(), contains('=> hasData : (1)'));
     },
   );
 
@@ -2041,6 +2042,57 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsOneWidget);
       // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
+    },
+  );
+
+  testWidgets(
+    'issue #61: reactive stream with error and watch',
+    (WidgetTester tester) async {
+      int numberOfRebuild = 0;
+      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (num) {
+        if (num == 0) throw Exception('error message');
+        return num;
+      }).take(3);
+
+      final rmStream =
+          ReactiveModel.stream(snapStream, watch: (rm) => rm, initialValue: 1);
+      final widget = Injector(
+        inject: [Inject(() => 'n')],
+        builder: (_) {
+          return StateBuilder(
+            models: [rmStream],
+            tag: 'MyTag',
+            builder: (_, rmStream) {
+              numberOfRebuild++;
+              return Container();
+            },
+          );
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(home: widget));
+      expect(numberOfRebuild, 1);
+      expect(rmStream.value, 1);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuild, 2);
+      expect(rmStream.value, 1);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuild, 3);
+      expect(rmStream.value, 1);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuild, 4);
+      expect(rmStream.value, 2);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuild, 5);
+      expect(rmStream.value, 3);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuild, 5);
+      expect(rmStream.value, 3);
     },
   );
 }

@@ -501,7 +501,7 @@ void main() {
   );
 
   testWidgets(
-    'StateBuilder should watch works for primitives',
+    'StateBuilder: should watch works for primitives',
     (tester) async {
       int numberOfRebuild = 0;
       final widget = StateBuilder(
@@ -1024,6 +1024,39 @@ void main() {
     expect(numberOfDidUpdateWidget, equals(1));
     expect(numberOfCleaner, equals(0));
   });
+
+  // testWidgets('isExclusive', (tester) async {
+  //   final widget = StateBuilder(
+  //     models: [model],
+  //     builder: (ctx, _) {
+  //       return Directionality(
+  //         textDirection: TextDirection.ltr,
+  //         child: Text('${model.counter}'),
+  //       );
+  //     },
+  //   );
+
+  //   await tester.pumpWidget(widget);
+  //   expect(find.text('0'), findsOneWidget);
+
+  //   //
+  //   model.increment();
+  //   model.rebuildStates();
+  //   await tester.pump();
+  //   expect(find.text('1'), findsOneWidget);
+
+  //   //
+  //   model.tag('exclusiveTag');
+  //   model.increment();
+  //   model.rebuildStates();
+  //   await tester.pump();
+  //   expect(find.text('2'), findsOneWidget);
+  //   //
+  //   model.increment();
+  //   model.rebuildStates(['exclusiveTag']);
+  //   await tester.pump();
+  //   expect(find.text('3'), findsOneWidget);
+  // });
 }
 
 class Model extends StatesRebuilder {

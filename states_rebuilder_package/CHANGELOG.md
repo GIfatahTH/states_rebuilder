@@ -1,3 +1,39 @@
+## 1.14.3 (2020-03-10)
+* Add `reinjectOn` parameters to `Injector` widgets. It takes a list of `ReactiveModel`, and it re-injects the registered models whenever any of the ReactiveModels in the `reinjectOn` parameters emits a notification. [issue #47](../issues/47).
+
+example of injected stream:
+```dart
+final multiplierRM = ReactiveModel.create(1);
+Widget builder(BuildContext context){
+
+  return Injector(
+    inject: [Inject.stream(() => Stream.periodic(Duration(seconds: 1), (num) => multiplierRM * num))],
+    //Listen to multiplierRM and reinject the stream whenever multiplierRM emits a notification
+    reinjectOn: [multiplierRM],
+    builder: (context) {
+      ///
+      ///
+    },
+  );
+}
+```
+
+The stream emits: 1, 2, 3, 4, ... because multiplierRM = 1. 
+
+when the value `multiplierRM` is set to 2:
+
+```dart
+multiplierRM.setValue(()=>2);
+```
+
+The stream subscription is cancelled and an new subscription is established that emits the values : 2, 4, 6, 8 ..... (multiplierRM = 2). Now decedent widgets can subscribe to the stream and rebuild whenever the stream emits a value.
+
+This works for injected streams, futures and vanilla dart classes. 
+
+* Add watch parameter to ReactiveModel.stream constructor. [issue 61](../issues/61)
+
+* refactor code to improve performance.
+
 ## 1.14.2 (2020-02-28)
 * Add `ReactiveModel<T>.stream(T stream)` and `ReactiveModel<T>.future(T future)` to create a `ReactiveModel` from a stream or future.
 * Override the `toString` method of the `ReactiveModel` to give an informative debug print.
