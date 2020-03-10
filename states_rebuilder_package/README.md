@@ -167,6 +167,8 @@ Injector(
     Inject<int>.stream(() => Stream()),// Register a stream.
     Inject(() => ModelD(),name:"customName"), // Use custom name
   ],
+  //reinjectOn takes a list of StatesRebuilder models, if any of those models emits a notification all the injected model will be disposed and re-injected.
+  reinjectOn : [models]
   .
   .
 );
