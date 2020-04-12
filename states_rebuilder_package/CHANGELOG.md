@@ -1,3 +1,16 @@
+## 1.15.0 (2020-04-12)
+* Add `Inject.previous`. #47 [see more details](changelog/v-1.15.2.md) 
+* Addd Shortcuts to get and create model, future, stream `ReactiveModel`s: 
+```dart
+IN.get<T>()//To consume the pure registered instance;
+RM.get<T>(); //to get the ReactiveModel instance of type T.
+RM.create<T>(myModel);// to create a local ReactiveModel.
+RM.future<T>(myFuture);// to create a local future ReactiveModel.
+RM.stream<T>(myStream);// to create a local stream ReactiveModel.
+```
+[see more details](changelog/v-1.15.2.md)
+* Fix issue #72
+
 ## 1.14.3 (2020-03-10)
 * Add `reinjectOn` parameters to `Injector` widgets. It takes a list of `ReactiveModel`, and it re-injects the registered models whenever any of the ReactiveModels in the `reinjectOn` parameters emits a notification. [issue #47](../issues/47).
 

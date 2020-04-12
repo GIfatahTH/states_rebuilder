@@ -92,6 +92,10 @@ final T model = Injector.get<T>()
 //If the model is registered with custom name :
 final T model = Injector.get<T>(name:'customName');
 ```
+> As a shortcut you can use:
+```dart
+final T model = IN.get<T>() // IN stands for Injector
+```
 
 The example above becomes:
 ```dart
@@ -166,18 +170,28 @@ Injector(
     Inject<bool>.future(() => Future(), initialValue:0),// Register a future.
     Inject<int>.stream(() => Stream()),// Register a stream.
     Inject(() => ModelD(),name:"customName"), // Use custom name
+
+    //Inject and reinject with previous value provided. 
+    Inject<ModelA>.previous((ModelA previous){
+      return ModelA(id: previous.id);
+    })
   ],
   //reinjectOn takes a list of StatesRebuilder models, if any of those models emits a notification all the injected model will be disposed and re-injected.
   reinjectOn : [models]
+  // Whether to notify listners of injected model using 'previous' constructor
+  shouldNotifyOnReinjectOn:ture;
   .
   .
 );
 ```
+
 * Models are registered lazily by default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
 
 * `Injector` is a simple `StatefulWidget`, and models are registered in the `initState` and unregistered in the `dispose` state. (Registered means add to the service locator container).
 If you wish to unregister and re-register the injected models after each rebuild you can set the key parameter to be `UniqueKey()`.
 In a better alternative is to use the `reinjectOn` parameter which takes a list of `StatesRebuilder` models and unregister and re-register the injected models if any of the latter models emits a notification.
+
+* For more detailed on the use of `Inject.previous` and `reinject` and `shouldNotifyOnReinjectOn` [see more details here](changelog/v-1.15.2.md)
 
 * In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
 
@@ -338,6 +352,14 @@ Compared to the case of explicit reactivity, `states_rebuilder` uses the same co
 ```dart
 ReactiveModel<T> modelRM = Injector.getAsReactive<T>()
 ```
+As a shortcut you can use:
+```dart
+ReactiveModel<T> modelRM = ReactiveModel<T>();
+// Or simply
+ReactiveModel<T> modelRM = RM.get<T>();
+```
+> It worths to take time and see here for more Shortcuts [see more details](changelog/v-1.15.2.md)
+
 The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
 
 > `Injector.get<T>()` returns the raw singleton of type `T` of the registered model.    
@@ -460,8 +482,6 @@ The seed parameter is optional, and if not provided, `states_rebuilder` uses a d
 * To make new reactive instances accessible throughout the widget tree, you have to register it with the `Injector` with a custom name: 
 
 ```dart
-
-
 return Injector(
 inject: [
   Inject( () => modelNewRM, name: 'newModel1'),
@@ -1023,3 +1043,12 @@ You can see a real test of the [counter_app_with_error]((states_rebuilder_packag
 # For further reading:
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+
+
+# Updates
+To track the history of updates and feel the context when those updates are introduced, See the following links.
+
+* [see more details](changelog/v-1.15.2.md) : 
+  * Example of using `Inject.previous` with `reinjectOn`;
+  * The add shortcuts (`IN.get()`, `RM.get()`, ...);
+  * Example of how to use states_rebuilder observer widgets instead of `FutureBuilder` and `StreamBuilder` Flutter widgets;

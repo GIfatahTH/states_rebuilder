@@ -8,6 +8,9 @@ import 'states_rebuilder.dart';
 ///A class used to register (inject) models.
 class Injector extends StatefulWidget {
   ///List of models to register (inject).
+  ///
+  ///**IMPORTANT: You can not inject more than one instance of a model.**
+  ///**If you have to do that, use Inject with custom name.**
   ///example:
   ///```dart
   ///Injector(
@@ -37,6 +40,8 @@ class Injector extends StatefulWidget {
 
   final List<StatesRebuilder> reinjectOn;
 
+  final bool shouldNotifyOnReinjectOn;
+
   ///Function to execute in `initState` of the state.
   final void Function() initState;
 
@@ -63,6 +68,7 @@ class Injector extends StatefulWidget {
     @required this.builder,
     this.reinject,
     this.reinjectOn,
+    this.shouldNotifyOnReinjectOn = true,
     //for app lifecycle
     this.initState,
     this.dispose,
@@ -238,6 +244,9 @@ class InjectorState extends State<Injector> {
                 inj.singleton = inject.creationFunction();
                 inj.reactiveSingleton.state = inj.singleton;
                 inj.creationFunction = inject.creationFunction;
+                if (widget.shouldNotifyOnReinjectOn) {
+                  inj.getReactive().setState((_) => {});
+                }
               }
             }
           }),
@@ -267,13 +276,9 @@ class InjectorState extends State<Injector> {
           allRegisteredModelInApp[name] = [inject];
           _injects.add(inject);
         } else {
-          if (lastInject.first.isWidgetDeactivated) {
-            allRegisteredModelInApp[name].add(inject);
+          if (Injector.enableTestMode == false) {
+            allRegisteredModelInApp[name].add(lastInject.first);
             _injects.add(inject);
-          } else {
-            if (Injector.enableTestMode == false) {
-              throw Exception(AssertMessage.injectingAnInjectedModel(name));
-            }
           }
         }
       }
@@ -330,9 +335,6 @@ class InjectorState extends State<Injector> {
 
   @override
   void deactivate() {
-    for (Inject inject in _injects) {
-      inject.isWidgetDeactivated = true;
-    }
     super.deactivate();
   }
 
@@ -350,7 +352,10 @@ class InjectorState extends State<Injector> {
   void _dispose() {
     for (Inject inject in _injects) {
       final name = inject.getName();
-      allRegisteredModelInApp[name]?.remove(inject);
+      final isRemoved = allRegisteredModelInApp[name]?.remove(inject);
+      if (!isRemoved) {
+        allRegisteredModelInApp[name]?.removeLast();
+      }
       if (allRegisteredModelInApp[name].isEmpty) {
         allRegisteredModelInApp.remove(name);
 
@@ -417,5 +422,19 @@ class _ObserverOfStatesRebuilder extends ObserverOfStatesRebuilder {
   bool update([Function(BuildContext) onSetState, message]) {
     updateCallback();
     return true;
+  }
+}
+
+abstract class IN {
+  static T get<T>({
+    dynamic name,
+    BuildContext context,
+    bool silent = false,
+  }) {
+    return Injector.get<T>(
+      name: name,
+      context: context,
+      silent: silent,
+    );
   }
 }

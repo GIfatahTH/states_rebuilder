@@ -1428,7 +1428,7 @@ void main() {
     testWidgets(
       'tagFilter works',
       (tester) async {
-        final modelRM = ReactiveModel.create(0);
+        final modelRM = RM.create(0);
 
         final widget = StateBuilder(
           models: [modelRM],
@@ -2007,6 +2007,35 @@ void main() {
   );
 
   testWidgets(
+    'ReactiveModel : ReactiveModel.future works',
+    (tester) async {
+      ReactiveModel modelRM0;
+
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder(
+            models: [
+              modelRM0 = RM.future(getFuture(), initialValue: 0),
+            ],
+            builder: (context, _) {
+              return Container();
+              // return _widgetBuilder('${modelRM0.state}');
+            },
+          )
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+      // expect(find.text('0'), findsOneWidget);
+      expect(modelRM0.isWaiting, isTrue);
+
+      await tester.pump(Duration(seconds: 1));
+      // expect(find.text('1'), findsOneWidget);
+      expect(modelRM0.hasData, isTrue);
+    },
+  );
+
+  testWidgets(
     'ReactiveModel : ReactiveModel.stream works',
     (tester) async {
       ReactiveModel<int> modelRM0;
@@ -2014,9 +2043,7 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [
-              modelRM0 = ReactiveModel.stream(getStream(), initialValue: 0)
-            ],
+            models: [modelRM0 = RM.stream(getStream(), initialValue: 0)],
             builder: (context, _) {
               return _widgetBuilder('${modelRM0.state}');
             },

@@ -63,6 +63,18 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     return inject.getReactive();
   }
 
+  // static ReactiveModel getFuture<T>(Function(T) fut,
+  //     {dynamic name, dynamic initialValue, BuildContext context}) {
+  //   final m = Injector.get<T>(name: name, context: context);
+
+  //   final inject = Inject.future(
+  //     () => Future.value('fut(m)'),
+  //     initialValue: initialValue,
+  //     name: name,
+  //   );
+  //   return inject.getReactive();
+  // }
+
   // static ReactiveModel<T> get<T>(
   //     {BuildContext context, dynamic name, bool silent = false}) {
   //   return Injector.getAsReactive<T>(
@@ -564,4 +576,141 @@ class ReactiveModelInternal {
   static setOnSetStateContext(ReactiveModel rm, BuildContext ctx) {
     rm._onSetStateContextFromGet = ctx;
   }
+}
+
+abstract class RM {
+  static ReactiveModel<T> create<T>(T model) {
+    return ReactiveModel<T>.create(model);
+  }
+
+  static ReactiveModel<T> future<T>(
+    Future<T> future, {
+    dynamic name,
+    T initialValue,
+    List<dynamic> filterTags,
+  }) {
+    return ReactiveModel<T>.future(
+      future,
+      name: name,
+      initialValue: initialValue,
+      filterTags: filterTags,
+    );
+  }
+
+  static ReactiveModel<T> stream<T>(
+    Stream<T> stream, {
+    dynamic name,
+    T initialValue,
+    List<dynamic> filterTags,
+    Object Function(T) watch,
+  }) {
+    return ReactiveModel<T>.stream(
+      stream,
+      name: name,
+      initialValue: initialValue,
+      filterTags: filterTags,
+      watch: watch,
+    );
+  }
+
+  static ReactiveModel<T> get<T>({
+    dynamic name,
+    BuildContext context,
+    bool silent,
+  }) {
+    return Injector.getAsReactive<T>(
+      name: name,
+      context: context,
+      silent: silent,
+    );
+  }
+
+  static ReactiveModel<R> getFuture<T, R>(
+    Future<R> Function(T) future, {
+    String name,
+    BuildContext context,
+    R initialValue,
+  }) {
+    final m = Injector.get<T>(name: name, context: context);
+    return RM.future(
+      future(m),
+      initialValue: initialValue,
+    );
+  }
+
+  static ReactiveModel<R> getStream<T, R>(
+    Stream<R> Function(T) stream, {
+    String name,
+    BuildContext context,
+    R initialValue,
+    Object Function(R) watch,
+  }) {
+    final m = Injector.get<T>(name: name, context: context);
+    return RM.stream(
+      stream(m),
+      initialValue: initialValue,
+      watch: watch,
+    );
+  }
+
+  static Future<void> getSetState<T>(
+    Object Function(T) fn, {
+    bool catchError,
+    Object Function(T) watch,
+    List<dynamic> filterTags,
+    List<dynamic> seeds,
+    void Function(BuildContext) onSetState,
+    void Function(BuildContext) onRebuildState,
+    void Function(BuildContext, dynamic) onError,
+    void Function(BuildContext, T) onData,
+    dynamic Function() joinSingletonToNewData,
+    bool joinSingleton,
+    bool notifyAllReactiveInstances,
+    bool setValue,
+  }) {
+    return RM.get<T>().setState(
+          fn,
+          catchError: catchError,
+          watch: watch,
+          filterTags: filterTags,
+          seeds: seeds,
+          onSetState: onSetState,
+          onRebuildState: onRebuildState,
+          onError: onError,
+          onData: onData,
+          joinSingletonToNewData: joinSingletonToNewData,
+          joinSingleton: joinSingleton,
+          notifyAllReactiveInstances: notifyAllReactiveInstances,
+          setValue: setValue,
+        );
+  }
+
+  // static Future<void> getSetValue<T>(
+  //   FutureOr<T> Function() fn, {
+  //   List<dynamic> filterTags,
+  //   List<dynamic> seeds,
+  //   void Function(BuildContext context) onSetState,
+  //   void Function(BuildContext context) onRebuildState,
+  //   void Function(BuildContext context, dynamic error) onError,
+  //   void Function(BuildContext context, T data) onData,
+  //   bool catchError = false,
+  //   bool notifyAllReactiveInstances = false,
+  //   bool joinSingleton,
+  // }) {
+  //   final _model = RM.get<T>();
+  //   return _model.setState(
+  //     (_) => fn(),
+  //     filterTags: filterTags,
+  //     seeds: seeds,
+  //     onSetState: onSetState,
+  //     onRebuildState: onRebuildState,
+  //     onData: onData,
+  //     onError: onError,
+  //     catchError: catchError,
+  //     notifyAllReactiveInstances: notifyAllReactiveInstances,
+  //     joinSingleton: joinSingleton,
+  //     joinSingletonToNewData: _model.joinSingletonToNewData,
+  //     setValue: true,
+  //   );
+  // }
 }

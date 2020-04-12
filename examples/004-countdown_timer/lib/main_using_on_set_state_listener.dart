@@ -27,7 +27,7 @@ class TimerView extends StatelessWidget {
   Widget build(BuildContext context) {
     //NOTE1 : Getting the registered reactive singleton of the TimerStatus
     //NOTE1 : The context is defined so that it will be subscribed to the TimerStatus.
-    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    final timerStatusRM = RM.get<TimerStatus>(context: context);
     //NOTE2: Local variable to hold the current timer value.
     int duration;
     return Injector(
@@ -44,7 +44,7 @@ class TimerView extends StatelessWidget {
       reinjectOn: [timerStatusRM],
       builder: (_) {
         //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
-        final timerStream = Injector.getAsReactive<int>();
+        final timerStream = RM.get<int>();
         return OnSetStateListener(
           models: [timerStatusRM, timerStream],
           tag: 'timer',
@@ -120,8 +120,8 @@ class TimerView extends StatelessWidget {
 }
 
 class PausedStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +152,7 @@ class PausedStatus extends StatelessWidget {
 }
 
 class RunningStatus extends StatelessWidget {
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +189,7 @@ class ReadyStatus extends StatelessWidget {
       child: Icon(Icons.play_arrow),
       heroTag: UniqueKey().toString(),
       onPressed: () {
-        final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+        final timerStatusRM = RM.get<TimerStatus>();
         timerStatusRM.setValue(
           () => TimerStatus.running,
           filterTags: ['timer'],

@@ -147,6 +147,30 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     _hasCustomName = name != null;
   }
 
+  factory Inject.previous(
+    T Function(T previous) creationFunction, {
+    dynamic name,
+    bool isLazy,
+    JoinSingleton joinSingleton,
+    T initialValue,
+  }) {
+    bool isInit = false;
+    return Inject(
+      () {
+        T v = initialValue;
+        if (isInit) {
+          v = Injector.get<T>(silent: true);
+        } else {
+          isInit = true;
+        }
+        return creationFunction(v);
+      },
+      name: name,
+      isLazy: isLazy,
+      joinSingleton: joinSingleton,
+    );
+  }
+
   /// Get the name of the model is registered with.
   String getName() {
     assert(T != dynamic);
@@ -190,7 +214,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   @override
   Widget inheritedInject(Widget child) {
-    return StateBuilder<dynamic>(
+    return StateBuilder<Injector>(
       models: <StatesRebuilder>[_inheritedWidgetModel..injectSR = this],
       builder: (ctx, __) {
         return InheritedInject<T>(
