@@ -191,7 +191,7 @@ Injector(
 If you wish to unregister and re-register the injected models after each rebuild you can set the key parameter to be `UniqueKey()`.
 In a better alternative is to use the `reinjectOn` parameter which takes a list of `StatesRebuilder` models and unregister and re-register the injected models if any of the latter models emits a notification.
 
-* For more detailed on the use of `Inject.previous` and `reinject` and `shouldNotifyOnReinjectOn` [see more details here](changelog/v-1.15.2.md)
+* For more detailed on the use of `Inject.previous` and `reinject` and `shouldNotifyOnReinjectOn` [see more details here](changelog/v-1.15.0.md)
 
 * In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
 
@@ -358,7 +358,7 @@ ReactiveModel<T> modelRM = ReactiveModel<T>();
 // Or simply
 ReactiveModel<T> modelRM = RM.get<T>();
 ```
-> It worths to take time and see here for more Shortcuts [see more details](changelog/v-1.15.2.md)
+> It worths to take time and see here for more Shortcuts [see more details](changelog/v-1.15.0.md)
 
 The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
 
@@ -1048,7 +1048,7 @@ You can see a real test of the [counter_app_with_error]((states_rebuilder_packag
 # Updates
 To track the history of updates and feel the context when those updates are introduced, See the following links.
 
-* [see more details](changelog/v-1.15.2.md) : 
+* [see more details](changelog/v-1.15.0.md) : 
   * Example of using `Inject.previous` with `reinjectOn`;
   * The add shortcuts (`IN.get()`, `RM.get()`, ...);
   * Example of how to use states_rebuilder observer widgets instead of `FutureBuilder` and `StreamBuilder` Flutter widgets;
