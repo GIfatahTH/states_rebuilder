@@ -1,5 +1,5 @@
 ## 1.15.0 (2020-04-12)
-* Add `Inject.previous`. #47 [see more details](changelog/v-1.15.2.md) 
+* Add `Inject.previous`. #47 [see more details](changelog/v-1.15.0.md) 
 * Addd Shortcuts to get and create model, future, stream `ReactiveModel`s: 
 ```dart
 IN.get<T>()//To consume the pure registered instance;
@@ -8,7 +8,7 @@ RM.create<T>(myModel);// to create a local ReactiveModel.
 RM.future<T>(myFuture);// to create a local future ReactiveModel.
 RM.stream<T>(myStream);// to create a local stream ReactiveModel.
 ```
-[see more details](changelog/v-1.15.2.md)
+[see more details](changelog/Mallati's Thesis  draft-v2-2020-04-12.md)
 * Fix issue #72
 
 ## 1.14.3 (2020-03-10)
