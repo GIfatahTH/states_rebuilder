@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'assertions.dart';
 import 'inject.dart';
@@ -185,8 +186,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
 
   bool _whenConnectionState = false;
 
-  BuildContext _onSetStateContextFromGet;
-
   @deprecated
   dynamic customStateStatus;
 
@@ -261,6 +260,19 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     );
   }
 
+  StackTrace _errorStackTraceDebug;
+  BuildContext _onSetStateContextFromGet;
+  BuildContext _ctx;
+  BuildContext _activeCtx(BuildContext context) {
+    if (_onSetStateContextFromGet != null &&
+        _onSetStateContextFromGet.findRenderObject().attached) {
+      return _ctx ??= context.hashCode > _onSetStateContextFromGet.hashCode
+          ? context
+          : _onSetStateContextFromGet;
+    }
+    return _ctx ??= context;
+  }
+
   /// Mutate the state of the model and notify observers.
   ///
   /// [fn] takes the current state as argument. You can optionally define
@@ -292,7 +304,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
   /// TODO note on context
   Future<void> setState(
-    Object Function(T) fn, {
+    Function(T) fn, {
     bool catchError,
     Object Function(T state) watch,
     List<dynamic> filterTags,
@@ -320,14 +332,14 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         rebuildStates(
           filterTags,
           (BuildContext context) {
-            assert((_onSetStateContextFromGet ?? context) != null);
+            _ctx = null;
             if (onError != null && hasError) {
-              onError(_onSetStateContextFromGet ?? context, error);
+              onError(_activeCtx(context), error);
             }
 
             if (hasData) {
               if (onData != null) {
-                onData(_onSetStateContextFromGet ?? context, state);
+                onData(_activeCtx(context), state);
               }
               if (seeds != null) {
                 for (var seed in seeds) {
@@ -338,12 +350,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
             }
 
             if (onSetState != null) {
-              onSetState(_onSetStateContextFromGet ?? context);
+              onSetState(_activeCtx(context));
             }
 
             if (onRebuildState != null) {
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => onRebuildState(_onSetStateContextFromGet ?? context),
+                (_) => onRebuildState(_activeCtx(context)),
               );
             }
 
@@ -395,7 +407,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         }
         result = await result;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _errorStackTraceDebug = stackTrace;
       _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
       _rebuildStates(canRebuild: watch == null);
       bool _cathError = catchError ??
@@ -486,11 +499,23 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
                 inject.isFutureType ? 'Future of ' : 'Stream of ') +
         ' ${!isNewReactiveInstance ? 'singleton reactive model' : 'new reactive model seed: "$_seed"'}' +
         ' (#Code $hashCode)';
+    int num = 0;
+    observers().values.toSet().forEach((o) {
+      if (!'$o'.contains('$Injector')) {
+        num++;
+      }
+    });
     return whenConnectionState<String>(
-        onIdle: () => '$rm => isIdle ($state)',
-        onWaiting: () => '$rm => isWaiting ($state)',
-        onData: (data) => '$rm => hasData : ($data)',
-        onError: (e) => '$rm => hasError : ($e)');
+          onIdle: () => '$rm => isIdle ($state)',
+          onWaiting: () => '$rm => isWaiting ($state)',
+          onData: (data) => '$rm => hasData : ($data)',
+          onError: (e) => '$rm => hasError : ($e)',
+        ) +
+        ' | Nbr Of active observers : $num';
+  }
+
+  String toStringErrorStack() {
+    return toString() + '\n$_errorStackTraceDebug';
   }
 }
 
@@ -654,7 +679,7 @@ abstract class RM {
   }
 
   static Future<void> getSetState<T>(
-    Object Function(T) fn, {
+    Function(T) fn, {
     bool catchError,
     Object Function(T) watch,
     List<dynamic> filterTags,

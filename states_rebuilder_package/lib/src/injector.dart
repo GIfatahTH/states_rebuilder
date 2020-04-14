@@ -231,25 +231,26 @@ class InjectorState extends State<Injector> {
     if (widget.reinjectOn != null) {
       for (StatesRebuilder model in widget.reinjectOn) {
         model.addObserver(
-          observer: _ObserverOfStatesRebuilder(() {
-            for (Inject inject in widget.inject) {
-              final inj = allRegisteredModelInApp[inject.getName()].last;
-
-              if (inject.isAsyncInjected) {
-                inj.getReactive().unsubscribe();
-                inj.creationStreamFunction = inject.creationStreamFunction;
-                inj.creationFutureFunction = inject.creationFutureFunction;
-                (inj.getReactive() as StreamStatesRebuilder).subscribe();
-              } else {
-                inj.singleton = inject.creationFunction();
-                inj.reactiveSingleton.state = inj.singleton;
-                inj.creationFunction = inject.creationFunction;
-                if (widget.shouldNotifyOnReinjectOn) {
-                  inj.getReactive().setState((_) => {});
+          observer: _ObserverOfStatesRebuilder(
+            () {
+              for (Inject inject in widget.inject) {
+                final inj = allRegisteredModelInApp[inject.getName()].last;
+                if (inject.isAsyncInjected) {
+                  inj.getReactive().unsubscribe();
+                  inj.creationStreamFunction = inject.creationStreamFunction;
+                  inj.creationFutureFunction = inject.creationFutureFunction;
+                  (inj.getReactive() as StreamStatesRebuilder).subscribe();
+                } else {
+                  inj.singleton = inject.creationFunction();
+                  inj.reactiveSingleton?.state = inj.singleton;
+                  inj.creationFunction = inject.creationFunction;
+                  if (widget.shouldNotifyOnReinjectOn) {
+                    inj.getReactive().setState((_) => {});
+                  }
                 }
               }
-            }
-          }),
+            },
+          ),
           tag: 'reinjectOn',
         );
       }
