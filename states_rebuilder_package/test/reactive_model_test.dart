@@ -80,7 +80,9 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text(('error message')), findsNothing);
       //
-      modelRM.setState((s) => s.incrementError(), catchError: true);
+      modelRM.setState((s) {
+        s.incrementError();
+      }, catchError: true);
       await tester.pump();
       expect(find.text(('error message')), findsOneWidget);
     },
@@ -105,7 +107,9 @@ void main() {
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=true'), findsOneWidget);
 
-      modelRM.setState((s) => s.incrementAsync());
+      modelRM.setState((s) async {
+        await s.incrementAsync();
+      });
       await tester.pump();
       //isWaiting
       expect(find.text('0'), findsOneWidget);
@@ -640,8 +644,8 @@ void main() {
         },
       );
       await tester.pump();
-      assert(contextFromBuilder != contextFromOnSetState, isTrue);
-      assert(contextFromBuilder2 != contextFromOnSetState, isTrue);
+      expect(contextFromBuilder != contextFromOnSetState, isTrue);
+      expect(contextFromBuilder2 == contextFromOnSetState, isTrue);
     },
   );
 
@@ -2122,6 +2126,27 @@ void main() {
       expect(rmStream.value, 3);
     },
   );
+
+  testWidgets('Create local reactiveModel using RM.create', (tester) async {
+    ReactiveModel<bool> rm;
+    final widget = StateBuilder<bool>(
+      models: [RM.create(1), RM.create(false), RM.create(true)],
+      builder: (ctx, switchRM) {
+        rm = switchRM;
+        if (switchRM.value) {
+          return Text('true');
+        }
+        return Text('false');
+      },
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: widget,
+    ));
+    expect(find.text('false'), findsOneWidget);
+    rm.setValue(() => !rm.value);
+    await tester.pump();
+    expect(find.text('true'), findsOneWidget);
+  });
 }
 
 class Model {

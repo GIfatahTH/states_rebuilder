@@ -17,7 +17,7 @@ export 'src/on_set_state_listener.dart';
 
 /// [Injector] register (injected) models in the [State.initState] method and
 /// unregister (removed) them in the [State.dispose] methods.
-export 'src/injector.dart' show Injector;
+export 'src/injector.dart' show Injector, IN;
 
 /// Models are injected with [Inject] class.
 export 'src/inject.dart' show Inject, Injectable, JoinSingleton;

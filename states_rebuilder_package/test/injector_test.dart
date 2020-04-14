@@ -1005,7 +1005,7 @@ void main() {
   );
 
   testWidgets(
-    'When a parent of injector rebuild the injector child tree will not rebuild',
+    'When a parent of injector rebuild the injector child tree will rebuild',
     (WidgetTester tester) async {
       ReactiveModel<VanillaModel> model1;
       int numberOFRebuild1 = 0;
@@ -1045,7 +1045,7 @@ void main() {
   );
 
   testWidgets(
-    'should onSetState get the right context with getAsReactive',
+    'should onSetState get the right context obtained by two getAsReactive',
     (WidgetTester tester) async {
       ReactiveModel<VanillaModel> model1;
       bool isTrue = true;
@@ -1104,20 +1104,17 @@ void main() {
       await tester.pump();
       expect(context2, equals(context0));
       expect(scaffoldState, isNotNull);
+      expect(context2.hashCode > context1.hashCode, isTrue);
 
       isTrue = false;
       vm.rebuildStates();
+      await tester.pump();
 
       model1.setState(null, onSetState: (context) {
         context0 = context;
         scaffoldState = Scaffold.of(context);
       });
 
-      await tester.pump();
-      RM.getSetState<VanillaModel>(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
       await tester.pump();
 
       expect(context1, equals(context0));
@@ -1185,20 +1182,17 @@ void main() {
       await tester.pump();
       expect(context2, equals(context0));
       expect(scaffoldState, isNotNull);
+      expect(context2.hashCode > context1.hashCode, isTrue);
 
       isTrue = false;
       vm.rebuildStates();
 
+      await tester.pump();
       RM.getSetState<VanillaModel>(null, onRebuildState: (context) {
         context0 = context;
         scaffoldState = Scaffold.of(context);
       });
 
-      await tester.pump();
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
       await tester.pump();
 
       expect(context1, equals(context0));
@@ -1269,14 +1263,10 @@ void main() {
       await tester.pump();
       expect(context2, equals(context0));
       expect(scaffoldState, isNotNull);
+      expect(context2.hashCode > context1.hashCode, isTrue);
 
       isTrue = false;
       vm.rebuildStates();
-
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
 
       await tester.pump();
       model1.setState(null, onSetState: (context) {
@@ -1291,12 +1281,94 @@ void main() {
   );
 
   testWidgets(
-    'should onRebuildState get the right context with StateBuilder : case StateBuilder after getAsReactive',
+    'should onRebuildState get the right context with StateBuilder : case StateBuilder before getAsReactive',
     (WidgetTester tester) async {
       ReactiveModel<VanillaModel> model1;
       bool isTrue = true;
       BuildContext context0;
       BuildContext context1;
+      BuildContext context2;
+      ScaffoldState scaffoldState;
+      final vm = Model();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StateBuilder(
+              models: [vm],
+              builder: (_, __) {
+                return Column(
+                  children: <Widget>[
+                    Injector(
+                      inject: [
+                        Inject<VanillaModel>(() => VanillaModel(0)),
+                      ],
+                      builder: (context) {
+                        return StateBuilder(
+                          models: [Injector.getAsReactive<VanillaModel>()],
+                          builder: (context, model) {
+                            context1 = context;
+                            model1 = model;
+                            return Container();
+                          },
+                        );
+                      },
+                    ),
+                    if (isTrue)
+                      Builder(
+                        builder: (_) {
+                          return Injector(
+                            reinject: [model1],
+                            builder: (context) {
+                              Injector.getAsReactive<VanillaModel>(
+                                  context: context);
+                              context2 = context;
+                              return Container();
+                            },
+                          );
+                        },
+                      )
+                    else
+                      Container(),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      model1.setState(null, onRebuildState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+      expect(context2, equals(context0));
+      expect(scaffoldState, isNotNull);
+      expect(context2.hashCode > context1.hashCode, isTrue);
+
+      isTrue = false;
+      vm.rebuildStates();
+
+      await tester.pump();
+      model1.setState(null, onRebuildState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+
+      expect(context1, equals(context0));
+      expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'should onSetState get the right context with StateBuilder : case StateBuilder after getAsReactive',
+    (WidgetTester tester) async {
+      ReactiveModel<VanillaModel> model1;
+      bool isTrue = true;
+      BuildContext context0;
+      BuildContext context1;
+      BuildContext context2;
       ScaffoldState scaffoldState;
       final vm = Model();
       await tester.pumpWidget(
@@ -1327,6 +1399,7 @@ void main() {
                           return StateBuilder(
                             models: [Injector.getAsReactive<VanillaModel>()],
                             builder: (context, model) {
+                              context2 = context;
                               return Container();
                             },
                           );
@@ -1347,19 +1420,249 @@ void main() {
         scaffoldState = Scaffold.of(context);
       });
       await tester.pump();
-      // expect(context2, equals(context0));
+      expect(context2, equals(context0));
       expect(scaffoldState, isNotNull);
 
       isTrue = false;
       vm.rebuildStates();
 
+      await tester.pump();
       model1.setState(null, onSetState: (context) {
         context0 = context;
         scaffoldState = Scaffold.of(context);
       });
+      await tester.pump();
+
+      expect(context1, equals(context0));
+      expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'should onRebuildState get the right context with StateBuilder : case StateBuilder after getAsReactive',
+    (WidgetTester tester) async {
+      ReactiveModel<VanillaModel> model1;
+      bool isTrue = true;
+      BuildContext context0;
+      BuildContext context1;
+      BuildContext context2;
+      ScaffoldState scaffoldState;
+      final vm = Model();
+      await tester.pumpWidget(
+        MaterialApp(
+            home: Scaffold(
+                body: StateBuilder(
+          models: [vm],
+          builder: (_, __) {
+            return Column(
+              children: <Widget>[
+                Injector(
+                  inject: [
+                    Inject<VanillaModel>(() => VanillaModel(0)),
+                  ],
+                  builder: (context) {
+                    model1 =
+                        Injector.getAsReactive<VanillaModel>(context: context);
+                    context1 = context;
+                    return Container();
+                  },
+                ),
+                if (isTrue)
+                  Builder(
+                    builder: (_) {
+                      return Injector(
+                        reinject: [model1],
+                        builder: (context) {
+                          return StateBuilder(
+                            models: [Injector.getAsReactive<VanillaModel>()],
+                            builder: (context, model) {
+                              context2 = context;
+                              return Container();
+                            },
+                          );
+                        },
+                      );
+                    },
+                  )
+                else
+                  Container(),
+              ],
+            );
+          },
+        ))),
+      );
+
+      model1.setState(null, onRebuildState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+      expect(context2, equals(context0));
+      expect(scaffoldState, isNotNull);
+
+      isTrue = false;
+      vm.rebuildStates();
+
+      await tester.pump();
+      model1.setState(null, onRebuildState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+
+      expect(context1, equals(context0));
+      expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'should onSetState get the right context with StateBuilder : case two StateBuilders',
+    (WidgetTester tester) async {
+      ReactiveModel<VanillaModel> model1;
+      bool isTrue = true;
+      BuildContext context0;
+      BuildContext context1;
+      BuildContext context2;
+      ScaffoldState scaffoldState;
+      final vm = Model();
+      await tester.pumpWidget(
+        MaterialApp(
+            home: Scaffold(
+                body: StateBuilder(
+          models: [vm],
+          builder: (_, __) {
+            return Column(
+              children: <Widget>[
+                Injector(
+                  inject: [
+                    Inject<VanillaModel>(() => VanillaModel(0)),
+                  ],
+                  builder: (context) {
+                    return StateBuilder(
+                        models: [model1 = RM.get<VanillaModel>()],
+                        builder: (context, _) {
+                          context1 = context;
+                          return Container();
+                        });
+                  },
+                ),
+                if (isTrue)
+                  Builder(
+                    builder: (_) {
+                      return Injector(
+                        reinject: [model1],
+                        builder: (context) {
+                          return StateBuilder(
+                            models: [Injector.getAsReactive<VanillaModel>()],
+                            builder: (context, model) {
+                              context2 = context;
+                              return Container();
+                            },
+                          );
+                        },
+                      );
+                    },
+                  )
+                else
+                  Container(),
+              ],
+            );
+          },
+        ))),
+      );
+
+      model1.setState(null, onSetState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+      expect(context2, equals(context0));
+      expect(scaffoldState, isNotNull);
+
+      isTrue = false;
+      vm.rebuildStates();
 
       await tester.pump();
       model1.setState(null, onSetState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+
+      expect(context1, equals(context0));
+      expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'should onRebuildState get the right context with StateBuilder : case two StateBuilders',
+    (WidgetTester tester) async {
+      ReactiveModel<VanillaModel> model1;
+      bool isTrue = true;
+      BuildContext context0;
+      BuildContext context1;
+      BuildContext context2;
+      ScaffoldState scaffoldState;
+      final vm = Model();
+      await tester.pumpWidget(
+        MaterialApp(
+            home: Scaffold(
+                body: StateBuilder(
+          models: [vm],
+          builder: (_, __) {
+            return Column(
+              children: <Widget>[
+                Injector(
+                  inject: [
+                    Inject<VanillaModel>(() => VanillaModel(0)),
+                  ],
+                  builder: (context) {
+                    return StateBuilder(
+                        models: [model1 = RM.get<VanillaModel>()],
+                        builder: (context, _) {
+                          context1 = context;
+                          return Container();
+                        });
+                  },
+                ),
+                if (isTrue)
+                  Builder(
+                    builder: (_) {
+                      return Injector(
+                        reinject: [model1],
+                        builder: (context) {
+                          return StateBuilder(
+                            models: [Injector.getAsReactive<VanillaModel>()],
+                            builder: (context, model) {
+                              context2 = context;
+                              return Container();
+                            },
+                          );
+                        },
+                      );
+                    },
+                  )
+                else
+                  Container(),
+              ],
+            );
+          },
+        ))),
+      );
+
+      model1.setState(null, onRebuildState: (context) {
+        context0 = context;
+        scaffoldState = Scaffold.of(context);
+      });
+      await tester.pump();
+      expect(context2, equals(context0));
+      expect(scaffoldState, isNotNull);
+
+      isTrue = false;
+      vm.rebuildStates();
+
+      await tester.pump();
+      model1.setState(null, onRebuildState: (context) {
         context0 = context;
         scaffoldState = Scaffold.of(context);
       });
