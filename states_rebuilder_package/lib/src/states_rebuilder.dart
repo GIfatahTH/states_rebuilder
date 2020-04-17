@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -72,7 +73,7 @@ class StatesRebuilder implements Subject {
           throw Exception(
             '''
 
-| ***Non registered Tag***
+| ***Trying to unregister non registered Tag***
 | The tag: [$tag] is not registered in this [$runtimeType] observers.
 | Tags are automatically registered by states_rebuilder.
 | If you see this error, this means that something wrong happens.
@@ -148,7 +149,12 @@ class StatesRebuilder implements Subject {
       }
       return true;
     }());
-
+    assert(() {
+      if (ReactiveModel.printActiveRM == true) {
+        print(this.toString() + ' | filterTag: ${tags != null ? tags : "All"}');
+      }
+      return true;
+    }());
     //used to ensure that [onSetState] is executed only one time.
     bool isOnSetStateCalledOrNull = onSetState == null;
 

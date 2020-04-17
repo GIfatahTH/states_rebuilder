@@ -144,14 +144,18 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///Unlike in [AsyncSnapshot], hasData has special meaning here.
   ///It means that the [connectionState] is [ConnectionState.done] with no error.
   bool get hasData =>
-      !hasError && connectionState == ConnectionState.done ||
-      connectionState == ConnectionState.active;
+      !hasError &&
+      (connectionState == ConnectionState.done ||
+          connectionState == ConnectionState.active);
 
   bool _isStreamDone;
 
   bool get isStreamDone => _isStreamDone;
 
   StreamSubscription<T> _subscription;
+
+  static bool printActiveRM = false;
+
   void unsubscribe() {
     if (_subscription != null) {
       _subscription.cancel();
@@ -185,9 +189,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   }
 
   bool _whenConnectionState = false;
-
-  @deprecated
-  dynamic customStateStatus;
 
   dynamic _joinSingletonToNewData;
 
@@ -497,7 +498,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
             .replaceAll('ReactiveStatesRebuilder', '')
             .replaceAll('StreamStatesRebuilder',
                 inject.isFutureType ? 'Future of ' : 'Stream of ') +
-        ' ${!isNewReactiveInstance ? 'singleton reactive model' : 'new reactive model seed: "$_seed"'}' +
+        ' ${!isNewReactiveInstance ? 'RM' : 'RM (new seed: "$_seed")'}' +
         ' (#Code $hashCode)';
     int num = 0;
     observers().values.toSet().forEach((o) {
@@ -511,7 +512,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
           onData: (data) => '$rm => hasData : ($data)',
           onError: (e) => '$rm => hasError : ($e)',
         ) +
-        ' | Nbr Of active observers : $num';
+        ' | $num observing widgets';
   }
 
   String toStringErrorStack() {
@@ -566,7 +567,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
         if (_hasError ||
             _watch == null ||
             _watchCached.hashCode != _watchActual.hashCode) {
-          if (reactiveModel.hasObservers) {
+          if (reactiveModel.hasObservers && !injectAsync.isFutureType) {
             reactiveModel.rebuildStates(injectAsync.filterTags);
           }
           _watchCached = _watchActual;

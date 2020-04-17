@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
+import 'package:states_rebuilder/src/rm_key.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   Model model;
@@ -881,8 +883,9 @@ void main() {
   testWidgets(
       "StateBuilder should work with ReactiveModel.create when widget is updated",
       (WidgetTester tester) async {
-    ReactiveModel modelRM1;
-    ReactiveModel modelRM2;
+    ReactiveModel<int> modelRM1;
+    ReactiveModel<int> modelRM2;
+
     final widget = Builder(
       builder: (context) {
         modelRM1 = ReactiveModel.create(0);
@@ -897,10 +900,10 @@ void main() {
                         Text('modelRM1-${modelRM1.value}'),
                         Builder(
                           builder: (context) {
-                            modelRM2 = ReactiveModel.create(0);
-                            return StateBuilder(
-                                models: [modelRM2],
-                                builder: (_, __) {
+                            return StateBuilder<int>(
+                                models: [ReactiveModel.create(0)],
+                                builder: (_, rm) {
+                                  modelRM2 = rm;
                                   return Text('modelRM2-${modelRM2.value}');
                                 });
                           },
@@ -921,17 +924,18 @@ void main() {
     await tester.pump();
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(modelRM2.hasData, isTrue);
 
-    //
     modelRM1.setValue(() => 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
-    expect(find.text('modelRM2-0'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(modelRM2.hasData, isTrue);
 
     modelRM2.setValue(() => modelRM2.value + 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
-    expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(find.text('modelRM2-2'), findsOneWidget);
   });
 
   testWidgets(
@@ -1023,6 +1027,62 @@ void main() {
 
     expect(numberOfDidUpdateWidget, equals(1));
     expect(numberOfCleaner, equals(0));
+  });
+  testWidgets("StateBuilder should work with RMKey",
+      (WidgetTester tester) async {
+    ReactiveModel<int> modelRM1;
+    RMKey rmKey;
+    final widget = Builder(
+      builder: (context) {
+        modelRM1 = ReactiveModel.create(0);
+        return MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StateBuilder(
+                  models: [modelRM1],
+                  builder: (_, __) {
+                    return Column(
+                      children: <Widget>[
+                        Text('modelRM1-${modelRM1.value}'),
+                        Builder(
+                          builder: (context) {
+                            rmKey = RMKey();
+                            return StateBuilder<int>(
+                                models: [ReactiveModel.create(0)],
+                                rmKey: rmKey,
+                                builder: (_, rm) {
+                                  return Text('modelRM2-${rm.value}');
+                                });
+                          },
+                        ),
+                      ],
+                    );
+                  }),
+            ],
+          ),
+        );
+      },
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-0'), findsOneWidget);
+    //
+    rmKey.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(rmKey.hasData, isTrue);
+
+    modelRM1.setValue(() => 1);
+    await tester.pump();
+    expect(find.text('modelRM1-1'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(rmKey.hasData, isTrue);
+
+    rmKey.setValue(() => rmKey.value + 1);
+    await tester.pump();
+    expect(find.text('modelRM1-1'), findsOneWidget);
+    expect(find.text('modelRM2-2'), findsOneWidget);
   });
 
   // testWidgets('isExclusive', (tester) async {

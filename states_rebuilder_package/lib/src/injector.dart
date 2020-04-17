@@ -233,6 +233,9 @@ class InjectorState extends State<Injector> {
         model.addObserver(
           observer: _ObserverOfStatesRebuilder(
             () {
+              if (model is ReactiveModel && !model.hasData) {
+                return;
+              }
               for (Inject inject in widget.inject) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
                 if (inject.isAsyncInjected) {
@@ -241,11 +244,13 @@ class InjectorState extends State<Injector> {
                   inj.creationFutureFunction = inject.creationFutureFunction;
                   (inj.getReactive() as StreamStatesRebuilder).subscribe();
                 } else {
-                  inj.singleton = inject.creationFunction();
-                  inj.reactiveSingleton?.state = inj.singleton;
                   inj.creationFunction = inject.creationFunction;
-                  if (widget.shouldNotifyOnReinjectOn) {
-                    inj.getReactive().setState((_) => {});
+                  if (inj.singleton != null) {
+                    inj.singleton = inj.creationFunction();
+                    inj.reactiveSingleton?.state = inj.singleton;
+                    if (widget.shouldNotifyOnReinjectOn) {
+                      inj.reactiveSingleton?.setState((_) => {});
+                    }
                   }
                 }
               }

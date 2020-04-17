@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../states_rebuilder.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
 import 'when_connection_state.dart';
@@ -40,6 +41,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
 
   //List of reactiveModels to observe
   final List<ReactiveModel> models;
+  final List<ReactiveModel> Function() observables;
 
   ///A tag or list of tags you want this [WhenRebuilderOR] to register with.
   ///
@@ -54,6 +56,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
 
   final void Function(BuildContext, ReactiveModel<T>) initState;
   final void Function(BuildContext, ReactiveModel<T>) dispose;
+  final void Function(BuildContext, ReactiveModel<T>) onSetState;
 
   const WhenRebuilderOr({
     Key key,
@@ -62,21 +65,24 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.onError,
     this.onData,
     @required this.builder,
-    @required this.models,
+    this.models,
+    this.observables,
     this.tag,
     this.initState,
     this.dispose,
-  })  : assert(models != null && models.length != 0),
-        assert(builder != null),
+    this.onSetState,
+  })  : assert(builder != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return StateBuilder<T>(
       models: models,
+      observables: observables,
       tag: tag,
       initState: initState,
       dispose: dispose,
+      onSetState: onSetState,
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
@@ -84,7 +90,9 @@ class WhenRebuilderOr<T> extends StatelessWidget {
         bool hasData = false;
         dynamic error;
 
-        modelRM.whenConnectionState<bool>(
+        final _models =
+            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+        _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
           onError: (err) {
@@ -95,8 +103,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
           catchError: onError != null,
         );
 
-        for (var i = 1; i < models.length; i++) {
-          models[i].whenConnectionState(
+        for (var i = 1; i < _models.length; i++) {
+          _models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,
             onError: (err) {
