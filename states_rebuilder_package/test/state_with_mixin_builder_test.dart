@@ -214,7 +214,7 @@ void main() {
       int numberOfDispose = 0;
       var ticker;
       final widget = StateBuilder(
-        models: [model],
+        observe: () => model,
         tag: ['mainTag'],
         builder: (ctx, _) {
           return Directionality(
@@ -240,7 +240,7 @@ void main() {
                     afterRebuild: (_) {
                       numberAfterRebuild++;
                     },
-                    models: [model],
+                    observe: () => model,
                     tag: 'childTag',
                     builder: (context, _) {
                       return Text('${model.counter}');

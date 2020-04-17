@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/rm_key.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 
 void main() {
@@ -1971,7 +1972,7 @@ void main() {
     (tester) async {
       final modelRM = ReactiveModel.create(Model());
       //
-      expect(modelRM.toString(), contains('<Model> singleton reactive model'));
+      expect(modelRM.toString(), contains('<Model> RM'));
       expect(modelRM.toString(), contains(' => isIdle'));
       //
       modelRM.setState((s) => s.incrementAsync());
@@ -1989,21 +1990,18 @@ void main() {
 
       //
       expect('${modelRM.asNew('seed1')}',
-          contains('<Model> new reactive model seed: "seed1"'));
+          contains('<Model> RM (new seed: "seed1")'));
       expect('${modelRM.asNew('seed1')}', contains(' => isIdle'));
 
       final intStream = ReactiveModel.stream(getStream());
-      expect(intStream.toString(),
-          contains('Stream of <int> singleton reactive model'));
+      expect(intStream.toString(), contains('Stream of <int> RM'));
       expect(intStream.toString(), contains('=> isWaiting'));
       await tester.pump(Duration(seconds: 3));
       expect(intStream.toString(), contains('=> hasData : (2)'));
 
       final intFuture = ReactiveModel.future(getFuture()).asNew();
-      expect(
-          intFuture.toString(),
-          contains(
-              'Future of <int> new reactive model seed: "defaultReactiveSeed"'));
+      expect(intFuture.toString(),
+          contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
       expect(intFuture.toString(), contains('=> isWaiting'));
       await tester.pump(Duration(seconds: 3));
       expect(intFuture.toString(), contains('=> hasData : (1)'));
@@ -2013,29 +2011,34 @@ void main() {
   testWidgets(
     'ReactiveModel : ReactiveModel.future works',
     (tester) async {
-      ReactiveModel modelRM0;
-
+      ReactiveModel.printActiveRM = true;
+      final rmKey = RMKey<int>();
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [
-              modelRM0 = RM.future(getFuture(), initialValue: 0),
-            ],
+            models: [RM.future(getFuture(), initialValue: 0)],
+            rmKey: rmKey,
             builder: (context, _) {
               return Container();
-              // return _widgetBuilder('${modelRM0.state}');
             },
-          )
+          ),
+          StateBuilder(
+            observe: () => rmKey,
+            builder: (_, rm) {
+              print(rm.value);
+              return Text(rm.value.toString());
+            },
+          ),
         ],
       );
 
-      await tester.pumpWidget(widget);
-      // expect(find.text('0'), findsOneWidget);
-      expect(modelRM0.isWaiting, isTrue);
+      await tester.pumpWidget(MaterialApp(home: widget));
+      expect(find.text('0'), findsOneWidget);
+      expect(rmKey.isWaiting, isTrue);
 
       await tester.pump(Duration(seconds: 1));
-      // expect(find.text('1'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
+      expect(find.text('1'), findsOneWidget);
+      expect(rmKey.hasData, isTrue);
     },
   );
 

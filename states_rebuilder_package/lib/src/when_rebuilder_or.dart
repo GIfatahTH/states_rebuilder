@@ -41,7 +41,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
 
   //List of reactiveModels to observe
   final List<ReactiveModel> models;
-  final List<ReactiveModel> Function() observables;
+  final StatesRebuilder Function() observe;
+  final List<StatesRebuilder Function()> observeMany;
 
   ///A tag or list of tags you want this [WhenRebuilderOR] to register with.
   ///
@@ -66,7 +67,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.onData,
     @required this.builder,
     this.models,
-    this.observables,
+    this.observe,
+    this.observeMany,
     this.tag,
     this.initState,
     this.dispose,
@@ -78,7 +80,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<T>(
       models: models,
-      observables: observables,
+      observe: observe,
+      observeMany: observeMany,
       tag: tag,
       initState: initState,
       dispose: dispose,

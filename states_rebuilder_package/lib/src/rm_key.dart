@@ -157,6 +157,11 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
+  String toString() {
+    return rm.toString();
+  }
+
+  @override
   void unsubscribe() {
     rm.unsubscribe();
   }
@@ -177,9 +182,6 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  var customStateStatus;
-
-  @override
   AsyncSnapshot<T> snapshot;
 
   @override
@@ -189,9 +191,4 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   ConnectionState get connectionState => rm.connectionState;
-
-  @override
-  void copyStatue(ReactiveModel from) {
-    rm.copyStatue(from);
-  }
 }
