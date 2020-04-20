@@ -2,25 +2,63 @@ import 'dart:async';
 
 import 'package:flutter/src/widgets/async.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class RMKey<T> implements ReactiveModel<T> {
-  ReactiveModel<T> rm;
+class RMKey<T> extends ReactiveModel<T> {
+  ReactiveModel<T> _rmInitial;
+  ReactiveModel<T> _rm;
+  ReactiveModel<T> get rm => _rm;
+  final T initialValue;
+  RMKey([this.initialValue]) : super.inj(Inject(() => null)) {
+    _rm = _rmInitial = RM.create(initialValue);
+  }
+  bool get isLinked => _rm != _rmInitial;
+  set rm(ReactiveModel<T> rm) {
+    if (rm == null || rm == _rm) {
+      return;
+    }
+
+    for (var fn in initCallBack) {
+      fn(rm);
+    }
+
+    _rm = rm;
+  }
+
+  void Function(ReactiveModel rm) refreshCallBack;
+  Set<void Function(ReactiveModel rm)> initCallBack = {};
+
+  ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
+  ///and notify observing widgets.
+  void refresh() {
+    refreshCallBack?.call(_rm);
+    if (!rm.inject.isAsyncInjected) {
+      rm.setState((_) => null);
+    } else {
+      rm.rebuildStates();
+    }
+  }
 
   @override
   T get state {
     assert(rm != null);
-    return rm.state;
+    return _rm?.state;
   }
 
   @override
   void set state(T data) {
-    rm.state = data;
+    _rm?.state = data;
   }
 
   @override
-  T get value => rm.value;
+  T get value => _rm?.value;
+  @override
+  void set value(T data) {
+    assert(_rm != null);
+    _rm.value = data;
+  }
 
   Future<void> setValue(
     FutureOr<T> Function() fn, {
@@ -46,74 +84,74 @@ class RMKey<T> implements ReactiveModel<T> {
       catchError: catchError,
       notifyAllReactiveInstances: notifyAllReactiveInstances,
       joinSingleton: joinSingleton,
-      joinSingletonToNewData: rm.joinSingletonToNewData,
+      joinSingletonToNewData: _rm?.joinSingletonToNewData,
       setValue: true,
     );
   }
 
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    rm.addObserver(observer: observer, tag: tag);
+    _rm?.addObserver(observer: observer, tag: tag);
   }
 
   @override
   void cleaner(VoidCallback voidCallback) {
-    rm.cleaner(voidCallback);
+    _rm?.cleaner(voidCallback);
   }
 
   @override
-  bool get hasObservers => rm.hasObservers;
+  bool get hasObservers => _rm?.hasObservers;
 
   @override
   Map<String, Set<ObserverOfStatesRebuilder>> observers() {
-    return rm.observers();
+    return _rm?.observers();
   }
 
   @override
   void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
-    rm.rebuildStates(tags, onSetState);
+    _rm?.rebuildStates(tags, onSetState);
   }
 
   @override
   void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    rm.removeObserver(observer: observer, tag: tag);
+    _rm?.removeObserver(observer: observer, tag: tag);
   }
 
   @override
-  get error => rm.error;
+  get error => _rm?.error;
 
   @override
-  bool get hasData => rm.hasData;
+  bool get hasData => _rm?.hasData;
 
   @override
-  bool get hasError => rm.hasError;
+  bool get hasError => _rm?.hasError;
 
   @override
-  Inject<T> get inject => rm.inject;
+  Inject<T> get inject => _rm?.inject;
 
   @override
-  bool get isIdle => rm.isIdle;
+  bool get isIdle => _rm?.isIdle;
 
   @override
-  bool get isNewReactiveInstance => rm.isNewReactiveInstance;
+  bool get isNewReactiveInstance => _rm?.isNewReactiveInstance;
 
   @override
-  bool get isStreamDone => rm.isStreamDone;
+  bool get isStreamDone => _rm?.isStreamDone;
 
   @override
-  bool get isWaiting => rm.isWaiting;
+  bool get isWaiting => _rm?.isWaiting;
 
   @override
-  get joinSingletonToNewData => rm.joinSingletonToNewData;
+  get joinSingletonToNewData => _rm?.joinSingletonToNewData;
 
   @override
   void resetToHasData() {
-    rm.resetToHasData();
+    _rm?.resetToHasData();
   }
 
   @override
   void resetToIdle() {
-    rm.resetToIdle();
+    _rm?.resetToIdle();
   }
 
   Future<void> setState(
@@ -131,7 +169,7 @@ class RMKey<T> implements ReactiveModel<T> {
     bool notifyAllReactiveInstances = false,
     bool setValue = false,
   }) async {
-    return rm.setState(
+    return _rm?.setState(
       fn,
       catchError: catchError,
       watch: watch,
@@ -149,21 +187,16 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  StreamSubscription<T> get subscription => rm.subscription;
-
-  @override
-  String toStringErrorStack() {
-    return rm.toStringErrorStack();
-  }
+  StreamSubscription<T> get subscription => _rm?.subscription;
 
   @override
   String toString() {
-    return rm.toString();
+    return '$_rm';
   }
 
   @override
   void unsubscribe() {
-    rm.unsubscribe();
+    _rm?.unsubscribe();
   }
 
   R whenConnectionState<R>({
@@ -173,7 +206,7 @@ class RMKey<T> implements ReactiveModel<T> {
     @required R Function(dynamic error) onError,
     bool catchError = true,
   }) {
-    return rm.whenConnectionState(
+    return _rm?.whenConnectionState(
       onIdle: onIdle,
       onWaiting: onWaiting,
       onData: onData,
@@ -186,9 +219,12 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   ReactiveModel<T> asNew([seed = 'defaultReactiveSeed']) {
-    return rm.asNew(seed);
+    return _rm?.asNew(seed);
   }
 
   @override
-  ConnectionState get connectionState => rm.connectionState;
+  ConnectionState get connectionState => _rm?.connectionState;
+
+  @override
+  Type get type => rm.type;
 }

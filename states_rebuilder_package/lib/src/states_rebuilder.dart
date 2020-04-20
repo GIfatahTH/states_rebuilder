@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
+
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -50,7 +51,6 @@ class StatesRebuilder implements Subject {
   final List<VoidCallback> _statesRebuilderCleaner = <VoidCallback>[];
 
   @override
-  @mustCallSuper
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
     assert(tag != null);
@@ -65,7 +65,6 @@ class StatesRebuilder implements Subject {
   }
 
   @override
-  @mustCallSuper
   void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(
       () {
@@ -150,11 +149,13 @@ class StatesRebuilder implements Subject {
       return true;
     }());
     assert(() {
-      if (ReactiveModel.printActiveRM == true) {
-        print(this.toString() + ' | filterTag: ${tags != null ? tags : "All"}');
+      if (RM.printActiveRM == true) {
+        print(
+            this.toString() + ' | filterTags: ${tags != null ? tags : "None"}');
       }
       return true;
     }());
+    _notifyingModel = this;
     //used to ensure that [onSetState] is executed only one time.
     bool isOnSetStateCalledOrNull = onSetState == null;
 
@@ -204,6 +205,15 @@ class StatesRebuilder implements Subject {
   void cleaner(VoidCallback voidCallback) {
     _statesRebuilderCleaner.add(voidCallback);
   }
+
+  static StatesRebuilder _notifyingModel;
+
+  void copy(StatesRebuilder sb) {
+    sb._observersMap.addAll(_observersMap);
+    sb._observersSet.addAll(_observersSet);
+    _observersMap.clear();
+    _observersSet.clear();
+  }
 }
 
 //Package private class
@@ -211,5 +221,9 @@ class StatesRebuilderInternal {
   static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
     to?._observersMap?.addAll(from._observersMap);
     to?._observersSet?.addAll(from._observersSet);
+  }
+
+  static StatesRebuilder getNotifiedModel() {
+    return StatesRebuilder._notifyingModel;
   }
 }

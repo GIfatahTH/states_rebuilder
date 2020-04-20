@@ -23,6 +23,7 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 >Contrary to what one might think, implicit reactivity is simpler, more efficient and more powerful than explicit reactivity.
 
+
 # 1- Explicit reactivity
 
 In the context of the observer pattern, any class that extends `StatesRebuilder` is the observable and `StateBuilder`, as well as `StateWithMixinBuilder` widgets, are the observers. `StatesRebuilder` notifies the observers using the `rebuildStates` method. Observer widgets when notified rebuild themselves to reproduce the actual state.
@@ -94,6 +95,7 @@ final T model = Injector.get<T>(name:'customName');
 ```
 > As a shortcut you can use:
 ```dart
+//feature add in version 1.15.0
 final T model = IN.get<T>() // IN stands for Injector
 ```
 
@@ -178,8 +180,8 @@ Injector(
   ],
   //reinjectOn takes a list of StatesRebuilder models, if any of those models emits a notification all the injected model will be disposed and re-injected.
   reinjectOn : [models]
-  // Whether to notify listners of injected model using 'previous' constructor
-  shouldNotifyOnReinjectOn:ture;
+  // Whether to notify listeners of injected model using 'previous' constructor
+  shouldNotifyOnReinjectOn: true;
   .
   .
 );
@@ -191,7 +193,7 @@ Injector(
 If you wish to unregister and re-register the injected models after each rebuild you can set the key parameter to be `UniqueKey()`.
 In a better alternative is to use the `reinjectOn` parameter which takes a list of `StatesRebuilder` models and unregister and re-register the injected models if any of the latter models emits a notification.
 
-* For more detailed on the use of `Inject.previous` and `reinject` and `shouldNotifyOnReinjectOn` [see more details here](changelog/v-1.15.2.md)
+* For more detailed on the use of `Inject.previous` and `reinject` and `shouldNotifyOnReinjectOn` [see more details here](changelog/v-1.15.0.md)
 
 * In addition to its injection responsibility, the `Injector` widget gives you a convenient facade to manage the life cycle of the widget as well as the application:
 
@@ -355,10 +357,12 @@ ReactiveModel<T> modelRM = Injector.getAsReactive<T>()
 As a shortcut you can use:
 ```dart
 ReactiveModel<T> modelRM = ReactiveModel<T>();
-// Or simply
+// Or simply (add in version 1.15.0)
 ReactiveModel<T> modelRM = RM.get<T>();
+//I will use the latter, but the three are equivalent.
+//In tutorials you expect to find any of these.
 ```
-> It worths to take time and see here for more Shortcuts [see more details](changelog/v-1.15.2.md)
+> It worths to take time and see here for more Shortcuts [see more details](changelog/v-1.15.0.md)
 
 The returned type is `ReactiveModel<T>`.  The method `getAsReactive` returns the registered singleton of the model wrapped with reactive environnement:
 
@@ -462,12 +466,12 @@ StateBuilder<T>(
 You can also use `ReactiveModel.asNew([dynamic seed])` method: 
 
 ```dart
-final reactiveModel = Injector.getAsReactive<Model>();
+final reactiveModel = RM.get<Model>();
 final newReactiveModel = reactiveModel.asNew('mySeed');
 
 // or directly
 
-final newReactiveModel = Injector.getAsReactive<Model>().asNew('mySeed');
+final newReactiveModel = RM.get<Model>().asNew('mySeed');
 ```
 By setting the seed parameter of the `asNew` method your are sure to get the same new reactive instance even after the widget rebuilds.
 
@@ -501,9 +505,9 @@ At later time if you want to consume the injected new reactive instance you use:
 
 ```dart
 // get the injected new reactive instance
-ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : 'newModel1');
+ReactiveModel<T> modelRM2 = RM.get<T>(name : 'newModel1');
 //Or
-ReactiveModel<T> modelRM2 = Injector.getAsReactive<T>(name : Enum.newModel1);
+ReactiveModel<T> modelRM2 = RM.get<T>(name : Enum.newModel1);
 ```
 * You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
@@ -570,6 +574,11 @@ StateBuilder<T>(
   // It can be any type of data, but when it is a List, 
   // this widget will be saved with many tags that are the items in the list.
   tag: dynamic
+
+  //Similar to the concept of global key in Flutter, with ReactiveModel key you
+  //can control the observer widget associated with it from outside.
+  ///[see here for more details](changelog/v-1.15.0.md)
+  rmKey : RMKey();
 
    watch: (ReactiveModel<T> exposedModel) {
     //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
@@ -726,7 +735,20 @@ StateBuilder<int>(
 )
 ```
 
-# `ReactiveModel.create`, `value` getter and `setValue` method.
+from version 1.15.0 you can use the following shortcuts:
+```dart
+  RM.future<int>(myFuture, initialValue: 0);
+  RM.stream<int>(myStream, initialValue: 0);
+```
+
+You can get an injected model and create a future or stream ReactiveModel from it using:
+```dart
+  RM.getFuture<T, R>((T model)=>model.myFuture());
+  RM.getStream<T, R>((T model)=>model.myStream());
+```
+[see more details](changelog/v-1.15.0.md)
+
+# `RM.create`, `value` getter and `setValue` method.
 With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
 
 With `ReactiveModel<T>.create(T value)` you can create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have as en example you can wrap the primitive value with many reactive model instances.
@@ -736,7 +758,7 @@ Here is an example of a simple counter app.
 ```dart
 class App extends StatelessWidget {
   //Create a reactiveModel<int> with initial value and assign it to counterRM  filed.
-  final counterRM = ReactiveModel.create(0);
+  final counterRM = RM.create(0);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -754,12 +776,17 @@ class App extends StatelessWidget {
           child: Icon(Icons.add),
           //set the value of the counterRM and notify observers.
           onPressed: () => counterRM.setValue(() => counterRM.value + 1),
+          //ore simply
+          // onPressed: () => counterRM.value++,
         ),
       ),
     );
   }
 }
 ```
+
+>If you change the value (counterRM.value++), setValue will implicitly called to notify observers.
+
 `setValue` watches the change of the value and will not notify observers only if the value has changed.
 `setValue` has `onSetState`, `onRebuildState`, `onError`,  `catchError`, `filterTags` , `seeds` and `notifyAllReactiveInstances` the same way they are defined in `setState`:
 ```dart
@@ -1002,7 +1029,7 @@ class MyApp extends StatelessWidget {
     return Injector(
       inject: [Inject(() => MyRealModel())],
       builder: (context) {
-        final myRealModelRM = Injector.getAsReactive<MyRealModel>();
+        final myRealModelRM = RM.get<MyRealModel>();
 
         // your widget
       },
@@ -1048,7 +1075,8 @@ You can see a real test of the [counter_app_with_error]((states_rebuilder_packag
 # Updates
 To track the history of updates and feel the context when those updates are introduced, See the following links.
 
-* [see more details](changelog/v-1.15.2.md) : 
+* [1.15.0 update](changelog/v-1.15.0.md) : 
   * Example of using `Inject.previous` with `reinjectOn`;
   * The add shortcuts (`IN.get()`, `RM.get()`, ...);
   * Example of how to use states_rebuilder observer widgets instead of `FutureBuilder` and `StreamBuilder` Flutter widgets;
+  * The concept of ReactiveModel keys.

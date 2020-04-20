@@ -39,10 +39,39 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///
   final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
 
-  //List of reactiveModels to observe
+  ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilderOr(
+  ///  models:[myModel1, myModel2, myModel3],
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  builder: (context, reactiveModel)=> ...
+  ///)
+  ///```
+  ///
+  ///For the sake of performance consider using [observe] or [observeMany] instead.
   final List<ReactiveModel> models;
-  final StatesRebuilder Function() observe;
-  final List<StatesRebuilder Function()> observeMany;
+
+  ///an observable class to which you want [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilderOr(
+  ///  observe:()=> myModel1,
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  builder: (context, reactiveModel)=> ...
+  ///```
+  final ReactiveModel Function() observe;
+
+  ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilderOR(
+  ///  observeMany:[()=> myModel1,()=> myModel2,()=> myModel3],
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  builder: (context, reactiveModel)=> ...
+  ///)
+  ///```
+  final List<ReactiveModel Function()> observeMany;
 
   ///A tag or list of tags you want this [WhenRebuilderOR] to register with.
   ///
@@ -55,9 +84,38 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///Each [WhenRebuilderOR] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  ///ReactiveModel key used to control this widget from outside its [builder] method.
+  final RMKey rmKey;
+
+  ///```dart
+  ///WhenRebuilderOr(
+  ///  initState:(BuildContext context, ReactiveModel model)=> myModel.init([context,model]),
+  ///  observe:()=> myModel1,
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  builder: (context, reactiveModel)=> ...
+  ///)
+  ///```
+  ///Called when this object is inserted into the tree.
   final void Function(BuildContext, ReactiveModel<T>) initState;
+
+  ///```dart
+  ///StateBuilderOr(
+  ///  dispose:(BuildContext context, ReactiveModel model) {
+  ///     myModel.dispose([context, model]);
+  ///   },
+  ///  observe:()=> myModel1,
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  builder: (context, reactiveModel)=> ...
+  ///)
+  ///```
+  ///Called when this object is removed from the tree permanently.
   final void Function(BuildContext, ReactiveModel<T>) dispose;
-  final void Function(BuildContext, ReactiveModel<T>) onSetState;
+
+  ///Called whenever this widget is notified.
+  final dynamic Function(BuildContext context, ReactiveModel<T> model)
+      onSetState;
 
   const WhenRebuilderOr({
     Key key,
@@ -70,6 +128,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.observe,
     this.observeMany,
     this.tag,
+    this.rmKey,
     this.initState,
     this.dispose,
     this.onSetState,
@@ -83,6 +142,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       observe: observe,
       observeMany: observeMany,
       tag: tag,
+      rmKey: rmKey,
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
