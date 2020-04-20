@@ -1792,8 +1792,6 @@ void main() {
       reinjectOn: [rm],
       builder: (context) {
         String value = RM.get<String>(context: context).value;
-        print(RM.get<String>());
-        print(rm);
         return Text(value);
       },
     );
@@ -2024,7 +2022,6 @@ void main() {
           ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
-            print(rm);
             return Text('data');
           },
         );

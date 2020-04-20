@@ -1,5 +1,6 @@
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
 
@@ -109,6 +110,17 @@ void main() {
       expect(observer1.numOfUpdates, equals(1));
       expect(observer2.numOfUpdates, equals(1));
       expect(observer3.numOfUpdates, equals(1));
+
+      //coping Model,
+
+      final model2 = Model();
+      model.copy(model2);
+      model2.rebuildStates();
+
+      //all observers will rebuild.
+      expect(observer1.numOfUpdates, equals(2));
+      expect(observer2.numOfUpdates, equals(2));
+      expect(observer3.numOfUpdates, equals(2));
     },
   );
 
@@ -300,6 +312,16 @@ void main() {
       expect(text, contains('tag1 : [ObserverWidget'));
     },
   );
+
+  test('notifying model', () {
+    RM.printActiveRM = true;
+    final rm = RM.create(0);
+
+    rm.addObserver(observer: ObserverWidget(), tag: 'tag1');
+
+    rm.rebuildStates();
+    RM.printActiveRM = false;
+  });
 }
 
 class Model extends StatesRebuilder {

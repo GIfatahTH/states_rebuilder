@@ -344,18 +344,18 @@ void main() {
     },
   );
 
-  test(
-    'WhenRebuilderOr throws if model is empty',
-    () {
-      expect(
-        () => WhenRebuilderOr<Model1>(
-          models: [],
-          builder: (context, modelRM) => null,
-        ),
-        throwsAssertionError,
-      );
-    },
-  );
+  // test(
+  //   'WhenRebuilderOr throws if model is empty',
+  //   () {
+  //     expect(
+  //       () => WhenRebuilderOr<Model1>(
+  //         models: [],
+  //         builder: (context, modelRM) => null,
+  //       ),
+  //       throwsAssertionError,
+  //     );
+  //   },
+  // );
 
   test(
     'WhenRebuilderOr throws if builder is null',

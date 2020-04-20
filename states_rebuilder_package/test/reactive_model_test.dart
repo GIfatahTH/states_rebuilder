@@ -54,13 +54,14 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         models: [modelRM],
-        builder: (_, __) {
+        builder: (context, __) {
           return _widgetBuilder('${modelRM.state.counter}');
         },
       );
       await tester.pumpWidget(widget);
       //
       modelRM.setState((s) => s.increment());
+      expect(RM.notified.type, Model);
       await tester.pump();
       expect(find.text(('1')), findsOneWidget);
     },
@@ -2011,7 +2012,6 @@ void main() {
   testWidgets(
     'ReactiveModel : ReactiveModel.future works',
     (tester) async {
-      ReactiveModel.printActiveRM = true;
       final rmKey = RMKey<int>();
       final widget = Column(
         children: <Widget>[
@@ -2025,7 +2025,6 @@ void main() {
           StateBuilder(
             observe: () => rmKey,
             builder: (_, rm) {
-              print(rm.value);
               return Text(rm.value.toString());
             },
           ),
@@ -2129,27 +2128,6 @@ void main() {
       expect(rmStream.value, 3);
     },
   );
-
-  testWidgets('Create local reactiveModel using RM.create', (tester) async {
-    ReactiveModel<bool> rm;
-    final widget = StateBuilder<bool>(
-      models: [RM.create(1), RM.create(false), RM.create(true)],
-      builder: (ctx, switchRM) {
-        rm = switchRM;
-        if (switchRM.value) {
-          return Text('true');
-        }
-        return Text('false');
-      },
-    );
-    await tester.pumpWidget(MaterialApp(
-      home: widget,
-    ));
-    expect(find.text('false'), findsOneWidget);
-    rm.setValue(() => !rm.value);
-    await tester.pump();
-    expect(find.text('true'), findsOneWidget);
-  });
 }
 
 class Model {
