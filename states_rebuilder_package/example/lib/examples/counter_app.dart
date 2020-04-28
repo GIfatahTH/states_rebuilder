@@ -24,8 +24,8 @@ class App extends StatelessWidget {
         Inject(() => Counter()),
       ],
       builder: (context) {
-        final futureSnapRM = Injector.getAsReactive<bool>(context: context);
-        final counterRM = Injector.getAsReactive<Counter>();
+        final futureSnapRM = RM.get<bool>(context: context);
+        final counterRM = RM.get<Counter>();
         return Scaffold(
           appBar: futureSnapRM.state == false
               ? AppBar(
@@ -43,6 +43,7 @@ class App extends StatelessWidget {
               (state) => state.increment1(),
               //with osSetState you can define a callback to be executed after mutating the state.
               onSetState: (context) {
+                //TODO
                 if (counterRM.state.count >= 10) {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
@@ -62,8 +63,8 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final streamRM = Injector.getAsReactive<int>();
-    final counterRM = Injector.getAsReactive<Counter>(context: context);
+    final streamRM = RM.get<int>();
+    final counterRM = RM.get<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -71,10 +72,7 @@ class MyHome extends StatelessWidget {
           Spacer(),
           Text("Counter incremented by the Stream"),
           StateBuilder<int>(
-            models: [streamRM],
-            onSetState: (context, stream) {
-              print('onSetState counter = ${stream.state}');
-            },
+            observe: () => streamRM,
             onRebuildState: (context, stream) {
               print('onRebuildState counter = ${stream.snapshot.data}');
             },
