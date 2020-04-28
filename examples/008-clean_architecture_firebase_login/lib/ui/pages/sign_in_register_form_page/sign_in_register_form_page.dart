@@ -18,21 +18,10 @@ class SignInRegisterFormPage extends StatelessWidget {
   }
 }
 
-class FormWidget extends StatefulWidget {
-  @override
-  _FormWidgetState createState() => _FormWidgetState();
-}
-
-class _FormWidgetState extends State<FormWidget> {
-  final userServiceRM =
-      Injector.getAsReactive<UserService>().asNew('formWidget');
-
-  final _emailRM = ReactiveModel.create('');
-
-  final _passwordRM = ReactiveModel.create('');
-
-  final _isRegisterRM = ReactiveModel.create(false);
-
+class FormWidget extends StatelessWidget {
+  final _emailRM = RMKey('');
+  final _passwordRM = RMKey('');
+  final _isRegisterRM = RMKey(false);
   bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
 
   @override
@@ -42,7 +31,8 @@ class _FormWidgetState extends State<FormWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         StateBuilder(
-          models: [_emailRM],
+          observe: () => RM.create(''),
+          rmKey: _emailRM,
           builder: (_, __) {
             return TextField(
               decoration: InputDecoration(
@@ -63,7 +53,8 @@ class _FormWidgetState extends State<FormWidget> {
           },
         ),
         StateBuilder(
-          models: [_passwordRM],
+          observe: () => RM.create(''),
+          rmKey: _passwordRM,
           builder: (_, __) {
             return TextField(
               decoration: InputDecoration(
@@ -85,7 +76,8 @@ class _FormWidgetState extends State<FormWidget> {
         ),
         SizedBox(height: 10),
         StateBuilder(
-            models: [_isRegisterRM],
+            observe: () => RM.create(false),
+            rmKey: _isRegisterRM,
             builder: (_, __) {
               return Row(
                 children: <Widget>[
@@ -99,46 +91,48 @@ class _FormWidgetState extends State<FormWidget> {
                 ],
               );
             }),
-        StateBuilder(
-          models: [_emailRM, _passwordRM, _isRegisterRM, userServiceRM],
-          builder: (_, __) {
-            if (userServiceRM.isWaiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-            return RaisedButton(
-              child: _isRegisterRM.value ? Text('Register') : Text('Sign in'),
-              onPressed: _isFormValid
-                  ? () {
-                      if (_isRegisterRM.value) {
-                        userServiceRM.setState(
-                          (s) => s.createUserWithEmailAndPassword(
-                            _emailRM.value,
-                            _passwordRM.value,
-                          ),
-                          onData: (_, __) {
-                            Navigator.pop(context);
-                          },
-                          catchError: true,
-                          joinSingleton: true,
-                        );
-                      } else {
-                        userServiceRM.setState(
-                          (s) => s.signInWithEmailAndPassword(
-                            _emailRM.value,
-                            _passwordRM.value,
-                          ),
-                          onData: (_, __) => Navigator.pop(context),
-                          catchError: true,
-                        );
-                      }
-                    }
-                  : null,
-            );
-          },
-        ),
-        StateBuilder(
-          models: [userServiceRM],
-          builder: (_, __) {
+        StateBuilder<UserService>(
+            observeMany: [
+              () => _emailRM,
+              () => _passwordRM,
+              () => _isRegisterRM,
+              () => RM.get<UserService>().asNew('signInRegisterForm'),
+            ],
+            builder: (_, userServiceRM) {
+              if (userServiceRM.isWaiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              return RaisedButton(
+                  child:
+                      _isRegisterRM.value ? Text('Register') : Text('Sign in'),
+                  onPressed: _isFormValid
+                      ? () {
+                          userServiceRM.setState(
+                            (s) async {
+                              if (_isRegisterRM.value) {
+                                return s.createUserWithEmailAndPassword(
+                                  _emailRM.value,
+                                  _passwordRM.value,
+                                );
+                              } else {
+                                return s.signInWithEmailAndPassword(
+                                  _emailRM.value,
+                                  _passwordRM.value,
+                                );
+                              }
+                            },
+                            notifyAllReactiveInstances: true,
+                            onData: (_, __) {
+                              Navigator.pop(context);
+                            },
+                            catchError: true,
+                          );
+                        }
+                      : null);
+            }),
+        StateBuilder<UserService>(
+          models: [RM.get<UserService>().asNew('signInRegisterForm')],
+          builder: (_, userServiceRM) {
             if (userServiceRM.hasError) {
               return Center(
                 child: Text(

@@ -7,7 +7,7 @@ class FakeUserService extends UserService {
   var error;
 
   @override
-  void currentUser() async {
+  Future<void> currentUser() async {
     await Future.delayed(Duration(seconds: 2));
     user = fakeUser;
   }

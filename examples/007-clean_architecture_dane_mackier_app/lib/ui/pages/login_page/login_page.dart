@@ -27,7 +27,7 @@ class _LoginBody extends StatelessWidget {
       children: [
         LoginHeader(controller: controller),
         WhenRebuilderOr<AuthenticationService>(
-          models: [ReactiveModel<AuthenticationService>()],
+          models: [RM.get<AuthenticationService>()],
           onWaiting: () => CircularProgressIndicator(),
           dispose: (_, __) => controller.dispose(),
           builder: (_, authServiceRM) {

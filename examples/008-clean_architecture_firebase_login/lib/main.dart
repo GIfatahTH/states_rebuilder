@@ -11,44 +11,41 @@ import 'ui/widgets/splash_screen.dart';
 
 main() {
   runApp(
-    Injector(
-      inject: [
-        Inject(() => AppSignInCheckerService(AppleSignInChecker())),
-        Inject(() => UserService(userRepository: UserRepository()))
-      ],
-      builder: (context) {
-        return MyApp();
-      },
+    MaterialApp(
+      home: Injector(
+        inject: [
+          Inject(() => AppSignInCheckerService(AppleSignInChecker())),
+          Inject(() => UserService(userRepository: UserRepository()))
+        ],
+        builder: (context) {
+          return MyApp();
+        },
+      ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final userServiceRM = Injector.getAsReactive<UserService>();
-  final appleCheckerRM = Injector.getAsReactive<AppSignInCheckerService>();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: WhenRebuilder<UserService>(
-        models: [userServiceRM.asNew('main_widget'), appleCheckerRM],
-        initState: (_, userServiceRM) {
-          appleCheckerRM.setState((s) => s.check());
-          userServiceRM.setState((s) => s.currentUser());
-        },
-        onIdle: () => Container(),
-        onWaiting: () => SplashScreen(),
-        onError: (error) => Text(error.toString()),
-        onData: (_) {
-          return StateBuilder(
-            models: [userServiceRM],
-            builder: (_, __) {
-              return userServiceRM.state.user == null
-                  ? SignInPage()
-                  : HomePage();
-            },
-          );
-        },
-      ),
+    RM.printActiveRM = true;
+    return WhenRebuilder(
+      observeMany: [
+        () => RM.future(IN.get<UserService>().currentUser()),
+        () => RM.future(IN.get<AppSignInCheckerService>().check())
+      ],
+      onIdle: () => Container(),
+      onWaiting: () => SplashScreen(),
+      onError: (error) => Text(error.toString()),
+      onData: (_) {
+        return StateBuilder(
+          observe: () => RM.get<UserService>(),
+          watch: (userServiceRM) => userServiceRM.state.user,
+          builder: (_, userServiceRM) {
+            return userServiceRM.state.user == null ? SignInPage() : HomePage();
+          },
+        );
+      },
     );
   }
 }
