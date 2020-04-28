@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/widgets.dart';
 
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 ///[StatesRebuilder] use the observer pattern.
@@ -35,7 +36,7 @@ abstract class Subject {
 }
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
-class StatesRebuilder implements Subject {
+class StatesRebuilder<T> implements Subject {
   ///key holds the observer tags and the value holds the observers
   ///_observers = {"tag" : [observer1, observer2, ...]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
@@ -54,14 +55,12 @@ class StatesRebuilder implements Subject {
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
     assert(tag != null);
-
+    _observersSet = {observer, ..._observersSet};
     if (_observersMap[tag] == null) {
       _observersMap[tag] = <ObserverOfStatesRebuilder>{observer};
     } else {
       _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
-
-    _observersSet = {observer, ..._observersSet};
   }
 
   @override
@@ -202,17 +201,23 @@ class StatesRebuilder implements Subject {
   }
 
   ///Add a callback to be executed when all listeners are removed
-  void cleaner(VoidCallback voidCallback) {
-    _statesRebuilderCleaner.add(voidCallback);
+  void cleaner(VoidCallback voidCallback, [bool remove = false]) {
+    if (remove) {
+      _statesRebuilderCleaner.remove(voidCallback);
+    } else {
+      _statesRebuilderCleaner.add(voidCallback);
+    }
   }
 
   static StatesRebuilder _notifyingModel;
 
-  void copy(StatesRebuilder sb) {
+  void copy(StatesRebuilder sb, [bool clear = true]) {
     sb._observersMap.addAll(_observersMap);
     sb._observersSet.addAll(_observersSet);
-    _observersMap.clear();
-    _observersSet.clear();
+    if (clear) {
+      _observersMap.clear();
+      _observersSet.clear();
+    }
   }
 }
 

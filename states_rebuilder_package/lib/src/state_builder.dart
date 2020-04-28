@@ -48,7 +48,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
-  final StatesRebuilder Function() observe;
+  final StatesRebuilder<T> Function() observe;
 
   ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
@@ -218,10 +218,10 @@ class StateBuilder<T> extends StatefulWidget {
         '''),
         super(key: key);
   @override
-  _StateBuilderState createState() => _StateBuilderState<T>();
+  StateBuilderState createState() => StateBuilderState<T>();
 }
 
-class _StateBuilderState<T> extends State<StateBuilder<T>>
+class StateBuilderState<T> extends State<StateBuilder<T>>
     with ObserverOfStatesRebuilder {
   Set<StatesRebuilder> _models;
   Set<StatesRebuilder Function()> _modelsCallBacks = {};
@@ -287,6 +287,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
       }
       i++;
     }
+    widget.activeRM.clear();
     widget.activeRM.addAll(_models.toList());
 
     if (T != dynamic) {
@@ -297,7 +298,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
         }
       }
     }
-    if (_models.first is ReactiveModel) {
+    if (_models.first is ReactiveModel<T>) {
       _exposedModelFromGenericType = _models?.first;
       return;
     }
@@ -317,11 +318,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
 
       if (model is RMKey && !model.isLinked) {
         model.initCallBack.add(_rmKeyInitCallback = (rm) {
-          _exposedModelFromGenericType = null;
-          _exposedModelFromNotification = null;
           model.rm.copy(rm);
-          _resolveModels(true);
-          print('_exposedModel $_exposedModel');
           Future.microtask(() => setState(() {}));
         });
       }
@@ -415,8 +412,7 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
     bool canRebuild = true;
     if (widget.watch != null) {
       _actualWatch = widget.watch(_exposedModel).toString();
-      canRebuild = _actualWatch.hashCode != _cashedWatch.hashCode &&
-          (_exposedModel == null || _exposedModel.hasData);
+      canRebuild = _actualWatch.hashCode != _cashedWatch.hashCode;
       _cashedWatch = _actualWatch;
     }
 
@@ -424,13 +420,12 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
       return true;
     }
 
-    if (onSetState != null) {
+    if (widget.onSetState != null) {
+      widget.onSetState(context, _exposedModel);
+    } else if (onSetState != null) {
       onSetState(context);
     }
 
-    if (widget.onSetState != null) {
-      widget.onSetState(context, _exposedModel);
-    }
     if (widget.onRebuildState != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.onRebuildState(context, _exposedModel),
@@ -465,21 +460,13 @@ class _StateBuilderState<T> extends State<StateBuilder<T>>
   void didUpdateWidget(StateBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (this is _StateBuilderState<Injector>) {
+    if (this is StateBuilderState<Injector>) {
       return;
     }
 
     if (widget.rmKey != null) {
       widget.rmKey.rm = _exposedModel;
-      // oldWidget.rmKey.rm.copy(widget.rmKey.rm);
     }
-
-    // for (var i = 0; i < widget.models.length; i++) {
-    //   if (oldWidget.models[i] != widget.models[i]) {
-    //     oldWidget.models[i].copy(widget.models[i]);
-    //   }
-    //   _resolveModels();
-    // }
 
     if (_models != null) {
       widget.activeRM.clear();
