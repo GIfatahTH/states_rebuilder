@@ -1,4 +1,4 @@
-## 1.15.0 (2020-04-12)
+## 1.15.0 (2020-04-28)
 * Add `Inject.previous`. #47 [see more details](changelog/v-1.15.0.md) 
 * Add Shortcuts to get and create model, future, stream `ReactiveModel`s: 
 ```dart
@@ -7,10 +7,12 @@ RM.get<T>(); //to get the ReactiveModel instance of type T.
 RM.create<T>(myModel);// to create a local ReactiveModel.
 RM.future<T>(myFuture);// to create a local future ReactiveModel.
 RM.stream<T>(myStream);// to create a local stream ReactiveModel.
+RM.getSetState<T>(fn); // to get the ReactiveModel T and call setState method
 ```
 [see more details](changelog/v-1.15.0.md)
-* Add `RM.getFuture` and `RM.getStream`, to get and create future or stream ReactiveModel.[see more details](changelog/v-1.15.0.md).
+* Add `ReactiveModel.future` and `ReactiveModel.stream`, to handle state notification of immutable objects.[see more details](changelog/v-1.15.0.md).
 * Add the concept of ReactiveModel key (RMKey). [see more details](changelog/v-1.15.0.md)
+* Change the readme to focus on ReactiveModel concept.
 * Fix issue #72
 
 ## 1.14.3 (2020-03-10)
