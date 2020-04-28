@@ -210,12 +210,13 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   void Function(StatesRebuilder model) refreshInheritedModelSubscribers;
 
-  _InheritedWidgetModel _inheritedWidgetModel = _InheritedWidgetModel();
+  _InheritedWidgetModel<Injector> _inheritedWidgetModel =
+      _InheritedWidgetModel();
 
   @override
   Widget inheritedInject(Widget child) {
     return StateBuilder<Injector>(
-      models: <StatesRebuilder>[_inheritedWidgetModel..injectSR = this],
+      observe: () => _inheritedWidgetModel..injectSR = this,
       builder: (ctx, __) {
         return InheritedInject<T>(
           child: child,
@@ -289,7 +290,7 @@ enum JoinSingleton {
   withCombinedReactiveInstances
 }
 
-class _InheritedWidgetModel extends StatesRebuilder {
+class _InheritedWidgetModel<T> extends StatesRebuilder<T> {
   Inject injectSR;
   StatesRebuilder modelFromInjectSR;
 
