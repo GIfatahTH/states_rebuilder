@@ -6,13 +6,14 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class RMKey<T> extends ReactiveModel<T> {
+class RMKey<T> implements ReactiveModel<T> {
   ReactiveModel<T> _rmInitial;
   ReactiveModel<T> _rm;
   ReactiveModel<T> get rm => _rm;
   final T initialValue;
-  RMKey([this.initialValue]) : super.inj(Inject(() => null)) {
-    _rm = _rmInitial = RM.create(initialValue);
+  RMKey([this.initialValue]) // : super.inj(Inject<T>(() => initialValue))
+  {
+    _rm = _rmInitial = RM.create<T>(initialValue);
   }
   bool get isLinked => _rm != _rmInitial;
   set rm(ReactiveModel<T> rm) {
@@ -25,6 +26,9 @@ class RMKey<T> extends ReactiveModel<T> {
     }
 
     _rm = rm;
+    _rm.cleaner(() {
+      unsubscribe();
+    });
   }
 
   void Function(ReactiveModel rm) refreshCallBack;
@@ -45,11 +49,6 @@ class RMKey<T> extends ReactiveModel<T> {
   T get state {
     assert(rm != null);
     return _rm?.state;
-  }
-
-  @override
-  void set state(T data) {
-    _rm?.state = data;
   }
 
   @override
@@ -95,8 +94,8 @@ class RMKey<T> extends ReactiveModel<T> {
   }
 
   @override
-  void cleaner(VoidCallback voidCallback) {
-    _rm?.cleaner(voidCallback);
+  void cleaner(VoidCallback voidCallback, [bool remove = false]) {
+    _rm?.cleaner(voidCallback, remove);
   }
 
   @override
@@ -226,5 +225,36 @@ class RMKey<T> extends ReactiveModel<T> {
   ConnectionState get connectionState => _rm?.connectionState;
 
   @override
-  Type get type => rm.type;
+  bool isA<T>() => rm.isA<T>();
+
+  @override
+  void copy(StatesRebuilder sb, [bool clear = true]) {
+    _rm.copy(sb, clear);
+  }
+
+  @override
+  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue}) {
+    return _rm.future(future, initialValue: initialValue);
+  }
+
+  @override
+  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
+    return _rm.stream(stream, initialValue: initialValue);
+  }
+
+  // @override
+  // void copyRM(ReactiveModel<T> to) {
+  //   _rm.copyRM(to);
+  // }
+
+  @override
+  void onError(
+      void Function(BuildContext context, dynamic error) errorHandler) {
+    _rm.onError(errorHandler);
+  }
+
+  // @override
+  // ReactiveModel<T> as<R>() {
+  //   return _rm.as<R>();
+  // }
 }
