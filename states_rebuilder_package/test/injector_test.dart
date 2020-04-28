@@ -714,16 +714,16 @@ void main() {
   );
 
   testWidgets(
-    'Injector : initState with async method call works',
+    'setState with no observer will throw',
     (tester) async {
+      ReactiveModel modelRM;
       final widget = Injector(
         inject: [Inject(() => VanillaModel())],
         builder: (context) {
           return StateBuilder(
               models: [],
               initState: (_, __) {
-                final modelRM = Injector.getAsReactive<VanillaModel>();
-                modelRM.setState((s) => s.incrementAsync());
+                modelRM = Injector.getAsReactive<VanillaModel>();
               },
               builder: (context, snapshot) {
                 return Column(
@@ -736,7 +736,36 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
+      // modelRM.setState((s) => s.incrementAsync());
+      await tester.pump();
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
 
+  testWidgets(
+    'should not throw if async method is called from initState',
+    (tester) async {
+      final widget = Injector(
+        inject: [Inject(() => VanillaModel())],
+        builder: (context) {
+          return StateBuilder<VanillaModel>(
+              models: [Injector.getAsReactive<VanillaModel>()],
+              initState: (_, modelRM) {
+                modelRM.setState(
+                  (s) => s.incrementError(),
+                  catchError: true,
+                );
+              },
+              builder: (context, snapshot) {
+                return Column(
+                  children: <Widget>[
+                    Container(),
+                  ],
+                );
+              });
+        },
+      );
+      await tester.pumpWidget(widget);
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
     },
@@ -1670,6 +1699,41 @@ void main() {
 
       expect(context1, equals(context0));
       expect(scaffoldState, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'OnSetState in StateBuilder is overrides onSetState in setState',
+    (WidgetTester tester) async {
+      ReactiveModel<VanillaModel> model1;
+      bool onSetStateFromStateBuilder = false;
+      bool onSetStateFromSetState = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Injector(
+              inject: [
+                Inject<VanillaModel>(() => VanillaModel(0)),
+              ],
+              builder: (context) {
+                return StateBuilder(
+                    models: [model1 = RM.get<VanillaModel>()],
+                    onSetState: (_, __) {
+                      onSetStateFromStateBuilder = true;
+                    },
+                    builder: (context, _) {
+                      return Container();
+                    });
+              },
+            ),
+          ),
+        ),
+      );
+      model1.setState(null, onSetState: (context) {
+        onSetStateFromSetState = true;
+      });
+      expect(onSetStateFromStateBuilder, isTrue);
+      expect(onSetStateFromSetState, isFalse);
     },
   );
 

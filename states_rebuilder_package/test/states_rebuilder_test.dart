@@ -228,10 +228,6 @@ void main() {
       //notify observer with tag1
       model.rebuildStates(['tag1'], onSetState);
       expect(numberOfOnSetStateCall, equals(2));
-
-      //notify observer with nonExistingTag
-      model.rebuildStates(['nonExistingTag'], onSetState);
-      expect(numberOfOnSetStateCall, equals(2));
     },
   );
 

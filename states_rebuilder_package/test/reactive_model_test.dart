@@ -61,7 +61,7 @@ void main() {
       await tester.pumpWidget(widget);
       //
       modelRM.setState((s) => s.increment());
-      expect(RM.notified.type, Model);
+      expect(RM.notified.isA<Model>(), isTrue);
       await tester.pump();
       expect(find.text(('1')), findsOneWidget);
     },
@@ -152,7 +152,7 @@ void main() {
       expect(find.text('isIdle=false'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       //hasData
-      expect(find.text('error message'), findsOneWidget);
+      expect(find.text('Error message'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
     },
@@ -193,7 +193,7 @@ void main() {
 
       await tester.pump(Duration(seconds: 1));
       //hasError
-      expect(find.text('error message'), findsOneWidget);
+      expect(find.text('Error message'), findsOneWidget);
 
       //throw error
       modelRM.setState((s) => s.incrementAsyncError());
@@ -203,7 +203,7 @@ void main() {
 
       await tester.pump(Duration(seconds: 1));
       //hasError
-      expect(find.text('error message'), findsOneWidget);
+      expect(find.text('Error message'), findsOneWidget);
     },
   );
 
@@ -1308,7 +1308,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-
+      expect(modelRM0.isA<Future<int>>(), isTrue);
       expect(find.text('null'), findsOneWidget);
       expect(modelRM0.isWaiting, isTrue);
       await tester.pump(Duration(seconds: 1));
@@ -1317,118 +1317,557 @@ void main() {
     },
   );
 
-  testWidgets(
-    'ReactiveModel : inject futures with tag filter works ',
-    (tester) async {
-      final inject = Inject.future(() => getFuture(), filterTags: ['tag1']);
-      final modelRM0 = inject.getReactive();
+  group('future', () {
+    testWidgets(
+      'ReactiveModel : inject futures with tag filter works ',
+      (tester) async {
+        final inject = Inject.future(() => getFuture(), filterTags: ['tag1']);
+        final modelRM0 = inject.getReactive();
 
-      final widget = Column(
-        children: <Widget>[
-          StateBuilder(
-            models: [modelRM0],
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              models: [modelRM0],
+              tag: 'tag1',
+              builder: (context, _) {
+                return _widgetBuilder('tag1-${modelRM0.state}');
+              },
+            ),
+            StateBuilder(
+              models: [modelRM0],
+              builder: (context, _) {
+                return _widgetBuilder('${modelRM0.state}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+
+        expect(find.text('tag1-null'), findsOneWidget);
+        expect(find.text('null'), findsOneWidget);
+        expect(modelRM0.isWaiting, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('tag1-1'), findsOneWidget);
+        expect(find.text('null'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : ReactiveModel.future works',
+      (tester) async {
+        final rmKey = RMKey<int>(0);
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<int>(
+              observe: () => RM.future(getFuture(), initialValue: 0),
+              rmKey: rmKey,
+              builder: (context, _) {
+                return Container();
+              },
+            ),
+            StateBuilder(
+              observe: () => rmKey,
+              builder: (_, rm) {
+                return Text(rm.value.toString());
+              },
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(MaterialApp(home: widget));
+        expect(find.text('0'), findsOneWidget);
+        expect(rmKey.isWaiting, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(rmKey.hasData, isTrue);
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : future method works',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observe: () => modelRM
+                ..future((m) => m.incrementAsync()).onError((context, error) {
+                  errorMessage = error.message;
+                }),
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isWaiting, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : future method works, case with error',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return Container();
+              },
+            ),
+            StateBuilder<Model>(
+              observe: () => modelRM
+                ..future((m) => m.incrementAsyncError())
+                    .onError((context, error) {
+                  errorMessage = error.message;
+                }),
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isWaiting, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : future method works, call future from initState',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return Container();
+              },
+            ),
+            StateBuilder<Model>(
+              observe: () => modelRM,
+              initState: (_, modelRM) => modelRM
+                  .future((m) => m.incrementAsyncError())
+                  .onError((context, error) {
+                errorMessage = error.message;
+              }),
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isWaiting, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+  });
+  group('stream', () {
+    testWidgets(
+      'ReactiveModel : inject stream with data works',
+      (tester) async {
+        final inject = Inject.stream(() => getStream(), initialValue: 0);
+        final modelRM0 = inject.getReactive();
+
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              models: [modelRM0],
+              builder: (context, _) {
+                return _widgetBuilder('${modelRM0.state}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM0.isWaiting, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+
+        expect(find.text('2'), findsOneWidget);
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : inject stream with data and error works',
+      (tester) async {
+        final modelRM0 = RM.stream(Model().incrementStream(), initialValue: 0);
+
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              observe: () => modelRM0,
+              builder: (context, modelRM0) {
+                return _widgetBuilder('${modelRM0.state}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM0.isWaiting, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM0.hasError, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM0.isStreamDone, isTrue);
+      },
+    );
+    testWidgets(
+      'ReactiveModel : inject stream with watching data works',
+      (tester) async {
+        final inject = Inject.stream(() => getStream(), watch: (data) {
+          return 0;
+        });
+        final modelRM0 = inject.getReactive();
+        int numberOfRebuild = 0;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder(
+              models: [modelRM0],
+              builder: (context, _) {
+                numberOfRebuild++;
+                return _widgetBuilder('${modelRM0.state}-$numberOfRebuild');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+
+        expect(find.text('null-1'), findsOneWidget);
+        expect(modelRM0.isWaiting, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('null-1'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('null-1'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('null-1'), findsOneWidget);
+      },
+    );
+    testWidgets(
+      'issue #61: reactive stream with error and watch',
+      (WidgetTester tester) async {
+        int numberOfRebuild = 0;
+        Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (num) {
+          if (num == 0) throw Exception('error message');
+          return num + 1;
+        }).take(3);
+
+        final rmStream = ReactiveModel.stream(snapStream,
+            watch: (rm) => rm, initialValue: 0);
+        final widget = Injector(
+          inject: [Inject(() => 'n')],
+          builder: (_) {
+            return StateBuilder(
+              models: [rmStream],
+              tag: 'MyTag',
+              builder: (_, rmStream) {
+                numberOfRebuild++;
+                return Container();
+              },
+            );
+          },
+        );
+
+        await tester.pumpWidget(MaterialApp(home: widget));
+        expect(numberOfRebuild, 1);
+        expect(rmStream.value, 0);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(numberOfRebuild, 2);
+        expect(rmStream.value, 0);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(numberOfRebuild, 3);
+        expect(rmStream.value, 2);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(numberOfRebuild, 4);
+        expect(rmStream.value, 3);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(numberOfRebuild, 5);
+        expect(rmStream.value, 4);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(numberOfRebuild, 5);
+        expect(rmStream.value, 4);
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : stream method works. case stream called from observe parameter',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observe: () => modelRM
+                ..stream((m) => m.incrementStream()).onError((context, error) {
+                  errorMessage = error.message;
+                }),
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : stream method works. case stream called from outside',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        modelRM.stream((m) => m.incrementStream()).onError((context, error) {
+          errorMessage = error.message;
+        });
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+
+    testWidgets(
+      'ReactiveModel : stream method works with new ReactiveModel',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        ReactiveModel<Model> newModelRM = modelRM.asNew('newRM');
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<Model>(
+              observeMany: [() => modelRM, () => newModelRM],
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        newModelRM.stream((m) => m.incrementStream()).onError((context, error) {
+          errorMessage = error.message;
+        });
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(newModelRM.isIdle, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(newModelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+        expect(newModelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(newModelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+    testWidgets(
+      'ReactiveModel : stream method works. ImmutableModel',
+      (tester) async {
+        ReactiveModel<ImmutableModel> modelRM = RM.create(ImmutableModel(0));
+        String errorMessage;
+        final widget = Column(
+          children: <Widget>[
+            StateBuilder<ImmutableModel>(
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return _widgetBuilder('${modelRM.state.counter}');
+              },
+            )
+          ],
+        );
+
+        modelRM.stream((m) => m.incrementStream()).onError((context, error) {
+          errorMessage = error.message;
+        });
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.isIdle, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsOneWidget);
+        expect(modelRM.hasData, isTrue);
+        expect(errorMessage, isNull);
+
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('0'), findsOneWidget);
+        expect(modelRM.hasError, isTrue);
+        expect(errorMessage, 'Error message');
+      },
+    );
+
+    testWidgets(
+      'Injector  will  stream dispose if ',
+      (tester) async {
+        ReactiveModel<Model> modelRM = RM.create(Model());
+        final rmKey = RMKey(true);
+        final widget = StateBuilder(
+            observe: () => RM.create(true),
+            rmKey: rmKey,
             tag: 'tag1',
-            builder: (context, _) {
-              return _widgetBuilder('tag1-${modelRM0.state}');
-            },
-          ),
-          StateBuilder(
-            models: [modelRM0],
-            builder: (context, _) {
-              return _widgetBuilder('${modelRM0.state}');
-            },
-          )
-        ],
-      );
+            builder: (context, switcherRM) {
+              if (switcherRM.value) {
+                return StateBuilder<Model>(
+                  observe: () => modelRM,
+                  builder: (context, modelRM) {
+                    return _widgetBuilder('${modelRM.state.counter}');
+                  },
+                );
+              } else {
+                return Container();
+              }
+            });
+        final streamRM = modelRM.stream((m) => m.incrementStream());
 
-      await tester.pumpWidget(widget);
+        await tester.pumpWidget(widget);
+        expect(find.text('0'), findsOneWidget);
+        expect(streamRM.isA<Stream<int>>(), isTrue);
 
-      expect(find.text('tag1-null'), findsOneWidget);
-      expect(find.text('null'), findsOneWidget);
-      expect(modelRM0.isWaiting, isTrue);
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsOneWidget);
+        expect(streamRM.subscription.isPaused, isFalse);
 
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('tag1-1'), findsOneWidget);
-      expect(find.text('null'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-    },
-  );
+        rmKey.value = false;
+        await tester.pump();
 
-  testWidgets(
-    'ReactiveModel : inject stream with data works',
-    (tester) async {
-      final inject = Inject.stream(() => getStream(), initialValue: 0);
-      final modelRM0 = inject.getReactive();
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('1'), findsNothing);
+        expect(streamRM.subscription, isNull);
 
-      final widget = Column(
-        children: <Widget>[
-          StateBuilder(
-            models: [modelRM0],
-            builder: (context, _) {
-              return _widgetBuilder('${modelRM0.state}');
-            },
-          )
-        ],
-      );
-
-      await tester.pumpWidget(widget);
-      expect(find.text('0'), findsOneWidget);
-      expect(modelRM0.isWaiting, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('0'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-
-      expect(find.text('2'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
-    },
-  );
-
-  testWidgets(
-    'ReactiveModel : inject stream with watching data works',
-    (tester) async {
-      final inject = Inject.stream(() => getStream(), watch: (data) {
-        return 0;
-      });
-      final modelRM0 = inject.getReactive();
-      int numberOfRebuild = 0;
-      final widget = Column(
-        children: <Widget>[
-          StateBuilder(
-            models: [modelRM0],
-            builder: (context, _) {
-              numberOfRebuild++;
-              return _widgetBuilder('${modelRM0.state}-$numberOfRebuild');
-            },
-          )
-        ],
-      );
-
-      await tester.pumpWidget(widget);
-
-      expect(find.text('null-1'), findsOneWidget);
-      expect(modelRM0.isWaiting, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('null-1'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('null-1'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('null-1'), findsOneWidget);
-    },
-  );
+        await tester.pump(Duration(seconds: 1));
+        expect(find.text('2'), findsNothing);
+      },
+    );
+  });
 
   group('ReactiveModel setValue :', () {
     testWidgets(
@@ -1556,7 +1995,7 @@ void main() {
 
         //sync increment with error
         var error;
-        modelRM.setValue(
+        await modelRM.setValue(
           () {
             final model = Model();
             model.incrementError();
@@ -1569,7 +2008,7 @@ void main() {
         );
         await tester.pump();
         expect(find.text('error message'), findsOneWidget);
-        expect(error.message, equals('error message'));
+        // expect(error.message, equals('error message'));
       },
     );
 
@@ -1643,6 +2082,7 @@ void main() {
           },
         );
         await tester.pumpWidget(widget);
+        expect(modelRM.isA<int>(), isTrue);
 
         expect(find.text(('onIdle')), findsOneWidget);
 
@@ -1675,7 +2115,7 @@ void main() {
         expect(find.text(('onWaiting')), findsOneWidget);
 
         await tester.pump(Duration(seconds: 1));
-        expect(find.text('error message'), findsOneWidget);
+        expect(find.text('Error message'), findsOneWidget);
         expect(onData, equals(1));
       },
     );
@@ -1754,18 +2194,18 @@ void main() {
         expect(modelRM1.hasData, isTrue);
         expect(modelRM2.hasError, isTrue);
 
-        // //mutate reactive instance 2
-        // modelRM2.setValue(() {
-        //   modelRM2.state.increment();
-        //   return Model()..counter = modelRM2.state.counter;
-        // }, joinSingleton: true);
-        // await tester.pump();
-        // expect(find.text('modelRM0-2'), findsOneWidget);
-        // expect(find.text('modelRM1-1'), findsOneWidget);
-        // expect(find.text('modelRM2-2'), findsOneWidget);
-        // expect(modelRM0.hasData, isTrue);
-        // expect(modelRM1.hasData, isTrue);
-        // expect(modelRM2.hasData, isTrue);
+        //mutate reactive instance 2
+        modelRM2.setValue(() {
+          modelRM2.state.increment();
+          return Model()..counter = modelRM2.state.counter;
+        }, joinSingleton: true);
+        await tester.pump();
+        expect(find.text('modelRM0-2'), findsOneWidget);
+        expect(find.text('modelRM1-1'), findsOneWidget);
+        expect(find.text('modelRM2-2'), findsOneWidget);
+        expect(modelRM0.hasData, isTrue);
+        expect(modelRM1.hasData, isTrue);
+        expect(modelRM2.hasData, isTrue);
       },
     );
   });
@@ -1974,158 +2414,107 @@ void main() {
       final modelRM = ReactiveModel.create(Model());
       //
       expect(modelRM.toString(), contains('<Model> RM'));
-      expect(modelRM.toString(), contains(' => isIdle'));
+      expect(modelRM.toString(), contains(' | isIdle'));
       //
       modelRM.setState((s) => s.incrementAsync());
 
-      expect(modelRM.toString(), contains(' => isWaiting'));
+      expect(modelRM.toString(), contains(' | isWaiting'));
       await tester.pump(Duration(seconds: 1));
-      expect(
-          modelRM.toString(), contains(" => hasData : (Instance of 'Model')"));
+      expect(modelRM.toString(), contains(" | hasData : (Counter(1))"));
 
       //
       modelRM.setState((s) => s.incrementAsyncError());
       await tester.pump(Duration(seconds: 1));
       expect(modelRM.toString(),
-          contains(' => hasError : (Exception: error message)'));
+          contains(' | hasError : (Exception: Error message)'));
 
       //
       expect('${modelRM.asNew('seed1')}',
           contains('<Model> RM (new seed: "seed1")'));
-      expect('${modelRM.asNew('seed1')}', contains(' => isIdle'));
+      expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
 
       final intStream = ReactiveModel.stream(getStream());
       expect(intStream.toString(), contains('Stream of <int> RM'));
-      expect(intStream.toString(), contains('=> isWaiting'));
+      expect(intStream.toString(), contains('| isWaiting'));
       await tester.pump(Duration(seconds: 3));
-      expect(intStream.toString(), contains('=> hasData : (2)'));
+      expect(intStream.toString(), contains('| hasData : (2)'));
 
       final intFuture = ReactiveModel.future(getFuture()).asNew();
       expect(intFuture.toString(),
           contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
-      expect(intFuture.toString(), contains('=> isWaiting'));
+      expect(intFuture.toString(), contains('| isWaiting'));
       await tester.pump(Duration(seconds: 3));
-      expect(intFuture.toString(), contains('=> hasData : (1)'));
+      expect(intFuture.toString(), contains('| hasData : (1)'));
     },
   );
 
   testWidgets(
-    'ReactiveModel : ReactiveModel.future works',
+    'ReactiveModel : global ReactiveModel error handling',
     (tester) async {
-      final rmKey = RMKey<int>();
+      ReactiveModel<Model> modelRM = RM.create(Model());
+      String errorMessage;
       final widget = Column(
         children: <Widget>[
-          StateBuilder(
-            models: [RM.future(getFuture(), initialValue: 0)],
-            rmKey: rmKey,
-            builder: (context, _) {
-              return Container();
-            },
-          ),
-          StateBuilder(
-            observe: () => rmKey,
-            builder: (_, rm) {
-              return Text(rm.value.toString());
-            },
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(MaterialApp(home: widget));
-      expect(find.text('0'), findsOneWidget);
-      expect(rmKey.isWaiting, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      expect(rmKey.hasData, isTrue);
-    },
-  );
-
-  testWidgets(
-    'ReactiveModel : ReactiveModel.stream works',
-    (tester) async {
-      ReactiveModel<int> modelRM0;
-
-      final widget = Column(
-        children: <Widget>[
-          StateBuilder(
-            models: [modelRM0 = RM.stream(getStream(), initialValue: 0)],
-            builder: (context, _) {
-              return _widgetBuilder('${modelRM0.state}');
+          StateBuilder<Model>(
+            observe: () => modelRM
+              ..onError((context, error) {
+                errorMessage = error.message;
+              }),
+            builder: (context, modelRM) {
+              return _widgetBuilder('${modelRM.state.counter}');
             },
           )
         ],
       );
 
       await tester.pumpWidget(widget);
+      modelRM.setState((s) => s.incrementAsyncError());
       expect(find.text('0'), findsOneWidget);
-      expect(modelRM0.isWaiting, isTrue);
+      expect(modelRM.isWaiting, isTrue);
+      expect(errorMessage, isNull);
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('0'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      expect(modelRM0.hasData, isTrue);
-
-      await tester.pump(Duration(seconds: 1));
-
-      expect(find.text('2'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('2'), findsOneWidget);
-      // expect(modelRM0.isStreamDone, isTrue); //TODO stream should be done
+      expect(modelRM.hasError, isTrue);
+      expect(errorMessage, 'Error message');
     },
   );
 
   testWidgets(
-    'issue #61: reactive stream with error and watch',
-    (WidgetTester tester) async {
-      int numberOfRebuild = 0;
-      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (num) {
-        if (num == 0) throw Exception('error message');
-        return num;
-      }).take(3);
-
-      final rmStream =
-          ReactiveModel.stream(snapStream, watch: (rm) => rm, initialValue: 1);
-      final widget = Injector(
-        inject: [Inject(() => 'n')],
-        builder: (_) {
-          return StateBuilder(
-            models: [rmStream],
-            tag: 'MyTag',
-            builder: (_, rmStream) {
-              numberOfRebuild++;
-              return Container();
+    'ReactiveModel : error from setState is prioritized on the  global ReactiveModel error',
+    (tester) async {
+      ReactiveModel<Model> modelRM = RM.create(Model());
+      String globalErrorMessage;
+      String setStateErrorMessage;
+      final widget = Column(
+        children: <Widget>[
+          StateBuilder<Model>(
+            observe: () => modelRM
+              ..onError((context, error) {
+                globalErrorMessage = error.message;
+              }),
+            builder: (context, modelRM) {
+              return _widgetBuilder('${modelRM.state.counter}');
             },
-          );
-        },
+          )
+        ],
       );
 
-      await tester.pumpWidget(MaterialApp(home: widget));
-      expect(numberOfRebuild, 1);
-      expect(rmStream.value, 1);
+      await tester.pumpWidget(widget);
+      modelRM.setState(
+        (s) => s.incrementAsyncError(),
+        onError: (_, error) {
+          setStateErrorMessage = error.message;
+        },
+      );
+      expect(find.text('0'), findsOneWidget);
+      expect(modelRM.isWaiting, isTrue);
 
       await tester.pump(Duration(seconds: 1));
-      expect(numberOfRebuild, 2);
-      expect(rmStream.value, 1);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(numberOfRebuild, 3);
-      expect(rmStream.value, 1);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(numberOfRebuild, 4);
-      expect(rmStream.value, 2);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(numberOfRebuild, 5);
-      expect(rmStream.value, 3);
-
-      await tester.pump(Duration(seconds: 1));
-      expect(numberOfRebuild, 5);
-      expect(rmStream.value, 3);
+      expect(find.text('0'), findsOneWidget);
+      expect(modelRM.hasError, isTrue);
+      expect(setStateErrorMessage, 'Error message');
+      expect(globalErrorMessage, isNull);
     },
   );
 }
@@ -2141,14 +2530,45 @@ class Model {
     throw Exception('error message');
   }
 
-  void incrementAsync() async {
+  Future<void> incrementAsync() async {
     await getFuture();
     counter++;
   }
 
-  void incrementAsyncError() async {
+  Future<void> incrementAsyncError() async {
     await getFuture();
-    throw Exception('error message');
+    throw Exception('Error message');
+  }
+
+  Stream<int> incrementStream() async* {
+    await Future.delayed(Duration(seconds: 1));
+    yield ++counter;
+    await Future.delayed(Duration(seconds: 1));
+    yield ++counter;
+    await Future.delayed(Duration(seconds: 1));
+    yield --counter;
+    throw Exception('Error message');
+  }
+
+  @override
+  String toString() {
+    return 'Counter($counter)';
+  }
+}
+
+class ImmutableModel {
+  final int counter;
+
+  ImmutableModel(this.counter);
+
+  Stream<ImmutableModel> incrementStream() async* {
+    await Future.delayed(Duration(seconds: 1));
+    yield ImmutableModel(counter + 1);
+    await Future.delayed(Duration(seconds: 1));
+    yield ImmutableModel(counter + 2);
+    await Future.delayed(Duration(seconds: 1));
+    yield this;
+    throw Exception('Error message');
   }
 }
 
