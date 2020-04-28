@@ -55,7 +55,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///  onData: (data)=> ...
   ///)
   ///```
-  final ReactiveModel Function() observe;
+  final ReactiveModel<T> Function() observe;
 
   ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
   ///```dart
@@ -186,7 +186,7 @@ class WhenRebuilder<T> extends StatelessWidget {
           return onIdle();
         }
 
-        return onData(modelRM.state);
+        return onData(modelRM?.state);
       },
     );
   }

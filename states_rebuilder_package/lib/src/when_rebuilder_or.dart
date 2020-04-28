@@ -60,7 +60,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///  onError: (error)=> ...
   ///  builder: (context, reactiveModel)=> ...
   ///```
-  final ReactiveModel Function() observe;
+  final ReactiveModel<T> Function() observe;
 
   ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
   ///```dart
@@ -117,7 +117,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
-  const WhenRebuilderOr({
+  WhenRebuilderOr({
     Key key,
     this.onIdle,
     this.onWaiting,
@@ -138,6 +138,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<T>(
+      key: key,
       models: models,
       observe: observe,
       observeMany: observeMany,
