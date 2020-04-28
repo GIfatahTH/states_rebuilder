@@ -46,11 +46,12 @@ import 'states_rebuilder.dart';
 ///* Far asynchronous tasks :[connectionState], [hasError], [error], [hasData].
 ///
 ///and many more...
-abstract class ReactiveModel<T> extends StatesRebuilder {
+abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   ///An abstract class that defines the reactive environment.
   ReactiveModel.inj(this._inject, [this.isNewReactiveInstance = false]) {
     if (!_inject.isAsyncInjected) {
-      state = _inject?.getSingleton();
+      _state = _inject?.getSingleton();
+      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
     }
   }
 
@@ -87,6 +88,47 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     return inject.getReactive();
   }
 
+  ///Get a stream from the state and subscribe to it and
+  ///notify observing widget of this [ReactiveModel]
+  ///
+  ///The callback exposes the current state as parameter.
+  ///
+  ///The stream is automatically disposed of when this [ReactiveModel] is disposed.
+  ///
+  ///Works well for immutable objects
+  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
+    final rm = ReactiveModel<S>.stream(stream(state));
+
+    final _callBack = () {
+      rm.unsubscribe();
+    };
+    cleaner(_callBack);
+    rm.subscription
+      ..onData((data) {
+        if (data is T) {
+          value = data;
+        } else {
+          _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+          if (hasObservers) {
+            rebuildStates();
+          }
+        }
+      })
+      ..onError((e) {
+        _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+        if (hasObservers) {
+          rebuildStates(null, (context) {
+            rm._onError?.call(_activeCtx(context), e);
+          });
+        }
+      })
+      ..onDone(() {
+        cleaner(_callBack, true);
+      });
+
+    return rm;
+  }
+
   ///Create a ReactiveModel form future
   ///
   ///You can use the shortcut [RM.future]:
@@ -102,6 +144,30 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       filterTags: filterTags,
     );
     return inject.getReactive();
+  }
+
+  ///Get a Future from the state and subscribe to it and
+  ///notify observing widget of this [ReactiveModel]
+  ///
+  ///The callback exposes the current state as parameter.
+  ///
+  ///The future is automatically canceled when this [ReactiveModel] is disposed.
+  ///
+  ///Works well for immutable objects
+  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue}) {
+    final rm = stream<F>((s) => future(s).asStream());
+    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, _state);
+    //Do need to call setState during the build of the widget.
+    try {
+      if (hasObservers) {
+        rebuildStates();
+      }
+    } catch (e) {
+      if (e is! FlutterError) {
+        rethrow;
+      }
+    }
+    return rm;
   }
 
   ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
@@ -135,10 +201,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   T get state => _state;
 
   ///The state of the injected model.
-  set state(T data) {
-    _state = data;
-    _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
-  }
+  // set state(T data) {
+  //   _state = data;
+  //   _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
+  // }
 
   ///The value the ReactiveModel holds. It is the same as [state]
   ///
@@ -182,6 +248,17 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   ///Returns whether this state contains a non-null [error] value.
   bool get hasError => snapshot?.hasError;
 
+  void Function(BuildContext context, dynamic error) _onError;
+
+  ///The global error event handler of this ReactiveModel.
+  ///
+  ///You can override this error handling to use a specific handling in response to particular events
+  ///using the onError callback of [setState] or [setValue].
+  void onError(
+      void Function(BuildContext context, dynamic error) errorHandler) {
+    _onError = errorHandler;
+  }
+
   ///Returns whether this snapshot contains a non-null [AsyncSnapshot.data] value.
   ///Unlike in [AsyncSnapshot], hasData has special meaning here.
   ///It means that the [connectionState] is [ConnectionState.done] with no error.
@@ -205,7 +282,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     }
   }
 
-  ///The stream subscription. It is not null for injected streams or futures.
+  ///The stream (or Future) subscription. It works only for injected streams or futures.
   StreamSubscription<T> get subscription => _subscription;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
@@ -251,7 +328,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     if (rm != null) {
       return rm;
     }
-
     rm = inject.getReactive(true);
     rm._seed = seed.toString();
     inject.newReactiveMapFromSeed[rm._seed] = rm;
@@ -310,10 +386,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
   BuildContext _activeCtx(BuildContext context) {
     if (_onSetStateContextFromGet != null &&
         _onSetStateContextFromGet.findRenderObject().attached) {
+      if (context.widget is StateBuilder<Injector>) {
+        return _onSetStateContextFromGet;
+      }
       //Due to the way hashCode of context is implemented, the higher hashCode is the latter the widget is add
       return _ctx ??= context.hashCode > _onSetStateContextFromGet.hashCode
           ? context
           : _onSetStateContextFromGet;
+    }
+    if (context.widget is StateBuilder<Injector>) {
+      return null;
     }
     return _ctx ??= context;
   }
@@ -371,21 +453,26 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       return true;
     }());
 
-    final String watchBefore = watch != null ? watch(state).toString() : null;
-
     void _rebuildStates({bool canRebuild = true}) {
       if (hasObservers && canRebuild) {
         rebuildStates(
           filterTags,
           (BuildContext context) {
             _ctx = null;
+            final exposedContext = _activeCtx(context);
+            if (exposedContext == null) {
+              assert(observers().length > 1);
+              return;
+            }
             if (onError != null && hasError) {
-              onError(_activeCtx(context), error);
+              onError(exposedContext, error);
+            } else if (this._onError != null && hasError) {
+              this._onError(exposedContext, error);
             }
 
             if (hasData) {
               if (onData != null) {
-                onData(_activeCtx(context), state);
+                onData(exposedContext, state);
               }
               if (seeds != null) {
                 for (var seed in seeds) {
@@ -396,18 +483,17 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
             }
 
             if (onSetState != null) {
-              onSetState(_activeCtx(context));
+              onSetState(exposedContext);
             }
 
             if (onRebuildState != null) {
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => onRebuildState(_activeCtx(context)),
+                (_) => onRebuildState(exposedContext),
               );
             }
-
-            _onSetStateContextFromGet = null;
           },
         );
+        _onSetStateContextFromGet = null;
         if (notifyAllReactiveInstances == true) {
           _notifyAll();
         } else if (isNewReactiveInstance) {
@@ -432,6 +518,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       }
     }
 
+    String watchBefore = watch != null ? watch(state).toString() : null;
+    bool canRebuild() {
+      final String watchAfter = watch != null ? watch(state).toString() : null;
+      //watch for async tasks will rebuild only if the watched parameter changed
+      bool result =
+          watch == null || watchBefore.hashCode != watchAfter.hashCode;
+      watchBefore = watchAfter;
+      return result;
+    }
+
     try {
       if (fn == null) {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
@@ -443,7 +539,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
         //Do need to call setState during the build of the widget.
         try {
-          _rebuildStates(canRebuild: watch == null);
+          _rebuildStates(canRebuild: canRebuild());
         } catch (e) {
           if (e is! FlutterError) {
             rethrow;
@@ -453,12 +549,13 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
       }
     } catch (e) {
       _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
-      _rebuildStates(canRebuild: watch == null);
+      _rebuildStates(canRebuild: canRebuild());
       bool _cathError = catchError ??
           false ||
               _whenConnectionState ||
               onError != null ||
-              inject.hasOnSetStateListener;
+              inject.hasOnSetStateListener ||
+              this._onError != null;
       if (_cathError == false) {
         rethrow;
       }
@@ -467,24 +564,19 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     }
 
     if (setValue == true) {
-      if (!hasError && inject.getReactive().state == _result) {
+      if (!hasError && !isWaiting && inject.getReactive().state == _result) {
         return;
       }
       _state = _result;
       _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
-      inject.getReactive()._state = _state;
+      inject.reactiveSingleton._state = _state;
+      inject.singleton = _state;
       _rebuildStates(canRebuild: true);
       return;
     }
 
-    final String watchAfter = watch != null ? watch(state).toString() : null;
-
-    bool
-        canRebuild = //watch for async tasks will rebuild only if the watched parameter changed
-        watch == null || watchBefore.hashCode != watchAfter.hashCode;
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-
-    _rebuildStates(canRebuild: canRebuild);
+    _rebuildStates(canRebuild: canRebuild());
   }
 
   AsyncSnapshot<T> get _combinedSnapshotState {
@@ -534,7 +626,27 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
     inject.getReactive().rebuildStates();
   }
 
-  Type get type => T;
+  bool isA<T>() {
+    if (_inject.isAsyncInjected) {
+      if (_inject.isFutureType) {
+        return _inject.creationFutureFunction is T Function();
+      }
+      return _inject.creationStreamFunction is T Function();
+    }
+    return _inject.creationFunction is T Function();
+  }
+
+  // ReactiveModel<T> as<R>() {
+  //   assert(_state is R);
+  //   return this.asNew(R);
+  // }
+
+  // void copyRM(ReactiveModel<T> to) {
+  //   to._state = _state;
+  //   to._snapshot = _snapshot;
+  //   copy(to);
+  //   to._onError = _onError;
+  // }
 
   @override
   String toString() {
@@ -550,13 +662,20 @@ abstract class ReactiveModel<T> extends StatesRebuilder {
         num++;
       }
     });
-    return whenConnectionState<String>(
-          onIdle: () => '$rm => isIdle ($state)',
-          onWaiting: () => '$rm => isWaiting ($state)',
-          onData: (data) => '$rm => hasData : ($data)',
-          onError: (e) => '$rm => hasError : ($e)',
+
+    final int nbrInheritedObserver =
+        '$_onSetStateContextFromGet'.split('$T').length - 1;
+    final nbrObserver =
+        nbrInheritedObserver > 0 ? '$num+I($nbrInheritedObserver)' : '$num';
+
+    return '$rm | ' +
+        whenConnectionState<String>(
+          onIdle: () => 'isIdle ($state)',
+          onWaiting: () => 'isWaiting ($state)',
+          onData: (data) => 'hasData : ($data)',
+          onError: (e) => 'hasError : ($e)',
         ) +
-        ' | $num observing widgets';
+        ' | $nbrObserver observing widgets';
   }
 }
 
@@ -609,7 +728,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
         if (_hasError ||
             _watch == null ||
             _watchCached.hashCode != _watchActual.hashCode) {
-          if (reactiveModel.hasObservers && !injectAsync.isFutureType) {
+          if (reactiveModel.hasObservers) {
             reactiveModel.rebuildStates(injectAsync.filterTags);
           }
           _watchCached = _watchActual;
@@ -619,14 +738,20 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
       onError: (e) {
         _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
         _hasError = true;
+
         if (reactiveModel.hasObservers) {
-          reactiveModel.rebuildStates(injectAsync.filterTags);
+          reactiveModel.rebuildStates(
+            injectAsync.filterTags,
+            (context) {
+              _onError?.call(_activeCtx(context), e);
+            },
+          );
         }
       },
       onDone: () {
-        _isStreamDone = true;
         _snapshot = _snapshot.inState(ConnectionState.done);
-        if (reactiveModel.hasObservers) {
+        if (reactiveModel.hasObservers && !injectAsync.isFutureType) {
+          _isStreamDone = true;
           reactiveModel.rebuildStates(injectAsync.filterTags);
         }
       },
@@ -644,12 +769,18 @@ class ReactiveModelInternal {
   static setOnSetStateContext(ReactiveModel rm, BuildContext ctx) {
     rm._onSetStateContextFromGet = ctx;
   }
+
+  static void state<T>(ReactiveModel rm, T state) {
+    rm._state = state;
+  }
 }
 
 abstract class RM {
   ///Create a [ReactiveModel] from primitives or any object
   static ReactiveModel<T> create<T>(T model) {
-    return ReactiveModel<T>.create(model);
+    final T _model = model;
+    // assert(T != dynamic);
+    return ReactiveModel<T>.create(_model);
   }
 
   ///Create a [ReactiveModel] from future.
