@@ -244,10 +244,12 @@ class InjectorState extends State<Injector> {
                   inj.creationFutureFunction = inject.creationFutureFunction;
                   (inj.getReactive() as StreamStatesRebuilder).subscribe();
                 } else {
-                  inj.creationFunction = inject.creationFunction;
                   if (inj.singleton != null) {
                     inj.singleton = inj.creationFunction();
-                    inj.reactiveSingleton?.state = inj.singleton;
+                    ReactiveModelInternal.state(
+                      inj.reactiveSingleton,
+                      inj.singleton,
+                    );
                     if (widget.shouldNotifyOnReinjectOn) {
                       inj.reactiveSingleton?.setState((_) => {});
                     }
