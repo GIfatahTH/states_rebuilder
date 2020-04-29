@@ -17,13 +17,15 @@ void main() {
 
   setUp(() {
     //To isolate MyApp we inject its fake implementation of AppSignInCheckerService and UserService
-    myApp = Injector(
-      inject: [
-        Inject<AppSignInCheckerService>(
-            () => FakeAppSignInCheckerService(null)),
-        Inject<UserService>(() => FakeUserService())
-      ],
-      builder: (_) => MyApp(),
+    myApp = MaterialApp(
+      home: Injector(
+        inject: [
+          Inject<AppSignInCheckerService>(
+              () => FakeAppSignInCheckerService(null)),
+          Inject<UserService>(() => FakeUserService())
+        ],
+        builder: (_) => MyApp(),
+      ),
     );
   });
 
@@ -33,47 +35,21 @@ void main() {
       await tester.pumpWidget(myApp);
       //At start up the app should display a SplashScreen
       expect(find.byType(SplashScreen), findsOneWidget);
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the waiting state
-      expect(ReactiveModel<AppSignInCheckerService>().isWaiting, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the waiting state
-      expect(
-          ReactiveModel<UserService>().asNew('main_widget').isWaiting, isTrue);
-      //UserService reactive model singleton should be in the idle state.
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
-
+      expect(IN.get<UserService>().user, isNull);
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isNull);
       //After one second of wait
       await tester.pump(Duration(seconds: 1));
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
-
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the has data state
-      expect(ReactiveModel<AppSignInCheckerService>().hasData, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the waiting state
-      expect(
-          ReactiveModel<UserService>().asNew('main_widget').isWaiting, isTrue);
-      //UserService reactive model singleton should be in the idle state
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
+      expect(IN.get<UserService>().user, isNull);
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isTrue);
 
       //After another one second of wait
       await tester.pump(Duration(seconds: 1));
       //SignInPage should be displayed because user is null
       expect(find.byType(SignInPage), findsOneWidget);
-
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the has data state
-      expect(ReactiveModel<AppSignInCheckerService>().hasData, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the has data state
-      expect(ReactiveModel<UserService>().asNew('main_widget').hasData, isTrue);
-      //UserService reactive model singleton should be in the idle state
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
+      expect(IN.get<UserService>().user, isNull);
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isTrue);
     },
   );
   testWidgets(
@@ -90,32 +66,16 @@ void main() {
 
       //At start up the app should display a SplashScreen
       expect(find.byType(SplashScreen), findsOneWidget);
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the waiting state
-      expect(ReactiveModel<AppSignInCheckerService>().isWaiting, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the waiting state
-      expect(
-          ReactiveModel<UserService>().asNew('main_widget').isWaiting, isTrue);
-      //UserService reactive model singleton should be in the idle state.
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
+      expect(IN.get<UserService>().user, isNull);
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isNull);
 
       //After one second of wait
       await tester.pump(Duration(seconds: 1));
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
 
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the has data state
-      expect(ReactiveModel<AppSignInCheckerService>().hasData, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the waiting state
-      expect(
-          ReactiveModel<UserService>().asNew('main_widget').isWaiting, isTrue);
-      //UserService reactive model singleton should be in the idle state
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
+      expect(IN.get<UserService>().user, isNull);
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isTrue);
 
       //After another one second of wait
       await tester.pump(Duration(seconds: 1));
@@ -124,15 +84,8 @@ void main() {
       //Expect to see the the logged user email displayed
       expect(find.text('Welcome fake@email.com!'), findsOneWidget);
 
-      /////
-      //Reactive models async states :
-      //AppSignInCheckerService reactive model is in the has data state
-      expect(ReactiveModel<AppSignInCheckerService>().hasData, isTrue);
-      //UserService reactive model of 'main_widget' seed should be in the has data state
-      expect(ReactiveModel<UserService>().asNew('main_widget').hasData, isTrue);
-      //UserService reactive model singleton should be in the idle state
-      //because setState is called on the reactive model with seed of 'main_widget'
-      expect(ReactiveModel<UserService>().isIdle, isTrue);
+      expect(IN.get<UserService>().user, isA<User>());
+      expect(IN.get<AppSignInCheckerService>().canSignInWithApple, isTrue);
     },
   );
 

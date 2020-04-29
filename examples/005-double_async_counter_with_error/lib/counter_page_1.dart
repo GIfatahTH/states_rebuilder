@@ -12,7 +12,7 @@ class App extends StatelessWidget {
         inject: [Inject(() => CounterService())],
         builder: (BuildContext context) {
           final ReactiveModel<CounterService> counterService =
-              Injector.getAsReactive(context: context);
+              RM.get(context: context);
 
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,

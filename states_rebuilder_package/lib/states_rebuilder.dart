@@ -17,13 +17,14 @@ export 'src/on_set_state_listener.dart';
 
 /// [Injector] register (injected) models in the [State.initState] method and
 /// unregister (removed) them in the [State.dispose] methods.
-export 'src/injector.dart' show Injector;
+export 'src/injector.dart' show Injector, IN;
 
 /// Models are injected with [Inject] class.
 export 'src/inject.dart' show Inject, Injectable, JoinSingleton;
 
 /// [ReactiveModel] adds a reactive environnement to the injected models.
-export 'src/reactive_model.dart' show ReactiveModel;
+export 'src/reactive_model.dart' show ReactiveModel, RM;
+export 'src/rm_key.dart' show RMKey;
 export 'src/when_connection_state.dart' show WhenRebuilder;
 export 'src/when_rebuilder_or.dart' show WhenRebuilderOr;
 export 'src/on_set_state_listener.dart' show OnSetStateListener;

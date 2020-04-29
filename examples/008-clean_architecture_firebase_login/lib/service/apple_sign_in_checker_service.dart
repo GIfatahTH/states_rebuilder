@@ -5,7 +5,7 @@ class AppSignInCheckerService {
   bool canSignInWithApple;
   AppSignInCheckerService(this.appleSignInAvailable);
 
-  void check() async {
+  Future<void> check() async {
     canSignInWithApple = await appleSignInAvailable.check();
   }
 }

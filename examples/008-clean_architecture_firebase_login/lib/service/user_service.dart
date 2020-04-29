@@ -9,7 +9,7 @@ class UserService {
 
   User user;
 
-  void currentUser() async {
+  Future<void> currentUser() async {
     user = await userRepository.currentUser();
   }
 

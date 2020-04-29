@@ -23,7 +23,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
-        final counterRM = Injector.getAsReactive<Counter>();
+        final counterRM = RM.get<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App with watch"),
@@ -42,7 +42,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterRM = Injector.getAsReactive<Counter>(context: context);
+    final counterRM = RM.get<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../states_rebuilder.dart';
 import 'reactive_model.dart';
 import 'state_builder.dart';
 
@@ -30,8 +31,43 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///have no error, and are not in the idle state, this callback will be invoked.
   final Widget Function(T data) onData;
 
-  //List of reactiveModels to observe
+  ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilder(
+  ///  models:[myModel1, myModel2, myModel3],
+  ///  onIdle: ()=> ...
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  onData: (data)=> ...
+  ///)
+  ///```
+  ///
+  ///For the sake of performance consider using [observe] or [observeMany] instead.
   final List<ReactiveModel> models;
+
+  ///an observable class to which you want [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilder(
+  ///  observe:()=> myModel1,
+  ///  onIdle: ()=> ...
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  onData: (data)=> ...
+  ///)
+  ///```
+  final ReactiveModel<T> Function() observe;
+
+  ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
+  ///```dart
+  ///WhenRebuilder(
+  ///  observeMany:[()=> myModel1,()=> myModel2,()=> myModel3],
+  ///  onIdle: ()=> ...
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  onData: (data)=> ...
+  ///)
+  ///```
+  final List<ReactiveModel Function()> observeMany;
 
   ///A tag or list of tags you want this [WhenRebuilder] to register with.
   ///
@@ -44,8 +80,40 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///Each [WhenRebuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  ///ReactiveModel key used to control this widget from outside its [builder] method.
+  final RMKey rmKey;
+
+  ///```dart
+  ///WhenRebuilder(
+  ///  initState:(BuildContext context, ReactiveModel model)=> myModel.init([context,model]),
+  ///  observe:()=> myModel1,
+  ///  onIdle: ()=> ...
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  onData: (data)=> ...
+  ///)
+  ///```
+  ///Called when this object is inserted into the tree.
   final void Function(BuildContext, ReactiveModel<T>) initState;
+
+  ///```dart
+  ///StateBuilder(
+  ///  dispose:(BuildContext context, ReactiveModel model) {
+  ///     myModel.dispose([context, model]);
+  ///   },
+  ///  observe:()=> myModel1,
+  ///  onIdle: ()=> ...
+  ///  onWaiting: ()=> ...
+  ///  onError: (error)=> ...
+  ///  onData: (data)=> ...
+  ///)
+  ///```
+  ///Called when this object is removed from the tree permanently.
   final void Function(BuildContext, ReactiveModel<T>) dispose;
+
+  ///Called whenever this widget is notified.
+  final dynamic Function(BuildContext context, ReactiveModel<T> model)
+      onSetState;
 
   const WhenRebuilder({
     Key key,
@@ -53,12 +121,15 @@ class WhenRebuilder<T> extends StatelessWidget {
     @required this.onWaiting,
     @required this.onError,
     @required this.onData,
-    @required this.models,
+    this.models,
+    this.observe,
+    this.observeMany,
     this.tag,
+    this.rmKey,
     this.initState,
     this.dispose,
-  })  : assert(models != null && models.length != 0),
-        assert(onWaiting != null),
+    this.onSetState,
+  })  : assert(onWaiting != null),
         assert(onError != null),
         assert(onData != null),
         super(key: key);
@@ -67,16 +138,22 @@ class WhenRebuilder<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<T>(
       models: models,
+      observe: observe,
+      observeMany: observeMany,
       tag: tag,
+      rmKey: rmKey,
       initState: initState,
       dispose: dispose,
-      builder: (context, firstReactiveModel) {
+      onSetState: onSetState,
+      builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
         dynamic error;
+        final _models =
+            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
 
-        firstReactiveModel.whenConnectionState<bool>(
+        _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
           onError: (err) {
@@ -86,8 +163,8 @@ class WhenRebuilder<T> extends StatelessWidget {
           onData: (data) => true,
         );
 
-        for (var i = 1; i < models.length; i++) {
-          models[i].whenConnectionState(
+        for (var i = 1; i < _models.length; i++) {
+          _models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,
             onError: (err) {
@@ -109,7 +186,7 @@ class WhenRebuilder<T> extends StatelessWidget {
           return onIdle();
         }
 
-        return onData(firstReactiveModel.state);
+        return onData(modelRM?.state);
       },
     );
   }

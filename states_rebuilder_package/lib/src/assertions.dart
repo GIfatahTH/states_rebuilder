@@ -178,14 +178,14 @@ This is not allowed, because setState method of a reactive model injected using 
             ''';
   }
 
-  static injectingAnInjectedModel(String name) {
-    return '''
-***Injecting an already injected model***
-You are injecting the [$name] model which is already injected.
-This is not allowed.
-If we are sure you want to inject it again, try injecting it with custom name.
+//   static injectingAnInjectedModel(String name) {
+//     return '''
+// ***Injecting an already injected model***
+// You are injecting the [$name] model which is already injected.
+// This is not allowed.
+// If we are sure you want to inject it again, try injecting it with custom name.
 
-If you are testing the widget set [Injector.enableTestMode] to true
-    ''';
-  }
+// If you are testing the widget set [Injector.enableTestMode] to true
+//     ''';
+//   }
 }

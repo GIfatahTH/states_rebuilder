@@ -6,7 +6,7 @@ class FakeAppSignInCheckerService extends AppSignInCheckerService {
       : super(appleSignInAvailable);
 
   @override
-  void check() async {
+  Future<void> check() async {
     await Future.delayed(Duration(seconds: 1));
 
     canSignInWithApple = true;

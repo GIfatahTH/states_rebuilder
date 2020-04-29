@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         //Inject the CountersService class with Its dependency
         Inject(() => CountersService(Injector.get())),
         //Inject the countersStream.
-        Inject.stream(() => Injector.get<CountersService>().countersStream())
+        // Inject.stream(() => Injector.get<CountersService>().countersStream())
       ],
       builder: (context) {
         return MaterialApp(
