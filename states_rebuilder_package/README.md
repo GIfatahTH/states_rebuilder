@@ -20,7 +20,7 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 ## What is a `ReactiveModel`
 * It is an abstract class.
-* In the framework of the observer model (or observable-observer couple), Itis the observable part. Observer widgets can subscribe to it to be notified of the rebuild.
+* In the framework of the observer pattern (or observable-observer couple), ReactiveModel is the observable part. Observer widgets can subscribe to it to be notified to the rebuild.
 * It exposes two getters to obtain the last state (`state`,` value`)
 * It offers two methods to mutate the state and notify observing widgets (`setState` and` setValue`). 
 * `state`-`stateState` is used for mutable objects, while` value`-`setValue` is more convenient for primitives and immutable objects.
@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       //StateBuilder is used to subscribe to ReactiveModel
       home: StateBuilder<int>(
-        //Creating a local ReactiveModel that decorate an integer value
+        //Creating a local ReactiveModel that decorates an integer value
         //with initial value of 0
         observe: () => RM.create<int>(0),
         //The builder exposes the BuildContext and the instance of the created ReactiveModel
@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
 ```
 * The Observer pattern:
     * `StateBuilder` widget is one of four observer widgets offered by `states_rebuilder` to subscribe to a `ReactiveModel`.
-    *  in `observer` parameter we created and subscribed to a local ReactiveModel the decorated an integer value with an initial value of 0.
+    *  in `observer` parameter we created and subscribed to a local `ReactiveModel` the decorated an integer value with an initial value of 0.
         With states_rebuilder we can create ReactiveModels form primitives, pure dart classes, futures or streams:
         ```dart
         //create for objects
@@ -128,7 +128,7 @@ class MyApp extends StatelessWidget {
 * The decorator pattern:
     * `ReactiveModel` decorates a primitive integer of 0 initial value and adds the following functionality:
         * The 0 is an observable `ReactiveModel` and widget can subscribe to it.
-        * The value getter and setter to increment the 0 and notify observers
+        * The `value` getter and setter to increment the 0 and notify observers
 
 In the example above, the rebuild is not optimized, because the entire `Scaffold` is rebuilt so as to change only a small text in the center of the screen.
 
@@ -144,6 +144,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(),
         body: Center(
+          //Now StateBuilder wraps only the Text Widget
           child: StateBuilder<int>(
               observe: () => RM.create<int>(0),
               //associate this StateBuilder to the defined key
@@ -163,7 +164,8 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-In the same way on how a global key is used in Flutter, we use the ReactiveModel key to control a local ReactiveModel outside the builder method of the widget where it is first created.
+In the similar manner  on how a global key is used in Flutter, we use the `ReactiveModel` key to control a local `ReactiveModel` outside the builder method of the widget where it is first created.
+
 First, we instantiate an RMKey:
 
 ```dart
@@ -185,8 +187,8 @@ Let's see with an example:
 
 Here I use an immutable object, but keep in mind that states_rebuild works the same way with mutable objects.
 
->> for immutable objects use value - setValue pair,
->> for mutable objects use state - setState pair.
+>> for immutable objects use value - setValue pair,  
+>> for mutable objects use state - setState pair.  
 
 ```dart
 //create an immutable object
@@ -218,11 +220,11 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(),
         body: Center(
           //WhenRebuilder is a widget that is used to subscribe to an observable model.
-          //It exhaustively goes through the four possible status of the state and define the corresponding widget.
+          //It exhaustively goes through the four possible status of the state to force you to define the corresponding widget.
           child: WhenRebuilder<Counter>(
             observe: () => RM.create(Counter(0)),
             rmKey: counterRMKey,
-            //Before and action
+            //Before any action
             onIdle: () => Text('Tap to increment the counter'),
             //While waiting for and asynchronous task to end
             onWaiting: () => Center(
@@ -333,6 +335,7 @@ class MyApp extends StatelessWidget {
 ```
 `states_rebuild` automatically subscribe to a stream and unsubscribe from it if the StateBuilder is disposed of. 
 
+For more realistic example on immutable state management see here. [1.15.0 update](changelog/v-1.15.0.md)
 
 Local `ReactiveModel` are the first choice when dealing with flutter's Input and selections widgets (Checkbox, Radio, switch,...), 
 here is an example of Slider :
@@ -410,6 +413,11 @@ class MyApp extends StatelessWidget {
                     () => RM.get<Counter>().value.increment(),
                     catchError: true,
                   ),
+              //As we now that increment is a future method we can simply tell states_rebuilder
+              //that increment is a future method and let it deal with it.
+              onPressed: () async => RM.get<Counter>().future(
+                    (c) => c.increment(),
+                  ),
             ),
           ),
         );
@@ -469,11 +477,12 @@ It is important to understand that `states_rebuilder` caches two singletons.
 * The raw singleton of the registered model, obtained using `Injector.get` (or IN.get) method.
 * The reactive singleton of the registered model (the raw model decorated with reactive environment), obtained using `Injector.getAsReactive` of (RM.get).
 
+For more details on the public interface of Injector [see here](#Injector), and further details on the dependency injections [see here](#Dependency-Injection-and-development-flavor).
 # Where to use Global or local ReactiveModel:
 
 To know what type of `ReactiveModel` to use, you just have to ask the following question: will I inform the widget to rebuild from other pages or widget, if it is, use the global ReactiveModel and in the other case use the local ReactiveModel to optimize the rebuild of the widget tree.
 
-Here a typical example on how to use `states_rebuilder` for mutable and immutable store
+Here a typical example on how to use `states_rebuilder` for mutable store and immutable state
 ## case of mutable store
 to deal with mutable objects use:
 - the `state` getter,
@@ -514,7 +523,7 @@ Injector(
 )
 ```
 * Fetching the product list,
-- for global ReactiveModel use: 
+  - *for global ReactiveModel use:* 
 ```dart
 WhenRebuilderOr<ProductStore>(
   observe : ()=> RM.get<ProductStore>()..setState((s) => s.fetchProducts()),
@@ -563,6 +572,7 @@ WhenRebuilderOr<ProductStore>(
 )
 ```
 In states_rebuild there are three level of error handling:
+
 1- global such as this one : (This is considered the default error handler).
   ```dart
   RM.get<Foo>().onError((context,error){
@@ -588,7 +598,7 @@ In states_rebuild there are three level of error handling:
   )
   ```
 
-- for local ReactiveModel use: 
+  - *for local ReactiveModel use:* 
 
 ```dart
 WhenRebuilderOr<ProductStore>(
@@ -650,7 +660,7 @@ RaiseButton(
   }
 )
 ```
-See in the example folder to see a working case for states_rebuilder with mutable store
+See in the example folder to see a working case for states_rebuilder with mutable store.
 
 ## case of immutable state
 to deal with mutable objects use:
@@ -720,7 +730,7 @@ WhenRebuilderOr<ProductStore>(
   }
 )
 ```
-
+* displaying adding a product to the list:
 ```dart
 StateBuilder<ProductStore>(
   observe : ()=> RM.get<ProductState>(),
@@ -745,9 +755,11 @@ RaiseButton(
 ```
 See in the example folder to see a working case for states_rebuilder with immutable state.
 
+For more details on the immutable state management [see here](changelog/v-1.15.0.md)
+
 # New ReactiveModel
 
-To limit the widget rebuild for immutable state or mutable store, states_rebuilder offers the concept of new ReactiveModel.
+To limit the widget rebuild for immutable state or mutable store, `states_rebuilder` offers the concept of new `ReactiveModel`.
 
 With `states_rebuilder`, you can create, at any time, a new reactive instance, which is the same raw cashed singleton but decorated with a new reactive environment.
 
@@ -822,6 +834,8 @@ ReactiveModel<T> modelRM2 = RM.get<T>(name : Enum.newModel1);
   Priority 4- The combined `ReactiveModel.hasDate` is true if it has no error, it isn't awaiting  and it is not in 'none' state.
 * New reactive instances can send data to the reactive singleton. `joinSingletonToNewData` parameter of reactive environment hold the sending message.
 
+
+The following is more details on the public interface exposed by `states_rebuilder`:
 # StateBuilder
 In addition to its state management responsibility, `StateBuilder` offers a facade that facilitates the management of the widget's lifecycle.
 ```dart
