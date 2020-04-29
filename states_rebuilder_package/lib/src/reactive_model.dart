@@ -469,7 +469,26 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
             _ctx = null;
             final exposedContext = _activeCtx(context);
             if (exposedContext == null) {
-              assert(observers().length > 1);
+              assert(observers().length > 1, '''
+***No observer is subscribed yet***
+| There is no observer subscribed to this observable $runtimeType model.
+| To subscribe a widget you use:
+| 1- StateRebuilder for an already defined:
+|   ex:
+|   StatesRebuilder(
+|     observer: () => ${runtimeType}instance,
+|     builder : ....
+|   )
+| 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
+| 3- RM.get<$runtimeType>(context : context). for implicit reactivity.
+| 4- StateRebuilder for new reactive environment:
+|   ex:
+|   StatesRebuilder<$runtimeType>(
+|     builder : ....
+|   )
+| 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
+|
+''');
               return;
             }
             if (onError != null && hasError) {

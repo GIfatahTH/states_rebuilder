@@ -736,9 +736,8 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      // modelRM.setState((s) => s.incrementAsync());
-      await tester.pump();
-      await tester.pump(Duration(seconds: 1));
+      expect(
+          () => modelRM.setState((s) => s.increment()), throwsAssertionError);
     },
   );
 

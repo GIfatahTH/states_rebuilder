@@ -2008,7 +2008,7 @@ void main() {
         );
         await tester.pump();
         expect(find.text('error message'), findsOneWidget);
-        // expect(error.message, equals('error message'));
+        expect(error.message, equals('error message'));
       },
     );
 
