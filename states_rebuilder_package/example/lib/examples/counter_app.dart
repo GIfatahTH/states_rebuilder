@@ -43,7 +43,6 @@ class App extends StatelessWidget {
               (state) => state.increment1(),
               //with osSetState you can define a callback to be executed after mutating the state.
               onSetState: (context) {
-                //TODO
                 if (counterRM.state.count >= 10) {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
