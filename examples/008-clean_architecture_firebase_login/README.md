@@ -98,7 +98,7 @@ class Email {
 }
 ```
 
-**file:lib/domain/value_objects/email.dart**
+**file:lib/domain/value_objects/password.dart**
 ```dart
 class Password {
   Password(this.value) {
