@@ -253,6 +253,11 @@ class RMKey<T> implements ReactiveModel<T> {
     _rm.onError(errorHandler);
   }
 
+  @override
+  void onData(void Function(T data) fn) {
+    _rm.onData(fn);
+  }
+
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

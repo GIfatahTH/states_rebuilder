@@ -2517,6 +2517,38 @@ void main() {
       expect(globalErrorMessage, isNull);
     },
   );
+
+  testWidgets(
+    'issue #78: global ReactiveModel onData',
+    (tester) async {
+      int onDataFromSetState;
+      int onDataGlobal;
+      final widget = StateBuilder(
+        models: [modelRM],
+        builder: (_, __) {
+          return Container();
+        },
+      );
+      await tester.pumpWidget(widget);
+
+      modelRM.onData((data) {
+        onDataGlobal = data.counter;
+      });
+      //
+      expect(onDataFromSetState, null);
+      expect(onDataGlobal, null);
+      modelRM.setState(
+        (s) => s.increment(),
+        onData: (context, data) {
+          onDataFromSetState = data.counter;
+        },
+      );
+
+      await tester.pump();
+      expect(onDataFromSetState, 1);
+      expect(onDataGlobal, 1);
+    },
+  );
 }
 
 class Model {

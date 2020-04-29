@@ -259,6 +259,14 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     _onError = errorHandler;
   }
 
+  void Function(T data) _onData;
+
+  ///The global data event handler of this ReactiveModel.
+  ///
+  void onData(void Function(T data) fn) {
+    _onData = fn;
+  }
+
   ///Returns whether this snapshot contains a non-null [AsyncSnapshot.data] value.
   ///Unlike in [AsyncSnapshot], hasData has special meaning here.
   ///It means that the [connectionState] is [ConnectionState.done] with no error.
@@ -474,6 +482,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
               if (onData != null) {
                 onData(exposedContext, state);
               }
+              _onData?.call(state);
               if (seeds != null) {
                 for (var seed in seeds) {
                   final rm = inject.newReactiveMapFromSeed['$seed'];
