@@ -56,6 +56,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> models;
+  final StatesRebuilder Function() observe;
+  final List<StatesRebuilder Function()> observeMany;
 
   ///A custom name of your widget. It is used to rebuild this widget
   ///from your logic classes.
@@ -141,6 +143,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
     Key key,
     this.tag,
     this.models,
+    this.observe,
+    this.observeMany,
     this.builder,
     this.builderWithChild,
     this.child,
@@ -233,6 +237,8 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
 
   Widget get _stateBuilder => StateBuilder(
         models: widget.models ?? [],
+        observe: widget.observe,
+        observeMany: widget.observeMany ?? [],
         tag: widget.tag,
         afterInitialBuild: (context, _) {
           if (widget.afterInitialBuild != null) {
@@ -262,7 +268,7 @@ class _StateWithSingleTickerProvider<T> extends _State<T>
     with SingleTickerProviderStateMixin {
   @override
   T get _mixin => this as T;
-    @override
+  @override
   void dispose() {
     if (widget.dispose != null) {
       widget.dispose(context, _mixin);
@@ -275,7 +281,7 @@ class _StateWithTickerProvider<T> extends _State<T>
     with TickerProviderStateMixin {
   @override
   T get _mixin => this as T;
-    @override
+  @override
   void dispose() {
     if (widget.dispose != null) {
       widget.dispose(context, _mixin);

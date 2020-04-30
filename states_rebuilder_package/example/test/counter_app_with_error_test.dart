@@ -13,7 +13,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Injector(
-            inject: [Inject<Counter>(() => CounterTest())],
+            inject: [Inject<CounterStore>(() => CounterTest())],
             builder: (context) {
               return App();
             },
@@ -32,7 +32,7 @@ void main() {
       expect(find.text('1'), findsOneWidget);
 
       // tap FAB an error is expected
-      (Injector.get<Counter>() as CounterTest).shouldThrow = true;
+      (Injector.get<CounterStore>() as CounterTest).shouldThrow = true;
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -43,7 +43,7 @@ void main() {
   );
 }
 
-class CounterTest extends Counter {
+class CounterTest extends CounterStore {
   int _count = 0;
 
   @override

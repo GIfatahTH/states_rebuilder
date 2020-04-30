@@ -26,7 +26,7 @@ class App extends StatelessWidget {
           appBar: AppBar(
             title: Center(
               child: StateBuilder<CounterModel>(
-                models: [Injector.getAsReactive<CounterModel>()],
+                observe: () => RM.get<CounterModel>(),
                 builder: (_, modelRM) {
                   if (modelRM.isWaiting) {
                     return CircularProgressIndicator(

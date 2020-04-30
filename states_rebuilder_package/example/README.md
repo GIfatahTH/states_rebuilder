@@ -1,4 +1,4 @@
-# 1- Simple Counter App 
+# 1- Simple Counter App mutable state management
 Simple counter with showing the Snackbar when the value of the counter reaches 10.
 This example shows the use of:
 - the getter `state`
@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 //Pure dart class. No inheritance, no notification, no streams, and no code generation
-class Counter {
+class CounterStore {
   int count = 0;
   increment() => count++;
 }
@@ -19,9 +19,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-      inject: [Inject<Counter>(() => Counter())],
+      inject: [Inject<CounterStore>(() => CounterStore())],
       builder: (context) {
-        final counter = Injector.getAsReactive<Counter>();
+        final counter = RM.get<CounterStore>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -51,7 +51,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsReactive<Counter>(context: context);
+    final counter = RM.get<CounterStore>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -64,6 +64,115 @@ class MyHome extends StatelessWidget {
   }
 }
 ```
+
+# 2- Simple Counter App immutable state management
+Simple counter with showing the Snackbar when the value of the counter reaches 10.
+This example shows the use of:
+- the getter `value`
+- The method `setValue`
+- The method `stream`
+- The method `future`
+```dart
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+//Pure dart class. No inheritance, no notification, no streams, and no code generation
+@immutable
+class CounterState {
+  final int count;
+
+  CounterState(this.count);
+
+  Future<CounterState> fetchCounter() async {
+    await Future.delayed(Duration(seconds: 3));
+    return CounterState(10);
+  }
+
+  Stream<CounterState> increment() async* {
+    //yield the new CounterState
+    yield CounterState(count + 1);
+    try {
+      await asyncMethod();
+    } catch (e) {
+      //on error yield the old CounterState
+      yield this;
+      //You have to rethrow the error.
+      rethrow;
+    }
+  }
+}
+
+void main() => runApp(MaterialApp(home: App()));
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    RM.printActiveRM = true;
+    return Injector(
+      //Injecting the CounterState with the initial state
+      inject: [Inject<CounterState>(() => CounterState(0))],
+      disposeModels: true,
+      builder: (BuildContext context) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(' Counter App With error'),
+          ),
+          body: MyHome(),
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () {
+              RM.get<CounterState>()
+                ..stream(
+                  (counterState) => counterState.increment(),
+                ).onError((context, error) {
+                  Scaffold.of(context).hideCurrentSnackBar();
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${error.message}'),
+                    ),
+                  );
+                });
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MyHome extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Text('increment until you see an error'),
+          const Text(
+              'Notice that with error the counter return to the last state'),
+          WhenRebuilderOr<CounterState>(
+            observe: () => RM.get<CounterState>().asNew('dd')
+              ..future((s) => s.fetchCounter()),
+            onWaiting: () => CircularProgressIndicator(),
+            builder: (BuildContext context, counterModel) {
+              return StateBuilder<CounterState>(
+                observe: () => RM.get<CounterState>(),
+                builder: (context, counterModel) {
+                  return Text(
+                    '${counterModel.value.count}',
+                    style: const TextStyle(fontSize: 50),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
 # 2- Counter App with Future
 asynchronous counter with showing `CircularProgressIndicator` while waiting for the Future to resolve.
 This example shows the use of:
@@ -91,7 +200,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
-        final counter = Injector.getAsReactive<Counter>();
+        final counter = RM.get<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -110,7 +219,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsReactive<Counter>(context: context);
+    final counter = RM.get<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +275,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
-        final counterModel = Injector.getAsReactive<Counter>();
+        final counterModel = RM.get<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -200,7 +309,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Injector.getAsReactive<Counter>(context: context);
+    final counterModel = RM.get<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -254,7 +363,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (context) {
-        final counter = Injector.getAsReactive<Counter>();
+        final counter = RM.get<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: Text(" Counter App"),
@@ -269,7 +378,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = Injector.getAsReactive<Counter>(context: context);
+    final counter = RM.get<Counter>(context: context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -339,7 +448,7 @@ class App extends StatelessWidget {
             initialValue: false),
       ],
       builder: (context) {
-        final futureSnap = Injector.getAsReactive<bool>(context: context).snapshot;
+        final futureSnap = RM.get<bool>(context: context).snapshot;
         return Scaffold(
           appBar: futureSnap.data == false
               ? AppBar(
@@ -360,7 +469,7 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final streamSnap = Injector.getAsReactive<int>(context: context).snapshot;
+    final streamSnap = RM.get<int>(context: context).snapshot;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -410,7 +519,7 @@ class App extends StatelessWidget {
           appBar: AppBar(
             title: Center(
               child: StateBuilder<CounterModel>(
-                models: [Injector.getAsReactive<CounterModel>()],
+                models: [RM.get<CounterModel>()],
                 builder: (_, model) {
                   if (model.isWaiting) {
                     return CircularProgressIndicator(

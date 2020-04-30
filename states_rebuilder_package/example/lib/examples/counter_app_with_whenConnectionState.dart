@@ -25,8 +25,7 @@ class App extends StatelessWidget {
     return Injector(
       inject: [Inject<Counter>(() => Counter())],
       builder: (BuildContext context) {
-        final ReactiveModel<Counter> counterModelRM =
-            Injector.getAsReactive<Counter>();
+        final ReactiveModel<Counter> counterModelRM = RM.get<Counter>();
         return Scaffold(
           appBar: AppBar(
             title: const Text(' Counter App With error'),
@@ -52,7 +51,7 @@ class MyHome extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           WhenRebuilder<Counter>(
-            models: [Injector.getAsReactive<Counter>()],
+            observe: () => RM.get<Counter>(),
             onIdle: () => Text(
               'onIdle : Tap on the FAB',
               style: const TextStyle(fontSize: 30),

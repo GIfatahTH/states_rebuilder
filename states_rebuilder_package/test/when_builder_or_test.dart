@@ -14,7 +14,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observe: () => Injector.getAsReactive<Model1>(),
               tag: 'tag1',
               onWaiting: () => Text('waiting'),
               onError: (error) => Text('error'),
@@ -293,9 +293,9 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>()
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>()
               ],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
@@ -344,18 +344,18 @@ void main() {
     },
   );
 
-  test(
-    'WhenRebuilderOr throws if model is empty',
-    () {
-      expect(
-        () => WhenRebuilderOr<Model1>(
-          models: [],
-          builder: (context, modelRM) => null,
-        ),
-        throwsAssertionError,
-      );
-    },
-  );
+  // test(
+  //   'WhenRebuilderOr throws if model is empty',
+  //   () {
+  //     expect(
+  //       () => WhenRebuilderOr<Model1>(
+  //         models: [],
+  //         builder: (context, modelRM) => null,
+  //       ),
+  //       throwsAssertionError,
+  //     );
+  //   },
+  // );
 
   test(
     'WhenRebuilderOr throws if builder is null',

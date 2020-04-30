@@ -1,7 +1,10 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
+
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -33,7 +36,7 @@ abstract class Subject {
 }
 
 ///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
-class StatesRebuilder implements Subject {
+class StatesRebuilder<T> implements Subject {
   ///key holds the observer tags and the value holds the observers
   ///_observers = {"tag" : [observer1, observer2, ...]}
   ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
@@ -49,22 +52,18 @@ class StatesRebuilder implements Subject {
   final List<VoidCallback> _statesRebuilderCleaner = <VoidCallback>[];
 
   @override
-  @mustCallSuper
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
     assert(tag != null);
-
+    _observersSet = {observer, ..._observersSet};
     if (_observersMap[tag] == null) {
       _observersMap[tag] = <ObserverOfStatesRebuilder>{observer};
     } else {
       _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
-
-    _observersSet = {observer, ..._observersSet};
   }
 
   @override
-  @mustCallSuper
   void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(
       () {
@@ -72,7 +71,7 @@ class StatesRebuilder implements Subject {
           throw Exception(
             '''
 
-| ***Non registered Tag***
+| ***Trying to unregister non registered Tag***
 | The tag: [$tag] is not registered in this [$runtimeType] observers.
 | Tags are automatically registered by states_rebuilder.
 | If you see this error, this means that something wrong happens.
@@ -126,17 +125,17 @@ class StatesRebuilder implements Subject {
 | 1- StateRebuilder for an already defined:
 |   ex:
 |   StatesRebuilder(
-|     models: [${runtimeType}instance],
+|     observer: () => ${runtimeType}instance,
 |     builder : ....
 |   )
 | 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
-| 3- Injector.getAsReactive<$runtimeType>(context : context). for implicit reactivity.
+| 3- RM.get<$runtimeType>(context : context). for implicit reactivity.
 | 4- StateRebuilder for new reactive environment:
 |   ex:
 |   StatesRebuilder<$runtimeType>(
 |     builder : ....
 |   )
-| 5 - StatesWithMixinBuilder. similar to StateBuilder.
+| 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
 | 
 | To silent this error you check for the existence of observers before calling [rebuildStates]
 | ex:
@@ -148,7 +147,14 @@ class StatesRebuilder implements Subject {
       }
       return true;
     }());
-
+    assert(() {
+      if (RM.printActiveRM == true) {
+        print(
+            this.toString() + ' | filterTags: ${tags != null ? tags : "None"}');
+      }
+      return true;
+    }());
+    _notifyingModel = this;
     //used to ensure that [onSetState] is executed only one time.
     bool isOnSetStateCalledOrNull = onSetState == null;
 
@@ -195,8 +201,23 @@ class StatesRebuilder implements Subject {
   }
 
   ///Add a callback to be executed when all listeners are removed
-  void cleaner(VoidCallback voidCallback) {
-    _statesRebuilderCleaner.add(voidCallback);
+  void cleaner(VoidCallback voidCallback, [bool remove = false]) {
+    if (remove) {
+      _statesRebuilderCleaner.remove(voidCallback);
+    } else {
+      _statesRebuilderCleaner.add(voidCallback);
+    }
+  }
+
+  static StatesRebuilder _notifyingModel;
+
+  void copy(StatesRebuilder sb, [bool clear = true]) {
+    sb._observersMap.addAll(_observersMap);
+    sb._observersSet.addAll(_observersSet);
+    if (clear) {
+      _observersMap.clear();
+      _observersSet.clear();
+    }
   }
 }
 
@@ -205,5 +226,9 @@ class StatesRebuilderInternal {
   static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
     to?._observersMap?.addAll(from._observersMap);
     to?._observersSet?.addAll(from._observersSet);
+  }
+
+  static StatesRebuilder getNotifiedModel() {
+    return StatesRebuilder._notifyingModel;
   }
 }

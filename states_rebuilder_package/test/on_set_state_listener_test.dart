@@ -88,9 +88,9 @@ void main() {
         return Directionality(
           textDirection: TextDirection.ltr,
           child: OnSetStateListener(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>(),
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>(),
               ],
               onSetState: (context, reactiveModel) {
                 _onSetState = 'onSetState';
