@@ -7,8 +7,8 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  //creating a reactive model from the integer value of 0.
-  final ReactiveModel<int> counterRM = ReactiveModel.create(0);
+  //creating a ReactiveModel key from the integer value of 0.
+  final RMKey<int> counterRMKey = RMKey<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +25,12 @@ class MyHomePage extends StatelessWidget {
             ),
             //Subscribing to the counterRM using StateBuilder
             StateBuilder(
-                models: [counterRM],
-                builder: (_, __) {
+                //Create a local ReactiveModel and subscribing to it using StateBuilder
+                observe: () => RM.create(0),
+                //link this StateBuilder with key
+                rmKey: counterRMKey,
+                builder: (context, counterRM) {
+                  //The builder exposes the BuildContext and the created instance of ReactiveModel
                   return Text(
                     //get the current value of the counter
                     '${counterRM.value}',
@@ -39,12 +43,12 @@ class MyHomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           //set the value of the counter and notify observer widgets to rebuild.
-          counterRM.setValue(
+          counterRMKey.setValue(
             () {
               if (Random().nextBool()) {
                 throw Exception('A Counter Error');
               }
-              return counterRM.value + 1;
+              return counterRMKey.value + 1;
             },
             onError: (context, dynamic error) {
               showDialog(
