@@ -157,7 +157,7 @@ class CounterBox extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(

@@ -9,8 +9,7 @@ class CounterGridPage1 extends StatelessWidget {
     return Injector(
       inject: [Inject(() => CounterService())],
       builder: (BuildContext context) {
-        final counterServiceRM =
-            Injector.getAsReactive<CounterService>(context: context);
+        final counterServiceRM = RM.get<CounterService>(context: context);
         return Scaffold(
           appBar: AppBar(title: Text('Future counter with error')),
           body: GridView.count(
@@ -103,7 +102,7 @@ class CounterBox extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(
