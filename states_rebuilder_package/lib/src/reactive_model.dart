@@ -97,7 +97,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   ///
   ///Works well for immutable objects
   ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
-    final rm = ReactiveModel<S>.stream(stream(state));
+    final rm = ReactiveModel<S>.stream(stream(inject.getReactive().value));
 
     final _callBack = () {
       rm.unsubscribe();
