@@ -7,6 +7,7 @@ import '../../exceptions/exceptions_handler.dart';
 import '../sign_in_register_form_page/sign_in_register_form_page.dart';
 
 class SignInPage extends StatelessWidget {
+  //NOTE1: Getting the bool canSignInWithApple value
   final bool canSignInWithApple =
       Injector.get<AppSignInCheckerService>().canSignInWithApple;
 
@@ -17,7 +18,9 @@ class SignInPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Builder(builder: (context) {
+          //NOTE1: Getting the Singleton ReactiveModel of UserService and subscribe it with the BuildContext
           final userServiceRM = RM.get<UserService>(context: context);
+          //NOTE1: helper getter
           bool isLoading = userServiceRM.isWaiting;
           print('signin page rebuild');
           return Column(
@@ -26,6 +29,7 @@ class SignInPage extends StatelessWidget {
             children: <Widget>[
               Center(
                 child: SizedBox(
+                  //NOTE1: Display the CircularProgressIndicator while signing in
                   child: isLoading
                       ? CircularProgressIndicator()
                       : Text(
@@ -37,6 +41,7 @@ class SignInPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 32),
+              //NOTE2: IF can log with apple
               if (canSignInWithApple) ...[
                 RaisedButton(
                   child: Text('Sign in With Apple Account'),
@@ -68,6 +73,7 @@ class SignInPage extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
+                              //Display form screen
                               return SignInRegisterFormPage();
                             },
                           ),
