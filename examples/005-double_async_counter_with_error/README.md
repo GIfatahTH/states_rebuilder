@@ -99,7 +99,7 @@ class App extends StatelessWidget {
 
           //NOTE1 : Getting the countersService registered reactive environment using the context.
           final ReactiveModel<CounterService> counterService =
-              Injector.getAsReactive(context: context);
+              RM.get(context: context);
 
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -125,9 +125,9 @@ class App extends StatelessWidget {
 After injecting the `CounterService` class, we get the registered singleton in the builder callback of the `Injector` widget.
 >Injected models are available even within the `Injector` widget where they are injected.
 
-the registered singleton of `CounterService` is obtained using `Injector.getAsReactive` with context because we want this widget to be notified by the 'counterService' object. [NOTE1]
+the registered singleton of `CounterService` is obtained using `RM.get` with context because we want this widget to be notified by the 'counterService' object. [NOTE1]
 
->If you want to get the registered reactive singleton and at the same time subscribe it to the obtained instance, you use `Injector.getAsReactive` with context. If the context is not available, you can get the reactive singleton `Injector.getAsReactive` without context and subscribe it to the model using `StateBuilder` widget.
+>If you want to get the registered reactive singleton and at the same time subscribe it to the obtained instance, you use `RM.get` with context. If the context is not available, you can get the reactive singleton `RM.get` without context and subscribe it to the model using `StateBuilder` widget.
 
 `CounterPage` widget is written so that to be reusable and parametrized. It is used twice; the first for one second of wait ant the other for three seconds of wait. [NOTE2]
 
@@ -144,7 +144,7 @@ class CounterPage extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             onIdle: () => Text(
                 'Top on the plus button to start incrementing the counter'),
             onWaiting: () => Row(
@@ -225,7 +225,7 @@ To Trigger an event that will mutate the state of the `counterService` and end b
 The BuildContext passed to the `onSetState` callback is of the BuildContext of the last added observer.
 
 >states_rebuilder uses the observer pattern, to add observers to observable object, you either:
-> * use of the `Injector.getAsReactive` method with the context parameter provided.
+> * use of the `RM.get` method with the context parameter provided.
 > * use `StateBuilder` widget.
 
 > `onSetState` and `onRebuildState` can be called in `setState` method for one time use after calling `setState`, or in `StateBuilder` for each time a notification is sent form  models observed by the `StateBuilder` widget.
@@ -254,7 +254,7 @@ class App extends StatelessWidget {
         builder: (BuildContext context) {
           //NOTE1: Getting the registered reactive singleton without the context
           final ReactiveModel<CounterService> counterService =
-              Injector.getAsReactive();
+              RM.get();
 
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -279,9 +279,9 @@ class App extends StatelessWidget {
   }
 }
 ```
-The registered reactive singleton is obtained using `Injector.getAsReactive` without the context.[NOTE1]
+The registered reactive singleton is obtained using `RM.get` without the context.[NOTE1]
 
->Whenever you use `StateBuilder` remove the context from `Injector.getAsReactive` because `StateBuilder` subscribe to the model and is better for fine-tune rebuild.
+>Whenever you use `StateBuilder` remove the context from `RM.get` because `StateBuilder` subscribe to the model and is better for fine-tune rebuild.
 
 A `tag` is added to the `CounterPage` widget.
 
@@ -300,7 +300,7 @@ class CounterPage extends StatelessWidget {
 
           WhenRebuilder(
             //NOTE1: subscription to the counterService model
-            models: [counterService],
+            observe: () => counterService,
             //NOTE1: defining filtrating tag to this StateBuilder widget
             tag: tag,
             onIdle: () => Text(
@@ -373,19 +373,19 @@ states_rebuilder caches two singletons for each registered model.
 * reactive singleton of the model which is the raw singleton decorated with the reactive environment.
 
 > `Injector.get<T>()` returns the raw singleton of type `T` of the registered model.    
-> `Injector.getAsReactive<T>()` returns the reactive singleton of type `ReactiveModel<T>` of the registered model.  
+> `RM.get<T>()` returns the reactive singleton of type `ReactiveModel<T>` of the registered model.  
 
 With `states_rebuilder`, you can create, at any time, a new reactive instance, which is the same raw cashed singleton but decorated with a new reactive environment.
 
-One way to create a new reactive instance of an injected model is to use `Injector.getAsReactive` appended with `asNew('seed')`;
+One way to create a new reactive instance of an injected model is to use `RM.get` appended with `asNew('seed')`;
 
 ```dart
-final reactiveModel = Injector.getAsReactive<Model>();
+final reactiveModel = RM.get<Model>();
 final newReactiveModel = reactiveModel.asNew('mySeed');
 
 // or directly
 
-final newReactiveModel = Injector.getAsReactive<Model>().asNew('mySeed');
+final newReactiveModel = RM.get<Model>().asNew('mySeed');
 ```
 By setting the seed parameter of the `asNew` method your are sure to get the same new reactive instance even after the widget rebuilds.
 
@@ -410,7 +410,7 @@ class App extends StatelessWidget {
         inject: [Inject(() => CounterService())],
         builder: (BuildContext context) {
           //NOTE1: get the singleton reactive model
-          final counterService = Injector.getAsReactive<CounterService>();
+          final counterService = RM.get<CounterService>();
 
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -509,7 +509,7 @@ class CounterPage extends StatelessWidget {
         children: <Widget>[
         //Use of `WhenRebuilder` without a tag.
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             onIdle: () => Text(
                 'Top on the plus button to start incrementing the counter'),
             onWaiting: () => Row(

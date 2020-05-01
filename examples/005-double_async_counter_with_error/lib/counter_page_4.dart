@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'counter_service.dart';
+import 'counter.dart';
+import 'counter_service_immutable.dart';
 
 class App extends StatelessWidget {
   @override
@@ -9,20 +10,20 @@ class App extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Future counter with error')),
       body: Injector(
-        inject: [Inject(() => CounterService())],
-        builder: (BuildContext context) {
-          final ReactiveModel<CounterService> counterService =
-              RM.get(context: context);
+        inject: [Inject(() => CounterState(Counter(0)))],
 
+        //Case1 of obtaining new reactive instance
+        builder: (BuildContext context) {
+          final counterState = RM.get<CounterState>();
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               CounterPage(
-                counterService: counterService,
+                counterState: counterState.asNew('counterState1'),
                 seconds: 1,
               ),
               CounterPage(
-                counterService: counterService,
+                counterState: counterState.asNew('counterState2'),
                 seconds: 3,
               ),
             ],
@@ -34,16 +35,16 @@ class App extends StatelessWidget {
 }
 
 class CounterPage extends StatelessWidget {
-  CounterPage({this.seconds, this.counterService});
+  CounterPage({this.seconds, this.counterState});
   final int seconds;
-  final ReactiveModel<CounterService> counterService;
+  final ReactiveModel<CounterState> counterState;
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            observe: () => counterService,
+            observe: () => counterState,
             onIdle: () => Text(
                 'Top on the plus button to start incrementing the counter'),
             onWaiting: () => Row(
@@ -54,24 +55,21 @@ class CounterPage extends StatelessWidget {
               ],
             ),
             onError: (error) => Text(
-              counterService.error.message,
+              counterState.error.message,
               style: TextStyle(color: Colors.red),
             ),
-            onData: (data) {
-              return Text(
-                '${counterService.state.counter.count}',
-                style: TextStyle(fontSize: 30),
-              );
-            },
+            onData: (data) => Text(
+              '${counterState.state.counter.count}',
+              style: TextStyle(fontSize: 30),
+            ),
           ),
           IconButton(
             onPressed: () {
-              counterService.setState(
-                (state) => state.increment(seconds),
-                onError: (BuildContext context, dynamic error) {
+              counterState.future((c) => c.increment(seconds)).onError(
+                (context, error) {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(counterService.error.message),
+                      content: Text(counterState.error.message),
                     ),
                   );
                 },

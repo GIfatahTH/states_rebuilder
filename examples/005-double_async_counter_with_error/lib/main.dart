@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'counter_page_1.dart' as page1;
 import 'counter_page_2.dart' as page2;
 import 'counter_page_3.dart' as page3;
+import 'counter_page_4.dart' as page4;
 
 void main() => runApp(MaterialApp(home: MainApp()));
 
@@ -41,6 +42,17 @@ class MainApp extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => page3.App(),
+              ),
+            );
+          },
+        ),
+        RaisedButton(
+          child: Text('Immutable Double counter (New reactive environnement)'),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => page4.App(),
               ),
             );
           },
