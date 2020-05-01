@@ -512,7 +512,7 @@ class _LoginBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<AuthenticationService>(
       //NOTE1: getting the registered reactiveModel and subscribe to StateBuilder
-      models: [ReactiveModel<AuthenticationService>()],
+      observe: () => RM.get<AuthenticationService>(),
       //Note2: disposing TextEditingController to free resources.
       dispose: (_, __) => controller.dispose(),
       builder: (_, authServiceRM) {
@@ -578,7 +578,7 @@ class HomePage extends StatelessWidget {
           return Scaffold(
             backgroundColor: backgroundColor,
             body: StateBuilder<PostsService>(
-              models: [ReactiveModel<PostsService>()],
+              observe: () => RM.get<PostsService>(),
               initState: (_, postsServiceRM) {
                 //NOTE3: get the list of post from the user id
                 postsServiceRM.setState(
@@ -651,7 +651,7 @@ by
 case 'post':
  var post = settings.arguments as Post;
  return MaterialPageRoute(builder: (_) => Injector(
-      reinject: [ReactiveModel<PostsService>()],
+      reinject: [RM.get<PostsService>()],
       builder: (context) {
         return PostPage(post: post));
       },
@@ -719,7 +719,7 @@ class Comments extends StatelessWidget {
       builder: (context) {
 
         return StateBuilder(
-          models: [ReactiveModel<CommentsService>()],
+          observe: () => RM.get<CommentsService>(),
           //NOTE2: fetch comments in the init state
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),
@@ -762,12 +762,12 @@ class LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //NOTE1: get reactiveModel of PostsService
-    final postsServiceRM = ReactiveModel<PostsService>();
+    final postsServiceRM = RM.get<PostsService>();
 
     return Row(
       children: <Widget>[
         StateBuilder(
-          models: [postsServiceRM],
+          observe: () => postsServiceRM ,
           builder: (context, snapshot) {
             //NOTE2: Optimizing rebuild. Only Text is rebuild
             return Text('Likes ${postsServiceRM.state.getPostLikes(postId)}');

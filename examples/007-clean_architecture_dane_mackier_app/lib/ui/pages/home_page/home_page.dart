@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
           return Scaffold(
             backgroundColor: backgroundColor,
             body: WhenRebuilderOr<PostsService>(
-              models: [RM.get<PostsService>()],
+              observe: () => RM.get<PostsService>(),
               initState: (_, postsServiceRM) {
                 postsServiceRM.setState(
                   (state) => state.getPostsForUser(user.id),

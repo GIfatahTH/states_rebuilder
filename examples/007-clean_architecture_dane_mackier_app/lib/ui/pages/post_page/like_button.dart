@@ -12,12 +12,12 @@ class LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //NOTE1: get reactiveModel of PostsService
-    final postsServiceRM = ReactiveModel<PostsService>();
+    final postsServiceRM = RM.get<PostsService>();
 
     return Row(
       children: <Widget>[
         StateBuilder(
-          models: [postsServiceRM],
+          observe: () => postsServiceRM,
           builder: (_, __) {
             //NOTE2: Optimizing rebuild. Only Text is rebuild
             return Text('Likes ${postsServiceRM.state.getPostLikes(postId)}');

@@ -12,18 +12,19 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Injector(
-        inject: [
-          //NOTE1 : The order doesn't matter.
-          //NOTE2: // Register with interface.
-          Inject<IApi>(() => Api()),
-          //NOTE3: Type is optional here because it is inferred
-          Inject(() => AuthenticationService(api: Injector.get())),
-        ],
-        builder: (context) => MaterialApp(
-              title: 'Flutter Demo',
-              theme: ThemeData(),
-              initialRoute: 'login',
-              onGenerateRoute: Router.generateRoute,
-            ));
+      inject: [
+        //NOTE1 : The order doesn't matter.
+        //NOTE2: // Register with interface.
+        Inject<IApi>(() => Api()),
+        //NOTE3: Type is optional here because it is inferred
+        Inject(() => AuthenticationService(api: Injector.get())),
+      ],
+      builder: (context) => MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(),
+        initialRoute: 'login',
+        onGenerateRoute: Router.generateRoute,
+      ),
+    );
   }
 }
