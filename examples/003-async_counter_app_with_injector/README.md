@@ -169,6 +169,8 @@ final CounterStore counterStore = Injector.get<CounterStore>();
 final ReactiveModel<CounterStore> counterStoreRM = Injector.getAsReactive<CounterStore>();
 //or 
 final ReactiveModel<CounterStore> counterStoreRM = ReactiveModel<CounterStore>();
+//or 
+final ReactiveModel<CounterStore> counterStoreRM = RM.get<CounterStore>();
 
 ```
 
@@ -195,7 +197,7 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  final ReactiveModel<CounterStore> counterRM = ReactiveModel<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM = RM.get<CounterStore>();
    //
    //
    [the same code as above]
@@ -376,7 +378,7 @@ class MyHomePage extends StatelessWidget {
       builder: (context) {
 
         //getting the counterRM from the interface. The exact implementation is defined by Injector.env
-        final counterRM =ReactiveModel<ICounterStore>();
+        final counterRM =RM.get<ICounterStore>();
 
         //getting the config without reactivity
         final config = Injector.get<IConfig>();
@@ -396,7 +398,7 @@ class MyHomePage extends StatelessWidget {
                   ),
                   //Subscribing to the counterRM using StateBuilder
                   WhenRebuilder<ICounterStore>(
-                    models: [counterRM],
+                    observe: ()=>counterRM,
                     onIdle: () =>
                         Text('Tap on the FAB to increment the counter'),
                     onWaiting: () => CircularProgressIndicator(),

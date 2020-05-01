@@ -52,7 +52,7 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  final ReactiveModel<CounterStore> counterRM = ReactiveModel<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM = RM.get<CounterStore>();
 
   //You can use Injector.getAsReactive
   // final ReactiveModel<CounterStore> counterRM =
@@ -73,7 +73,7 @@ class MyHomePage extends StatelessWidget {
             ),
             //Subscribing to the counterRM using StateBuilder
             WhenRebuilder<CounterStore>(
-              models: [counterRM],
+              observe: () => counterRM,
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
               onError: (error) => Text(counterRM.error.message),
