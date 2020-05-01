@@ -40,9 +40,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
-  //create reactiveModels
-  final ReactiveModel<Email> emailRM = ReactiveModel.create(Email(''));
-  final ReactiveModel<Password> passwordRM = ReactiveModel.create(Password(''));
+  //create reactiveModels keys
+  final RMKey<Email> emailRM = RMKey();
+  final RMKey<Password> passwordRM = RMKey();
   // helper getter to check the validity of the form
   bool get isValid => emailRM.hasData && passwordRM.hasData;
   @override
@@ -55,9 +55,11 @@ class MyHomePage extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: ListView(
           children: <Widget>[
-            //subscribe to emailRM
             StateBuilder(
-                models: [emailRM],
+                //create and subscribe to local ReactiveModel of Email type
+                observe: () => RM.create(Email('')),
+                // associate the emailRM ReactiveModel key with the create ReactiveModel in observe parameter
+                rmKey: emailRM,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String email) {
@@ -78,8 +80,10 @@ class MyHomePage extends StatelessWidget {
                   );
                 }),
             StateBuilder(
-                //subscribe to passwordRM
-                models: [passwordRM],
+                //create and subscribe to local ReactiveModel of Password type
+                observe: () => RM.create(Password('')),
+                // associate the passwordRM ReactiveModel key with the create ReactiveModel in observe parameter
+                rmKey: passwordRM,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String password) {
@@ -97,8 +101,8 @@ class MyHomePage extends StatelessWidget {
                   );
                 }),
             StateBuilder(
-              //subscribe to both emailRM and passwordRM
-              models: [emailRM, passwordRM],
+              //subscribe to both emailRM and passwordRM ReactiveModel keys
+              observeMany: [() => emailRM, () => passwordRM],
               builder: (_, exposedModel) {
                 //this builder is called each time emailRM or passwordRM emit a notification
                 return Column(

@@ -59,9 +59,9 @@ class MyApp extends StatelessWidget {
 
 ```dart
 class MyHomePage extends StatelessWidget {
-  //create reactiveModels
-  final ReactiveModel<Email>  emailRM = ReactiveModel.create(Email(''));
-  final ReactiveModel<Password> passwordRM = ReactiveModel.create(Password(''));
+  //create reactiveModels keys
+  final RMKey<Email> emailRM = RMKey();
+  final RMKey<Password> passwordRM = RMKey();
   // helper getter to check the validity of the form
   bool get isValid => emailRM.hasData && passwordRM.hasData;
   @override
@@ -76,7 +76,10 @@ class MyHomePage extends StatelessWidget {
           children: <Widget>[
             //subscribe to emailRM
             StateBuilder(
-                models: [emailRM],
+                //create and subscribe to local ReactiveModel of Email type
+                observe: () => RM.create(Email('')),
+                // associate the emailRM ReactiveModel key with the create ReactiveModel in observe parameter
+                rmKey: emailRM,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String email) {
@@ -97,8 +100,10 @@ class MyHomePage extends StatelessWidget {
                   );
                 }),
             StateBuilder(
-                //subscribe to passwordRM
-                models: [passwordRM],
+                //create and subscribe to local ReactiveModel of Password type
+                observe: () => RM.create(Password('')),
+                // associate the passwordRM ReactiveModel key with the create ReactiveModel in observe parameter
+                rmKey: passwordRM,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String password) {
@@ -139,9 +144,9 @@ class MyHomePage extends StatelessWidget {
 ```
 
 The point here is that each of the email, password input fields and the submit button are wrapped within a `StateBuilder` widget.
-* the email input field is subscribed to the `emailRM` so that when the `emailRM` emits a notification only this input field will rebuild.
+* the email input field is subscribed to the laically created ReactiveModel`emailRM` so that when the `emailRM` emits a notification only this input field will rebuild.
 * the password input field is subscribed to the `passwordRM` so that it is the only part of the widget that rebuilds when `passwordRM` emits a notification.
-* The submit button is subscribed to both the `emailRM` and `passwordRM`. and as you may guess it, the submit button will rebuild if any of the models emits a notification.
+* The submit button is subscribed to both the `emailRM` and `passwordRM` ReactiveModel keys. and as you may guess it, the submit button will rebuild if any of the models emits a notification.
 
 To better understand how states_rebuilder manage the state, let's track the state of the `emailRM` :
 
@@ -177,7 +182,7 @@ What I call exposed model is the second parameter of the builder callback.
 
 ```dart
 StateBuilder(
-    models: [emailRM, passwordRM],
+    observeMany: [()=> emailRM,()=> passwordRM],
     builder: (BuildContext context, ReactiveModel exposedModel) {
                                                         ^
                                                         |
@@ -190,7 +195,7 @@ for example:
 
 ```dart
 StateBuilder<Email>(
-    models: [emailRM, passwordRM],
+    observeMany: [()=> emailRM,()=> passwordRM],
     builder: (BuildContext context, ReactiveModel exposedModel) {
       print(exposedModel is ReactiveModel<Email>); // will print true
       print(exposedModel is ReactiveModel<Password>); // will print false
@@ -201,7 +206,7 @@ or
 
 ```dart
 StateBuilder<Password>(
-    models: [emailRM, passwordRM],
+    observeMany: [()=> emailRM,()=> passwordRM],
     builder: (BuildContext context, ReactiveModel exposedModel) {
       print(exposedModel is ReactiveModel<Email>); // will print false
       print(exposedModel is ReactiveModel<Password>); // will print true
@@ -214,7 +219,7 @@ Then the exposed model is also dynamic. By dynamic I mean it will hold the insta
 
 ```dart
 StateBuilder(
-    models: [emailRM, passwordRM],
+    observeMany: [()=> emailRM,()=> passwordRM],
     builder: (BuildContext context, ReactiveModel exposedModel) {
 
       //exposedModel is neither  ReactiveModel<Email> nor ReactiveModel<Password>
@@ -241,7 +246,7 @@ To see this in practice let's return to our example and add:
 
 ```dart
 StateBuilder(
-    models: [emailRM, passwordRM],
+    observeMany: [()=> emailRM,()=> passwordRM],
     builder: (_, exposedModel) {
     return Column(
         children: <Widget>[
