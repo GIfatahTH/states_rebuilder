@@ -117,7 +117,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsOneWidget);
       modelRM0.subscription.cancel();
-      modelRM0.unsubscribe();
+      modelRM0.unsubscribe(null);
       expect(modelRM0.isStreamDone, isNull);
     },
   );
@@ -650,7 +650,9 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = RMKey<Model>()..rm = ReactiveModel.create(Model());
+      final modelRM = RMKey<Model>()
+        ..rm = ReactiveModel.create(Model())
+        ..subscribe((_) {});
 
       //
       expect(modelRM.toString(), contains('<Model> RM'));

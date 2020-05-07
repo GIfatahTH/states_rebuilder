@@ -77,7 +77,7 @@ class OnSetStateListener<T> extends StatelessWidget {
       onSetState: _onSetState,
       initState: (context, rm) {
         final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+            (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
         if (onError != null) {
           for (var reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber++;
@@ -91,7 +91,7 @@ class OnSetStateListener<T> extends StatelessWidget {
         if (onError != null) {
           final _models =
               (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
-          for (var reactiveModel in _models) {
+          for (ReactiveModelImp reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber--;
           }
         }

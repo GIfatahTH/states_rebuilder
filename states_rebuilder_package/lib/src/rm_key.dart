@@ -6,10 +6,10 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class RMKey<T> implements ReactiveModel<T> {
+class RMKey<T> implements ReactiveModelImp<T> {
   ReactiveModel<T> _rmInitial;
-  ReactiveModel<T> _rm;
-  ReactiveModel<T> get rm => _rm;
+  ReactiveModelImp<T> _rm;
+  ReactiveModelImp<T> get rm => _rm;
   final T initialValue;
   RMKey([this.initialValue]) // : super.inj(Inject<T>(() => initialValue))
   {
@@ -27,7 +27,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
     _rm = rm;
     _rm.cleaner(() {
-      unsubscribe();
+      unsubscribe(null);
     });
   }
 
@@ -194,8 +194,13 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  void unsubscribe() {
-    _rm?.unsubscribe();
+  void unsubscribe(void Function(ReactiveModel<T> rm) fn) {
+    _rm?.unsubscribe(fn);
+  }
+
+  @override
+  void subscribe(void Function(ReactiveModel<T> rm) fn) {
+    _rm?.subscribe(fn);
   }
 
   R whenConnectionState<R>({
@@ -256,6 +261,16 @@ class RMKey<T> implements ReactiveModel<T> {
   @override
   void onData(void Function(T data) fn) {
     _rm.onData(fn);
+  }
+
+  @override
+  setOnSetStateContext(BuildContext ctx) {
+    _rm.setOnSetStateContext(ctx);
+  }
+
+  @override
+  void set state(T state) {
+    _rm.state = state;
   }
 
   // @override

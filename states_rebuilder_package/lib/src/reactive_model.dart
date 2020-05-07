@@ -46,15 +46,7 @@ import 'states_rebuilder.dart';
 ///* Far asynchronous tasks :[connectionState], [hasError], [error], [hasData].
 ///
 ///and many more...
-abstract class ReactiveModel<T> extends StatesRebuilder<T> {
-  ///An abstract class that defines the reactive environment.
-  ReactiveModel.inj(this._inject, [this.isNewReactiveInstance = false]) {
-    if (!_inject.isAsyncInjected) {
-      _state = _inject?.getSingleton();
-      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
-    }
-  }
-
+abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///Create a ReactiveModel for primitive values, enums and immutable objects
   ///
   ///You can use the shortcut [RM.create]:
@@ -88,6 +80,197 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     return inject.getReactive();
   }
 
+  ///Create a ReactiveModel form future
+  ///
+  ///You can use the shortcut [RM.future]:
+  ///```dart
+  ///RM.future<T>(future<T> future);
+  ///```
+  factory ReactiveModel.future(Future<T> future,
+      {dynamic name, T initialValue, List<dynamic> filterTags}) {
+    final inject = Inject<T>.future(
+      () => future,
+      initialValue: initialValue,
+      name: name,
+      filterTags: filterTags,
+    );
+    return inject.getReactive();
+  }
+
+  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
+  ///
+  /// ou can use the shortcut [RM.get]:
+  ///```dart
+  ///RM.get<T>(;
+  ///```
+  ///
+  ///
+  factory ReactiveModel(
+      {BuildContext context, dynamic name, bool silent = false}) {
+    return Injector.getAsReactive<T>(
+        name: name, context: context, silent: silent);
+  }
+
+  ///A representation of the most recent state (instance) of the injected model.
+  AsyncSnapshot<T> get snapshot;
+
+  ///The state of the injected model.
+  T get state;
+
+  ///The state of the injected model.
+  // set state(T data) {
+  //   _state = data;
+  //   _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
+  // }
+
+  ///The value the ReactiveModel holds. It is the same as [state]
+  ///
+  ///value is more suitable fro immutable objects,
+  ///
+  ///value when set it automatically notify observers. You do not have to explicitly use [setValue]
+  T value;
+
+  //The latest error object received by the asynchronous computation.
+  dynamic get error;
+
+  ///Current state of connection to the asynchronous computation.
+  ///
+  ///The initial state is [ConnectionState.none].
+  ///
+  ///If the an asynchronous event is mutating the state,
+  ///the connection state is set to [ConnectionState.waiting] and listeners are notified.
+  ///
+  ///When the asynchronous task resolves
+  ///the connection state is set to [ConnectionState.none] and listeners are notified.
+  ///
+  ///If the state is mutated by a non synchronous event, the connection state remains [ConnectionState.none].
+  ConnectionState get connectionState;
+
+  ///Where the reactive state is in the initial state
+  ///
+  ///It is a shortcut of : this.connectionState == ConnectionState.none
+  bool get isIdle;
+
+  ///Where the reactive state is in the waiting for an asynchronous task to resolve
+  ///
+  ///It is a shortcut of : this.connectionState == ConnectionState.waiting
+  bool get isWaiting;
+
+  ///Returns whether this state contains a non-null [error] value.
+  bool get hasError;
+
+  ///The global error event handler of this ReactiveModel.
+  ///
+  ///You can override this error handling to use a specific handling in response to particular events
+  ///using the onError callback of [setState] or [setValue].
+  void onError(void Function(BuildContext context, dynamic error) errorHandler);
+
+  ///The global data event handler of this ReactiveModel.
+  ///
+  void onData(void Function(T data) fn);
+
+  ///Returns whether this snapshot contains a non-null [AsyncSnapshot.data] value.
+  ///Unlike in [AsyncSnapshot], hasData has special meaning here.
+  ///It means that the [connectionState] is [ConnectionState.done] with no error.
+  bool get hasData;
+
+  ///unsubscribe form the stream.
+  ///It works for injected streams or futures.
+  void unsubscribe(void Function(ReactiveModel<T>) rm);
+  void subscribe(void Function(ReactiveModel<T>) rm);
+
+  ///The stream (or Future) subscription. It works only for injected streams or futures.
+  StreamSubscription<T> get subscription;
+
+  ///Exhaustively switch over all the possible statuses of [connectionState].
+  ///Used mostly to return [Widget]s.
+  R whenConnectionState<R>({
+    @required R Function() onIdle,
+    @required R Function() onWaiting,
+    @required R Function(T state) onData,
+    @required R Function(dynamic error) onError,
+    bool catchError = true,
+  });
+
+  ///Return a new reactive instance.
+  ///
+  ///The [seed] parameter is used to unsure to always obtain the same new reactive
+  ///instance after widget tree reconstruction.
+  ///
+  ///[seed] is optional and if not provided a default seed is used.
+  ReactiveModel<T> asNew([dynamic seed = 'defaultReactiveSeed']);
+
+  ///Rest the async connection state to [isIdle]
+  void resetToIdle();
+
+  ///Rest the async connection state to [hasData]
+  void resetToHasData();
+
+  ///Holds data to be sent between reactive singleton and reactive new instances.
+  dynamic get joinSingletonToNewData;
+
+  /// Mutate the value of a Reactive Model and notify observers.
+  ///
+  /// Equivalent to [setState] but very convenient for primitives and immutable objects
+  Future<void> setValue(
+    FutureOr<T> Function() fn, {
+    List<dynamic> filterTags,
+    List<dynamic> seeds,
+    void Function(BuildContext context) onSetState,
+    void Function(BuildContext context) onRebuildState,
+    void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context, T data) onData,
+    bool catchError = false,
+    bool notifyAllReactiveInstances = false,
+    bool joinSingleton,
+  });
+
+  /// Mutate the state of the model and notify observers.
+  ///
+  /// [fn] takes the current state as argument. You can optionally define
+  /// a list of [StateBuilder] [filterTags] to be notified after state mutation.
+  ///
+  /// To limit the rebuild process to a particular set of model instance variables use [watch].
+  ///
+  /// If you want to catch error define [catchError] to be true
+  ///
+  /// With [onSetState] you can define callBacks to be executed after mutating the state such as Navigation,
+  /// show dialog or SnackBar.
+  ///
+  /// [onRebuildState] is similar to [onSetState] except that it is executed after
+  /// the rebuilding process is completed.
+  ///
+  ///[onData] callback to be executed when ReactiveModel has data.
+  ///
+  ///[onError] callback to be executed when ReactiveModel has data.
+  ///
+  /// [watch] is a function that returns a single model instance variable or a list of
+  /// them. The rebuild process will be triggered if at least one of
+  /// the return variable changes. Returned variable must be either a primitive variable,
+  /// a List, a Map or a Set.To use a custom type, you should override the `toString` method to reflect
+  /// a unique identity of each instance.
+  /// If it is not defined all listener will be notified when a new state is available.
+  ///
+  /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
+  ///
+  /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
+  Future<void> setState(
+    Function(T) fn, {
+    bool catchError,
+    Object Function(T state) watch,
+    List<dynamic> filterTags,
+    List<dynamic> seeds,
+    void Function(BuildContext context) onSetState,
+    void Function(BuildContext context) onRebuildState,
+    void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context, T model) onData,
+    dynamic Function() joinSingletonToNewData,
+    bool joinSingleton = false,
+    bool notifyAllReactiveInstances = false,
+    bool setValue = false,
+  });
+  @override
+
   ///Get a stream from the state and subscribe to it and
   ///notify observing widget of this [ReactiveModel]
   ///
@@ -96,11 +279,37 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   ///The stream is automatically disposed of when this [ReactiveModel] is disposed.
   ///
   ///Works well for immutable objects
+  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue});
+
+  ///Get a Future from the state and subscribe to it and
+  ///notify observing widget of this [ReactiveModel]
+  ///
+  ///The callback exposes the current state as parameter.
+  ///
+  ///The future is automatically canceled when this [ReactiveModel] is disposed.
+  ///
+  ///Works well for immutable objects
+  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue});
+  bool isA<T>();
+}
+
+class ReactiveModelImp<T> extends StatesRebuilder<T>
+    implements ReactiveModel<T> {
+  ///An abstract class that defines the reactive environment.
+  ReactiveModelImp(this._inject, [this.isNewReactiveInstance = false])
+      : assert(_inject != null) {
+    if (!_inject.isAsyncInjected) {
+      _state = _inject?.getSingleton();
+      _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
+    }
+  }
+
   ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
-    final rm = ReactiveModel<S>.stream(stream(inject.getReactive().value));
+    final ReactiveModelImp<S> rm =
+        ReactiveModel<S>.stream(stream(inject.getReactive().value));
 
     final _callBack = () {
-      rm.unsubscribe();
+      rm.unsubscribe(null);
     };
     cleaner(_callBack);
     rm.subscription
@@ -129,31 +338,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     return rm;
   }
 
-  ///Create a ReactiveModel form future
-  ///
-  ///You can use the shortcut [RM.future]:
-  ///```dart
-  ///RM.future<T>(future<T> future);
-  ///```
-  factory ReactiveModel.future(Future<T> future,
-      {dynamic name, T initialValue, List<dynamic> filterTags}) {
-    final inject = Inject<T>.future(
-      () => future,
-      initialValue: initialValue,
-      name: name,
-      filterTags: filterTags,
-    );
-    return inject.getReactive();
-  }
-
-  ///Get a Future from the state and subscribe to it and
-  ///notify observing widget of this [ReactiveModel]
-  ///
-  ///The callback exposes the current state as parameter.
-  ///
-  ///The future is automatically canceled when this [ReactiveModel] is disposed.
-  ///
-  ///Works well for immutable objects
   ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue}) {
     final rm = stream<F>((s) => future(s).asStream());
     _snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, _state);
@@ -170,20 +354,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     return rm;
   }
 
-  ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
-  ///
-  /// ou can use the shortcut [RM.get]:
-  ///```dart
-  ///RM.get<T>(;
-  ///```
-  ///
-  ///
-  factory ReactiveModel(
-      {BuildContext context, dynamic name, bool silent = false}) {
-    return Injector.getAsReactive<T>(
-        name: name, context: context, silent: silent);
-  }
-
   final Inject<T> _inject;
   Inject<T> get inject => _inject;
 
@@ -193,67 +363,31 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   T _state;
 
   AsyncSnapshot<T> _snapshot;
-
-  /// A representation of the most recent state (instance) of the injected model.
+  @override
   AsyncSnapshot<T> get snapshot => _snapshot;
-
-  ///The state of the injected model.
+  @override
   T get state => _state;
-
-  ///The state of the injected model.
-  // set state(T data) {
-  //   _state = data;
-  //   _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
-  // }
-
-  ///The value the ReactiveModel holds. It is the same as [state]
-  ///
-  ///value is more suitable fro immutable objects,
-  ///
-  ///value when set it automatically notify observers. You do not have to explicitly use [setValue]
+  @override
   T get value {
     return inject.getReactive().state;
   }
 
+  @override
   set value(T data) {
     setValue(() => data);
   }
 
-  ///The latest error object received by the asynchronous computation.
   dynamic get error => _snapshot.error;
 
-  ///Current state of connection to the asynchronous computation.
-  ///
-  ///The initial state is [ConnectionState.none].
-  ///
-  ///If the an asynchronous event is mutating the state,
-  ///the connection state is set to [ConnectionState.waiting] and listeners are notified.
-  ///
-  ///When the asynchronous task resolves
-  ///the connection state is set to [ConnectionState.none] and listeners are notified.
-  ///
-  ///If the state is mutated by a non synchronous event, the connection state remains [ConnectionState.none].
   ConnectionState get connectionState => snapshot.connectionState;
-
-  ///Where the reactive state is in the initial state
-  ///
-  ///It is a shortcut of : this.connectionState == ConnectionState.none
   bool get isIdle => connectionState == ConnectionState.none;
 
-  ///Where the reactive state is in the waiting for an asynchronous task to resolve
-  ///
-  ///It is a shortcut of : this.connectionState == ConnectionState.waiting
   bool get isWaiting => connectionState == ConnectionState.waiting;
 
-  ///Returns whether this state contains a non-null [error] value.
   bool get hasError => snapshot?.hasError;
 
   void Function(BuildContext context, dynamic error) _onError;
 
-  ///The global error event handler of this ReactiveModel.
-  ///
-  ///You can override this error handling to use a specific handling in response to particular events
-  ///using the onError callback of [setState] or [setValue].
   void onError(
       void Function(BuildContext context, dynamic error) errorHandler) {
     _onError = errorHandler;
@@ -261,15 +395,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
 
   void Function(T data) _onData;
 
-  ///The global data event handler of this ReactiveModel.
-  ///
   void onData(void Function(T data) fn) {
     _onData = fn;
   }
 
-  ///Returns whether this snapshot contains a non-null [AsyncSnapshot.data] value.
-  ///Unlike in [AsyncSnapshot], hasData has special meaning here.
-  ///It means that the [connectionState] is [ConnectionState.done] with no error.
   bool get hasData =>
       !hasError &&
       (connectionState == ConnectionState.done ||
@@ -281,20 +410,36 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
 
   StreamSubscription<T> _subscription;
 
-  ///unsubscribe form the stream.
-  ///It works for injected streams or futures.
-  void unsubscribe() {
+  void unsubscribe(void Function(ReactiveModel<T> rm) fn) {
+    if (fn != null) {
+      removeObserver(
+          observer: _ReactiveModelObserver<T>(fn: fn, rm: this),
+          tag: 'ReactiveModelObserver$hashCode');
+    }
     if (_subscription != null) {
       _subscription.cancel();
       _subscription = null;
     }
   }
 
-  ///The stream (or Future) subscription. It works only for injected streams or futures.
+  @override
+  void subscribe(void Function(ReactiveModel<T> rm) fn) {
+    if (fn != null) {
+      final _reactiveModelObserver =
+          _ReactiveModelObserver<T>(fn: fn, rm: this);
+      addObserver(
+          observer: _reactiveModelObserver,
+          tag: 'ReactiveModelObserver$hashCode');
+      cleaner(() {
+        removeObserver(
+            observer: _reactiveModelObserver,
+            tag: 'ReactiveModelObserver$hashCode');
+      });
+    }
+  }
+
   StreamSubscription<T> get subscription => _subscription;
 
-  ///Exhaustively switch over all the possible statuses of [connectionState].
-  ///Used mostly to return [Widget]s.
   R whenConnectionState<R>({
     @required R Function() onIdle,
     @required R Function() onWaiting,
@@ -321,18 +466,12 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
 
   dynamic _seed;
 
-  ///Return a new reactive instance.
-  ///
-  ///The [seed] parameter is used to unsure to always obtain the same new reactive
-  ///instance after widget tree reconstruction.
-  ///
-  ///[seed] is optional and if not provided a default seed is used.
   ReactiveModel<T> asNew([dynamic seed = 'defaultReactiveSeed']) {
     if (isNewReactiveInstance) {
       return inject.getReactive().asNew(seed);
     }
 
-    ReactiveModel<T> rm = inject.newReactiveMapFromSeed[seed.toString()];
+    ReactiveModelImp<T> rm = inject.newReactiveMapFromSeed[seed.toString()];
     if (rm != null) {
       return rm;
     }
@@ -343,22 +482,16 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     return rm;
   }
 
-  ///Rest the async connection state to [isIdle]
   void resetToIdle() {
     _snapshot = AsyncSnapshot.withData(ConnectionState.none, state);
   }
 
-  ///Rest the async connection state to [hasData]
   void resetToHasData() {
     _snapshot = AsyncSnapshot.withData(ConnectionState.done, state);
   }
 
-  ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData => _joinSingletonToNewData;
 
-  /// Mutate the value of a Reactive Model and notify observers.
-  ///
-  /// Equivalent to [setState] but very convenient for primitives and immutable objects
   Future<void> setValue(
     FutureOr<T> Function() fn, {
     List<dynamic> filterTags,
@@ -410,35 +543,6 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
 
   dynamic _result;
 
-  /// Mutate the state of the model and notify observers.
-  ///
-  /// [fn] takes the current state as argument. You can optionally define
-  /// a list of [StateBuilder] [filterTags] to be notified after state mutation.
-  ///
-  /// To limit the rebuild process to a particular set of model instance variables use [watch].
-  ///
-  /// If you want to catch error define [catchError] to be true
-  ///
-  /// With [onSetState] you can define callBacks to be executed after mutating the state such as Navigation,
-  /// show dialog or SnackBar.
-  ///
-  /// [onRebuildState] is similar to [onSetState] except that it is executed after
-  /// the rebuilding process is completed.
-  ///
-  ///[onData] callback to be executed when ReactiveModel has data.
-  ///
-  ///[onError] callback to be executed when ReactiveModel has data.
-  ///
-  /// [watch] is a function that returns a single model instance variable or a list of
-  /// them. The rebuild process will be triggered if at least one of
-  /// the return variable changes. Returned variable must be either a primitive variable,
-  /// a List, a Map or a Set.To use a custom type, you should override the `toString` method to reflect
-  /// a unique identity of each instance.
-  /// If it is not defined all listener will be notified when a new state is available.
-  ///
-  /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
-  ///
-  /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
   Future<void> setState(
     Function(T) fn, {
     bool catchError,
@@ -462,33 +566,33 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
     }());
 
     void _rebuildStates({bool canRebuild = true}) {
-      if (hasObservers && canRebuild) {
+      if (canRebuild) {
         rebuildStates(
           filterTags,
           (BuildContext context) {
             _ctx = null;
             final exposedContext = _activeCtx(context);
             if (exposedContext == null) {
-              assert(observers().length > 1, '''
-***No observer is subscribed yet***
-| There is no observer subscribed to this observable $runtimeType model.
-| To subscribe a widget you use:
-| 1- StateRebuilder for an already defined:
-|   ex:
-|   StatesRebuilder(
-|     observer: () => ${runtimeType}instance,
-|     builder : ....
-|   )
-| 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
-| 3- RM.get<$runtimeType>(context : context). for implicit reactivity.
-| 4- StateRebuilder for new reactive environment:
-|   ex:
-|   StatesRebuilder<$runtimeType>(
-|     builder : ....
-|   )
-| 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
-|
-''');
+//               assert(!hasObservers, '''
+// ***No observer is subscribed yet***
+// | There is no observer subscribed to this observable $runtimeType model.
+// | To subscribe a widget you use:
+// | 1- StateRebuilder for an already defined:
+// |   ex:
+// |   StatesRebuilder(
+// |     observer: () => ${runtimeType}instance,
+// |     builder : ....
+// |   )
+// | 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
+// | 3- RM.get<$runtimeType>(context : context). for implicit reactivity.
+// | 4- StateRebuilder for new reactive environment:
+// |   ex:
+// |   StatesRebuilder<$runtimeType>(
+// |     builder : ....
+// |   )
+// | 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
+// |
+// ''');
               return;
             }
             if (onError != null && hasError) {
@@ -504,7 +608,8 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
               _onData?.call(state);
               if (seeds != null) {
                 for (var seed in seeds) {
-                  final rm = inject.newReactiveMapFromSeed['$seed'];
+                  final ReactiveModelImp<T> rm =
+                      inject.newReactiveMapFromSeed['$seed'];
                   rm?.rebuildStates();
                 }
               }
@@ -525,7 +630,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
         if (notifyAllReactiveInstances == true) {
           _notifyAll();
         } else if (isNewReactiveInstance) {
-          final reactiveSingleton = inject.getReactive();
+          final ReactiveModelImp<T> reactiveSingleton = inject.getReactive();
           if (joinSingletonToNewData != null) {
             reactiveSingleton._joinSingletonToNewData =
                 joinSingletonToNewData();
@@ -597,7 +702,7 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
       }
       _state = _result;
       _snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
-      inject.reactiveSingleton._state = _state;
+      (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
       inject.singleton = _state;
       _rebuildStates(canRebuild: true);
       return;
@@ -648,10 +753,10 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   }
 
   void _notifyAll() {
-    for (ReactiveModel<T> rm in inject.newReactiveInstanceList) {
+    for (ReactiveModelImp<T> rm in inject.newReactiveInstanceList) {
       rm.rebuildStates();
     }
-    inject.getReactive().rebuildStates();
+    (inject.getReactive() as ReactiveModelImp<T>).rebuildStates();
   }
 
   bool isA<T>() {
@@ -669,12 +774,17 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
   //   return this.asNew(R);
   // }
 
-  // void copyRM(ReactiveModel<T> to) {
-  //   to._state = _state;
-  //   to._snapshot = _snapshot;
-  //   copy(to);
-  //   to._onError = _onError;
-  // }
+  set state(T state) {
+    _state = state;
+  }
+
+  @override
+  bool get hasObservers {
+    if (inject.isInjected && _onSetStateContextFromGet == null) {
+      return observers().length > 1;
+    }
+    return super.hasObservers;
+  }
 
   @override
   String toString() {
@@ -705,22 +815,26 @@ abstract class ReactiveModel<T> extends StatesRebuilder<T> {
         ) +
         ' | $nbrObserver observing widgets';
   }
+
+  setOnSetStateContext(BuildContext ctx) {
+    _onSetStateContextFromGet = ctx;
+  }
 }
 
-///A package private class used to add reactive environment to models
-class ReactiveStatesRebuilder<T> extends ReactiveModel<T> {
-  ///A package private class used to add reactive environment to models
-  ReactiveStatesRebuilder(Inject<T> inject,
-      [bool isNewReactiveInstance = false])
-      : assert(inject != null),
-        super.inj(inject, isNewReactiveInstance);
-}
+// ///A package private class used to add reactive environment to models
+// class ReactiveStatesRebuilder<T> extends ReactiveModel<T> {
+//   ///A package private class used to add reactive environment to models
+//   ReactiveStatesRebuilder(Inject<T> inject,
+//       [bool isNewReactiveInstance = false])
+//       : assert(inject != null),
+//         super.inj(inject, isNewReactiveInstance);
+// }
 
 ///A package private class used to add reactive environment to Stream and future
-class StreamStatesRebuilder<T> extends ReactiveModel<T> {
+class StreamStatesRebuilder<T> extends ReactiveModelImp<T> {
   StreamStatesRebuilder(this.injectAsync, [bool isNewReactiveInstance = false])
-      : super.inj(injectAsync, isNewReactiveInstance) {
-    subscribe();
+      : super(injectAsync, isNewReactiveInstance) {
+    streamSubscribe();
     cleaner(_unsubscribe);
   }
   Inject<T> injectAsync;
@@ -733,7 +847,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   String _watchCached;
   String _watchActual;
   bool _hasError = false;
-  void subscribe() {
+  void streamSubscribe() {
     if (injectAsync.isFutureType) {
       _stream = injectAsync.creationFutureFunction().asStream();
     } else {
@@ -774,6 +888,8 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
               _onError?.call(_activeCtx(context), e);
             },
           );
+        } else {
+          _onError?.call(null, e);
         }
       },
       onDone: () {
@@ -789,17 +905,7 @@ class StreamStatesRebuilder<T> extends ReactiveModel<T> {
   }
 
   void _unsubscribe() {
-    unsubscribe();
-  }
-}
-
-class ReactiveModelInternal {
-  static setOnSetStateContext(ReactiveModel rm, BuildContext ctx) {
-    rm._onSetStateContextFromGet = ctx;
-  }
-
-  static void state<T>(ReactiveModel rm, T state) {
-    rm._state = state;
+    unsubscribe(null);
   }
 }
 
@@ -962,4 +1068,17 @@ abstract class RM {
   ///get the model that is sending the notification
   static ReactiveModel get notified =>
       StatesRebuilderInternal.getNotifiedModel();
+}
+
+class _ReactiveModelObserver<T> implements ObserverOfStatesRebuilder {
+  final void Function(ReactiveModel<T>) fn;
+  final ReactiveModel<T> rm;
+
+  _ReactiveModelObserver({this.fn, this.rm});
+
+  @override
+  bool update([Function(BuildContext p1) onSetState, message]) {
+    fn(rm);
+    return true;
+  }
 }

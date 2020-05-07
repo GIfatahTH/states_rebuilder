@@ -11,7 +11,7 @@ void main() {
 
   setUp(() {
     final inject = Inject(() => Model());
-    modelRM = inject.getReactive();
+    modelRM = inject.getReactive()..subscribe((_) {});
   });
 
   tearDown(() {
@@ -1536,7 +1536,8 @@ void main() {
     testWidgets(
       'ReactiveModel : inject stream with data and error works',
       (tester) async {
-        final modelRM0 = RM.stream(Model().incrementStream(), initialValue: 0);
+        final ReactiveModelImp<int> modelRM0 =
+            RM.stream(Model().incrementStream(), initialValue: 0);
 
         final widget = Column(
           children: <Widget>[
@@ -1927,7 +1928,8 @@ void main() {
     testWidgets(
       'onSetState and onRebuildState work',
       (tester) async {
-        final modelRM = ReactiveStatesRebuilder<int>(Inject(() => 0));
+        final ReactiveModelImp<int> modelRM =
+            ReactiveModelImp<int>(Inject(() => 0));
 
         int numberOfOnSetStateCall = 0;
         int numberOfOnRebuildStateCall = 0;
@@ -2241,7 +2243,7 @@ void main() {
   });
 
   test('ReactiveModel: ReactiveModel.create works ', () {
-    final _modelRM = ReactiveModel.create(1);
+    final _modelRM = ReactiveModel.create(1)..subscribe((_) {});
     expect(_modelRM, isA<ReactiveModel>());
     _modelRM.setValue(() => _modelRM.value + 1);
     expect(_modelRM.value, equals(2));
@@ -2305,7 +2307,7 @@ void main() {
   );
 
   test('ReactiveStatesRebuilder throws if inject is null ', () {
-    expect(() => ReactiveStatesRebuilder(null), throwsAssertionError);
+    expect(() => ReactiveModelImp(null), throwsAssertionError);
   });
 
   testWidgets(
@@ -2411,7 +2413,8 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = ReactiveModel.create(Model());
+      final ReactiveModel<Model> modelRM = ReactiveModel.create(Model())..hasObservers
+        ..subscribe((_) {});
       //
       expect(modelRM.toString(), contains('<Model> RM'));
       expect(modelRM.toString(), contains(' | isIdle'));

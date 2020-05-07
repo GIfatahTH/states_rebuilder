@@ -699,7 +699,10 @@ void main() {
         builder: (_) {
           return Injector(
             reinject: [
-              Injector.getAsReactive<VanillaModel>().inject.getReactive(true)
+              (Injector.getAsReactive<VanillaModel>()
+                      as ReactiveModelImp<VanillaModel>)
+                  .inject
+                  .getReactive(true)
             ], //Todo getAs new Reactive
             disposeModels: true,
             builder: (_) {
@@ -736,8 +739,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(
-          () => modelRM.setState((s) => s.increment()), throwsAssertionError);
+      expect(() => modelRM.setState((s) => s.increment()), throwsException);
     },
   );
 
@@ -781,13 +783,20 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(
-        Injector.getAsReactive<VanillaModel>().inject.getReactive(true),
+        (Injector.getAsReactive<VanillaModel>()
+                as ReactiveModelImp<VanillaModel>)
+            .inject
+            .getReactive(true),
         isA<ReactiveModel<VanillaModel>>(),
       );
-      final modelRM1 =
-          Injector.getAsReactive<VanillaModel>().inject.getReactive(true);
-      final modelRM2 =
-          Injector.getAsReactive<VanillaModel>().inject.getReactive(true);
+      final modelRM1 = (Injector.getAsReactive<VanillaModel>()
+              as ReactiveModelImp<VanillaModel>)
+          .inject
+          .getReactive(true);
+      final modelRM2 = (Injector.getAsReactive<VanillaModel>()
+              as ReactiveModelImp<VanillaModel>)
+          .inject
+          .getReactive(true);
 
       expect(modelRM1 != modelRM2, isTrue);
     },
@@ -1830,12 +1839,14 @@ void main() {
 
     await tester.pumpWidget(widget);
     final vanillaModel1 = Injector.get<VanillaModel>();
-
+    //TODO
+    StatesRebuilderDebug.printInjectedModel();
     model.rebuildStates();
     await tester.pump();
     final vanillaModel2 = Injector.get<VanillaModel>();
+    StatesRebuilderDebug.printInjectedModel();
 
-    expect(vanillaModel1.hashCode == vanillaModel2.hashCode, isTrue);
+    expect(vanillaModel1.hashCode == vanillaModel2.hashCode, isFalse);
 
     model.rebuildStates();
     await tester.pump();
@@ -1894,6 +1905,7 @@ void main() {
             models: [rm],
             builder: (context, __) {
               String value = ReactiveModel<String>(context: context).value;
+              print(value);
               return Text(value);
             });
       },

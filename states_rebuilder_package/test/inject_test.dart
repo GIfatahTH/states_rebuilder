@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
   test(
@@ -174,9 +175,9 @@ void main() {
     'Inject : get new reactive instance',
     () {
       final inject = Inject(() => Model());
-      final modelRM0 = inject.getReactive();
-      final modelRM1 = inject.getReactive(true);
-      final modelRM2 = inject.getReactive(true);
+      final ReactiveModelImp<Model> modelRM0 = inject.getReactive();
+      final ReactiveModelImp<Model> modelRM1 = inject.getReactive(true);
+      final ReactiveModelImp<Model> modelRM2 = inject.getReactive(true);
       //
       expect(modelRM0 != modelRM1, isTrue);
       expect(modelRM0 != modelRM2, isTrue);

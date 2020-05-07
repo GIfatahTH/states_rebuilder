@@ -200,7 +200,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       if (isAsyncInjected) {
         rs = StreamStatesRebuilder<T>(this, asNew);
       } else {
-        rs = ReactiveStatesRebuilder<T>(this, asNew);
+        rs = ReactiveModelImp<T>(this, asNew);
       }
       addToReactiveNewInstanceList(asNew ? rs : null);
     }
@@ -212,9 +212,10 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   _InheritedWidgetModel<Injector> _inheritedWidgetModel =
       _InheritedWidgetModel();
-
+  bool isInjected = false;
   @override
   Widget inheritedInject(Widget child) {
+    isInjected = true;
     return StateBuilder<Injector>(
       observe: () => _inheritedWidgetModel..injectSR = this,
       builder: (ctx, __) {
