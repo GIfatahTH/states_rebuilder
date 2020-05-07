@@ -11,7 +11,7 @@ void main() {
 
   setUp(() {
     final inject = Inject(() => Model());
-    modelRM = inject.getReactive();
+    modelRM = inject.getReactive()..subscribe((rm) {});
   });
 
   tearDown(() {
@@ -562,92 +562,6 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(numberOfOnErrorCall, equals(1));
       expect(contextFromOnError, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'ReactiveModel: onSetState and onRebuildState work with context registered models',
-    (tester) async {
-      int numberOfOnSetStateCall = 0;
-      int numberOfOnRebuildStateCall = 0;
-      BuildContext contextFromOnSetState;
-      BuildContext contextFromOnRebuildState;
-      String lifeCycleTracker = '';
-      ReactiveModel<Model> modelRM;
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        builder: (context) {
-          modelRM = ReactiveModel(context: context);
-          lifeCycleTracker += 'build, ';
-          return Container();
-        },
-      );
-
-      await tester.pumpWidget(widget);
-      expect(numberOfOnSetStateCall, equals(0));
-      //
-      modelRM.setState(
-        (s) => s.increment(),
-        onSetState: (context) {
-          numberOfOnSetStateCall++;
-          contextFromOnSetState = context;
-          lifeCycleTracker += 'onSetState, ';
-        },
-        onRebuildState: (context) {
-          numberOfOnRebuildStateCall++;
-          contextFromOnRebuildState = context;
-          lifeCycleTracker += 'onRebuildState, ';
-        },
-      );
-      await tester.pump();
-      expect(numberOfOnSetStateCall, equals(1));
-      expect(contextFromOnSetState, isNotNull);
-      expect(numberOfOnRebuildStateCall, equals(1));
-      expect(contextFromOnRebuildState, isNotNull);
-      expect(lifeCycleTracker,
-          equals('build, onSetState, build, onRebuildState, '));
-    },
-  );
-
-  testWidgets(
-    'ReactiveModel: onSetState context is obtained from the InheritedWidget',
-    (tester) async {
-      BuildContext contextFromOnSetState;
-      BuildContext contextFromBuilder;
-      BuildContext contextFromBuilder2;
-      ReactiveModel<Model> modelRM;
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        builder: (context) {
-          modelRM = ReactiveModel(context: context);
-          return StateBuilder(
-            models: [modelRM],
-            builder: (context, _) {
-              contextFromBuilder = context;
-              return StateBuilder(
-                models: [modelRM],
-                builder: (context, _) {
-                  contextFromBuilder2 = context;
-                  return Container();
-                },
-              );
-            },
-          );
-        },
-      );
-
-      await tester.pumpWidget(widget);
-
-      //
-      modelRM.setState(
-        (s) => s.increment(),
-        onSetState: (context) {
-          contextFromOnSetState = context;
-        },
-      );
-      await tester.pump();
-      expect(contextFromBuilder != contextFromOnSetState, isTrue);
-      expect(contextFromBuilder2 == contextFromOnSetState, isTrue);
     },
   );
 
@@ -2241,7 +2155,7 @@ void main() {
   });
 
   test('ReactiveModel: ReactiveModel.create works ', () {
-    final _modelRM = ReactiveModel.create(1);
+    final _modelRM = ReactiveModel.create(1)..subscribe((rm) {});
     expect(_modelRM, isA<ReactiveModel>());
     _modelRM.setValue(() => _modelRM.value + 1);
     expect(_modelRM.value, equals(2));
@@ -2411,7 +2325,7 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = ReactiveModel.create(Model());
+      final modelRM = ReactiveModel.create(Model())..subscribe((rm) {});
       //
       expect(modelRM.toString(), contains('<Model> RM'));
       expect(modelRM.toString(), contains(' | isIdle'));

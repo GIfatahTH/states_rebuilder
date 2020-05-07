@@ -87,7 +87,7 @@ class Injector extends StatefulWidget {
         super(key: key);
 
   ///Get the singleton instance of a model registered with [Injector].
-  static T get<T>({dynamic name, BuildContext context, bool silent = false}) {
+  static T get<T>({dynamic name, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
 
     final Inject<T> inject = _getInject<T>(_name, silent);
@@ -95,47 +95,12 @@ class Injector extends StatefulWidget {
       return null;
     }
 
-    final model = inject.getSingleton();
-
-    if (context == null) {
-      return model;
-    }
-
-    if (model is StatesRebuilder) {
-      assert(
-        () {
-          if (name != null) {
-            throw Exception(AssertMessage.getModelWithContextAndName<T>(
-                'Injector.get', '$name'));
-          }
-          return true;
-        }(),
-      );
-
-      final InheritedInject inheritedInject = inject.staticOf(context);
-      assert(inheritedInject == null || (model == inheritedInject.model));
-      assert(
-        () {
-          if (silent == false && inheritedInject == null) {
-            throw Exception(
-                AssertMessage.inheritedWidgetOfReturnsNull<T>('Injector.get'));
-          }
-          return true;
-        }(),
-      );
-      if (inject.refreshInheritedModelSubscribers != null) {
-        inject.refreshInheritedModelSubscribers(model);
-      }
-    } else {
-      throw Exception(AssertMessage.getModelNotStatesRebuilderWithContext<T>());
-    }
-
-    return model;
+    return inject.getSingleton();
   }
 
   ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
   static ReactiveModel<T> getAsReactive<T>(
-      {dynamic name, BuildContext context, bool silent = false}) {
+      {dynamic name, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
 
     final Inject<T> inject = _getInject<T>(_name, silent);
@@ -153,38 +118,6 @@ class Injector extends StatefulWidget {
         return true;
       }(),
     );
-
-    if (context == null) {
-      if (inject.refreshInheritedModelSubscribers != null) {
-        inject.refreshInheritedModelSubscribers(reactiveModel);
-      }
-      return reactiveModel;
-    }
-
-    assert(
-      () {
-        if (name != null) {
-          throw Exception(AssertMessage.getModelWithContextAndName<T>(
-              'Injector.getAsReactive', '$name'));
-        }
-        return true;
-      }(),
-    );
-    final InheritedInject inheritedInject = inject.staticOf(context);
-    assert(inheritedInject == null || (reactiveModel == inheritedInject.model));
-    assert(
-      () {
-        if (silent == false && inheritedInject == null) {
-          throw Exception(AssertMessage.inheritedWidgetOfReturnsNull<T>(
-              'Injector.getAsReactive'));
-        }
-        return true;
-      }(),
-    );
-    if (inject.refreshInheritedModelSubscribers != null) {
-      inject.refreshInheritedModelSubscribers(reactiveModel);
-    }
-    ReactiveModelInternal.setOnSetStateContext(reactiveModel, context);
     return reactiveModel;
   }
 
@@ -221,7 +154,6 @@ class InjectorState extends State<Injector> {
   static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
       <String, List<Inject<dynamic>>>{};
   List<Injectable> _injects = [];
-  Widget _nestedInject;
 
   @override
   void initState() {
@@ -239,17 +171,16 @@ class InjectorState extends State<Injector> {
               for (Inject inject in widget.inject) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
                 if (inject.isAsyncInjected) {
-                  inj.getReactive().unsubscribe();
-                  inj.creationStreamFunction = inject.creationStreamFunction;
-                  inj.creationFutureFunction = inject.creationFutureFunction;
-                  (inj.getReactive() as StreamStatesRebuilder).subscribe();
+                  inj
+                    ..getReactive().unsubscribe()
+                    ..creationStreamFunction = inject.creationStreamFunction
+                    ..creationFutureFunction = inject.creationFutureFunction;
+                  (inj.getReactive() as StreamStatesRebuilder)
+                      .streamSubscribe();
                 } else {
                   if (inj.singleton != null) {
                     inj.singleton = inj.creationFunction();
-                    ReactiveModelInternal.state(
-                      inj.reactiveSingleton,
-                      inj.singleton,
-                    );
+                    inj.reactiveSingleton.state = inj.singleton;
                     if (widget.shouldNotifyOnReinjectOn) {
                       inj.reactiveSingleton?.setState((_) => {});
                     }
@@ -359,6 +290,9 @@ class InjectorState extends State<Injector> {
 
   void _dispose() {
     for (Inject inject in _injects) {
+      if (inject.isAsyncInjected) {
+        inject.reactiveSingleton?.unsubscribe();
+      }
       final name = inject.getName();
       final isRemoved = allRegisteredModelInApp[name]?.remove(inject);
       if (!isRemoved) {
@@ -383,22 +317,22 @@ class InjectorState extends State<Injector> {
 
   @override
   Widget build(BuildContext context) {
-    _nestedInject = Builder(
+    return Builder(
       builder: (BuildContext context) {
         return widget.builder(context);
       },
     );
 
-    if (_injects.isNotEmpty) {
-      for (Inject<dynamic> inject in _injects.reversed) {
-        //Inject with name are not concerned with InheritedWidget
+    // if (_injects.isNotEmpty) {
+    //   for (Inject<dynamic> inject in _injects.reversed) {
+    //     //Inject with name are not concerned with InheritedWidget
 
-        if (inject.hasCustomName == false) {
-          _nestedInject = inject.inheritedInject(_nestedInject);
-        }
-      }
-    }
-    return _nestedInject;
+    //     if (inject.hasCustomName == false) {
+    //       _nestedInject = inject.inheritedInject(_nestedInject);
+    //     }
+    //   }
+    // }
+    // return _nestedInject;
   }
 }
 
@@ -436,12 +370,10 @@ class _ObserverOfStatesRebuilder extends ObserverOfStatesRebuilder {
 abstract class IN {
   static T get<T>({
     dynamic name,
-    BuildContext context,
     bool silent = false,
   }) {
     return Injector.get<T>(
       name: name,
-      context: context,
       silent: silent,
     );
   }

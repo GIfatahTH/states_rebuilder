@@ -42,51 +42,56 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterRM = RM.get<Counter>(context: context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-            height: 50,
-            color: _color(),
-            child: Center(
-                child: Text("Random Color. It changes with each rebuild")),
-          ),
-          Text(
-            "${counterRM.state.count1}",
-            style: TextStyle(fontSize: 50),
-          ),
-          if (counterRM.state.count1 > 4)
-            Column(
+    final counterRM = RM.get<Counter>();
+    return StateBuilder(
+        observe: () => counterRM,
+        builder: (context, __) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text("your have reached the maximum"),
-                Divider(),
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  color: _color(),
+                  child: Center(
+                      child:
+                          Text("Random Color. It changes with each rebuild")),
+                ),
                 Text(
-                    "If you tap on the left button, nothing changes, and the rebuild process is not triggered because the counter value is watched for change.\nIf you tap on the right button, the random color changes because the counter value is not watched."),
+                  "${counterRM.state.count1}",
+                  style: TextStyle(fontSize: 50),
+                ),
+                if (counterRM.state.count1 > 4)
+                  Column(
+                    children: <Widget>[
+                      Text("your have reached the maximum"),
+                      Divider(),
+                      Text(
+                          "If you tap on the left button, nothing changes, and the rebuild process is not triggered because the counter value is watched for change.\nIf you tap on the right button, the random color changes because the counter value is not watched."),
+                    ],
+                  ),
+                Divider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    RaisedButton(
+                      child: Text("increment and watch"),
+                      onPressed: () => counterRM.setState(
+                          (state) => state.increment(),
+                          watch: (state) => state.count1),
+                      // you can watch many variables : ` watch : (state) => [state.count1, state.count2]`
+                    ),
+                    RaisedButton(
+                      child: Text("increment without watch"),
+                      onPressed: () =>
+                          counterRM.setState((state) => state.increment()),
+                    )
+                  ],
+                )
               ],
             ),
-          Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              RaisedButton(
-                child: Text("increment and watch"),
-                onPressed: () => counterRM.setState(
-                    (state) => state.increment(),
-                    watch: (state) => state.count1),
-                // you can watch many variables : ` watch : (state) => [state.count1, state.count2]`
-              ),
-              RaisedButton(
-                child: Text("increment without watch"),
-                onPressed: () =>
-                    counterRM.setState((state) => state.increment()),
-              )
-            ],
-          )
-        ],
-      ),
-    );
+          );
+        });
   }
 }

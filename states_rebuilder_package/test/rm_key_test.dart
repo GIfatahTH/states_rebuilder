@@ -650,7 +650,9 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = RMKey<Model>()..rm = ReactiveModel.create(Model());
+      final modelRM = RMKey<Model>()
+        ..rm = ReactiveModel.create(Model())
+        ..subscribe((rm) {});
 
       //
       expect(modelRM.toString(), contains('<Model> RM'));

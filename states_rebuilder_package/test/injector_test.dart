@@ -136,90 +136,6 @@ void main() {
       await tester.pump(Duration(seconds: 1));
     },
   );
-
-  testWidgets(
-    'Injector throw if getting non-StatesRebuilder model with context',
-    (tester) async {
-      BuildContext context;
-      final widget = Injector(
-        inject: [Inject(() => 2)],
-        builder: (ctx) {
-          context = ctx;
-          return Container();
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(() => Injector.get<int>(context: context), throwsException);
-    },
-  );
-
-  testWidgets(
-    'Injector throw if getting model with context and name',
-    (tester) async {
-      BuildContext context;
-      final widget = Injector(
-        inject: [Inject(() => Model(), name: 'name')],
-        builder: (ctx) {
-          context = ctx;
-          return Container();
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(() => Injector.get<Model>(context: context, name: 'name'),
-          throwsException);
-    },
-  );
-
-  testWidgets(
-    'Injector get a StatesRebuilder model with context and subscribe to it',
-    (tester) async {
-      Model model;
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        builder: (ctx) {
-          model = Injector.get<Model>(context: ctx);
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Text(model.counter.toString()),
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(model.observers().length, equals(1));
-      expect(find.text('0'), findsOneWidget);
-      //
-      model.increment();
-      model.rebuildStates();
-      await tester.pump();
-      expect(model.observers().length, equals(1));
-      expect(find.text('1'), findsOneWidget);
-      //
-      // model.rebuildStates();
-      // await tester.pump();
-      // expect(model.observers().values.toList()[0].length, equals(1));
-    },
-  );
-
-  testWidgets(
-    'Injector get with context throws if context in not available',
-    (tester) async {
-      BuildContext context;
-      final widget = Builder(
-        builder: (ctx) {
-          return Injector(
-            inject: [Inject(() => Model())],
-            builder: (_) {
-              context = ctx;
-              return Container();
-            },
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(() => Injector.get<Model>(context: context), throwsException);
-    },
-  );
-
   testWidgets(
     'Injector remove model when disposed',
     (tester) async {
@@ -233,11 +149,15 @@ void main() {
               return Injector(
                 inject: [Inject(() => model)],
                 builder: (ctx) {
-                  model = Injector.get<Model>(context: ctx);
-                  return Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(model.counter.toString()),
-                  );
+                  model = Injector.get<Model>();
+                  return StateBuilder(
+                      observe: () => model,
+                      builder: (context, __) {
+                        return Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(model.counter.toString()),
+                        );
+                      });
                 },
               );
             } else {
@@ -320,6 +240,7 @@ void main() {
   testWidgets(
     'Injector : reinject with StatesBuilder and navigation model works',
     (tester) async {
+      //TODO may be deleted
       BuildContext contextBeforeRoute;
       BuildContext contextAfterRoute;
       final widget = MaterialApp(
@@ -334,7 +255,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(Injector.get<Model>(context: contextBeforeRoute), isA<Model>());
+      expect(Injector.get<Model>(), isA<Model>());
 
       //
       Navigator.push(
@@ -354,12 +275,12 @@ void main() {
         ),
       );
       await tester.pump();
-      final modelAfterRoute = IN.get<Model>(context: contextAfterRoute);
+      final modelAfterRoute = IN.get<Model>();
       expect(modelAfterRoute, isA<Model>());
       //
       Navigator.pop(contextAfterRoute);
       await tester.pump();
-      expect(Injector.get<Model>(context: contextBeforeRoute), isA<Model>());
+      expect(Injector.get<Model>(), isA<Model>());
       expect(modelAfterRoute.numberOfDisposeCall, equals(0));
     },
   );
@@ -507,7 +428,7 @@ void main() {
       expect(Injector.getAsReactive<VanillaModel>(),
           isA<ReactiveModel<VanillaModel>>());
       expect(
-          Injector.getAsReactive<VanillaModel>().observers().length, equals(1));
+          Injector.getAsReactive<VanillaModel>().observers().length, equals(0));
       expect(Injector.getAsReactive<VanillaModel>(),
           equals(Injector.getAsReactive<VanillaModel>()));
     },
@@ -547,75 +468,6 @@ void main() {
   );
 
   testWidgets(
-    'Injector throw if getting as reactive model with context and name',
-    (tester) async {
-      BuildContext context;
-      final widget = Injector(
-        inject: [Inject(() => VanillaModel(), name: 'name')],
-        builder: (ctx) {
-          context = ctx;
-          return Container();
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(
-          () => Injector.getAsReactive<VanillaModel>(
-              context: context, name: 'name'),
-          throwsException);
-    },
-  );
-
-  testWidgets(
-    'Injector get a reactive model with context and subscribe to it',
-    (tester) async {
-      ReactiveModel<VanillaModel> model;
-      final widget = Injector(
-        inject: [Inject(() => VanillaModel())],
-        builder: (ctx) {
-          model = RM.get<VanillaModel>(context: ctx);
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Text(model.state.counter.toString()),
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(model.observers().length, equals(1));
-      expect(find.text('0'), findsOneWidget);
-      //
-      model.setState((s) => s.increment());
-      await tester.pump();
-      expect(model.observers().length, equals(1));
-      expect(find.text('1'), findsOneWidget);
-      //
-      model.setState(null);
-      await tester.pump();
-      expect(model.observers().values.toList()[0].length, equals(1));
-    },
-  );
-
-  testWidgets(
-    'Injector get as reactive with context throws if context in not available',
-    (tester) async {
-      BuildContext context;
-      final widget = Builder(
-        builder: (ctx) {
-          return Injector(
-            inject: [Inject(() => VanillaModel())],
-            builder: (_) {
-              context = ctx;
-              return Container();
-            },
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(() => Injector.getAsReactive<VanillaModel>(context: context),
-          throwsException);
-    },
-  );
-
-  testWidgets(
     'Injector : reinject with ReactiveModel model works',
     (tester) async {
       final widget = Injector(
@@ -636,57 +488,6 @@ void main() {
       expect(InjectorState.allRegisteredModelInApp.length, equals(1));
       expect(InjectorState.allRegisteredModelInApp.values.toList()[0].length,
           equals(2));
-    },
-  );
-
-  testWidgets(
-    'Injector : reinject with StatesBuilder and navigation model works using shortcuts',
-    (tester) async {
-      BuildContext contextBeforeRoute;
-      BuildContext contextAfterRoute;
-      final widget = MaterialApp(
-        home: Injector(
-          inject: [Inject(() => VanillaModel())],
-          disposeModels: true,
-          builder: (ctx) {
-            contextBeforeRoute = ctx;
-            return Container();
-          },
-        ),
-      );
-
-      await tester.pumpWidget(widget);
-      expect(RM.get<VanillaModel>(context: contextBeforeRoute),
-          isA<ReactiveModel<VanillaModel>>());
-
-      expect(IN.get<VanillaModel>(), isA<VanillaModel>());
-
-      //
-      Navigator.push(
-        contextBeforeRoute,
-        MaterialPageRoute(
-          builder: (ctx) {
-            contextAfterRoute = ctx;
-            return Injector(
-              reinject: [RM.get<VanillaModel>()],
-              disposeModels: true,
-              builder: (ctx) {
-                contextAfterRoute = ctx;
-                return Container();
-              },
-            );
-          },
-        ),
-      );
-      await tester.pump();
-      final modelAfterRoute = RM.get<VanillaModel>(context: contextAfterRoute);
-      expect(modelAfterRoute, isA<ReactiveModel<VanillaModel>>());
-      //
-      Navigator.pop(contextAfterRoute);
-      await tester.pump();
-      expect(RM.get<VanillaModel>(context: contextBeforeRoute),
-          isA<ReactiveModel<VanillaModel>>());
-      expect(modelAfterRoute.state.numberOfDisposeCall, equals(0));
     },
   );
 
@@ -736,8 +537,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(
-          () => modelRM.setState((s) => s.increment()), throwsAssertionError);
+      expect(() => modelRM.setState((s) => s.increment()), throwsException);
     },
   );
 
@@ -856,11 +656,15 @@ void main() {
               return Injector(
                 inject: [Inject.stream(() => getStream())],
                 builder: (ctx) {
-                  intRM = Injector.getAsReactive<int>(context: ctx);
-                  return Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(intRM.state.toString()),
-                  );
+                  intRM = Injector.getAsReactive<int>();
+                  return StateBuilder(
+                      observe: () => intRM,
+                      builder: (context, __) {
+                        return Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(intRM.state.toString()),
+                        );
+                      });
                 },
               );
             } else {
@@ -983,16 +787,19 @@ void main() {
             inject = Inject<VanillaModel>(() => VanillaModel(0)),
           ],
           builder: (context) {
-            integerModel =
-                Injector.getAsReactive<VanillaModel>(context: context);
-            numberOfRebuild++;
-            return switcher
-                ? StateBuilder<VanillaModel>(
-                    builder: (context, model) {
-                      return Container();
-                    },
-                  )
-                : Container();
+            integerModel = Injector.getAsReactive<VanillaModel>();
+            return StateBuilder(
+                observe: () => integerModel,
+                builder: (context, __) {
+                  numberOfRebuild++;
+                  return switcher
+                      ? StateBuilder<VanillaModel>(
+                          builder: (context, model) {
+                            return Container();
+                          },
+                        )
+                      : Container();
+                });
           }),
     );
     expect(inject.newReactiveInstanceList.length, 1);
@@ -1014,8 +821,11 @@ void main() {
             Inject<VanillaModel>(() => VanillaModel(0)),
           ],
           builder: (context) {
-            Injector.getAsReactive<VanillaModel>(context: context);
-            return Container();
+            return StateBuilder(
+                models: [RM.get<VanillaModel>()],
+                builder: (_, __) {
+                  return Container();
+                });
           },
         ),
       );
@@ -1050,10 +860,13 @@ void main() {
                     Inject<VanillaModel>(() => VanillaModel(0)),
                   ],
                   builder: (context) {
-                    model1 =
-                        Injector.getAsReactive<VanillaModel>(context: context);
-                    numberOFRebuild1++;
-                    return Container();
+                    model1 = Injector.getAsReactive<VanillaModel>();
+                    return StateBuilder(
+                        observe: () => model1,
+                        builder: (context, __) {
+                          numberOFRebuild1++;
+                          return Container();
+                        });
                   },
                 )
               ],
@@ -1069,477 +882,6 @@ void main() {
       model1.setState(null);
       await tester.pump();
       expect(numberOFRebuild1, equals(3));
-    },
-  );
-
-  testWidgets(
-    'should onSetState get the right context obtained by two getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StateBuilder(
-              models: [vm],
-              builder: (_, __) {
-                return Column(
-                  children: <Widget>[
-                    Injector(
-                      inject: [
-                        Inject<VanillaModel>(() => VanillaModel(0)),
-                      ],
-                      builder: (context) {
-                        model1 = Injector.getAsReactive<VanillaModel>(
-                            context: context);
-                        context1 = context;
-                        return Container();
-                      },
-                    ),
-                    if (isTrue)
-                      Builder(
-                        builder: (_) {
-                          return Injector(
-                            reinject: [model1],
-                            builder: (context) {
-                              Injector.getAsReactive<VanillaModel>(
-                                  context: context);
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      )
-                    else
-                      Container(),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-      expect(context2.hashCode > context1.hashCode, isTrue);
-
-      isTrue = false;
-      vm.rebuildStates();
-      await tester.pump();
-
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'should onRebuildState get the right context with getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StateBuilder(
-              models: [vm],
-              builder: (_, __) {
-                return Column(
-                  children: <Widget>[
-                    Injector(
-                      inject: [
-                        Inject<VanillaModel>(() => VanillaModel(0)),
-                      ],
-                      builder: (context) {
-                        model1 = Injector.getAsReactive<VanillaModel>(
-                            context: context);
-                        context1 = context;
-                        return Container();
-                      },
-                    ),
-                    if (isTrue)
-                      Builder(
-                        builder: (_) {
-                          return Injector(
-                            reinject: [model1],
-                            builder: (context) {
-                              Injector.getAsReactive<VanillaModel>(
-                                  context: context);
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      )
-                    else
-                      Container(),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-      expect(context2.hashCode > context1.hashCode, isTrue);
-
-      isTrue = false;
-      vm.rebuildStates();
-
-      await tester.pump();
-      RM.getSetState<VanillaModel>(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
-    },
-  );
-  testWidgets(
-    'should onSetState get the right context with StateBuilder : case StateBuilder before getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StateBuilder(
-              models: [vm],
-              builder: (_, __) {
-                return Column(
-                  children: <Widget>[
-                    Injector(
-                      inject: [
-                        Inject<VanillaModel>(() => VanillaModel(0)),
-                      ],
-                      builder: (context) {
-                        return StateBuilder(
-                          models: [Injector.getAsReactive<VanillaModel>()],
-                          builder: (context, model) {
-                            context1 = context;
-                            model1 = model;
-                            return Container();
-                          },
-                        );
-                      },
-                    ),
-                    if (isTrue)
-                      Builder(
-                        builder: (_) {
-                          return Injector(
-                            reinject: [model1],
-                            builder: (context) {
-                              Injector.getAsReactive<VanillaModel>(
-                                  context: context);
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      )
-                    else
-                      Container(),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-      expect(context2.hashCode > context1.hashCode, isTrue);
-
-      isTrue = false;
-      vm.rebuildStates();
-
-      await tester.pump();
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'should onRebuildState get the right context with StateBuilder : case StateBuilder before getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StateBuilder(
-              models: [vm],
-              builder: (_, __) {
-                return Column(
-                  children: <Widget>[
-                    Injector(
-                      inject: [
-                        Inject<VanillaModel>(() => VanillaModel(0)),
-                      ],
-                      builder: (context) {
-                        return StateBuilder(
-                          models: [Injector.getAsReactive<VanillaModel>()],
-                          builder: (context, model) {
-                            context1 = context;
-                            model1 = model;
-                            return Container();
-                          },
-                        );
-                      },
-                    ),
-                    if (isTrue)
-                      Builder(
-                        builder: (_) {
-                          return Injector(
-                            reinject: [model1],
-                            builder: (context) {
-                              Injector.getAsReactive<VanillaModel>(
-                                  context: context);
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      )
-                    else
-                      Container(),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-      expect(context2.hashCode > context1.hashCode, isTrue);
-
-      isTrue = false;
-      vm.rebuildStates();
-
-      await tester.pump();
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'should onSetState get the right context with StateBuilder : case StateBuilder after getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-            home: Scaffold(
-                body: StateBuilder(
-          models: [vm],
-          builder: (_, __) {
-            return Column(
-              children: <Widget>[
-                Injector(
-                  inject: [
-                    Inject<VanillaModel>(() => VanillaModel(0)),
-                  ],
-                  builder: (context) {
-                    model1 =
-                        Injector.getAsReactive<VanillaModel>(context: context);
-                    context1 = context;
-                    return Container();
-                  },
-                ),
-                if (isTrue)
-                  Builder(
-                    builder: (_) {
-                      return Injector(
-                        reinject: [model1],
-                        builder: (context) {
-                          return StateBuilder(
-                            models: [Injector.getAsReactive<VanillaModel>()],
-                            builder: (context, model) {
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      );
-                    },
-                  )
-                else
-                  Container(),
-              ],
-            );
-          },
-        ))),
-      );
-
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-
-      isTrue = false;
-      vm.rebuildStates();
-
-      await tester.pump();
-      model1.setState(null, onSetState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
-    },
-  );
-
-  testWidgets(
-    'should onRebuildState get the right context with StateBuilder : case StateBuilder after getAsReactive',
-    (WidgetTester tester) async {
-      ReactiveModel<VanillaModel> model1;
-      bool isTrue = true;
-      BuildContext context0;
-      BuildContext context1;
-      BuildContext context2;
-      ScaffoldState scaffoldState;
-      final vm = Model();
-      await tester.pumpWidget(
-        MaterialApp(
-            home: Scaffold(
-                body: StateBuilder(
-          models: [vm],
-          builder: (_, __) {
-            return Column(
-              children: <Widget>[
-                Injector(
-                  inject: [
-                    Inject<VanillaModel>(() => VanillaModel(0)),
-                  ],
-                  builder: (context) {
-                    model1 =
-                        Injector.getAsReactive<VanillaModel>(context: context);
-                    context1 = context;
-                    return Container();
-                  },
-                ),
-                if (isTrue)
-                  Builder(
-                    builder: (_) {
-                      return Injector(
-                        reinject: [model1],
-                        builder: (context) {
-                          return StateBuilder(
-                            models: [Injector.getAsReactive<VanillaModel>()],
-                            builder: (context, model) {
-                              context2 = context;
-                              return Container();
-                            },
-                          );
-                        },
-                      );
-                    },
-                  )
-                else
-                  Container(),
-              ],
-            );
-          },
-        ))),
-      );
-
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-      expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
-
-      isTrue = false;
-      vm.rebuildStates();
-
-      await tester.pump();
-      model1.setState(null, onRebuildState: (context) {
-        context0 = context;
-        scaffoldState = Scaffold.of(context);
-      });
-      await tester.pump();
-
-      expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
     },
   );
 
@@ -1743,11 +1085,15 @@ void main() {
       final widget = Injector(
         inject: [Inject(() => Model())],
         builder: (ctx) {
-          model = Injector.get<Model>(context: ctx);
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Text(model.counter.toString()),
-          );
+          model = Injector.get<Model>();
+          return StateBuilder(
+              observe: () => model,
+              builder: (context, __) {
+                return Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(model.counter.toString()),
+                );
+              });
         },
       );
       await tester.pumpWidget(widget);
@@ -1768,11 +1114,15 @@ void main() {
         })
       ],
       builder: (context) {
-        model = Injector.getAsReactive<IModelInterface>(context: context);
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(model.state.counter.toString()),
-        );
+        model = Injector.getAsReactive<IModelInterface>();
+        return StateBuilder(
+            observe: () => model,
+            builder: (context, __) {
+              return Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(model.state.counter.toString()),
+              );
+            });
       },
     );
 
@@ -1795,11 +1145,15 @@ void main() {
         })
       ],
       builder: (context) {
-        model = Injector.getAsReactive<IModelInterface>(context: context);
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(model.state.counter.toString()),
-        );
+        model = Injector.getAsReactive<IModelInterface>();
+        return StateBuilder(
+            observe: () => model,
+            builder: (context, __) {
+              return Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(model.state.counter.toString()),
+              );
+            });
       },
     );
 
@@ -1854,8 +1208,12 @@ void main() {
       ],
       reinjectOn: [rm],
       builder: (context) {
-        String value = RM.get<String>(context: context).value;
-        return Text(value);
+        return StateBuilder(
+            observe: () => ReactiveModel<String>(),
+            builder: (context, __) {
+              String value = RM.get<String>().value;
+              return Text(value);
+            });
       },
     );
 
@@ -1867,18 +1225,18 @@ void main() {
     await tester.pump();
     expect(find.text('counter is 1'), findsOneWidget);
     expect(ReactiveModel<String>().hashCode, hashCodeRM);
-    // //
-    // rm.setValue(() => 2);
-    // await tester.pump();
-    // expect(find.text('counter is 2'), findsOneWidget);
-    // //
-    // ReactiveModel<String>().setValue(() => 'modified counter is 2');
-    // await tester.pump();
-    // expect(ReactiveModel<String>().hasData, isTrue);
-    // //
-    // rm.setValue(() => 3);
-    // await tester.pump();
-    // expect(find.text('counter is 3'), findsOneWidget);
+    //
+    rm.setValue(() => 2);
+    await tester.pump();
+    expect(find.text('counter is 2'), findsOneWidget);
+    //
+    ReactiveModel<String>().setValue(() => 'modified counter is 2');
+    await tester.pump();
+    expect(ReactiveModel<String>().hasData, isTrue);
+    //
+    rm.setValue(() => 3);
+    await tester.pump();
+    expect(find.text('counter is 3'), findsOneWidget);
   });
 
   testWidgets('issue #47 reinjectOn: stream', (tester) async {
@@ -1893,8 +1251,12 @@ void main() {
         return StateBuilder(
             models: [rm],
             builder: (context, __) {
-              String value = ReactiveModel<String>(context: context).value;
-              return Text(value);
+              return StateBuilder(
+                  observe: () => ReactiveModel<String>(),
+                  builder: (context, __) {
+                    String value = ReactiveModel<String>().value;
+                    return Text(value);
+                  });
             });
       },
     );
@@ -1943,8 +1305,12 @@ void main() {
         return StateBuilder(
             models: [rm],
             builder: (context, __) {
-              String value = ReactiveModel<String>(context: context).value;
-              return Text(value);
+              return StateBuilder(
+                  observe: () => ReactiveModel<String>(),
+                  builder: (context, __) {
+                    String value = ReactiveModel<String>().value;
+                    return Text(value);
+                  });
             });
       },
     );

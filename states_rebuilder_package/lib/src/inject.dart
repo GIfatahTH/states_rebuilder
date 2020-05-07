@@ -5,10 +5,7 @@ import 'state_builder.dart';
 import 'states_rebuilder.dart';
 
 ///Base class for [Inject]
-abstract class Injectable {
-  ///wrap with InheritedWidget
-  Widget inheritedInject(Widget child);
-}
+abstract class Injectable {}
 
 ///A class used to wrap injected models, streams or futures.
 ///It caches the rew singleton and the reactive singleton.
@@ -208,26 +205,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return asNew ? rs : reactiveSingleton ??= rs;
   }
 
-  void Function(StatesRebuilder model) refreshInheritedModelSubscribers;
-
-  _InheritedWidgetModel<Injector> _inheritedWidgetModel =
-      _InheritedWidgetModel();
-
-  @override
-  Widget inheritedInject(Widget child) {
-    return StateBuilder<Injector>(
-      observe: () => _inheritedWidgetModel..injectSR = this,
-      builder: (ctx, __) {
-        return InheritedInject<T>(
-          child: child,
-          getSingleton: () => isStatesRebuilder
-              ? getSingleton() as StatesRebuilder
-              : getReactive(),
-        );
-      },
-    );
-  }
-
   InheritedInject staticOf(BuildContext context) {
     final InheritedInject model =
         context.dependOnInheritedWidgetOfExactType<InheritedInject<T>>();
@@ -288,34 +265,4 @@ enum JoinSingleton {
   ///
   ///Priority 4- The combined [ReactiveModel.hasData] is true if it has no error, isn't awaiting  and is not in 'none' state.
   withCombinedReactiveInstances
-}
-
-class _InheritedWidgetModel<T> extends StatesRebuilder<T> {
-  Inject injectSR;
-  StatesRebuilder modelFromInjectSR;
-
-  @override
-  void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    super.addObserver(observer: observer, tag: tag);
-
-    if (injectSR != null) {
-      injectSR.refreshInheritedModelSubscribers = (model) {
-        modelFromInjectSR = model;
-        StatesRebuilderInternal.addAllToObserverMap(this, modelFromInjectSR);
-        //ensure that it is called once after each add of observer
-        injectSR.refreshInheritedModelSubscribers = null;
-      };
-    }
-  }
-
-  @override
-  void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    super.removeObserver(observer: observer, tag: tag);
-
-    if (injectSR != null && modelFromInjectSR != null) {
-      if (modelFromInjectSR.observers()[tag] != null) {
-        modelFromInjectSR.removeObserver(observer: observer, tag: tag);
-      }
-    }
-  }
 }

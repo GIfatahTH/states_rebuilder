@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     //Note2: this is use for debug.
     //It prints on the console log the active ReactiveModel that is emitting the notification
-    RM.printActiveRM = true;
+    // RM.printActiveRM = true;
     return WhenRebuilder(
       //Note3: use the observeMany instead of observe parameter to subscribe to many ReactiveModels
       observeMany: [
