@@ -176,7 +176,7 @@ void main() {
     'StateBuilder when disposed and all tags are removed cleaner is called',
     (tester) async {
       bool switcher = true;
-      final model2 = Model();
+      final model2 = RM.create(Model())..subscribe((rm) {});
       int numberOfCleanerCall = 0;
       model2.cleaner(() {
         numberOfCleanerCall++;
@@ -194,7 +194,7 @@ void main() {
                     models: [model2],
                     tag: 'childTag',
                     builder: (context, _) {
-                      return Text('${model2.counter}');
+                      return Text('${model2.value.counter}');
                     },
                   );
                 }
@@ -207,9 +207,9 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(model.observers().length, equals(2));
-      expect(model2.observers().length, equals(2));
+      expect(model2.observers().length, equals(3));
       expect(find.text('0'), findsOneWidget);
-      //
+
       switcher = false;
       model.rebuildStates(['mainTag']);
       await tester.pump();

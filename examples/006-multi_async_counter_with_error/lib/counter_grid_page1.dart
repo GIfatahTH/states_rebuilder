@@ -9,32 +9,35 @@ class CounterGridPage1 extends StatelessWidget {
     return Injector(
       inject: [Inject(() => CounterService())],
       builder: (BuildContext context) {
-        final counterServiceRM = RM.get<CounterService>(context: context);
-        return Scaffold(
-          appBar: AppBar(title: Text('Future counter with error')),
-          body: GridView.count(
-            crossAxisCount: 2,
-            childAspectRatio: 0.68,
-            children: <Widget>[
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 1',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 2',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 3',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 4',
-              ),
-            ],
-          ),
-        );
+        return StateBuilder<CounterService>(
+            observe: () => RM.get<CounterService>(),
+            builder: (context, counterServiceRM) {
+              return Scaffold(
+                appBar: AppBar(title: Text('Future counter with error')),
+                body: GridView.count(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.68,
+                  children: <Widget>[
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 1',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 2',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 3',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 4',
+                    ),
+                  ],
+                ),
+              );
+            });
       },
     );
   }

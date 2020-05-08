@@ -193,16 +193,6 @@ class RMKey<T> implements ReactiveModelImp<T> {
     return '$_rm';
   }
 
-  @override
-  void unsubscribe(void Function(ReactiveModel<T> rm) fn) {
-    _rm?.unsubscribe(fn);
-  }
-
-  @override
-  void subscribe(void Function(ReactiveModel<T> rm) fn) {
-    _rm?.subscribe(fn);
-  }
-
   R whenConnectionState<R>({
     @required R Function() onIdle,
     @required R Function() onWaiting,
@@ -264,13 +254,18 @@ class RMKey<T> implements ReactiveModelImp<T> {
   }
 
   @override
-  setOnSetStateContext(BuildContext ctx) {
-    _rm.setOnSetStateContext(ctx);
+  void set state(T data) {
+    _rm.state = data;
   }
 
   @override
-  void set state(T state) {
-    _rm.state = state;
+  void subscribe(void Function(ReactiveModel<T> rm) fn) {
+    _rm.subscribe(fn);
+  }
+
+  @override
+  void unsubscribe([void Function(ReactiveModel<T> rm) fn]) {
+    _rm.unsubscribe(fn);
   }
 
   // @override

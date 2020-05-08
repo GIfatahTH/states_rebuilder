@@ -25,97 +25,102 @@ class TimerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //Using the BuildContext to subscribe is deprecated (removed since v 2.0.0)
     //NOTE1 : Getting the registered reactive singleton of the TimerStatus
     //NOTE1 : The context is defined so that it will be subscribed to the TimerStatus.
-    final timerStatusRM = RM.get<TimerStatus>(context: context);
+    // final timerStatusRM = RM.get<TimerStatus>(context: context);
     //NOTE2: Local variable to hold the current timer value.
-    int duration;
-    return Injector(
-      //NOTE3 : Defining the a unique key of the widget.
-      // key: UniqueKey(),
-      inject: [
-        //NOTE4: Injecting the stream
-        Inject<int>.stream(
-          () => Stream.periodic(Duration(seconds: 1), (num) => num),
-          //NOTE4 : Defining the initialValue of the stream
-          initialValue: initialTimer,
-        ),
-      ],
-      reinjectOn: [timerStatusRM],
-      builder: (_) {
-        //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
-        final timerStream = RM.get<int>();
-        return OnSetStateListener(
-          observeMany: [() => timerStatusRM, () => timerStream],
-          tag: 'timer',
-          shouldOnInitState: true,
-          onSetState: (_, model) {
-            if (model.value is TimerStatus) {
-              switch (timerStatusRM.value) {
-                case TimerStatus.ready:
-                  timerStream.subscription.pause();
-                  break;
-                case TimerStatus.running:
-                  timerStream.subscription.resume();
-                  break;
-                case TimerStatus.paused:
-                  timerStream.subscription.pause();
-                  break;
-                default:
-              }
-            }
-            if (model.value is int) {
-              //NOTE8: Decrement the duration each time the stream emits a value
-              duration = initialTimer - timerStream.snapshot.data - 1;
+    return StateBuilder<TimerStatus>(
+        observe: () => RM.get<TimerStatus>(),
+        builder: (context, timerStatusRM) {
+          int duration;
+          return Injector(
+            //NOTE3 : Defining the a unique key of the widget.
+            // key: UniqueKey(),
+            inject: [
+              //NOTE4: Injecting the stream
+              Inject<int>.stream(
+                () => Stream.periodic(Duration(seconds: 1), (num) => num),
+                //NOTE4 : Defining the initialValue of the stream
+                initialValue: initialTimer,
+              ),
+            ],
+            reinjectOn: [timerStatusRM],
+            builder: (_) {
+              //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
+              final timerStream = RM.get<int>();
+              return OnSetStateListener(
+                observeMany: [() => timerStatusRM, () => timerStream],
+                tag: 'timer',
+                shouldOnInitState: true,
+                onSetState: (_, model) {
+                  if (model.value is TimerStatus) {
+                    switch (timerStatusRM.value) {
+                      case TimerStatus.ready:
+                        timerStream.subscription.pause();
+                        break;
+                      case TimerStatus.running:
+                        timerStream.subscription.resume();
+                        break;
+                      case TimerStatus.paused:
+                        timerStream.subscription.pause();
+                        break;
+                      default:
+                    }
+                  }
+                  if (model.value is int) {
+                    //NOTE8: Decrement the duration each time the stream emits a value
+                    duration = initialTimer - timerStream.snapshot.data - 1;
 
-              //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
-              if (duration <= 0) {
-                //NOTE8: Mutating the state of TimerStatus using setState
-                timerStatusRM.value = TimerStatus.ready;
-                timerStream.subscription.pause();
-              }
-            }
-          },
-          child: Center(
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  //NOTE9: Widget to display a formatted string of the duration.
-                  child: StateBuilder(
-                      models: [timerStream],
-                      builder: (_, __) {
-                        return TimerDigit(
-                          duration ?? initialTimer,
-                        );
-                      }),
-                ),
-                Expanded(
-                  //NOTE10 : define another StateBuilder
-                  child: StateBuilder(
-                    //NOTE10: subscribe this StateBuilder to the timerStatusRM
-                    models: [timerStatusRM],
-                    //NOTE11 : Give it a tag so that we can control its notification
-                    tag: 'timer',
-                    builder: (context, _) {
-                      //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
-                      if (timerStatusRM.value == TimerStatus.ready) {
-                        return ReadyStatus();
-                      }
-                      //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
-                      if (timerStatusRM.value == TimerStatus.running) {
-                        return RunningStatus();
-                      }
-                      //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
-                      return PausedStatus();
-                    },
+                    //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
+                    if (duration <= 0) {
+                      //NOTE8: Mutating the state of TimerStatus using setState
+                      timerStatusRM.value = TimerStatus.ready;
+                      timerStream.subscription.pause();
+                    }
+                  }
+                },
+                child: Center(
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        //NOTE9: Widget to display a formatted string of the duration.
+                        child: StateBuilder(
+                            models: [timerStream],
+                            builder: (_, __) {
+                              return TimerDigit(
+                                duration ?? initialTimer,
+                              );
+                            }),
+                      ),
+                      Expanded(
+                        //NOTE10 : define another StateBuilder
+                        child: StateBuilder(
+                          //NOTE10: subscribe this StateBuilder to the timerStatusRM
+                          models: [timerStatusRM],
+                          //NOTE11 : Give it a tag so that we can control its notification
+                          tag: 'timer',
+                          builder: (context, _) {
+                            //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
+                            if (timerStatusRM.value == TimerStatus.ready) {
+                              return ReadyStatus();
+                            }
+                            //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
+                            if (timerStatusRM.value == TimerStatus.running) {
+                              return RunningStatus();
+                            }
+                            //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
+                            return PausedStatus();
+                          },
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
+                ),
+              );
+            },
+          );
+        });
   }
 }
 

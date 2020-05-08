@@ -107,21 +107,14 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///
   factory ReactiveModel(
       {BuildContext context, dynamic name, bool silent = false}) {
-    return Injector.getAsReactive<T>(
-        name: name, context: context, silent: silent);
+    return Injector.getAsReactive<T>(name: name, silent: silent);
   }
 
   ///A representation of the most recent state (instance) of the injected model.
   AsyncSnapshot<T> get snapshot;
 
   ///The state of the injected model.
-  T get state;
-
-  ///The state of the injected model.
-  // set state(T data) {
-  //   _state = data;
-  //   _snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, _state);
-  // }
+  T state;
 
   ///The value the ReactiveModel holds. It is the same as [state]
   ///
@@ -176,7 +169,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///unsubscribe form the stream.
   ///It works for injected streams or futures.
-  void unsubscribe(void Function(ReactiveModel<T>) rm);
+  void unsubscribe([void Function(ReactiveModel<T>) rm]);
   void subscribe(void Function(ReactiveModel<T>) rm);
 
   ///The stream (or Future) subscription. It works only for injected streams or futures.
@@ -327,7 +320,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         _snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
         if (hasObservers) {
           rebuildStates(null, (context) {
-            rm._onError?.call(_activeCtx(context), e);
+            rm._onError?.call(context, e);
           });
         }
       })
@@ -367,7 +360,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   AsyncSnapshot<T> get snapshot => _snapshot;
   @override
   T get state => _state;
-  @override
+
+  ///The value the ReactiveModel holds. It is the same as [state]
+  ///
+  ///value is more suitable fro immutable objects,
+  ///
+  ///value when set it automatically notify observers. You do not have to explicitly use [setValue]
   T get value {
     return inject.getReactive().state;
   }
@@ -410,11 +408,14 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
   StreamSubscription<T> _subscription;
 
-  void unsubscribe(void Function(ReactiveModel<T> rm) fn) {
+  ///unsubscribe form the stream.
+  ///It works for injected streams or futures.
+  void unsubscribe([void Function(ReactiveModel<T> rm) fn]) {
     if (fn != null) {
       removeObserver(
-          observer: _ReactiveModelObserver<T>(fn: fn, rm: this),
-          tag: 'ReactiveModelObserver$hashCode');
+        observer: _ReactiveModelSubscriber(fn: fn, rm: this),
+        tag: '_ReactiveModelSubscriber',
+      );
     }
     if (_subscription != null) {
       _subscription.cancel();
@@ -422,22 +423,16 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     }
   }
 
-  @override
   void subscribe(void Function(ReactiveModel<T> rm) fn) {
     if (fn != null) {
-      final _reactiveModelObserver =
-          _ReactiveModelObserver<T>(fn: fn, rm: this);
       addObserver(
-          observer: _reactiveModelObserver,
-          tag: 'ReactiveModelObserver$hashCode');
-      cleaner(() {
-        removeObserver(
-            observer: _reactiveModelObserver,
-            tag: 'ReactiveModelObserver$hashCode');
-      });
+        observer: _ReactiveModelSubscriber(fn: fn, rm: this),
+        tag: '_ReactiveModelSubscriber',
+      );
     }
   }
 
+  ///The stream (or Future) subscription. It works only for injected streams or futures.
   StreamSubscription<T> get subscription => _subscription;
 
   R whenConnectionState<R>({
@@ -520,27 +515,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     );
   }
 
-  BuildContext _onSetStateContextFromGet;
-  BuildContext _ctx;
-
-  //active context is the context of the latest add widget observer
-  BuildContext _activeCtx(BuildContext context) {
-    if (_onSetStateContextFromGet != null &&
-        _onSetStateContextFromGet.findRenderObject().attached) {
-      if (context.widget is StateBuilder<Injector>) {
-        return _onSetStateContextFromGet;
-      }
-      //Due to the way hashCode of context is implemented, the higher hashCode is the latter the widget is add
-      return _ctx ??= context.hashCode > _onSetStateContextFromGet.hashCode
-          ? context
-          : _onSetStateContextFromGet;
-    }
-    if (context.widget is StateBuilder<Injector>) {
-      return null;
-    }
-    return _ctx ??= context;
-  }
-
   dynamic _result;
 
   Future<void> setState(
@@ -570,10 +544,8 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         rebuildStates(
           filterTags,
           (BuildContext context) {
-            _ctx = null;
-            final exposedContext = _activeCtx(context);
-            if (exposedContext == null) {
-//               assert(!hasObservers, '''
+//             if (context == null) {
+//               assert(observers().length > 1, '''
 // ***No observer is subscribed yet***
 // | There is no observer subscribed to this observable $runtimeType model.
 // | To subscribe a widget you use:
@@ -593,17 +565,17 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 // | 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
 // |
 // ''');
-              return;
-            }
+//               return;
+//             }
             if (onError != null && hasError) {
-              onError(exposedContext, error);
+              onError(context, error);
             } else if (this._onError != null && hasError) {
-              this._onError(exposedContext, error);
+              this._onError(context, error);
             }
 
             if (hasData) {
               if (onData != null) {
-                onData(exposedContext, state);
+                onData(context, state);
               }
               _onData?.call(state);
               if (seeds != null) {
@@ -616,17 +588,16 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
             }
 
             if (onSetState != null) {
-              onSetState(exposedContext);
+              onSetState(context);
             }
 
             if (onRebuildState != null) {
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => onRebuildState(exposedContext),
+                (_) => onRebuildState(context),
               );
             }
           },
         );
-        _onSetStateContextFromGet = null;
         if (notifyAllReactiveInstances == true) {
           _notifyAll();
         } else if (isNewReactiveInstance) {
@@ -779,14 +750,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   }
 
   @override
-  bool get hasObservers {
-    if (inject.isInjected && _onSetStateContextFromGet == null) {
-      return observers().length > 1;
-    }
-    return super.hasObservers;
-  }
-
-  @override
   String toString() {
     String rm = inject.isAsyncInjected
         ? inject.isFutureType ? 'Future of ' : 'Stream of '
@@ -801,11 +764,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       }
     });
 
-    final int nbrInheritedObserver =
-        '$_onSetStateContextFromGet'.split('$T').length - 1;
-    final nbrObserver =
-        nbrInheritedObserver > 0 ? '$num+I($nbrInheritedObserver)' : '$num';
-
     return '$rm | ' +
         whenConnectionState<String>(
           onIdle: () => 'isIdle ($state)',
@@ -813,11 +771,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           onData: (data) => 'hasData : ($data)',
           onError: (e) => 'hasError : ($e)',
         ) +
-        ' | $nbrObserver observing widgets';
-  }
-
-  setOnSetStateContext(BuildContext ctx) {
-    _onSetStateContextFromGet = ctx;
+        ' | $num observing widgets';
   }
 }
 
@@ -835,7 +789,6 @@ class StreamStatesRebuilder<T> extends ReactiveModelImp<T> {
   StreamStatesRebuilder(this.injectAsync, [bool isNewReactiveInstance = false])
       : super(injectAsync, isNewReactiveInstance) {
     streamSubscribe();
-    cleaner(_unsubscribe);
   }
   Inject<T> injectAsync;
   Object Function(T) _watch;
@@ -885,7 +838,7 @@ class StreamStatesRebuilder<T> extends ReactiveModelImp<T> {
           reactiveModel.rebuildStates(
             injectAsync.filterTags,
             (context) {
-              _onError?.call(_activeCtx(context), e);
+              _onError?.call(context, e);
             },
           );
         } else {
@@ -902,10 +855,6 @@ class StreamStatesRebuilder<T> extends ReactiveModelImp<T> {
       cancelOnError: false,
     );
     _snapshot = snapshot.inState(ConnectionState.waiting);
-  }
-
-  void _unsubscribe() {
-    unsubscribe(null);
   }
 }
 
@@ -952,12 +901,10 @@ abstract class RM {
   ///Get the [ReactiveModel] singleton of an injected model.
   static ReactiveModel<T> get<T>({
     dynamic name,
-    BuildContext context,
     bool silent,
   }) {
     return Injector.getAsReactive<T>(
       name: name,
-      context: context,
       silent: silent,
     );
   }
@@ -982,7 +929,7 @@ abstract class RM {
     BuildContext context,
     R initialValue,
   }) {
-    final m = Injector.get<T>(name: name, context: context);
+    final m = Injector.get<T>(name: name);
     return RM.future(
       future(m),
       initialValue: initialValue,
@@ -1010,7 +957,7 @@ abstract class RM {
     R initialValue,
     Object Function(R) watch,
   }) {
-    final m = Injector.get<T>(name: name, context: context);
+    final m = Injector.get<T>(name: name);
     return RM.stream(
       stream(m),
       initialValue: initialValue,
@@ -1070,11 +1017,11 @@ abstract class RM {
       StatesRebuilderInternal.getNotifiedModel();
 }
 
-class _ReactiveModelObserver<T> implements ObserverOfStatesRebuilder {
-  final void Function(ReactiveModel<T>) fn;
+class _ReactiveModelSubscriber<T> implements ObserverOfStatesRebuilder {
+  final void Function(ReactiveModel<T> rm) fn;
   final ReactiveModel<T> rm;
 
-  _ReactiveModelObserver({this.fn, this.rm});
+  _ReactiveModelSubscriber({this.fn, this.rm});
 
   @override
   bool update([Function(BuildContext p1) onSetState, message]) {

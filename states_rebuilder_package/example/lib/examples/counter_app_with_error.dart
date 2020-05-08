@@ -81,6 +81,10 @@ class MyHome extends StatelessWidget {
             },
             builder: (BuildContext context, counterModel) {
               print("2- build");
+
+              if (counterModel.isWaiting) {
+                return CircularProgressIndicator();
+              }
               return Text(
                 '${counterModel.state.count}',
                 style: const TextStyle(fontSize: 50),

@@ -11,22 +11,23 @@ class App extends StatelessWidget {
       body: Injector(
         inject: [Inject(() => CounterService())],
         builder: (BuildContext context) {
-          final ReactiveModel<CounterService> counterService =
-              RM.get(context: context);
-
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              CounterPage(
-                counterService: counterService,
-                seconds: 1,
-              ),
-              CounterPage(
-                counterService: counterService,
-                seconds: 3,
-              ),
-            ],
-          );
+          return StateBuilder<CounterService>(
+              observe: () => RM.get<CounterService>(),
+              builder: (context, counterService) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CounterPage(
+                      counterService: counterService,
+                      seconds: 1,
+                    ),
+                    CounterPage(
+                      counterService: counterService,
+                      seconds: 3,
+                    ),
+                  ],
+                );
+              });
         },
       ),
     );

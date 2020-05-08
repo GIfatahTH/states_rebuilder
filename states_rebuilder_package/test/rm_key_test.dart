@@ -652,7 +652,7 @@ void main() {
     (tester) async {
       final modelRM = RMKey<Model>()
         ..rm = ReactiveModel.create(Model())
-        ..subscribe((_) {});
+        ..subscribe((rm) {});
 
       //
       expect(modelRM.toString(), contains('<Model> RM'));

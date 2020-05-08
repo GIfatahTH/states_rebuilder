@@ -13,18 +13,20 @@ class LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String validationMessage = ErrorHandler.errorMessage(
-      ReactiveModel<AuthenticationService>(context: context).error,
-    );
     return Column(
       children: <Widget>[
         Text('Login', style: headerStyle),
         UIHelper.verticalSpaceMedium(),
         Text('Enter a number between 1 - 10', style: subHeaderStyle),
         LoginTextField(controller),
-        validationMessage != null
-            ? Text(validationMessage, style: TextStyle(color: Colors.red))
-            : Container()
+        WhenRebuilderOr(
+          observe: () => RM.get<AuthenticationService>(),
+          onError: (error) => Text(
+            ErrorHandler.errorMessage(error),
+            style: TextStyle(color: Colors.red),
+          ),
+          builder: (_, __) => Container(),
+        ),
       ],
     );
   }

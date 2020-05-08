@@ -89,7 +89,9 @@ class StatesRebuilder<T> implements Subject {
     _observersSet.remove(observer);
     if (_observersMap[tag].isEmpty) {
       _observersMap.remove(tag);
-      if (_observersMap.isEmpty) {
+      if (_observersMap.isEmpty ||
+          _observersMap.length == 1 &&
+              _observersMap.containsKey('_ReactiveModelSubscriber')) {
         //Al observers are remove, it is time to execute custom cleaning
         for (final void Function() voidCallBack in _statesRebuilderCleaner) {
           if (voidCallBack != null) {
@@ -97,6 +99,8 @@ class StatesRebuilder<T> implements Subject {
           }
         }
         _statesRebuilderCleaner.clear();
+        _observersMap.clear();
+        _observersSet.clear();
       }
     }
   }
