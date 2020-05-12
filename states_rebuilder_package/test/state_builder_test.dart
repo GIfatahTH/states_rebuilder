@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
@@ -176,7 +177,7 @@ void main() {
     'StateBuilder when disposed and all tags are removed cleaner is called',
     (tester) async {
       bool switcher = true;
-      final model2 = RM.create(Model())..subscribe((rm) {});
+      final model2 = RM.create(Model())..listenToRM((rm) {});
       int numberOfCleanerCall = 0;
       model2.cleaner(() {
         numberOfCleanerCall++;

@@ -310,13 +310,13 @@ void main() {
   );
 
   test('notifying model', () {
-    RM.printActiveRM = true;
+    RM.debugPrintActiveRM = true;
     final rm = RM.create(0);
 
     rm.addObserver(observer: ObserverWidget(), tag: 'tag1');
 
     rm.rebuildStates();
-    RM.printActiveRM = false;
+    RM.debugPrintActiveRM = false;
   });
 }
 

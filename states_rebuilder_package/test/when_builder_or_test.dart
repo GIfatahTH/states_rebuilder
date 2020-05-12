@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/when_rebuilder_or.dart';
 
 void main() {
@@ -94,6 +95,7 @@ void main() {
   testWidgets(
     'WhenRebuilderOr widget, asynchronous task, case all parameters are defined',
     (tester) async {
+      RM.debugWidgetsRebuild = true;
       final widget = Injector(
         inject: [Inject(() => Model1())],
         builder: (context) {
@@ -128,6 +130,7 @@ void main() {
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('error message'), findsOneWidget);
+      RM.debugWidgetsRebuild = false;
     },
   );
 

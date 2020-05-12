@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/reactive_model_imp.dart';
 import 'package:states_rebuilder/src/rm_key.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 
@@ -11,7 +12,7 @@ void main() {
 
   setUp(() {
     final inject = Inject(() => Model());
-    modelRM = inject.getReactive()..subscribe((rm) {});
+    modelRM = inject.getReactive()..listenToRM((rm) {});
   });
 
   tearDown(() {
@@ -161,8 +162,10 @@ void main() {
   testWidgets(
     'ReactiveModel: whenConnectionState should work',
     (tester) async {
+      RM.debugWidgetsRebuild = true;
       final widget = StateBuilder(
         models: [modelRM],
+        key: Key('whenConnectionState'),
         builder: (_, __) {
           return modelRM.whenConnectionState(
             onIdle: () => _widgetBuilder('onIdle'),
@@ -204,6 +207,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       //hasError
       expect(find.text('Error message'), findsOneWidget);
+      RM.debugWidgetsRebuild = false;
     },
   );
 
@@ -1309,6 +1313,13 @@ void main() {
         final widget = Column(
           children: <Widget>[
             StateBuilder<Model>(
+              //used to add observer so to throw FlutterError
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return Container();
+              },
+            ),
+            StateBuilder<Model>(
               observe: () => modelRM
                 ..future((m) => m.incrementAsync()).onError((context, error) {
                   errorMessage = error.message;
@@ -1316,7 +1327,14 @@ void main() {
               builder: (context, modelRM) {
                 return _widgetBuilder('${modelRM.state.counter}');
               },
-            )
+            ),
+            StateBuilder<Model>(
+              //used to add observer so to throw FlutterError
+              observe: () => modelRM,
+              builder: (context, modelRM) {
+                return Container();
+              },
+            ),
           ],
         );
 
@@ -2157,7 +2175,7 @@ void main() {
   });
 
   test('ReactiveModel: ReactiveModel.create works ', () {
-    final _modelRM = ReactiveModel.create(1)..subscribe((rm) {});
+    final _modelRM = ReactiveModel.create(1)..listenToRM((rm) {});
     expect(_modelRM, isA<ReactiveModel>());
     _modelRM.setValue(() => _modelRM.value + 1);
     expect(_modelRM.value, equals(2));
@@ -2327,7 +2345,7 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = ReactiveModel.create(Model())..subscribe((rm) {});
+      final modelRM = ReactiveModel.create(Model())..listenToRM((rm) {});
       //
       expect(modelRM.toString(), contains('<Model> RM'));
       expect(modelRM.toString(), contains(' | isIdle'));
@@ -2465,6 +2483,20 @@ void main() {
       expect(onDataGlobal, 1);
     },
   );
+
+  test('listen to RM and unsubscribe', () {
+    final rm = RM.create(0);
+    int data;
+    final unsubscribe = rm.listenToRM((rm) {
+      data = rm.value;
+    });
+    expect(data, isNull);
+    expect(rm.observers().length, 1);
+    rm.value++;
+    expect(data, 1);
+    unsubscribe();
+    expect(rm.observers().length, 0);
+  });
 }
 
 class Model {

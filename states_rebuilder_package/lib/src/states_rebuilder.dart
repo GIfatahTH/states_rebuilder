@@ -11,7 +11,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 ///Observer classes should implement [ObserverOfStatesRebuilder]
 abstract class ObserverOfStatesRebuilder {
   ///Method to executed when observer is notified.
-  bool update([dynamic Function(BuildContext) onSetState, dynamic message]);
+  void update([dynamic Function(BuildContext) onSetState, dynamic message]);
 }
 
 ///[StatesRebuilder] use the observer pattern.
@@ -46,6 +46,8 @@ class StatesRebuilder<T> implements Subject {
 
   /// observers getter
   Map<String, Set<ObserverOfStatesRebuilder>> observers() => _observersMap;
+
+  ///Check if this observable has observer
   bool get hasObservers => _observersMap.isNotEmpty;
 
   ///Holds user defined void callback to be executed after removing all observers.
@@ -113,7 +115,7 @@ class StatesRebuilder<T> implements Subject {
   //   return this;
   // }
 
-  /// You call [rebuildState] inside any of your logic classes that extends [StatesRebuilder].
+  /// You call [rebuildStates] inside any of your logic classes that extends [StatesRebuilder].
   ///
   /// It will notify observers with [tags] and executed [onSetState] after notification is sent.
   @override
@@ -152,9 +154,10 @@ class StatesRebuilder<T> implements Subject {
       return true;
     }());
     assert(() {
-      if (RM.printActiveRM == true) {
+      if (RM.debugPrintActiveRM == true) {
         print(
-            this.toString() + ' | filterTags: ${tags != null ? tags : "None"}');
+          '$this | filterTags: ${tags != null ? tags : "None"}',
+        );
       }
       return true;
     }());
@@ -215,24 +218,27 @@ class StatesRebuilder<T> implements Subject {
 
   static StatesRebuilder _notifyingModel;
 
+  ///Copy the list of observer from this model to the model in the argument
+  ///
+  ///By default the old list is cleared
   void copy(StatesRebuilder sb, [bool clear = true]) {
     sb._observersMap.addAll(_observersMap);
     sb._observersSet.addAll(_observersSet);
+    sb._statesRebuilderCleaner.addAll(_statesRebuilderCleaner);
     if (clear) {
       _observersMap.clear();
       _observersSet.clear();
+      _statesRebuilderCleaner.clear();
     }
   }
 }
 
-//Package private class
+///Package private class
 class StatesRebuilderInternal {
-  static addAllToObserverMap(StatesRebuilder from, StatesRebuilder to) {
-    to?._observersMap?.addAll(from._observersMap);
-    to?._observersSet?.addAll(from._observersSet);
-  }
-
-  static StatesRebuilder getNotifiedModel() {
-    return StatesRebuilder._notifyingModel;
+  /// get notified model
+  static ReactiveModel getNotifiedModel() {
+    return StatesRebuilder._notifyingModel is ReactiveModel
+        ? StatesRebuilder._notifyingModel as ReactiveModel
+        : null;
   }
 }

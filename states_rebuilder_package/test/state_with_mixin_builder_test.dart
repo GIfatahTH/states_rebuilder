@@ -489,8 +489,7 @@ void main() {
     message = const StringCodec().encodeMessage('AppLifecycleState.detached');
     await defaultBinaryMessenger.handlePlatformMessage(
         'flutter/lifecycle', message, (_) {});
-    //TODO It should be detached for the 1.14.7 update
-    // expect(lifecycleState, AppLifecycleState.detached);
+    expect(lifecycleState, AppLifecycleState.detached);
   });
 }
 

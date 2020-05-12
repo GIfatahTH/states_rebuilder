@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/when_connection_state.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets(
@@ -158,6 +159,7 @@ void main() {
   testWidgets(
     'WhenRebuilder widget, asynchronous task with error, case two reactive models',
     (tester) async {
+      RM.debugWidgetsRebuild = true;
       final widget = Injector(
         inject: [Inject(() => Model1()), Inject(() => Model2())],
         builder: (context) {
@@ -210,6 +212,7 @@ void main() {
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('error message'), findsOneWidget);
+      RM.debugWidgetsRebuild = false;
     },
   );
 

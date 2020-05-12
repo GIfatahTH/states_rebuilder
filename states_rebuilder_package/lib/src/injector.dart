@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'assertions.dart';
 import 'inject.dart';
 import 'reactive_model.dart';
+import 'reactive_model_imp.dart';
+import 'reactive_model_stream.dart';
 import 'states_rebuilder.dart';
 
 ///A class used to register (inject) models.
@@ -35,11 +37,13 @@ class Injector extends StatefulWidget {
   ///In any of the injected classes you can define a 'dispose()' method to clean up resources.
   final bool disposeModels;
 
-  ///Used to reinject an already injected model to make it accessible to a new widget tree branch so that it can be found by [Injector.getAsReactive]
-  final List<StatesRebuilder> reinject;
-
+  ///Refresh the list of inject model,
+  ///whenever any of the observables in the [reinjectOn] emits a notification
   final List<StatesRebuilder> reinjectOn;
 
+  ///By default refreshed model from [reinjectOn] will notify their observers.
+  ///
+  ///set [shouldNotifyOnReinjectOn] if you do not want to notify observers
   final bool shouldNotifyOnReinjectOn;
 
   ///Function to execute in `initState` of the state.
@@ -64,9 +68,8 @@ class Injector extends StatefulWidget {
   const Injector({
     Key key,
     // for injection
-    this.inject,
+    @required this.inject,
     @required this.builder,
-    this.reinject,
     this.reinjectOn,
     this.shouldNotifyOnReinjectOn = true,
     //for app lifecycle
@@ -76,7 +79,7 @@ class Injector extends StatefulWidget {
     this.appLifeCycle,
     this.disposeModels = false,
   })  : assert(builder != null),
-        assert(inject != null || reinject != null, '''
+        assert(inject != null, '''
 
 | ***No model to inject***
 | You have to define either the 'inject' or 'reinject' parameter.
@@ -149,15 +152,14 @@ class Injector extends StatefulWidget {
   }
 }
 
+///
 class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
   static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
       <String, List<Inject<dynamic>>>{};
-  List<Injectable> _injects = [];
-
+  List<Inject<dynamic>> _injects = [];
   @override
   void initState() {
-    print('initState');
     super.initState();
     _initState();
 
@@ -169,21 +171,22 @@ class InjectorState extends State<Injector> {
               if (model is ReactiveModelImp && !model.hasData) {
                 return;
               }
-              for (Inject inject in widget.inject) {
+              for (Inject<dynamic> inject in _injects) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
                 if (inject.isAsyncInjected) {
                   inj
                     ..getReactive().unsubscribe()
                     ..creationStreamFunction = inject.creationStreamFunction
                     ..creationFutureFunction = inject.creationFutureFunction;
-                  (inj.getReactive() as StreamStatesRebuilder)
-                      .streamSubscribe();
+                  (inj.getReactive() as ReactiveModelStream).streamSubscribe();
                 } else {
                   if (inj.singleton != null) {
                     inj.singleton = inj.creationFunction();
-                    inj.reactiveSingleton.state = inj.singleton;
-                    if (widget.shouldNotifyOnReinjectOn) {
-                      inj.reactiveSingleton?.setState((_) => {});
+                    (inj.reactiveSingleton as ReactiveModelImp).state =
+                        inj.singleton;
+                    if (widget.shouldNotifyOnReinjectOn &&
+                        inj.reactiveSingleton.hasObservers) {
+                      inj.reactiveSingleton.setState(null);
                     }
                   }
                 }
@@ -208,99 +211,41 @@ class InjectorState extends State<Injector> {
 
   void _initState() {
     if (widget.inject != null) {
-      for (Inject inject in widget.inject) {
+      _injects = List<Inject<dynamic>>.from(widget.inject);
+      for (Inject<dynamic> inject in _injects) {
         assert(inject != null);
         final name = inject.getName();
         final lastInject = allRegisteredModelInApp[name];
         if (lastInject == null) {
           allRegisteredModelInApp[name] = [inject];
-          _injects.add(inject);
         } else {
           if (Injector.enableTestMode == false) {
             allRegisteredModelInApp[name].add(inject);
-            _injects.add(inject);
           }
         }
       }
     }
-
-    if (widget.reinject != null) {
-      for (StatesRebuilder toReinject in widget.reinject) {
-        dynamic model;
-
-        if (toReinject is ReactiveModelImp<dynamic>) {
-          model = toReinject?.state;
-          assert(
-            () {
-              if (toReinject.isNewReactiveInstance) {
-                throw Exception(AssertMessage.reinjectingNewReactiveInstance(
-                    '${model.runtimeType}'));
-              }
-              return true;
-            }(),
-          );
-        } else {
-          model = toReinject;
-        }
-
-        final inject = Injector._getInject('${model.runtimeType}', true);
-
-        assert(
-          () {
-            if (inject == null) {
-              throw Exception(
-                  AssertMessage.reinjectModelNotFound('${model.runtimeType}'));
-            }
-            return true;
-          }(),
-        );
-
-        assert(
-          () {
-            if (inject.getSingleton() != model) {
-              throw Exception(AssertMessage.reinjectNonInjectedInstance(
-                  '${model.runtimeType}'));
-            }
-            return true;
-          }(),
-        );
-
-        final name = inject.getName();
-        allRegisteredModelInApp[name].add(inject);
-
-        _injects.add(inject);
-      }
-    }
-  }
-
-  @override
-  void deactivate() {
-    print('deactivate');
-    super.deactivate();
   }
 
   @override
   void dispose() {
-    print('dispose');
     _dispose();
 
     if (widget.dispose != null) {
       widget.dispose();
     }
-
+    _injects = null;
     super.dispose();
   }
 
   void _dispose() {
-    for (Inject inject in _injects) {
+    for (Inject<dynamic> inject in _injects) {
       if (inject.isAsyncInjected) {
         inject.reactiveSingleton?.unsubscribe();
       }
       final name = inject.getName();
-      final isRemoved = allRegisteredModelInApp[name]?.remove(inject);
-      if (!isRemoved) {
-        allRegisteredModelInApp[name]?.removeLast();
-      }
+      allRegisteredModelInApp[name]?.remove(inject);
+
       if (allRegisteredModelInApp[name].isEmpty) {
         allRegisteredModelInApp.remove(name);
 
@@ -314,28 +259,16 @@ class InjectorState extends State<Injector> {
           }
         }
       }
-      inject.removeAllReactiveNewInstance();
+      inject
+        ..removeAllReactiveNewInstance()
+        ..singleton = null
+        ..reactiveSingleton = null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (BuildContext context) {
-        return widget.builder(context);
-      },
-    );
-
-    // if (_injects.isNotEmpty) {
-    //   for (Inject<dynamic> inject in _injects.reversed) {
-    //     //Inject with name are not concerned with InheritedWidget
-
-    //     if (inject.hasCustomName == false) {
-    //       _nestedInject = inject.inheritedInject(_nestedInject);
-    //     }
-    //   }
-    // }
-    // return _nestedInject;
+    return widget.builder(context);
   }
 }
 
@@ -364,13 +297,15 @@ class _ObserverOfStatesRebuilder extends ObserverOfStatesRebuilder {
   final void Function() updateCallback;
   _ObserverOfStatesRebuilder(this.updateCallback);
   @override
-  bool update([Function(BuildContext) onSetState, message]) {
+  bool update([Function(BuildContext) onSetState, dynamic _]) {
     updateCallback();
     return true;
   }
 }
 
+///
 abstract class IN {
+  ///Get the plain injected object
   static T get<T>({
     dynamic name,
     bool silent = false,

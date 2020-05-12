@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
-import 'states_rebuilder.dart';
-import 'reactive_model.dart';
-import 'state_builder.dart';
 
+import 'reactive_model.dart';
+import 'reactive_model_imp.dart';
+import 'state_builder.dart';
+import 'states_rebuilder.dart';
+import 'when_connection_state.dart';
+import 'when_rebuilder_or.dart';
+
+///One of the four observer widgets in states_rebuilder.
+///
+///It is useful to handle side effects.
+///
+///See [StateBuilder], [WhenRebuilder] and [WhenRebuilderOr].
 class OnSetStateListener<T> extends StatelessWidget {
   ///List of [ReactiveModel]s to observe
   final List<ReactiveModel> models;
-  final StatesRebuilder Function() observe;
+
+  ///an observable to which you want [OnSetStateListener] to subscribe to.
+  final StatesRebuilder<T> Function() observe;
+
+  ///List of observables to which you want [OnSetStateListener] to subscribe to.
   final List<StatesRebuilder Function()> observeMany;
 
   ///Callback to execute when any of the observed models emits a notification.
@@ -51,7 +64,14 @@ class OnSetStateListener<T> extends StatelessWidget {
   ///The default value is false.
   final bool shouldOnInitState;
 
+  ///Child widget to render
   final Widget child;
+
+  ///One of the four observer widgets in states_rebuilder.
+  ///
+  ///It is useful to handle side effects.
+  ///
+  ///See [StateBuilder], [WhenRebuilder] and [WhenRebuilderOr].
   const OnSetStateListener({
     Key key,
     this.models,
@@ -91,8 +111,10 @@ class OnSetStateListener<T> extends StatelessWidget {
         if (onError != null) {
           final _models =
               (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
-          for (ReactiveModelImp reactiveModel in _models) {
-            reactiveModel.inject.onSetStateListenerNumber--;
+          for (ReactiveModel reactiveModel in _models) {
+            (reactiveModel as ReactiveModelImp)
+                .inject
+                .onSetStateListenerNumber--;
           }
         }
       },
@@ -102,7 +124,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     );
   }
 
-  _onSetState(BuildContext context, ReactiveModel<T> rm) {
+  void _onSetState(BuildContext context, ReactiveModel<T> rm) {
     if (onSetState != null) {
       onSetState(context, rm);
     }

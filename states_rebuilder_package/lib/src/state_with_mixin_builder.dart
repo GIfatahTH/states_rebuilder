@@ -19,6 +19,7 @@ enum MixinWith {
   widgetsBindingObserver,
 }
 
+///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
 class StateWithMixinBuilder<T> extends StatefulWidget {
   ///```dart
   ///StateWithMixinBuilder(
@@ -56,7 +57,11 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
   final List<StatesRebuilder> models;
+
+  ///an observable to which you want [StateWithMixinBuilder] to subscribe.
   final StatesRebuilder Function() observe;
+
+  ///List of observables to which you want [StateWithMixinBuilder] to subscribe.
   final List<StatesRebuilder Function()> observeMany;
 
   ///A custom name of your widget. It is used to rebuild this widget
@@ -139,6 +144,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   final void Function(BuildContext context, AppLifecycleState state)
       didChangeAppLifecycleState;
 
+  ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
   StateWithMixinBuilder({
     Key key,
     this.tag,
@@ -235,7 +241,7 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
     }
   }
 
-  Widget get _stateBuilder => StateBuilder(
+  Widget get _stateBuilder => StateBuilder<dynamic>(
         models: widget.models ?? [],
         observe: widget.observe,
         observeMany: widget.observeMany ?? [],

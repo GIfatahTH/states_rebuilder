@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/reactive_model_imp.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
@@ -214,120 +215,6 @@ void main() {
   );
 
   testWidgets(
-    'Injector : reinject with StatesBuilder model works',
-    (tester) async {
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        disposeModels: true,
-        builder: (_) {
-          return Injector(
-            reinject: [Injector.get<Model>()],
-            disposeModels: true,
-            builder: (_) {
-              return Container();
-            },
-          );
-        },
-      );
-
-      await tester.pumpWidget(widget);
-      expect(InjectorState.allRegisteredModelInApp.length, equals(1));
-      expect(InjectorState.allRegisteredModelInApp.values.toList()[0].length,
-          equals(2));
-    },
-  );
-
-  testWidgets(
-    'Injector : reinject with StatesBuilder and navigation model works',
-    (tester) async {
-      //TODO may be deleted
-      BuildContext contextBeforeRoute;
-      BuildContext contextAfterRoute;
-      final widget = MaterialApp(
-        home: Injector(
-          inject: [Inject(() => Model())],
-          disposeModels: true,
-          builder: (ctx) {
-            contextBeforeRoute = ctx;
-            return Container();
-          },
-        ),
-      );
-
-      await tester.pumpWidget(widget);
-      expect(Injector.get<Model>(), isA<Model>());
-
-      //
-      Navigator.push(
-        contextBeforeRoute,
-        MaterialPageRoute(
-          builder: (ctx) {
-            contextAfterRoute = ctx;
-            return Injector(
-              reinject: [Injector.get<Model>()],
-              disposeModels: true,
-              builder: (ctx) {
-                contextAfterRoute = ctx;
-                return Container();
-              },
-            );
-          },
-        ),
-      );
-      await tester.pump();
-      final modelAfterRoute = IN.get<Model>();
-      expect(modelAfterRoute, isA<Model>());
-      //
-      Navigator.pop(contextAfterRoute);
-      await tester.pump();
-      expect(Injector.get<Model>(), isA<Model>());
-      expect(modelAfterRoute.numberOfDisposeCall, equals(0));
-    },
-  );
-
-  testWidgets(
-    'Injector : throws if reinject non injected instance',
-    (tester) async {
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        disposeModels: true,
-        builder: (_) {
-          return Injector(
-            reinject: [Model()],
-            disposeModels: true,
-            builder: (_) {
-              return Container();
-            },
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(tester.takeException(), isException);
-    },
-  );
-
-  testWidgets(
-    'Injector : throws if reinject on existing model',
-    (tester) async {
-      final widget = Injector(
-        inject: [Inject(() => Model())],
-        disposeModels: true,
-        builder: (_) {
-          return Injector(
-            reinject: [ModelWithoutDispose()],
-            disposeModels: true,
-            builder: (_) {
-              return Container();
-            },
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(tester.takeException(), isException);
-    },
-  );
-
-  testWidgets(
     'Injector : widget lifeCycle (initState, dispose, afterInitialBuild) work',
     (tester) async {
       bool switcher = true;
@@ -369,9 +256,10 @@ void main() {
     },
   );
 
-  testWidgets('Injector throws if inject or reinject parameter are not defined',
+  testWidgets('Injector throws if inject  parameter are not defined',
       (tester) async {
-    expect(() => Injector(builder: (_) => Container()), throwsAssertionError);
+    expect(() => Injector(inject: null, builder: (_) => Container()),
+        throwsAssertionError);
   });
 
   //
@@ -466,57 +354,6 @@ void main() {
       await tester.pump(Duration(seconds: 3));
     },
   );
-
-  testWidgets(
-    'Injector : reinject with ReactiveModel model works',
-    (tester) async {
-      final widget = Injector(
-        inject: [Inject(() => VanillaModel())],
-        disposeModels: true,
-        builder: (_) {
-          return Injector(
-            reinject: [Injector.getAsReactive<VanillaModel>()],
-            disposeModels: true,
-            builder: (_) {
-              return Container();
-            },
-          );
-        },
-      );
-
-      await tester.pumpWidget(widget);
-      expect(InjectorState.allRegisteredModelInApp.length, equals(1));
-      expect(InjectorState.allRegisteredModelInApp.values.toList()[0].length,
-          equals(2));
-    },
-  );
-
-  testWidgets(
-    'Injector : throws if reinject new reactive instance instance',
-    (tester) async {
-      final widget = Injector(
-        inject: [Inject(() => VanillaModel())],
-        disposeModels: true,
-        builder: (_) {
-          return Injector(
-            reinject: [
-              (Injector.getAsReactive<VanillaModel>()
-                      as ReactiveModelImp<VanillaModel>)
-                  .inject
-                  .getReactive(true)
-            ], //Todo getAs new Reactive
-            disposeModels: true,
-            builder: (_) {
-              return Container();
-            },
-          );
-        },
-      );
-      await tester.pumpWidget(widget);
-      expect(tester.takeException(), isException);
-    },
-  );
-
   testWidgets(
     'setState with no observer will throw',
     (tester) async {
@@ -568,8 +405,10 @@ void main() {
         },
       );
       await tester.pumpWidget(widget);
+      expect(RM.get<VanillaModel>().isWaiting, isTrue);
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
+      expect(RM.get<VanillaModel>().hasError, isTrue);
     },
   );
 
@@ -929,16 +768,11 @@ void main() {
                 if (isTrue)
                   Builder(
                     builder: (_) {
-                      return Injector(
-                        reinject: [model1],
-                        builder: (context) {
-                          return StateBuilder(
-                            models: [Injector.getAsReactive<VanillaModel>()],
-                            builder: (context, model) {
-                              context2 = context;
-                              return Container();
-                            },
-                          );
+                      return StateBuilder(
+                        models: [Injector.getAsReactive<VanillaModel>()],
+                        builder: (context, model) {
+                          context2 = context;
+                          return Container();
                         },
                       );
                     },
@@ -1008,16 +842,11 @@ void main() {
                 if (isTrue)
                   Builder(
                     builder: (_) {
-                      return Injector(
-                        reinject: [model1],
-                        builder: (context) {
-                          return StateBuilder(
-                            models: [Injector.getAsReactive<VanillaModel>()],
-                            builder: (context, model) {
-                              context2 = context;
-                              return Container();
-                            },
-                          );
+                      return StateBuilder(
+                        models: [Injector.getAsReactive<VanillaModel>()],
+                        builder: (context, model) {
+                          context2 = context;
+                          return Container();
                         },
                       );
                     },
@@ -1194,7 +1023,6 @@ void main() {
 
     await tester.pumpWidget(widget);
     final vanillaModel1 = Injector.get<VanillaModel>();
-    //TODO
     StatesRebuilderDebug.printInjectedModel();
     model.rebuildStates();
     await tester.pump();
@@ -1513,8 +1341,7 @@ void main() {
       message = const StringCodec().encodeMessage('AppLifecycleState.detached');
       await defaultBinaryMessenger.handlePlatformMessage(
           'flutter/lifecycle', message, (_) {});
-      //TODO It should be detached for the 1.14.7 update
-      // expect(lifecycleState, AppLifecycleState.detached);
+      expect(lifecycleState, AppLifecycleState.detached);
     });
   });
 }

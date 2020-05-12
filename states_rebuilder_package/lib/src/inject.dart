@@ -1,14 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'reactive_model.dart';
+import 'reactive_model_imp.dart';
+import 'reactive_model_stream.dart';
 import 'state_builder.dart';
-import 'states_rebuilder.dart';
 
 ///Base class for [Inject]
 abstract class Injectable {}
 
 ///A class used to wrap injected models, streams or futures.
 ///It caches the rew singleton and the reactive singleton.
+
 class Inject<T> implements Injectable {
   /// The Creation Function.
   T Function() creationFunction;
@@ -46,17 +47,10 @@ class Inject<T> implements Injectable {
   ///Whether the injected model is stream or future
   bool get isAsyncInjected => _isFutureType || _isStreamType;
 
-  ///Whether the model is of [StatesRebuilder] type
-  bool get isStatesRebuilder =>
-      isAsyncInjected ? false : singleton is StatesRebuilder;
-  bool get hasCustomName => _hasCustomName;
-
   bool _isFutureType = false;
   bool get isFutureType => _isFutureType;
 
   bool _isStreamType = false;
-
-  bool _hasCustomName = false;
 
   ///new reactive instances can transmit their state and notification to reactive singleton.
   JoinSingleton joinSingleton;
@@ -81,8 +75,6 @@ class Inject<T> implements Injectable {
 
   static int _envMapLength;
 
-  bool isWidgetDeactivated = false;
-
   ///Inject a value or a model.
   Inject(
     this.creationFunction, {
@@ -91,10 +83,16 @@ class Inject<T> implements Injectable {
     this.joinSingleton,
   }) {
     _name = name?.toString();
-    _hasCustomName = name != null;
   }
 
   ///Inject a Future
+  ///
+  ///There are three type of future ReactiveModels:
+  ///* [Inject.future]: Future injected using [Inject.future] can be consumed with [RM.get].
+  ///* [ReactiveModel.future] : call a future from the state of the ReactiveModel
+  ///and notify its observer
+  ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
+  ///
   Inject.future(
     this.creationFutureFunction, {
     dynamic name,
@@ -104,9 +102,16 @@ class Inject<T> implements Injectable {
   }) {
     _name = name?.toString();
     _isFutureType = true;
-    _hasCustomName = name != null;
   }
 
+  ///Inject a Stream,
+  ///
+  ///
+  ///There are three type of stream ReactiveModels:
+  ///* [Inject.stream]: Stream injected using [Inject.stream] can be consumed with [RM.get].
+  ///* [ReactiveModel.stream] : subscribe to a stream from the state of the ReactiveModel
+  ///and notify its observer
+  ///* [RM.getStream] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
   Inject.stream(
     this.creationStreamFunction, {
     dynamic name,
@@ -117,7 +122,6 @@ class Inject<T> implements Injectable {
   }) {
     _name = name?.toString();
     _isStreamType = true;
-    _hasCustomName = name != null;
   }
 
   Inject.interface(
@@ -141,7 +145,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     this.creationFunction = impl[Injector.env];
 
     _name = name?.toString();
-    _hasCustomName = name != null;
   }
 
   factory Inject.previous(
@@ -195,10 +198,12 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ReactiveModel<T> rs;
     if (reactiveSingleton == null || asNew) {
       if (isAsyncInjected) {
-        rs = StreamStatesRebuilder<T>(this, asNew);
+        rs = ReactiveModelStream<T>(this, asNew);
       } else {
         rs = ReactiveModelImp<T>(this, asNew);
+        ;
       }
+
       addToReactiveNewInstanceList(asNew ? rs : null);
     }
 
@@ -221,24 +226,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   void removeAllReactiveNewInstance() {
     newReactiveInstanceList?.clear();
     newReactiveMapFromSeed.clear();
-  }
-}
-
-///Inherited widget class
-class InheritedInject<T> extends InheritedWidget {
-  ///Inherited widget class
-  const InheritedInject({Key key, Widget child, this.getSingleton})
-      : super(key: key, child: child);
-
-  ///get reactive singleton associated with this InheritedInject
-  final StatesRebuilder Function() getSingleton;
-
-  ///get The model
-  StatesRebuilder get model => getSingleton();
-
-  @override
-  bool updateShouldNotify(InheritedInject<T> oldWidget) {
-    return true;
   }
 }
 

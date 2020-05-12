@@ -80,7 +80,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///Each [WhenRebuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
-  ///ReactiveModel key used to control this widget from outside its [builder] method.
+  ///ReactiveModel key used to control this widget from outside.
   final RMKey rmKey;
 
   ///```dart
@@ -115,6 +115,8 @@ class WhenRebuilder<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
+  ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
+  ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
   const WhenRebuilder({
     Key key,
     @required this.onIdle,
@@ -145,33 +147,35 @@ class WhenRebuilder<T> extends StatelessWidget {
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
+      child: const Text('StatesRebuilder#|0|#'),
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
         dynamic error;
-        final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+        final _models = List<ReactiveModel>.from(
+          (context.widget as StateBuilder).activeRM,
+        );
 
         _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
-          onError: (err) {
+          onError: (dynamic err) {
             error = err;
             return hasError = true;
           },
-          onData: (data) => true,
+          onData: (dynamic data) => true,
         );
 
         for (var i = 1; i < _models.length; i++) {
           _models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,
-            onError: (err) {
+            onError: (dynamic err) {
               error = err;
               return hasError = true;
             },
-            onData: (data) => true,
+            onData: (dynamic data) => true,
           );
         }
 
