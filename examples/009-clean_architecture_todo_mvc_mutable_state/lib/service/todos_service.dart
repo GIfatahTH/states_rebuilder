@@ -1,5 +1,4 @@
 import 'package:clean_architecture_todo_mvc/domain/entities/todo.dart';
-import 'package:clean_architecture_todo_mvc/service/exceptions/persistance_exception.dart';
 
 import 'common/enums.dart';
 import 'interfaces/i_todo_repository.dart';

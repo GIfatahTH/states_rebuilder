@@ -11,7 +11,14 @@ import 'service/auth_state.dart';
 
 void main() async {
   runApp(
-    Injector(
+    MyApp(),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Injector(
       inject: [
         Inject<AuthState>(
           () => InitAuthState(
@@ -19,7 +26,7 @@ void main() async {
           ),
         )
       ],
-      builder: (context) => StatesRebuilderApp(),
-    ),
-  );
+      builder: (context) => App(),
+    );
+  }
 }

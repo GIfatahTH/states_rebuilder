@@ -3,6 +3,8 @@
 // in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'app.dart';
 import 'data_source/todo_repository.dart';
@@ -10,8 +12,14 @@ import 'data_source/todo_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    StatesRebuilderApp(
-      repository: StatesRebuilderTodosRepository(),
-    ),
+    Injector(
+        inject: [
+          Inject<SharedPreferences>.future(
+            () => SharedPreferences.getInstance(),
+          ),
+        ],
+        builder: (context) {
+          return StatesRebuilderApp();
+        }),
   );
 }

@@ -24,18 +24,10 @@ class TodosRepository implements ITodosRepository {
 
       snapshot.documents.forEach(
         (f) {
-          print('${f.data}}');
           todos.add(Todo.fromJson(f.data));
         },
       );
 
-      // final todoEntities = await _todosRepository.loadTodos();
-      // var todos = <Todo>[];
-      // for (var todoEntity in todoEntities) {
-      //   todos.add(
-      //     Todo.fromJson(todoEntity.toJson()),
-      //   );
-      // }
       _cashedTodos = List<Todo>.from(todos);
       return todos;
     } catch (e) {
@@ -57,11 +49,6 @@ class TodosRepository implements ITodosRepository {
           //the new todos list contains an old todo
           if (oldTodo == newTodo) {
             newTodos.remove(newTodo);
-            // //If they are different than update the todo
-            // await databaseReference
-            //     .collection("todos")
-            //     .document('1/${oldTodo.id}')
-            //     .updateData(newTodo.toJson());
           }
         } else {
           //the new todos does not contain an old todo
@@ -89,14 +76,6 @@ class TodosRepository implements ITodosRepository {
             .setData(newTodo.toJson());
       }
       _cashedTodos = List<Todo>.from(todos);
-      // var todosEntities = <TodoEntity>[];
-      // //// to simulate en error uncomment these lines.
-      // // await Future.delayed(Duration(milliseconds: 500));
-      // // throw Exception();
-      // for (var todo in todos) {
-      //   todosEntities.add(TodoEntity.fromJson(todo.toJson()));
-      // }
-      // return _todosRepository.saveTodos(todosEntities);
     } catch (e) {
       throw PersistanceException(
           'There is a problem in saving todos :${e?.message}');

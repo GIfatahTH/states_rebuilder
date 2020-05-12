@@ -29,6 +29,7 @@ class FilterButton extends StatelessWidget {
 
     return StateBuilder(
         //register to activeTabRM
+        key: Key('StateBuilder filter_button1'),
         observe: () => activeTabRM,
         builder: (context, activeTabRM) {
           final _isActive = activeTabRM.value == AppTab.todos;
@@ -55,6 +56,8 @@ class _Button extends StatelessWidget {
   Widget build(BuildContext context) {
     //This is an example of Local ReactiveModel
     return StateBuilder<VisibilityFilter>(
+        key: Key('StateBuilder VisibilityFilter'),
+
         //Create and subscribe to a ReactiveModel of type VisibilityFilter
         observe: () => RM.create(VisibilityFilter.all),
         builder: (context, activeFilterRM) {

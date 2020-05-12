@@ -12,6 +12,7 @@ class ExtraActionsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     //This is an example of local ReactiveModel
     return StateBuilder<ExtraAction>(
+        key: Key('ExtraActionsButton'),
         //Create a reactiveModel of type  ExtraAction and set its initialValue to ExtraAction.clearCompleted)
         observe: () => RM.create(ExtraAction.clearCompleted),
         builder: (context, extraActionRM) {

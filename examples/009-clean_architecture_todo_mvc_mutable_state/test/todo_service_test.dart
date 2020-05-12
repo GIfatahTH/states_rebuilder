@@ -10,13 +10,6 @@ import 'fake_repository.dart';
 
 //TodoService class is a pure dart class, you can test it just as you test a plain dart class.
 void main() {
-  test('description', () async {
-    //
-    WidgetsFlutterBinding.ensureInitialized();
-    final repo = StatesRebuilderTodosRepository();
-    final result = await repo.loadTodos();
-    print(result);
-  });
   group(
     'TodosService',
     () {
@@ -61,7 +54,7 @@ void main() {
           final todoToAdd = Todo('addTask');
           await todoService.addTodo(todoToAdd);
           expect(todoService.todos.length, equals(4));
-          expect(await (todosRepository as FakeRepository).isSaved, isTrue);
+          expect((todosRepository as FakeRepository).isSaved, isTrue);
         },
       );
 
@@ -73,7 +66,7 @@ void main() {
               todoService.todos.firstWhere((todo) => todo.id == '1');
           expect(beforeUpdate.task, equals('Task1'));
           await todoService.updateTodo(Todo('updateTodo', id: '1'));
-          expect(await (todosRepository as FakeRepository).isSaved, isTrue);
+          expect((todosRepository as FakeRepository).isSaved, isTrue);
           final afterUpdate =
               todoService.todos.firstWhere((todo) => todo.id == '1');
           expect(afterUpdate.task, equals('updateTodo'));
@@ -86,7 +79,7 @@ void main() {
           await todoService.loadTodos();
           expect(todoService.todos.length, equals(3));
           await todoService.deleteTodo(Todo('updateTodo', id: '1'));
-          expect(await (todosRepository as FakeRepository).isSaved, isTrue);
+          expect((todosRepository as FakeRepository).isSaved, isTrue);
           expect(todoService.todos.length, equals(2));
         },
       );
@@ -99,7 +92,7 @@ void main() {
           expect(todoService.numCompleted, equals(1));
 
           await todoService.toggleAll();
-          expect(await (todosRepository as FakeRepository).isSaved, isTrue);
+          expect((todosRepository as FakeRepository).isSaved, isTrue);
           expect(todoService.numActive, equals(0));
           expect(todoService.numCompleted, equals(3));
 
@@ -117,7 +110,7 @@ void main() {
           expect(todoService.numCompleted, equals(1));
 
           await todoService.clearCompleted();
-          expect(await (todosRepository as FakeRepository).isSaved, isTrue);
+          expect((todosRepository as FakeRepository).isSaved, isTrue);
           expect(todoService.todos.length, equals(2));
           expect(todoService.numActive, equals(2));
           expect(todoService.numCompleted, equals(0));

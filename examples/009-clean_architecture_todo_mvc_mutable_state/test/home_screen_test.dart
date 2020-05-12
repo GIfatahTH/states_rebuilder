@@ -1,6 +1,9 @@
+import 'package:clean_architecture_todo_mvc/service/interfaces/i_todo_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_todo_mvc/app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todos_app_core/todos_app_core.dart';
 import 'fake_repository.dart';
 
@@ -12,12 +15,25 @@ void main() {
     final todoItem2Finder = find.byKey(ArchSampleKeys.todoItem('2'));
     final todoItem3Finder = find.byKey(ArchSampleKeys.todoItem('3'));
 
+    Widget statesRebuilderApp;
+    FakeRepository repository = FakeRepository();
+    setUp(() {
+      Injector.enableTestMode = true;
+      statesRebuilderApp = Injector(
+          inject: [
+            //As the only dependence on SharedPreferences is the TodosRepository,
+            // and as we fake the TodosRepository, we can only inject a null instance of SharedPreferences
+            Inject<SharedPreferences>(
+              () => null,
+            ),
+            Inject<ITodosRepository>(() => repository)
+          ],
+          builder: (context) {
+            return StatesRebuilderApp();
+          });
+    });
     testWidgets('should render loading indicator at first', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository(),
-        ),
-      );
+      await tester.pumpWidget(statesRebuilderApp);
       await tester.pump(Duration.zero);
       expect(find.byKey(ArchSampleKeys.todosLoading), findsOneWidget);
       await tester.pumpAndSettle();
@@ -25,11 +41,7 @@ void main() {
 
     testWidgets('should display a list after loading todos', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository(),
-        ),
-      );
+      await tester.pumpWidget(statesRebuilderApp);
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(
@@ -63,11 +75,8 @@ void main() {
     });
 
     testWidgets('should remove todos using a dismissible', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository(),
-        ),
-      );
+      await tester.pumpWidget(statesRebuilderApp);
+
       await tester.pumpAndSettle();
       await tester.drag(todoItem1Finder, Offset(-1000, 0));
       await tester.pumpAndSettle();
@@ -82,11 +91,8 @@ void main() {
     testWidgets(
         'should remove todos using a dismissible and insert back the removed element if throws',
         (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository()..throwError = true,
-        ),
-      );
+      repository.throwError = true;
+      await tester.pumpWidget(statesRebuilderApp);
 
       await tester.pumpAndSettle();
       await tester.drag(todoItem1Finder, Offset(-1000, 0));
@@ -102,26 +108,21 @@ void main() {
     });
 
     testWidgets('should display stats when switching tabs', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository(),
-        ),
-      );
+      await tester.pumpWidget(statesRebuilderApp);
+      RM.debugPrintActiveRM = true;
+      RM.debugWidgetsRebuild = true;
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(ArchSampleKeys.statsTab));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.byKey(ArchSampleKeys.statsNumActive), findsOneWidget);
+      expect(find.byKey(ArchSampleKeys.statsCounter), findsOneWidget);
       expect(find.byKey(ArchSampleKeys.statsNumActive), findsOneWidget);
     });
 
     testWidgets('should toggle a todo', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository(),
-        ),
-      );
+      await tester.pumpWidget(statesRebuilderApp);
+
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(
@@ -141,11 +142,9 @@ void main() {
     testWidgets('should toggle a todo and toggle back if throws',
         (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-          repository: FakeRepository()..throwError = true,
-        ),
-      );
+      repository.throwError = true;
+
+      await tester.pumpWidget(statesRebuilderApp);
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(

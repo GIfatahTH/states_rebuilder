@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
+@immutable
 class User {
   final String uid;
   final String email;

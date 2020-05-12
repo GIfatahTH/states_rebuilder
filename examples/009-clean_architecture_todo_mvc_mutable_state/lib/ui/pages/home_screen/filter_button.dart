@@ -17,10 +17,10 @@ class FilterButton extends StatelessWidget {
   final ReactiveModel<AppTab> activeTabRM;
   @override
   Widget build(BuildContext context) {
-    final defaultStyle = Theme.of(context).textTheme.body1;
+    final defaultStyle = Theme.of(context).textTheme.bodyText1;
     final activeStyle = Theme.of(context)
         .textTheme
-        .body1
+        .bodyText1
         .copyWith(color: Theme.of(context).accentColor);
     final button = _Button(
       activeStyle: activeStyle,
@@ -28,6 +28,7 @@ class FilterButton extends StatelessWidget {
     );
 
     return StateBuilder(
+        key: Key('FilterButton 1'),
         observe: () => activeTabRM,
         builder: (context, activeTabRM) {
           final _isActive = activeTabRM.value == AppTab.todos;
@@ -54,6 +55,7 @@ class _Button extends StatelessWidget {
   Widget build(BuildContext context) {
     //This is an example of Local ReactiveModel
     return StateBuilder<VisibilityFilter>(
+        key: Key('FilterButton 2'),
         //Create and subscribe to a ReactiveModel of type VisibilityFilter
         observe: () => RM.create(VisibilityFilter.all),
         builder: (context, activeFilterRM) {

@@ -31,6 +31,7 @@ class HomeScreen extends StatelessWidget {
       ),
       //WhenRebuilderOr is one of four widget used by states_rebuilder to subscribe to observable ReactiveModels
       body: WhenRebuilderOr<AppTab>(
+        key: Key('WhenRebuilderOr HomeScreen'),
         //subscribe this widget to many observables.
         //This widget will rebuild when the loadTodos future method resolves and,
         //when the state of the active AppTab is changed
@@ -76,6 +77,7 @@ class HomeScreen extends StatelessWidget {
       ),
       //StateBuilder is the second of three widget used to subscribe to observables
       bottomNavigationBar: StateBuilder<AppTab>(
+          key: Key('HomeScreen<AppTab>'),
           //Here we create a local ReactiveModel of type AppTab with default state of AppTab.todos)
           observe: () => RM.create(AppTab.todos),
           //To control or use the value of this local ReactiveModel outside this Widget,

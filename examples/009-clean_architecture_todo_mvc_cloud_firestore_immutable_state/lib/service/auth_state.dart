@@ -14,9 +14,12 @@ class AuthState {
 
   static Future<AuthState> currentUser(AuthState authState) async {
     final currentUser = await authState._authRepository.currentUser();
-    return authState.copyWith(
-      user: currentUser,
-    );
+    if (currentUser != null) {
+      return authState.copyWith(
+        user: currentUser,
+      );
+    }
+    return InitAuthState(authState._authRepository);
   }
 
   static Future<AuthState> createUserWithEmailAndPassword(

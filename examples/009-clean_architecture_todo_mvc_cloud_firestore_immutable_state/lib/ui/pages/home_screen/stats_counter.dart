@@ -14,6 +14,7 @@ class StatsCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<TodosState>(
+      key: Key('StateBuilder todosState'),
       observe: () => RM.get<TodosState>(),
       builder: (_, todosStateRM) {
         return Center(

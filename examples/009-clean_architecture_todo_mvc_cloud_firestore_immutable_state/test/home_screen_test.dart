@@ -1,23 +1,59 @@
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/domain/entities/user.dart';
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/auth_state.dart';
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/common/enums.dart';
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/todos_state.dart';
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/ui/pages/home_screen/todo_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/app.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todos_app_core/todos_app_core.dart';
-import 'fake_repository.dart';
+
+import 'fake_todo_repository.dart';
 
 /// Demonstrates how to test Widgets
 void main() {
-  group('HomeScreen', () {
-    final todoListFinder = find.byKey(ArchSampleKeys.todoList);
-    final todoItem1Finder = find.byKey(ArchSampleKeys.todoItem('1'));
-    final todoItem2Finder = find.byKey(ArchSampleKeys.todoItem('2'));
-    final todoItem3Finder = find.byKey(ArchSampleKeys.todoItem('3'));
+  final todoListFinder = find.byKey(ArchSampleKeys.todoList);
+  final todoItem1Finder = find.byKey(ArchSampleKeys.todoItem('1'));
+  final todoItem2Finder = find.byKey(ArchSampleKeys.todoItem('2'));
+  final todoItem3Finder = find.byKey(ArchSampleKeys.todoItem('3'));
+  Widget homeScreen;
+  FakeTodosRepository fakeTodosRepository;
+  setUp(() {
+    fakeTodosRepository = FakeTodosRepository();
 
-    testWidgets('should render loading indicator at first', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            // //repository: FakeRepository(),
+    Injector.enableTestMode = true;
+    homeScreen = Injector(
+      inject: [
+        Inject(
+          () => AuthState(
+            authRepository: null,
+            user: User(
+              uid: '1',
+              displayName: 'user1',
+              email: 'user1@email',
             ),
-      );
+          ),
+        ),
+      ],
+      builder: (_) => Injector(
+          inject: [
+            Inject(
+              () => TodosState(
+                todos: [],
+                activeFilter: VisibilityFilter.all,
+                todoRepository: fakeTodosRepository,
+              ),
+            )
+          ],
+          builder: (context) {
+            return App();
+          }),
+    );
+  });
+  group('HomeScreen', () {
+    testWidgets('should render loading indicator at first', (tester) async {
+      await tester.pumpWidget(homeScreen);
       await tester.pump(Duration.zero);
       expect(find.byKey(ArchSampleKeys.todosLoading), findsOneWidget);
       await tester.pumpAndSettle();
@@ -25,11 +61,7 @@ void main() {
 
     testWidgets('should display a list after loading todos', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            // //repository: FakeRepository(),
-            ),
-      );
+      await tester.pumpWidget(homeScreen);
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(
@@ -63,11 +95,7 @@ void main() {
     });
 
     testWidgets('should remove todos using a dismissible', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            // //repository: FakeRepository(),
-            ),
-      );
+      await tester.pumpWidget(homeScreen);
       await tester.pumpAndSettle();
       await tester.drag(todoItem1Finder, Offset(-1000, 0));
       await tester.pumpAndSettle();
@@ -82,11 +110,8 @@ void main() {
     testWidgets(
         'should remove todos using a dismissible and insert back the removed element if throws',
         (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            //repository: FakeRepository()..throwError = true,
-            ),
-      );
+      fakeTodosRepository..throwError = true;
+      await tester.pumpWidget(homeScreen);
 
       await tester.pumpAndSettle();
       await tester.drag(todoItem1Finder, Offset(-1000, 0));
@@ -102,11 +127,7 @@ void main() {
     });
 
     testWidgets('should display stats when switching tabs', (tester) async {
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            //repository: FakeRepository(),
-            ),
-      );
+      await tester.pumpWidget(homeScreen);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(ArchSampleKeys.statsTab));
       await tester.pump();
@@ -117,11 +138,7 @@ void main() {
 
     testWidgets('should toggle a todo', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            //repository: FakeRepository(),
-            ),
-      );
+      await tester.pumpWidget(homeScreen);
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(
@@ -140,12 +157,9 @@ void main() {
 
     testWidgets('should toggle a todo and toggle back if throws',
         (tester) async {
+      fakeTodosRepository..throwError = true;
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(
-        StatesRebuilderApp(
-            //repository: FakeRepository()..throwError = true,
-            ),
-      );
+      await tester.pumpWidget(homeScreen);
       await tester.pumpAndSettle();
 
       final checkbox1 = find.descendant(
@@ -169,6 +183,74 @@ void main() {
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('There is a problem in saving todos'), findsOneWidget);
       handle.dispose();
+      fakeTodosRepository..throwError = false;
+    });
+  });
+  group('delete from detailed screen', () {
+    testWidgets('delete item from the detailed screen', (tester) async {
+      await tester.pumpWidget(homeScreen);
+      await tester.pumpWidget(homeScreen);
+
+      await tester.pumpAndSettle();
+      //expect to see three Todo items
+      expect(find.byType(TodoItem), findsNWidgets(3));
+
+      //tap to navigate to detail screen
+      await tester.tap(todoItem1Finder);
+      await tester.pumpAndSettle();
+
+      //expect we are in the detailed screen
+      expect(find.byKey(ArchSampleKeys.todoDetailsScreen), findsOneWidget);
+
+      //
+      await tester.tap(find.byKey(ArchSampleKeys.deleteTodoButton));
+      await tester.pumpAndSettle();
+
+      //expect we are back in the home screen
+      expect(find.byKey(ArchSampleKeys.todoList), findsOneWidget);
+      //expect to see two Todo items
+      expect(find.byType(TodoItem), findsNWidgets(2));
+      //expect to see a SnackBar to reinsert the deleted todo
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+
+      //reinsert the deleted todo
+      await tester.tap(find.byType(SnackBarAction));
+      await tester.pump();
+      //expect to see three Todo items
+      expect(find.byType(TodoItem), findsNWidgets(3));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('delete item from the detailed screen and reinsert it on error',
+        (tester) async {
+      fakeTodosRepository..throwError = true;
+      await tester.pumpWidget(homeScreen);
+
+      await tester.pumpAndSettle();
+
+      //tap to navigate to detail screen
+      await tester.tap(todoItem1Finder);
+      await tester.pumpAndSettle();
+
+      //
+      await tester.tap(find.byKey(ArchSampleKeys.deleteTodoButton));
+      await tester.pump();
+
+      //expect we are back in the home screen
+      expect(find.byKey(ArchSampleKeys.todoList), findsOneWidget);
+      //expect to see two Todo items
+      expect(find.byType(TodoItem), findsNWidgets(2));
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+
+      //
+      await tester.pump(Duration(milliseconds: 1000));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TodoItem), findsNWidgets(3));
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('There is a problem in saving todos'), findsOneWidget);
     });
   });
 }

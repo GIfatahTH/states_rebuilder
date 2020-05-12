@@ -7,27 +7,36 @@ import '../../../service/auth_state.dart';
 import '../../../ui/exceptions/error_handler.dart';
 
 class AuthScreen extends StatelessWidget {
+  String email = '';
+  String password = '';
+
+  final _isRegisterRM = RMKey(false);
+
+  bool get _isFormValid => true;
   static final route = '/authPage';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: AuthFormWidget(),
+        child: AuthFormWidget1(),
       ),
     );
   }
 }
 
-class AuthFormWidget extends StatelessWidget {
+class AuthFormWidget1 extends StatelessWidget {
   //NOTE1: Creating a  ReactiveModel key for email with empty initial value
-  final _emailRM = RMKey('');
-  //NOTE1: Creating a  ReactiveModel key for password with empty initial value
-  final _passwordRM = RMKey('');
-  //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
+
+  // final _emailRM = RMKey('');
+
+  // final _passwordRM = RMKey('');
+  String email = '';
+  String password = '';
+
   final _isRegisterRM = RMKey(false);
-  //NOTE1: bool getter to check if the form is valid
-  bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
+
+  bool get _isFormValid => true; //_emailRM.hasData && _passwordRM.hasData;
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +45,12 @@ class AuthFormWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         StateBuilder(
+          key: Key('StateBuilder email'),
           //NOTE2: create and subscribe to local ReactiveModel of empty string
           observe: () => RM.create(''),
           //NOTE3: couple this StateBuilder with the email ReactiveModel key
-          rmKey: _emailRM,
-          builder: (_, __) {
+          // rmKey: _emailRM,
+          builder: (_, _emailRM) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.email),
@@ -56,14 +66,16 @@ class AuthFormWidget extends StatelessWidget {
                   () => Email(email).value,
                   catchError: true,
                 );
+                this.email = email;
               },
             );
           },
         ),
         StateBuilder(
+          key: Key('StateBuilder password'),
           observe: () => RM.create(''),
-          rmKey: _passwordRM,
-          builder: (_, __) {
+          // rmKey: _passwordRM,
+          builder: (_, _passwordRM) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.lock),
@@ -77,12 +89,14 @@ class AuthFormWidget extends StatelessWidget {
                   () => Password(password).value,
                   catchError: true,
                 );
+                this.password = password;
               },
             );
           },
         ),
         SizedBox(height: 10),
         StateBuilder(
+            key: Key('StateBuilder checkBox'),
             observe: () => RM.create(false),
             rmKey: _isRegisterRM,
             builder: (_, __) {
@@ -99,13 +113,14 @@ class AuthFormWidget extends StatelessWidget {
               );
             }),
         StateBuilder<AuthState>(
+          key: Key('Sign in/up Button'),
           //NOTE6: subscribe to all the ReactiveModels
           //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
           //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
           //userServiceRM: To show CircularProgressIndicator is the state is waiting
           observeMany: [
-            () => _emailRM,
-            () => _passwordRM,
+            // () => _emailRM,
+            // () => _passwordRM,
             () => _isRegisterRM,
             () => RM.get<AuthState>(),
           ],
@@ -124,17 +139,19 @@ class AuthFormWidget extends StatelessWidget {
                         //NOTE9: If _isRegisterRM.value is true call createUserWithEmailAndPassword,
                         if (_isRegisterRM.value) {
                           return AuthState.createUserWithEmailAndPassword(
-                            authState,
-                            _emailRM.value,
-                            _passwordRM.value,
-                          );
+                              authState,
+                              // _emailRM.value,
+                              // _passwordRM.value,
+                              email,
+                              password);
                         } else {
                           //NOTE9: If _isRegisterRM.value is true call signInWithEmailAndPassword,
                           return AuthState.signInWithEmailAndPassword(
-                            authState,
-                            _emailRM.value,
-                            _passwordRM.value,
-                          );
+                              authState,
+                              // _emailRM.value,
+                              // _passwordRM.value,
+                              email,
+                              password);
                         }
                       }).onError(ErrorHandler.showErrorSnackBar);
                     }
@@ -142,22 +159,6 @@ class AuthFormWidget extends StatelessWidget {
             );
           },
         ),
-        // StateBuilder<UserService>(
-        //   //we created a local new ReactiveModel form the global registered ReactiveModel
-        //   observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
-        //   builder: (_, userServiceRM) {
-        //     //NOTE10: Display an error message telling the user what goes wrong.
-        //     if (userServiceRM.hasError) {
-        //       return Center(
-        //         child: Text(
-        //           ExceptionsHandler.errorMessage(userServiceRM.error).message,
-        //           style: TextStyle(color: Colors.red),
-        //         ),
-        //       );
-        //     }
-        //     return Text('');
-        //   },
-        // ),
       ],
     );
   }

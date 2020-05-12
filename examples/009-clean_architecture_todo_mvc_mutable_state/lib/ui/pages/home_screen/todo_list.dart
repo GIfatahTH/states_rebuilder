@@ -14,6 +14,7 @@ class TodoList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<TodosService>(
+      key: Key('TodoList TodosService'),
       //As this is the main list of todos, and this list can be update from
       //many widgets and screens (FilterButton, ExtraActionsButton, AddEditScreen, ..)
       //We register this widget with the global injected ReactiveModel.

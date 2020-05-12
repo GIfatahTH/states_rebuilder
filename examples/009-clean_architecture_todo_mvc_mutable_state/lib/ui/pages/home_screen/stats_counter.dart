@@ -13,6 +13,7 @@ class StatsCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<TodosService>(
+      key: Key('StatsCounter'),
       observe: () => RM.get<TodosService>(),
       builder: (_, todosServiceRM) {
         return Center(
@@ -23,7 +24,7 @@ class StatsCounter extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: Text(
                   ArchSampleLocalizations.of(context).completedTodos,
-                  style: Theme.of(context).textTheme.title,
+                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
               Padding(
@@ -31,14 +32,14 @@ class StatsCounter extends StatelessWidget {
                 child: Text(
                   '${todosServiceRM.state.numCompleted}',
                   key: ArchSampleKeys.statsNumCompleted,
-                  style: Theme.of(context).textTheme.subhead,
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: Text(
                   ArchSampleLocalizations.of(context).activeTodos,
-                  style: Theme.of(context).textTheme.title,
+                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
               Padding(
@@ -46,7 +47,7 @@ class StatsCounter extends StatelessWidget {
                 child: Text(
                   '${todosServiceRM.state.numActive}',
                   key: ArchSampleKeys.statsNumActive,
-                  style: Theme.of(context).textTheme.subhead,
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
               )
             ],

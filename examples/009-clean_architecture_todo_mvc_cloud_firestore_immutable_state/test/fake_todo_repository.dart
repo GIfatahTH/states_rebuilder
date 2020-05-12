@@ -2,7 +2,7 @@ import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/doma
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/exceptions/persistance_exception.dart';
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/interfaces/i_todo_repository.dart';
 
-class FakeRepository implements ITodosRepository {
+class FakeTodosRepository implements ITodosRepository {
   @override
   Future<List<Todo>> loadTodos() async {
     await Future.delayed(Duration(milliseconds: delay ?? 20));

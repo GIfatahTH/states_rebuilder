@@ -5,7 +5,7 @@ import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/serv
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/interfaces/i_todo_repository.dart';
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/todos_state.dart';
 
-import 'fake_repository.dart';
+import 'fake_todo_repository.dart';
 
 //TodoService class is a pure dart class, you can test it just as you test a plain dart class.
 void main() {
@@ -16,7 +16,7 @@ void main() {
       TodosState todosState;
       setUp(
         () {
-          todosRepository = FakeRepository();
+          todosRepository = FakeTodosRepository();
           todosState = TodosState(
             todos: [],
             activeFilter: VisibilityFilter.all,
@@ -74,7 +74,7 @@ void main() {
 
           final todoToAdd = Todo('addTask');
 
-          (todosRepository as FakeRepository).throwError = true;
+          (todosRepository as FakeTodosRepository).throwError = true;
           final expectedTodosState = startingTodosState.copyWith(
             todos: List<Todo>.from(startingTodosState.todos)..add(todoToAdd),
           );
