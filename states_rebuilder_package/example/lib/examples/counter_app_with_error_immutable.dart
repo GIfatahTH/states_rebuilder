@@ -47,7 +47,7 @@ class CounterState {
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    RM.printActiveRM = true;
+    RM.debugPrintActiveRM = true;
     return Injector(
       inject: [Inject<CounterState>(() => CounterState(0))],
       disposeModels: true,
@@ -64,6 +64,7 @@ class App extends StatelessWidget {
                 ..stream(
                   (counterState) => counterState.increment(),
                 ).onError((context, error) {
+                  print(context);
                   Scaffold.of(context).hideCurrentSnackBar();
                   Scaffold.of(context).showSnackBar(
                     SnackBar(

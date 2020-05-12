@@ -6,7 +6,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() {
   setUp(() {
     Injector.enableTestMode = true;
-    RM.printActiveRM = true;
   });
   testWidgets(
     'Counter with error works',

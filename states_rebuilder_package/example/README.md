@@ -51,8 +51,10 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = RM.get<CounterStore>(context: context);
-    return Center(
+    final counter = RM.get<CounterStore>();
+    return  StateBuilder(
+      observe: ()=>counter
+      builder :(_,__)=> Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -60,7 +62,7 @@ class MyHome extends StatelessWidget {
           Text("${counter.state.count}"),
         ],
       ),
-    );
+    ),);
   }
 }
 ```
@@ -219,8 +221,10 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = RM.get<Counter>(context: context);
-    return Center(
+    final counter = RM.get<Counter>();
+    return StateBuilder(
+      observe: ()=>counter
+      builder :(_,__)=> Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -309,8 +313,10 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = RM.get<Counter>(context: context);
-    return Center(
+    final counterModel = RM.get<Counter>();
+    return StateBuilder(
+      observe: ()=>counterModel
+      builder :(_,__)=> Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -328,7 +334,7 @@ class MyHome extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),);
   }
 }
 ```
@@ -378,8 +384,10 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counter = RM.get<Counter>(context: context);
-    return Center(
+    final counter = RM.get<Counter>();
+    return StateBuilder(
+      observe: ()=>counter
+      builder :(_,__)=> Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -422,7 +430,7 @@ class MyHome extends StatelessWidget {
           )
         ],
       ),
-    );
+    ),);
   }
 }
 ```
@@ -448,8 +456,10 @@ class App extends StatelessWidget {
             initialValue: false),
       ],
       builder: (context) {
-        final futureSnap = RM.get<bool>(context: context).snapshot;
-        return Scaffold(
+        final futureSnap = RM.get<bool>().snapshot;
+        return StateBuilder(
+      observe: ()=>futureSnap
+      builder :(_,__)=> Scaffold(
           appBar: futureSnap.data == false
               ? AppBar(
                   title: Text(" awaiting a Future"),
@@ -469,8 +479,10 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final streamSnap = RM.get<int>(context: context).snapshot;
-    return Center(
+    final streamSnap = RM.get<int>().snapshot;
+    return StateBuilder(
+      observe: ()=>streamSnap
+      builder :(_,__)=> Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -480,7 +492,7 @@ class MyHome extends StatelessWidget {
               : Text("Waiting for data ..."),
         ],
       ),
-    );
+    ),);
   }
 }
 ```
