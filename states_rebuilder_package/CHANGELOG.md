@@ -1,3 +1,49 @@
+## 2.0.0 (2020-05-12)
+### Breaking change :
+* Remove context subscription possible.
+before :
+```dart
+final rm = RM.get<T>(context: context);
+```
+After: one have to use one of the four observer widgets
+```dart
+StateBuilder(
+  observe : ()=> RM.get<T>(),
+  builder : (context, rm ){
+    //...
+  }
+)
+```
+As consequence `Injector.reinject` is removed
+### Non Breaking change :
+* Add the possibility to listen to to a ReactiveModel from a Model Class:
+  ```dart
+  class ModelA{
+
+  }
+
+  class ModelB {
+    ModelB(){
+      RM.get<ModelA>().listenToRM((ReactiveModel<ModelA> modelARM)){
+        if(modelARM.hasError){
+          //....
+        }else if (modelARM.hasData){
+          //...
+        }
+
+        //or you can use whenConnectionState
+
+      }
+    }
+  }
+  ```
+  The `listenToRM` return a void callBack to be used for unsubscription.
+
+* Refactor the logic and improve performance.
+* Improve docs.
+* Resolve issues : 
+
+
 ## 1.15.0 (2020-04-29)
 * Add `Inject.previous`. #47 [see more details](changelog/v-1.15.0.md) 
 * Add Shortcuts to get and create model, future, stream `ReactiveModel`s: 

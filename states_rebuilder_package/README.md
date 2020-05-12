@@ -59,9 +59,11 @@ The methods are:
 * **whenConnectionState** Exhaustively switch over all the possible statuses of [connectionState]. Used mostly to return [Widget]s. It has four required parameters (`onIdle`, `onWaiting`, `onData` and `onError`).
 * **restToIdle** used to reset the async connection state to `isIdle`.
 * **restToHasData** used to reset the async connection state to `hasData`.
-* **onError** a global error handler callback.
 * **stream** listen to a stream from the state and notify observer widgets when it emits a data.
 * **future** link to a future from the state and notify observers when it resolves.
+* **onError** a global error handler callback.
+* **onData** a global on data handler callback.
+* **listenToRM** A callBack that exposed the `ReactiveModel` instance. It is used to listen to the `ReactiveModel` outside the widget tree.
 
 ## Local and Global `ReactiveModel`:
 
@@ -818,7 +820,6 @@ ReactiveModel<T> modelRM2 = RM.get<T>(name : 'newModel1');
 //Or
 ReactiveModel<T> modelRM2 = RM.get<T>(name : Enum.newModel1);
 ```
-* You can not get a new reactive model by using `getAsReactive(context: context)` with a defined context. It will throw because only the reactive singleton that can subscribe a widget using the context.
 
 * With the exception of the raw singleton they share, the reactive singleton and the new reactive instances have an independent reactive environment. That is when a particular reactive instance issues a notification with an error or with `ConnectionState.awaiting`, it will not affect other reactive environments.
 
@@ -933,7 +934,7 @@ class Counter extends StatesRebuilder {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Counter counterModel = Injector.get(context: context);
+    final Counter counterModel = Injector.get();
     return Column(
       children: <Widget>[
         StateBuilder( // This StateBuilder will be notified
@@ -1186,40 +1187,9 @@ Injector(
 );
 ```
 
+The `Injector.get` method searches for the registered singleton using the service locator pattern. 
 
-The `Injector.get` method searches for the registered singleton using the service locator pattern. For this reason, `BuildContext` is not required. The `BuildContext` is optional and it is useful if you want to subscribe to the widget that has the `BuildContext` to the obtained model.
 
-In the `HomePage` class of the example, we can remove `StateBuilder` and use the `BuildContext` to subscribe the widget. 
-
-```dart
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // The BuildContext of this widget is subscribed to the Counter class.
-    // Whenever the Counter class issues a notification, this widget will be rebuilt.
-    final Counter counterModel = Injector.get(context: context);
-    return Center(
-      child: Text('${counterModel.count}'),
-    );
-  }
-}
-```
-Once the context is provided, `states_rebuilder` searches up in the widget tree to find the nearest `Injector` widget that has registered an `Inject` of the type provided and register the context (`Inject` class is associated with `InheritedWidget`). So be careful in case the `InheritedWidget` is not available, especially after navigation.
-
-To deal with such a situation, you can remove the `context` parameter and use the `StateBuilder` widget, or in case you want to keep using the `context` you can use the `reinject` parameter of the `Injector`.
-```dart
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => Injector(
-      //reinject an already injected model
-      reinject: [counterModel],
-      builder: (context) {
-        return PageTwo();
-      },
-    ),
-  ),
-);
 ```
 
 # setState
