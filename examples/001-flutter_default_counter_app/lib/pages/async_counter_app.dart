@@ -34,7 +34,7 @@ class MyHomePage extends StatelessWidget {
               onError: (error) => Text(counterRMKey.error.message),
               onData: (data) => Text(
                 '$data',
-                style: Theme.of(context).textTheme.headline,
+                style: Theme.of(context).textTheme.headline5,
               ),
             ),
           ],

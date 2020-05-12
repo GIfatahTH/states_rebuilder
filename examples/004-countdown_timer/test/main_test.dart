@@ -1,7 +1,6 @@
 import 'package:countdown_timer/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets('timer app', (tester) async {
@@ -22,7 +21,6 @@ void main() {
 
     //tap on repeat btn
     await tester.tap(find.byIcon(Icons.repeat));
-    RM.printActiveRM = true;
     await tester.pump();
     //running state
     expect(find.text('01:00'), findsOneWidget);

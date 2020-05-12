@@ -62,7 +62,7 @@ class MyHomePage extends StatelessWidget {
                   return Text(
                     //get the current value of the counter
                     '${counterRM.value}',
-                    style: Theme.of(context).textTheme.headline,
+                    style: Theme.of(context).textTheme.headline5,
                   );
                 }),
           ],
@@ -102,7 +102,7 @@ StateBuilder<int>(
       return Text(
         //get the current value of the counter from the exposed counter ReactiveModel.
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline,
+        style: Theme.of(context).textTheme.headline5,
       );
   }),
 ```
@@ -286,7 +286,7 @@ StateBuilder(
     return Text(
         //get the current value of the counter
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline,
+        style: Theme.of(context).textTheme.headline5,
     );
   },
 ),
@@ -309,7 +309,7 @@ StateBuilder(
         onError: (error) => Text(counterRM.error.message),
         onData: (data) => Text(
         '${counterRM.value}',
-        style: Theme.of(context).textTheme.headline,
+        style: Theme.of(context).textTheme.headline5,
         ),
     );
     },
@@ -324,7 +324,7 @@ WhenRebuilder<int>(
     onError: (error) => Text(counterRM.error.message),
     onData: (data) => Text(
     '$data',
-    style: Theme.of(context).textTheme.headline,
+    style: Theme.of(context).textTheme.headline5,
 ),
 ```
 By the end of this first tutorial: 

@@ -31,7 +31,6 @@ void main() {
 
   testWidgets('display "The entered value is not a number" message',
       (tester) async {
-    RM.printActiveRM = true;
     await tester.pumpWidget(loginPage);
     final String notNumberError = NotNumberException().message;
     // before tap, no error message
