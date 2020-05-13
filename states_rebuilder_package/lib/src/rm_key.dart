@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/states_rebuilder.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
+import 'inject.dart';
+import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
+import 'states_rebuilder.dart';
 
 ///ReactiveModel Key
 class RMKey<T> implements ReactiveModel<T> {
@@ -55,7 +55,7 @@ class RMKey<T> implements ReactiveModel<T> {
     } else {
       rm.rebuildStates();
     }
-    return stateFuture;
+    return valueAsync;
   }
 
   @override
@@ -84,6 +84,7 @@ class RMKey<T> implements ReactiveModel<T> {
     bool catchError = false,
     bool notifyAllReactiveInstances = false,
     bool joinSingleton,
+    bool silent = false,
   }) async {
     assert(rm != null);
     return _rm?.setValue(
@@ -97,6 +98,7 @@ class RMKey<T> implements ReactiveModel<T> {
       catchError: catchError,
       notifyAllReactiveInstances: notifyAllReactiveInstances,
       joinSingleton: joinSingleton,
+      silent: silent,
     );
   }
 
@@ -234,8 +236,16 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  ReactiveModel<T> future<S>(Future<S> Function(T) future, {T initialValue}) {
-    return _rm.future(future, initialValue: initialValue);
+  ReactiveModel<T> future<S>(
+    Future<S> Function(T) future, {
+    T initialValue,
+    bool wait = false,
+  }) {
+    return _rm.future(
+      future,
+      initialValue: initialValue,
+      wait: wait,
+    );
   }
 
   @override
@@ -273,7 +283,7 @@ class RMKey<T> implements ReactiveModel<T> {
   Inject<T> get inject => _rm.inject;
 
   @override
-  Future<T> get stateFuture => _rm.stateFuture;
+  Future<T> get valueAsync => _rm.valueAsync;
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

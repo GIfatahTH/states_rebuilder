@@ -1,15 +1,16 @@
-import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
-import 'package:states_rebuilder/src/rm_key.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-import 'assertions.dart';
 
+import 'assertions.dart';
 import 'injector.dart';
+import 'on_set_state_listener.dart';
 import 'reactive_model.dart';
+import 'reactive_model_imp.dart';
+import 'rm_key.dart';
 import 'states_rebuilder.dart';
+import 'when_connection_state.dart';
+import 'when_rebuilder_or.dart';
 
 /// One of the four observer widgets in states_rebuilder
 ///

@@ -169,14 +169,14 @@ To fix, you have to either :
       ''';
   }
 
-  static String setStateCalledOnAsyncInjectedModel() {
-    return '''
+//   static String setStateCalledOnAsyncInjectedModel() {
+//     return '''
 
-Most probably, you are calling setState on a reactive model injected using `Inject.stream` or `Inject.future`.
-This is not allowed, because setState method of a reactive model injected using `Inject.stream` or `Inject.future` is called automatically whenever the stream emits a value.
+// Most probably, you are calling setState on a reactive model injected using `Inject.stream` or `Inject.future`.
+// This is not allowed, because setState method of a reactive model injected using `Inject.stream` or `Inject.future` is called automatically whenever the stream emits a value.
 
-            ''';
-  }
+//             ''';
+//   }
 
 //   static injectingAnInjectedModel(String name) {
 //     return '''

@@ -26,7 +26,9 @@ class TodosRepository implements ITodosRepository {
   Future saveTodos(List<Todo> todos) async {
     try {
       final t = todos.map((e) => e.toJson()).toList();
-      await prefs.setString('todos', json.encode(t));
+      await Future.delayed(Duration(seconds: 5));
+      // throw PersistanceException('net work error');
+      // await prefs.setString('todos', json.encode(t));
     } catch (e) {
       throw PersistanceException(
           'There is a problem in saving todos :${e?.message}');

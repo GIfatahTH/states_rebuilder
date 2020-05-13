@@ -1,4 +1,4 @@
-## 2.0.0 (2020-05-12)
+## 2.0.0 (2020-05-13)
 ### Breaking change :
 * Remove context subscription possible.
 before :
@@ -38,8 +38,8 @@ As consequence `Injector.reinject` is removed
   }
   ```
   The `listenToRM` return a void callBack to be used for unsubscription.
-
-* Refactor the logic and improve performance.
+* Add `stateFuture` to obtained the state of a `ReactiveModel` as future.
+* Refactor the code and improve performance.
 * Improve docs.
 * Resolve issues : 
 

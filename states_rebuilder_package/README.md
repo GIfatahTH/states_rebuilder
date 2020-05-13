@@ -39,6 +39,7 @@ In `states_rebuilder`, you write your business logic part with pure dart classes
 The getters are : 
 * **state**: returns the registered raw singleton of the model.
 * **value**: returns the registered raw singleton of the model.
+* **stateFuture** return the state as future.
 * **connectionState** : It is of type `ConnectionState` (a Flutter defined enumeration). It takes three values:  
       1- `ConnectionState.none`: Before executing any method of the model.  
       2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   

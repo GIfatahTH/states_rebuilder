@@ -50,6 +50,28 @@ void main() {
     expect(modelRM.hasError, isTrue);
   });
 
+  test('call global error handler without observers', () {
+    BuildContext ctx;
+    var error;
+    final rm = RM.create(0)
+      ..onError((context, e) {
+        ctx = context;
+        error = e;
+      });
+
+    rm.setValue(
+      () {
+        throw Exception();
+      },
+      silent: true,
+      catchError: true,
+    );
+
+    expect(rm.hasError, isTrue);
+    expect(ctx, isNull);
+    expect(error, isA<Exception>());
+  });
+
   testWidgets(
     'ReactiveModel: Subscribe using StateBuilder and setState mutate the state and notify observers',
     (tester) async {
@@ -109,7 +131,7 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=true'), findsOneWidget);
-      expect(modelRM.stateFuture, isA<Future<Model>>());
+      expect(modelRM.valueAsync, isA<Future<Model>>());
       modelRM.setState((s) async {
         await s.incrementAsync();
       });
@@ -118,14 +140,14 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=true'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect(modelRM.stateFuture, isA<Future<Model>>());
+      expect(modelRM.valueAsync, isA<Future<Model>>());
 
       await tester.pump(Duration(seconds: 1));
       //hasData
       expect(find.text('1'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect((await modelRM.stateFuture).counter, 1);
+      expect((await modelRM.valueAsync).counter, 1);
     },
   );
 
@@ -159,7 +181,7 @@ void main() {
       expect(find.text('Error message'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect((await modelRM.stateFuture).counter, 0);
+      expect((await modelRM.valueAsync).counter, 0);
     },
   );
 
@@ -1428,6 +1450,35 @@ void main() {
         expect(find.text('0'), findsOneWidget);
         expect(modelRM.hasError, isTrue);
         expect(errorMessage, 'Error message');
+      },
+    );
+
+    testWidgets(
+      'Nested dependent futures ',
+      (tester) async {
+        final future1 =
+            RM.future(Future.delayed(Duration(seconds: 1), () => 2));
+        final inject = Inject.future(() async {
+          final future1Value = await future1.valueAsync;
+          await Future.delayed(Duration(seconds: 1));
+          return future1Value * 2;
+        });
+        final future2 = inject.getReactive();
+        expect(future1.isWaiting, isTrue);
+        expect(future2.isWaiting, isTrue);
+        await tester.pump(Duration(seconds: 1));
+        expect(future1.hasData, isTrue);
+        expect(future2.isWaiting, isTrue);
+        future2.future(
+          (future) => Future.delayed(Duration(seconds: 1), () => 2 * future),
+          wait: true,
+        );
+        await tester.pump(Duration(seconds: 1));
+        expect(future1.value, 2);
+        expect(future2.isWaiting, isTrue);
+        await tester.pump(Duration(seconds: 1));
+        expect(future1.value, 2);
+        expect(future2.value, 8);
       },
     );
   });

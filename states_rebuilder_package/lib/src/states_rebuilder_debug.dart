@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'injector.dart';
 
+import 'injector.dart';
 import 'states_rebuilder.dart';
 
 class StatesRebuilderDebug {

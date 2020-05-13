@@ -37,16 +37,24 @@ class HomeScreen extends StatelessWidget {
         //when the state of the active AppTab is changed
         observeMany: [
           //Here we are creating a local ReactiveModel form the future of loadTodos method.
-          () => RM.future(IN.get<TodosService>().loadTodos())
-            //using the cascade operator,
-            //Invoke the error callBack to handle the error
-            //In states_rebuild there are three level of error handling:
-            //1- global such as this one : (This is considered the default error handler).
-            //2- semi-global : for onError defined in setState and setValue methods.
-            //   When defined it will override the gobble error handler.
-            //3- local-global, for onError defined in the StateBuilder and OnSetStateListener widgets.
-            //   they override the global and semi-global error for the widget where it is defined
-            ..onError(ErrorHandler.showErrorDialog),
+          // () => RM.get<TodosService>().asNew(HomeScreen).future(
+          //       (f) => f.loadTodos(),
+          //       wait: true,
+          //     )
+          () => RM.future(
+                RM.get<TodosService>().stateFuture.then(
+                      (s) => s.loadTodos(),
+                    ),
+              )
+                //using the cascade operator,
+                //Invoke the error callBack to handle the error
+                //In states_rebuild there are three level of error handling:
+                //1- global such as this one : (This is considered the default error handler).
+                //2- semi-global : for onError defined in setState and setValue methods.
+                //   When defined it will override the gobble error handler.
+                //3- local-global, for onError defined in the StateBuilder and OnSetStateListener widgets.
+                //   they override the global and semi-global error for the widget where it is defined
+                ..onError(ErrorHandler.showErrorDialog),
           //Her we subscribe to the activeTab ReactiveModel key
           () => _activeTabRMKey,
         ],

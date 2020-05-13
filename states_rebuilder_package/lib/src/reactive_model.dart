@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'inject.dart';
 import 'injector.dart';
+import 'on_set_state_listener.dart';
+import 'reactive_model_imp.dart';
+import 'state_builder.dart';
 import 'states_rebuilder.dart';
+import 'when_connection_state.dart';
+import 'when_rebuilder_or.dart';
 
 ///An abstract class that defines the reactive environment.
 ///
@@ -125,7 +128,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///Get the state as future
   ///
   ///You can await for it when the [ConnectionState] is awaiting
-  Future<T> get stateFuture;
+  Future<T> get valueAsync;
 
   ///The value the ReactiveModel holds. It is the same as [state]
   ///
@@ -237,6 +240,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     bool catchError = false,
     bool notifyAllReactiveInstances = false,
     bool joinSingleton,
+    bool silent = false,
   });
 
   /// Mutate the state of the model and notify observers.
@@ -300,7 +304,8 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///and notify its observer
   ///* [RM.getFuture] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
 
-  ReactiveModel<T> stream<S>(Stream<S> Function(T) stream, {T initialValue});
+  ReactiveModel<T> stream<S>(Stream<S> Function(T stream) stream,
+      {T initialValue});
 
   ///Get a Future from the state and subscribe to it and
   ///notify observing widget of this [ReactiveModel]
@@ -317,7 +322,11 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///and notify its observer
   ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
   ///
-  ReactiveModel<T> future<S>(Future<S> Function(T) future, {T initialValue});
+  ReactiveModel<T> future<S>(
+    Future<S> Function(T future) future, {
+    T initialValue,
+    bool wait = false,
+  });
 
   ///Check the type of the state of the [ReactiveModel]
   bool isA<T>();
@@ -475,6 +484,7 @@ abstract class RM {
     bool joinSingleton,
     bool notifyAllReactiveInstances,
     bool setValue,
+    bool silent = false,
   }) {
     return RM.get<T>().setState(
           fn,
@@ -490,6 +500,7 @@ abstract class RM {
           joinSingleton: joinSingleton,
           notifyAllReactiveInstances: notifyAllReactiveInstances,
           setValue: setValue,
+          silent: silent,
         );
   }
 

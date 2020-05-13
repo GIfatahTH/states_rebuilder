@@ -744,6 +744,9 @@ void main() {
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-2'), findsOneWidget);
+    modelRM1.copy(modelRM2.rm, false);
+    expect(modelRM1.observers().length, 1);
+    expect(modelRM2.observers().length, 2);
   });
 
   testWidgets('refresh future', (tester) async {

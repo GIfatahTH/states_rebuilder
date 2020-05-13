@@ -1,4 +1,4 @@
-import 'package:states_rebuilder/src/injector.dart';
+import 'injector.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
 import 'state_builder.dart';

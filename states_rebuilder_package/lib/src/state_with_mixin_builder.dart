@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
 
+import 'reactive_model.dart';
+import 'state_builder.dart';
 import 'states_rebuilder.dart';
 
 ///Mixin StateWithMixinBuilder

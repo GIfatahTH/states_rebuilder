@@ -2,9 +2,8 @@ import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
 
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import 'reactive_model.dart';
+import 'state_builder.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///

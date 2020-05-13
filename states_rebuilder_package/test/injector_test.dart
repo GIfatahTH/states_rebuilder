@@ -59,6 +59,7 @@ void main() {
     );
     await tester.pumpWidget(widget);
     expect(Injector.get<int>(silent: true), isNull);
+    expect(IN.get<int>(silent: true), isNull);
   });
 
   testWidgets(
@@ -72,7 +73,7 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(Injector.get<Model>(), isA<Model>());
-      expect(Injector.get<Model>(), equals(Injector.get<Model>()));
+      expect(Injector.get<Model>(), equals(IN.get<Model>(name: Model)));
     },
   );
 
@@ -551,7 +552,7 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(inject.singleton, isNull);
-      Injector.get<Model>();
+      IN.get<Model>();
       expect(inject.singleton, isNotNull);
     },
   );

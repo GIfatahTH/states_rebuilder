@@ -180,7 +180,7 @@ class InjectorState extends State<Injector> {
                   if (inject.isFutureType) {
                     inj.creationFutureFunction = inject.creationFutureFunction;
                     rm.setState(
-                      (s) => inject.creationFutureFunction(),
+                      (dynamic s) => inject.creationFutureFunction(),
                       catchError: true,
                       silent: true,
                       filterTags: inject.filterTags,
@@ -188,7 +188,7 @@ class InjectorState extends State<Injector> {
                   } else {
                     inj.creationStreamFunction = inject.creationStreamFunction;
                     rm.setState(
-                      (s) => inject.creationStreamFunction(),
+                      (dynamic s) => inject.creationStreamFunction(),
                       catchError: true,
                       silent: true,
                       filterTags: inject.filterTags,

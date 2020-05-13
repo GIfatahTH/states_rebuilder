@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:collection/collection.dart';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import '../states_rebuilder.dart';
@@ -14,11 +14,11 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     _isGlobal = inject.isGlobal;
     if (!inject.isAsyncInjected) {
       state = inject?.getSingleton();
-      stateFuture = Future.value(state);
+      valueAsync = Future.value(state);
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, state);
     } else if (inject.isFutureType) {
       state = inject.initialValue;
-      stateFuture = Future.value(state);
+      valueAsync = Future.value(state);
       setState(
         (s) => inject.creationFutureFunction(),
         catchError: true,
@@ -27,7 +27,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       );
     } else {
       state = inject.initialValue;
-      stateFuture = Future.value(state);
+      valueAsync = Future.value(state);
       setState(
         (s) => inject.creationStreamFunction(),
         catchError: true,
@@ -48,56 +48,41 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       catchError: true,
       silent: true,
     );
-    // final ReactiveModel<S> rm = RM.stream<S>(
-    //   stream(
-    //     inject.getReactive().value,
-    //   ),
-    // );
-
-    // final _callBack = rm.unsubscribe;
-    // cleaner(_callBack);
-    // rm.subscription
-    //   ..onData((data) {
-    //     if (data is T) {
-    //       value = data;
-    //     } else {
-    //       snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    //       if (hasObservers) {
-    //         rebuildStates();
-    //       }
-    //     }
-    //   })
-    //   ..onError((dynamic e) {
-    //     snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
-    //     if (hasObservers) {
-    //       rebuildStates(null, (context) {
-    //         (rm as ReactiveModelImp<S>).onErrorHandler?.call(context, e);
-    //       });
-    //     }
-    //   })
-    //   ..onDone(() {
-    //     cleaner(_callBack, true);
-    //   });
 
     return this;
   }
 
   @override
-  ReactiveModel<T> future<F>(Future<F> Function(T) future, {T initialValue}) {
-    setState(
-      (s) => future(
-        inject.getReactive().value,
-      ),
-      catchError: true,
-      silent: true,
-    );
-
-    // final rm = stream<F>((s) => future(s).asStream());
-    // snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
-
-    // if (hasObservers) {
-    //   rebuildStates();
-    // }
+  ReactiveModel<T> future<F>(
+    Future<F> Function(T f) future, {
+    T initialValue,
+    bool wait = false,
+  }) {
+    if (wait && subscription != null) {
+      subscription.onData((dynamic data) {
+        if (data is T) {
+          state = data;
+          snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+          (inject.reactiveSingleton as ReactiveModelImp<T>).state = state;
+          inject.singleton = state;
+        }
+        setState(
+          (s) => future(
+            data as T,
+          ),
+          catchError: true,
+          silent: true,
+        );
+      });
+    } else {
+      setState(
+        (s) => future(
+          inject.getReactive().value,
+        ),
+        catchError: true,
+        silent: true,
+      );
+    }
     return this;
   }
 
@@ -232,14 +217,14 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     if (rm != null) {
       return rm;
     }
-    rm = inject.getReactive(true);
-
-    rm._seed = seed.toString();
+    rm = inject.getReactive(true) as ReactiveModelImp<T>;
     inject.newReactiveMapFromSeed['${rm._seed}'] = rm;
 
-    rm.cleaner(() {
-      inject?.newReactiveMapFromSeed?.remove('${rm._seed}');
-    });
+    rm
+      .._seed = seed.toString()
+      ..cleaner(() {
+        inject?.newReactiveMapFromSeed?.remove('${rm._seed}');
+      });
 
     return rm;
   }
@@ -289,8 +274,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   }
 
   @override
-  Future<T> stateFuture;
-
+  Future<T> valueAsync;
   @override
   Future<void> setState(
     Function(T s) fn, {
@@ -308,13 +292,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     bool setValue = false,
     bool silent = false,
   }) async {
-    // assert(() {
-    //   if (inject.isAsyncInjected == true) {
-    //     throw Exception(AssertMessage.setStateCalledOnAsyncInjectedModel());
-    //   }
-    //   return true;
-    // }());
-
     void _rebuildStates({bool canRebuild = true}) {
       if (silent && !hasObservers) {
         if (hasData) {
@@ -399,8 +376,8 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       return canRebuild;
     }
 
-    final Completer<T> completer = Completer<T>();
-    stateFuture = completer.future;
+    final Completer<T> _completer = Completer<T>();
+    valueAsync = _completer.future;
     void _onWaitingCallback() {
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
       _rebuildStates(canRebuild: canRebuild());
@@ -415,11 +392,13 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
         (inject.reactiveSingleton as ReactiveModelImp<T>).state = state;
         inject.singleton = state;
+
         _rebuildStates(canRebuild: canRebuild());
         return;
       }
 
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+
       _rebuildStates(canRebuild: canRebuild());
     }
 
@@ -433,6 +412,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
               inject.hasOnSetStateListener ||
               onErrorHandler != null;
       _whenConnectionState = false;
+
       if (_cathError == false) {
         throw error;
       }
@@ -446,20 +426,16 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       }
       final dynamic _result = fn(state) as dynamic;
 
-      // final _callBack = () {
-      //   resultSubscription?.cancel();
-      //   resultSubscription = null;
-      // };
       if (_result is Future) {
-        subscription = Stream.fromFuture(_result).listen((dynamic data) {
-          _onDataCallback(data);
-          completer.complete(state);
-        }, onError: (dynamic error) {
-          _onErrorCallBack(error);
-          completer.complete(state);
-        }, onDone: () {
-          cleaner(unsubscribe, true);
-        });
+        subscription = Stream<dynamic>.fromFuture(_result).listen(
+          _onDataCallback,
+          onError: _onErrorCallBack,
+          onDone: () {
+            _completer.complete(state);
+
+            cleaner(unsubscribe, true);
+          },
+        );
         cleaner(unsubscribe);
         _onWaitingCallback();
       } else if (_result is Stream) {
