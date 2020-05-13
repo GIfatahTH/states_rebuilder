@@ -1095,6 +1095,7 @@ void main() {
                   observe: () => ReactiveModel<String>(),
                   builder: (context, __) {
                     String value = ReactiveModel<String>().value;
+                    print(value);
                     return Text(value);
                   });
             });
@@ -1110,7 +1111,7 @@ void main() {
     //
     rm.setValue(() => 1);
     await tester.pump();
-    expect(find.text('stream 0 : null'), findsOneWidget);
+    expect(find.text('stream 0 : 1'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('stream 1 : 0'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1122,7 +1123,7 @@ void main() {
     //
     rm.setValue(() => 2);
     await tester.pump();
-    expect(find.text('stream 0 : null'), findsOneWidget);
+    expect(find.text('stream 1 : 2'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('stream 2 : 0'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1170,7 +1171,7 @@ void main() {
     //
     rm.setValue(() => 2);
     await tester.pump(Duration(seconds: 1));
-    expect(find.text('future null'), findsOneWidget);
+    expect(find.text('future 1'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('future 2'), findsOneWidget);
   });

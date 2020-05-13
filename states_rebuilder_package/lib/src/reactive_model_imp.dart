@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import '../states_rebuilder.dart';
-import 'assertions.dart';
 
 ///An implementation of [ReactiveModel]
 class ReactiveModelImp<T> extends StatesRebuilder<T>
@@ -12,57 +11,94 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   ///An abstract class that defines the reactive environment.
   ReactiveModelImp(this.inject, [this.isNewReactiveInstance = false])
       : assert(inject != null) {
+    _isGlobal = inject.isGlobal;
     if (!inject.isAsyncInjected) {
       state = inject?.getSingleton();
+      stateFuture = Future.value(state);
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.none, state);
+    } else if (inject.isFutureType) {
+      state = inject.initialValue;
+      stateFuture = Future.value(state);
+      setState(
+        (s) => inject.creationFutureFunction(),
+        catchError: true,
+        silent: true,
+        filterTags: inject.filterTags,
+      );
+    } else {
+      state = inject.initialValue;
+      stateFuture = Future.value(state);
+      setState(
+        (s) => inject.creationStreamFunction(),
+        catchError: true,
+        silent: true,
+        filterTags: inject.filterTags,
+        watch: inject.watch,
+      );
     }
   }
+  bool _isGlobal = false;
 
   @override
-  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
-    final ReactiveModel<S> rm = RM.stream<S>(
-      stream(
+  ReactiveModel<T> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
+    setState(
+      (s) => stream(
         inject.getReactive().value,
       ),
+      catchError: true,
+      silent: true,
     );
+    // final ReactiveModel<S> rm = RM.stream<S>(
+    //   stream(
+    //     inject.getReactive().value,
+    //   ),
+    // );
 
-    final _callBack = rm.unsubscribe;
-    cleaner(_callBack);
-    rm.subscription
-      ..onData((data) {
-        if (data is T) {
-          value = data;
-        } else {
-          snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-          if (hasObservers) {
-            rebuildStates();
-          }
-        }
-      })
-      ..onError((dynamic e) {
-        snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
-        if (hasObservers) {
-          rebuildStates(null, (context) {
-            (rm as ReactiveModelImp<S>).onErrorHandler?.call(context, e);
-          });
-        }
-      })
-      ..onDone(() {
-        cleaner(_callBack, true);
-      });
+    // final _callBack = rm.unsubscribe;
+    // cleaner(_callBack);
+    // rm.subscription
+    //   ..onData((data) {
+    //     if (data is T) {
+    //       value = data;
+    //     } else {
+    //       snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+    //       if (hasObservers) {
+    //         rebuildStates();
+    //       }
+    //     }
+    //   })
+    //   ..onError((dynamic e) {
+    //     snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+    //     if (hasObservers) {
+    //       rebuildStates(null, (context) {
+    //         (rm as ReactiveModelImp<S>).onErrorHandler?.call(context, e);
+    //       });
+    //     }
+    //   })
+    //   ..onDone(() {
+    //     cleaner(_callBack, true);
+    //   });
 
-    return rm;
+    return this;
   }
 
   @override
-  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue}) {
-    final rm = stream<F>((s) => future(s).asStream());
-    snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
+  ReactiveModel<T> future<F>(Future<F> Function(T) future, {T initialValue}) {
+    setState(
+      (s) => future(
+        inject.getReactive().value,
+      ),
+      catchError: true,
+      silent: true,
+    );
 
-    if (hasObservers) {
-      rebuildStates();
-    }
-    return rm;
+    // final rm = stream<F>((s) => future(s).asStream());
+    // snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
+
+    // if (hasObservers) {
+    //   rebuildStates();
+    // }
+    return this;
   }
 
   @override
@@ -133,7 +169,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   // }
 
   @override
-  StreamSubscription<T> subscription;
+  StreamSubscription<dynamic> subscription;
 
   ///unsubscribe form the stream.
   ///It works for injected streams or futures.
@@ -186,24 +222,23 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   dynamic _joinSingletonToNewData;
 
   dynamic _seed;
-
   @override
   ReactiveModel<T> asNew([dynamic seed = 'defaultReactiveSeed']) {
     if (isNewReactiveInstance) {
       return inject.getReactive().asNew(seed);
     }
-
-    ReactiveModel<T> rm = inject.newReactiveMapFromSeed[seed.toString()];
+    ReactiveModelImp<T> rm =
+        inject.newReactiveMapFromSeed[seed.toString()] as ReactiveModelImp<T>;
     if (rm != null) {
       return rm;
     }
     rm = inject.getReactive(true);
-    if (rm is ReactiveModelImp<T>) {
-      rm._seed = seed.toString();
-      inject.newReactiveMapFromSeed['${rm._seed}'] = rm;
-    }
+
+    rm._seed = seed.toString();
+    inject.newReactiveMapFromSeed['${rm._seed}'] = rm;
+
     rm.cleaner(() {
-      rm.resetToIdle();
+      inject?.newReactiveMapFromSeed?.remove('${rm._seed}');
     });
 
     return rm;
@@ -234,6 +269,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     bool catchError = false,
     bool notifyAllReactiveInstances = false,
     bool joinSingleton,
+    bool silent = false,
   }) async {
     await setState(
       (_) => fn(),
@@ -248,13 +284,16 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       joinSingleton: joinSingleton,
       joinSingletonToNewData: () => joinSingletonToNewData,
       setValue: true,
+      silent: silent,
     );
   }
 
-  dynamic _result;
+  @override
+  Future<T> stateFuture;
+
   @override
   Future<void> setState(
-    Function(T) fn, {
+    Function(T s) fn, {
     bool catchError,
     Object Function(T state) watch,
     List<dynamic> filterTags,
@@ -267,23 +306,35 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
     bool setValue = false,
+    bool silent = false,
   }) async {
-    assert(() {
-      if (inject.isAsyncInjected == true) {
-        throw Exception(AssertMessage.setStateCalledOnAsyncInjectedModel());
-      }
-      return true;
-    }());
+    // assert(() {
+    //   if (inject.isAsyncInjected == true) {
+    //     throw Exception(AssertMessage.setStateCalledOnAsyncInjectedModel());
+    //   }
+    //   return true;
+    // }());
 
     void _rebuildStates({bool canRebuild = true}) {
+      if (silent && !hasObservers) {
+        if (hasData) {
+          _onData?.call(state);
+        }
+        if (hasError) {
+          onErrorHandler?.call(null, error);
+        }
+        return;
+      }
       if (canRebuild) {
         rebuildStates(
           filterTags,
           (BuildContext context) {
-            if (onError != null && hasError) {
-              onError(context, error);
-            } else if (onErrorHandler != null && hasError) {
-              onErrorHandler(context, error);
+            if (hasError) {
+              if (onError != null) {
+                onError(context, error);
+              } else {
+                onErrorHandler?.call(context, error);
+              }
             }
 
             if (hasData) {
@@ -348,48 +399,94 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       return canRebuild;
     }
 
-    try {
-      if (fn == null) {
+    final Completer<T> completer = Completer<T>();
+    stateFuture = completer.future;
+    void _onWaitingCallback() {
+      snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
+      _rebuildStates(canRebuild: canRebuild());
+    }
+
+    void _onDataCallback(dynamic data) {
+      if (data is T) {
+        if (!hasError && !isWaiting && inject.getReactive().state == data) {
+          return;
+        }
+        state = data;
         snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-        _rebuildStates(canRebuild: true);
+        (inject.reactiveSingleton as ReactiveModelImp<T>).state = state;
+        inject.singleton = state;
+        _rebuildStates(canRebuild: canRebuild());
         return;
       }
-      _result = fn(state) as dynamic;
-      if (_result is Future) {
-        snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
-        _rebuildStates(canRebuild: canRebuild());
-        _result = await _result;
-      }
-    } catch (e) {
-      snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
+
+      snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
       _rebuildStates(canRebuild: canRebuild());
+    }
+
+    void _onErrorCallBack(dynamic error) {
+      snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, error);
+      _rebuildStates(canRebuild: true);
       bool _cathError = catchError ??
           false ||
               _whenConnectionState ||
               onError != null ||
               inject.hasOnSetStateListener ||
               onErrorHandler != null;
-      if (_cathError == false) {
-        rethrow;
-      }
       _whenConnectionState = false;
-      return;
+      if (_cathError == false) {
+        throw error;
+      }
     }
 
-    if (setValue == true) {
-      if (!hasError && !isWaiting && inject.getReactive().state == _result) {
+    try {
+      if (fn == null) {
+        snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
+        _rebuildStates(canRebuild: true);
         return;
       }
-      state = _result as T;
-      snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-      (inject.reactiveSingleton as ReactiveModelImp<T>).state = state;
-      inject.singleton = state;
-      _rebuildStates(canRebuild: true);
-      return;
-    }
+      final dynamic _result = fn(state) as dynamic;
 
-    snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, state);
-    _rebuildStates(canRebuild: canRebuild());
+      // final _callBack = () {
+      //   resultSubscription?.cancel();
+      //   resultSubscription = null;
+      // };
+      if (_result is Future) {
+        subscription = Stream.fromFuture(_result).listen((dynamic data) {
+          _onDataCallback(data);
+          completer.complete(state);
+        }, onError: (dynamic error) {
+          _onErrorCallBack(error);
+          completer.complete(state);
+        }, onDone: () {
+          cleaner(unsubscribe, true);
+        });
+        cleaner(unsubscribe);
+        _onWaitingCallback();
+      } else if (_result is Stream) {
+        subscription = _result.listen(
+          _onDataCallback,
+          onError: _onErrorCallBack,
+          onDone: () {
+            isStreamDone = true;
+            cleaner(unsubscribe, true);
+          },
+          cancelOnError: false,
+        );
+        if (!_isGlobal) {
+          cleaner(unsubscribe);
+        }
+        _onWaitingCallback();
+
+        // cleaner(() {
+        //   resultSubscription?.cancel();
+        //   resultSubscription = null;
+        // });
+      } else {
+        _onDataCallback(_result);
+      }
+    } catch (e) {
+      _onErrorCallBack(e);
+    }
   }
 
   AsyncSnapshot<T> get _combinedSnapshotState {
@@ -492,7 +589,7 @@ class _ReactiveModelSubscriber<T> implements ObserverOfStatesRebuilder {
 
   @override
   bool update([Function(BuildContext p1) onSetState, dynamic message]) {
-    fn(rm);
+    fn?.call(rm);
     return true;
   }
 }

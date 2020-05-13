@@ -100,6 +100,7 @@ class StatesRebuilder<T> implements Subject {
             voidCallBack();
           }
         }
+        print('_statesRebuilderCleaner $_statesRebuilderCleaner');
         _statesRebuilderCleaner.clear();
         _observersMap.clear();
         _observersSet.clear();

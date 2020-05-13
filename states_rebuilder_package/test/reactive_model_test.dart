@@ -109,7 +109,7 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=true'), findsOneWidget);
-
+      expect(modelRM.stateFuture, isA<Future<Model>>());
       modelRM.setState((s) async {
         await s.incrementAsync();
       });
@@ -118,11 +118,14 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=true'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
+      expect(modelRM.stateFuture, isA<Future<Model>>());
+
       await tester.pump(Duration(seconds: 1));
       //hasData
       expect(find.text('1'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
+      expect((await modelRM.stateFuture).counter, 1);
     },
   );
 
@@ -156,6 +159,7 @@ void main() {
       expect(find.text('Error message'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
+      expect((await modelRM.stateFuture).counter, 0);
     },
   );
 
@@ -1516,6 +1520,7 @@ void main() {
             StateBuilder(
               models: [modelRM0],
               builder: (context, _) {
+                print(modelRM0.state);
                 numberOfRebuild++;
                 return _widgetBuilder('${modelRM0.state}-$numberOfRebuild');
               },
@@ -1532,12 +1537,12 @@ void main() {
         expect(find.text('null-1'), findsOneWidget);
         expect(modelRM0.hasData, isTrue);
 
-        await tester.pump(Duration(seconds: 1));
-        expect(find.text('null-1'), findsOneWidget);
-        expect(modelRM0.hasData, isTrue);
+        // await tester.pump(Duration(seconds: 1));
+        // expect(find.text('null-1'), findsOneWidget);
+        // expect(modelRM0.hasData, isTrue);
 
-        await tester.pump(Duration(seconds: 1));
-        expect(find.text('null-1'), findsOneWidget);
+        // await tester.pump(Duration(seconds: 1));
+        // expect(find.text('null-1'), findsOneWidget);
       },
     );
     testWidgets(
@@ -1612,7 +1617,7 @@ void main() {
 
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
-        expect(modelRM.isIdle, isTrue);
+        expect(modelRM.isWaiting, isTrue);
         expect(errorMessage, isNull);
 
         await tester.pump(Duration(seconds: 1));
@@ -1653,7 +1658,7 @@ void main() {
         });
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
-        expect(modelRM.isIdle, isTrue);
+        expect(modelRM.isWaiting, isTrue);
         expect(errorMessage, isNull);
 
         await tester.pump(Duration(seconds: 1));
@@ -1696,7 +1701,7 @@ void main() {
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
         expect(modelRM.isIdle, isTrue);
-        expect(newModelRM.isIdle, isTrue);
+        expect(newModelRM.isWaiting, isTrue);
         expect(errorMessage, isNull);
 
         await tester.pump(Duration(seconds: 1));
@@ -1738,7 +1743,7 @@ void main() {
         });
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
-        expect(modelRM.isIdle, isTrue);
+        expect(modelRM.isWaiting, isTrue);
         expect(errorMessage, isNull);
 
         await tester.pump(Duration(seconds: 1));
@@ -1783,7 +1788,7 @@ void main() {
 
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
-        expect(streamRM.isA<Stream<int>>(), isTrue);
+        expect(streamRM.isA<Model>(), isTrue);
 
         await tester.pump(Duration(seconds: 1));
         expect(find.text('1'), findsOneWidget);
@@ -2566,8 +2571,9 @@ Widget _widgetBuilder(String text1, [String text2, String text3]) {
 }
 
 Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
-Future<int> getFutureWithError() => Future.delayed(
-    Duration(seconds: 1), () => throw Exception('error message'));
+Future<int> getFutureWithError() => Future.delayed(Duration(seconds: 1), () {
+      throw Exception('error message');
+    });
 Stream<int> getStream() =>
     Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
 

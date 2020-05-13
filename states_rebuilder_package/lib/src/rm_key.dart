@@ -48,13 +48,14 @@ class RMKey<T> implements ReactiveModel<T> {
 
   ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
   ///and notify observing widgets.
-  void refresh() {
+  Future<T> refresh() {
     refreshCallBack?.call(_rm);
     if (!rm.inject.isAsyncInjected) {
       rm.setState((_) => null);
     } else {
       rm.rebuildStates();
     }
+    return stateFuture;
   }
 
   @override
@@ -170,6 +171,7 @@ class RMKey<T> implements ReactiveModel<T> {
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
     bool setValue = false,
+    bool silent = false,
   }) async {
     return _rm?.setState(
       fn,
@@ -189,7 +191,7 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  StreamSubscription<T> get subscription => _rm?.subscription;
+  StreamSubscription<dynamic> get subscription => _rm?.subscription;
 
   @override
   String toString() {
@@ -232,12 +234,12 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue}) {
+  ReactiveModel<T> future<S>(Future<S> Function(T) future, {T initialValue}) {
     return _rm.future(future, initialValue: initialValue);
   }
 
   @override
-  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
+  ReactiveModel<T> stream<S>(Stream<S> Function(T) stream, {T initialValue}) {
     return _rm.stream(stream, initialValue: initialValue);
   }
 
@@ -269,6 +271,9 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   Inject<T> get inject => _rm.inject;
+
+  @override
+  Future<T> get stateFuture => _rm.stateFuture;
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

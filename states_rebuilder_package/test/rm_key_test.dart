@@ -820,7 +820,7 @@ void main() {
         errorMessage = error.message;
       });
       expect(find.text('0'), findsOneWidget);
-      expect(modelRM.isIdle, isTrue);
+      expect(modelRM.isWaiting, isTrue);
       expect(errorMessage, isNull);
 
       await tester.pump(Duration(seconds: 1));

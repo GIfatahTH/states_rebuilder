@@ -122,6 +122,11 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///The state of the injected model.
   T get state;
 
+  ///Get the state as future
+  ///
+  ///You can await for it when the [ConnectionState] is awaiting
+  Future<T> get stateFuture;
+
   ///The value the ReactiveModel holds. It is the same as [state]
   ///
   ///value is more suitable fro immutable objects,
@@ -163,6 +168,9 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///The global error event handler of this ReactiveModel.
   ///
+  ///The  exposed BuildContext if of the last add observer widget.
+  ///If not observer is registered yet, the BuildContext is null.
+  ///
   ///You can override this error handling to use a specific handling in response to particular events
   ///using the onError callback of [setState] or [setValue].
   void onError(void Function(BuildContext context, dynamic error) errorHandler);
@@ -186,7 +194,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   void Function() listenToRM(void Function(ReactiveModel<T> rm) fn);
 
   ///The stream (or Future) subscription. It works only for injected streams or futures.
-  StreamSubscription<T> get subscription;
+  StreamSubscription<dynamic> get subscription;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
   ///Used mostly to return [Widget]s.
@@ -274,6 +282,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
     bool setValue = false,
+    bool silent = false,
   });
 
   ///Get a stream from the state and subscribe to it and
@@ -291,7 +300,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///and notify its observer
   ///* [RM.getFuture] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
 
-  ReactiveModel<S> stream<S>(Stream<S> Function(T) stream, {T initialValue});
+  ReactiveModel<T> stream<S>(Stream<S> Function(T) stream, {T initialValue});
 
   ///Get a Future from the state and subscribe to it and
   ///notify observing widget of this [ReactiveModel]
@@ -308,7 +317,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///and notify its observer
   ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
   ///
-  ReactiveModel<F> future<F>(Future<F> Function(T) future, {T initialValue});
+  ReactiveModel<T> future<S>(Future<S> Function(T) future, {T initialValue});
 
   ///Check the type of the state of the [ReactiveModel]
   bool isA<T>();

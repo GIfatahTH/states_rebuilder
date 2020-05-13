@@ -30,7 +30,8 @@ class ReactiveModelStream<T> extends ReactiveModelImp<T> {
   ///subscribe to the stream
   void streamSubscribe() {
     if (injectAsync.isFutureType) {
-      _stream = injectAsync.creationFutureFunction().asStream();
+      stateFuture = injectAsync.creationFutureFunction();
+      _stream = stateFuture.asStream();
     } else {
       _stream = injectAsync.creationStreamFunction();
     }

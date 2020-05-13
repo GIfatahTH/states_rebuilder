@@ -1,7 +1,6 @@
 import 'package:states_rebuilder/src/injector.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
-import 'reactive_model_stream.dart';
 import 'state_builder.dart';
 
 ///Base class for [Inject]
@@ -84,6 +83,7 @@ class Inject<T> implements Injectable {
   }) {
     _name = name?.toString();
   }
+  bool isGlobal = false;
 
   ///Inject a Future
   ///
@@ -197,13 +197,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ReactiveModel<T> getReactive([bool asNew = false]) {
     ReactiveModel<T> rs;
     if (reactiveSingleton == null || asNew) {
-      if (isAsyncInjected) {
-        rs = ReactiveModelStream<T>(this, asNew);
-      } else {
-        rs = ReactiveModelImp<T>(this, asNew);
-        ;
-      }
-
+      rs = ReactiveModelImp<T>(this, asNew);
       addToReactiveNewInstanceList(asNew ? rs : null);
     }
 

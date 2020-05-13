@@ -4,7 +4,6 @@ import 'assertions.dart';
 import 'inject.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
-import 'reactive_model_stream.dart';
 import 'states_rebuilder.dart';
 
 ///A class used to register (inject) models.
@@ -173,12 +172,28 @@ class InjectorState extends State<Injector> {
               }
               for (Inject<dynamic> inject in _injects) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
+                final rm = inj.getReactive();
+                rm
+                  ..cleaner(rm.unsubscribe, true)
+                  ..unsubscribe();
                 if (inject.isAsyncInjected) {
-                  inj
-                    ..getReactive().unsubscribe()
-                    ..creationStreamFunction = inject.creationStreamFunction
-                    ..creationFutureFunction = inject.creationFutureFunction;
-                  (inj.getReactive() as ReactiveModelStream).streamSubscribe();
+                  if (inject.isFutureType) {
+                    inj.creationFutureFunction = inject.creationFutureFunction;
+                    rm.setState(
+                      (s) => inject.creationFutureFunction(),
+                      catchError: true,
+                      silent: true,
+                      filterTags: inject.filterTags,
+                    );
+                  } else {
+                    inj.creationStreamFunction = inject.creationStreamFunction;
+                    rm.setState(
+                      (s) => inject.creationStreamFunction(),
+                      catchError: true,
+                      silent: true,
+                      filterTags: inject.filterTags,
+                    );
+                  }
                 } else {
                   if (inj.singleton != null) {
                     inj.singleton = inj.creationFunction();
@@ -190,6 +205,23 @@ class InjectorState extends State<Injector> {
                     }
                   }
                 }
+                // if (inject.isAsyncInjected) {
+                //   inj
+                //     ..getReactive().unsubscribe()
+                //     ..creationStreamFunction = inject.creationStreamFunction
+                //     ..creationFutureFunction = inject.creationFutureFunction;
+                //   (inj.getReactive() as ReactiveModelStream).streamSubscribe();
+                // } else {
+                //   if (inj.singleton != null) {
+                //     inj.singleton = inj.creationFunction();
+                //     (inj.reactiveSingleton as ReactiveModelImp).state =
+                //         inj.singleton;
+                //     if (widget.shouldNotifyOnReinjectOn &&
+                //         inj.reactiveSingleton.hasObservers) {
+                //       inj.reactiveSingleton.setState(null);
+                //     }
+                //   }
+                // }
               }
             },
           ),
@@ -215,6 +247,7 @@ class InjectorState extends State<Injector> {
       for (Inject<dynamic> inject in _injects) {
         assert(inject != null);
         final name = inject.getName();
+        inject.isGlobal = true;
         final lastInject = allRegisteredModelInApp[name];
         if (lastInject == null) {
           allRegisteredModelInApp[name] = [inject];
