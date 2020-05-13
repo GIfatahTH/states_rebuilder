@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
           //       wait: true,
           //     )
           () => RM.future(
-                RM.get<TodosService>().stateFuture.then(
+                RM.get<TodosService>().valueAsync.then(
                       (s) => s.loadTodos(),
                     ),
               )

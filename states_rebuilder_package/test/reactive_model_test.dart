@@ -1571,7 +1571,6 @@ void main() {
             StateBuilder(
               models: [modelRM0],
               builder: (context, _) {
-                print(modelRM0.state);
                 numberOfRebuild++;
                 return _widgetBuilder('${modelRM0.state}-$numberOfRebuild');
               },

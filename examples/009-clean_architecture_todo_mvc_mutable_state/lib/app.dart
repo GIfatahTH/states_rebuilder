@@ -36,7 +36,7 @@ class StatesRebuilderApp extends StatelessWidget {
             () async {
               await Future.delayed(Duration(seconds: 2));
 
-              final prefs = await RM.get<SharedPreferences>().stateFuture;
+              final prefs = await RM.get<SharedPreferences>().valueAsync;
               print('pref is ready');
               return TodosRepository(prefs: prefs);
             },
@@ -45,9 +45,9 @@ class StatesRebuilderApp extends StatelessWidget {
             () async {
               await Future.delayed(Duration(seconds: 2));
 
-              final repos = await RM.get<ITodosRepository>().stateFuture;
+              final repos = await RM.get<ITodosRepository>().valueAsync;
               print('repos is ready');
-              return TodosService(await repos);
+              return TodosService(repos);
             },
           )
         ],

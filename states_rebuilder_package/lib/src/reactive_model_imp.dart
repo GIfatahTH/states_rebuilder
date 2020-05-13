@@ -218,10 +218,10 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       return rm;
     }
     rm = inject.getReactive(true) as ReactiveModelImp<T>;
-    inject.newReactiveMapFromSeed['${rm._seed}'] = rm;
+    inject.newReactiveMapFromSeed['$seed'] = rm;
 
     rm
-      .._seed = seed.toString()
+      .._seed = '$seed'
       ..cleaner(() {
         inject?.newReactiveMapFromSeed?.remove('${rm._seed}');
       });

@@ -1,6 +1,6 @@
 ## 2.0.0 (2020-05-13)
 ### Breaking change :
-* Remove context subscription possible.
+* Remove context subscription possibly.  
 before :
 ```dart
 final rm = RM.get<T>(context: context);

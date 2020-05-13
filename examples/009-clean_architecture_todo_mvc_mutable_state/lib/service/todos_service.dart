@@ -1,7 +1,6 @@
 import 'package:clean_architecture_todo_mvc/domain/entities/todo.dart';
 
 import 'common/enums.dart';
-import 'exceptions/persistance_exception.dart';
 import 'interfaces/i_todo_repository.dart';
 
 //`TodosService` is a pure dart class that can be easily tested (see test folder).

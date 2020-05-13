@@ -1,5 +1,3 @@
-import 'package:clean_architecture_todo_mvc/data_source/todo_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_todo_mvc/domain/entities/todo.dart';
 import 'package:clean_architecture_todo_mvc/service/common/enums.dart';

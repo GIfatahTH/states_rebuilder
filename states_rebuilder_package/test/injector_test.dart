@@ -1024,11 +1024,9 @@ void main() {
 
     await tester.pumpWidget(widget);
     final vanillaModel1 = Injector.get<VanillaModel>();
-    StatesRebuilderDebug.printInjectedModel();
     model.rebuildStates();
     await tester.pump();
     final vanillaModel2 = Injector.get<VanillaModel>();
-    StatesRebuilderDebug.printInjectedModel();
 
     expect(vanillaModel1.hashCode == vanillaModel2.hashCode, isFalse);
 
@@ -1096,7 +1094,7 @@ void main() {
                   observe: () => ReactiveModel<String>(),
                   builder: (context, __) {
                     String value = ReactiveModel<String>().value;
-                    print(value);
+
                     return Text(value);
                   });
             });
