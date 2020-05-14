@@ -50,7 +50,7 @@ class StatesRebuilder<T> implements Subject {
   bool get hasObservers => _observersMap.isNotEmpty;
 
   ///Holds user defined void callback to be executed after removing all observers.
-  final List<VoidCallback> _statesRebuilderCleaner = <VoidCallback>[];
+  final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
 
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
