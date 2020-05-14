@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'inject.dart';
 import 'injector.dart';
 import 'on_set_state_listener.dart';
-import 'reactive_model_imp.dart';
 import 'state_builder.dart';
 import 'states_rebuilder.dart';
 import 'when_connection_state.dart';
@@ -58,13 +57,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```
   factory ReactiveModel.create(T model) {
     var inject = Inject<T>(() => model);
-    final rm = inject.getReactive();
-    rm.cleaner(() {
-      inject
-        ..singleton = null
-        ..reactiveSingleton = null;
-      (rm as ReactiveModelImp).inject = null;
-    });
+    var rm = inject.getReactive();
     return rm;
   }
 

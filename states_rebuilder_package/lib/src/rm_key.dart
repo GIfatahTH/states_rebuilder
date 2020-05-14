@@ -29,7 +29,6 @@ class RMKey<T> implements ReactiveModel<T> {
     if (rm == null || rm == _rm) {
       return;
     }
-
     for (var fn in initCallBack) {
       fn(rm);
     }

@@ -205,23 +205,6 @@ class InjectorState extends State<Injector> {
                     }
                   }
                 }
-                // if (inject.isAsyncInjected) {
-                //   inj
-                //     ..getReactive().unsubscribe()
-                //     ..creationStreamFunction = inject.creationStreamFunction
-                //     ..creationFutureFunction = inject.creationFutureFunction;
-                //   (inj.getReactive() as ReactiveModelStream).streamSubscribe();
-                // } else {
-                //   if (inj.singleton != null) {
-                //     inj.singleton = inj.creationFunction();
-                //     (inj.reactiveSingleton as ReactiveModelImp).state =
-                //         inj.singleton;
-                //     if (widget.shouldNotifyOnReinjectOn &&
-                //         inj.reactiveSingleton.hasObservers) {
-                //       inj.reactiveSingleton.setState(null);
-                //     }
-                //   }
-                // }
               }
             },
           ),
