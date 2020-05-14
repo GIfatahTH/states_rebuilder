@@ -59,13 +59,11 @@ class TodoList extends StatelessWidget {
 
               didUpdateWidget: (context, todoRM, oldWidget) {
                 if (todoRM.value != todo) {
-                  print('didUpdateWidget (${todoRM.value} $todo');
                   //set and notify the observer this StateBuilder to rebuild
                   todoRM.value = todo;
                 }
               },
               builder: (context, todoRM) {
-                print("builder");
                 //render TodoItem and pass the local ReactiveModel through the constructor
                 return TodoItem(todoRM: todoRM);
               },

@@ -13,7 +13,6 @@ import 'ui/pages/home_screen/home_screen.dart';
 class StatesRebuilderApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    RM.debugPrintActiveRM = true;
     ////uncomment this line to consol log and see the notification timeline
     // RM.debugPrintActiveRM = true;
     //
@@ -34,20 +33,16 @@ class StatesRebuilderApp extends StatelessWidget {
           //this give us the ability to mock the TodosRepository in test.
           Inject<ITodosRepository>.future(
             () async {
-              await Future.delayed(Duration(seconds: 2));
-
-              final prefs = await RM.get<SharedPreferences>().valueAsync;
-              print('pref is ready');
-              return TodosRepository(prefs: prefs);
+              return TodosRepository(
+                prefs: await RM.get<SharedPreferences>().valueAsync,
+              );
             },
           ),
           Inject<TodosService>.future(
             () async {
-              await Future.delayed(Duration(seconds: 2));
-
-              final repos = await RM.get<ITodosRepository>().valueAsync;
-              print('repos is ready');
-              return TodosService(repos);
+              return TodosService(
+                await RM.get<ITodosRepository>().valueAsync,
+              );
             },
           )
         ],

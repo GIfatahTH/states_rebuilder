@@ -18,7 +18,7 @@ class App extends StatelessWidget {
     ////uncomment the following line to consol log Widget rebuild
     //RM.debugWidgetsRebuild
     ////uncomment this line to consol log and see the notification timeline
-    RM.debugPrintActiveRM = true;
+    // RM.debugPrintActiveRM = true;
 
     //
     //Injecting the TodosState globally before MaterialApp widget.
