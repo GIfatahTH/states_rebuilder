@@ -7,13 +7,9 @@ import '../../../service/auth_state.dart';
 import '../../../ui/exceptions/error_handler.dart';
 
 class AuthScreen extends StatelessWidget {
-  String email = '';
-  String password = '';
-
-  final _isRegisterRM = RMKey(false);
-
-  bool get _isFormValid => true;
   static final route = '/authPage';
+
+  // final fatah = FATAH(GlobalKey());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,6 +19,16 @@ class AuthScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class MELLATI {
+  MELLATI(this.globalKey);
+  final globalKey;
+}
+
+class FATAH {
+  FATAH(this.globalKey);
+  final globalKey;
 }
 
 class AuthFormWidget1 extends StatelessWidget {
@@ -35,11 +41,13 @@ class AuthFormWidget1 extends StatelessWidget {
   String password = '';
 
   final _isRegisterRM = RMKey(false);
+  final mellati = MELLATI(GlobalKey(debugLabel: 'Mellati'));
 
   bool get _isFormValid => true; //_emailRM.hasData && _passwordRM.hasData;
 
   @override
   Widget build(BuildContext context) {
+    print(mellati.hashCode);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,

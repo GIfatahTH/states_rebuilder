@@ -5,13 +5,16 @@
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 
-`states_rebuilder` is a flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
+* `states_rebuilder` is a flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
+
+* With `states_rebuilder` you can manage immutable state as easy as you do with  mutable state.
+
+* With `states_rebuilder` you can inject dependencies asynchronously.
 
 ## Business logic
 
 >The business logic classes are independent of any external library. They are independent even from `states_rebuilder` itself.
 
-The only constraint imposed by `states_rebuilder` is to ensure that methods supposed to be called from the user interface must return anything; their only role is to mutate the state (aka fields) of the class.
 
 Another advantage of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point that you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
 
@@ -38,6 +41,9 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 
 <image src="assets/01-states_rebuilder_new_reactive_model.png" width="400"/>
 
+# Documentation
+* [**Official Documentation :**](states_rebuilder_package/readme.md)
+
 # Examples:
 
 ## Basics:
@@ -56,6 +62,10 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 * [**User posts and comments**](examples/007-clean_architecture_dane_mackier_app)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
 * [**firebase login** ](examples/008-clean_architecture_firebase_login) The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
+
+* [**Todo MVC with immutable state and firebase cloud service](examples\009-clean_architecture_todo_mvc_cloud_firestore_immutable_state) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
+
+* [**Todo MVC with mutable state and sharedPreferences for persistence](examples\009-clean_architecture_todo_mvc_mutable_state) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
 
 * [**firebase realtime database**](examples/010-clean_architecture__multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
 
