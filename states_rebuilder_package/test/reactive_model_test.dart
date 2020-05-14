@@ -181,7 +181,9 @@ void main() {
       expect(find.text('Error message'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect((await modelRM.valueAsync).counter, 0);
+      modelRM.valueAsync.catchError((e) {
+        expect(e.message, 'Error message');
+      });
     },
   );
 
@@ -1471,7 +1473,7 @@ void main() {
         expect(future2.isWaiting, isTrue);
         future2.future(
           (future) => Future.delayed(Duration(seconds: 1), () => 2 * future),
-          wait: true,
+          shouldAwait: true,
         );
         await tester.pump(Duration(seconds: 1));
         expect(future1.value, 2);

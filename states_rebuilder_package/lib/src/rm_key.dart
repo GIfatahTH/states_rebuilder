@@ -238,12 +238,12 @@ class RMKey<T> implements ReactiveModel<T> {
   ReactiveModel<T> future<S>(
     Future<S> Function(T) future, {
     T initialValue,
-    bool wait = false,
+    bool shouldAwait = false,
   }) {
     return _rm.future(
       future,
       initialValue: initialValue,
-      wait: wait,
+      shouldAwait: shouldAwait,
     );
   }
 

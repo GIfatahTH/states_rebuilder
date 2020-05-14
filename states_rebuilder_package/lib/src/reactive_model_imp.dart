@@ -56,9 +56,9 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   ReactiveModel<T> future<F>(
     Future<F> Function(T f) future, {
     T initialValue,
-    bool wait = false,
+    bool shouldAwait = false,
   }) {
-    if (wait && subscription != null) {
+    if (shouldAwait && subscription != null) {
       subscription.onData((dynamic data) {
         if (data is T) {
           state = data;
@@ -378,6 +378,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
     final Completer<T> _completer = Completer<T>();
     valueAsync = _completer.future;
+    valueAsync.catchError((_) {});
     void _onWaitingCallback() {
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
       _rebuildStates(canRebuild: canRebuild());
@@ -428,11 +429,15 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
       if (_result is Future) {
         subscription = Stream<dynamic>.fromFuture(_result).listen(
-          _onDataCallback,
-          onError: _onErrorCallBack,
-          onDone: () {
+          (d) {
+            _onDataCallback(d);
             _completer.complete(state);
-
+          },
+          onError: (e, s) {
+            _onErrorCallBack(e);
+            _completer.completeError(e, s);
+          },
+          onDone: () {
             cleaner(unsubscribe, true);
           },
         );

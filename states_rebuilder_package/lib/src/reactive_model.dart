@@ -318,7 +318,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ReactiveModel<T> future<S>(
     Future<S> Function(T future) future, {
     T initialValue,
-    bool wait = false,
+    bool shouldAwait = false,
   });
 
   ///Check the type of the state of the [ReactiveModel]
@@ -405,7 +405,7 @@ abstract class RM {
   ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
   ///
   static ReactiveModel<R> getFuture<T, R>(
-    Future<R> Function(T) future, {
+    Future<R> Function(T s) future, {
     String name,
     BuildContext context,
     R initialValue,
@@ -437,7 +437,7 @@ abstract class RM {
   ///and notify its observer
   ///* [RM.getStream] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
   static ReactiveModel<R> getStream<T, R>(
-    Stream<R> Function(T) stream, {
+    Stream<R> Function(T s) stream, {
     String name,
     BuildContext context,
     R initialValue,
