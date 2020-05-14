@@ -109,8 +109,7 @@ void main() {
 
     testWidgets('should display stats when switching tabs', (tester) async {
       await tester.pumpWidget(statesRebuilderApp);
-      RM.debugPrintActiveRM = true;
-      RM.debugWidgetsRebuild = true;
+
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(ArchSampleKeys.statsTab));
       await tester.pumpAndSettle();
@@ -155,7 +154,6 @@ void main() {
 
       await tester.tap(checkbox1);
       await tester.pump();
-      RM.debugPrintActiveRM = true;
       expect(tester.getSemantics(checkbox1), isChecked(true));
       //NO Error,
       expect(find.byType(SnackBar), findsNothing);
