@@ -39,7 +39,7 @@ In `states_rebuilder`, you write your business logic part with pure dart classes
 The getters are : 
 * **state**: returns the registered raw singleton of the model.
 * **value**: returns the registered raw singleton of the model.
-* **stateFuture** return the state as future.
+* **valueAsync** return the state as future.
 * **connectionState** : It is of type `ConnectionState` (a Flutter defined enumeration). It takes three values:  
       1- `ConnectionState.none`: Before executing any method of the model.  
       2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   
@@ -1451,3 +1451,8 @@ To track the history of updates and feel the context when those updates are intr
   * The add shortcuts (`IN.get()`, `RM.get()`, ...);
   * Example of how to use states_rebuilder observer widgets instead of `FutureBuilder` and `StreamBuilder` Flutter widgets;
   * The concept of ReactiveModel keys.
+
+* [2.0.0 update](changelog/v-2.0.0.md) : 
+  * Remove context subscription;
+  * Listen to a ReactiveModel from outside the widget tree;
+  * asynchronous dependency injection.

@@ -1,4 +1,4 @@
-## 2.0.0 (2020-05-13)
+## 2.0.0 (2020-05-13) [see more details](changelog/v-2.0.0.md)
 ### Breaking change :
 * Remove context subscription possibly.  
 before :
@@ -16,7 +16,7 @@ StateBuilder(
 ```
 As consequence `Injector.reinject` is removed
 ### Non Breaking change :
-* Add the possibility to listen to to a ReactiveModel from a Model Class:
+* Add the possibility to listen to to a ReactiveModel from a Model Class: (#78)
   ```dart
   class ModelA{
 
@@ -38,10 +38,10 @@ As consequence `Injector.reinject` is removed
   }
   ```
   The `listenToRM` return a void callBack to be used for unsubscription.
-* Add `stateFuture` to obtained the state of a `ReactiveModel` as future.
+* Add `valueAsync` to obtained the state of a `ReactiveModel` as future.
 * Refactor the code and improve performance.
 * Improve docs.
-* Resolve issues : 
+* Resolve issues : #85
 
 
 ## 1.15.0 (2020-04-29)
