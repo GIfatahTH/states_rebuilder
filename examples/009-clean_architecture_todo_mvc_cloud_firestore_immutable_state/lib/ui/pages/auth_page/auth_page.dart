@@ -8,46 +8,30 @@ import '../../../ui/exceptions/error_handler.dart';
 
 class AuthScreen extends StatelessWidget {
   static final route = '/authPage';
-
-  // final fatah = FATAH(GlobalKey());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: AuthFormWidget1(),
+        child: AuthFormWidget(),
       ),
     );
   }
 }
 
-class MELLATI {
-  MELLATI(this.globalKey);
-  final globalKey;
-}
+class AuthFormWidget extends StatelessWidget {
+  // NOTE1: Creating a  ReactiveModel key for email with empty initial value
 
-class FATAH {
-  FATAH(this.globalKey);
-  final globalKey;
-}
+  final _emailRM = RMKey('');
 
-class AuthFormWidget1 extends StatelessWidget {
-  //NOTE1: Creating a  ReactiveModel key for email with empty initial value
-
-  // final _emailRM = RMKey('');
-
-  // final _passwordRM = RMKey('');
-  String email = '';
-  String password = '';
+  final _passwordRM = RMKey('');
 
   final _isRegisterRM = RMKey(false);
-  final mellati = MELLATI(GlobalKey(debugLabel: 'Mellati'));
 
-  bool get _isFormValid => true; //_emailRM.hasData && _passwordRM.hasData;
+  bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
 
   @override
   Widget build(BuildContext context) {
-    print(mellati.hashCode);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,7 +41,7 @@ class AuthFormWidget1 extends StatelessWidget {
           //NOTE2: create and subscribe to local ReactiveModel of empty string
           observe: () => RM.create(''),
           //NOTE3: couple this StateBuilder with the email ReactiveModel key
-          // rmKey: _emailRM,
+          rmKey: _emailRM,
           builder: (_, _emailRM) {
             return TextField(
               decoration: InputDecoration(
@@ -74,7 +58,6 @@ class AuthFormWidget1 extends StatelessWidget {
                   () => Email(email).value,
                   catchError: true,
                 );
-                this.email = email;
               },
             );
           },
@@ -82,7 +65,7 @@ class AuthFormWidget1 extends StatelessWidget {
         StateBuilder(
           key: Key('StateBuilder password'),
           observe: () => RM.create(''),
-          // rmKey: _passwordRM,
+          rmKey: _passwordRM,
           builder: (_, _passwordRM) {
             return TextField(
               decoration: InputDecoration(
@@ -97,7 +80,6 @@ class AuthFormWidget1 extends StatelessWidget {
                   () => Password(password).value,
                   catchError: true,
                 );
-                this.password = password;
               },
             );
           },
@@ -127,8 +109,8 @@ class AuthFormWidget1 extends StatelessWidget {
           //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
           //userServiceRM: To show CircularProgressIndicator is the state is waiting
           observeMany: [
-            // () => _emailRM,
-            // () => _passwordRM,
+            () => _emailRM,
+            () => _passwordRM,
             () => _isRegisterRM,
             () => RM.get<AuthState>(),
           ],
@@ -147,19 +129,17 @@ class AuthFormWidget1 extends StatelessWidget {
                         //NOTE9: If _isRegisterRM.value is true call createUserWithEmailAndPassword,
                         if (_isRegisterRM.value) {
                           return AuthState.createUserWithEmailAndPassword(
-                              authState,
-                              // _emailRM.value,
-                              // _passwordRM.value,
-                              email,
-                              password);
+                            authState,
+                            _emailRM.value,
+                            _passwordRM.value,
+                          );
                         } else {
                           //NOTE9: If _isRegisterRM.value is true call signInWithEmailAndPassword,
                           return AuthState.signInWithEmailAndPassword(
-                              authState,
-                              // _emailRM.value,
-                              // _passwordRM.value,
-                              email,
-                              password);
+                            authState,
+                            _emailRM.value,
+                            _passwordRM.value,
+                          );
                         }
                       }).onError(ErrorHandler.showErrorSnackBar);
                     }
