@@ -192,10 +192,10 @@ void main() {
               builder: (context) {
                 if (switcher) {
                   return StateBuilder(
-                    models: [model2],
+                    observe: () => model2,
                     tag: 'childTag',
                     builder: (context, _) {
-                      return Text('${model2.value.counter}');
+                      return Text('${model2.state.counter}');
                     },
                   );
                 }
@@ -227,7 +227,8 @@ void main() {
       final model2 = Model();
 
       final widget = StateBuilder(
-        models: [model, model2],
+        observe: () => model,
+        observeMany: [() => model2],
         builder: (ctx, _) {
           return Directionality(
               textDirection: TextDirection.ltr,
@@ -364,7 +365,7 @@ void main() {
               builder: (context) {
                 if (switcher) {
                   return StateBuilder(
-                    models: [stringRM, intRM],
+                    observeMany: [() => stringRM, () => intRM],
                     initState: (_, rm) {
                       rmFromInitState = rm;
                     },
@@ -386,7 +387,7 @@ void main() {
       await tester.pumpWidget(widget);
       expect(rmFromInitState, equals(stringRM));
 
-      intRM.setValue(() => 1);
+      intRM.setState((_) => 1);
       await tester.pump();
 
       switcher = false;
@@ -411,7 +412,7 @@ void main() {
               builder: (context) {
                 if (switcher) {
                   return StateBuilder(
-                    models: [model, modelWithoutDispose],
+                    observeMany: [() => model, () => modelWithoutDispose],
                     tag: 'childTag',
                     disposeModels: true,
                     builder: (context, _) {
@@ -610,7 +611,7 @@ void main() {
         observeMany: [() => intRM, () => stringRM],
         watch: (rm) {
           exposedRM = rm;
-          return rm.value;
+          return rm.state;
         },
         builder: (ctx, rm) {
           return Directionality(
@@ -624,31 +625,31 @@ void main() {
       expect(exposedRM == intRM, isTrue);
 
       //state do not change
-      intRM.setValue(() => [0]);
+      intRM.setState((_) => [0]);
       await tester.pump();
       expect(find.text('1'), findsOneWidget);
 
       //state do not change
-      stringRM.setValue(() => ['str1']);
+      stringRM.setState((_) => ['str1']);
       await tester.pump();
       expect(exposedRM == stringRM, isTrue);
 
       expect(find.text('2'), findsOneWidget);
 
       //state do not change
-      stringRM.setValue(() => ['str1']);
+      stringRM.setState((_) => ['str1']);
       await tester.pump();
       expect(exposedRM == stringRM, isTrue);
 
       expect(find.text('2'), findsOneWidget);
 
       //state changes
-      intRM.setValue(() => [0]);
+      intRM.setState((_) => [0]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
 
       //state do not change
-      intRM.setValue(() => [0]);
+      intRM.setState((_) => [0]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
     },
@@ -749,7 +750,7 @@ void main() {
     "StateBuilder accept empty models",
     (WidgetTester tester) async {
       final widget = StateBuilder(
-        models: [],
+        observeMany: [],
         builder: (_, rm) {
           return Container();
         },
@@ -803,7 +804,7 @@ void main() {
         child: StateBuilder<int>(
           observeMany: [() => intRM, () => stringRM],
           builder: (_, rm) {
-            final model = rm.value;
+            final model = rm.state;
             if (model is int) {
               return Text('int=$model');
             } else if (model is String) {
@@ -829,7 +830,7 @@ void main() {
         child: StateBuilder<String>(
           observeMany: [() => intRM, () => stringRM],
           builder: (_, rm) {
-            final model = rm.value;
+            final model = rm.state;
             if (model is int) {
               return Text('int=$model');
             } else if (model is String) {
@@ -855,7 +856,7 @@ void main() {
         child: StateBuilder(
           observeMany: [() => intRM, () => stringRM],
           builder: (_, rm) {
-            final model = rm.value;
+            final model = rm.state;
             if (model is int) {
               return Text('int=$model');
             } else if (model is String) {
@@ -868,12 +869,12 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text('int=0'), findsOneWidget);
       //
-      stringRM.setValue(() => 'str1');
+      stringRM.setState((_) => 'str1');
       await tester.pump();
       expect(find.text('int=0'), findsNothing);
       expect(find.text('string=str1'), findsOneWidget);
       //
-      intRM.setValue(() => 1);
+      intRM.setState((_) => 1);
       await tester.pump();
       expect(find.text('int=1'), findsOneWidget);
       expect(find.text('string=str1'), findsNothing);
@@ -897,14 +898,14 @@ void main() {
                   builder: (_, __) {
                     return Column(
                       children: <Widget>[
-                        Text('modelRM1-${modelRM1.value}'),
+                        Text('modelRM1-${modelRM1.state}'),
                         Builder(
                           builder: (context) {
                             return StateBuilder<int>(
                                 observe: () => ReactiveModel.create(0),
                                 builder: (_, rm) {
                                   modelRM2 = rm;
-                                  return Text('modelRM2-${modelRM2.value}');
+                                  return Text('modelRM2-${modelRM2.state}');
                                 });
                           },
                         ),
@@ -920,19 +921,19 @@ void main() {
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
     //
-    modelRM2.setValue(() => 1);
+    modelRM2.setState((_) => 1);
     await tester.pump();
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM1.setValue(() => 1);
+    modelRM1.setState((_) => 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM2.setValue(() => modelRM2.value + 1);
+    modelRM2.setState((_) => modelRM2.state + 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-2'), findsOneWidget);
@@ -1003,7 +1004,7 @@ void main() {
       tag: ['mainTag'],
       builder: (ctx, _) {
         return StateBuilder(
-          models: [model1],
+          observeMany: [() => model1],
           didUpdateWidget: (_, __, ___) {
             numberOfDidUpdateWidget++;
           },

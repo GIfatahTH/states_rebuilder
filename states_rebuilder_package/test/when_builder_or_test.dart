@@ -44,7 +44,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               tag: 'tag1',
               onData: (data) => Text('data'),
               builder: (context, modelRM) => Text('other'),
@@ -72,7 +72,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text('error'),
@@ -102,7 +102,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -143,7 +143,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onError: (error) => Text(error.message),
               builder: (context, modelRM) {
@@ -183,7 +183,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               builder: (context, modelRM) {
                 return Text(modelRM.state.counter.toString());
               },
@@ -214,7 +214,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -255,7 +255,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               builder: (context, modelRM) {
@@ -352,7 +352,7 @@ void main() {
   //   () {
   //     expect(
   //       () => WhenRebuilderOr<Model1>(
-  //         models: [],
+  //         observeMany: [()=>],
   //         builder: (context, modelRM) => null,
   //       ),
   //       throwsAssertionError,
@@ -365,7 +365,7 @@ void main() {
     () {
       expect(
         () => WhenRebuilderOr<Model1>(
-          models: [null],
+          observeMany: [() => null],
           builder: null,
         ),
         throwsAssertionError,

@@ -144,7 +144,7 @@ void main() {
       Model model = Model();
       bool switcher = true;
       final widget = StateBuilder(
-          models: [model],
+          observeMany: [() => model],
           tag: 'tag1',
           builder: (context, __) {
             if (switcher) {
@@ -186,7 +186,7 @@ void main() {
       final modelStatesBuilder = Model();
       Model modelInjector;
       final widget = StateBuilder(
-        models: [modelStatesBuilder],
+        observeMany: [() => modelStatesBuilder],
         builder: (_, __) {
           if (switcher) {
             return Injector(
@@ -222,7 +222,7 @@ void main() {
       final modelStatesBuilder = Model();
       String lifeCycleTracker = '';
       final widget = StateBuilder(
-        models: [modelStatesBuilder],
+        observeMany: [() => modelStatesBuilder],
         builder: (_, __) {
           if (switcher) {
             return Injector(
@@ -363,7 +363,7 @@ void main() {
         inject: [Inject(() => VanillaModel())],
         builder: (context) {
           return StateBuilder(
-              models: [],
+              observeMany: [],
               initState: (_, __) {
                 modelRM = Injector.getAsReactive<VanillaModel>();
               },
@@ -389,7 +389,7 @@ void main() {
         inject: [Inject(() => VanillaModel())],
         builder: (context) {
           return StateBuilder<VanillaModel>(
-              models: [Injector.getAsReactive<VanillaModel>()],
+              observeMany: [() => Injector.getAsReactive<VanillaModel>()],
               initState: (_, modelRM) {
                 modelRM.setState(
                   (s) => s.incrementError(),
@@ -453,12 +453,12 @@ void main() {
           inject: [Inject.stream(() => getStream())],
           builder: (context) {
             return StateBuilder(
-                models: [model],
+                observeMany: [() => model],
                 tag: 'tag1',
                 builder: (context, __) {
                   if (switcher) {
                     return StateBuilder(
-                      models: [Injector.getAsReactive<int>()],
+                      observeMany: [() => Injector.getAsReactive<int>()],
                       builder: (ctx, intRM$) {
                         intRM = intRM$;
 
@@ -499,7 +499,7 @@ void main() {
       bool switcher = true;
       ReactiveModel<int> intRM;
       final widget = StateBuilder(
-          models: [model],
+          observeMany: [() => model],
           tag: 'tag1',
           builder: (context, __) {
             if (switcher) {
@@ -601,7 +601,7 @@ void main() {
         builder: (_) {
           final streamModel = Injector.getAsReactive<VanillaModel>();
           return StateBuilder(
-            models: [streamModel],
+            observeMany: [() => streamModel],
             builder: (_, __) {
               numberOfRebuild++;
               return Container();
@@ -672,7 +672,7 @@ void main() {
           ],
           builder: (context) {
             return StateBuilder(
-                models: [RM.get<VanillaModel>()],
+                observeMany: [() => RM.get<VanillaModel>()],
                 builder: (_, __) {
                   return Container();
                 });
@@ -680,7 +680,7 @@ void main() {
         ),
       );
       String errorMessage;
-      RM.getSetState<VanillaModel>(
+      RM.get<VanillaModel>().setState(
         (state) => state.incrementError(),
         onError: (context, error) {
           errorMessage = error.message;
@@ -701,7 +701,7 @@ void main() {
       final vm = Model();
       await tester.pumpWidget(
         StateBuilder(
-          models: [vm],
+          observeMany: [() => vm],
           builder: (_, __) {
             return Column(
               children: <Widget>[
@@ -749,7 +749,7 @@ void main() {
         MaterialApp(
             home: Scaffold(
                 body: StateBuilder(
-          models: [vm],
+          observeMany: [() => vm],
           builder: (_, __) {
             return Column(
               children: <Widget>[
@@ -759,7 +759,7 @@ void main() {
                   ],
                   builder: (context) {
                     return StateBuilder(
-                        models: [model1 = RM.get<VanillaModel>()],
+                        observeMany: [() => model1 = RM.get<VanillaModel>()],
                         builder: (context, _) {
                           context1 = context;
                           return Container();
@@ -770,7 +770,9 @@ void main() {
                   Builder(
                     builder: (_) {
                       return StateBuilder(
-                        models: [Injector.getAsReactive<VanillaModel>()],
+                        observeMany: [
+                          () => Injector.getAsReactive<VanillaModel>()
+                        ],
                         builder: (context, model) {
                           context2 = context;
                           return Container();
@@ -823,7 +825,7 @@ void main() {
         MaterialApp(
             home: Scaffold(
                 body: StateBuilder(
-          models: [vm],
+          observeMany: [() => vm],
           builder: (_, __) {
             return Column(
               children: <Widget>[
@@ -833,7 +835,7 @@ void main() {
                   ],
                   builder: (context) {
                     return StateBuilder(
-                        models: [model1 = RM.get<VanillaModel>()],
+                        observeMany: [() => model1 = RM.get<VanillaModel>()],
                         builder: (context, _) {
                           context1 = context;
                           return Container();
@@ -844,7 +846,9 @@ void main() {
                   Builder(
                     builder: (_) {
                       return StateBuilder(
-                        models: [Injector.getAsReactive<VanillaModel>()],
+                        observeMany: [
+                          () => Injector.getAsReactive<VanillaModel>()
+                        ],
                         builder: (context, model) {
                           context2 = context;
                           return Container();
@@ -898,7 +902,7 @@ void main() {
               ],
               builder: (context) {
                 return StateBuilder(
-                    models: [model1 = RM.get<VanillaModel>()],
+                    observeMany: [() => model1 = RM.get<VanillaModel>()],
                     onSetState: (_, __) {
                       onSetStateFromStateBuilder = true;
                     },
@@ -1010,7 +1014,7 @@ void main() {
       (tester) async {
     final model = Model();
     final widget = StateBuilder(
-      models: [model],
+      observeMany: [() => model],
       builder: (_, __) {
         return Injector(
           key: UniqueKey(),
@@ -1040,7 +1044,7 @@ void main() {
       inject: [
         Inject<String>.previous(
           (previous) {
-            return 'counter is ${rm.value}';
+            return 'counter is ${rm.state}';
           },
           initialValue: '0',
         )
@@ -1050,7 +1054,7 @@ void main() {
         return StateBuilder(
             observe: () => ReactiveModel<String>(),
             builder: (context, __) {
-              String value = RM.get<String>().value;
+              String value = RM.get<String>().state;
               return Text(value);
             });
       },
@@ -1060,20 +1064,20 @@ void main() {
     expect(find.text('counter is 0'), findsOneWidget);
     int hashCodeRM = ReactiveModel<String>().hashCode;
     //
-    rm.setValue(() => 1);
+    rm.setState((_) => 1);
     await tester.pump();
     expect(find.text('counter is 1'), findsOneWidget);
     expect(ReactiveModel<String>().hashCode, hashCodeRM);
     //
-    rm.setValue(() => 2);
+    rm.setState((_) => 2);
     await tester.pump();
     expect(find.text('counter is 2'), findsOneWidget);
     //
-    ReactiveModel<String>().setValue(() => 'modified counter is 2');
+    ReactiveModel<String>().setState((_) => 'modified counter is 2');
     await tester.pump();
     expect(ReactiveModel<String>().hasData, isTrue);
     //
-    rm.setValue(() => 3);
+    rm.setState((_) => 3);
     await tester.pump();
     expect(find.text('counter is 3'), findsOneWidget);
   });
@@ -1082,18 +1086,18 @@ void main() {
     final rm = ReactiveModel.create(0);
     Widget widget = Injector(
       inject: [
-        Inject.stream(() => getStream().map((s) => 'stream ${rm.value} : $s'),
-            initialValue: 'stream ${rm.value} : null')
+        Inject.stream(() => getStream().map((s) => 'stream ${rm.state} : $s'),
+            initialValue: 'stream ${rm.state} : null')
       ],
       reinjectOn: [rm],
       builder: (context) {
         return StateBuilder(
-            models: [rm],
+            observeMany: [() => rm],
             builder: (context, __) {
               return StateBuilder(
                   observe: () => ReactiveModel<String>(),
                   builder: (context, __) {
-                    String value = ReactiveModel<String>().value;
+                    String value = ReactiveModel<String>().state;
 
                     return Text(value);
                   });
@@ -1108,7 +1112,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('stream 0 : 1'), findsOneWidget);
     //
-    rm.setValue(() => 1);
+    rm.setState((_) => 1);
     await tester.pump();
     expect(find.text('stream 0 : 1'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1120,7 +1124,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('stream 1 : 2'), findsOneWidget);
     //
-    rm.setValue(() => 2);
+    rm.setState((_) => 2);
     await tester.pump();
     expect(find.text('stream 1 : 2'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1137,18 +1141,18 @@ void main() {
       inject: [
         Inject.future(
             () => Future.delayed(
-                Duration(seconds: 2), () => 'future ${rm.value}'),
+                Duration(seconds: 2), () => 'future ${rm.state}'),
             initialValue: 'future null')
       ],
       reinjectOn: [rm],
       builder: (context) {
         return StateBuilder(
-            models: [rm],
+            observeMany: [() => rm],
             builder: (context, __) {
               return StateBuilder(
                   observe: () => ReactiveModel<String>(),
                   builder: (context, __) {
-                    String value = ReactiveModel<String>().value;
+                    String value = ReactiveModel<String>().state;
                     return Text(value);
                   });
             });
@@ -1160,7 +1164,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('future null'), findsOneWidget);
     //
-    rm.setValue(() => 1);
+    rm.setState((_) => 1);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('future null'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1168,7 +1172,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('future 1'), findsOneWidget);
     //
-    rm.setValue(() => 2);
+    rm.setState((_) => 2);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('future 1'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1225,7 +1229,9 @@ void main() {
       inject: [Inject(() => VanillaModel())],
       builder: (_) {
         return WhenRebuilderOr(
-          models: [RM.getFuture<VanillaModel, void>((m) => m.incrementAsync())],
+          observeMany: [
+            () => RM.get<VanillaModel>().future((m, _) => m.incrementAsync())
+          ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
             return Text('data');
@@ -1245,15 +1251,15 @@ void main() {
       inject: [Inject(() => VanillaModel())],
       builder: (_) {
         return WhenRebuilderOr(
-          models: [
-            RM.getStream<VanillaModel, void>(
-              (m) => m._getStream(),
-              initialValue: 0,
-            )
+          observeMany: [
+            () => RM.get<VanillaModel>().stream(
+                  (m, _) => m._getStream(),
+                  initialValue: 0,
+                )
           ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
-            return Text('${rm.value}');
+            return Text('${rm.state}');
           },
         );
       },
@@ -1281,13 +1287,15 @@ void main() {
       inject: [Inject(() => VanillaModel())],
       builder: (_) {
         return WhenRebuilderOr(
-          models: [
-            RM.getFuture<VanillaModel, int>((m) => m.incrementAsync().then(
-                  (_) => Future.delayed(
-                    Duration(seconds: 1),
-                    () => 5,
-                  ),
-                ))
+          observeMany: [
+            () => RM.get<VanillaModel>().future(
+                  (m, _) => m.incrementAsync().then(
+                        (_) => Future.delayed(
+                          Duration(seconds: 1),
+                          () => 5,
+                        ),
+                      ),
+                )
           ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {

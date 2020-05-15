@@ -16,7 +16,8 @@ void main() {
     (WidgetTester tester) async {
       expect(
           () => StateWithMixinBuilder(
-              mixinWith: MixinWith.tickerProviderStateMixin, models: [model]),
+              mixinWith: MixinWith.tickerProviderStateMixin,
+              observeMany: [() => model]),
           throwsAssertionError);
     },
   );
@@ -27,7 +28,7 @@ void main() {
       expect(
           () => StateWithMixinBuilder(
                 mixinWith: MixinWith.tickerProviderStateMixin,
-                models: [model],
+                observeMany: [() => model],
                 builderWithChild: (_, child) => child,
               ),
           throwsAssertionError);
@@ -40,7 +41,7 @@ void main() {
       expect(
           () => StateWithMixinBuilder(
                 mixinWith: null,
-                models: [model],
+                observeMany: [() => model],
                 builder: (_, __) => Container(),
               ),
           throwsAssertionError);
@@ -52,7 +53,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.singleTickerProviderStateMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -72,7 +73,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder<SingleTickerProviderStateMixin>(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.singleTickerProviderStateMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -92,7 +93,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.tickerProviderStateMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -112,7 +113,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder<TickerProviderStateMixin>(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.tickerProviderStateMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -132,7 +133,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.automaticKeepAliveClientMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -151,7 +152,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder<AutomaticKeepAliveClientMixin>(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.automaticKeepAliveClientMixin,
         initState: (context, tick) {
           ticker = tick;
@@ -170,7 +171,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.widgetsBindingObserver,
         initState: (context, tick) {
           ticker = tick;
@@ -189,7 +190,7 @@ void main() {
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder<WidgetsBindingObserver>(
-        models: [model],
+        observeMany: [() => model],
         mixinWith: MixinWith.widgetsBindingObserver,
         initState: (context, tick) {
           ticker = tick;
@@ -290,7 +291,7 @@ void main() {
     (tester) async {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.singleTickerProviderStateMixin,
-        models: [model],
+        observeMany: [() => model],
         initState: (_, __) => null,
         dispose: (_, __) => null,
         builderWithChild: (ctx, child) {
@@ -323,7 +324,7 @@ void main() {
     (tester) async {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
-        models: [model],
+        observeMany: [() => model],
         initState: (_, __) => null,
         dispose: (_, __) => null,
         builderWithChild: (ctx, child) {
@@ -356,7 +357,7 @@ void main() {
     (WidgetTester tester) async {
       Widget widget = StateWithMixinBuilder(
         mixinWith: MixinWith.singleTickerProviderStateMixin,
-        models: [model],
+        observeMany: [() => model],
         builder: (_, __) => Container(),
       );
 
@@ -370,7 +371,7 @@ void main() {
       Widget widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
         initState: (_, __) => null,
-        models: [model],
+        observeMany: [() => model],
         builder: (_, __) => Container(),
       );
 
@@ -392,7 +393,7 @@ void main() {
         itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
             return StateWithMixinBuilder(
-              models: [],
+              observeMany: [],
               mixinWith: MixinWith.automaticKeepAliveClientMixin,
               builder: (_, __) {
                 numberOfKeepAliveRebuild++;
@@ -404,7 +405,7 @@ void main() {
             );
           } else if (index == 1) {
             return StateBuilder(
-              models: [],
+              observeMany: [],
               builder: (_, __) {
                 numberOfNonKeepAliveRebuild++;
                 return Container(

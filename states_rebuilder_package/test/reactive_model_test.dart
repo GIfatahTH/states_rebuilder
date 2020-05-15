@@ -59,8 +59,8 @@ void main() {
         error = e;
       });
 
-    rm.setValue(
-      () {
+    rm.setState(
+      (_) {
         throw Exception();
       },
       silent: true,
@@ -76,7 +76,7 @@ void main() {
     'ReactiveModel: Subscribe using StateBuilder and setState mutate the state and notify observers',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (context, __) {
           return _widgetBuilder('${modelRM.state.counter}');
         },
@@ -94,7 +94,7 @@ void main() {
     'ReactiveModel: catch sync error and notify observers',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -117,7 +117,7 @@ void main() {
     'ReactiveModel: call async method without error and notify observers',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -131,7 +131,7 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=true'), findsOneWidget);
-      expect(modelRM.valueAsync, isA<Future<Model>>());
+      expect(modelRM.stateAsync, isA<Future<Model>>());
       modelRM.setState((s) async {
         await s.incrementAsync();
       });
@@ -140,14 +140,14 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(find.text('isWaiting=true'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect(modelRM.valueAsync, isA<Future<Model>>());
+      expect(modelRM.stateAsync, isA<Future<Model>>());
 
       await tester.pump(Duration(seconds: 1));
       //hasData
       expect(find.text('1'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      expect((await modelRM.valueAsync).counter, 1);
+      expect((await modelRM.stateAsync).counter, 1);
     },
   );
 
@@ -155,7 +155,7 @@ void main() {
     'ReactiveModel: call async method with error and notify observers',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.hasError ? modelRM.error.message : modelRM.state.counter}',
@@ -181,7 +181,7 @@ void main() {
       expect(find.text('Error message'), findsOneWidget);
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=false'), findsOneWidget);
-      modelRM.valueAsync.catchError((e) {
+      modelRM.stateAsync.catchError((e) {
         expect(e.message, 'Error message');
       });
     },
@@ -192,7 +192,7 @@ void main() {
     (tester) async {
       RM.debugWidgetsRebuild = true;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         key: Key('whenConnectionState'),
         builder: (_, __) {
           return modelRM.whenConnectionState(
@@ -243,7 +243,7 @@ void main() {
     'ReactiveModel: with whenConnectionState error should be catch',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return modelRM.whenConnectionState(
             onIdle: () => _widgetBuilder('onIdle'),
@@ -274,7 +274,7 @@ void main() {
     (tester) async {
       int numberOfRebuild = 0;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           numberOfRebuild++;
           return modelRM.whenConnectionState(
@@ -319,7 +319,7 @@ void main() {
     (tester) async {
       int numberOfRebuild = 0;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           numberOfRebuild++;
           return modelRM.whenConnectionState(
@@ -408,7 +408,7 @@ void main() {
     'ReactiveModel: tagFilter works',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         tag: 'tag1',
         builder: (_, __) {
           return modelRM.whenConnectionState(
@@ -446,7 +446,7 @@ void main() {
       BuildContext contextFromOnRebuildState;
       String lifeCycleTracker = '';
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           lifeCycleTracker += 'build, ';
           return Container();
@@ -484,7 +484,7 @@ void main() {
       int numberOfOnDataCall = 0;
       BuildContext contextFromOnData;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return Container();
         },
@@ -512,7 +512,7 @@ void main() {
       int numberOfOnDataCall = 0;
       BuildContext contextFromOnData;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return Container();
         },
@@ -543,7 +543,7 @@ void main() {
       int numberOfOnErrorCall = 0;
       BuildContext contextFromOnError;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return Container();
         },
@@ -571,7 +571,7 @@ void main() {
       int numberOfOnErrorCall = 0;
       BuildContext contextFromOnError;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return Container();
         },
@@ -608,19 +608,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -671,19 +671,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -725,19 +725,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -778,19 +778,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -873,19 +873,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -981,19 +981,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -1064,19 +1064,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -1154,20 +1154,20 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder(
                   'modelRM0-${modelRM0.joinSingletonToNewData}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -1217,7 +1217,7 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('${modelRM0.state}');
             },
@@ -1245,7 +1245,7 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('${modelRM0.state}');
             },
@@ -1273,14 +1273,14 @@ void main() {
         final widget = Column(
           children: <Widget>[
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               tag: 'tag1',
               builder: (context, _) {
                 return _widgetBuilder('tag1-${modelRM0.state}');
               },
             ),
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               builder: (context, _) {
                 return _widgetBuilder('${modelRM0.state}');
               },
@@ -1317,7 +1317,7 @@ void main() {
             StateBuilder(
               observe: () => rmKey,
               builder: (_, rm) {
-                return Text(rm.value.toString());
+                return Text(rm.state.toString());
               },
             ),
           ],
@@ -1349,7 +1349,8 @@ void main() {
             ),
             StateBuilder<Model>(
               observe: () => modelRM
-                ..future((m) => m.incrementAsync()).onError((context, error) {
+                ..setState((m) => m.incrementAsync())
+                ..onError((context, error) {
                   errorMessage = error.message;
                 }),
               builder: (context, modelRM) {
@@ -1393,8 +1394,8 @@ void main() {
             ),
             StateBuilder<Model>(
               observe: () => modelRM
-                ..future((m) => m.incrementAsyncError())
-                    .onError((context, error) {
+                ..setState((m) => m.incrementAsyncError())
+                ..onError((context, error) {
                   errorMessage = error.message;
                 }),
               builder: (context, modelRM) {
@@ -1432,10 +1433,10 @@ void main() {
             StateBuilder<Model>(
               observe: () => modelRM,
               initState: (_, modelRM) => modelRM
-                  .future((m) => m.incrementAsyncError())
-                  .onError((context, error) {
-                errorMessage = error.message;
-              }),
+                ..setState((m) => m.incrementAsyncError())
+                ..onError((context, error) {
+                  errorMessage = error.message;
+                }),
               builder: (context, modelRM) {
                 return _widgetBuilder('${modelRM.state.counter}');
               },
@@ -1458,10 +1459,11 @@ void main() {
     testWidgets(
       'Nested dependent futures ',
       (tester) async {
+        RM.debugPrintActiveRM = true;
         final future1 =
             RM.future(Future.delayed(Duration(seconds: 1), () => 2));
         final inject = Inject.future(() async {
-          final future1Value = await future1.valueAsync;
+          final future1Value = await future1.stateAsync;
           await Future.delayed(Duration(seconds: 1));
           return future1Value * 2;
         });
@@ -1471,16 +1473,17 @@ void main() {
         await tester.pump(Duration(seconds: 1));
         expect(future1.hasData, isTrue);
         expect(future2.isWaiting, isTrue);
-        future2.future(
+        future2.setState(
           (future) => Future.delayed(Duration(seconds: 1), () => 2 * future),
+          silent: true,
           shouldAwait: true,
         );
         await tester.pump(Duration(seconds: 1));
-        expect(future1.value, 2);
+        expect(future1.state, 2);
         expect(future2.isWaiting, isTrue);
         await tester.pump(Duration(seconds: 1));
-        expect(future1.value, 2);
-        expect(future2.value, 8);
+        expect(future1.state, 2);
+        expect(future2.state, 8);
       },
     );
   });
@@ -1494,7 +1497,7 @@ void main() {
         final widget = Column(
           children: <Widget>[
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               builder: (context, _) {
                 return _widgetBuilder('${modelRM0.state}');
               },
@@ -1571,7 +1574,7 @@ void main() {
         final widget = Column(
           children: <Widget>[
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               builder: (context, _) {
                 numberOfRebuild++;
                 return _widgetBuilder('${modelRM0.state}-$numberOfRebuild');
@@ -1612,7 +1615,7 @@ void main() {
           inject: [Inject(() => 'n')],
           builder: (_) {
             return StateBuilder(
-              models: [rmStream],
+              observeMany: [() => rmStream],
               tag: 'MyTag',
               builder: (_, rmStream) {
                 numberOfRebuild++;
@@ -1624,27 +1627,27 @@ void main() {
 
         await tester.pumpWidget(MaterialApp(home: widget));
         expect(numberOfRebuild, 1);
-        expect(rmStream.value, 0);
+        expect(rmStream.state, 0);
 
         await tester.pump(Duration(seconds: 1));
         expect(numberOfRebuild, 2);
-        expect(rmStream.value, 0);
+        expect(rmStream.state, 0);
 
         await tester.pump(Duration(seconds: 1));
         expect(numberOfRebuild, 3);
-        expect(rmStream.value, 2);
+        expect(rmStream.state, 2);
 
         await tester.pump(Duration(seconds: 1));
         expect(numberOfRebuild, 4);
-        expect(rmStream.value, 3);
+        expect(rmStream.state, 3);
 
         await tester.pump(Duration(seconds: 1));
         expect(numberOfRebuild, 5);
-        expect(rmStream.value, 4);
+        expect(rmStream.state, 4);
 
         await tester.pump(Duration(seconds: 1));
         expect(numberOfRebuild, 5);
-        expect(rmStream.value, 4);
+        expect(rmStream.state, 4);
       },
     );
 
@@ -1657,7 +1660,8 @@ void main() {
           children: <Widget>[
             StateBuilder<Model>(
               observe: () => modelRM
-                ..stream((m) => m.incrementStream()).onError((context, error) {
+                ..setState((m) => m.incrementStream())
+                ..onError((context, error) {
                   errorMessage = error.message;
                 }),
               builder: (context, modelRM) {
@@ -1705,9 +1709,11 @@ void main() {
           ],
         );
 
-        modelRM.stream((m) => m.incrementStream()).onError((context, error) {
-          errorMessage = error.message;
-        });
+        modelRM
+          ..setState((m) => m.incrementStream())
+          ..onError((context, error) {
+            errorMessage = error.message;
+          });
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
         expect(modelRM.isWaiting, isTrue);
@@ -1747,9 +1753,11 @@ void main() {
           ],
         );
 
-        newModelRM.stream((m) => m.incrementStream()).onError((context, error) {
-          errorMessage = error.message;
-        });
+        newModelRM
+          ..setState((m) => m.incrementStream())
+          ..onError((context, error) {
+            errorMessage = error.message;
+          });
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
         expect(modelRM.isIdle, isTrue);
@@ -1790,9 +1798,11 @@ void main() {
           ],
         );
 
-        modelRM.stream((m) => m.incrementStream()).onError((context, error) {
-          errorMessage = error.message;
-        });
+        modelRM
+          ..setState((m) => m.incrementStream())
+          ..onError((context, error) {
+            errorMessage = error.message;
+          });
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
         expect(modelRM.isWaiting, isTrue);
@@ -1825,7 +1835,7 @@ void main() {
             rmKey: rmKey,
             tag: 'tag1',
             builder: (context, switcherRM) {
-              if (switcherRM.value) {
+              if (switcherRM.state) {
                 return StateBuilder<Model>(
                   observe: () => modelRM,
                   builder: (context, modelRM) {
@@ -1836,7 +1846,7 @@ void main() {
                 return Container();
               }
             });
-        final streamRM = modelRM.stream((m) => m.incrementStream());
+        final streamRM = modelRM..setState((m) => m.incrementStream());
 
         await tester.pumpWidget(widget);
         expect(find.text('0'), findsOneWidget);
@@ -1846,7 +1856,7 @@ void main() {
         expect(find.text('1'), findsOneWidget);
         expect(streamRM.subscription.isPaused, isFalse);
 
-        rmKey.value = false;
+        rmKey.state = false;
         await tester.pump();
 
         await tester.pump(Duration(seconds: 1));
@@ -1866,24 +1876,24 @@ void main() {
         final modelRM = RM.create(0);
 
         final widget = StateBuilder(
-          models: [modelRM],
+          observeMany: [() => modelRM],
           tag: 'tag1',
           builder: (_, __) {
-            return _widgetBuilder('${modelRM.value}');
+            return _widgetBuilder('${modelRM.state}');
           },
         );
         await tester.pumpWidget(widget);
-        modelRM.setValue(() => modelRM.value + 1);
+        modelRM.setState((_) => modelRM.state + 1);
         await tester.pump();
         expect(find.text(('1')), findsOneWidget);
 
         await tester.pumpWidget(widget);
-        modelRM.setValue(() => modelRM.value + 1, filterTags: ['tag1']);
+        modelRM.setState((_) => modelRM.state + 1, filterTags: ['tag1']);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
         await tester.pumpWidget(widget);
         modelRM
-            .setValue(() => modelRM.value + 1, filterTags: ['nonExistingTag']);
+            .setState((_) => modelRM.state + 1, filterTags: ['nonExistingTag']);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
       },
@@ -1895,7 +1905,7 @@ void main() {
         final modelRM = ReactiveModel.create(0);
         int numberOfRebuild = 0;
         final widget = StateBuilder(
-          models: [modelRM],
+          observeMany: [() => modelRM],
           tag: 'tag1',
           builder: (_, __) {
             return _widgetBuilder('${++numberOfRebuild}');
@@ -1904,11 +1914,11 @@ void main() {
         await tester.pumpWidget(widget);
         expect(find.text(('1')), findsOneWidget);
 
-        modelRM.setValue(() => modelRM.value);
+        modelRM.setState((_) => modelRM.state);
         await tester.pump();
         expect(find.text(('1')), findsOneWidget);
 
-        modelRM.setValue(() => modelRM.value + 1);
+        modelRM.setState((_) => modelRM.state + 1);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
       },
@@ -1926,7 +1936,7 @@ void main() {
         BuildContext contextFromOnRebuildState;
         String lifeCycleTracker = '';
         final widget = StateBuilder(
-          models: [modelRM],
+          observeMany: [() => modelRM],
           builder: (_, __) {
             lifeCycleTracker += 'build, ';
             return Container();
@@ -1935,8 +1945,8 @@ void main() {
         await tester.pumpWidget(widget);
         expect(numberOfOnSetStateCall, equals(0));
         //
-        modelRM.setValue(
-          () => modelRM.value + 1,
+        modelRM.setState(
+          (_) => modelRM.state + 1,
           onSetState: (context) {
             numberOfOnSetStateCall++;
             contextFromOnSetState = context;
@@ -1964,7 +1974,7 @@ void main() {
         final modelRM = ReactiveModel.create(0);
 
         final widget = StateBuilder(
-          models: [modelRM],
+          observeMany: [() => modelRM],
           builder: (_, __) {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
@@ -1976,7 +1986,7 @@ void main() {
         );
         await tester.pumpWidget(widget);
         //sync increment without error
-        modelRM.setValue(() {
+        modelRM.setState((_) {
           final model = Model();
           model.increment();
           return model.counter;
@@ -1986,8 +1996,8 @@ void main() {
 
         //sync increment with error
         var error;
-        await modelRM.setValue(
-          () {
+        await modelRM.setState(
+          (_) {
             final model = Model();
             model.incrementError();
             return model.counter;
@@ -2008,44 +2018,44 @@ void main() {
       (tester) async {
         final modelRM0 = ReactiveModel.create(0);
         final modelRM1 = modelRM0.asNew('seed1');
-
+        RM.debugPrintActiveRM = true;
         final widget = Column(
           children: <Widget>[
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               builder: (_, __) {
-                return _widgetBuilder('model0-${modelRM0.value}');
+                return _widgetBuilder('model0-${modelRM0.state}');
               },
             ),
             StateBuilder(
-              models: [modelRM1],
+              observeMany: [() => modelRM1],
               builder: (_, __) {
-                return _widgetBuilder('model1-${modelRM1.value}');
+                return _widgetBuilder('model1-${modelRM1.state}');
               },
             )
           ],
         );
         await tester.pumpWidget(widget);
-        modelRM0.setValue(() => modelRM0.value + 1);
+        modelRM0.setState((_) => modelRM0.state + 1);
         await tester.pump();
         expect(find.text(('model0-1')), findsOneWidget);
         expect(find.text(('model1-0')), findsOneWidget);
         //
-        modelRM0.setValue(() => modelRM0.value + 1, seeds: ['seed1']);
+        modelRM0.setState((_) => modelRM0.state + 1, seeds: ['seed1']);
         await tester.pump();
         expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-2')), findsOneWidget);
         //
-        modelRM1.setValue(() {
-          return modelRM1.value + 1;
+        modelRM1.setState((_) {
+          return modelRM1.state + 1;
         });
         await tester.pump();
         expect(find.text(('model0-2')), findsOneWidget);
         expect(find.text(('model1-3')), findsOneWidget);
         //
-        modelRM1.setValue(
-          () {
-            return modelRM1.value + 1;
+        modelRM1.setState(
+          (_) {
+            return modelRM1.state + 1;
           },
           notifyAllReactiveInstances: true,
         );
@@ -2062,7 +2072,7 @@ void main() {
         int onData;
 
         final widget = StateBuilder(
-          models: [modelRM],
+          observeMany: [() => modelRM],
           builder: (_, __) {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
@@ -2078,7 +2088,7 @@ void main() {
         expect(find.text(('onIdle')), findsOneWidget);
 
         //sync increment without error
-        modelRM.setValue(() async {
+        modelRM.setState((_) async {
           final model = Model();
           await model.incrementAsync();
           return model.counter;
@@ -2094,8 +2104,8 @@ void main() {
         expect(onData, equals(1));
 
         //sync increment with error
-        modelRM.setValue(
-          () async {
+        modelRM.setState(
+          (_) async {
             final model = Model();
             await model.incrementAsyncError();
             return model.counter;
@@ -2122,19 +2132,19 @@ void main() {
         final widget = Column(
           children: <Widget>[
             StateBuilder(
-              models: [modelRM0],
+              observeMany: [() => modelRM0],
               builder: (context, _) {
                 return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
               },
             ),
             StateBuilder(
-              models: [modelRM1],
+              observeMany: [() => modelRM1],
               builder: (context, _) {
                 return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
               },
             ),
             StateBuilder(
-              models: [modelRM2],
+              observeMany: [() => modelRM2],
               builder: (context, _) {
                 return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
               },
@@ -2145,8 +2155,8 @@ void main() {
         await tester.pumpWidget(widget);
 
         //mutate reactive instance 1
-        modelRM1.setValue(
-          () => modelRM1.state..incrementError(),
+        modelRM1.setState(
+          (_) => modelRM1.state..incrementError(),
           joinSingleton: true,
           catchError: true,
         );
@@ -2159,8 +2169,8 @@ void main() {
         expect(modelRM2.isIdle, isTrue);
 
         //mutate reactive instance 2
-        modelRM2.setValue(
-          () => modelRM2.state..incrementError(),
+        modelRM2.setState(
+          (_) => modelRM2.state..incrementError(),
           joinSingleton: true,
           catchError: true,
         );
@@ -2173,7 +2183,7 @@ void main() {
         expect(modelRM2.hasError, isTrue);
 
         //mutate reactive instance 1
-        modelRM1.setValue(() {
+        modelRM1.setState((_) {
           modelRM1.state.increment();
           return Model()..counter = modelRM1.state.counter;
         }, joinSingleton: true);
@@ -2186,7 +2196,7 @@ void main() {
         expect(modelRM2.hasError, isTrue);
 
         //mutate reactive instance 2
-        modelRM2.setValue(() {
+        modelRM2.setState((_) {
           modelRM2.state.increment();
           return Model()..counter = modelRM2.state.counter;
         }, joinSingleton: true);
@@ -2234,8 +2244,8 @@ void main() {
   test('ReactiveModel: ReactiveModel.create works ', () {
     final _modelRM = ReactiveModel.create(1)..listenToRM((rm) {});
     expect(_modelRM, isA<ReactiveModel>());
-    _modelRM.setValue(() => _modelRM.value + 1);
-    expect(_modelRM.value, equals(2));
+    _modelRM.setState((_) => _modelRM.state + 1);
+    expect(_modelRM.state, equals(2));
   });
 
   testWidgets(
@@ -2249,19 +2259,19 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [modelRM0],
+            observeMany: [() => modelRM0],
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM1],
+            observeMany: [() => modelRM1],
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [modelRM2],
+            observeMany: [() => modelRM2],
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -2303,7 +2313,7 @@ void main() {
     'ReactiveModel: issue #49 reset to Idle after error or data',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -2335,7 +2345,7 @@ void main() {
     'ReactiveModel: reset to hasData',
     (tester) async {
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -2369,7 +2379,7 @@ void main() {
       final modelRM = ReactiveModel.create(0);
       int numberOfRebuild = 0;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         tag: 'tag1',
         builder: (_, __) {
           return _widgetBuilder('${++numberOfRebuild}');
@@ -2379,20 +2389,20 @@ void main() {
       //one rebuild
       expect(find.text(('1')), findsOneWidget);
 
-      modelRM.setValue(() => modelRM.value + 1);
+      modelRM.setState((_) => modelRM.state + 1);
       await tester.pump();
       //two rebuilds
       expect(find.text(('2')), findsOneWidget);
 
-      modelRM.setValue(
-        () => throw Exception(),
+      modelRM.setState(
+        (_) => throw Exception(),
         catchError: true,
       );
       await tester.pump();
       //three rebuilds
       expect(find.text(('3')), findsOneWidget);
 
-      modelRM.setValue(() => modelRM.value);
+      modelRM.setState((_) => modelRM.state);
       await tester.pump();
       //four rebuilds
       expect(find.text(('4')), findsOneWidget);
@@ -2515,7 +2525,7 @@ void main() {
       int onDataFromSetState;
       int onDataGlobal;
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         builder: (_, __) {
           return Container();
         },
@@ -2545,11 +2555,11 @@ void main() {
     final rm = RM.create(0);
     int data;
     final unsubscribe = rm.listenToRM((rm) {
-      data = rm.value;
+      data = rm.state;
     });
     expect(data, isNull);
     expect(rm.observers().length, 1);
-    rm.value++;
+    rm.state++;
     expect(data, 1);
     unsubscribe();
     expect(rm.observers().length, 0);

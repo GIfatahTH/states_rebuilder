@@ -82,7 +82,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -121,9 +121,9 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>()
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>()
               ],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
@@ -166,9 +166,9 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>()
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>()
               ],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
@@ -222,7 +222,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: null,
           onError: (error) => Text(error.message),
           onData: (data) => Text('data'),
@@ -238,7 +238,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: () => Text(''),
           onError: null,
           onData: (data) => Text('data'),
@@ -254,7 +254,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: () => Text(''),
           onError: (_) => Text(''),
           onData: null,
