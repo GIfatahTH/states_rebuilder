@@ -126,7 +126,7 @@ class _LoginBody extends StatelessWidget {
         //Use of WhenRebuilderOr
         //
         WhenRebuilderOr<AuthenticationService>(
-          models: [ReactiveModel<AuthenticationService>()],
+          observe: () => ReactiveModel<AuthenticationService>(),
           onWaiting: () => CircularProgressIndicator(),
           dispose: (_, __) => controller.dispose(),
           builder: (_, authServiceRM) {
@@ -172,7 +172,7 @@ class HomePage extends StatelessWidget {
             backgroundColor: backgroundColor,
             //use of WhenRebuilderOr
             body: WhenRebuilderOr<PostsService>(
-              models: [ReactiveModel<PostsService>()],
+              observe: () => ReactiveModel<PostsService>(),
               initState: (_, postsServiceRM) {
                 postsServiceRM.setState(
                   (state) => state.getPostsForUser(user.id),
@@ -274,7 +274,7 @@ class Comments extends StatelessWidget {
       builder: (context) {
         //Use of WhenRebuilder
         return WhenRebuilder<CommentsService>(
-          models: [ReactiveModel<CommentsService>()],
+          observe: () => ReactiveModel<CommentsService>(),
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),
             onError: ErrorHandler.showErrorDialog,
@@ -341,7 +341,7 @@ class LikeButton extends StatelessWidget {
     return Row(
       children: <Widget>[
         StateBuilder(
-          models: [postsServiceRM],
+          observe: () => postsServiceRM,
           builder: (context, snapshot) {
             return Text('Likes ${postsServiceRM.state.getPostLikes(postId)}');
           },

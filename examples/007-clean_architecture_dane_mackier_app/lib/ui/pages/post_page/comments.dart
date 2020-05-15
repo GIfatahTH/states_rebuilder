@@ -18,7 +18,7 @@ class Comments extends StatelessWidget {
       builder: (context) {
         //Use of WhenRebuilder
         return WhenRebuilder<CommentsService>(
-          models: [ReactiveModel<CommentsService>()],
+          observe: () => ReactiveModel<CommentsService>(),
           initState: (_, commentsServiceRM) => commentsServiceRM.setState(
             (state) => state.fetchComments(postId),
             onError: ErrorHandler.showErrorDialog,

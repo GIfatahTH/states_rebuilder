@@ -51,9 +51,9 @@ class FormWidget extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               onChanged: (email) {
-                //NOTE5: set the value of email and notify observers
-                _emailRM.setValue(
-                  () => Email(email).value,
+                //NOTE5: set the state of email and notify observers
+                _emailRM.setState(
+                  (_) => Email(email).value,
                   catchError: true,
                 );
               },
@@ -74,8 +74,8 @@ class FormWidget extends StatelessWidget {
               obscureText: true,
               autocorrect: false,
               onChanged: (password) {
-                _passwordRM.setValue(
-                  () => Password(password).value,
+                _passwordRM.setState(
+                  (_) => Password(password).value,
                   catchError: true,
                 );
               },
@@ -90,9 +90,9 @@ class FormWidget extends StatelessWidget {
               return Row(
                 children: <Widget>[
                   Checkbox(
-                    value: _isRegisterRM.value,
+                    value: _isRegisterRM.state,
                     onChanged: (value) {
-                      _isRegisterRM.setValue(() => value);
+                      _isRegisterRM.setState((_) => value);
                     },
                   ),
                   Text(' I do not have an account')
@@ -118,23 +118,23 @@ class FormWidget extends StatelessWidget {
               return RaisedButton(
                   //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
                   child:
-                      _isRegisterRM.value ? Text('Register') : Text('Sign in'),
+                      _isRegisterRM.state ? Text('Register') : Text('Sign in'),
                   //NOTE8: activate/deactivate the button if the form is valid/non valid
                   onPressed: _isFormValid
                       ? () {
                           userServiceRM.setState(
                             (s) async {
-                              //NOTE9: If _isRegisterRM.value is true call createUserWithEmailAndPassword,
-                              if (_isRegisterRM.value) {
+                              //NOTE9: If _isRegisterRM.state is true call createUserWithEmailAndPassword,
+                              if (_isRegisterRM.state) {
                                 return s.createUserWithEmailAndPassword(
-                                  _emailRM.value,
-                                  _passwordRM.value,
+                                  _emailRM.state,
+                                  _passwordRM.state,
                                 );
                               } else {
-                                //NOTE9: If _isRegisterRM.value is true call signInWithEmailAndPassword,
+                                //NOTE9: If _isRegisterRM.state is true call signInWithEmailAndPassword,
                                 return s.signInWithEmailAndPassword(
-                                  _emailRM.value,
-                                  _passwordRM.value,
+                                  _emailRM.state,
+                                  _passwordRM.state,
                                 );
                               }
                             },

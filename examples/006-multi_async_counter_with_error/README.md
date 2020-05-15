@@ -316,7 +316,7 @@ class CounterGridPage2 extends StatelessWidget {
             //NOTE3: The title of the appBar is reactive and for each state of the reactive singleton it will display the corresponding widget.
 
             title: WhenRebuilder(
-              models: [counterServiceSingletonRM],
+              observe: () => counterServiceSingletonRM,
               //NOTE3: tag to be used to filter notification
               tag: 'appBar',
               onIdle: () => Text('There are still counters waiting for you'),
@@ -508,7 +508,7 @@ class CounterBox extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(

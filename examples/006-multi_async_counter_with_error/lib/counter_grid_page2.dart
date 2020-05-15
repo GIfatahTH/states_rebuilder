@@ -19,7 +19,7 @@ class CounterGridPage2 extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: WhenRebuilder(
-              models: [counterServiceSingletonRM],
+              observe: () => counterServiceSingletonRM,
               tag: 'appBar',
               onIdle: () => Text('There are still counters waiting for you'),
               onWaiting: () => Row(
@@ -92,7 +92,7 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       child: StateBuilder(
-        models: [counterService],
+        observe: () => counterService,
         tag: 'appBar',
         builderWithChild: (context, snapshot, child) {
           return Theme(

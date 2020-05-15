@@ -19,14 +19,14 @@ class ExtraActionsButton extends StatelessWidget {
           return PopupMenuButton<ExtraAction>(
             key: ArchSampleKeys.extraActionsButton,
             onSelected: (action) {
-              //first set the value to the new action
+              //first set the state to the new action
               //See FilterButton where we use setValue there.
-              extraActionRM.value = action;
+              extraActionRM.state = action;
               //then we use the getSetState to get the global registered ReactiveModel of TodosService
               //and call setState method.
               //There is one widget registered to the global ReactiveModel of TodosService, it is the
               //StateBuilder in the TodoList Widget.
-              RM.getSetState<TodosService>(
+              RM.get<TodosService>().setState(
                 (s) async {
                   if (action == ExtraAction.toggleAllComplete) {
                     return s.toggleAll();

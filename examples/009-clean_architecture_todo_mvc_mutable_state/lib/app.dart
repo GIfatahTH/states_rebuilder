@@ -34,14 +34,14 @@ class StatesRebuilderApp extends StatelessWidget {
           Inject<ITodosRepository>.future(
             () async {
               return TodosRepository(
-                prefs: await RM.get<SharedPreferences>().valueAsync,
+                prefs: await RM.get<SharedPreferences>().stateAsync,
               );
             },
           ),
           Inject<TodosService>.future(
             () async {
               return TodosService(
-                await RM.get<ITodosRepository>().valueAsync,
+                await RM.get<ITodosRepository>().stateAsync,
               );
             },
           )

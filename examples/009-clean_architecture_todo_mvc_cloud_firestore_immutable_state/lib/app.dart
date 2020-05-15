@@ -13,6 +13,7 @@ import 'ui/pages/auth_page/auth_page.dart';
 import 'ui/pages/home_screen/home_screen.dart';
 
 class App extends StatelessWidget {
+  const App({Key key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     ////uncomment the following line to consol log Widget rebuild
@@ -46,15 +47,15 @@ class App extends StatelessWidget {
         ],
         home: StateBuilder<AuthState>(
           key: Key('Current user'),
-          watch: (rm) => rm.value.user,
+          watch: (rm) => rm.state.user,
           observe: () => RM.get<AuthState>()
-            ..future(
+            ..setState(
               (authState) => AuthState.currentUser(authState),
-            ).onError(
-              ErrorHandler.showErrorDialog,
+              onError: ErrorHandler.showErrorDialog,
             ),
-          builder: (context, authStateRM) =>
-              authStateRM.value is InitAuthState ? AuthScreen() : HomeScreen(),
+          builder: (context, authStateRM) => authStateRM.state is InitAuthState
+              ? const AuthScreen()
+              : HomeScreen(),
         ),
         routes: {
           ArchSampleRoutes.addTodo: (context) => AddEditPage(),

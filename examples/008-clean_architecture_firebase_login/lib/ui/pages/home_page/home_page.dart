@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
               //get UserService reactiveModel and call setState to signOut,
-              RM.getSetState<UserService>((s) => s.signOut());
+              RM.get<UserService>().setState((s) => s.signOut());
             },
           )
         ],

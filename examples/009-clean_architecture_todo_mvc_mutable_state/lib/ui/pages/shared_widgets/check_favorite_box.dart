@@ -13,7 +13,7 @@ class CheckFavoriteBox extends StatelessWidget {
   }) : _key = key;
   final Key _key;
   final ReactiveModel<Todo> todoRM;
-  Todo get todo => todoRM.value;
+  Todo get todo => todoRM.state;
   @override
   Widget build(BuildContext context) {
     return Checkbox(
@@ -26,14 +26,14 @@ class CheckFavoriteBox extends StatelessWidget {
           complete: value,
         );
         //set todo to th new todo and notify observer (the todo tile)
-        todoRM.value = newTodo;
+        todoRM.state = newTodo;
 
         //Here we get the global ReactiveModel and from it we create a new Local ReactiveModel.
         //The created ReactiveModel is based of the future of updateTodo method.
         RM.future(IN.get<TodosService>().updateTodo(newTodo)).onError(
           (_, error) {
             //on Error set the todo value to the old value
-            todoRM.value = oldTodo;
+            todoRM.state = oldTodo;
             //show SnackBar to display the error message
             ErrorHandler.showErrorSnackBar(context, error);
           },

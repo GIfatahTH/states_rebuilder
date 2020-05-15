@@ -872,15 +872,16 @@ In the UI part we will do four things:
   Local ReactiveModel are often used with ReactiveModel keys.
 * subscribe to a one or more ReactiveModels using one of the four observer widgets `StateBuilder`, `WhenRebuilder`, `WhenRebuilderOr`, or `OnSetStateListener`
 * state mutation and notification sending
-  for immutable state we use : 
-    * Sync mutation using the `value` getter and setter:
+    * Sync mutation using the `state` getter and setter:
       ```dart
-        _activeTabRM.value = AppTab.values[index];
+        _activeTabRM.state = AppTab.values[index];
       ```
-    * Sync mutation using `setValue` method:
+    * Sync mutation using `setState` method:
+    `setState` works well for primitive and immutable objects.
+    It exposes the currentState and replace it with the new state after computation
       ```dart
-        activeFilterRM.setValue(
-                () => filter,
+        activeFilterRM.setState(
+                (activeFilter currentFilter) => filter,
                 onData: (context, data) {
 
                 },
@@ -890,18 +891,24 @@ In the UI part we will do four things:
               );
       ```
     * Async mutation using `future` method
+    `setState` works well with futures. It await for the future to complete and notify observers with its ConnectionState.
+    If all observer widgets are disposed and the future is still pending setSate will cancel the future because no observer is awaiting for the result.
       ```dart
         observe: () => RM.get<AuthState>()
-            ..future(
+            .setState(
               (authState) => AuthState.currentUser(authState),
-            )
-            .onError(ErrorHandler.showErrorDialog),
+               onError : ErrorHandler.showErrorDialog,
+             ),
       ```
     * Async mutation using `stream` method
-      ```dart
+    `setState` works well with streams. `setState` subscribe to the stream and notify  observer widget with the emitted values.
+    If all observer widget are removed from the widget, setSate will cancel the subscription it the ReactiveModel is local.
+    For global models the stream is not cancelled until the Injector that created the stream is disposed from the widget tree.
+     ```dart
         todosStateRM
-                .stream((t) => TodosState.addTodo(t, todo))
-                .onError(ErrorHandler.showErrorSnackBar);
+                .setState((t) => TodosState.addTodo(t, todo),
+                 onError : ErrorHandler.showErrorSnackBar,
+                 );
       ```
 
 ## main.dart

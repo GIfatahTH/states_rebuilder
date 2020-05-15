@@ -84,8 +84,8 @@ class MyHomePage extends StatelessWidget {
                   return TextField(
                     onChanged: (String email) {
                       //set the value of the emailRM after validation
-                      emailRM.setValue(
-                        () => Email(email)..validate(),
+                      emailRM.setState(
+                        (Email currentState) => Email(email)..validate(),
                         //catchError if validation throws
                         catchError: true,
                       );
@@ -108,8 +108,8 @@ class MyHomePage extends StatelessWidget {
                   return TextField(
                     onChanged: (String password) {
                       //set the value of passwordRM after validation
-                      passwordRM.setValue(
-                        () => Password(password)..validate(),
+                      passwordRM.setState(
+                        (_) => Password(password)..validate(),
                         catchError: true,
                       );
                     },
@@ -129,8 +129,8 @@ class MyHomePage extends StatelessWidget {
                     child: Text("Submit"),
                     onPressed: isValid
                         ? () {
-                            print(emailRM.value.email);
-                            print(passwordRM.value.password);
+                            print(emailRM.state.email);
+                            print(passwordRM.state.password);
                           }
                         : null,
                   );
@@ -154,14 +154,14 @@ To better understand how states_rebuilder manage the state, let's track the stat
 ```dart
 print(emailRM.isIdle); // true
 ```
-* as soon as the user type the first character the onChange callback of the `TextField` is invoked and `setValue` will be executed.
-* the `setValue` create a new instance of Email class and check for validation.
+* as soon as the user type the first character the onChange callback of the `TextField` is invoked and `setState` will be executed.
+* the `setState` create a new instance of Email class and check for validation.
 ```dart
 return TextField(
         onChanged: (String password) {
-            //set the value of passwordRM after validation
-            passwordRM.setValue(
-            () => Password(password)..validate(),
+            //set the state of passwordRM after validation
+            passwordRM.setState(
+            (_) => Password(password)..validate(),
             catchError: true,
             );
         },
@@ -254,21 +254,21 @@ StateBuilder(
             child: Text("login"),
             onPressed: isValid
                 ? () {
-                    print(emailRM.value.email);
-                    print(passwordRM.value.password);
+                    print(emailRM.state.email);
+                    print(passwordRM.state.password);
                 }
                 : null,
         ),
         //Display the exposed model value
         Text('exposedModel is :'),
         Builder(builder: (_) {
-            if (exposedModel.value is Email) {
+            if (exposedModel.state is Email) {
             return Text('Email : '
-                '${exposedModel.hasError ? exposedModel.error.message : exposedModel.value.email}');
+                '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.email}');
             }
-            if (exposedModel.value is Password) {
+            if (exposedModel.state is Password) {
             return Text('password : '
-                '${exposedModel.hasError ? exposedModel.error.message : exposedModel.value.password}');
+                '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.password}');
             }
             return Container();
         })

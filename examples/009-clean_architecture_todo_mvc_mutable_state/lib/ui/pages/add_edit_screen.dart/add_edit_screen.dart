@@ -30,7 +30,7 @@ class _AddEditPageState extends State<AddEditPage> {
   String _task;
   String _note;
   bool get isEditing => widget.todoRM != null;
-  Todo get todo => widget.todoRM?.value;
+  Todo get todo => widget.todoRM?.state;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,18 +94,18 @@ class _AddEditPageState extends State<AddEditPage> {
               );
               widget.todoRM.setState(
                 (s) async {
-                  widget.todoRM.value = newTodo;
+                  widget.todoRM.state = newTodo;
                   Navigator.pop(context, newTodo);
                   await IN.get<TodosService>().updateTodo(todo);
                 },
                 watch: (todoRM) => widget.todoRM.hasError,
                 onError: (context, error) {
-                  widget.todoRM.value = oldTodo;
+                  widget.todoRM.state = oldTodo;
                   ErrorHandler.showErrorSnackBar(context, error);
                 },
               );
             } else {
-              RM.getSetState<TodosService>(
+              RM.get<TodosService>().setState(
                 (s) {
                   Navigator.pop(context);
                   return s.addTodo(Todo(_task, note: _note));

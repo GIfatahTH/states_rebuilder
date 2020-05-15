@@ -31,7 +31,7 @@ class FilterButton extends StatelessWidget {
         key: Key('FilterButton 1'),
         observe: () => activeTabRM,
         builder: (context, activeTabRM) {
-          final _isActive = activeTabRM.value == AppTab.todos;
+          final _isActive = activeTabRM.state == AppTab.todos;
           return AnimatedOpacity(
             opacity: _isActive ? 1.0 : 0.0,
             duration: Duration(milliseconds: 150),
@@ -66,17 +66,19 @@ class _Button extends StatelessWidget {
               //Compere this onSelected callBack with that of the ExtraActionsButton widget.
               //
               //In ExtraActionsButton, we did not use the setValue.
-              //Here we use the setValue (although we can use  activeFilterRM.value = filter ).
+              //Here we use the setState (although we can use  activeFilterRM.state = filter ).
 
               //
-              //The reason we use setValue is to minimize the rebuild process.
-              //If the use select the same option, the setValue method will not notify observers.
+              //The reason we use setState is to minimize the rebuild process.
+              //If the use select the same option, the setState method will not notify observers.
               //and onData will not invoked.
-              activeFilterRM.setValue(
-                () => filter,
+              activeFilterRM.setState(
+                (_) => filter,
                 onData: (_, __) {
                   //get and setState of the global ReactiveModel TodosService
-                  RM.getSetState<TodosService>((s) => s.activeFilter = filter);
+                  RM
+                      .get<TodosService>()
+                      .setState((s) => s.activeFilter = filter);
                 },
               );
             },
@@ -87,7 +89,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.all,
                 child: Text(
                   ArchSampleLocalizations.of(context).showAll,
-                  style: activeFilterRM.value == VisibilityFilter.all
+                  style: activeFilterRM.state == VisibilityFilter.all
                       ? activeStyle
                       : defaultStyle,
                 ),
@@ -97,7 +99,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.active,
                 child: Text(
                   ArchSampleLocalizations.of(context).showActive,
-                  style: activeFilterRM.value == VisibilityFilter.active
+                  style: activeFilterRM.state == VisibilityFilter.active
                       ? activeStyle
                       : defaultStyle,
                 ),
@@ -107,7 +109,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.completed,
                 child: Text(
                   ArchSampleLocalizations.of(context).showCompleted,
-                  style: activeFilterRM.value == VisibilityFilter.completed
+                  style: activeFilterRM.state == VisibilityFilter.completed
                       ? activeStyle
                       : defaultStyle,
                 ),

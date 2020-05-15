@@ -14,7 +14,7 @@ import 'package:todos_app_core/todos_app_core.dart';
 
 class TodoItem extends StatelessWidget {
   final ReactiveModel<Todo> todoRM;
-  Todo get todo => todoRM.value;
+  Todo get todo => todoRM.state;
   //Accept the todo ReactiveModel from the TodoList widget
   TodoItem({
     Key key,

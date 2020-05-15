@@ -47,15 +47,14 @@ class TodoItem extends StatelessWidget {
             final newTodo = todo.copyWith(
               complete: value,
             );
-            //Here we get the global ReactiveModel, and use the stream method to call the updateTodo.
+            //Here we get the global ReactiveModel, and use the setState method to call the updateTodo.
             //states_rebuilder will subscribe to this stream and notify observer widgets to rebuild when data is emitted.
-            RM
-                .get<TodosState>()
-                .stream((t) => TodosState.updateTodo(t, newTodo))
-                .onError(
-                  //on Error we want to display a snackbar
-                  ErrorHandler.showErrorSnackBar,
-                );
+            RM.get<TodosState>()
+              ..setState(
+                (t) => TodosState.updateTodo(t, newTodo),
+                //on Error we want to display a snackbar
+                onError: ErrorHandler.showErrorSnackBar,
+              );
           },
         ),
         title: Text(
@@ -79,8 +78,10 @@ class TodoItem extends StatelessWidget {
     final todosStateRM = RM.get<TodosState>();
 
     todosStateRM
-        .stream((t) => TodosState.deleteTodo(t, todo))
-        .onError(ErrorHandler.showErrorSnackBar);
+      ..setState(
+        (t) => TodosState.deleteTodo(t, todo),
+        onError: ErrorHandler.showErrorSnackBar,
+      );
 
     Scaffold.of(context).showSnackBar(
       SnackBar(
@@ -94,10 +95,12 @@ class TodoItem extends StatelessWidget {
         action: SnackBarAction(
           label: ArchSampleLocalizations.of(context).undo,
           onPressed: () {
-            //another nested call of stream method to voluntary add the todo back
+            //another nested call of setState method to voluntary add the todo back
             todosStateRM
-                .stream((t) => TodosState.addTodo(t, todo))
-                .onError(ErrorHandler.showErrorSnackBar);
+              ..setState(
+                (t) => TodosState.addTodo(t, todo),
+                onError: ErrorHandler.showErrorSnackBar,
+              );
           },
         ),
       ),

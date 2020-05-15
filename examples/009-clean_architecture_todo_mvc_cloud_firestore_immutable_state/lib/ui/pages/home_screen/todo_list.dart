@@ -25,7 +25,7 @@ class TodoList extends StatelessWidget {
 
       builder: (context, todosStoreRM) {
         //The builder exposes the BuildContext and the ReactiveModel of todosStore
-        final todos = todosStoreRM.value.todos;
+        final todos = todosStoreRM.state.todos;
         return ListView.builder(
           key: ArchSampleKeys.todoList,
           itemCount: todos.length,

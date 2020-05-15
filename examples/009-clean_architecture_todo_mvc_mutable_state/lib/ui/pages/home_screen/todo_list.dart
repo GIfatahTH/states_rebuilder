@@ -58,9 +58,9 @@ class TodoList extends StatelessWidget {
               //the StateBuilder to change
 
               didUpdateWidget: (context, todoRM, oldWidget) {
-                if (todoRM.value != todo) {
+                if (todoRM.state != todo) {
                   //set and notify the observer this StateBuilder to rebuild
-                  todoRM.value = todo;
+                  todoRM.state = todo;
                 }
               },
               builder: (context, todoRM) {

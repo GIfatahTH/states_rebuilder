@@ -32,8 +32,8 @@ class MyHomePage extends StatelessWidget {
                 builder: (context, counterRM) {
                   //The builder exposes the BuildContext and the created instance of ReactiveModel
                   return Text(
-                    //get the current value of the counter
-                    '${counterRM.value}',
+                    //get the current state of the counter
+                    '${counterRM.state}',
                     style: Theme.of(context).textTheme.headline5,
                   );
                 }),
@@ -43,12 +43,12 @@ class MyHomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           //set the value of the counter and notify observer widgets to rebuild.
-          counterRMKey.setValue(
-            () {
+          counterRMKey.setState(
+            (int counter) {
               if (Random().nextBool()) {
                 throw Exception('A Counter Error');
               }
-              return counterRMKey.value + 1;
+              return counter + 1;
             },
             onError: (context, dynamic error) {
               showDialog(

@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           ),
         )
       ],
-      builder: (context) => App(),
+      builder: (context) => const App(),
     );
   }
 }

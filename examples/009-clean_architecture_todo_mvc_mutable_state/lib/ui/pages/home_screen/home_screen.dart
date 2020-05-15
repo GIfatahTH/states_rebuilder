@@ -36,16 +36,14 @@ class HomeScreen extends StatelessWidget {
         //This widget will rebuild when the loadTodos future method resolves and,
         //when the state of the active AppTab is changed
         observeMany: [
-          //Here we are creating a local ReactiveModel form the future of loadTodos method.
-          // () => RM.get<TodosService>().asNew(HomeScreen).future(
-          //       (f) => f.loadTodos(),
-          //       wait: true,
-          //     )
-          () => RM.future(
-                RM.get<TodosService>().valueAsync.then(
-                      (s) => s.loadTodos(),
-                    ),
-              )
+          //Create a new ReactiveModel of future type from the state of the injected TodosService ReactiveModel
+          //the future method exposes the current state as well as the async state that we can await
+          () => RM.get<TodosService>().future((state, stateAsync) {
+                return stateAsync.then(
+                  (s) => s.loadTodos(),
+                );
+              })
+
                 //using the cascade operator,
                 //Invoke the error callBack to handle the error
                 //In states_rebuild there are three level of error handling:
@@ -70,7 +68,7 @@ class HomeScreen extends StatelessWidget {
         //WhenRebuilderOr has other optional callBacks (onData, onIdle, onError).
         //the builder is the default one.
         builder: (context, _activeTabRM) {
-          return _activeTabRM.value == AppTab.todos
+          return _activeTabRM.state == AppTab.todos
               ? TodoList()
               : StatsCounter();
         },
@@ -97,13 +95,13 @@ class HomeScreen extends StatelessWidget {
           builder: (context, _activeTabRM) {
             return BottomNavigationBar(
               key: ArchSampleKeys.tabs,
-              currentIndex: AppTab.values.indexOf(_activeTabRM.value),
+              currentIndex: AppTab.values.indexOf(_activeTabRM.state),
               onTap: (index) {
                 //mutate the value of the private field _activeTabRM,
                 //observing widget will be notified to rebuild
                 //We have three observing widgets : this StateBuilder, the WhenRebuilderOr,
                 //ond the StateBuilder defined in the FilterButton widget
-                _activeTabRM.value = AppTab.values[index];
+                _activeTabRM.state = AppTab.values[index];
               },
               items: AppTab.values.map(
                 (tab) {

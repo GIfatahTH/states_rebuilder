@@ -42,14 +42,14 @@ class MyHomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //set the value of the counter and notify observer widgets to rebuild.
-          counterRMKey.setValue(
-            () async {
+          //set the state of the counter and notify observer widgets to rebuild.
+          counterRMKey.setState(
+            (int counter) async {
               await Future.delayed(Duration(seconds: 1));
               if (Random().nextBool()) {
                 throw Exception('A Counter Error');
               }
-              return counterRMKey.value + 1;
+              return counter + 1;
             },
             catchError: true,
           );

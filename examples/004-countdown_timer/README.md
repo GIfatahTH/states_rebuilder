@@ -86,7 +86,7 @@ class TimerView extends StatelessWidget {
             //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
             if (duration <= 0) {
               //NOTE8: Mutating the state of TimerStatus using setState
-              timerStatusRM.setValue(()=>TimerStatus.ready);
+              timerStatusRM.setState((_)=>TimerStatus.ready);
             }
           },
           builder: (_, __) {
@@ -108,11 +108,11 @@ class TimerView extends StatelessWidget {
                       tag: 'timer',
                       builder: (context, _) {
                         //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
-                        if (timerStatusRM.value == TimerStatus.ready) {
+                        if (timerStatusRM.state == TimerStatus.ready) {
                           return ReadyStatus();
                         }
                         //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
-                        if (timerStatusRM.value == TimerStatus.running) {
+                        if (timerStatusRM.state == TimerStatus.running) {
                           return RunningStatus();
                         }
                         //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
@@ -207,14 +207,14 @@ onSetState: (_, __) {
   if (duration <= 0) {
     //NOTE8: Mutating the state of TimerStatus using setState
     
-    timerStatusRM.setValue(()=>TimerStatus.ready);
+    timerStatusRM.setState((_)=>TimerStatus.ready);
   }
 },
 ```
 
-The `onSetState` callback is called each time the stream emits a value and before building the widget. After decrementing the duration we check if it reaches zero and set the `timerStatusRM.value` to be `TimerStatus.ready` and send a notification to all subscribe widget. In our case, The `TimerView` widget is subscribed to the `TimerStatus` so it will be notified to rebuild. At this stage, because we define the key to be unique, the injected stream is stopped and dispose, and a new stream is created and starts emitting a new set of values [NOTE3, NOTE4].
+The `onSetState` callback is called each time the stream emits a value and before building the widget. After decrementing the duration we check if it reaches zero and set the `timerStatusRM.state` to be `TimerStatus.ready` and send a notification to all subscribe widget. In our case, The `TimerView` widget is subscribed to the `TimerStatus` so it will be notified to rebuild. At this stage, because we define the key to be unique, the injected stream is stopped and dispose, and a new stream is created and starts emitting a new set of values [NOTE3, NOTE4].
 
-the `duration` value is passed to the `TimerDigit` widget to display a formated value (minutes : seconds) : [NOTE9]
+the `duration` value is passed to the `TimerDigit` widget to display a formatted value (minutes : seconds) : [NOTE9]
 
 ```dart
 class TimerDigit extends StatelessWidget {
@@ -268,8 +268,8 @@ class ReadyStatus extends StatelessWidget {
       child: Icon(Icons.play_arrow),
       heroTag: UniqueKey().toString(),
       onPressed: () {
-        timerStatusRM.setValue(
-          ()=> TimerStatus.running,
+        timerStatusRM.setState(
+          (TimerStatus currentState)=> TimerStatus.running,
           filterTags: ['timer'],
           onSetState: (context) {
             timerStream.subscription.resume();
@@ -299,8 +299,8 @@ class RunningStatus extends StatelessWidget {
           child: Icon(Icons.pause),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              ()=> TimerStatus.paused,
+            timerStatusRM.TimerStatus(
+              (_)=> TimerStatus.paused,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.pause();
@@ -313,8 +313,8 @@ class RunningStatus extends StatelessWidget {
           heroTag: UniqueKey().toString(),
           onPressed: () {
             //paused and rerun the timer.
-            timerStatusRM.setValue(()=>TimerStatus.paused);
-            timerStatusRM.setValue(()=>TimerStatus.running);
+            timerStatusRM.setState((_)=>TimerStatus.paused);
+            timerStatusRM.setState((_)=>TimerStatus.running);
           },
         ),
       ],
@@ -343,8 +343,8 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.play_arrow),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              ()=> TimerStatus.running,
+            timerStatusRM.TimerStatus(
+              (_)=> TimerStatus.running,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.resume();
@@ -356,7 +356,7 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.stop),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(()=>TimerStatus.ready);
+            timerStatusRM.setState((_)=>TimerStatus.ready);
           },
         ),
       ],
@@ -371,7 +371,7 @@ It consists of two FAB, one for resume and the other for stop :
 
 # Using `OnSetStateListener`
 
-The approach we have followed, we use `onSetState` callback to execute side effect locally. By locally I mean that each `setValue` handles its own `onSetState`.
+The approach we have followed, we use `onSetState` callback to execute side effect locally. By locally I mean that each `setState` handles its own `onSetState`.
 
 We can handle side effects globally using `OnSetStateListener`.
 
@@ -426,9 +426,9 @@ class TimerView extends StatelessWidget {
           //set to true to execute onSetState in the initState
           shouldOnInitState: true,
           onSetState: (_, model) {
-            if (model.value is TimerStatus) {
-              print(timerStatusRM.value);
-              switch (timerStatusRM.value) {
+            if (model.state is TimerStatus) {
+              print(timerStatusRM.state);
+              switch (timerStatusRM.state) {
                 case TimerStatus.ready:
                   timerStream.subscription.pause();
                   break;
@@ -441,15 +441,15 @@ class TimerView extends StatelessWidget {
                 default:
               }
             }
-            if (model.value is int) {
-              print(model.value);
+            if (model.state is int) {
+              print(model.state);
               //NOTE8: Decrement the duration each time the stream emits a value
               duration = initialTimer - timerStream.snapshot.data - 1;
 
               //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
               if (duration <= 0) {
-                //NOTE8: Mutating the state of TimerStatus using value setter
-                timerStatusRM.value = TimerStatus.ready;
+                //NOTE8: Mutating the state of TimerStatus using state setter
+                timerStatusRM.state = TimerStatus.ready;
               }
             }
           },
@@ -475,11 +475,11 @@ class TimerView extends StatelessWidget {
                     tag: 'timer',
                     builder: (context, _) {
                       //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
-                      if (timerStatusRM.value == TimerStatus.ready) {
+                      if (timerStatusRM.state == TimerStatus.ready) {
                         return ReadyStatus();
                       }
                       //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
-                      if (timerStatusRM.value == TimerStatus.running) {
+                      if (timerStatusRM.state == TimerStatus.running) {
                         return RunningStatus();
                       }
                       //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
@@ -505,8 +505,8 @@ return OnSetStateListener(
   shouldOnInitState: true,
   onSetState: (_, model) {
     //model holds the instance of the reactive model that is emitting the notification
-    if (model.value is TimerStatus) {
-      switch (timerStatusRM.value) {
+    if (model.state is TimerStatus) {
+      switch (timerStatusRM.state) {
         case TimerStatus.ready:
           timerStream.subscription.pause();
           break;
@@ -519,10 +519,10 @@ return OnSetStateListener(
         default:
       }
     }
-    if (model.value is int) {
+    if (model.state is int) {
       duration = initialTimer - timerStream.snapshot.data - 1;
       if (duration <= 0) {
-        timerStatusRM.value =  TimerStatus.ready;
+        timerStatusRM.state =  TimerStatus.ready;
       }
     }
   },
@@ -544,7 +544,7 @@ Then we check for the exposed model, if it is `TimerStatus` we will switch for i
 
 If the expose model is `int` (that means the stream), we updated the `duration` variable and switch the `TimerStatus` status to ready if `duration` is zero.
 
-The remainder of the code is the same as the first case, except `onSetState` callback are removed from `setValue` methods.
+The remainder of the code is the same as the first case, except `onSetState` callback are removed from `setState` methods.
 
 # test
 

@@ -60,8 +60,8 @@ class MyHomePage extends StatelessWidget {
                   //The builder exposes the BuildContext and the created instance of ReactiveModel
                   print('build : is building');
                   return Text(
-                    //get the current value of the counter
-                    '${counterRM.value}',
+                    //get the current state of the counter
+                    '${counterRM.state}',
                     style: Theme.of(context).textTheme.headline5,
                   );
                 }),
@@ -71,8 +71,8 @@ class MyHomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           //counterRMKey is used to control the counter ReactiveModel from outside the widget where it is created
-          //set the value of the counter and notify observer widgets to rebuild.
-          counterRMKey.value++;
+          //set the state of the counter and notify observer widgets to rebuild.
+          counterRMKey.state++;
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
@@ -100,16 +100,16 @@ StateBuilder<int>(
     builder: (context, counterRM) {
       //The builder exposes the BuildContext and the created instance of ReactiveModel
       return Text(
-        //get the current value of the counter from the exposed counter ReactiveModel.
-        '${counterRM.value}',
+        //get the current state of the counter from the exposed counter ReactiveModel.
+        '${counterRM.state}',
         style: Theme.of(context).textTheme.headline5,
       );
   }),
 ```
 
-* To set the value of the counter and notify listeners from inside the `builder` method of the `StateBuilder` widget, we use the exposed ReactiveModel in the `builder` parameter.
+* To set the state of the counter and notify listeners from inside the `builder` method of the `StateBuilder` widget, we use the exposed ReactiveModel in the `builder` parameter.
 
-* To set the value of the counter and notify listeners from outside the `builder` method we use `ReactiveModel` key.
+* To set the state of the counter and notify listeners from outside the `builder` method we use `ReactiveModel` key.
 
 * In a similar fashion as used in Flutter, ReactiveModel keys are used to control a ReactiveModel from outside the widget where is is created, ReactiveModel key inherited all the state and behavior of the ReactiveModel is is associated with.
 
@@ -121,27 +121,25 @@ StateBuilder<int>(
 
 ## notification:
 
-To notify observer widgets (we have one; `StateBuilder` widget) we call use the `value` getter and setter.
+To notify observer widgets (we have one; `StateBuilder` widget) we call use the `state` getter and setter.
 
 ```dart
 floatingActionButton: FloatingActionButton(
 onPressed: () {
-    counterRM.value++;;
+    counterRM.state++;;
 },
 tooltip: 'Increment',
 child: Icon(Icons.add),
 ),
 ```
 
-> For primitives, immutable objects, you can set the value and notify observer widgets, using the value getter and setter.
-
-If you want more options such executing side effects before rebuild or after it use setValue.
+If you want more options such executing side effects before rebuild or after it use setState.
 
 ```dart
 onPressed: () {
-    //set the value of the counter and notify observer widgets to rebuild.
-    counterRM.setValue(
-    () => counterRM.value + 1,
+    //set the state of the counter and notify observer widgets to rebuild.
+    counterRM.setState(
+    (int currentState) => currentState + 1,
     onSetState: (context) {
         print('onSetState : before rebuild');
     },
@@ -165,15 +163,15 @@ In this example we are showing a snack bar containing the current value of the c
 ```dart
 floatingActionButton: FloatingActionButton(
 onPressed: () {
-    counterRM.setValue(
-    () => counterRM.value + 1,
+    counterRM.setState(
+    (int currentState) => currentState+ 1,
     onSetState: (context) {
 
         Scaffold.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
             SnackBar(
-            content: Text('${counterRM.value}'),
+            content: Text('${counterRM.state}'),
             ),
         );
     },
@@ -190,13 +188,13 @@ Take this case :
 ```dart
 floatingActionButton: FloatingActionButton(
 onPressed: () {
-    counterRM.setValue(
-    () {
+    counterRM.setState(
+    (currentState) {
         //simulate an error at random
         if (Random().nextBool()) {
         throw Exception('A Counter Error');
         }
-        return counterRM.value + 1;
+        return currentState + 1;
     },
     onError: (context, dynamic error) {
         //Show an alert dialog
@@ -241,15 +239,15 @@ Take this case :
 ```dart
 floatingActionButton: FloatingActionButton(
 onPressed: () {
-    counterRM.setValue(
-    () async {
+    counterRM.setState(
+    (counter) async {
         //simulate a delay of 1 second
         await Future.delayed(Duration(seconds: 1));
         //simulate a random error
         if (Random().nextBool()) {
         throw Exception('A Counter Error');
         }
-        return counterRM.value + 1;
+        return counter + 1;
     },
     //set catchError to true 
     catchError: true,
@@ -285,7 +283,7 @@ StateBuilder(
     // counterRM.hasData == true
     return Text(
         //get the current value of the counter
-        '${counterRM.value}',
+        '${counterRM.state}',
         style: Theme.of(context).textTheme.headline5,
     );
   },
@@ -308,7 +306,7 @@ StateBuilder(
         onWaiting: () => CircularProgressIndicator(),
         onError: (error) => Text(counterRM.error.message),
         onData: (data) => Text(
-        '${counterRM.value}',
+        '${counterRM.state}',
         style: Theme.of(context).textTheme.headline5,
         ),
     );
@@ -330,19 +328,9 @@ WhenRebuilder<int>(
 By the end of this first tutorial: 
 *  you understand and feel the power of `ReactiveModel` concept.
 *  We have made a primitive integer value of zero reactive, widgets can subscribe to it to be notified form the `ReactiveModel`. 
-* `setValue` is used to mutate the value and trigger a notification to observer widget. 
+* `setState` is used to mutate the value and trigger a notification to observer widget. 
 * There are a bunch of callback to be used to execute side effects (`onSetState`, `onRebuildState`, `onError`, `onData`). 
 * Widgets can subscribe to the `ReactiveModel` via `StateBuilder` and `WhenRebuilder` widgets.
-
-NB: For those who now states_rebuilder may ask, where are the `state` getter and `setState` method?
-The answer is that the `state` getter is the same as the `value` getter; they return the same object. Whereas `setValue` is syntactic sugar of:
-```dart
-counterRM.setState(
-    (state)=>fn(),
-    setValue:true,
-)
-```
-`setValue` is very convenient with primitive, enumeration and immutable object and setState is used better with mutable objects.
 
 finally, alongside with the concept of `ReactiveModel`, it remains three other concepts to reveal the full power of states_rebuilder:
 1. The concept of new reactive models where you can create for the same model (zero in our example) as many reactive models as you want.

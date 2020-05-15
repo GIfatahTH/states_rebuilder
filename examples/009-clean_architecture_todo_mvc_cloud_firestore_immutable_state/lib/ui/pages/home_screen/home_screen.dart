@@ -14,6 +14,8 @@ import 'todo_list.dart';
 //states_rebuilder is based on the concept fo ReactiveModels.
 //ReactiveModels can be local or global.
 class HomeScreen extends StatelessWidget {
+  HomeScreen({Key key}) : super(key: key);
+
   //Create a reactive model key to handle app tab navigation.
   //ReactiveModel keys are used for local ReactiveModels (similar to Flutter global key)
   final _activeTabRMKey = RMKey(AppTab.todos);
@@ -39,16 +41,18 @@ class HomeScreen extends StatelessWidget {
           //Here get a new reactiveModel of the injected TodosStore
           //we use the HomeScreen seed so that if other pages emits a notification this widget will not be notified
           () => RM.get<TodosState>().asNew(HomeScreen)
-            //using the cascade operator, we call the todosLoad method informing states_rebuilder that is is a future
-            ..future((t) => TodosState.loadTodos(t))
-                //Invoke the error callBack to handle the error
-                //In states_rebuild there are three level of error handling:
-                //1- global such as this one : (This is considered the default error handler).
-                //2- semi-global : for onError defined in setState and setValue methods.
-                //   When defined it will override the gobble error handler.
-                //3- local-global, for onError defined in the StateBuilder and OnSetStateListener widgets.
-                //   they override the global and semi-global error for the widget where it is defined
-                .onError(ErrorHandler.showErrorDialog),
+            //using the cascade operator, we call the todosLoad method using setState
+            ..setState(
+              (t) => TodosState.loadTodos(t),
+              //Invoke the error callBack to handle the error
+              //In states_rebuild there are three level of error handling:
+              //1- global such as this one : (This is considered the default error handler).
+              //2- semi-global : for onError defined in setState and setValue methods.
+              //   When defined it will override the gobble error handler.
+              //3- local-global, for onError defined in the StateBuilder and OnSetStateListener widgets.
+              //   they override the global and semi-global error for the widget where it is defined
+              onError: ErrorHandler.showErrorDialog,
+            ),
           //Her we subscribe to the activeTab ReactiveModel key
           () => _activeTabRMKey,
         ],
@@ -64,7 +68,7 @@ class HomeScreen extends StatelessWidget {
         //WhenRebuilderOr has other optional callBacks (onData, onIdle, onError).
         //the builder is the default one.
         builder: (context, _activeTabRM) {
-          return _activeTabRM.value == AppTab.todos
+          return _activeTabRM.state == AppTab.todos
               ? TodoList()
               : StatsCounter();
         },
@@ -91,13 +95,13 @@ class HomeScreen extends StatelessWidget {
           builder: (context, _activeTabRM) {
             return BottomNavigationBar(
               key: ArchSampleKeys.tabs,
-              currentIndex: AppTab.values.indexOf(_activeTabRM.value),
+              currentIndex: AppTab.values.indexOf(_activeTabRM.state),
               onTap: (index) {
                 //mutate the value of the private field _activeTabRM,
                 //observing widget will be notified to rebuild
                 //We have three observing widgets : this StateBuilder, the WhenRebuilderOr,
                 //ond the StateBuilder defined in the FilterButton widget
-                _activeTabRM.value = AppTab.values[index];
+                _activeTabRM.state = AppTab.values[index];
               },
               items: AppTab.values.map(
                 (tab) {

@@ -30,8 +30,8 @@ class MyHomePage extends StatelessWidget {
                   //The builder exposes the BuildContext and the created instance of ReactiveModel
                   print('build : is building');
                   return Text(
-                    //get the current value of the counter
-                    '${counterRM.value}',
+                    //get the current state of the counter
+                    '${counterRM.state}',
                     style: Theme.of(context).textTheme.headline5,
                   );
                 }),
@@ -42,8 +42,8 @@ class MyHomePage extends StatelessWidget {
         onPressed: () {
           //counterRMKey is used to control the counter ReactiveModel from outside the widget where it is created
           //set the value of the counter and notify observer widgets to rebuild.
-          counterRMKey.setValue(
-            () => counterRMKey.value + 1,
+          counterRMKey.setState(
+            (counter) => counter + 1,
             //onSetState callback is invoked after counterRM emits a notification and before rebuild
             onSetState: (context) {
               print('onSetState : before rebuild');
@@ -51,7 +51,7 @@ class MyHomePage extends StatelessWidget {
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
                   SnackBar(
-                    content: Text('${counterRMKey.value}'),
+                    content: Text('${counterRMKey.state}'),
                   ),
                 );
             },

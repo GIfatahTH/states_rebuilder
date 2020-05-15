@@ -13,7 +13,7 @@ import 'package:todos_app_core/todos_app_core.dart';
 class DetailScreen extends StatelessWidget {
   DetailScreen(this.todoRM) : super(key: ArchSampleKeys.todoDetailsScreen);
   final ReactiveModel<Todo> todoRM;
-  Todo get todo => todoRM.value;
+  Todo get todo => todoRM.state;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
