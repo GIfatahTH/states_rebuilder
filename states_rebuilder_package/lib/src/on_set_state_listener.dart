@@ -14,7 +14,7 @@ import 'when_rebuilder_or.dart';
 ///See [StateBuilder], [WhenRebuilder] and [WhenRebuilderOr].
 class OnSetStateListener<T> extends StatelessWidget {
   ///List of [ReactiveModel]s to observe
-  final List<ReactiveModel> models;
+  // final List<ReactiveModel> models;TODO
 
   ///an observable to which you want [OnSetStateListener] to subscribe to.
   final StatesRebuilder<T> Function() observe;
@@ -74,7 +74,6 @@ class OnSetStateListener<T> extends StatelessWidget {
   ///See [StateBuilder], [WhenRebuilder] and [WhenRebuilderOr].
   const OnSetStateListener({
     Key key,
-    this.models,
     this.observe,
     this.observeMany,
     this.onSetState,
@@ -90,11 +89,11 @@ class OnSetStateListener<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<T>(
-      models: models,
       observe: observe,
       observeMany: observeMany,
       tag: tag,
       onSetState: _onSetState,
+      activeRM: [],
       initState: (context, rm) {
         final _models =
             (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
