@@ -120,6 +120,12 @@ class StatesRebuilder<T> implements Subject {
   @override
   void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
     assert(() {
+      if (RM.debugPrintActiveRM == true) {
+        print(
+          '$this | filterTags: ${tags != null ? tags : "None"}',
+        );
+      }
+
       if (!hasObservers) {
         throw Exception(
           '''
@@ -148,14 +154,6 @@ class StatesRebuilder<T> implements Subject {
 |    rebuildStates()
 | }
 ''',
-        );
-      }
-      return true;
-    }());
-    assert(() {
-      if (RM.debugPrintActiveRM == true) {
-        print(
-          '$this | filterTags: ${tags != null ? tags : "None"}',
         );
       }
       return true;

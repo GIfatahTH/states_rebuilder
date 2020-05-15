@@ -56,7 +56,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///```
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
-  final List<StatesRebuilder> models;
+  // final List<StatesRebuilder> models;
 
   ///an observable to which you want [StateWithMixinBuilder] to subscribe.
   final StatesRebuilder Function() observe;
@@ -148,7 +148,6 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   StateWithMixinBuilder({
     Key key,
     this.tag,
-    this.models,
     this.observe,
     this.observeMany,
     this.builder,
@@ -242,7 +241,6 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
   }
 
   Widget get _stateBuilder => StateBuilder<dynamic>(
-        models: widget.models ?? [],
         observe: widget.observe,
         observeMany: widget.observeMany ?? [],
         tag: widget.tag,

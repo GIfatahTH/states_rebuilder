@@ -44,7 +44,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///```
   ///
   ///For the sake of performance consider using [observe] or [observeMany] instead.
-  final List<ReactiveModel> models;
+  // final List<ReactiveModel> models;TOOD
 
   ///an observable class to which you want [WhenRebuilder] to subscribe.
   ///```dart
@@ -124,7 +124,6 @@ class WhenRebuilder<T> extends StatelessWidget {
     @required this.onWaiting,
     @required this.onError,
     @required this.onData,
-    this.models,
     this.observe,
     this.observeMany,
     this.tag,
@@ -140,7 +139,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<T>(
-      models: models,
+      key: key,
       observe: observe,
       observeMany: observeMany,
       tag: tag,
@@ -149,15 +148,26 @@ class WhenRebuilder<T> extends StatelessWidget {
       dispose: dispose,
       onSetState: onSetState,
       child: const Text('StatesRebuilder#|0|#'),
+      activeRM: [],
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
         dynamic error;
+
         final _models = List<ReactiveModel>.from(
           (context.widget as StateBuilder).activeRM,
         );
-
+        assert(() {
+          if (modelRM == null) {
+            final types = _models.map((e) => e.runtimeType);
+            throw Exception(
+              'Failed to cast the generic type $T with any of the the ReactiveModel provided in observeMany list'
+              'provided types are $types',
+            );
+          }
+          return true;
+        }());
         _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
