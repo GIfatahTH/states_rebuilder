@@ -15,6 +15,9 @@ StateBuilder(
 )
 ```
 As consequence `Injector.reinject` is removed
+* Remove `setValue`, `value`, `getFuture`, `getStream` and `getSetState`.
+All the functionalities of the removed API are done with `setState`, `future`, `stream` methods.[see more details](changelog/v-2.0.0.md)
+* Remove the models parameter from the `SateBuilder`, `WhenRebuild`, `WhenRebuilderOr`, and `OnSEtStateListener`.
 ### Non Breaking change :
 * Add the possibility to listen to to a ReactiveModel from a Model Class: (#78)
   ```dart

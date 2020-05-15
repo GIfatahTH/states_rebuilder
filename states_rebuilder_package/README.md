@@ -21,9 +21,8 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 ## What is a `ReactiveModel`
 * It is an abstract class.
 * In the framework of the observer pattern (or observable-observer couple), ReactiveModel is the observable part. Observer widgets can subscribe to it to be notified to the rebuild.
-* It exposes two getters to obtain the last state (`state`,` value`)
-* It offers two methods to mutate the state and notify observing widgets (`setState` and` setValue`). 
-* `state`-`stateState` is used for mutable objects, while` value`-`setValue` is more convenient for primitives and immutable objects.
+* It exposes the `state` getter and setter to mutate the state and notify observers.
+* It offers `setState` method to perform more elaborate state mutation (futures and streams).
 * It exposes four getters to track its state, (`isIdle`,` isWaiting`, `hasError`, and` hasData`).
 * And much more ...
 
@@ -38,8 +37,7 @@ In `states_rebuilder`, you write your business logic part with pure dart classes
 
 The getters are : 
 * **state**: returns the registered raw singleton of the model.
-* **value**: returns the registered raw singleton of the model.
-* **valueAsync** return the state as future.
+* **stateAsync** return the state as future.
 * **connectionState** : It is of type `ConnectionState` (a Flutter defined enumeration). It takes three values:  
       1- `ConnectionState.none`: Before executing any method of the model.  
       2- `ConnectionState.waiting`: While waiting for the end of an asynchronous task.   
@@ -55,14 +53,16 @@ The fields are:
 * **subscription** : it is of type `StreamSubscription<T>`. It is not null if you inject streams using `Inject.stream` constructor. It is used to control the injected stream.   
 
 The methods are:
-* **setState**: return a `Future<void>`. It is used to mutate the state and notify listeners after state mutation.
-* **setValue**: return a `Future<void>` It is used to mutate the state and notify listeners after state mutation. It is equivalent to `setState` with the parameter `setValue` set to true. **setValue** is most suitable for immutables whereas **setState** is more convenient for mutable objects.
+* **setState**: return a `Future<void>`. It is used to mutate the state and notify listeners after state mutation. 
+   * setState works well with immutable and immutable state.
+   * setState automatically handle async calls (futures or streams).
+   * setState offers a clean interface to handle side effects.
+* **future**: return a `ReactiveModel<T>`. It awaits for a future from the state, create a new ReactiveModel mode, notify observer with the ConnectionState status.
+* **stream** return a `ReactiveModel<T>`. It listens to a stream from the state, create a new ReactiveModel model, subscribe to the stream and notify observers on data emitting.
+* **onError** a global error handler callback.
 * **whenConnectionState** Exhaustively switch over all the possible statuses of [connectionState]. Used mostly to return [Widget]s. It has four required parameters (`onIdle`, `onWaiting`, `onData` and `onError`).
 * **restToIdle** used to reset the async connection state to `isIdle`.
 * **restToHasData** used to reset the async connection state to `hasData`.
-* **stream** listen to a stream from the state and notify observer widgets when it emits a data.
-* **future** link to a future from the state and notify observers when it resolves.
-* **onError** a global error handler callback.
 * **onData** a global on data handler callback.
 * **listenToRM** A callBack that exposed the `ReactiveModel` instance. It is used to listen to the `ReactiveModel` outside the widget tree.
 
@@ -91,14 +91,14 @@ class MyApp extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(),
             body: Center(
-              //use the value getter to get the latest state stored in the ReactiveModel
-              child: Text('${counterRM.value}'),
+              //use the state getter to get the latest state stored in the ReactiveModel
+              child: Text('${counterRM.state}'),
             ),
             floatingActionButton: FloatingActionButton(
               child: Icon(Icons.add),
               //get and increment the value of the counterRM.
-              //on mutating the state using the value setter the observers are automatically notified
-              onPressed: () => counterRM.value++,
+              //on mutating the state using the state setter the observers are automatically notified
+              onPressed: () => counterRM.state++,
             ),
           );
         },
@@ -126,12 +126,12 @@ class MyApp extends StatelessWidget {
     * The `builder` parameter exposes the `BuildContext` and the the created instance of the `ReactiveModel`.
     * To notify the subscribed widgets (we have one `StateBuilder` here), we just incremented the value of the `counterRM`
         ```dart
-        onPressed: () => counterRM.value++,
+        onPressed: () => counterRM.state++,
         ```
 * The decorator pattern:
     * `ReactiveModel` decorates a primitive integer of 0 initial value and adds the following functionality:
         * The 0 is an observable `ReactiveModel` and widget can subscribe to it.
-        * The `value` getter and setter to increment the 0 and notify observers
+        * The `state` getter and setter to increment the 0 and notify observers
 
 In the example above, the rebuild is not optimized, because the entire `Scaffold` is rebuilt so as to change only a small text in the center of the screen.
 
@@ -153,13 +153,13 @@ class MyApp extends StatelessWidget {
               //associate this StateBuilder to the defined key
               rmKey: counterRMKey,
               builder: (context, counterRM) {
-                return Text('${counterRM.value}');
+                return Text('${counterRM.state}');
               }),
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           //increment the counter value and notify observers using the ReactiveModel key
-          onPressed: () => counterRMKey.value++,
+          onPressed: () => counterRMKey.state++,
         ),
       ),
     );
@@ -178,10 +178,10 @@ Unlike Flutter global keys, you don't need to use `StatefulWidget`, because in `
 
 The next step is to associate the `RMKey` with a `ReactiveModel`, as is done via the `rmKey` parameter of the `StateBuilder` widget.
 
-`RMKey` has all the functionality of the `ReactiveModel` associated with it. You can call `setState`, `setValue`, get the `state` and its status.
+`RMKey` has all the functionality of the `ReactiveModel` associated with it. You can call `setState`, get the `state` and its status.
 
 ```dart
-onPressed: () => counterRMKey.value++,
+onPressed: () => counterRMKey.state++,
 ```
 For more details on `RMKey` see here. [1.15.0 update](changelog/v-1.15.0.md)
 
@@ -190,8 +190,6 @@ Let's see with an example:
 
 Here I use an immutable object, but keep in mind that states_rebuild works the same way with mutable objects.
 
->> for immutable objects use value - setValue pair,  
->> for mutable objects use state - setState pair.  
 
 ```dart
 //create an immutable object
@@ -243,9 +241,10 @@ class MyApp extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
-          //We use setValue to change the Counter state and notify observers
-          onPressed: () async => counterRMKey.setValue(
-            () => counterRMKey.value.increment(),
+          //We use setState to change the Counter state and notify observers
+          //setState exposes the currentState as parameter
+          onPressed: () async => counterRMKey.setState(
+            (currentCounterState ) => currentCounterState.increment(),
             //set catchError to true
             catchError: true,
           ),
@@ -257,15 +256,15 @@ class MyApp extends StatelessWidget {
 ```
 `WhenRebuilder` is the second observer widget after` StateBuilder`. It helps you to define the corresponding view for each of the four state states (`onIdle`,` onWaiting`, `onError` and` onData`).
 
-Notice that we used `setValue` method to mutate the state. If you use `setValue`, `states_rebuilder` automatically handles the asynchronous event for you. 
-* This is the rule if you want to change the state synchronously, use the value setter:
+Notice that we used `setState` method to mutate the state. If you use `setState`, `states_rebuilder` automatically handles the asynchronous event for you. 
+* This is the rule if you want to change the state synchronously, use the `state` setter:
 ```dart
-counterRMKey.value = await counterRMKey.value.increment();
+counterRMKey.state = await counterRMKey.state.increment();
 ```
-whereas if you want to let `states_rebuilder` handle the asynchronous events use `setValue`:
+whereas if you want to let `states_rebuilder` handle the asynchronous events use `setState`:
 ```dart
-counterRMKey.setValue(
-  () => counterRMKey.value.increment(),
+counterRMKey.setState(
+  (currentCounterState) => currentCounterState.increment(),
   catchError: true,
 ),
 ```
@@ -308,7 +307,7 @@ class MyApp extends StatelessWidget {
             observe: () => RM.create(Counter(0)),
             rmKey: counterRMKey,
             builder: (context, counterRM) {
-              return Text('${counterRM.value.count}');
+              return Text('${counterRM.state.count}');
             },
           ),
         ),
@@ -316,10 +315,11 @@ class MyApp extends StatelessWidget {
           return FloatingActionButton(
             child: Icon(Icons.add),
             onPressed: () async {
-              //invoking the stream method from the ReactiveModel.
+              //invoking the setSate method from the ReactiveModel.
               //states_rebuild subscribe to the stream and rebuild the observer widget whenever the stream emits
-              counterRMKey.stream((c) => c.increment()).onError(
-                (context, error) {
+              counterRMKey.setState(
+                (c) => c.increment(),
+                onError : (context, error) {
                   //side effects here
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
@@ -347,9 +347,9 @@ StateBuilder<double>(
   observe: () => RM.create(0),
   builder: (context, sliderRM) {
     return Slider(
-      value: sliderRM.value,
+      value: sliderRM.state,
       onChanged: (value) {
-        sliderRM.value = value;
+        sliderRM.state = value;
       },
     );
   },
@@ -412,14 +412,9 @@ class MyApp extends StatelessWidget {
             floatingActionButton: FloatingActionButton(
               child: Icon(Icons.add),
               //The ReactiveModel of Counter is available any where is the widget tree.
-              onPressed: () async => RM.get<Counter>().setValue(
-                    () => RM.get<Counter>().value.increment(),
+              onPressed: () async => RM.get<Counter>().setSate(
+                    (Counter currentState) => currentState.increment(),
                     catchError: true,
-                  ),
-              //As we now that increment is a future method we can simply tell states_rebuilder
-              //that increment is a future method and let it deal with it.
-              onPressed: () async => RM.get<Counter>().future(
-                    (c) => c.increment(),
                   ),
             ),
           ),
@@ -551,8 +546,8 @@ If we want to display a `SnackBar` if `fetchProducts` fails:
 ```dart
 WhenRebuilderOr<ProductStore>(
   observe : ()=> RM.get<ProductStore>()
-                  ..setState((s) => s.fetchProducts())
-                  ..onError((context, error){
+                  ..setState((s) => s.fetchProducts(), 
+                   onError : (context, error){
                     //Show SnackBar or error dialog
                   }),
   onWaiting : ()=> CircularProgressIndicator(),
@@ -582,7 +577,7 @@ In states_rebuild there are three level of error handling:
     //...
   }),
   ```
-2- semi-global : for `onError` defined in `setState` and `setValue` methods. When defined it will override the gobble error handler.
+2- semi-global : for `onError` defined in `setState` method. When defined it will override the gobble error handler.
   ```dart
   fooRM.setState((s)=>s.fooMethod(),
     onError: (context, error){
@@ -605,7 +600,12 @@ In states_rebuild there are three level of error handling:
 
 ```dart
 WhenRebuilderOr<ProductStore>(
-  observe : ()=> RM.future(Injector.get<ProductStore>().fetchProducts()),
+  observe : ()=> RM.get<ProductStore>().future((state, stateAsync) {
+    //future method returns a new reactiveModel it exposes the current state and a 
+    // representation of the asynchronous state of ProductStore.
+
+    state.fetchProducts();
+  }),
   onWaiting : ()=> CircularProgressIndicator(),
   builder: (context, productStoreRM) {
     //As this widget is subscribed to a ReactiveModel created here,
@@ -666,10 +666,6 @@ RaiseButton(
 See in the example folder to see a working case for states_rebuilder with mutable store.
 
 ## case of immutable state
-to deal with mutable objects use:
-- the `value` getter,
-- `setValue` method to mutate the state, and
-- use Stream generator for the asynchronous methods.
 ```dart
 @immutable
 class ProductState {
@@ -715,7 +711,7 @@ Injector(
 
 ```dart
 WhenRebuilderOr<ProductStore>(
-  observe : ()=> RM.get<ProductStore>()..future((s) => s.fetchProducts()),
+  observe : ()=> RM.get<ProductStore>()..setState((s) => s.fetchProducts()),
   onWaiting : ()=> CircularProgressIndicator(),
   builder: (context, productStoreRM) {
     //As this widget is subscribed to a global ReactiveModel,
@@ -726,7 +722,7 @@ WhenRebuilderOr<ProductStore>(
 //or 
 WhenRebuilderOr<ProductStore>(
   observe : ()=> RM.get<ProductState>(),
-  initState : (context,productStateRM) => productStateRM.future((s)=>s.fetchProducts())
+  initState : (context,productStateRM) => productStateRM.setState((s)=>s.fetchProducts())
   onWaiting : ()=> CircularProgressIndicator(),
   builder: (context, productStoreRM) {
     //...
@@ -747,7 +743,7 @@ StateBuilder<ProductStore>(
 RaiseButton(
   child: Text('add Product'),
   onPressed: (){
-    RM.get<ProductStore>().stream((s)=>s.addProduct(product)),
+    RM.get<ProductStore>().setState((s)=>s.addProduct(product),
     onError: (context, error){
       //when add product fails, the product is removed and 
       //the UI is updated to display the old list
@@ -882,6 +878,7 @@ StateBuilder<T>(
 
   // A list of observable objects to which this widget will subscribe.
   //May be deprecated in a future release
+  //Removed since version 2.0.0
   models: [model1, model2]
   // like models but more preferment
   observe : ()=> model1
@@ -939,17 +936,17 @@ class HomePage extends StatelessWidget {
     return Column(
       children: <Widget>[
         StateBuilder( // This StateBuilder will be notified
-          models: [counterModel],
+          observe : () => counterModel,
           tag: ['tag1, tag2'],
           builder: (_, __) => Text('${counterModel.count}'),
         ),
         StateBuilder(
-          models: [counterModel],
+          observe : () => counterModel,
           tag: 'tag2',
           builder: (_, __) => Text('${counterModel.count}'),
         ),
         StateBuilder(
-          models: [counterModel],
+          observe : () => counterModel,
           tag: MyEnumeration.tag1,// You can use enumeration
           builder: (_, __) => Text('${counterModel.count}'),
         )
@@ -965,7 +962,7 @@ instead of verbosely:
 ```dart
 Widget build(BuildContext context) {
     return StateBuilder<PlugIn1>(
-      models: [RM.get<PlugIn1>()],
+      observe : () => RM.get<PlugIn1>(),
       builder: (_, plugin1RM) {
         return plugin1RM.whenConnectionState(
           onIdle: () => Text('onIDle'),
@@ -984,7 +981,7 @@ You use :
 @override
 Widget build(BuildContext context) {
   return WhenRebuilder<PlugIn1>(
-    models: [RM.get<PlugIn1>()],
+    observe : () => RM.get<PlugIn1>(),
     onIdle: () => Text('onIdle'),
     onWaiting: () => CircularProgressIndicator(),
     onError: (error) => Text('plugin one has an error $error'),
@@ -998,6 +995,7 @@ Also with `WhenRebuilder` you can listen to a list of observable models and go t
 ```dart
 WhenRebuilder<Model1>(
   //List of observable models
+  //Removed since version 2.0.0
   models: [reactiveModel1, reactiveModel1],
     // like models but more preferment
   observe : ()=> model1
@@ -1052,6 +1050,7 @@ WhenRebuilder<Model1>(
 ```dart
 OnSetStateListener<Model1>(
   //List of observable models
+  //Removed since version 2.0.0
   models: [reactiveModel1, reactiveModel1],
     // like models but more preferment
   observe : ()=> model1
@@ -1096,21 +1095,21 @@ ex:
 ```dart
 //first case : generic model is ModelA
 StateBuilder<ModelA>(
-  models:[modelA, modelB],
+  observe : [() => modelA, ()=> modelB],
   builder:(context, exposedModel){
     //exposedModel is an instance of ReactiveModel<ModelA>.
   }
 )
 //second case : generic model is ModelB
 StateBuilder<ModelB>(
-  models:[modelA, modelB],
+  observe : [() => modelA, () => modelB],
   builder:(context, exposedModel){
     //exposedModel is an instance of ReactiveModel<ModelB>.
   }
 )
 //third case : generic model is dynamic
 StateBuilder(
-  models:[modelA, modelB],
+  observe : [() => modelA, ()=>  modelB],
   builder:(context, exposedModel){
     //exposedModel is dynamic and it will change over time to hold the instance of model that emits a notification.
     
@@ -1191,14 +1190,12 @@ Injector(
 The `Injector.get` method searches for the registered singleton using the service locator pattern. 
 
 
-```
-
 # setState
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
 ```dart
 reactiveModel.setState(
-  (state) => state.increment(),
+  (current state) => state.increment(),
   //Filter notification with tags
   filterTags: ['Tag1', Enumeration.Tag2],
 
@@ -1206,7 +1203,8 @@ reactiveModel.setState(
   seeds:['seed1',Enumeration.Seed2 ],
 
   //set to true, you want to catch error, and not break the app.
-  catchError: true 
+  //IF onError is defined, catchError is set to true automatically
+  catchError: false 
   
   watch: (Counter counter) {
     //Specify the parts of the state to be monitored so that the notification is not sent unless this part changes
@@ -1229,6 +1227,10 @@ reactiveModel.setState(
 
   onError: (BuildContext context, dynamic error){
     //Callback to be executed if the reactive model throws an error.
+
+    //It exposed the BuildContext of the last add observer widget. 
+    //If no observer is registered yet it will be null
+
     //You do not have to set the parameter catchError to true. By defining onError parameter 
     //states_rebuilder catches the error by default.
   }
@@ -1243,49 +1245,6 @@ reactiveModel.setState(
   //message to be sent to the reactive singleton
   dynamic joinSingletonToNewData,
 
-  //Whether to set value or not
-  bool setValue:false,
-),
-```
-
-# `value` getter and `setValue` method.
-With `states_rebuilder` you can inject with primitive values or enums and make them reactive so that you can mutate their values and notify observer widgets that have subscribed to them.
-
-With `RM<T>.create(T value)` you can create a `ReactiveModel` from a primitive value. The created `ReactiveModel` has the full power the other reactive models created using `Injector` have as en example you can wrap the primitive value with many reactive model instances.
-
-If you change the value (counterRM.value++), setValue will implicitly called to notify observers.
-
-`setValue` watches the change of the value and will not notify observers only if the value has changed.
-`setValue` has `onSetState`, `onRebuildState`, `onError`,  `catchError`, `filterTags` , `seeds` and `notifyAllReactiveInstances` the same way they are defined in `setState`:
-```dart
-reactiveModel.setValue(
-  ()=> newValue,
-  filterTags: ['Tag1', Enumeration.Tag2],
-  //onData, trigger notification from new reactive models with the seeds in the list,
-  seeds:['seed1',Enumeration.Seed2 ],
-
-  onSetState: (BuildContext context) {
-    /* 
-    Side effects to be executed after sending notification and before rebuilding the observers. Side effects are navigating, opening the drawer, showing snackBar , ..
-
-    You can use another nested setState here.
-    */
-  },
-  onRebuildState: (BuildContext context) {
-    //The same as in onSetState but called after the end rebuild process.
-  },
-    
-  //set to true, you want to catch error, and not break the app.
-  catchError: true,
-
-  onError: (BuildContext context, dynamic error){
-    //Callback to be executed if the reactive model throws an error.
-    //You do not have to set the parameter catchError to true. By defining onError parameter 
-    //states_rebuilder catches the error by default.
-  }
-
-  //When a notification is issued, whether to notify all reactive instances of the model
-  notifyAllReactiveInstances: true, 
 ),
 ```
 
