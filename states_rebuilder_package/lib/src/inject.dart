@@ -87,12 +87,10 @@ class Inject<T> implements Injectable {
 
   ///Inject a Future
   ///
-  ///There are three type of future ReactiveModels:
-  ///* [Inject.future]: Future injected using [Inject.future] can be consumed with [RM.get].
-  ///* [ReactiveModel.future] : call a future from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
+  ///Future injected using [Inject.future] can be consumed with [IN.get] or [RM.get]
   ///
+  ///see:
+  ///* [ReactiveModel.future] : call a future from the state of the ReactiveModel
   Inject.future(
     this.creationFutureFunction, {
     dynamic name,
@@ -106,12 +104,10 @@ class Inject<T> implements Injectable {
 
   ///Inject a Stream,
   ///
+  ///Stream injected using [Inject.stream] can be consumed with [RM.get].
   ///
-  ///There are three type of stream ReactiveModels:
-  ///* [Inject.stream]: Stream injected using [Inject.stream] can be consumed with [RM.get].
-  ///* [ReactiveModel.stream] : subscribe to a stream from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getStream] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
+  ///See
+  ///* [Inject.stream]:
   Inject.stream(
     this.creationStreamFunction, {
     dynamic name,

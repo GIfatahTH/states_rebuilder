@@ -116,19 +116,19 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   AsyncSnapshot<T> get snapshot;
 
   ///The state of the injected model.
-  T get state;
+  T state;
 
   ///Get the state as future
   ///
   ///You can await for it when the [ConnectionState] is awaiting
-  Future<T> get valueAsync;
+  Future<T> get stateAsync;
 
-  ///The value the ReactiveModel holds. It is the same as [state]
-  ///
-  ///value is more suitable fro immutable objects,
-  ///
-  ///value when set it automatically notify observers. You do not have to explicitly use [setValue]
-  T value;
+  // ///The value the ReactiveModel holds. It is the same as [state]
+  // ///
+  // ///value is more suitable fro immutable objects,
+  // ///
+  // ///value when set it automatically notify observers. You do not have to explicitly use [setValue]
+  // T value;
 
   ///inject associated with this ReactiveModel
   Inject<T> get inject;
@@ -189,7 +189,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///It returns a callback for unsubscription
   void Function() listenToRM(void Function(ReactiveModel<T> rm) fn);
 
-  ///The stream (or Future) subscription. It works only for injected streams or futures.
+  ///The stream (or Future) subscription of the state
   StreamSubscription<dynamic> get subscription;
 
   ///Exhaustively switch over all the possible statuses of [connectionState].
@@ -218,23 +218,6 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData;
-
-  /// Mutate the value of a Reactive Model and notify observers.
-  ///
-  /// Equivalent to [setState] but very convenient for primitives and immutable objects
-  Future<void> setValue(
-    FutureOr<T> Function() fn, {
-    List<dynamic> filterTags,
-    List<dynamic> seeds,
-    void Function(BuildContext context) onSetState,
-    void Function(BuildContext context) onRebuildState,
-    void Function(BuildContext context, dynamic error) onError,
-    void Function(BuildContext context, T data) onData,
-    bool catchError = false,
-    bool notifyAllReactiveInstances = false,
-    bool joinSingleton,
-    bool silent = false,
-  });
 
   /// Mutate the state of the model and notify observers.
   ///
@@ -280,44 +263,48 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     bool notifyAllReactiveInstances = false,
     bool setValue = false,
     bool silent = false,
+    bool shouldAwait = false,
   });
 
   ///Get a stream from the state and subscribe to it and
   ///notify observing widget of this [ReactiveModel]
+  ///whenever the stream emits data
   ///
-  ///The callback exposes the current state as parameter.
+  ///The callback exposes the current state and stream subscription.
   ///
-  ///The stream is automatically disposed of when this [ReactiveModel] is disposed.
+  ///If all observer widget are removed from the widget tree,
+  ///the stream of local ReactiveModel will be canceled.
   ///
-  ///Works well for immutable objects
+  ///For global ReactiveModel the stream is not canceled unless
+  ///the [Injector] widget that creates the stream is disposed.
   ///
-  /// There are three type of stream ReactiveModels:
+  /// See
   ///* [Inject.stream]: Stream injected using [Inject.stream] can be consumed with [RM.get].
-  ///* [ReactiveModel.stream] : subscribe to a stream from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getFuture] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
-
-  ReactiveModel<T> stream<S>(Stream<S> Function(T stream) stream,
-      {T initialValue});
+  ReactiveModel<S> stream<S>(
+    Stream<S> Function(
+      T s,
+      StreamSubscription<dynamic> subscription,
+    )
+        stream, {
+    S initialValue,
+    Object Function(T s) watch,
+  });
 
   ///Get a Future from the state and subscribe to it and
   ///notify observing widget of this [ReactiveModel]
+  ///when the future completes
   ///
-  ///The callback exposes the current state as parameter.
+  ///The callback exposes the current state and async state as parameter.
   ///
   ///The future is automatically canceled when this [ReactiveModel] is disposed.
   ///
-  ///Works well for immutable objects
   ///
-  ///There are three type of future ReactiveModels:
-  ///* [Inject.future]: Future injected using [Inject.future] can be consumed with [RM.get].
-  ///* [ReactiveModel.future] : call a future from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
-  ///
-  ReactiveModel<T> future<S>(
-    Future<S> Function(T future) future, {
-    T initialValue,
+  ///See:
+  ///* [Inject.future].
+  ReactiveModel<F> future<F>(
+    Future<F> Function(T s, Future<T> stateAsync) future, {
+    F initialValue,
+    Object Function(T s) watch,
     bool shouldAwait = false,
   });
 
@@ -344,6 +331,7 @@ abstract class RM {
     T initialValue,
     List<dynamic> filterTags,
   }) {
+    // assert(T != dynamic);
     return ReactiveModel<T>.future(
       future,
       name: name,
@@ -378,123 +366,6 @@ abstract class RM {
       name: name,
       silent: silent,
     );
-  }
-
-  ///get the model T and create a new future ReactiveModel from its state
-  ///and await for it.
-  ///
-  ///The callback expose the registered instance of the model T
-  ///
-  ///Instead of writing:
-  ///
-  ///```dart
-  ///final model = Injector.get<T>();
-  ///
-  ///final futureRM = RM.future<R>(model.futureMethod());
-  ///```
-  ///
-  ///You can simply use:
-  ///```dart
-  ///final futureRM = RM.getFuture<T, R>((m)=>m.futureMethod());
-  ///```
-  ///
-  ///There are three type of future ReactiveModels:
-  ///* [Inject.future]: Future injected using [Inject.future] can be consumed with [RM.get].
-  ///* [ReactiveModel.future] : call a future from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getFuture] : Create a new ReactiveModel from a future of the Model T
-  ///
-  static ReactiveModel<R> getFuture<T, R>(
-    Future<R> Function(T s) future, {
-    String name,
-    BuildContext context,
-    R initialValue,
-  }) {
-    final m = Injector.get<T>(name: name);
-    return RM.future(
-      future(m),
-      initialValue: initialValue,
-    );
-  }
-
-  ///get the model T and create a stream ReactiveModel and subscribe to it.
-  ///
-  ///Instead of writing:
-  ///
-  ///```dart
-  ///final model = Injector.get<T>();
-  ///
-  ///final streamRM = RM.stream<R>(model.streamMethod());
-  ///```
-  ///
-  ///You can simply use:
-  ///```dart
-  ///final streamRM = RM.getStream<T, R>((m)=>m.streamMethod());
-  ///```
-  ///There are three type of stream ReactiveModels:
-  ///* [Inject.stream]: Stream injected using [Inject.stream] can be consumed with [RM.get].
-  ///* [ReactiveModel.stream] : subscribe to a stream from the state of the ReactiveModel
-  ///and notify its observer
-  ///* [RM.getStream] : Create a new ReactiveModel from a stream of the Model T and subscribe to it
-  static ReactiveModel<R> getStream<T, R>(
-    Stream<R> Function(T s) stream, {
-    String name,
-    BuildContext context,
-    R initialValue,
-    Object Function(R) watch,
-  }) {
-    final m = Injector.get<T>(name: name);
-    return RM.stream(
-      stream(m),
-      initialValue: initialValue,
-      watch: watch,
-    );
-  }
-
-  ///get the model T and call [ReactiveModel.setState].
-  ///
-  ///Instead of writing:
-  ///
-  ///```dart
-  ///RM.get<T>().setState((s)=>...)
-  ///```
-  ///
-  ///You can simply use:
-  ///```dart
-  ///RM.getSetState<T>((s)=>....);
-  ///```
-  static Future<void> getSetState<T>(
-    Function(T s) fn, {
-    bool catchError,
-    Object Function(T) watch,
-    List<dynamic> filterTags,
-    List<dynamic> seeds,
-    void Function(BuildContext) onSetState,
-    void Function(BuildContext) onRebuildState,
-    void Function(BuildContext, dynamic) onError,
-    void Function(BuildContext, T) onData,
-    dynamic Function() joinSingletonToNewData,
-    bool joinSingleton,
-    bool notifyAllReactiveInstances,
-    bool setValue,
-    bool silent = false,
-  }) {
-    return RM.get<T>().setState(
-          fn,
-          catchError: catchError,
-          watch: watch,
-          filterTags: filterTags,
-          seeds: seeds,
-          onSetState: onSetState,
-          onRebuildState: onRebuildState,
-          onError: onError,
-          onData: onData,
-          joinSingletonToNewData: joinSingletonToNewData,
-          joinSingleton: joinSingleton,
-          notifyAllReactiveInstances: notifyAllReactiveInstances,
-          setValue: setValue,
-          silent: silent,
-        );
   }
 
   ///if true, An informative message is printed in the consol, showing the model being sending the Notification,
