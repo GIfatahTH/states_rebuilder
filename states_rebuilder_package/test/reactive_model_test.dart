@@ -1459,7 +1459,6 @@ void main() {
     testWidgets(
       'Nested dependent futures ',
       (tester) async {
-        RM.debugPrintActiveRM = true;
         final future1 =
             RM.future(Future.delayed(Duration(seconds: 1), () => 2));
         final inject = Inject.future(() async {
@@ -2018,7 +2017,6 @@ void main() {
       (tester) async {
         final modelRM0 = ReactiveModel.create(0);
         final modelRM1 = modelRM0.asNew('seed1');
-        RM.debugPrintActiveRM = true;
         final widget = Column(
           children: <Widget>[
             StateBuilder(
