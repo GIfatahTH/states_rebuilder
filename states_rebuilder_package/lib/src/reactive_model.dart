@@ -304,8 +304,6 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ReactiveModel<F> future<F>(
     Future<F> Function(T s, Future<T> stateAsync) future, {
     F initialValue,
-    Object Function(T s) watch,
-    bool shouldAwait = false,
   });
 
   ///Check the type of the state of the [ReactiveModel]
@@ -331,7 +329,6 @@ abstract class RM {
     T initialValue,
     List<dynamic> filterTags,
   }) {
-    // assert(T != dynamic);
     return ReactiveModel<T>.future(
       future,
       name: name,

@@ -18,6 +18,36 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 `states_rebuilder` state management solution is based on what is called the `ReactiveModel`.
 
+>Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
+
+contenet:
+* [What is a `ReactiveModel`](##What-is-a-`ReactiveModel`)
+  * [Local and Global `ReactiveModel`](##Local-and-Global-`ReactiveModel`)
+    * [Local ReactiveModels](###Local-ReactiveModels)
+    * [Global ReactiveModel  (Injector)](###Global-ReactiveModel-(Injector))
+* [Mutable state management](##-Mutable-state-management)
+* [Immutable state management](##Immutable-state-management)
+* [New ReactiveModel](##New-ReactiveModel)
+* [`states_rebuilder` API](#states_rebuilder-API)
+  * [StateBuilder](##StateBuilder)
+  * [WhenRebuilder and WhenRebuilderOr](##WhenRebuilder-and-WhenRebuilderOr)
+  * [OnSetStateListener](##OnSetStateListener)
+  * [Note on the exposedModel](##Note-on-the-exposedModel)
+  * [Injector](##Injector)
+  * [setState](##setState)
+  * [future](##future)
+  * [stream](##stream)
+  * [listenToRM](##listenToRM)
+  * [StateWithMixinBuilder](##StateWithMixinBuilder)
+* [Dependency Injection](#Dependency-Injection)
+  * [Asynchronous Dependency Injection](#Asynchronous-Dependency-Injection)
+  * [Development flavor](#Development-flavor)
+* [Widget unit texting](#Widget-unit-texting)
+* [Debugging print](##Debugging-print)
+* [For further reading](#For-further-reading)
+* [Update log](##Update-log)
+
+
 ## What is a `ReactiveModel`
 * It is an abstract class.
 * In the framework of the observer pattern (or observable-observer couple), ReactiveModel is the observable part. Observer widgets can subscribe to it to be notified to the rebuild.
@@ -66,7 +96,7 @@ The methods are:
 * **onData** a global on data handler callback.
 * **listenToRM** A callBack that exposed the `ReactiveModel` instance. It is used to listen to the `ReactiveModel` outside the widget tree.
 
-## Local and Global `ReactiveModel`:
+## Local and Global `ReactiveModel`
 
 ReactiveModels are either local or global. 
 In local `ReactiveModel`, the creation of the `ReactiveModel` and subscription and notification are all limited in one place (widget).
@@ -356,7 +386,7 @@ StateBuilder<double>(
 ),
 ```
 
-### Global ReactiveModel
+### Global ReactiveModel (Injector)
 There is no difference between local and global ReactiveModel, except that global ReactiveModels are available in the widget tree and local models are used for a limited part of the widget tree.
 
 Regardless of the effectiveness of the state management solution, it must rely on a reliable dependency injection system.
@@ -475,13 +505,13 @@ It is important to understand that `states_rebuilder` caches two singletons.
 * The raw singleton of the registered model, obtained using `Injector.get` (or IN.get) method.
 * The reactive singleton of the registered model (the raw model decorated with reactive environment), obtained using `Injector.getAsReactive` of (RM.get).
 
-For more details on the public interface of Injector [see here](#Injector), and further details on the dependency injections [see here](#Dependency-Injection-and-development-flavor).
-# Where to use Global or local ReactiveModel:
+For more details on the public interface of Injector [see here](#Injector), and further details on the dependency injections [see here](#Dependency-Injection).
 
+Where to use Global or local ReactiveModel? 
 To know what type of `ReactiveModel` to use, you just have to ask the following question: will I inform the widget to rebuild from other pages or widget, if it is, use the global ReactiveModel and in the other case use the local ReactiveModel to optimize the rebuild of the widget tree.
 
 Here a typical example on how to use `states_rebuilder` for mutable store and immutable state
-## case of mutable store
+## Mutable state management
 to deal with mutable objects use:
 - the `state` getter,
 - the `setState` method to mutate the state, and
@@ -665,7 +695,7 @@ RaiseButton(
 ```
 See in the example folder to see a working case for states_rebuilder with mutable store.
 
-## case of immutable state
+## Immutable state management
 ```dart
 @immutable
 class ProductState {
@@ -756,7 +786,7 @@ See in the example folder to see a working case for states_rebuilder with immuta
 
 For more details on the immutable state management [see here](changelog/v-1.15.0.md)
 
-# New ReactiveModel
+## New ReactiveModel
 
 To limit the widget rebuild for immutable state or mutable store, `states_rebuilder` offers the concept of new `ReactiveModel`.
 
@@ -834,7 +864,8 @@ ReactiveModel<T> modelRM2 = RM.get<T>(name : Enum.newModel1);
 
 
 The following is more details on the public interface exposed by `states_rebuilder`:
-# StateBuilder
+# states_rebuilder API
+## StateBuilder
 In addition to its state management responsibility, `StateBuilder` offers a facade that facilitates the management of the widget's lifecycle.
 ```dart
 StateBuilder<T>(
@@ -955,7 +986,7 @@ class HomePage extends StatelessWidget {
   }
 }
 ```
-# WhenRebuilder and WhenRebuilderOr
+## WhenRebuilder and WhenRebuilderOr
 `states_rebuilder` offers the the `WhenRebuilder` widget which is a a combination of `StateBuilder` widget and `ReactiveModel.whenConnectionState` method.
 
 instead of verbosely:
@@ -1044,7 +1075,7 @@ WhenRebuilder<Model1>(
 ```
 `WhenRebuilderOr` is just like `WhenRebuilder` but with optional `onIdle`, `onWaiting` and `onError` parameters and with required default `builder`..
 
-# OnSetStateListener
+## OnSetStateListener
 `OnSetStateListener` is useful when you want to globally control the notification flow of a list of observable models and execute side effect calls. 
 
 ```dart
@@ -1089,27 +1120,40 @@ OnSetStateListener<Model1>(
 ```
 What makes `OnSetStateListener` different is the fact that is has a child parameter rather than a builder parameter. This means that the child parameter will not rebuild even if observable models send notifications.
 
-# Note on the exposedModel
+## Note on the exposedModel
 `StateBuilder<T>`, `WhenRebuilder<T>` and `OnSetStateListener<T>` observer widgets can be set to observer many observable reactive models. The exposed model instance depends on the generic parameter `T`.
 ex:
 ```dart
-//first case : generic model is ModelA
+//first case : observe parameter is defined
 StateBuilder<ModelA>(
-  observe : [() => modelA, ()=> modelB],
+  observe : ()=> RM.create<ModelA>(ModelA()), //dart can infer the type
+  observeMany : [() => RM.create(ModelB()), ()=> RM.create(ModelC())],
+  builder:(context, exposedModel){
+    //exposedModel is an instance of the model defined in observer parameter.
+    exposedModel is ReactiveModel<ModelA> == true;
+  }
+)
+//second case : observe parameter is not defined             
+StateBuilder<ModelA>(// generic model is ModelA
+  //Dart can not infer types in observeMany. You have to provide them
+  observeMany : [() => RM.create<ModelA>(ModelA()), ()=> RM.create<ModelB>(ModelB())],
   builder:(context, exposedModel){
     //exposedModel is an instance of ReactiveModel<ModelA>.
+    exposedModel is ReactiveModel<ModelA> == true;
   }
 )
-//second case : generic model is ModelB
-StateBuilder<ModelB>(
-  observe : [() => modelA, () => modelB],
+//Third case : observe parameter is not defined       
+StateBuilder<ModelB>(// generic model is ModelB
+  observeMany : [() => modelA, () => modelB],
   builder:(context, exposedModel){
     //exposedModel is an instance of ReactiveModel<ModelB>.
+    exposedModel is ReactiveModel<ModelB> == true;
+
   }
 )
-//third case : generic model is dynamic
-StateBuilder(
-  observe : [() => modelA, ()=>  modelB],
+//Fourth case : observe parameter is not defined       
+StateBuilder( //generic model is dynamic
+  observeMany : [() => modelA, ()=>  modelB],
   builder:(context, exposedModel){
     //exposedModel is dynamic and it will change over time to hold the instance of model that emits a notification.
     
@@ -1118,7 +1162,7 @@ StateBuilder(
   }
 )
 ```
-# Injector
+## Injector
 With `Injector` you can inject multiple dependent or independent models (BloCs, Services) at the same time. Also you can inject stream and future.
 ```dart
 Injector( 
@@ -1190,7 +1234,7 @@ Injector(
 The `Injector.get` method searches for the registered singleton using the service locator pattern. 
 
 
-# setState
+## setState
 `setState` is used whenever you want to trigger an event or an action that will mutate the state of the model and ends by issuing a notification to the observers.
 
 ```dart
@@ -1248,7 +1292,54 @@ reactiveModel.setState(
 ),
 ```
 
-# StateWithMixinBuilder
+## future
+It returns a new ReactiveModel that is awaiting for a future from the state
+
+```dart
+fooReactiveModel.future<Foo>(
+  //
+  (T state , Future<T> stateAsync) {
+    //call a future method from the state
+    return state.fetchSomeThing();
+    //If the state is waiting for an already fired future, 
+    //we can await for it
+    return stateAsync.then((T data){
+      data.fetchSomeThing();
+    });
+  }, 
+  
+  initialValue : fooInitialData
+)
+```
+
+## stream
+It returns a new ReactiveModel that is subscribed to a stream from the state
+```dart
+fooReactiveModel.stream<Foo>(
+  //
+  (T state , StreamSubscription<dynamic> subscription) {
+    //call a stream method from the state
+    return state.yieldSomeThing();
+    //If the state is subscribed to a stream you can cancel it, 
+    subscription.cancel();
+  }, 
+  initialValue : fooInitialData
+)
+```
+## listenToRM
+Listen to a ReactiveModel from outside the widget tree.It returns a callback for unsubscription.
+```dart
+fooReactiveModel.listenToRM((ReactiveModel<foo> reactiveModel){
+  if(reactiveModel.hasError){
+      //....
+    }else if (reactiveModel.hasData){
+      //...
+    }
+    //or you can use whenConnectionState
+});
+```
+
+## StateWithMixinBuilder
 `StateWithMixinBuilder` is similar to `StateBuilder` and extends it by adding mixin (practical case is an animation),
 ```Dart
 StateWithMixinBuilder<T>( {
@@ -1282,7 +1373,46 @@ StateWithMixinBuilder<T>( {
 Available mixins are: singleTickerProviderStateMixin, tickerProviderStateMixin, AutomaticKeepAliveClientMixin and WidgetsBindingObserver.
 
 
-# Dependency Injection and development flavor
+# Dependency Injection
+## Asynchronous Dependency Injection
+
+In a real situation it is common to have many asynchronously dependent object fro example :
+* A plugging (ex: SharedPreferences ).
+* A repository that uses the plugging. We must wait until it is initialized before we can inject the repository.
+* A service class that used the repository. We can not inject it before both futures are ready.
+
+With states_rebuilder, you can easily inject dependent asynchronous objects.
+
+```dart
+Injector(
+    inject: [
+        //Inject the first future
+        Inject<Plugging>.future(() => Plugging()),
+        //Inject the second future
+        Inject<Repository>.future(
+          () async => Repository(await RM.get<Plugging>().stateAsync),
+        ),
+        Inject<Service>.future(
+          () async => Service(await RM.get<Repository>().stateAsync),
+        ),
+    ],
+    builder: (context) {
+        return WhenRebuilderOr(
+        observe: () => RM.get<Service>(),
+        onWaiting: () => CircularProgressIndicator(),
+        builder: (context, futureCRM) {
+            //Here All the futures are completed and their values can be obtained
+            final plugging = IN.get<Plugging>();
+            final repository = IN.get<Repository>();
+            final service = IN.get<Service>();
+          },
+        );
+    },
+),
+```
+Fore more detailed discussion see [here](changelog/v-2.0.0.md)
+
+## Development flavor
 example of development flavor:
 ```dart
 //abstract class
@@ -1397,12 +1527,19 @@ class MyFakeModel extends MyRealModel {
 ```
 You can see a real test of the [counter_app_with_error]((states_rebuilder_package/example/test)) and [counter_app_with_refresh_indicator]((states_rebuilder_package/example/test)).
 
-# For further reading:
+# Debugging print
+To consol log some valuable information about model observables, observers, subscription and notification, states_rebuilder offers:
+* `StatesRebuilderDebug.printInjectedModel()` : Print registered models in the service locator
+* `StatesRebuilderDebug.printObservers(StatesRebuilder observable)` : Print subscribed observers of an observable object
+* `RM.debugPrintActiveRM` :If set to ture An informative message is printed in the consol, showing the model being sending the Notification,
+* `RM.debugWidgetsRebuild` : Consol log information about the widgets that have just rebuild
+
+# For further reading
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
 
 
-# Updates
+# Update log
 To track the history of updates and feel the context when those updates are introduced, See the following detailed description.
 
 * [1.15.0 update](changelog/v-1.15.0.md) : 
@@ -1413,5 +1550,6 @@ To track the history of updates and feel the context when those updates are intr
 
 * [2.0.0 update](changelog/v-2.0.0.md) : 
   * Remove context subscription;
+  * Cleaning the API
   * Listen to a ReactiveModel from outside the widget tree;
   * asynchronous dependency injection.

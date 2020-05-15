@@ -412,10 +412,11 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   ReactiveModel<F> future<F>(
     Future<F> Function(T f, Future<T> stateAsync) future, {
     F initialValue,
-    Object Function(T s) watch,
-    bool shouldAwait = false,
   }) {
-    return RM.future(future(inject.getReactive().state, stateAsync));
+    return RM.future(
+      future(inject.getReactive().state, stateAsync),
+      initialValue: initialValue,
+    );
   }
 
   AsyncSnapshot<T> get _combinedSnapshotState {
