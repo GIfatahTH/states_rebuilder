@@ -45,7 +45,7 @@ class App extends StatelessWidget {
             child: Icon(Icons.add),
             onPressed: () {
               //get CounterStor ReactiveModel and call setState method
-              RM.getSetState<CounterStore>(
+              RM.get<CounterStore>().setState(
                 (CounterStore state) => state.increment(),
                 onError: (context, error) {
                   Scaffold.of(context).hideCurrentSnackBar();

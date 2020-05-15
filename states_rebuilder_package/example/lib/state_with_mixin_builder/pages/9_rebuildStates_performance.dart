@@ -94,7 +94,7 @@ class CounterGrid extends StatelessWidget {
               builder: (_, __) => Column(
                 children: <Widget>[
                   StateBuilder(
-                      models: [counterRM],
+                      observe: () => counterRM,
                       tag: CounterTag.time,
                       builder: (_, __) => Column(
                             children: <Widget>[
@@ -115,7 +115,7 @@ class CounterGrid extends StatelessWidget {
                         children: <Widget>[
                           for (var i = 0; i < 12; i++)
                             StateBuilder(
-                              models: [counterRM],
+                              observe: () => counterRM,
                               tag: "anim",
                               builder: (_, tagID) => Transform.rotate(
                                 angle: counterRM.state.animation.value,

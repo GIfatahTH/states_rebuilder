@@ -61,9 +61,10 @@ class App extends StatelessWidget {
             child: Icon(Icons.add),
             onPressed: () {
               RM.get<CounterState>()
-                ..stream(
+                ..setState(
                   (counterState) => counterState.increment(),
-                ).onError((context, error) {
+                )
+                ..onError((context, error) {
                   print(context);
                   Scaffold.of(context).hideCurrentSnackBar();
                   Scaffold.of(context).showSnackBar(
@@ -92,14 +93,14 @@ class MyHome extends StatelessWidget {
               'Notice that with error the counter return to the last state'),
           WhenRebuilderOr<CounterState>(
             observe: () => RM.get<CounterState>().asNew('dd')
-              ..future((s) => s.fetchCounter()),
+              ..setState((s) => s.fetchCounter()),
             onWaiting: () => CircularProgressIndicator(),
             builder: (BuildContext context, counterModel) {
               return StateBuilder<CounterState>(
                 observe: () => RM.get<CounterState>(),
                 builder: (context, counterModel) {
                   return Text(
-                    '${counterModel.value.count}',
+                    '${counterModel.state.count}',
                     style: const TextStyle(fontSize: 50),
                   );
                 },
