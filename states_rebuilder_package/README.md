@@ -42,9 +42,9 @@ contenet:
 * [Dependency Injection](#Dependency-Injection)
   * [Asynchronous Dependency Injection](#Asynchronous-Dependency-Injection)
   * [Development flavor](#Development-flavor)
-* [Widget unit texting](#Widget-unit-texting)
+* [Widget unit testing](#Widget-unit-texting)
 * [Debugging print](##Debugging-print)
-* [For further reading](#For-further-reading)
+* [Further reading](#For-further-reading)
 * [Update log](##Update-log)
 
 
@@ -1474,7 +1474,7 @@ void main() {
 }
 ```
 
-# Widget unit texting
+# Widget unit testing
 
 The test is an important step in the daily life of a programmer; if not the most important part!
 
@@ -1534,7 +1534,7 @@ To consol log some valuable information about model observables, observers, subs
 * `RM.debugPrintActiveRM` :If set to ture An informative message is printed in the consol, showing the model being sending the Notification,
 * `RM.debugWidgetsRebuild` : Consol log information about the widgets that have just rebuild
 
-# For further reading
+#Ffurther reading
 
 > [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
 
