@@ -29,8 +29,9 @@ class HomePage extends StatelessWidget {
   Widget _buildContent() {
     //Use WhenRebuilderOr to subscribe to the stream and display onWaiting, onError and default builder widgets
     return WhenRebuilderOr<List<Counter>>(
+      //Created and subscribe to new local ReactiveModel from the stream emitted
+      //from countersStream of the registered instance of CountersService
       observe: () => RM.stream(IN.get<CountersService>().countersStream()),
-      // models: [Injector.getAsReactive<List<Counter>>()],
       onWaiting: () => Center(child: CircularProgressIndicator()),
       onError: (error) => Center(child: Text(error.toString())),
       builder: (_, countersStream) {

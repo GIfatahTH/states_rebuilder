@@ -41,15 +41,20 @@ void main() {
         //But in more complex situation, we have to fake all the dependencies of SignInPage which may not be needed for aur test.
         //For this reason I use simple RaisedButton,
         return MaterialApp(
-          home: Builder(builder: (context) {
-            return RaisedButton(
-                child: Text('Log in with email and password'),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return SignInRegisterFormPage();
-                  }));
-                });
-          }),
+          //From SignInRegisterFormPage we have to notify StateBuilder in main.dart page (line 50)
+          //I wrapped the RaisedButton with StateBuilder and subscribe it to the UserService ReactiveModel.
+          home: StateBuilder(
+              observe: () => RM.get<UserService>(),
+              builder: (context, _) {
+                return RaisedButton(
+                    child: Text('Log in with email and password'),
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return SignInRegisterFormPage();
+                      }));
+                    });
+              }),
         );
       },
     );

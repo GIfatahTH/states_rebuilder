@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../states_rebuilder.dart';
+
 import 'reactive_model.dart';
+import 'rm_key.dart';
 import 'state_builder.dart';
 
 ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
@@ -43,7 +44,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///```
   ///
   ///For the sake of performance consider using [observe] or [observeMany] instead.
-  final List<ReactiveModel> models;
+  // final List<ReactiveModel> models;TOOD
 
   ///an observable class to which you want [WhenRebuilder] to subscribe.
   ///```dart
@@ -80,7 +81,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///Each [WhenRebuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
-  ///ReactiveModel key used to control this widget from outside its [builder] method.
+  ///ReactiveModel key used to control this widget from outside.
   final RMKey rmKey;
 
   ///```dart
@@ -115,13 +116,14 @@ class WhenRebuilder<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
+  ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
+  ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
   const WhenRebuilder({
     Key key,
     @required this.onIdle,
     @required this.onWaiting,
     @required this.onError,
     @required this.onData,
-    this.models,
     this.observe,
     this.observeMany,
     this.tag,
@@ -137,7 +139,7 @@ class WhenRebuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StateBuilder<T>(
-      models: models,
+      key: key,
       observe: observe,
       observeMany: observeMany,
       tag: tag,
@@ -145,33 +147,46 @@ class WhenRebuilder<T> extends StatelessWidget {
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
+      child: const Text('StatesRebuilder#|0|#'),
+      activeRM: [],
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
         bool hasError = false;
         dynamic error;
-        final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
 
+        final _models = List<ReactiveModel>.from(
+          (context.widget as StateBuilder).activeRM,
+        );
+        assert(() {
+          if (modelRM == null) {
+            throw Exception(
+              'Failed to cast the generic type $T with any of the provided ReactiveModel '
+              'provided in observeMany list'
+              'Try to explicitly dentine all generic types in observerMany List',
+            );
+          }
+          return true;
+        }());
         _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
-          onError: (err) {
+          onError: (dynamic err) {
             error = err;
             return hasError = true;
           },
-          onData: (data) => true,
+          onData: (dynamic data) => true,
         );
 
         for (var i = 1; i < _models.length; i++) {
           _models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,
-            onError: (err) {
+            onError: (dynamic err) {
               error = err;
               return hasError = true;
             },
-            onData: (data) => true,
+            onData: (dynamic data) => true,
           );
         }
 

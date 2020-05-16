@@ -30,7 +30,7 @@ void main() {
         //This subtile dependencies is faked using StateBuilder
         builder: (_) => MaterialApp(
           home: StateBuilder(
-            models: [ReactiveModel<UserService>()],
+            observe: () => ReactiveModel<UserService>(),
             builder: (context, userServiceRM) {
               return userServiceRM.state.user == null
                   ? SignInPage()

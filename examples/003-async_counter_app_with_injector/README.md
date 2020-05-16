@@ -82,13 +82,13 @@ class MyHomePage extends StatelessWidget {
             ),
             //Subscribing to the counterRM using StateBuilder
             WhenRebuilder<CounterStore>(
-              models: [counterRM],
+              observe: ()=> counterRM,
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
               onError: (error) => Text(counterRM.error.message),
               onData: (data) => Text(
                 '${data.count}',
-                style: Theme.of(context).textTheme.headline,
+                style: Theme.of(context).textTheme.headline5,
               ),
             ),
           ],
@@ -106,22 +106,7 @@ class MyHomePage extends StatelessWidget {
   }
 }
 ```
-If you followed the last tutorials you can easily understand the code. The only new thing here is that I used `setState` instead of `setValue`. Because here in our case, We do not want to create an other instance of `CounterStore`, but we want to mutate the state of `CounterStore` while keeping the same instance of it.
 
-> `setValue` is more suitable for immutable objects while `setState` is better used with mutable objects.
-
-> setValue is equivalent to setState with setValue parameter set to true.
-
-for example.
-```dart
-counterRM.setValue(()=>2);
-
-//it is equivalent to write:
-counterRM.setState(
-    (_)=>2,
-    setValue:true,
-)
-```
 # `Injector` for dependency injection:
 
 As you may have noticed, `_MyScaffold` do not use `counterRM`, actually it is used by `MyHomePage` and `_MyScaffold` only pass it to the constructor of `MyHomePage`.
@@ -169,6 +154,8 @@ final CounterStore counterStore = Injector.get<CounterStore>();
 final ReactiveModel<CounterStore> counterStoreRM = Injector.getAsReactive<CounterStore>();
 //or 
 final ReactiveModel<CounterStore> counterStoreRM = ReactiveModel<CounterStore>();
+//or 
+final ReactiveModel<CounterStore> counterStoreRM = RM.get<CounterStore>();
 
 ```
 
@@ -195,7 +182,7 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  final ReactiveModel<CounterStore> counterRM = ReactiveModel<CounterStore>();
+  final ReactiveModel<CounterStore> counterRM = RM.get<CounterStore>();
    //
    //
    [the same code as above]
@@ -376,7 +363,7 @@ class MyHomePage extends StatelessWidget {
       builder: (context) {
 
         //getting the counterRM from the interface. The exact implementation is defined by Injector.env
-        final counterRM =ReactiveModel<ICounterStore>();
+        final counterRM =RM.get<ICounterStore>();
 
         //getting the config without reactivity
         final config = Injector.get<IConfig>();
@@ -396,14 +383,14 @@ class MyHomePage extends StatelessWidget {
                   ),
                   //Subscribing to the counterRM using StateBuilder
                   WhenRebuilder<ICounterStore>(
-                    models: [counterRM],
+                    observe: ()=>counterRM,
                     onIdle: () =>
                         Text('Tap on the FAB to increment the counter'),
                     onWaiting: () => CircularProgressIndicator(),
                     onError: (error) => Text(counterRM.error.message),
                     onData: (data) => Text(
                       '${data.count}',
-                      style: Theme.of(context).textTheme.headline,
+                      style: Theme.of(context).textTheme.headline5,
                     ),
                   ),
                 ],

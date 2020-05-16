@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/when_rebuilder_or.dart';
 
 void main() {
@@ -43,7 +44,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               tag: 'tag1',
               onData: (data) => Text('data'),
               builder: (context, modelRM) => Text('other'),
@@ -71,7 +72,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text('error'),
@@ -94,13 +95,14 @@ void main() {
   testWidgets(
     'WhenRebuilderOr widget, asynchronous task, case all parameters are defined',
     (tester) async {
+      RM.debugWidgetsRebuild = true;
       final widget = Injector(
         inject: [Inject(() => Model1())],
         builder: (context) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -128,6 +130,7 @@ void main() {
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('error message'), findsOneWidget);
+      RM.debugWidgetsRebuild = false;
     },
   );
 
@@ -140,7 +143,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onError: (error) => Text(error.message),
               builder: (context, modelRM) {
@@ -180,7 +183,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               builder: (context, modelRM) {
                 return Text(modelRM.state.counter.toString());
               },
@@ -211,7 +214,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -252,7 +255,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilderOr<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               builder: (context, modelRM) {
@@ -344,25 +347,37 @@ void main() {
     },
   );
 
-  // test(
-  //   'WhenRebuilderOr throws if model is empty',
-  //   () {
-  //     expect(
-  //       () => WhenRebuilderOr<Model1>(
-  //         models: [],
-  //         builder: (context, modelRM) => null,
-  //       ),
-  //       throwsAssertionError,
-  //     );
-  //   },
-  // );
+  testWidgets(
+    'WhenRebuilder throws if resolving model type fails',
+    (tester) async {
+      RM.debugWidgetsRebuild = true;
+      final widget = Injector(
+        inject: [Inject(() => Model1()), Inject(() => Model2())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilderOr<Model1>(
+              observeMany: [
+                () => RM.create(Model1()),
+                () => Injector.getAsReactive<Model2>()
+              ],
+              builder: (_, __) => Container(),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isException);
+    },
+  );
 
   test(
     'WhenRebuilderOr throws if builder is null',
     () {
       expect(
         () => WhenRebuilderOr<Model1>(
-          models: [null],
+          observeMany: [() => null],
           builder: null,
         ),
         throwsAssertionError,

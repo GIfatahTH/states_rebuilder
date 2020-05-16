@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/when_connection_state.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets(
@@ -81,7 +82,7 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [Injector.getAsReactive<Model1>()],
+              observeMany: [() => Injector.getAsReactive<Model1>()],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
               onError: (error) => Text(error.message),
@@ -120,9 +121,9 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>()
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>()
               ],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
@@ -158,15 +159,16 @@ void main() {
   testWidgets(
     'WhenRebuilder widget, asynchronous task with error, case two reactive models',
     (tester) async {
+      RM.debugWidgetsRebuild = true;
       final widget = Injector(
         inject: [Inject(() => Model1()), Inject(() => Model2())],
         builder: (context) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: WhenRebuilder<Model1>(
-              models: [
-                Injector.getAsReactive<Model1>(),
-                Injector.getAsReactive<Model2>()
+              observeMany: [
+                () => Injector.getAsReactive<Model1>(),
+                () => Injector.getAsReactive<Model2>()
               ],
               onIdle: () => Text('onIdle'),
               onWaiting: () => Text('waiting'),
@@ -210,6 +212,35 @@ void main() {
       expect(find.text('waiting'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('error message'), findsOneWidget);
+      RM.debugWidgetsRebuild = false;
+    },
+  );
+
+  testWidgets(
+    'WhenRebuilder throws if resolving model type fails',
+    (tester) async {
+      RM.debugWidgetsRebuild = true;
+      final widget = Injector(
+        inject: [Inject(() => Model1()), Inject(() => Model2())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilder<Model1>(
+              observeMany: [
+                () => RM.create(Model1()),
+                () => Injector.getAsReactive<Model2>()
+              ],
+              onIdle: () => Text('onIdle'),
+              onWaiting: () => Text('waiting'),
+              onError: (error) => Text(error.message),
+              onData: (data) => Text('data'),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isException);
     },
   );
 
@@ -219,7 +250,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: null,
           onError: (error) => Text(error.message),
           onData: (data) => Text('data'),
@@ -235,7 +266,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: () => Text(''),
           onError: null,
           onData: (data) => Text('data'),
@@ -251,7 +282,7 @@ void main() {
       expect(
         () => WhenRebuilder<Model1>(
           onIdle: () => Container(),
-          models: [null],
+          observeMany: [() => null],
           onWaiting: () => Text(''),
           onError: (_) => Text(''),
           onData: null,

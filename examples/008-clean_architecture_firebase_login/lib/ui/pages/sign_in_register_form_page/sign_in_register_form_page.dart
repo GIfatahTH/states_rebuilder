@@ -19,9 +19,13 @@ class SignInRegisterFormPage extends StatelessWidget {
 }
 
 class FormWidget extends StatelessWidget {
+  //NOTE1: Creating a  ReactiveModel key for email with empty initial value
   final _emailRM = RMKey('');
+  //NOTE1: Creating a  ReactiveModel key for password with empty initial value
   final _passwordRM = RMKey('');
+  //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
   final _isRegisterRM = RMKey(false);
+  //NOTE1: bool getter to check if the form is valid
   bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
 
   @override
@@ -31,21 +35,25 @@ class FormWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         StateBuilder(
+          //NOTE2: create and subscribe to local ReactiveModel of empty string
           observe: () => RM.create(''),
+          //NOTE3: couple this StateBuilder with the email ReactiveModel key
           rmKey: _emailRM,
           builder: (_, __) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.email),
                 labelText: 'Email',
+                //NOTE4: Delegate to ExceptionsHandler.errorMessage for error handling
                 errorText:
                     ExceptionsHandler.errorMessage(_emailRM.error).message,
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               onChanged: (email) {
-                _emailRM.setValue(
-                  () => Email(email).value,
+                //NOTE5: set the state of email and notify observers
+                _emailRM.setState(
+                  (_) => Email(email).value,
                   catchError: true,
                 );
               },
@@ -66,8 +74,8 @@ class FormWidget extends StatelessWidget {
               obscureText: true,
               autocorrect: false,
               onChanged: (password) {
-                _passwordRM.setValue(
-                  () => Password(password).value,
+                _passwordRM.setState(
+                  (_) => Password(password).value,
                   catchError: true,
                 );
               },
@@ -82,9 +90,9 @@ class FormWidget extends StatelessWidget {
               return Row(
                 children: <Widget>[
                   Checkbox(
-                    value: _isRegisterRM.value,
+                    value: _isRegisterRM.state,
                     onChanged: (value) {
-                      _isRegisterRM.setValue(() => value);
+                      _isRegisterRM.setState((_) => value);
                     },
                   ),
                   Text(' I do not have an account')
@@ -92,35 +100,45 @@ class FormWidget extends StatelessWidget {
               );
             }),
         StateBuilder<UserService>(
+            //NOTE6: subscribe to all the ReactiveModels
+            //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
+            //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
+            //userServiceRM: To show CircularProgressIndicator is the state is waiting
             observeMany: [
               () => _emailRM,
               () => _passwordRM,
               () => _isRegisterRM,
               () => RM.get<UserService>().asNew('signInRegisterForm'),
             ],
+            //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
             builder: (_, userServiceRM) {
               if (userServiceRM.isWaiting) {
                 return Center(child: CircularProgressIndicator());
               }
               return RaisedButton(
+                  //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
                   child:
-                      _isRegisterRM.value ? Text('Register') : Text('Sign in'),
+                      _isRegisterRM.state ? Text('Register') : Text('Sign in'),
+                  //NOTE8: activate/deactivate the button if the form is valid/non valid
                   onPressed: _isFormValid
                       ? () {
                           userServiceRM.setState(
                             (s) async {
-                              if (_isRegisterRM.value) {
+                              //NOTE9: If _isRegisterRM.state is true call createUserWithEmailAndPassword,
+                              if (_isRegisterRM.state) {
                                 return s.createUserWithEmailAndPassword(
-                                  _emailRM.value,
-                                  _passwordRM.value,
+                                  _emailRM.state,
+                                  _passwordRM.state,
                                 );
                               } else {
+                                //NOTE9: If _isRegisterRM.state is true call signInWithEmailAndPassword,
                                 return s.signInWithEmailAndPassword(
-                                  _emailRM.value,
-                                  _passwordRM.value,
+                                  _emailRM.state,
+                                  _passwordRM.state,
                                 );
                               }
                             },
+                            //we want to notify the local new ReactiveModel created bellow
                             notifyAllReactiveInstances: true,
                             onData: (_, __) {
                               Navigator.pop(context);
@@ -131,8 +149,10 @@ class FormWidget extends StatelessWidget {
                       : null);
             }),
         StateBuilder<UserService>(
-          models: [RM.get<UserService>().asNew('signInRegisterForm')],
+          //we created a local new ReactiveModel form the global registered ReactiveModel
+          observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
           builder: (_, userServiceRM) {
+            //NOTE10: Display an error message telling the user what goes wrong.
             if (userServiceRM.hasError) {
               return Center(
                 child: Text(

@@ -45,7 +45,7 @@ class App extends StatelessWidget {
 
 As always, the first thing to think about is to inject your model in the widget tree [NOTE1], In our case we have a simple enum.
 
-The injected value `TimerStatus.ready` will be consumed using `Injector.getAsReactive<TimerStatus>()`. And As you might have expected you get a `ReactiveModel<TimerStatus>` observable model that you can subscribe to it and mutate its state and notify observer widgets.
+The injected value `TimerStatus.ready` will be consumed using `RM.get<TimerStatus>()`. And As you might have expected you get a `ReactiveModel<TimerStatus>` observable model that you can subscribe to it and mutate its state and notify observer widgets.
 
 >>With states_rebuilder you can turn even primitive values to reactive observable model that widgets can subscribe to them.
 
@@ -59,7 +59,7 @@ class TimerView extends StatelessWidget {
   Widget build(BuildContext context) {
     //NOTE1 : Getting the registered reactive singleton of the TimerStatus
     //NOTE1 : The context is defined so that it will be subscribed to the TimerStatus.
-    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    final timerStatusRM = RM.get<TimerStatus>(context: context);
     //NOTE2: Local variable to hold the current timer value.
     int duration;
     return Injector(
@@ -75,10 +75,10 @@ class TimerView extends StatelessWidget {
       ],
       builder: (_) {
         //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
-        final timerStream = Injector.getAsReactive<int>();
+        final timerStream = RM.get<int>();
         return StateBuilder(
           // NOTE6 : Subscribe this StateBuilder to the timerStream reactive singleton
-          models: [timerStream],
+          observe : () => timerStream,
           //NOTE7 : defining the onSetState callback to be called when this StateBuilder is notified and before the trigger of the rebuilding process.
           onSetState: (_, __) {
             //NOTE8: Decrement the duration each time the stream emits a value
@@ -86,7 +86,7 @@ class TimerView extends StatelessWidget {
             //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
             if (duration <= 0) {
               //NOTE8: Mutating the state of TimerStatus using setState
-              timerStatusRM.setValue(()=>TimerStatus.ready);
+              timerStatusRM.setState((_)=>TimerStatus.ready);
             }
           },
           builder: (_, __) {
@@ -103,7 +103,7 @@ class TimerView extends StatelessWidget {
                     //NOTE10 : define another StateBuilder
                     child: StateBuilder(
                       //NOTE10: subscribe this StateBuilder to the timerStatusRM
-                      models: [timerStatusRM],
+                      observe : () => timerStatusRM,
                       //NOTE11 : Give it a tag so that we can control its notification
                       tag: 'timer',
                       builder: (context, _) {
@@ -131,7 +131,7 @@ class TimerView extends StatelessWidget {
 }
 ```
 
-First of all, we get the registered reactive singleton of the `TimerStatus` using `Injector.getAsReactive` method with the context defined. The widget of the defined context is subscribed to the `TimerStatus` [NOTE1].
+First of all, we get the registered reactive singleton of the `TimerStatus` using `RM.get` method with the context defined. The widget of the defined context is subscribed to the `TimerStatus` [NOTE1].
 
 The next step is to inject the stream using `Inject.stream` [NOTE4] and set its initial value. 
 
@@ -143,7 +143,7 @@ By setting the key parameter of the `Injector` to `UniqueKey()`, The `Injector` 
 
 In our case, when the registered reactive singleton of the `TimerStatus` triggers a notification without tags filter. the build method of `TimerView` will be called. At this stage, because we define the key to be unique, the injected stream is stopped and dispose, and a new stream is created and starts emitting a new set of values. (This is what will be used in the repay button).
 
-Now that we have injected the stream using `Inject.stream`, we get the registered reactive singleton of the stream using `Injector.getAsReactive` method [NOTE5]. You use the type `int` to get the registered stream because it is injected with this type [NOTE4]. 
+Now that we have injected the stream using `Inject.stream`, we get the registered reactive singleton of the stream using `RM.get` method [NOTE5]. You use the type `int` to get the registered stream because it is injected with this type [NOTE4]. 
 
 We have the option to inject the stream using a custom name, something like this :
 
@@ -163,7 +163,7 @@ Injector(
 to get the reactive singleton :
 
 ```dart
-final timerStream = Injector.getAsReactive<int>(name: 'customStreamName');
+final timerStream = RM.get<int>(name: 'customStreamName');
 ```
 
 ## Update (v. 1.14.3)
@@ -173,7 +173,7 @@ In version 1.14.3 I added the `reinjectOn` parameter so that only if rebuild is 
 ```dart
 @override
   Widget build(BuildContext context) {
-    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    final timerStatusRM = RM.get<TimerStatus>(context: context);
     int duration;
     return Injector(
       inject: [
@@ -207,14 +207,14 @@ onSetState: (_, __) {
   if (duration <= 0) {
     //NOTE8: Mutating the state of TimerStatus using setState
     
-    timerStatusRM.setValue(()=>TimerStatus.ready);
+    timerStatusRM.setState((_)=>TimerStatus.ready);
   }
 },
 ```
 
 The `onSetState` callback is called each time the stream emits a value and before building the widget. After decrementing the duration we check if it reaches zero and set the `timerStatusRM.state` to be `TimerStatus.ready` and send a notification to all subscribe widget. In our case, The `TimerView` widget is subscribed to the `TimerStatus` so it will be notified to rebuild. At this stage, because we define the key to be unique, the injected stream is stopped and dispose, and a new stream is created and starts emitting a new set of values [NOTE3, NOTE4].
 
-the `duration` value is passed to the `TimerDigit` widget to display a formated value (minutes : seconds) : [NOTE9]
+the `duration` value is passed to the `TimerDigit` widget to display a formatted value (minutes : seconds) : [NOTE9]
 
 ```dart
 class TimerDigit extends StatelessWidget {
@@ -259,17 +259,17 @@ The last thing is to display corresponding buttons for each `TimerStatus` :
 ```dart
 class ReadyStatus extends StatelessWidget {
   // stopping the stream using the `subscription` getter of `timerStream` reactive singleton.
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>()
+  final ReactiveModel<int> timerStream = RM.get<int>()
     ..subscription.pause();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final timerStatusRM = RM.get<TimerStatus>();
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.play_arrow),
       heroTag: UniqueKey().toString(),
       onPressed: () {
-        timerStatusRM.setValue(
-          ()=> TimerStatus.running,
+        timerStatusRM.setState(
+          (TimerStatus currentState)=> TimerStatus.running,
           filterTags: ['timer'],
           onSetState: (context) {
             timerStream.subscription.resume();
@@ -287,8 +287,8 @@ It a `FloatingActionButton` with play arrow icon. When the FAB is pressed, we se
 
 ```dart
 class RunningStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -299,8 +299,8 @@ class RunningStatus extends StatelessWidget {
           child: Icon(Icons.pause),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              ()=> TimerStatus.paused,
+            timerStatusRM.TimerStatus(
+              (_)=> TimerStatus.paused,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.pause();
@@ -313,8 +313,8 @@ class RunningStatus extends StatelessWidget {
           heroTag: UniqueKey().toString(),
           onPressed: () {
             //paused and rerun the timer.
-            timerStatusRM.setValue(()=>TimerStatus.paused);
-            timerStatusRM.setValue(()=>TimerStatus.running);
+            timerStatusRM.setState((_)=>TimerStatus.paused);
+            timerStatusRM.setState((_)=>TimerStatus.running);
           },
         ),
       ],
@@ -331,8 +331,8 @@ It consists of two FAB, one for pause and the other for repeat (replay) :
 
 ```dart
 class PausedStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -343,8 +343,8 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.play_arrow),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              ()=> TimerStatus.running,
+            timerStatusRM.TimerStatus(
+              (_)=> TimerStatus.running,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.resume();
@@ -356,7 +356,7 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.stop),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(()=>TimerStatus.ready);
+            timerStatusRM.setState((_)=>TimerStatus.ready);
           },
         ),
       ],
@@ -371,7 +371,7 @@ It consists of two FAB, one for resume and the other for stop :
 
 # Using `OnSetStateListener`
 
-The approach we have followed, we use `onSetState` callback to execute side effect locally. By locally I mean that each `setValue` handles its own `onSetState`.
+The approach we have followed, we use `onSetState` callback to execute side effect locally. By locally I mean that each `setState` handles its own `onSetState`.
 
 We can handle side effects globally using `OnSetStateListener`.
 
@@ -402,7 +402,7 @@ class TimerView extends StatelessWidget {
   Widget build(BuildContext context) {
     //NOTE1 : Getting the registered reactive singleton of the TimerStatus
     //NOTE1 : The context is defined so that it will be subscribed to the TimerStatus.
-    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    final timerStatusRM = RM.get<TimerStatus>(context: context);
     //NOTE2: Local variable to hold the current timer value.
     int duration;
     return Injector(
@@ -418,10 +418,10 @@ class TimerView extends StatelessWidget {
       ],
       builder: (_) {
         //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
-        final timerStream = Injector.getAsReactive<int>();
+        final timerStream = RM.get<int>();
         //Here we add OnSetSTateListener to mange globally side effects
         return OnSetStateListener(
-          models: [timerStatusRM, timerStream],
+          observeMany: [ ()=> timerStatusRM,()=> timerStream],
           tag: 'timer',
           //set to true to execute onSetState in the initState
           shouldOnInitState: true,
@@ -448,8 +448,8 @@ class TimerView extends StatelessWidget {
 
               //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
               if (duration <= 0) {
-                //NOTE8: Mutating the state of TimerStatus using setState
-                timerStatusRM.setValue(() => TimerStatus.ready);
+                //NOTE8: Mutating the state of TimerStatus using state setter
+                timerStatusRM.state = TimerStatus.ready;
               }
             }
           },
@@ -459,7 +459,7 @@ class TimerView extends StatelessWidget {
                 Expanded(
                   //NOTE9: Widget to display a formatted string of the duration.
                   child: StateBuilder(
-                      models: [timerStream],
+                      observe : () => timerStream,
                       builder: (_, __) {
                         return TimerDigit(
                           duration ?? initialTimer,
@@ -470,7 +470,7 @@ class TimerView extends StatelessWidget {
                   //NOTE10 : define another StateBuilder
                   child: StateBuilder(
                     //NOTE10: subscribe this StateBuilder to the timerStatusRM
-                    models: [timerStatusRM],
+                    observe : () =>  timerStatusRM,
                     //NOTE11 : Give it a tag so that we can control its notification
                     tag: 'timer',
                     builder: (context, _) {
@@ -500,7 +500,7 @@ class TimerView extends StatelessWidget {
 Let's extract the code that we are interested in:
 ```dart
 return OnSetStateListener(
-  models: [timerStatusRM, timerStream],
+  observeMany: [()=> timerStatusRM,()=> timerStream],
   tag: 'timer',
   shouldOnInitState: true,
   onSetState: (_, model) {
@@ -522,7 +522,7 @@ return OnSetStateListener(
     if (model.state is int) {
       duration = initialTimer - timerStream.snapshot.data - 1;
       if (duration <= 0) {
-        timerStatusRM.setValue(() => TimerStatus.ready);
+        timerStatusRM.state =  TimerStatus.ready;
       }
     }
   },
@@ -544,7 +544,7 @@ Then we check for the exposed model, if it is `TimerStatus` we will switch for i
 
 If the expose model is `int` (that means the stream), we updated the `duration` variable and switch the `TimerStatus` status to ready if `duration` is zero.
 
-The remainder of the code is the same as the first case, except `onSetState` callback are removed from `setValue` methods.
+The remainder of the code is the same as the first case, except `onSetState` callback are removed from `setState` methods.
 
 # test
 

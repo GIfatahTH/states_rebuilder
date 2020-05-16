@@ -40,23 +40,27 @@ class App extends StatelessWidget {
 class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterModel = RM.get<Counter>(context: context);
-    return Center(
-      child: RefreshIndicator(
-        onRefresh: () async {
-          await counterModel.setState((state) => state.increment());
-        },
-        child: ListView(
-          children: <Widget>[
-            Text("pull down to refresh the list"),
-            for (final count in counterModel.state.count)
-              Text(
-                "$count",
-                style: TextStyle(fontSize: 50),
+    final counterModel = RM.get<Counter>();
+    return StateBuilder(
+        observe: () => counterModel,
+        builder: (context, __) {
+          return Center(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await counterModel.setState((state) => state.increment());
+              },
+              child: ListView(
+                children: <Widget>[
+                  Text("pull down to refresh the list"),
+                  for (final count in counterModel.state.count)
+                    Text(
+                      "$count",
+                      style: TextStyle(fontSize: 50),
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 }

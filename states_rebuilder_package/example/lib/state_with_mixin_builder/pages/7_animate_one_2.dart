@@ -64,7 +64,7 @@ class CounterGrid extends StatelessWidget {
                 children: <Widget>[
                   for (var i = 0; i < 12; i++)
                     StateBuilder(
-                      models: [bloc],
+                      observe: () => bloc,
                       builder: (context, _) => Transform.rotate(
                         angle: bloc.animation.value,
                         child: GridItem(

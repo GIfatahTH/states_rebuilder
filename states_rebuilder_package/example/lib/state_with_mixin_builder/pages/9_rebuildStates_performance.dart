@@ -74,62 +74,68 @@ class RebuildStatesPerformanceExample extends StatelessWidget {
 class CounterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final counterRM = Injector.getAsReactive<CounterBlocPerf>(context: context);
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: StateWithMixinBuilder<WidgetsBindingObserver>(
-        mixinWith: MixinWith.widgetsBindingObserver,
-        initState: (_, observer) =>
-            WidgetsBinding.instance.addObserver(observer),
-        dispose: (_, observer) =>
-            WidgetsBinding.instance.removeObserver(observer),
-        didChangeAppLifecycleState: (context, state) {
-          counterRM.setState((model) => model.lifecycleState(context, state),
-              filterTags: [context]);
-        },
-        builder: (_, __) => Column(
-          children: <Widget>[
-            StateBuilder(
-                models: [counterRM],
-                tag: CounterTag.time,
-                builder: (_, __) => Column(
-                      children: <Widget>[
-                        Text(
-                            "Time taken to execute rebuildStates() ${counterRM.state.time}"),
-                        Text(
-                            "This page is mixin with widgetsBindingObserver. The state is: ${counterRM.state.state}"),
-                      ],
-                    )),
-            Expanded(
-              child: StateWithMixinBuilder(
-                mixinWith: MixinWith.singleTickerProviderStateMixin,
-                initState: (_, ticker) => counterRM.state.initAnimation(ticker),
-                dispose: (_, ___) => counterRM.state.dispose(),
-                builder: (_, __) => GridView.count(
-                  crossAxisCount: 3,
-                  children: <Widget>[
-                    for (var i = 0; i < 12; i++)
-                      StateBuilder(
-                        models: [counterRM],
-                        tag: "anim",
-                        builder: (_, tagID) => Transform.rotate(
-                          angle: counterRM.state.animation.value,
-                          child: GridItem(
-                            count: counterRM.state.counter,
-                            onTap: () => counterRM.setState((value) =>
-                                value.triggerAnimation(
-                                    () => counterRM.setState(null))),
-                          ),
-                        ),
+    final counterRM = Injector.getAsReactive<CounterBlocPerf>();
+    return StateBuilder(
+        observe: () => counterRM,
+        builder: (context, __) {
+          return Padding(
+            padding: EdgeInsets.all(10),
+            child: StateWithMixinBuilder<WidgetsBindingObserver>(
+              mixinWith: MixinWith.widgetsBindingObserver,
+              initState: (_, observer) =>
+                  WidgetsBinding.instance.addObserver(observer),
+              dispose: (_, observer) =>
+                  WidgetsBinding.instance.removeObserver(observer),
+              didChangeAppLifecycleState: (context, state) {
+                counterRM.setState(
+                    (model) => model.lifecycleState(context, state),
+                    filterTags: [context]);
+              },
+              builder: (_, __) => Column(
+                children: <Widget>[
+                  StateBuilder(
+                      observe: () => counterRM,
+                      tag: CounterTag.time,
+                      builder: (_, __) => Column(
+                            children: <Widget>[
+                              Text(
+                                  "Time taken to execute rebuildStates() ${counterRM.state.time}"),
+                              Text(
+                                  "This page is mixin with widgetsBindingObserver. The state is: ${counterRM.state.state}"),
+                            ],
+                          )),
+                  Expanded(
+                    child: StateWithMixinBuilder(
+                      mixinWith: MixinWith.singleTickerProviderStateMixin,
+                      initState: (_, ticker) =>
+                          counterRM.state.initAnimation(ticker),
+                      dispose: (_, ___) => counterRM.state.dispose(),
+                      builder: (_, __) => GridView.count(
+                        crossAxisCount: 3,
+                        children: <Widget>[
+                          for (var i = 0; i < 12; i++)
+                            StateBuilder(
+                              observe: () => counterRM,
+                              tag: "anim",
+                              builder: (_, tagID) => Transform.rotate(
+                                angle: counterRM.state.animation.value,
+                                child: GridItem(
+                                  count: counterRM.state.counter,
+                                  onTap: () => counterRM.setState((value) =>
+                                      value.triggerAnimation(
+                                          () => counterRM.setState(null))),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 

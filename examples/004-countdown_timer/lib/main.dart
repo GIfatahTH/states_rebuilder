@@ -27,84 +27,89 @@ class TimerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //Using the BuildContext to subscribe is deprecated (removed since v 2.0.0)
     //NOTE1 : Getting the registered reactive singleton of the TimerStatus
     //NOTE1 : The context is defined so that it will be subscribed to the TimerStatus.
-    final timerStatusRM = Injector.getAsReactive<TimerStatus>(context: context);
+    // final timerStatusRM = RM.get<TimerStatus>(context: context);
     //NOTE2: Local variable to hold the current timer value.
-    int duration;
-    return Injector(
-      //NOTE3 : Defining the a unique key of the widget.
-      //key: UniqueKey(), (reinjectOn is used instead)
-      inject: [
-        //NOTE4: Injecting the stream
-        Inject<int>.stream(
-          () => Stream.periodic(Duration(seconds: 1), (num) => num),
-          //NOTE4 : Defining the initialValue of the stream
-          initialValue: 0,
-        ),
-      ],
-      //added in version 1.14.3
-      reinjectOn: [timerStatusRM],
-      builder: (_) {
-        //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
-        final timerStream = Injector.getAsReactive<int>();
-        return StateBuilder(
-          // NOTE6 : Subscribe this StateBuilder to the timerStream reactive singleton
-          models: [timerStream],
-          //NOTE7 : defining the onSetState callback to be called when this StateBuilder is notified and before the trigger of the rebuilding process.
-          onSetState: (_, __) {
-            //NOTE8: Decrement the duration each time the stream emits a value
-            duration = initialTimer - timerStream.snapshot.data - 1;
-            //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
-            if (duration <= 0) {
-              //NOTE8: Mutating the state of TimerStatus using setState
-              timerStatusRM.setValue(() => TimerStatus.ready);
-            }
-          },
-          builder: (_, __) {
-            return Center(
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    //NOTE9: Widget to display a formatted string of the duration.
-                    child: TimerDigit(
-                      duration ?? initialTimer,
-                    ),
-                  ),
-                  Expanded(
-                    //NOTE10 : define another StateBuilder
-                    child: StateBuilder(
-                      //NOTE10: subscribe this StateBuilder to the timerStatusRM
-                      models: [timerStatusRM],
-                      //NOTE11 : Give it a tag so that we can control its notification
-                      tag: 'timer',
-                      builder: (context, _) {
-                        //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
-                        if (timerStatusRM.state == TimerStatus.ready) {
-                          return ReadyStatus();
-                        }
-                        //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
-                        if (timerStatusRM.state == TimerStatus.running) {
-                          return RunningStatus();
-                        }
-                        //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
-                        return PausedStatus();
-                      },
-                    ),
-                  )
-                ],
+    return StateBuilder<TimerStatus>(
+        observe: () => RM.get<TimerStatus>(),
+        builder: (context, timerStatusRM) {
+          int duration;
+          return Injector(
+            //NOTE3 : Defining the a unique key of the widget.
+            //key: UniqueKey(), (reinjectOn is used instead)
+            inject: [
+              //NOTE4: Injecting the stream
+              Inject<int>.stream(
+                () => Stream.periodic(Duration(seconds: 1), (num) => num),
+                //NOTE4 : Defining the initialValue of the stream
+                initialValue: 0,
               ),
-            );
-          },
-        );
-      },
-    );
+            ],
+            //added in version 1.14.3
+            reinjectOn: [timerStatusRM],
+            builder: (_) {
+              //NOTE5 : Getting the registered reactive singleton of the stream using the 'int' type.
+              final timerStream = RM.get<int>();
+              return StateBuilder(
+                // NOTE6 : Subscribe this StateBuilder to the timerStream reactive singleton
+                observe: () => timerStream,
+                //NOTE7 : defining the onSetState callback to be called when this StateBuilder is notified and before the trigger of the rebuilding process.
+                onSetState: (_, __) {
+                  //NOTE8: Decrement the duration each time the stream emits a value
+                  duration = initialTimer - timerStream.snapshot.data - 1;
+                  //NOTE8 : Check if duration reaches zero and set the timerStatusRM to be equal to TimerStatus.ready
+                  if (duration <= 0) {
+                    //NOTE8: Mutating the state of TimerStatus
+                    timerStatusRM.state = TimerStatus.ready;
+                  }
+                },
+                builder: (_, __) {
+                  return Center(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          //NOTE9: Widget to display a formatted string of the duration.
+                          child: TimerDigit(
+                            duration ?? initialTimer,
+                          ),
+                        ),
+                        Expanded(
+                          //NOTE10 : define another StateBuilder
+                          child: StateBuilder(
+                            //NOTE10: subscribe this StateBuilder to the timerStatusRM
+                            observe: () => timerStatusRM,
+                            //NOTE11 : Give it a tag so that we can control its notification
+                            tag: 'timer',
+                            builder: (context, _) {
+                              //NOTE12 : Display the ReadyStatus widget if the timerStatusRM is in the ready status
+                              if (timerStatusRM.state == TimerStatus.ready) {
+                                return ReadyStatus();
+                              }
+                              //NOTE13 : Display the RunningStatus widget if the timerStatusRM is in the running status
+                              if (timerStatusRM.state == TimerStatus.running) {
+                                return RunningStatus();
+                              }
+                              //NOTE14 : Display the PausedStatus widget if the timerStatusRM is in the paused status
+                              return PausedStatus();
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        });
   }
 }
 
 class PausedStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -115,8 +120,8 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.play_arrow),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              () => TimerStatus.running,
+            timerStatusRM.setState(
+              (TimerStatus currentStatus) => TimerStatus.running,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.resume();
@@ -128,7 +133,7 @@ class PausedStatus extends StatelessWidget {
           child: Icon(Icons.stop),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(() => TimerStatus.ready);
+            timerStatusRM.state = TimerStatus.ready;
           },
         ),
       ],
@@ -137,8 +142,8 @@ class PausedStatus extends StatelessWidget {
 }
 
 class RunningStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>();
+  final timerStatusRM = RM.get<TimerStatus>();
 
   @override
   Widget build(BuildContext context) {
@@ -149,8 +154,8 @@ class RunningStatus extends StatelessWidget {
           child: Icon(Icons.pause),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(
-              () => TimerStatus.paused,
+            timerStatusRM.setState(
+              (_) => TimerStatus.paused,
               filterTags: ['timer'],
               onSetState: (context) {
                 timerStream.subscription.pause();
@@ -162,8 +167,8 @@ class RunningStatus extends StatelessWidget {
           child: Icon(Icons.repeat),
           heroTag: UniqueKey().toString(),
           onPressed: () {
-            timerStatusRM.setValue(() => TimerStatus.paused);
-            timerStatusRM.setValue(() => TimerStatus.running);
+            timerStatusRM.state = TimerStatus.paused;
+            timerStatusRM.state = TimerStatus.running;
           },
         ),
       ],
@@ -172,17 +177,16 @@ class RunningStatus extends StatelessWidget {
 }
 
 class ReadyStatus extends StatelessWidget {
-  final ReactiveModel<int> timerStream = Injector.getAsReactive<int>()
-    ..subscription.pause();
-  final timerStatusRM = Injector.getAsReactive<TimerStatus>();
+  final ReactiveModel<int> timerStream = RM.get<int>()..subscription.pause();
+  final timerStatusRM = RM.get<TimerStatus>();
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.play_arrow),
       heroTag: UniqueKey().toString(),
       onPressed: () {
-        timerStatusRM.setValue(
-          () => TimerStatus.running,
+        timerStatusRM.setState(
+          (_) => TimerStatus.running,
           filterTags: ['timer'],
           onSetState: (context) {
             timerStream.subscription.resume();

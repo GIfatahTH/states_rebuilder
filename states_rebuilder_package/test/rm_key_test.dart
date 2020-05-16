@@ -61,11 +61,12 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      rmKey.value = '';
+      rmKey.state = '';
       expect(rmFromInitState, equals(stringRM));
       expect(rmKey.hasObservers, isTrue);
       expect(rmKey.observers().length, 1);
-      rmKey.setValue(() => '1');
+      expect(rmKey.type(), '<String>');
+      rmKey.setState((_) => '1');
       await tester.pump();
       bool isCleaned = false;
       rmKey.cleaner(() {
@@ -118,7 +119,6 @@ void main() {
       expect(find.text('2'), findsOneWidget);
       modelRM0.subscription.cancel();
       modelRM0.unsubscribe();
-      expect(modelRM0.isStreamDone, isNull);
     },
   );
 
@@ -172,7 +172,7 @@ void main() {
                   builder: (_, __) {
                     return Column(
                       children: <Widget>[
-                        Text('modelRM1-${modelRM1.value}'),
+                        Text('modelRM1-${modelRM1.state}'),
                         Builder(
                           builder: (context) {
                             modelRM2 = RMKey();
@@ -180,7 +180,7 @@ void main() {
                                 observe: () => ReactiveModel.create(0),
                                 rmKey: modelRM2,
                                 builder: (_, rm) {
-                                  return Text('modelRM2-${modelRM2.value}');
+                                  return Text('modelRM2-${modelRM2.state}');
                                 });
                           },
                         ),
@@ -196,19 +196,19 @@ void main() {
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
     //
-    modelRM2.value = 1;
+    modelRM2.state = 1;
     await tester.pump();
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM1.value = 1;
+    modelRM1.state = 1;
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM2.value++;
+    modelRM2.state++;
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-2'), findsOneWidget);
@@ -228,7 +228,7 @@ void main() {
                   rmKey: rmKey,
                   builder: (_, rm) {
                     return Column(
-                      children: <Widget>[Text('modelRM1-${rmKey.value}')],
+                      children: <Widget>[Text('modelRM1-${rmKey.state}')],
                     );
                   }),
               Builder(
@@ -236,7 +236,7 @@ void main() {
                   return StateBuilder<int>(
                       observe: () => rmKey,
                       builder: (_, rm) {
-                        return Text('modelRM2-${rm.value}');
+                        return Text('modelRM2-${rm.state}');
                       });
                 },
               ),
@@ -249,13 +249,13 @@ void main() {
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
     //
-    rmKey.setValue(() => 1);
+    rmKey.setState((_) => 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(rmKey.hasData, isTrue);
 
-    rmKey.setValue(() => 2);
+    rmKey.setState((_) => 2);
     await tester.pump();
     expect(find.text('modelRM1-2'), findsOneWidget);
     expect(find.text('modelRM2-2'), findsOneWidget);
@@ -279,7 +279,7 @@ void main() {
                   observe: () => rmKey,
                   builder: (_, rm) {
                     return Column(
-                      children: <Widget>[Text('modelRM1-${rm.value}')],
+                      children: <Widget>[Text('modelRM1-${rm.state}')],
                     );
                   }),
               Builder(
@@ -288,7 +288,7 @@ void main() {
                       observe: () => ReactiveModel.create(0),
                       rmKey: rmKey,
                       builder: (_, rm) {
-                        return Text('modelRM2-${rm.value}');
+                        return Text('modelRM2-${rm.state}');
                       });
                 },
               ),
@@ -300,25 +300,25 @@ void main() {
     await tester.pumpWidget(widget);
     expect(find.text('modelRM1-null'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
-    await tester.pump();
-    expect(find.text('modelRM1-0'), findsOneWidget);
-    expect(find.text('modelRM2-0'), findsOneWidget);
+    // await tester.pump();
+    // expect(find.text('modelRM1-0'), findsOneWidget);
+    // expect(find.text('modelRM2-0'), findsOneWidget);
 
-    rmKey.setValue(() => 1);
-    await tester.pump();
-    expect(find.text('modelRM1-1'), findsOneWidget);
-    expect(find.text('modelRM2-1'), findsOneWidget);
-    expect(rmKey.hasData, isTrue);
+    // rmKey.setState((_) => 1);
+    // await tester.pump();
+    // expect(find.text('modelRM1-1'), findsOneWidget);
+    // expect(find.text('modelRM2-1'), findsOneWidget);
+    // expect(rmKey.hasData, isTrue);
 
-    rmKey.setValue(() => 2);
-    await tester.pump();
-    expect(find.text('modelRM1-2'), findsOneWidget);
-    expect(find.text('modelRM2-2'), findsOneWidget);
-    expect(rmKey.hasData, isTrue);
-    rmKey.refresh();
-    await tester.pump();
-    expect(find.text('modelRM1-0'), findsOneWidget);
-    expect(find.text('modelRM2-0'), findsOneWidget);
+    // rmKey.setState((_) => 2);
+    // await tester.pump();
+    // expect(find.text('modelRM1-2'), findsOneWidget);
+    // expect(find.text('modelRM2-2'), findsOneWidget);
+    // expect(rmKey.hasData, isTrue);
+    // rmKey.refresh();
+    // await tester.pump();
+    // expect(find.text('modelRM1-0'), findsOneWidget);
+    // expect(find.text('modelRM2-0'), findsOneWidget);
   });
 
   testWidgets(
@@ -326,7 +326,7 @@ void main() {
     (tester) async {
       final rmKey = RMKey<Model>();
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         rmKey: rmKey,
         builder: (_, __) {
           return WhenRebuilder(
@@ -342,7 +342,6 @@ void main() {
       //isIdle
       expect(find.text('onIdle'), findsOneWidget);
       expect(rmKey.isIdle, isTrue);
-      expect(rmKey.isNewReactiveInstance, false);
 
       rmKey.setState((s) => s.incrementAsyncError(), catchError: true);
       //isWaiting
@@ -421,21 +420,21 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [inject.getReactive()],
+            observeMany: [() => inject.getReactive()],
             rmKey: modelRM0,
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
-            models: [inject.getReactive(true)],
+            observeMany: [() => inject.getReactive(true)],
             rmKey: modelRM1,
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [inject.getReactive(true)],
+            observeMany: [() => inject.getReactive(true)],
             rmKey: modelRM2,
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
@@ -468,7 +467,7 @@ void main() {
     (tester) async {
       RMKey rmKey = RMKey();
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         rmKey: rmKey,
         builder: (_, __) {
           return _widgetBuilder(
@@ -503,7 +502,7 @@ void main() {
       RMKey rmKey = RMKey();
 
       final widget = StateBuilder(
-        models: [modelRM],
+        observeMany: [() => modelRM],
         rmKey: rmKey,
         builder: (_, __) {
           return _widgetBuilder(
@@ -537,7 +536,7 @@ void main() {
   testWidgets(
     'seeds works',
     (tester) async {
-      RMKey rmKey = RMKey();
+      var rmKey = RMKey<int>();
       ReactiveModel<int> modelRM1;
 
       final widget = Column(
@@ -546,39 +545,39 @@ void main() {
             observe: () => ReactiveModel.create(0),
             rmKey: rmKey,
             builder: (context, __) {
-              return _widgetBuilder('model0-${rmKey.value}');
+              return _widgetBuilder('model0-${rmKey.state}');
             },
           ),
           StateBuilder(
             observe: () => rmKey.asNew('seed1'),
             builder: (context, rm) {
               modelRM1 = rm;
-              return _widgetBuilder('model1-${modelRM1.value}');
+              return _widgetBuilder('model1-${modelRM1.state}');
             },
           )
         ],
       );
       await tester.pumpWidget(widget);
-      rmKey.setValue(() => rmKey.value + 1);
+      rmKey.setState((_) => rmKey.state + 1);
       await tester.pump();
       expect(find.text(('model0-1')), findsOneWidget);
       expect(find.text(('model1-0')), findsOneWidget);
       //
-      rmKey.setValue(() => rmKey.value + 1, seeds: ['seed1']);
+      rmKey.setState((_) => rmKey.state + 1, seeds: ['seed1']);
       await tester.pump();
       expect(find.text(('model0-2')), findsOneWidget);
       expect(find.text(('model1-2')), findsOneWidget);
       //
-      modelRM1.setValue(() {
-        return modelRM1.value + 1;
+      modelRM1.setState((_) {
+        return modelRM1.state + 1;
       });
       await tester.pump();
       expect(find.text(('model0-2')), findsOneWidget);
       expect(find.text(('model1-3')), findsOneWidget);
       //
-      modelRM1.setValue(
-        () {
-          return modelRM1.value + 1;
+      modelRM1.setState(
+        (_) {
+          return modelRM1.state + 1;
         },
         notifyAllReactiveInstances: true,
       );
@@ -599,7 +598,7 @@ void main() {
       final widget = Column(
         children: <Widget>[
           StateBuilder(
-            models: [inject.getReactive()],
+            observeMany: [() => inject.getReactive()],
             rmKey: modelRM0,
             builder: (context, _) {
               return _widgetBuilder(
@@ -607,14 +606,14 @@ void main() {
             },
           ),
           StateBuilder(
-            models: [inject.getReactive(true)],
+            observeMany: [() => inject.getReactive(true)],
             rmKey: modelRM1,
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
-            models: [inject.getReactive(true)],
+            observeMany: [() => inject.getReactive(true)],
             rmKey: modelRM2,
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
@@ -650,7 +649,9 @@ void main() {
   testWidgets(
     'testing toString override',
     (tester) async {
-      final modelRM = RMKey<Model>()..rm = ReactiveModel.create(Model());
+      final modelRM = RMKey<Model>()
+        ..rm = ReactiveModel.create(Model())
+        ..listenToRM((rm) {});
 
       //
       expect(modelRM.toString(), contains('<Model> RM'));
@@ -704,14 +705,14 @@ void main() {
                   builder: (_, __) {
                     return Column(
                       children: <Widget>[
-                        Text('modelRM1-${modelRM1.value}'),
+                        Text('modelRM1-${modelRM1.state}'),
                         Builder(
                           builder: (context) {
                             return StateBuilder<int>(
                                 observe: () => ReactiveModel.create(0),
                                 rmKey: modelRM2,
                                 builder: (_, rm) {
-                                  return Text('modelRM2-${modelRM2.value}');
+                                  return Text('modelRM2-${modelRM2.state}');
                                 });
                           },
                         ),
@@ -727,22 +728,25 @@ void main() {
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
     //
-    modelRM2.setValue(() => 1);
+    modelRM2.setState((_) => 1);
     await tester.pump();
     expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM1.setValue(() => 1);
+    modelRM1.setState((_) => 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-1'), findsOneWidget);
     expect(modelRM2.hasData, isTrue);
 
-    modelRM2.setValue(() => modelRM2.value + 1);
+    modelRM2.setState((_) => modelRM2.state + 1);
     await tester.pump();
     expect(find.text('modelRM1-1'), findsOneWidget);
     expect(find.text('modelRM2-2'), findsOneWidget);
+    modelRM1.copy(modelRM2.rm, false);
+    expect(modelRM1.observers().length, 1);
+    expect(modelRM2.observers().length, 2);
   });
 
   testWidgets('refresh future', (tester) async {
@@ -752,7 +756,7 @@ void main() {
       rmKey: rmKey,
       onWaiting: () => Text('waiting...'),
       builder: (_, rm) {
-        return Text(rm.value.toString());
+        return Text(rm.state.toString());
       },
     );
     await tester.pumpWidget(MaterialApp(home: widget));
@@ -768,7 +772,7 @@ void main() {
   });
 
   testWidgets(
-    'ReactiveModel : future method works',
+    'ReactiveModel : setState of future works',
     (tester) async {
       RMKey<Model> modelRM = RMKey();
       String errorMessage;
@@ -784,9 +788,11 @@ void main() {
         ],
       );
       await tester.pumpWidget(widget);
-      modelRM.future((m) => m.incrementAsync()).onError((context, error) {
-        errorMessage = error.message;
-      });
+      modelRM
+        ..setState((m) => m.incrementAsync())
+        ..onError((context, error) {
+          errorMessage = error.message;
+        });
       expect(find.text('0'), findsOneWidget);
       expect(modelRM.isWaiting, isTrue);
       expect(errorMessage, isNull);
@@ -799,7 +805,7 @@ void main() {
   );
 
   testWidgets(
-    'ReactiveModel : stream method works',
+    'ReactiveModel : setState with stream method works',
     (tester) async {
       RMKey<Model> modelRM = RMKey();
       String errorMessage;
@@ -815,11 +821,13 @@ void main() {
         ],
       );
       await tester.pumpWidget(widget);
-      modelRM.stream((m) => m.incrementStream()).onError((context, error) {
-        errorMessage = error.message;
-      });
+      modelRM
+        ..setState((m) => m.incrementStream())
+        ..onError((context, error) {
+          errorMessage = error.message;
+        });
       expect(find.text('0'), findsOneWidget);
-      expect(modelRM.isIdle, isTrue);
+      expect(modelRM.isWaiting, isTrue);
       expect(errorMessage, isNull);
 
       await tester.pump(Duration(seconds: 1));
@@ -905,6 +913,57 @@ void main() {
       expect(onDataGlobal, 1);
     },
   );
+
+  testWidgets('ReactiveModel.getFuture', (tester) async {
+    final rmKey = RMKey();
+    rmKey.rm = RM.create(Model());
+    final widget = WhenRebuilderOr(
+      observeMany: [() => rmKey.future((m, _) => m.incrementAsync())],
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('data');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('data'), findsOneWidget);
+  });
+
+  testWidgets('ReactiveModel.getStream', (tester) async {
+    final rmKey = RMKey<Model>();
+    rmKey.rm = RM.create(Model());
+
+    final widget = WhenRebuilderOr(
+      observeMany: [
+        () => rmKey.stream(
+              (m, _) => m._getStream(),
+              initialValue: 0,
+            )
+      ],
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('${rm.state}');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+
+    expect(find.text('waiting ...'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+
+    expect(find.text('2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+  });
 }
 
 class ModelSR extends StatesRebuilder {
@@ -950,6 +1009,8 @@ class Model {
     yield --counter;
     throw Exception('Error message');
   }
+
+  Stream<int> _getStream() => getStream();
 }
 
 Widget _widgetBuilder(String text1, [String text2, String text3]) {

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'injector.dart';
 
+import 'injector.dart';
 import 'states_rebuilder.dart';
 
 class StatesRebuilderDebug {
@@ -25,7 +25,7 @@ class StatesRebuilderDebug {
   }
 
   ///Print subscribed observers of an observable object
-  static printObservers(StatesRebuilder observable) {
+  static String printObservers(StatesRebuilder observable) {
     String text =
         'Number of observers subscribed to ${observable.runtimeType} is: ' +
             observable.observers().length.toString();

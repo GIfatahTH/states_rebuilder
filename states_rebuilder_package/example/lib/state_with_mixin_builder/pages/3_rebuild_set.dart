@@ -33,7 +33,7 @@ class CounterGrid extends StatelessWidget {
                 for (var i = 0; i < 12; i++)
                   StateBuilder<CounterBlocSet>(
                     tag: i % 2,
-                    models: [Injector.getAsReactive<CounterBlocSet>()],
+                    observe: () => Injector.getAsReactive<CounterBlocSet>(),
                     builder: (_, counterRM) => GridItem(
                       count: counterRM.state.counter,
                       onTap: () => counterRM.setState(

@@ -343,53 +343,54 @@ The UI layer never instantiates anything from the domain layer, rather it must d
 ```dart
 main() {
   runApp(
-    Injector(
-      inject: [
-        //NOTE1: Injecting the apple_sign_in plugging
-        Inject(() => AppSignInCheckerService(AppleSignInChecker())),
-        //NOTE1: Injecting the UserService class
-        Inject(() => UserService(userRepository: UserRepository()))
-      ],
-      builder: (context) {
-        return MyApp();
-      },
+    MaterialApp(
+      home: Injector(
+        inject: [
+          //NOTE1: Injecting the apple_sign_in plugging
+          Inject(() => AppSignInCheckerService(AppleSignInChecker())),
+          //NOTE1: Injecting the UserService class
+          Inject(() => UserService(userRepository: UserRepository()))
+        ],
+        builder: (context) {
+          return MyApp();
+        },
+      ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  // NOTE2 Getting the ReactiveModel singletons of UserService and AppSignInCheckerService
-  final userServiceRM = Injector.getAsReactive<UserService>();
-  final appleCheckerRM = Injector.getAsReactive<AppSignInCheckerService>();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      //NOTE3: Use of WhenRebuilder to subscribe to userServiceRM and appleCheckerRM
-      home: WhenRebuilder<UserService>(
-        models: [userServiceRM.asNew('main_widget'), appleCheckerRM],
-        //NOTE4: Check if can sign with apple and get the current registered user if any
-        initState: (_, userServiceRM) {
-          appleCheckerRM.setState((s) => s.check());
-          userServiceRM.setState((s) => s.currentUser());
-        },
-        //NOTE4: If any of appleCheckerRM or userServiceRM is in the waiting state show a SplashScreen
-        onWaiting: () => SplashScreen(),
-        //NOTE4: If any of appleCheckerRM or userServiceRM is has error, display it
-        onError: (error) => Text(error.toString()),
-        //NOTE4: If Both appleCheckerRM and appleCheckerRM have date, onDate is called
-        onData: (_) {
-          return StateBuilder(
-            //NOTE5: Subscribe to the reactiveModel singleton
-            models: [userServiceRM],
-            builder: (_, __) {
-              //NOTE6: depending of he user we are directed to SignInPage or HomePage
-              return userServiceRM.state.user == null
-                  ? SignInPage()
-                  : HomePage();
-            },
-          );
-        },
-      ),
+    //Note2: this is used for debug. 
+    //It prints on the console log the active ReactiveModel that is emitting the notification
+    //You can uncomment this line
+    RM.printActiveRM = true;
+    return WhenRebuilder(
+      //Note3: use the observeMany instead of observe parameter to subscribe to many ReactiveModels
+      observeMany: [
+        //Note3: Create a local ReactiveModel of type future form currentUser() method of the registered instance of UserService
+        () => RM.future(IN.get<UserService>().currentUser()),
+        //Note3: Create a local ReactiveModel of type future form check() method of the registered instance of AppSignInCheckerService
+        () => RM.future(IN.get<AppSignInCheckerService>().check())
+      ],
+      onIdle: () => Container(),
+      //NOTE4: If any of appleCheckerRM or userServiceRM is in the waiting state show a SplashScreen
+      onWaiting: () => SplashScreen(),
+      //NOTE4: If any of appleCheckerRM or userServiceRM is has error, display it
+      onError: (error) => Text(error.toString()),
+      onData: (_) {
+        return StateBuilder(
+          //NOTE5: Subscribe to the reactiveModel global registered singleton
+          observe: () => RM.get<UserService>(),
+          //NOTE6: This StateBuilder will not rebuild unless the user changes
+          watch: (userServiceRM) => userServiceRM.state.user,
+          builder: (_, userServiceRM) {
+            //NOTE6: depending of he user we are directed to SignInPage or HomePage
+            return userServiceRM.state.user == null ? SignInPage() : HomePage();
+          },
+        );
+      },
     );
   }
 }
@@ -397,32 +398,16 @@ class MyApp extends StatelessWidget {
 
 With `states_rebuilder` plugging can be injected using `Injector` inside runApp method without the need to make the main method async and call `WidgetsFlutterBinding.ensureInitialized()` method [Note1].
 
-after getting the ReactiveModels [NOTE2], We choose to use `WhenRebuilder` widget. It is useful if we want to register to one or many observable ReactiveModel and exhaustively define the widget to display in each of the fore status (onIdle, OnWaiting, onError, onData) [NOTE3]. If many observable ReactiveModel are defined in the `models` list as in our case, a combined state is exposed, that is the `onDate` will not be called until all models have data, and if any model has en error the onError is invoked with the error. The same with the case of one model is in the waiting state [NOTE4].
+ReactiveModels are either local or global, the latter can be globally accessed from within the widget tree because they are injected using Injector.
 
-`WhenRebuilder` is a StatefulWidget and in its initState hook we check and currentUser method of the appleCheckerRM and userServiceRM respectively using the `setState` method [NOTE4].
+Local ReactiveModels are those created and used locally inside a widget. Local ReactiveModels are not injected using Injector.
 
-NOTICE in the models parameter list :
+In our case here we have two observer widgets `WhenRebuilder` [Note3] and `StateBuilder` [NOTE5]. `WhenRebuilder` is subscribed to two local ReactiveModels and `StateBuilder` is subscribed to one global models.
 
-```dart
-models: [userServiceRM.asNew('main_widget'), appleCheckerRM],
-```
-We subscribe to a new reactive model of `userServiceRM`.
+* For `WhenRebuilder`, we created two local ReactiveModels from the injected instances of `UserService` and `AppSignInCheckerService` to check the logged user and tha apple sign in possibility.
 
-> `ReactiveModel.asNew([dynamic seed])` returns a new reactiveModel of the same registered row model. The seed parameter is optional and if not given a default seed is used.
+* For `StateBuilder`, we subscribed it to the global registered `ReactiveModel` instance, because we want to rebuild this widget each time the signed user changes form other pages.
 
->seed here has a similar meaning in random number generator. That is for the same seed we get the same new reactive instance.
-
-This is important because we do not want the  `WhenRebuilder` to be notified by any ReactiveModel other than the ReactiveModel registered with the provided seed `main_widget`.
-
-> In states_rebuilder one model can be wrapped with many independent ReactiveModels
-
-If you register `WhenRebuilder` with the singleton Reactive model `userServiceRM`, any time `userServiceRM` the emits a notification even from other widgets or pages this `WhenRebuilder` will rebuild. and this is what we want for the `StateBuilder` of [NOTE5] because in the `signInPage` we want to notify this `StateBuilder` to rebuild after the signing process to display the `HomePage`.
-
->ReactiveModel singleton is useful for cross view and widget notification and new ReactiveModel are very useful to limit the rebuild in a single view or widget.
-
->If you grasp the concept of ReactiveModel (singleton and new instances) and as well as the concept of filterTags and watch, you can achieve the finest rebuild of your widget tree and this is above the bonus of boilerplateless and vanilla row models.
-
-Depending on the current value of the `UserService.user` we are directed to `SignInPage` or `HomePage``
 
 ## pages
 I suggest dedicating a folder for each page that contains dart files linked to the page. The entry file will be the will have the same name as the folder name. This improves readability because all related files are in the same place. Compare it with the case where you put all files in the widgets folder. Widgets folder should contain only small, reusable, and app independent widgets.
@@ -434,10 +419,6 @@ class SignInPage extends StatelessWidget {
   //NOTE1: Getting the bool canSignInWithApple value
   final bool canSignInWithApple =
       Injector.get<AppSignInCheckerService>().canSignInWithApple;
-  //NOTE1: Getting the Singleton ReactiveModel of UserService
-  final userServiceRM = Injector.getAsReactive<UserService>();
-  //NOTE1: helper getter
-  bool get isLoading => userServiceRM.isWaiting;
 
   @override
   Widget build(BuildContext context) {
@@ -445,77 +426,84 @@ class SignInPage extends StatelessWidget {
       appBar: AppBar(title: Text('Log in')),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Center(
-              child: SizedBox(
-                //NOTE1: Display the CircularProgressIndicator while signing in
-                child: isLoading
-                    ? CircularProgressIndicator()
-                    : Text(
-                        'Sign In',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 30),
-                      ),
-                height: 40.0,
+        child: Builder(builder: (context) {
+          //NOTE1: Getting the Singleton ReactiveModel of UserService and subscribe it with the BuildContext
+          final userServiceRM = RM.get<UserService>(context: context);
+          //NOTE1: helper getter
+          bool isLoading = userServiceRM.isWaiting;
+          print('signin page rebuild');
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Center(
+                child: SizedBox(
+                  //NOTE1: Display the CircularProgressIndicator while signing in
+                  child: isLoading
+                      ? CircularProgressIndicator()
+                      : Text(
+                          'Sign In',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 30),
+                        ),
+                  height: 40.0,
+                ),
               ),
-            ),
-            SizedBox(height: 32),
-            //NOTE2: IF can log with apple 
-            if (canSignInWithApple) ...[
+              SizedBox(height: 32),
+              //NOTE2: IF can log with apple 
+              if (canSignInWithApple) ...[
+                RaisedButton(
+                  child: Text('Sign in With Apple Account'),
+                  onPressed: isLoading
+                      ? null
+                      : () => userServiceRM.setState(
+                            (s) => s.signInWithApple(),
+                            onError: ExceptionsHandler.showErrorDialog,
+                          ),
+                ),
+                SizedBox(height: 8),
+              ],
               RaisedButton(
-                child: Text('Sign in With Apple Account'),
+                child: Text('Sign in With Google Account'),
                 onPressed: isLoading
                     ? null
-                    //call signInWithApple(), and setState and delegate error handling to ExceptionsHandler.showErrorDialog
                     : () => userServiceRM.setState(
-                          (s) => s.signInWithApple(),
+                          (s) => s.signInWithGoogle(),
                           onError: ExceptionsHandler.showErrorDialog,
                         ),
               ),
               SizedBox(height: 8),
+              RaisedButton(
+                child: Text('Sign in With Email and password'),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                             //Display form screen
+                              return SignInRegisterFormPage();
+                            },
+                          ),
+                        );
+                      },
+              ),
+              SizedBox(height: 8),
+              RaisedButton(
+                child: Text('Sign in anonymously'),
+                onPressed: isLoading
+                    ? null
+                    : () => userServiceRM.setState((s) => s.signInAnonymously(),
+                            onError: (context, error) {
+                          print('error');
+                          ExceptionsHandler.showErrorDialog(context, error);
+                        }),
+              ),
+              SizedBox(height: 8),
             ],
-            RaisedButton(
-              child: Text('Sign in With Google Account'),
-              onPressed: isLoading
-                  ? null
-                  : () => userServiceRM.setState(
-                        (s) => s.signInWithGoogle(),
-                        onError: ExceptionsHandler.showErrorDialog,
-                      ),
-            ),
-            SizedBox(height: 8),
-            RaisedButton(
-              child: Text('Sign in With Email and password'),
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            //Display form screen
-                            return SignInRegisterFormPage();
-                          },
-                        ),
-                      );
-                    },
-            ),
-            SizedBox(height: 8),
-            RaisedButton(
-              child: Text('Sign in anonymously'),
-              onPressed: isLoading
-                  ? null
-                  : () => userServiceRM.setState(
-                        (s) => s.signInAnonymously(),
-                        onError: ExceptionsHandler.showErrorDialog,
-                      ),
-            ),
-            SizedBox(height: 8),
-          ],
-        ),
+          );
+        }),
       ),
     );
   }
@@ -526,8 +514,7 @@ The second page is the home page.
 **file:lib/ui/pages/home_page/home_page.dart**
 ```dart
 class HomePage extends StatelessWidget {
-  final userServiceRM = Injector.getAsReactive<UserService>();
-  User get user => userServiceRM.state.user;
+  final User user = IN.get<UserService>().user;
 
   @override
   Widget build(BuildContext context) {
@@ -538,7 +525,8 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
-              userServiceRM.setState((s) => s.signOut());
+              //get UserService reactiveModel and call setState to signOut,
+              RM.getSetState<UserService>((s) => s.signOut());
             },
           )
         ],
@@ -548,10 +536,10 @@ class HomePage extends StatelessWidget {
   }
 }
 ```
-NOTICE that in `signInPage` and `HomePage` we mutating the value of the `UserService.user` and we are emitting notifications from the singleton reactive model. This means that we are notifying the StateBuilder of the mail.dart file that will rebuild and display `signInPage` or `HomePage` depending on the value of the user
+NOTICE that in `signInPage` and `HomePage` we mutating the value of the `UserService.user` and we are emitting notifications from the global singleton reactive model. This means that we are notifying the StateBuilder of the mail.dart file that will rebuild and display `signInPage` or `HomePage` depending on the value of the user
  ```dart
 return StateBuilder(
-    models: [userServiceRM],
+    observe: () => RM.get<UserService>(),
     builder: (_, __) {
         return userServiceRM.state.user == null
             ? SignInPage()
@@ -576,28 +564,15 @@ class SignInRegisterFormPage extends StatelessWidget {
   }
 }
 
-//NOTE1: use of StateFulWidget only to hold states not notify them
-class FormWidget extends StatefulWidget {
-  @override
-  _FormWidgetState createState() => _FormWidgetState();
-}
-
-class _FormWidgetState extends State<FormWidget> {
-  //NOTE2: getting the userService ReactiveModel as new instance with 'formWidget' as a seed.
-  final userServiceRM =
-      Injector.getAsReactive<UserService>().asNew('formWidget');
-
-  //NOTE3: Creating a local ReactiveModel<String> for email with empty initial value
-  final _emailRM = ReactiveModel.create('');
-  
-  //NOTE3: Creating a local ReactiveModel<String> for password with empty initial value
-  final _passwordRM = ReactiveModel.create('');
-
-  //NOTE3: Creating a local ReactiveModel<bool> for isRegister with false initial value
-  final _isRegisterRM = ReactiveModel.create(false);
-
-  //NOTE4: bool getter to check if the form is valid
-  bool get _isFormValid => _passwordRM.hasData && _passwordRM.hasData;
+class FormWidget extends StatelessWidget {
+  //NOTE1: Creating a  ReactiveModel key for email with empty initial value
+  final _emailRM = RMKey('');
+  //NOTE1: Creating a  ReactiveModel key for password with empty initial value
+  final _passwordRM = RMKey('');
+  //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
+  final _isRegisterRM = RMKey(false);
+  //NOTE1: bool getter to check if the form is valid
+  bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
 
   @override
   Widget build(BuildContext context) {
@@ -606,22 +581,25 @@ class _FormWidgetState extends State<FormWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         StateBuilder(
-            //NOTE5: subscribe to _emailRM
-          models: [_emailRM],
+          //NOTE2: create and subscribe to local ReactiveModel of empty string
+          observe: () => RM.create(''),
+          //NOTE3: couple this StateBuilder with the email ReactiveModel key
+          rmKey: _emailRM,
           builder: (_, __) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.email),
                 labelText: 'Email',
-                //NOTE6: Delegate to ExceptionsHandler.errorMessage for error handling 
-                errorText: ExceptionsHandler.errorMessage(_emailRM.error).message,
+                //NOTE4: Delegate to ExceptionsHandler.errorMessage for error handling
+                errorText:
+                    ExceptionsHandler.errorMessage(_emailRM.error).message,
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               onChanged: (email) {
-                //NOTE7: set the value of email and notify observers
-                _emailRM.setValue(
-                  () => Email(email).value,
+                //NOTE5: set the value of email and notify observers
+                _emailRM.setState(
+                  (_) => Email(email).value,
                   catchError: true,
                 );
               },
@@ -629,22 +607,21 @@ class _FormWidgetState extends State<FormWidget> {
           },
         ),
         StateBuilder(
-        //NOTE5: subscribe to _passwordRM
-          models: [_passwordRM],
+          observe: () => RM.create(''),
+          rmKey: _passwordRM,
           builder: (_, __) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.lock),
                 labelText: 'Password',
-                //NOTE6: Delegate to ExceptionsHandler.errorMessage for error handling 
-                errorText: ExceptionsHandler.errorMessage(_passwordRM.error).message,
+                errorText:
+                    ExceptionsHandler.errorMessage(_passwordRM.error).message,
               ),
               obscureText: true,
               autocorrect: false,
               onChanged: (password) {
-                //NOTE7: set the value of email and notify observers
-                _passwordRM.setValue(
-                  () => Password(password).value,
+                _passwordRM.setState(
+                  (_) => Password(password).value,
                   catchError: true,
                 );
               },
@@ -653,72 +630,74 @@ class _FormWidgetState extends State<FormWidget> {
         ),
         SizedBox(height: 10),
         StateBuilder(
-            //NOTE5: subscribe to _isRegisterRM
-            models: [_isRegisterRM],
+            observe: () => RM.create(false),
+            rmKey: _isRegisterRM,
             builder: (_, __) {
               return Row(
                 children: <Widget>[
                   Checkbox(
-                    value: _isRegisterRM.value,
+                    value: _isRegisterRM.state,
                     onChanged: (value) {
-                      //NOTE7: set the value of _isRegisterRM and notify observers
-                      _isRegisterRM.setValue(() => value);
+                      _isRegisterRM.setState((_) => value);
                     },
                   ),
-                  Text(' I do not have an account'),
+                  Text(' I do not have an account')
                 ],
               );
-            },
-        ),
-        StateBuilder(
-          //NOTE8: subscribe to all the ReactiveModels
-          //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
-          //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
-          //userServiceRM: To show CircularProgressIndicator is the state is waiting
-          models: [_emailRM, _passwordRM, _isRegisterRM, userServiceRM],
-          builder: (_, __) {
-            //NOTE8: show CircularProgressIndicator is the userServiceRM state is waiting
-            if (userServiceRM.isWaiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            return RaisedButton(
-              //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
-              child: _isRegisterRM.value ? Text('Register') : Text('Sign in'),
-              //NOTE8: activate/deactivate the button if the form is valid/non valid
-              onPressed: _isFormValid
-                  ? () {
-                      //NOTE9: If _isRegisterRM.value is true call createUserWithEmailAndPassword,
-                      if (_isRegisterRM.value) {
-                        userServiceRM.setState(
-                          (s) => s.createUserWithEmailAndPassword(
-                            _emailRM.value,
-                            _passwordRM.value,
-                          ),
-                          onData: (_, __) {
-                            Navigator.pop(context);
-                          },
-                          catchError: true,
-                        );
-                      } else {
-                      //NOTE9: If _isRegisterRM.value is true call signInWithEmailAndPassword,
-                        userServiceRM.setState(
-                          (s) => s.signInWithEmailAndPassword(
-                            _emailRM.value,
-                            _passwordRM.value,
-                          ),
-                          onData: (_, __) => Navigator.pop(context),
-                          catchError: true,
-                        );
-                      }
-                    }
-                  : null,
-            );
-          },
-        ),
-        StateBuilder(
-          models: [userServiceRM],
-          builder: (_, __) {
+            }),
+        StateBuilder<UserService>(
+            //NOTE6: subscribe to all the ReactiveModels
+            //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
+            //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
+            //userServiceRM: To show CircularProgressIndicator is the state is waiting
+            observeMany: [
+              () => _emailRM,
+              () => _passwordRM,
+              () => _isRegisterRM,
+              () => RM.get<UserService>().asNew('signInRegisterForm'),
+            ],
+            //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
+            builder: (_, userServiceRM) {
+              if (userServiceRM.isWaiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              return RaisedButton(
+                  //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
+                  child:
+                      _isRegisterRM.state ? Text('Register') : Text('Sign in'),
+                  //NOTE8: activate/deactivate the button if the form is valid/non valid
+                  onPressed: _isFormValid
+                      ? () {
+                          userServiceRM.setState(
+                            (s) async {
+                              //NOTE9: If _isRegisterRM.state is true call createUserWithEmailAndPassword,
+                              if (_isRegisterRM.state) {
+                                return s.createUserWithEmailAndPassword(
+                                  _emailRM.state,
+                                  _passwordRM.state,
+                                );
+                              } else {
+                                //NOTE9: If _isRegisterRM.state is true call signInWithEmailAndPassword,
+                                return s.signInWithEmailAndPassword(
+                                  _emailRM.state,
+                                  _passwordRM.state,
+                                );
+                              }
+                            },
+                            //we want to notify the local new ReactiveModel created bellow
+                            notifyAllReactiveInstances: true,
+                            onData: (_, __) {
+                              Navigator.pop(context);
+                            },
+                            catchError: true,
+                          );
+                        }
+                      : null);
+            }),
+        StateBuilder<UserService>(
+          //we created a local new ReactiveModel form the global registered ReactiveModel
+          observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
+          builder: (_, userServiceRM) {
             //NOTE10: Display an error message telling the user what goes wrong.
             if (userServiceRM.hasError) {
               return Center(
@@ -735,24 +714,7 @@ class _FormWidgetState extends State<FormWidget> {
     );
   }
 }
-
 ```
-First, we are using StatefulWidget here not for state management but only as a state holder [NOTE1].
-
-a new instance of the userService Reactive model is obtained using `Injector.getAsReactive` providing a seed value 'formWidget' [NOTE2]. We get a new reactive model instance because the `FormWidget` should not be affected by other `userServiceRM` declared in other widgets and at the same time, we don't want the `userServiceRM` declared here to affect other widgets.
-
-In other words, If `userServiceRM` declared here issues a notification, it will notify only observers subscribed to this `userServiceRM` instance and will not notify observers subscribed to other instances of `userServiceRM`.
-
-In [NOTE3] we are creating local ReactiveModel form primitive values:
-* emailRM: to hold the email,
-* passwordRM: to hold the password,
-* isRegisterRM: to hold a bool value telling if the user wants to register or sign in.
-
-The `ReactiveModel.create` constructor is useful with primitive values, enumerations, and immutable objects. It makes them reactive so that observer widgets can subscribe to them,[NOTE5], and receive notification from them to rebuild [NOTE7]. 
-
-> Reactive models created using `ReactiveModel.create` has all the features the reactive models created using `Injector` have.
-
->`setValue` is similar to `setState` but it is more convenient for mutating primitives or immutable objects.
 
 The StateBuilder that wraps the RaisedButton is special because it needs to rebuild:
 * Each time the value of the email changes
@@ -760,12 +722,10 @@ The StateBuilder that wraps the RaisedButton is special because it needs to rebu
 * Each time the checkbox state is changed
 * Each time the userServiceRM status change 
 
-For these purposes, it is subscribed to all four ReactiveModels [NOTE8]: 
+For these purposes, it is subscribed to all four ReactiveModels : 
 * _emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
 * _isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
 * userServiceRM: To show CircularProgressIndicator is the state is waiting
-
-And finally, errors are displayed under the RaisedButton [NOTE10].
 
 ## exceptions
 Here we will handle errors thrown from inner layers.

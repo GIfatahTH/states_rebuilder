@@ -97,7 +97,7 @@ class CounterGridPage1 extends StatelessWidget {
       builder: (BuildContext context) {
         //NOTE2: Obtaining the registered reactive singleton.
         final counterServiceRM =
-            Injector.getAsReactive<CounterService>(context: context);
+            RM.get<CounterService>(context: context);
 
         return Scaffold(
           appBar: AppBar(title: Text('Future counter with error')),
@@ -134,7 +134,7 @@ class CounterGridPage1 extends StatelessWidget {
 }
 ```
 
-After injecting the `CounterService` [NOTE1], we get its registered reactive singleton using `Injector.getAsReactive` method [NOTE2]. 
+After injecting the `CounterService` [NOTE1], we get its registered reactive singleton using `RM.get` method [NOTE2]. 
 
 The `GridView` displays four `CounterApp` widgets: 
 
@@ -214,7 +214,7 @@ class CounterBox extends StatelessWidget {
         children: <Widget>[
           //NOTE1: Use of WhenRebuilder widget to subscribe to counterServiceRM reactive instance
            WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(
@@ -308,7 +308,7 @@ class CounterGridPage2 extends StatelessWidget {
       builder: (BuildContext context) {
         //NOTE2 : Get the registered reactive singleton. 
         final counterServiceSingleton =
-            Injector.getAsReactive<CounterService>();
+            RM.get<CounterService>();
 
         return Scaffold(
           appBar: AppBar(
@@ -316,7 +316,7 @@ class CounterGridPage2 extends StatelessWidget {
             //NOTE3: The title of the appBar is reactive and for each state of the reactive singleton it will display the corresponding widget.
 
             title: WhenRebuilder(
-              models: [counterServiceSingletonRM],
+              observe: () => counterServiceSingletonRM,
               //NOTE3: tag to be used to filter notification
               tag: 'appBar',
               onIdle: () => Text('There are still counters waiting for you'),
@@ -389,7 +389,7 @@ class CounterGridPage2 extends StatelessWidget {
 
 Take not that states_rebuilder, for each injected model, it registers two singletons:
 * Row singleton of the model: Which is the cached instance of the model. To get it, we use `Injector.get` method;
-* The reactive singleton of the model: which is the raw singleton decorated which reactive environment. To get it, we use `Injector.getAsReactive` method.[NOTE2]
+* The reactive singleton of the model: which is the raw singleton decorated which reactive environment. To get it, we use `RM.get` method.[NOTE2]
 
 With states_rebuilder, you can create as many new reactive environments as you want:
 
@@ -433,7 +433,7 @@ class CounterApp extends StatelessWidget {
     return Container(
       //NOTE1: Changing the primarySwatch color to red if there is an error.
       child: StateBuilder(
-        models: [counterServiceRM],
+        observe: () => counterService,
         //NOTE1 : Using the tag to notify this StateBuilder when an error happens
         tag: 'appBar',
         builderWithChild: (context, snapshot, child) {
@@ -508,7 +508,7 @@ class CounterBox extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(

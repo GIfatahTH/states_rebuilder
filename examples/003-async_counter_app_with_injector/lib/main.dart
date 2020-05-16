@@ -164,14 +164,14 @@ class MyHomePage extends StatelessWidget {
                   ),
                   //Subscribing to the counterRM using StateBuilder
                   WhenRebuilder<ICounterStore>(
-                    models: [counterRM],
+                    observe: () => counterRM,
                     onIdle: () =>
                         Text('Tap on the FAB to increment the counter'),
                     onWaiting: () => CircularProgressIndicator(),
                     onError: (error) => Text(counterRM.error.message),
                     onData: (data) => Text(
                       '${data.count}',
-                      style: Theme.of(context).textTheme.headline,
+                      style: Theme.of(context).textTheme.headline5,
                     ),
                   ),
                 ],

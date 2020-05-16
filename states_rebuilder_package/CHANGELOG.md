@@ -1,3 +1,52 @@
+## 2.0.0 (2020-05-13) [see more details](changelog/v-2.0.0.md)
+### Breaking change :
+* Remove context subscription possibly.  
+before :
+```dart
+final rm = RM.get<T>(context: context);
+```
+After: one have to use one of the four observer widgets
+```dart
+StateBuilder(
+  observe : ()=> RM.get<T>(),
+  builder : (context, rm ){
+    //...
+  }
+)
+```
+As consequence `Injector.reinject` is removed
+* Remove `setValue`, `value`, `getFuture`, `getStream` and `getSetState`.
+All the functionalities of the removed API are done with `setState`, `future`, `stream` methods.[see more details](changelog/v-2.0.0.md)
+* Remove the models parameter from the `SateBuilder`, `WhenRebuild`, `WhenRebuilderOr`, and `OnSEtStateListener`.
+### Non Breaking change :
+* Add the possibility to listen to to a ReactiveModel from a Model Class: (#78)
+  ```dart
+  class ModelA{
+
+  }
+
+  class ModelB {
+    ModelB(){
+      RM.get<ModelA>().listenToRM((ReactiveModel<ModelA> modelARM)){
+        if(modelARM.hasError){
+          //....
+        }else if (modelARM.hasData){
+          //...
+        }
+
+        //or you can use whenConnectionState
+
+      }
+    }
+  }
+  ```
+  The `listenToRM` return a void callBack to be used for unsubscription.
+* Add `valueAsync` to obtained the state of a `ReactiveModel` as future.
+* Refactor the code and improve performance.
+* Improve docs.
+* Resolve issues : #85
+
+
 ## 1.15.0 (2020-04-29)
 * Add `Inject.previous`. #47 [see more details](changelog/v-1.15.0.md) 
 * Add Shortcuts to get and create model, future, stream `ReactiveModel`s: 

@@ -5,7 +5,7 @@ import '../../../domain/entities/user.dart';
 import '../../../service/user_service.dart';
 
 class HomePage extends StatelessWidget {
-  User get user => IN.get<UserService>().user;
+  final User user = IN.get<UserService>().user;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,8 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
-              RM.getSetState<UserService>((s) => s.signOut());
+              //get UserService reactiveModel and call setState to signOut,
+              RM.get<UserService>().setState((s) => s.signOut());
             },
           )
         ],

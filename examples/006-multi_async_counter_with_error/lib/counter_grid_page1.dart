@@ -9,33 +9,35 @@ class CounterGridPage1 extends StatelessWidget {
     return Injector(
       inject: [Inject(() => CounterService())],
       builder: (BuildContext context) {
-        final counterServiceRM =
-            Injector.getAsReactive<CounterService>(context: context);
-        return Scaffold(
-          appBar: AppBar(title: Text('Future counter with error')),
-          body: GridView.count(
-            crossAxisCount: 2,
-            childAspectRatio: 0.68,
-            children: <Widget>[
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 1',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 2',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 3',
-              ),
-              CounterApp(
-                counterService: counterServiceRM,
-                name: 'Counter 4',
-              ),
-            ],
-          ),
-        );
+        return StateBuilder<CounterService>(
+            observe: () => RM.get<CounterService>(),
+            builder: (context, counterServiceRM) {
+              return Scaffold(
+                appBar: AppBar(title: Text('Future counter with error')),
+                body: GridView.count(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.68,
+                  children: <Widget>[
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 1',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 2',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 3',
+                    ),
+                    CounterApp(
+                      counterService: counterServiceRM,
+                      name: 'Counter 4',
+                    ),
+                  ],
+                ),
+              );
+            });
       },
     );
   }
@@ -103,7 +105,7 @@ class CounterBox extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             tag: tag,
             onIdle: () => Text('Top on the btn to increment the counter'),
             onWaiting: () => Row(

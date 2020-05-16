@@ -45,7 +45,7 @@ class App extends StatelessWidget {
             child: Icon(Icons.add),
             onPressed: () {
               //get CounterStor ReactiveModel and call setState method
-              RM.getSetState<CounterStore>(
+              RM.get<CounterStore>().setState(
                 (CounterStore state) => state.increment(),
                 onError: (context, error) {
                   Scaffold.of(context).hideCurrentSnackBar();
@@ -81,6 +81,10 @@ class MyHome extends StatelessWidget {
             },
             builder: (BuildContext context, counterModel) {
               print("2- build");
+
+              if (counterModel.isWaiting) {
+                return CircularProgressIndicator();
+              }
               return Text(
                 '${counterModel.state.count}',
                 style: const TextStyle(fontSize: 50),

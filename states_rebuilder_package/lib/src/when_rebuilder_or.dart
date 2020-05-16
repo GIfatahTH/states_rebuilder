@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../states_rebuilder.dart';
 import 'reactive_model.dart';
+import 'rm_key.dart';
 import 'state_builder.dart';
 import 'when_connection_state.dart';
 
@@ -50,7 +50,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///```
   ///
   ///For the sake of performance consider using [observe] or [observeMany] instead.
-  final List<ReactiveModel> models;
+  // final List<ReactiveModel> models;//TODO
 
   ///an observable class to which you want [WhenRebuilder] to subscribe.
   ///```dart
@@ -73,15 +73,15 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///```
   final List<ReactiveModel Function()> observeMany;
 
-  ///A tag or list of tags you want this [WhenRebuilderOR] to register with.
+  ///A tag or list of tags you want this [WhenRebuilderOr] to register with.
   ///
-  ///Whenever any of the observable model to which this [WhenRebuilderOR] is subscribed emits
-  ///a notifications with a list of filter tags, this [WhenRebuilderOR] will rebuild if the
+  ///Whenever any of the observable model to which this [WhenRebuilderOr] is subscribed emits
+  ///a notifications with a list of filter tags, this [WhenRebuilderOr] will rebuild if the
   ///the filter tags list contains at least on of those tags.
   ///
   ///It can be String (for small projects) or enum member (enums are preferred for big projects).
   ///
-  ///Each [WhenRebuilderOR] has a default tag which is its [BuildContext]
+  ///Each [WhenRebuilderOr] has a default tag which is its [BuildContext]
   final dynamic tag;
 
   ///ReactiveModel key used to control this widget from outside its [builder] method.
@@ -117,6 +117,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
+  ///Just like [WhenRebuilder] but you do not have to define all possible states.
   WhenRebuilderOr({
     Key key,
     this.onIdle,
@@ -124,7 +125,6 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.onError,
     this.onData,
     @required this.builder,
-    this.models,
     this.observe,
     this.observeMany,
     this.tag,
@@ -139,7 +139,6 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateBuilder<T>(
       key: key,
-      models: models,
       observe: observe,
       observeMany: observeMany,
       tag: tag,
@@ -147,6 +146,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
+      child: const Text('StatesRebuilder#|1|#'),
+      activeRM: [],
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
@@ -154,16 +155,29 @@ class WhenRebuilderOr<T> extends StatelessWidget {
         bool hasData = false;
         dynamic error;
 
-        final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+        final _models = List<ReactiveModel>.from(
+          (context.widget as StateBuilder).activeRM,
+        );
+
+        assert(() {
+          if (modelRM == null) {
+            throw Exception(
+              'Failed to cast the generic type $T with any of the provided ReactiveModel '
+              'provided in observeMany list'
+              'Try to explicitly dentine all generic types in observerMany List',
+            );
+          }
+          return true;
+        }());
+
         _models.first.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
-          onError: (err) {
+          onError: (dynamic err) {
             error = err;
             return hasError = true;
           },
-          onData: (d) => hasData = true,
+          onData: (dynamic d) => hasData = true,
           catchError: onError != null,
         );
 
@@ -171,11 +185,11 @@ class WhenRebuilderOr<T> extends StatelessWidget {
           _models[i].whenConnectionState(
             onIdle: () => isIdle = true,
             onWaiting: () => isWaiting = true,
-            onError: (err) {
+            onError: (dynamic err) {
               error = err;
               return hasError = true;
             },
-            onData: (d) => hasData = true,
+            onData: (dynamic d) => hasData = true,
             catchError: onError != null,
           );
         }

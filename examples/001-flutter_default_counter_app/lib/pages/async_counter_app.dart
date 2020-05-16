@@ -7,8 +7,8 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
-  //creating a reactive model from the integer value of 0.
-  final ReactiveModel<int> counterRM = ReactiveModel.create(0);
+  //creating a ReactiveModel key from the integer value of 0.
+  final RMKey<int> counterRMKey = RMKey<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +25,16 @@ class MyHomePage extends StatelessWidget {
             ),
             //Subscribing to the counterRM using StateBuilder
             WhenRebuilder<int>(
-              models: [counterRM],
+              //Create a local ReactiveModel and subscribing to it using StateBuilder
+              observe: () => RM.create(0),
+              //link this StateBuilder with key
+              rmKey: counterRMKey,
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
-              onError: (error) => Text(counterRM.error.message),
+              onError: (error) => Text(counterRMKey.error.message),
               onData: (data) => Text(
                 '$data',
-                style: Theme.of(context).textTheme.headline,
+                style: Theme.of(context).textTheme.headline5,
               ),
             ),
           ],
@@ -39,14 +42,14 @@ class MyHomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //set the value of the counter and notify observer widgets to rebuild.
-          counterRM.setValue(
-            () async {
+          //set the state of the counter and notify observer widgets to rebuild.
+          counterRMKey.setState(
+            (int counter) async {
               await Future.delayed(Duration(seconds: 1));
               if (Random().nextBool()) {
                 throw Exception('A Counter Error');
               }
-              return counterRM.value + 1;
+              return counter + 1;
             },
             catchError: true,
           );

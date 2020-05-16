@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
 
+import 'reactive_model.dart';
+import 'state_builder.dart';
 import 'states_rebuilder.dart';
 
 ///Mixin StateWithMixinBuilder
@@ -19,6 +19,7 @@ enum MixinWith {
   widgetsBindingObserver,
 }
 
+///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
 class StateWithMixinBuilder<T> extends StatefulWidget {
   ///```dart
   ///StateWithMixinBuilder(
@@ -55,8 +56,12 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///```
   ///List of your logic classes you want to rebuild this widget from.
   ///The logic class should extend  `StatesWithMixinRebuilder`of the states_rebuilder package.
-  final List<StatesRebuilder> models;
+  // final List<StatesRebuilder> models;
+
+  ///an observable to which you want [StateWithMixinBuilder] to subscribe.
   final StatesRebuilder Function() observe;
+
+  ///List of observables to which you want [StateWithMixinBuilder] to subscribe.
   final List<StatesRebuilder Function()> observeMany;
 
   ///A custom name of your widget. It is used to rebuild this widget
@@ -139,10 +144,10 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   final void Function(BuildContext context, AppLifecycleState state)
       didChangeAppLifecycleState;
 
+  ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
   StateWithMixinBuilder({
     Key key,
     this.tag,
-    this.models,
     this.observe,
     this.observeMany,
     this.builder,
@@ -235,8 +240,7 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
     }
   }
 
-  Widget get _stateBuilder => StateBuilder(
-        models: widget.models ?? [],
+  Widget get _stateBuilder => StateBuilder<dynamic>(
         observe: widget.observe,
         observeMany: widget.observeMany ?? [],
         tag: widget.tag,

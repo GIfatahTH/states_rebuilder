@@ -31,14 +31,14 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('1'), findsOneWidget);
 
-      // tap FAB an error is expected
+      //tap FAB an error is expected
       (Injector.get<CounterStore>() as CounterTest).shouldThrow = true;
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('1'), findsOneWidget);
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget);
     },
   );
 }

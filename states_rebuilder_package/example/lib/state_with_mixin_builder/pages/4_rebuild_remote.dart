@@ -36,7 +36,7 @@ class _CounterGridState extends State<CounterGrid> {
           Row(
             children: <Widget>[
               StateBuilder<CounterBlocRemote>(
-                models: [Injector.getAsReactive<CounterBlocRemote>()],
+                observe: () => Injector.getAsReactive<CounterBlocRemote>(),
                 tag: CounterGridTag.remoteWidget,
                 builder: (_, counterRM) {
                   print('rebuild');
@@ -55,7 +55,7 @@ class _CounterGridState extends State<CounterGrid> {
                 for (var i = 0; i < 12; i++)
                   StateBuilder(
                     tag: i % 2,
-                    models: [Injector.getAsReactive<CounterBlocRemote>()],
+                    observe: () => Injector.getAsReactive<CounterBlocRemote>(),
                     builder: (_, counterRM) => GridItem(
                       count: counterRM.state.counter,
                       onTap: () => counterRM.setState(

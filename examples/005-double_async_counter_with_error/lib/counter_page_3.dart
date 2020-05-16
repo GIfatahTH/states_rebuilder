@@ -13,7 +13,7 @@ class App extends StatelessWidget {
 
         //Case1 of obtaining new reactive instance
         builder: (BuildContext context) {
-          final counterService = Injector.getAsReactive<CounterService>();
+          final counterService = RM.get<CounterService>();
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -69,7 +69,7 @@ class CounterPage extends StatelessWidget {
       child: Column(
         children: <Widget>[
           WhenRebuilder(
-            models: [counterService],
+            observe: () => counterService,
             onIdle: () => Text(
                 'Top on the plus button to start incrementing the counter'),
             onWaiting: () => Row(
