@@ -217,6 +217,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     newReactiveInstanceList?.clear();
     newReactiveMapFromSeed.clear();
   }
+
+  void cleanInject() {
+    singleton = null;
+    reactiveSingleton = null;
+  }
 }
 
 ///Join reactive singleton to reactive environment

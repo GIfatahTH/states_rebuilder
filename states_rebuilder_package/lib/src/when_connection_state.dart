@@ -160,10 +160,10 @@ class WhenRebuilder<T> extends StatelessWidget {
         );
         assert(() {
           if (modelRM == null) {
-            final types = _models.map((e) => e.runtimeType);
             throw Exception(
-              'Failed to cast the generic type $T with any of the the ReactiveModel provided in observeMany list'
-              'provided types are $types',
+              'Failed to cast the generic type $T with any of the provided ReactiveModel '
+              'provided in observeMany list'
+              'Try to explicitly dentine all generic types in observerMany List',
             );
           }
           return true;

@@ -36,6 +36,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         watch: inject.watch,
       );
     }
+    if (!_isGlobal) {
+      cleaner(() {
+        inject.cleanInject();
+        inject = null;
+      });
+    }
   }
   bool _isGlobal = false;
 
@@ -299,8 +305,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     }
 
     final Completer<T> _completer = Completer<T>();
-    stateAsync = _completer.future;
-    stateAsync.catchError((_) {});
+    stateAsync = _completer.future.catchError((dynamic _) {});
 
     void _onWaitingCallback() {
       snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, state);
@@ -350,14 +355,14 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       if (_result is Future) {
         silent = true;
         subscription = Stream<dynamic>.fromFuture(_result).listen(
-          (d) {
+          (dynamic d) {
             final isStateModified = _onDataCallback(d);
             _completer.complete(state);
             if (isStateModified) {
               _rebuildStates(canRebuild: canRebuild());
             }
           },
-          onError: (e, s) {
+          onError: (dynamic e, StackTrace s) {
             _completer.completeError(e, s);
             _onErrorCallBack(e);
           },
@@ -370,7 +375,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       } else if (_result is Stream) {
         silent = true;
         subscription = _result.listen(
-          (d) {
+          (dynamic d) {
             if (_onDataCallback(d)) {
               _rebuildStates(canRebuild: canRebuild());
             }

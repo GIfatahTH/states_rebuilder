@@ -277,8 +277,7 @@ class InjectorState extends State<Injector> {
       }
       inject
         ..removeAllReactiveNewInstance()
-        ..singleton = null
-        ..reactiveSingleton = null;
+        ..cleanInject();
     }
   }
 

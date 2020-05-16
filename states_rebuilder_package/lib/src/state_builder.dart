@@ -458,7 +458,8 @@ void _initState<T>(StateBuilderState<T> state) {
       if (state._models.first is! ReactiveModel<T>) {
         return;
       }
-      state._exposedModelFromGenericType = state._models.first;
+      state._exposedModelFromGenericType =
+          state._models.first as ReactiveModel<T>;
       return;
     }
     if (T != dynamic) {
@@ -470,7 +471,8 @@ void _initState<T>(StateBuilderState<T> state) {
       }
     }
     if (state._models.first is ReactiveModel<T>) {
-      state._exposedModelFromGenericType = state._models.first;
+      state._exposedModelFromGenericType =
+          state._models.first as ReactiveModel<T>;
       return;
     }
   }
