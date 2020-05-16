@@ -216,6 +216,34 @@ void main() {
     },
   );
 
+  testWidgets(
+    'WhenRebuilder throws if resolving model type fails',
+    (tester) async {
+      RM.debugWidgetsRebuild = true;
+      final widget = Injector(
+        inject: [Inject(() => Model1()), Inject(() => Model2())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilder<Model1>(
+              observeMany: [
+                () => RM.create(Model1()),
+                () => Injector.getAsReactive<Model2>()
+              ],
+              onIdle: () => Text('onIdle'),
+              onWaiting: () => Text('waiting'),
+              onError: (error) => Text(error.message),
+              onData: (data) => Text('data'),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isException);
+    },
+  );
+
   test(
     'WhenRebuilder throws if onWaiting is null',
     () {

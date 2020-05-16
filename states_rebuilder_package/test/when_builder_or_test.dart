@@ -347,18 +347,30 @@ void main() {
     },
   );
 
-  // test(
-  //   'WhenRebuilderOr throws if model is empty',
-  //   () {
-  //     expect(
-  //       () => WhenRebuilderOr<Model1>(
-  //         observeMany: [()=>],
-  //         builder: (context, modelRM) => null,
-  //       ),
-  //       throwsAssertionError,
-  //     );
-  //   },
-  // );
+  testWidgets(
+    'WhenRebuilder throws if resolving model type fails',
+    (tester) async {
+      RM.debugWidgetsRebuild = true;
+      final widget = Injector(
+        inject: [Inject(() => Model1()), Inject(() => Model2())],
+        builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: WhenRebuilderOr<Model1>(
+              observeMany: [
+                () => RM.create(Model1()),
+                () => Injector.getAsReactive<Model2>()
+              ],
+              builder: (_, __) => Container(),
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isException);
+    },
+  );
 
   test(
     'WhenRebuilderOr throws if builder is null',

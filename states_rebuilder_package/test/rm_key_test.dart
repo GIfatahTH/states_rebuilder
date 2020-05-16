@@ -913,6 +913,57 @@ void main() {
       expect(onDataGlobal, 1);
     },
   );
+
+  testWidgets('ReactiveModel.getFuture', (tester) async {
+    final rmKey = RMKey();
+    rmKey.rm = RM.create(Model());
+    final widget = WhenRebuilderOr(
+      observeMany: [() => rmKey.future((m, _) => m.incrementAsync())],
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('data');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('data'), findsOneWidget);
+  });
+
+  testWidgets('ReactiveModel.getStream', (tester) async {
+    final rmKey = RMKey<Model>();
+    rmKey.rm = RM.create(Model());
+
+    final widget = WhenRebuilderOr(
+      observeMany: [
+        () => rmKey.stream(
+              (m, _) => m._getStream(),
+              initialValue: 0,
+            )
+      ],
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('${rm.state}');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+
+    expect(find.text('waiting ...'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+
+    expect(find.text('2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+  });
 }
 
 class ModelSR extends StatesRebuilder {
@@ -958,6 +1009,8 @@ class Model {
     yield --counter;
     throw Exception('Error message');
   }
+
+  Stream<int> _getStream() => getStream();
 }
 
 Widget _widgetBuilder(String text1, [String text2, String text3]) {
