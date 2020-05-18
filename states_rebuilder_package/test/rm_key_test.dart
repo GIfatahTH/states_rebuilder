@@ -268,7 +268,7 @@ void main() {
 
   testWidgets("StateBuilder should work with RMKey, Key subscription last",
       (WidgetTester tester) async {
-    RMKey<int> rmKey = RMKey();
+    RMKey<int> rmKey = RMKey(0);
 
     final widget = Builder(
       builder: (context) {
@@ -298,27 +298,27 @@ void main() {
       },
     );
     await tester.pumpWidget(widget);
-    expect(find.text('modelRM1-null'), findsOneWidget);
+    expect(find.text('modelRM1-0'), findsOneWidget);
     expect(find.text('modelRM2-0'), findsOneWidget);
-    // await tester.pump();
-    // expect(find.text('modelRM1-0'), findsOneWidget);
-    // expect(find.text('modelRM2-0'), findsOneWidget);
+    await tester.pump();
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-0'), findsOneWidget);
 
-    // rmKey.setState((_) => 1);
-    // await tester.pump();
-    // expect(find.text('modelRM1-1'), findsOneWidget);
-    // expect(find.text('modelRM2-1'), findsOneWidget);
-    // expect(rmKey.hasData, isTrue);
+    rmKey.setState((_) => 1);
+    await tester.pump();
+    expect(find.text('modelRM1-1'), findsOneWidget);
+    expect(find.text('modelRM2-1'), findsOneWidget);
+    expect(rmKey.hasData, isTrue);
 
-    // rmKey.setState((_) => 2);
-    // await tester.pump();
-    // expect(find.text('modelRM1-2'), findsOneWidget);
-    // expect(find.text('modelRM2-2'), findsOneWidget);
-    // expect(rmKey.hasData, isTrue);
-    // rmKey.refresh();
-    // await tester.pump();
-    // expect(find.text('modelRM1-0'), findsOneWidget);
-    // expect(find.text('modelRM2-0'), findsOneWidget);
+    rmKey.setState((_) => 2);
+    await tester.pump();
+    expect(find.text('modelRM1-2'), findsOneWidget);
+    expect(find.text('modelRM2-2'), findsOneWidget);
+    expect(rmKey.hasData, isTrue);
+    rmKey.refresh();
+    await tester.pump();
+    expect(find.text('modelRM1-0'), findsOneWidget);
+    expect(find.text('modelRM2-0'), findsOneWidget);
   });
 
   testWidgets(
