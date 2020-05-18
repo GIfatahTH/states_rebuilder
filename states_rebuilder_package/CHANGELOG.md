@@ -1,3 +1,7 @@
+## 2.0.0 (2020-05-18)
+* add `debounceDelay` and `throttleDelay` to `setState` method.
+* Refactor RMKey logic
+
 ## 2.0.0 (2020-05-13) [see more details](changelog/v-2.0.0.md)
 ### Breaking change :
 * Remove context subscription possibly.  
