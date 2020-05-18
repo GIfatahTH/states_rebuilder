@@ -502,8 +502,8 @@ void _initState<T>(StateBuilderState<T> state) {
     subscribe<T>(model);
 
     if (model is RMKey && !model.isLinked) {
-      model.initCallBack.add((rm) {
-        model.rm.copy(rm);
+      model.initCallBack.add((rm, rmInit) {
+        (rmInit ?? model.rm).copy(rm);
         Future.microtask(() => state._setState());
       });
     }
@@ -553,9 +553,6 @@ void _dispose<T>(StateBuilderState<T> state) {
   }
 
   if (widget.rmKey != null) {
-    widget.rmKey.refreshCallBack = null;
-    widget.rmKey.rm = null;
-    widget.rmKey.initialValue = null;
-    widget.rmKey.initCallBack = null;
+    widget.rmKey.cleanRMKey();
   }
 }
