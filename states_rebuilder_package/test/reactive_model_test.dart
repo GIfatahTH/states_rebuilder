@@ -2562,6 +2562,89 @@ void main() {
     unsubscribe();
     expect(rm.observers().length, 0);
   });
+
+  testWidgets('debounce positive should work', (tester) async {
+    final rm = RM.create(0);
+
+    rm.listenToRM((rm) {});
+
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 0);
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 0);
+
+    await tester.pump(Duration(microseconds: 500));
+
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 0);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(rm.state, 1);
+
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 1);
+
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 1);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(rm.state, 2);
+  });
+
+  testWidgets('throttleDelay should work', (tester) async {
+    final rm = RM.create(0);
+
+    rm.listenToRM((rm) {});
+
+    rm.setState(
+      (s) => s + 1,
+      throttleDelay: 1000,
+    );
+    expect(rm.state, 1);
+    rm.setState(
+      (s) => s + 1,
+      throttleDelay: 1000,
+    );
+    expect(rm.state, 1);
+
+    await tester.pump(Duration(microseconds: 500));
+
+    rm.setState(
+      (s) => s + 1,
+      throttleDelay: 1000,
+    );
+    expect(rm.state, 1);
+
+    await tester.pump(Duration(seconds: 1));
+    rm.setState(
+      (s) => s + 1,
+      throttleDelay: 1000,
+    );
+    expect(rm.state, 2);
+
+    rm.setState(
+      (s) => s + 1,
+      debounceDelay: 1000,
+    );
+    expect(rm.state, 2);
+
+    await tester.pump(Duration(seconds: 1));
+  });
 }
 
 class Model {

@@ -40,6 +40,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       cleaner(() {
         inject.cleanInject();
         inject = null;
+        _debounceTimer?.cancel();
       });
     }
   }
@@ -190,7 +191,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
   @override
   dynamic get joinSingletonToNewData => _joinSingletonToNewData;
-
+  Timer _debounceTimer;
   @override
   Future<void> setState(
     Function(T s) fn, {
@@ -198,6 +199,9 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
+    bool shouldAwait = false,
+    int debounceDelay,
+    int throttleDelay,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -205,21 +209,47 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     dynamic Function() joinSingletonToNewData,
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
-    bool setValue = false,
     bool silent = false,
-    bool shouldAwait = false,
   }) async {
-    if (shouldAwait) {
+    void Function(dynamic Function(T) fn) setStateCallBack =
+        (dynamic Function(T) fn) {
+      setState(
+        fn,
+        catchError: catchError,
+        watch: watch,
+        filterTags: filterTags,
+        seeds: seeds,
+        onSetState: onSetState,
+        onRebuildState: onRebuildState,
+        onData: onData,
+        onError: onError,
+        joinSingletonToNewData: joinSingletonToNewData,
+        joinSingleton: joinSingleton,
+        notifyAllReactiveInstances: notifyAllReactiveInstances,
+        silent: silent,
+      );
+    };
+    if (debounceDelay != null) {
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(Duration(milliseconds: debounceDelay), () {
+        setStateCallBack(fn);
+        _debounceTimer = null;
+      });
+      return;
+    } else if (throttleDelay != null) {
+      if (_debounceTimer != null) {
+        return;
+      }
+      _debounceTimer = Timer(Duration(milliseconds: throttleDelay), () {
+        _debounceTimer = null;
+      });
+    } else if (shouldAwait) {
       stateAsync.then(
-        (data) => setState(
-          (s) => fn(
-            data,
-          ),
-          silent: silent,
-        ),
+        (_) => setStateCallBack(fn),
       );
       return;
     }
+
     void _rebuildStates({bool canRebuild = true}) {
       if (silent && !hasObservers) {
         if (hasData) {
@@ -405,11 +435,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   ReactiveModel<S> stream<S>(
     Stream<S> Function(T s, StreamSubscription<dynamic> subscription) stream, {
     S initialValue,
-    Object Function(T s) watch,
+    Object Function(S s) watch,
   }) {
     return RM.stream(
       stream(inject.getReactive().state, subscription),
       initialValue: initialValue,
+      watch: watch,
     );
   }
 
@@ -417,6 +448,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   ReactiveModel<F> future<F>(
     Future<F> Function(T f, Future<T> stateAsync) future, {
     F initialValue,
+    int debounceDelay,
   }) {
     return RM.future(
       future(inject.getReactive().state, stateAsync),

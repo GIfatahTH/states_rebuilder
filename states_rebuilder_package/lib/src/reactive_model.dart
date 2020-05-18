@@ -254,6 +254,9 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
+    bool shouldAwait = false,
+    int debounceDelay,
+    int throttleDelay,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -261,9 +264,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     dynamic Function() joinSingletonToNewData,
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
-    bool setValue = false,
     bool silent = false,
-    bool shouldAwait = false,
   });
 
   ///Get a stream from the state and subscribe to it and
@@ -287,7 +288,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     )
         stream, {
     S initialValue,
-    Object Function(T s) watch,
+    Object Function(S s) watch,
   });
 
   ///Get a Future from the state and subscribe to it and
