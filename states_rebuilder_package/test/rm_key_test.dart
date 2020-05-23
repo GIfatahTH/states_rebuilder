@@ -62,6 +62,8 @@ void main() {
 
       await tester.pumpWidget(widget);
       rmKey.state = '';
+      expect(rmKey.get<String>().type(), '<String>');
+      expect(rmKey.get<int>(0).type(false), 'int');
       expect(rmFromInitState, equals(stringRM));
       expect(rmKey.hasObservers, isTrue);
       expect(rmKey.observers().length, 1);

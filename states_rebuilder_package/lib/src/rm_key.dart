@@ -41,7 +41,23 @@ class RMKey<T> implements ReactiveModel<T> {
     _rm = null;
     initialValue = null;
     initCallBack = null;
+    _associatedReactiveModels.clear();
   }
+
+  final Map<String, List<ReactiveModel>> _associatedReactiveModels = {};
+
+  void associate(ReactiveModel rm) {
+    print(rm.type());
+    String type = rm.type(false);
+    if (_associatedReactiveModels.containsKey(type)) {
+      _associatedReactiveModels[type].add(rm);
+    } else {
+      _associatedReactiveModels[type] = [rm];
+    }
+  }
+
+  ReactiveModel<T> get<T>([int index = 0]) =>
+      _associatedReactiveModels['$T'][index];
 
   ///cashed refresh callback
   void Function(ReactiveModel rm) refreshCallBack;
@@ -255,13 +271,13 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  void Function() listenToRM(void Function(ReactiveModel<T> rm) fn) {
+  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn) {
     return _rm.listenToRM(fn);
   }
 
   @override
-  String type() {
-    return _rm.type();
+  String type([bool detailed = true]) {
+    return _rm.type(detailed);
   }
 
   @override

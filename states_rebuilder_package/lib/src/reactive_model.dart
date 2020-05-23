@@ -10,6 +10,8 @@ import 'states_rebuilder.dart';
 import 'when_connection_state.dart';
 import 'when_rebuilder_or.dart';
 
+typedef Disposer = void Function();
+
 ///An abstract class that defines the reactive environment.
 ///
 ///`states_rebuilder` is based on the concept of [ReactiveModel].
@@ -187,7 +189,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///Listen to a ReactiveModel
   ///
   ///It returns a callback for unsubscription
-  void Function() listenToRM(void Function(ReactiveModel<T> rm) fn);
+  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn);
 
   ///The stream (or Future) subscription of the state
   StreamSubscription<dynamic> get subscription;
@@ -311,7 +313,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   bool isA<T>();
 
   ///Return the type of the state of the [ReactiveModel]
-  String type();
+  String type([bool detailed]);
 }
 
 ///
