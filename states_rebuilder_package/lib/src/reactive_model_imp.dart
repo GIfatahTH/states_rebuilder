@@ -128,7 +128,11 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       observer: observer,
       tag: tag,
     );
-
+    Future.microtask(() {
+      if (!isIdle) {
+        observer.update();
+      }
+    });
     return () => removeObserver(
           observer: observer,
           tag: tag,
@@ -191,32 +195,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
   @override
   void resetToHasData() {
     snapshot = AsyncSnapshot.withData(ConnectionState.done, state);
-  }
-
-  void _rebuildNewReactiveInstances(
-    bool notifyAllReactiveInstances,
-    bool joinSingleton,
-  ) {
-    if (notifyAllReactiveInstances == true) {
-      _notifyAll();
-    } else if (isNewReactiveInstance) {
-      final reactiveSingleton = inject.getReactive() as ReactiveModelImp<T>;
-      if (joinSingletonToNewData != null) {
-        reactiveSingleton._joinSingletonToNewData = joinSingletonToNewData();
-      }
-
-      if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
-          joinSingleton == true) {
-        reactiveSingleton
-          ..snapshot = snapshot
-          ..rebuildStates();
-      } else if (inject.joinSingleton ==
-          JoinSingleton.withCombinedReactiveInstances) {
-        reactiveSingleton
-          ..snapshot = _combinedSnapshotState
-          ..rebuildStates();
-      }
-    }
   }
 
   @override
@@ -342,6 +320,34 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           filterTags,
           _onSetState,
         );
+        void _rebuildNewReactiveInstances(
+          bool notifyAllReactiveInstances,
+          bool joinSingleton,
+        ) {
+          if (notifyAllReactiveInstances == true) {
+            _notifyAll();
+          } else if (isNewReactiveInstance) {
+            final reactiveSingleton =
+                inject.getReactive() as ReactiveModelImp<T>;
+            if (joinSingletonToNewData != null) {
+              reactiveSingleton._joinSingletonToNewData =
+                  joinSingletonToNewData();
+            }
+
+            if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
+                joinSingleton == true) {
+              reactiveSingleton
+                ..snapshot = snapshot
+                ..rebuildStates();
+            } else if (inject.joinSingleton ==
+                JoinSingleton.withCombinedReactiveInstances) {
+              reactiveSingleton
+                ..snapshot = _combinedSnapshotState
+                ..rebuildStates();
+            }
+          }
+        }
+
         _rebuildNewReactiveInstances(
           notifyAllReactiveInstances,
           joinSingleton,
@@ -451,6 +457,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       }
     } catch (e) {
       if (e is! FlutterError) {
+        _setStateCompleter.complete(state);
         _onErrorCallBack(e);
       }
     }
