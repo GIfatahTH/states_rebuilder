@@ -196,7 +196,7 @@ The next step is to subscribe to the injected ReactiveModel and mutate the state
 
 No matter you deal with mutable or immutable object, your method is sync or async, you use future or stream, setState can handle each case to mutate the state and notify listeners.
 
-[Get more information on `setState` method](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)
+[Get more information on `setState` method](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)   
 [Get more information on `StateBuilder` method](https://github.com/GIfatahTH/states_rebuilder/wiki/StateBuilder)
 
 
