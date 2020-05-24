@@ -18,7 +18,8 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 `states_rebuilder` state management solution is based on what is called the `ReactiveModel`.
 
->Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](https://github.com/GIfatahTH/states_rebuilder/wiki/changelog/v-2.0.0.md)
+
+Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](https://github.com/GIfatahTH/states_rebuilder/wiki/changelog/v-2.0.0.md)
 
 To start using `states_rebuilder`, just start writing your business logic in a separated class.
 
