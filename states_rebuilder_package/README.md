@@ -8,7 +8,7 @@
 A Flutter state management combined with dependency injection solution that allows : 
   * a 100% separation of User Interface (UI) representation from your logic classes
   * an effective control on how your widgets rebuild to reflect the actual state of your application.
-Model classes are simple vanilla dart classes without any need for inheritance, notification, streams or annotation and code generation. states_rebuild works well with immutable and mutable objects.
+Model classes are simple vanilla dart classes without any need for inheritance, notification, streams or annotation, and code generation. states_rebuild works well with immutable and mutable objects.
   * 
 
 `states_rebuilder` is built on the observer pattern for state management.
@@ -21,9 +21,9 @@ Model classes are simple vanilla dart classes without any need for inheritance, 
 
 Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](https://github.com/GIfatahTH/states_rebuilder/wiki/changelog/v-2.0.0.md)
 
-To start using `states_rebuilder`, just start writing your business logic in a separated class.
+To start using `states_rebuilder`, just start writing your business logic in a separate class.
 
-Here is a typical class, that encapsulated, all the type of method mutation one expect to find in real life situations.
+Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
 
 ```dart
 class Model {
@@ -94,7 +94,7 @@ In the Model class we have :
 
 Async mutation is whether :
 * Pessimistic so that we must await it to complete and display an awaiting screen.
-* Optimistic so that we just display what we expect form it, and execute it in the background. It is until it fails that we go back to the old state and display an error message.
+* Optimistic so that we just display what we expect from it, and execute it in the background. It is until it fails that we go back to the old state and display an error message.
 
 states_rebuilder manage all that with the same easiness.
 
@@ -195,7 +195,7 @@ The next step is to subscribe to the injected ReactiveModel and mutate the state
   }
 ```
 
-No matter you deal with mutable or immutable object, your method is sync or async, you use future or stream, setState can handle each case to mutate the state and notify listeners.
+No matter you deal with mutable or immutable objects, your method is sync or async, you use future or stream, setState can handle each case to mutate the state and notify listeners.
 
 [Get more information on `setState` method](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)   
 [Get more information on `StateBuilder` method](https://github.com/GIfatahTH/states_rebuilder/wiki/StateBuilder)
@@ -203,7 +203,7 @@ No matter you deal with mutable or immutable object, your method is sync or asyn
 
 ## Pessimistic future
 
-One common use case is to fetch some data form a server. In this case we may want to display a CircularProgressIndicator while awaiting for the future to complete.
+One common use case is to fetch some data from a server. In this case we may want to display a CircularProgressIndicator while awaiting for the future to complete.
 
 ```dart
   @override
@@ -466,6 +466,7 @@ For more information about how to use states_rebuilder see in the [wiki](https:/
 * [Mutable state management](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management)
 * [Immutable state management](https://github.com/GIfatahTH/states_rebuilder/wiki/immutable-state-management)
 * [New ReactiveModel](https://github.com/GIfatahTH/states_rebuilder/wiki/new-reactivemodel)
+* [ReactiveModel key](https://github.com/GIfatahTH/states_rebuilder/wiki/reactivemodel_key)
 * [`states_rebuilder` API](https://github.com/GIfatahTH/states_rebuilder/wiki/states_rebuilder-API)
   * [StateBuilder](https://github.com/GIfatahTH/states_rebuilder/wiki/StateBuilder)
   * [WhenRebuilder and WhenRebuilderOr](https://github.com/GIfatahTH/states_rebuilder/wiki/WhenRebuilder-and-WhenRebuilderOr)
