@@ -116,7 +116,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     if (subscription != null) {
       subscription.cancel();
       subscription = null;
-      print('unsubscribe');
     }
   }
 
@@ -419,7 +418,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
             _onErrorCallBack(e);
           },
           onDone: () {
-            print('onDone');
             _setStateCompleter.complete(state);
             cleaner(unsubscribe, true);
           },
@@ -439,7 +437,6 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
             _onErrorCallBack(e);
           },
           onDone: () {
-            print('stream is done');
             _setStateCompleter.complete(state);
             isStreamDone = true;
             cleaner(unsubscribe, true);
@@ -471,8 +468,9 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     Object Function(S s) watch,
   }) {
     final s = inject.getReactive().state;
+    final ss = stream(s, subscription);
     return RM.stream(
-      stream(s, subscription),
+      ss,
       initialValue: initialValue ?? (this is ReactiveModelImp<S> ? s : null),
       watch: watch,
     );

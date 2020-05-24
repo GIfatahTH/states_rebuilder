@@ -1254,7 +1254,6 @@ void main() {
           observeMany: [
             () => RM.get<VanillaModel>().stream(
                   (m, _) => m._getStream(),
-                  initialValue: 0,
                 )
           ],
           onWaiting: () => Text('waiting ...'),
@@ -1280,6 +1279,32 @@ void main() {
     expect(find.text('2'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('ReactiveModel.getStream should get the default initialValue',
+      (tester) async {
+    final intRM = RM.create<int>(2);
+    final widget = Injector(
+      inject: [Inject(() => VanillaModel())],
+      builder: (_) {
+        return WhenRebuilderOr(
+          observeMany: [
+            () => intRM.stream<int>(
+                  (m, _) => getStream(),
+                  initialValue: 2,
+                )
+          ],
+          builder: (_, rm) {
+            return Text('${rm.state}');
+          },
+        );
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
   });
 
   testWidgets('ReactiveModel.getFuture; Nested future case', (tester) async {
@@ -1400,9 +1425,11 @@ class ModelWithoutDispose extends StatesRebuilder {
 }
 
 Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
-Stream<int> getStream() => Stream.periodic(Duration(seconds: 1), (num) {
-      return num;
-    }).take(3);
+Stream<int> getStream() {
+  return Stream.periodic(Duration(seconds: 1), (num) {
+    return num;
+  }).take(3);
+}
 
 abstract class IModelInterface {
   int counter = 0;

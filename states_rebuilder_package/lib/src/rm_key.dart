@@ -47,7 +47,6 @@ class RMKey<T> implements ReactiveModel<T> {
   final Map<String, List<ReactiveModel>> _associatedReactiveModels = {};
 
   void associate(ReactiveModel rm) {
-    print(rm.type());
     String type = rm.type(false);
     if (_associatedReactiveModels.containsKey(type)) {
       _associatedReactiveModels[type].add(rm);

@@ -40,7 +40,11 @@ void main() {
                 rmKey = RMKey();
                 if (switcher) {
                   return StateBuilder(
-                    observeMany: [() => stringRM, () => intRM],
+                    observeMany: [
+                      () => stringRM,
+                      () => intRM,
+                      () => RM.create<String>('String')
+                    ],
                     rmKey: rmKey,
                     initState: (_, rm) {
                       rmFromInitState = rm;
@@ -63,6 +67,7 @@ void main() {
       await tester.pumpWidget(widget);
       rmKey.state = '';
       expect(rmKey.get<String>().type(), '<String>');
+      expect(rmKey.get<String>(1).state, 'String');
       expect(rmKey.get<int>(0).type(false), 'int');
       expect(rmFromInitState, equals(stringRM));
       expect(rmKey.hasObservers, isTrue);

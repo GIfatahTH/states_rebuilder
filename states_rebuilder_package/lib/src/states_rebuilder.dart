@@ -139,20 +139,21 @@ class StatesRebuilder<T> implements Subject {
 |     observer: () => ${runtimeType}instance,
 |     builder : ....
 |   )
-| 2- Injector.get<$runtimeType>(context : context). for explicit reactivity.
-| 3- RM.get<$runtimeType>(context : context). for implicit reactivity.
-| 4- StateRebuilder for new reactive environment:
-|   ex:
-|   StatesRebuilder<$runtimeType>(
-|     builder : ....
-|   )
-| 5 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
+| 2 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
 | 
 | To silent this error you check for the existence of observers before calling [rebuildStates]
 | ex:
 |  if(hasObservers){
 |    rebuildStates()
 | }
+| or in set the silent parameter of set state to true.
+| ex: 
+| setState(
+|  (s)=> .... ,
+|  silent : true,
+| )
+)
+| 
 ''',
         );
       }
