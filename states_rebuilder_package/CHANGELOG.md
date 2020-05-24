@@ -1,8 +1,9 @@
-## 2.0.0 (2020-05-18)
+## 2.0.0 (2020-05-24)
 * add `debounceDelay` and `throttleDelay` to `setState` method.
-* Refactor RMKey logic
-* Add `RMKey.get` method
-* fix bug #98
+* Refactor RMKey logic.
+* Add `RMKey.get` method.
+* Async dependency feature can work with flavors (Inject.interface).
+* fix bug #98.
 * Refactor docs.
 
 ## 2.0.0 (2020-05-13) [see more details](changelog/v-2.0.0.md)
