@@ -1,637 +1,406 @@
-# 1- Simple Counter App mutable state management
-Simple counter with showing the Snackbar when the value of the counter reaches 10.
-This example shows the use of:
-- the getter `state`
-- The method `setState`
-- The parameter `onSetState`
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-//Pure dart class. No inheritance, no notification, no streams, and no code generation
-class CounterStore {
-  int count = 0;
-  increment() => count++;
-}
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject<CounterStore>(() => CounterStore())],
-      builder: (context) {
-        final counter = RM.get<CounterStore>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(" Counter App"),
-          ),
-          body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment(),
-            //with osSetState you can define a callback to be executed after mutating the state.
-              onSetState: (context) {
-                if (counter.state.count >= 10) {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("You have reached 10 taps"),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final counter = RM.get<CounterStore>();
-    return  StateBuilder(
-      observe: ()=>counter
-      builder :(_,__)=> Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text("You have pushed this many times"),
-          Text("${counter.state.count}"),
-        ],
-      ),
-    ),);
-  }
-}
-```
-
-# 2- Simple Counter App immutable state management
-Simple counter with showing the Snackbar when the value of the counter reaches 10.
-This example shows the use of:
-- the getter `value`
-- The method `setValue`
-- The method `stream`
-- The method `future`
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-//Pure dart class. No inheritance, no notification, no streams, and no code generation
-@immutable
-class CounterState {
-  final int count;
-
-  CounterState(this.count);
-
-  Future<CounterState> fetchCounter() async {
-    await Future.delayed(Duration(seconds: 3));
-    return CounterState(10);
-  }
-
-  Stream<CounterState> increment() async* {
-    //yield the new CounterState
-    yield CounterState(count + 1);
-    try {
-      await asyncMethod();
-    } catch (e) {
-      //on error yield the old CounterState
-      yield this;
-      //You have to rethrow the error.
-      rethrow;
-    }
-  }
-}
-
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    RM.printActiveRM = true;
-    return Injector(
-      //Injecting the CounterState with the initial state
-      inject: [Inject<CounterState>(() => CounterState(0))],
-      disposeModels: true,
-      builder: (BuildContext context) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text(' Counter App With error'),
-          ),
-          body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () {
-              RM.get<CounterState>()
-                ..stream(
-                  (counterState) => counterState.increment(),
-                ).onError((context, error) {
-                  Scaffold.of(context).hideCurrentSnackBar();
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${error.message}'),
-                    ),
-                  );
-                });
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Text('increment until you see an error'),
-          const Text(
-              'Notice that with error the counter return to the last state'),
-          WhenRebuilderOr<CounterState>(
-            observe: () => RM.get<CounterState>().asNew('dd')
-              ..future((s) => s.fetchCounter()),
-            onWaiting: () => CircularProgressIndicator(),
-            builder: (BuildContext context, counterModel) {
-              return StateBuilder<CounterState>(
-                observe: () => RM.get<CounterState>(),
-                builder: (context, counterModel) {
-                  return Text(
-                    '${counterModel.value.count}',
-                    style: const TextStyle(fontSize: 50),
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-```
-
-# 2- Counter App with Future
-asynchronous counter with showing `CircularProgressIndicator` while waiting for the Future to resolve.
-This example shows the use of:
-- the getter `connectionState`. It take the following values:   
- `ConnectionState.none`    : before executing async task.   
- `ConnectionState.waiting` : while executing async task.    
- `ConnectionState.done`    : when async task resolves.     
-  Listener are notified to rebuild after each change of `connectionState`.    
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-class Counter {
-  int count = 0;
-  increment() async {
-    await Future.delayed(Duration(seconds: 1));
-    count++;
-  }
-}
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject<Counter>(() => Counter())],
-      builder: (context) {
-        final counter = RM.get<Counter>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(" Counter App"),
-          ),
-          body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () => counter.setState((state) => state.increment()),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final counter = RM.get<Counter>();
-    return StateBuilder(
-      observe: ()=>counter
-      builder :(_,__)=> Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text("You have pushed this many times"),
-          //counter has connectionState getter.
-          //`counter.connectionState` equals:
-          // ConnectionState.none    : before executing async task.
-          // ConnectionState.waiting : while executing async task.
-          // ConnectionState.done    : when async task resolves.
-          counter.connectionState == ConnectionState.waiting
-              ? CircularProgressIndicator()
-              : Text(counter.state.count.toString()),
-        ],
-      ),
-    );
-  }
-}
-```
-
-# 3- Counter app : catching errors (show AlertDialog)
-asynchronous counter with possibility of throwing an error. An alert dialog is shown with the error message.
-This example shows the use of:   
-- The parameter `onSetState`       
-- The getter `hasError`   
-- The getter `error`   
 ```dart
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class Counter {
-  int _count = 0;
-  int get count => _count;
-  increment() async {
-    //Simulating async task
-    await Future.delayed(Duration(seconds: 1));
-    //Simulating error (50% chance of error);
-    bool isError = Random().nextBool();
-
-    if (isError) {
-      throw Exception("A fake network Error");
-    }
-    _count++;
-  }
-}
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject<Counter>(() => Counter())],
-      builder: (context) {
-        final counterModel = RM.get<Counter>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(" Counter App"),
-          ),
-          body: MyHome(),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.add),
-            onPressed: () => counterModel.setState(
-              (state) => state.increment(),
-              catchError: true, //catch the error
-              onSetState: (context) {
-                // onSetState will be executed after mutating the state.
-                if (counterModel.hasError) {
-                  showDialog(
-                    context: context,
-                    child: AlertDialog(
-                      title: Text("Error!"),
-                      content: Text("${counterModel.error}"),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+void main() {
+  runApp(App());
 }
 
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final counterModel = RM.get<Counter>();
-    return StateBuilder(
-      observe: ()=>counterModel
-      builder :(_,__)=> Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Builder(
-            builder: (context) {
-              if (counterModel.isWaiting) {
-                return CircularProgressIndicator();
-              }
+class Model {
+  int counter;
 
-              return Text(
-                "${counterModel.state.count}",
-                style: TextStyle(fontSize: 50),
-              );
-            },
-          ),
-        ],
-      ),
-    ),);
-  }
-}
-```
+  Model(this.counter);
+  //1- Synchronous
 
-# 4- Counter app : watching variable
-Simple counter with watching the change of the count variable.
-This example shows the use of:   
-- The parameter `watch` 
-```dart
-import 'dart:math';
-
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-Color _color() {
-  return Color.fromRGBO(
-      Random().nextInt(256), Random().nextInt(256), Random().nextInt(256), 1);
-}
-
-class Counter {
-  int _count1 = 0;
-  int get count1 => _count1 <= 5 ? _count1 : 5;
-  increment() {
-    _count1++;
-  }
-}
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject<Counter>(() => Counter())],
-      builder: (context) {
-        final counter = RM.get<Counter>();
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(" Counter App"),
-          ),
-          body: MyHome(),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final counter = RM.get<Counter>();
-    return StateBuilder(
-      observe: ()=>counter
-      builder :(_,__)=> Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-            height: 50,
-            color: _color(),
-            child: Center(
-                child: Text("Random Color. It changes with each rebuild")),
-          ),
-          Text(
-            "${counter.state.count1}",
-            style: TextStyle(fontSize: 50),
-          ),
-          if (counter.state.count1 > 4)
-            Column(
-              children: <Widget>[
-                Text("your have reached the maximum"),
-                Divider(),
-                Text(
-                    "If you tap on the left button, nothing changes, and the rebuild process is stopped because the counter value is not changed.\nIf you tap on the right button, the random color changes because the counter value is not watched."),
-              ],
-            ),
-          Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              RaisedButton(
-                child: Text("increment and watch"),
-                onPressed: () => counter.setState((state) => state.increment(),
-                //watch variable `count1`, if it changes update the UI, else do not update the UI.
-                    watch: (state) => state.count1),
-                // you can watch many variables : ` watch : (state) => [state.count1, state.count2]`
-              ),
-              RaisedButton(
-                child: Text("increment without watch"),
-                onPressed: () => counter.setState((state) => state.increment()),
-              )
-            ],
-          )
-        ],
-      ),
-    ),);
-  }
-}
-```
-# 5- Injecting Futures and Streams 
-This example shows the use of:   
-- The parameter `Inject.stream`  and `Inject.future` 
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-void main() => runApp(MaterialApp(home: App()));
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Injector(
-      inject: [
-        Inject.stream(
-          () => Stream<int>.periodic(Duration(seconds: 1), (num) => num)
-              .take(10),
-        ),
-        Inject<bool>.future(
-            () => Future.delayed(Duration(seconds: 5), () => true),
-            initialValue: false),
-      ],
-      builder: (context) {
-        final futureSnap = RM.get<bool>().snapshot;
-        return StateBuilder(
-      observe: ()=>futureSnap
-      builder :(_,__)=> Scaffold(
-          appBar: futureSnap.data == false
-              ? AppBar(
-                  title: Text(" awaiting a Future"),
-                  backgroundColor: Colors.red,
-                )
-              : AppBar(
-                  title: Text("Future is completed"),
-                  backgroundColor: Colors.blue,
-                ),
-          body: MyHome(),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final streamSnap = RM.get<int>().snapshot;
-    return StateBuilder(
-      observe: ()=>streamSnap
-      builder :(_,__)=> Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text("Counter From stream"),
-          streamSnap.hasData
-              ? Text("${streamSnap.data}")
-              : Text("Waiting for data ..."),
-        ],
-      ),
-    ),);
-  }
-}
-```
-
-# 6- Creating new reactive instances and commination with reactive singleton
-This example shows the use of:   
-- The parameters `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData` and `notifyAllReactiveInstances`.
-- Creating new reactive instances.
-```dart
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-class CounterModel {
-  int counter = 0;
-  void increment() => counter++;
-  Future<void> incrementAsync() async {
-    await Future.delayed(Duration(seconds: 1));
+  void incrementMutable() {
     counter++;
   }
-}
 
-void main() => runApp(MaterialApp(home: App()));
+  Model incrementImmutable() {
+    //immutable returns a new instance
+    return Model(counter + 1);
+  }
+
+  //2- Async Future
+  Future<void> futureIncrementMutable() async {
+    //Pessimistic 😢: wait until future completes without error to increment
+    await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      throw Exception('ERROR 😠');
+    }
+    counter++;
+  }
+
+  Future<Model> futureIncrementImmutable() async {
+    await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      throw Exception('ERROR 😠');
+    }
+    return Model(counter + 1);
+  }
+
+  //3- Async Stream
+  Stream<void> streamIncrementMutable() async* {
+    //Optimistic 😄: start incrementing and if the future completes with error
+    //go back the the initial state
+    final oldCounter = counter;
+    print(oldCounter);
+    yield counter++;
+
+    await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      yield counter = oldCounter;
+      throw Exception('ERROR 😠');
+    }
+  }
+
+  Stream<Model> streamIncrementImmutable() async* {
+    yield Model(counter + 1);
+
+    await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      yield this;
+      throw Exception('ERROR 😠');
+    }
+  }
+}
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Injector(
-        inject: [
-          Inject<CounterModel>(
-            () => CounterModel(),
-            joinSingleton: JoinSingleton.withCombinedReactiveInstances,
-          )
-        ],
-        builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: Center(
-              child: StateBuilder<CounterModel>(
-                models: [RM.get<CounterModel>()],
-                builder: (_, model) {
-                  if (model.isWaiting) {
-                    return CircularProgressIndicator(
-                      backgroundColor: Colors.white,
-                    );
-                  }
-                  return Padding(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Text(
-                      '${model.joinSingletonToNewData ?? "Tap on A Counter"}',
-                      style: TextStyle(fontSize: 30),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          body: CounterGrid(),
-        ),
-      ),
+    return Injector(
+      inject: [Inject(() => Model(0))],
+      builder: (context) {
+        return MaterialApp(
+          home: MyHome(),
+        );
+      },
     );
   }
 }
 
-class CounterGrid extends StatelessWidget {
+class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              children: <Widget>[
-                for (var i = 0; i < 12; i++)
-                  StateBuilder<CounterModel>(
-                    builder: (context, model) {
-                      return GridItem(
-                        count: model.isWaiting
-                            ? null
-                            : model.state.counter,
-                        onTap: () {
-                          if (i % 2 == 0)
-                            model.setState(
-                              (state) => state.increment(),
-                              notifyAllReactiveInstances: true,
-                              joinSingletonToNewData : 'I am Counter ${i + 1} I hold ${model.state.counter}';
-                            );
-                          else
-                            model.setState(
-                              (state) => state.incrementAsync(),
-                              onSetState: (context) {
-                                model.joinSingletonToNewData =
-                                    'I am Counter ${i + 1} I hold ${model.state.counter}';
-                              },
-                            );
-                        },
-                      );
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('states_rebuilder'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 50),
+          child: Column(
+            children: [
+              SetStateCanDoAll(),
+              PessimisticAsync(),
+              PessimisticAsyncOnInitState1(),
+              PessimisticAsyncOnInitState2(),
+              OptimisticAsync(),
+              OptimisticAsyncOnInitState(),
+            ],
+          ),
+        ));
+  }
+}
+
+class SetStateCanDoAll extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    //StateBuilder is one of four observer widgets
+    return StateBuilder<Model>(
+      //get the ReactiveModel of the injected Model instance,
+      //and subscribe this StateBuilder to it.
+      observe: () => RM.get<Model>(),
+      builder: (context, modelRM) {
+        //The builder exposes the BuildContext and the Model ReactiveModel
+        return Row(
+          children: [
+            //get the state of the model
+            Text('${modelRM.state.counter}'),
+            RaisedButton(
+              child: Text('Increment (SetStateCanDoAll)'),
+              onPressed: () async {
+                //setState treats mutable and immutable objects equally
+                modelRM.setState(
+                  //mutable state mutation
+                  (currentState) => currentState.incrementMutable(),
+                );
+                modelRM.setState(
+                  //immutable state mutation
+                  (currentState) => currentState.incrementImmutable(),
+                );
+
+                //await until the future completes
+                await modelRM.setState(
+                  //await for the future to complete and notify observer with
+                  //the corresponding connectionState and data
+                  //future will be canceled if all observer widgets are removed from
+                  //the widget tree.
+                  (currentState) => currentState.futureIncrementMutable(),
+                );
+                //
+                await modelRM.setState(
+                  (currentState) => currentState.futureIncrementImmutable(),
+                );
+
+                //await until the stream is done
+                await modelRM.setState(
+                  //subscribe to the stream and notify observers.
+                  //stream subscription are canceled if all observer widget are removed
+                  //from the widget tree.
+                  (currentState) => currentState.streamIncrementMutable(),
+                );
+                //
+                await modelRM.setState(
+                  (currentState) => currentState.streamIncrementImmutable(),
+                );
+                //setState can do all; mutable, immutable, sync, async, futures or streams.
+              },
+            )
+          ],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        );
+      },
+    );
+  }
+}
+
+class PessimisticAsync extends StatelessWidget {
+  //pessimistic means we will execute an async method and wait it result.
+  //While waiting, we will display a waiting screen.
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        //WhenRebuilder is the second of the four observer widgets
+        WhenRebuilder<Model>(
+          //subscribe to the global ReactiveModel
+          observe: () => RM.get<Model>(),
+          onSetState: (context, modelRM) {
+            //side effects here
+            modelRM.whenConnectionState(
+              onIdle: () => print('Idle'),
+              onWaiting: () => print('onWaiting'),
+              onData: (data) => print('onData'),
+              onError: (error) => print('onError'),
+            );
+          },
+          onIdle: () => Text('The state is not mutated at all'),
+          onWaiting: () => Text('Future is executing, we are waiting ....'),
+          onError: (error) => Text('Future completes with error $error'),
+          onData: (Model data) => Text('${data.counter}'),
+        ),
+        RaisedButton(
+          child: Text('Increment (PessimisticAsync - shouldAwait)'),
+          onPressed: () {
+            //All other widget subscribe to the global ReactiveModel will be notified to rebuild
+            RM.get<Model>().setState(
+                  (currentState) => currentState.futureIncrementImmutable(),
+                  //will await the current future if its pending
+                  //before calling futureIncrementImmutable
+                  shouldAwait: true,
+                );
+          },
+        )
+      ],
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+}
+
+class PessimisticAsyncOnInitState1 extends StatelessWidget {
+  //The async method will be call when this widget is inserted in the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return StateBuilder(
+      //Create a local ReactiveModel model that decorate the false value
+      observe: () => RM.create<bool>(false),
+      builder: (context, switchRM) {
+        //builder expose the BuildContext and the locally created ReactiveModel.
+        return Row(
+          children: [
+            if (switchRM.state)
+              WhenRebuilder<Model>(
+                //get the global ReactiveModel and call setState
+                //All other widget subscribed to this global ReactiveModel will be notified
+                observe: () => RM.get<Model>()
+                  ..setState(
+                    (currentState) {
+                      return currentState.futureIncrementImmutable();
                     },
                   ),
-              ],
-            ),
-          ),
-        ],
-      ),
+                onSetState: (context, modelRM) {
+                  //side effects
+                  if (modelRM.hasError) {
+                    //show a SnackBar on error
+                    Scaffold.of(context).hideCurrentSnackBar();
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${modelRM.error}'),
+                      ),
+                    );
+                  }
+                },
+                onIdle: () => Text('The state is not mutated at all'),
+                onWaiting: () =>
+                    Text('Future is executing, we are waiting ....'),
+                onError: (error) => Text('Future completes with error $error'),
+                onData: (Model data) => Text('${data.counter}'),
+              )
+            else
+              Container(),
+            RaisedButton(
+              child: Text(
+                  '${switchRM.state ? "Dispose" : "Insert"} (PessimisticAsyncOnInitState1)'),
+              onPressed: () {
+                //mutate the state of the local ReactiveModel directly
+                //without using setState although we can.
+                //setState gives us more features that we do not need here
+                switchRM.state = !switchRM.state;
+              },
+            )
+          ],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        );
+      },
     );
   }
 }
 
-class GridItem extends StatelessWidget {
-  final int count;
-  final Function onTap;
-  GridItem({this.count, this.onTap});
+class PessimisticAsyncOnInitState2 extends StatelessWidget {
+  //The same as in PessimisticAsyncOnInitState but here the rebuild is locally.
+  //only this widget will rebuild.
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      child: Container(
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: Colors.lightBlue,
-          border:
-              Border.all(color: Theme.of(context).primaryColorDark, width: 4),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Center(
-          child: count != null
-              ? Text(
-                  "$count",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 50,
+    return StateBuilder(
+        observe: () => RM.create(false),
+        builder: (context, switchRM) {
+          return Row(
+            children: [
+              if (switchRM.state)
+                WhenRebuilder<Model>(
+                  //Here use the future method to create new reactive model
+                  observe: () => RM.get<Model>().future(
+                    (currentState, stateAsync) {
+                      //future method exposed the current state and teh Async representation of the state
+                      return currentState.futureIncrementImmutable();
+                    },
                   ),
+                  ////This is equivalent to this : (uncomment to try)
+                  //// observe: () => RM.future(
+                  ////   IN.get<Model>().futureIncrementImmutable(),
+                  //// ),
+
+                  onIdle: () => Text('The state is not mutated at all'),
+                  onWaiting: () =>
+                      Text('Future is executing, we are waiting ....'),
+                  onError: (error) =>
+                      Text('Future completes with error $error'),
+                  onData: (Model data) => Text('${data.counter}'),
                 )
-              : CircularProgressIndicator(
-                  backgroundColor: Colors.white,
-                ),
+              else
+                Text('This widget will not affect other widgets'),
+              RaisedButton(
+                child: Text(
+                    '${switchRM.state ? "Dispose" : "Insert"} (PessimisticAsyncOnInitState2)'),
+                onPressed: () {
+                  switchRM.state = !switchRM.state;
+                },
+              )
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          );
+        });
+  }
+}
+
+class OptimisticAsync extends StatelessWidget {
+  //Optimistic means, we will execute an async method and instantly display its expected result.
+  //When the async method fails we will  undo the change and display an error message.
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        //WhenRebuilderOr is the third observer widget
+        WhenRebuilderOr<Model>(
+          observe: () => RM.get<Model>(),
+          onWaiting: () => Text('Future is executing, we are waiting ....'),
+          builder: (context, modelRM) => Text('${modelRM.state.counter}'),
         ),
-      ),
-      onTap: onTap,
+        RaisedButton(
+          child: Text('Increment (OptimisticAsync - debounceDelay)'),
+          onPressed: () {
+            RM.get<Model>().setState(
+              (currentState) => currentState.streamIncrementMutable(),
+              //debounce setState for 1 second
+              debounceDelay: 1000,
+              onError: (context, error) {
+                Scaffold.of(context).hideCurrentSnackBar();
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$error'),
+                  ),
+                );
+              },
+            );
+          },
+        )
+      ],
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+}
+
+class OptimisticAsyncOnInitState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StateBuilder(
+      observe: () => RM.create(false),
+      builder: (context, switchRM) {
+        return Row(
+          children: [
+            if (switchRM.state)
+              WhenRebuilderOr<Model>(
+                //Create a new ReactiveModel with the stream method.
+
+                observe: () => RM.get<Model>().stream((state, subscription) {
+                  //It exposes the current state and the current StreamSubscription.
+                  return state.streamIncrementImmutable();
+                }),
+
+                ////This is equivalent to this : (uncomment to try)
+                //// observe: () => RM.stream(
+                ////   IN.get<Model>().streamIncrementImmutable(),
+                //// ),
+                ///
+                onSetState: (context, modelRM) {
+                  if (modelRM.hasError) {
+                    Scaffold.of(context).hideCurrentSnackBar();
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${modelRM.error}'),
+                      ),
+                    );
+                  }
+                },
+                builder: (context, modelRM) {
+                  return Text('${modelRM.state.counter}');
+                },
+              )
+            else
+              Text('This widget will not affect other widgets'),
+            RaisedButton(
+              child: Text(
+                  '${switchRM.state ? "Dispose" : "Insert"} (OptimisticAsyncOnInitState)'),
+              onPressed: () {
+                switchRM.state = !switchRM.state;
+              },
+            )
+          ],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        );
+      },
     );
   }
 }

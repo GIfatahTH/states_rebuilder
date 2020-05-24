@@ -477,10 +477,6 @@ void _initState<T>(StateBuilderState<T> state) {
     }
   }
 
-  // if (widget.models?.isNotEmpty == true) {
-  //   _modelsCallBacks = widget.models.map((model) => () => model).toSet();
-  // }
-
   if (widget.observe != null) {
     _modelsCallBacks ??= {};
     _modelsCallBacks.add(widget.observe);
@@ -502,8 +498,8 @@ void _initState<T>(StateBuilderState<T> state) {
     subscribe<T>(model);
 
     if (model is RMKey && !model.isLinked) {
-      model.initCallBack.add((rm) {
-        model.rm.copy(rm);
+      model.initCallBack.add((rm, rmInit) {
+        (rmInit ?? model.rm).copy(rm);
         Future.microtask(() => state._setState());
       });
     }
@@ -518,6 +514,10 @@ void _initState<T>(StateBuilderState<T> state) {
       _resolveModels<T>(state, true);
       state.widget.rmKey.rm = state._exposedModel;
     };
+
+    state._models.where((m) => m is ReactiveModel).forEach((rm) {
+      state.widget.rmKey.associate(rm);
+    });
   }
 }
 
@@ -553,9 +553,6 @@ void _dispose<T>(StateBuilderState<T> state) {
   }
 
   if (widget.rmKey != null) {
-    widget.rmKey.refreshCallBack = null;
-    widget.rmKey.rm = null;
-    widget.rmKey.initialValue = null;
-    widget.rmKey.initCallBack = null;
+    widget.rmKey.cleanRMKey();
   }
 }

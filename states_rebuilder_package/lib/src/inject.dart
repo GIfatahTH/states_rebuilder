@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'injector.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
@@ -120,11 +122,12 @@ class Inject<T> implements Injectable {
     _isStreamType = true;
   }
 
-  Inject.interface(
-    Map<dynamic, T Function()> impl, {
+  factory Inject.interface(
+    Map<dynamic, FutureOr<T> Function()> impl, {
     dynamic name,
-    this.isLazy,
-    this.joinSingleton,
+    bool isLazy,
+    JoinSingleton joinSingleton,
+    T initialValue,
   }) {
     assert(Injector.env != null, '''
 You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
@@ -138,9 +141,21 @@ You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
 
-    this.creationFunction = impl[Injector.env];
-
-    _name = name?.toString();
+    final creationFunction = impl[Injector.env];
+    if (creationFunction is Future<T> Function()) {
+      return Inject.future(
+        creationFunction,
+        name: name,
+        isLazy: isLazy,
+        initialValue: initialValue,
+      );
+    }
+    return Inject(
+      creationFunction,
+      name: name,
+      isLazy: isLazy,
+      joinSingleton: joinSingleton,
+    );
   }
 
   factory Inject.previous(

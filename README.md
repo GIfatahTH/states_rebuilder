@@ -63,9 +63,11 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 
 * [**firebase login** ](examples/008-clean_architecture_firebase_login) The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
 
-* [**Todo MVC with immutable state and firebase cloud service](examples\009-clean_architecture_todo_mvc_cloud_firestore_immutable_state) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
+* [**Todo MVC with immutable state and firebase cloud service**](examples/009-clean_architecture_todo_mvc_cloud_firestore_immutable_state) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
 
-* [**Todo MVC with mutable state and sharedPreferences for persistence](examples\009-clean_architecture_todo_mvc_mutable_state) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
+* [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/009-clean_architecture_todo_mvc_mutable_state) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
+
+* [**Todo MVC following flutter_bloc library approach**](examples/009-todo_mvc_the_flutter_bloc_way) : This is the same Todos App built following the same approach as in flutter_bloc library.
 
 * [**firebase realtime database**](examples/010-clean_architecture__multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
 

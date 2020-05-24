@@ -10,11 +10,9 @@ import 'states_rebuilder.dart';
 ///ReactiveModel Key
 class RMKey<T> implements ReactiveModel<T> {
   ///ReactiveModel Key
-  RMKey([this.initialValue]) {
-    _rmInitial = RM.create<T>(initialValue);
-    _rm = _rmInitial as ReactiveModelImp<T>;
-  }
-  ReactiveModel<T> _rmInitial;
+  RMKey([this.initialValue]);
+
+  StatesRebuilder<T> _rmInitial;
   ReactiveModelImp<T> _rm;
 
   ///ReactiveModel associated with this key
@@ -24,26 +22,48 @@ class RMKey<T> implements ReactiveModel<T> {
   T initialValue;
 
   ///is this key associated with a ReactiveModel or not
-  bool get isLinked => _rm != _rmInitial;
+  bool get isLinked => _rmInitial == null;
   set rm(ReactiveModel<T> rm) {
     if (rm == null || rm == _rm) {
       return;
     }
     for (var fn in initCallBack) {
-      fn(rm);
+      fn(rm, _rmInitial);
     }
 
     _rm = rm as ReactiveModelImp<T>;
     _rmInitial = null;
-    initialValue = null;
     _rm.cleaner(unsubscribe);
   }
+
+  void cleanRMKey() {
+    refreshCallBack = null;
+    _rm = null;
+    initialValue = null;
+    initCallBack = null;
+    _associatedReactiveModels.clear();
+  }
+
+  final Map<String, List<ReactiveModel>> _associatedReactiveModels = {};
+
+  void associate(ReactiveModel rm) {
+    String type = rm.type(false);
+    if (_associatedReactiveModels.containsKey(type)) {
+      _associatedReactiveModels[type].add(rm);
+    } else {
+      _associatedReactiveModels[type] = [rm];
+    }
+  }
+
+  ReactiveModel<T> get<T>([int index = 0]) =>
+      _associatedReactiveModels['$T'][index];
 
   ///cashed refresh callback
   void Function(ReactiveModel rm) refreshCallBack;
 
   ///Initialization callback
-  Set<void Function(ReactiveModel rm)> initCallBack = {};
+  Set<void Function(ReactiveModel rm, StatesRebuilder initRM)> initCallBack =
+      {};
 
   ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
   ///and notify observing widgets.
@@ -59,8 +79,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   T get state {
-    assert(rm != null);
-    return _rm?.state;
+    return _rm?.state ?? initialValue;
   }
 
   @override
@@ -69,38 +88,13 @@ class RMKey<T> implements ReactiveModel<T> {
     _rm.state = data;
   }
 
-  // @override
-  // Future<void> setValue(
-  //   FutureOr<T> Function() fn, {
-  //   List<dynamic> filterTags,
-  //   List<dynamic> seeds,
-  //   void Function(BuildContext context) onSetState,
-  //   void Function(BuildContext context) onRebuildState,
-  //   void Function(BuildContext context, dynamic error) onError,
-  //   void Function(BuildContext context, T data) onData,
-  //   bool catchError = false,
-  //   bool notifyAllReactiveInstances = false,
-  //   bool joinSingleton,
-  //   bool silent = false,
-  // }) async {
-  //   assert(rm != null);
-  //   return _rm?.setValue(
-  //     fn,
-  //     filterTags: filterTags,
-  //     seeds: seeds,
-  //     onSetState: onSetState,
-  //     onRebuildState: onRebuildState,
-  //     onData: onData,
-  //     onError: onError,
-  //     catchError: catchError,
-  //     notifyAllReactiveInstances: notifyAllReactiveInstances,
-  //     joinSingleton: joinSingleton,
-  //     silent: silent,
-  //   );
-  // }
-
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
+    if (_rm == null) {
+      _rmInitial ??= _KeyStatesRebuilder<T>();
+      _rmInitial.addObserver(observer: observer, tag: tag);
+      return;
+    }
     _rm?.addObserver(observer: observer, tag: tag);
   }
 
@@ -162,6 +156,9 @@ class RMKey<T> implements ReactiveModel<T> {
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
+    bool shouldAwait = false,
+    int debounceDelay,
+    int throttleDelay,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -169,9 +166,7 @@ class RMKey<T> implements ReactiveModel<T> {
     dynamic Function() joinSingletonToNewData,
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
-    bool setValue = false,
     bool silent = false,
-    bool shouldAwait = false,
   }) async {
     return _rm?.setState(
       fn,
@@ -186,7 +181,8 @@ class RMKey<T> implements ReactiveModel<T> {
       joinSingletonToNewData: joinSingletonToNewData,
       joinSingleton: joinSingleton,
       notifyAllReactiveInstances: notifyAllReactiveInstances,
-      setValue: setValue,
+      debounceDelay: debounceDelay,
+      throttleDelay: throttleDelay,
     );
   }
 
@@ -248,7 +244,7 @@ class RMKey<T> implements ReactiveModel<T> {
   ReactiveModel<S> stream<S>(
     Stream<S> Function(T, StreamSubscription<dynamic> subscription) stream, {
     S initialValue,
-    Object Function(T s) watch,
+    Object Function(S s) watch,
   }) {
     return _rm.stream(
       stream,
@@ -274,17 +270,17 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  void Function() listenToRM(void Function(ReactiveModel<T> rm) fn) {
+  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn) {
     return _rm.listenToRM(fn);
   }
 
   @override
-  String type() {
-    return _rm.type();
+  String type([bool detailed = true]) {
+    return _rm.type(detailed);
   }
 
   @override
-  Inject<T> get inject => _rm.inject;
+  Inject<T> get inject => _rm?.inject;
 
   @override
   Future<T> get stateAsync => _rm.stateAsync;
@@ -293,3 +289,5 @@ class RMKey<T> implements ReactiveModel<T> {
   //   return _rm.as<R>();
   // }
 }
+
+class _KeyStatesRebuilder<T> extends StatesRebuilder<T> {}

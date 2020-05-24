@@ -10,6 +10,8 @@ import 'states_rebuilder.dart';
 import 'when_connection_state.dart';
 import 'when_rebuilder_or.dart';
 
+typedef Disposer = void Function();
+
 ///An abstract class that defines the reactive environment.
 ///
 ///`states_rebuilder` is based on the concept of [ReactiveModel].
@@ -187,7 +189,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///Listen to a ReactiveModel
   ///
   ///It returns a callback for unsubscription
-  void Function() listenToRM(void Function(ReactiveModel<T> rm) fn);
+  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn);
 
   ///The stream (or Future) subscription of the state
   StreamSubscription<dynamic> get subscription;
@@ -254,6 +256,9 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
+    bool shouldAwait = false,
+    int debounceDelay,
+    int throttleDelay,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -261,9 +266,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     dynamic Function() joinSingletonToNewData,
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
-    bool setValue = false,
     bool silent = false,
-    bool shouldAwait = false,
   });
 
   ///Get a stream from the state and subscribe to it and
@@ -287,7 +290,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     )
         stream, {
     S initialValue,
-    Object Function(T s) watch,
+    Object Function(S s) watch,
   });
 
   ///Get a Future from the state and subscribe to it and
@@ -310,7 +313,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   bool isA<T>();
 
   ///Return the type of the state of the [ReactiveModel]
-  String type();
+  String type([bool detailed]);
 }
 
 ///

@@ -337,6 +337,25 @@ void main() {
       );
     },
   );
+
+  test(
+    'Inject.interface works with futures',
+    () {
+      Injector.env = 'prod';
+      final inject1 = Inject<IInterface>.interface(
+        {
+          'prod': () async =>
+              Future.delayed(Duration(seconds: 1), () => ImplProd()),
+          'dev': () => Future.delayed(Duration(seconds: 1), () => ImplDev()),
+          'test': () => ImplTest(),
+        },
+      );
+      //defined generic type
+      expect(inject1.getName(), equals('IInterface'));
+
+      expect(inject1.creationFutureFunction, isNotNull);
+    },
+  );
 }
 
 class Model {}
