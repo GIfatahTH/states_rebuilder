@@ -450,6 +450,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       } else {
         if (_onDataCallback(_result)) {
           _rebuildStates(canRebuild: _canRebuild());
+          _setStateCompleter.complete(state);
         }
       }
     } catch (e) {
@@ -468,10 +469,28 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     Object Function(S s) watch,
   }) {
     final s = inject.getReactive().state;
-    final ss = stream(s, subscription);
+
+    if (S != dynamic && this is ReactiveModelImp<S>) {
+      return RM.stream(
+        stream(s, subscription),
+        initialValue: initialValue ?? s,
+        watch: watch,
+      )..listenToRM(
+          (r) {
+            if (r.hasData) {
+              _state = r.state as T;
+              snapshot =
+                  AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+              (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
+              inject.singleton = _state;
+            }
+          },
+        );
+    }
+
     return RM.stream(
-      ss,
-      initialValue: initialValue ?? (this is ReactiveModelImp<S> ? s : null),
+      stream(s, subscription),
+      initialValue: initialValue,
       watch: watch,
     );
   }
@@ -483,9 +502,27 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     int debounceDelay,
   }) {
     final s = inject.getReactive().state;
+
+    if (F != dynamic && this is ReactiveModelImp<F>) {
+      return RM.future(
+        future(s, stateAsync),
+        initialValue: initialValue ?? s,
+      )..listenToRM(
+          (r) {
+            if (r.hasData) {
+              _state = r.state as T;
+              snapshot =
+                  AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+              (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
+              inject.singleton = _state;
+            }
+          },
+        );
+    }
+
     return RM.future(
       future(s, stateAsync),
-      initialValue: initialValue ?? (this is ReactiveModelImp<F> ? s : null),
+      initialValue: initialValue,
     );
   }
 
@@ -561,6 +598,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         : '';
     type += '<$T>';
     return type;
+  }
+
+  void notify([List<dynamic> tags]) {
+    if (hasObservers) {
+      rebuildStates(tags);
+    }
   }
 
   @override

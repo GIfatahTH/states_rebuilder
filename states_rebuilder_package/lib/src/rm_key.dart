@@ -284,6 +284,11 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   Future<T> get stateAsync => _rm.stateAsync;
+
+  @override
+  void notify([List tags]) {
+    _rm.notify(tags);
+  }
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

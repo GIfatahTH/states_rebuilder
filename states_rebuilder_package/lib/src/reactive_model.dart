@@ -314,6 +314,9 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///Return the type of the state of the [ReactiveModel]
   String type([bool detailed]);
+
+  /// Notify registered observers to rebuild.
+  void notify([List<dynamic> tags]);
 }
 
 ///

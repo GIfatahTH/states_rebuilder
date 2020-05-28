@@ -332,7 +332,7 @@ To limit the notification to one widget we can use the `future` method.
                       return currentState.futureIncrementImmutable();
                     },
                   ),
-                  ////This is equivalent to this : (uncomment to try)
+                  ////This is NOT equivalent to this :
                   //// observe: () => RM.future(
                   ////   IN.get<Model>().futureIncrementImmutable(),
                   //// ),
@@ -420,7 +420,7 @@ If we want to automatically call the streamIncrementMutable once the widget is i
                   return state.streamIncrementImmutable();
                 }),
 
-                ////This is equivalent to this : (uncomment to try)
+                ////This is NOT equivalent to this : 
                 //// observe: () => RM.stream(
                 ////   IN.get<Model>().streamIncrementImmutable(),
                 //// ),

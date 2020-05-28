@@ -134,14 +134,17 @@ void main() {
     (WidgetTester tester) async {
       RMKey<int> reactiveModel1 = RMKey();
       RMKey<int> reactiveModel2 = RMKey();
+      int numberOfRebuild = 0;
       final widget = Injector(
         inject: [Inject(() => 2)],
         builder: (_) {
           return Column(
             children: <Widget>[
               StateBuilder<int>(
+                observe: () => RM.create(0),
                 rmKey: reactiveModel1,
                 builder: (_, rm) {
+                  numberOfRebuild++;
                   return Container();
                 },
               ),
@@ -159,6 +162,9 @@ void main() {
       expect(reactiveModel1, isA<ReactiveModel<int>>());
       expect(reactiveModel2, isA<ReactiveModel<int>>());
       expect(reactiveModel1 != reactiveModel2, isTrue);
+      reactiveModel1.notify();
+      await tester.pump();
+      expect(numberOfRebuild, 2);
     },
   );
 

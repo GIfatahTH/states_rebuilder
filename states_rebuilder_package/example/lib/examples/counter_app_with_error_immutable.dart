@@ -65,7 +65,6 @@ class App extends StatelessWidget {
                   (counterState) => counterState.increment(),
                 )
                 ..onError((context, error) {
-                  print(context);
                   Scaffold.of(context).hideCurrentSnackBar();
                   Scaffold.of(context).showSnackBar(
                     SnackBar(

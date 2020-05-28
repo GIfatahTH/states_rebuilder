@@ -1230,7 +1230,9 @@ void main() {
       builder: (_) {
         return WhenRebuilderOr(
           observeMany: [
-            () => RM.get<VanillaModel>().future((m, _) => m.incrementAsync())
+            () => RM
+                .get<VanillaModel>()
+                .future<void>((m, _) => m.incrementAsync())
           ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
@@ -1251,11 +1253,9 @@ void main() {
       inject: [Inject(() => VanillaModel())],
       builder: (_) {
         return WhenRebuilderOr(
-          observeMany: [
-            () => RM.get<VanillaModel>().stream(
-                  (m, _) => m._getStream(),
-                )
-          ],
+          observe: () => RM.get<VanillaModel>().stream(
+                (m, _) => m._getStream(),
+              ),
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
             return Text('${rm.state}');
@@ -1313,11 +1313,11 @@ void main() {
       builder: (_) {
         return WhenRebuilderOr(
           observeMany: [
-            () => RM.get<VanillaModel>().future(
+            () => RM.get<VanillaModel>().future<VanillaModel>(
                   (m, _) => m.incrementAsync().then(
                         (_) => Future.delayed(
                           Duration(seconds: 1),
-                          () => 5,
+                          () => VanillaModel(5),
                         ),
                       ),
                 )

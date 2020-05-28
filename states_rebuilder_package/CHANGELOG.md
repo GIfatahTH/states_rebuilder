@@ -1,4 +1,8 @@
-## 2.0.0 (2020-05-24)
+## 2.2.0 (2020-05-18)
+* add notify method to the `ReactiveModel` object.
+* Refactor the logic of `future` and `stream` methods
+
+## 2.1.0 (2020-05-24)
 * add `debounceDelay` and `throttleDelay` to `setState` method.
 * Refactor RMKey logic.
 * Add `RMKey.get` method.

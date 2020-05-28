@@ -311,6 +311,9 @@ void main() {
       //
       expect(numberOfRebuild, equals(2));
       expect(find.text('1'), findsOneWidget);
+      modelRM.notify();
+      await tester.pump();
+      expect(numberOfRebuild, equals(3));
     },
   );
 
