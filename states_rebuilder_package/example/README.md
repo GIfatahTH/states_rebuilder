@@ -89,14 +89,19 @@ class MyHome extends StatelessWidget {
           title: Text('states_rebuilder'),
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Column(
             children: [
               SetStateCanDoAll(),
+              Divider(),
               PessimisticAsync(),
+              Divider(),
               PessimisticAsyncOnInitState1(),
+              Divider(),
               PessimisticAsyncOnInitState2(),
+              Divider(),
               OptimisticAsync(),
+              Divider(),
               OptimisticAsyncOnInitState(),
             ],
           ),
@@ -114,7 +119,7 @@ class SetStateCanDoAll extends StatelessWidget {
       observe: () => RM.get<Model>(),
       builder: (context, modelRM) {
         //The builder exposes the BuildContext and the Model ReactiveModel
-        return Row(
+        return Column(
           children: [
             //get the state of the model
             Text('${modelRM.state.counter}'),
@@ -171,7 +176,7 @@ class PessimisticAsync extends StatelessWidget {
   //While waiting, we will display a waiting screen.
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
         //WhenRebuilder is the second of the four observer widgets
         WhenRebuilder<Model>(
@@ -186,7 +191,7 @@ class PessimisticAsync extends StatelessWidget {
               onError: (error) => print('onError'),
             );
           },
-          onIdle: () => Text('The state is not mutated at all'),
+          onIdle: () => Text('The state is idle'),
           onWaiting: () => Text('Future is executing, we are waiting ....'),
           onError: (error) => Text('Future completes with error $error'),
           onData: (Model data) => Text('${data.counter}'),
@@ -218,7 +223,7 @@ class PessimisticAsyncOnInitState1 extends StatelessWidget {
       observe: () => RM.create<bool>(false),
       builder: (context, switchRM) {
         //builder expose the BuildContext and the locally created ReactiveModel.
-        return Row(
+        return Column(
           children: [
             if (switchRM.state)
               WhenRebuilder<Model>(
@@ -276,7 +281,7 @@ class PessimisticAsyncOnInitState2 extends StatelessWidget {
     return StateBuilder(
         observe: () => RM.create(false),
         builder: (context, switchRM) {
-          return Row(
+          return Column(
             children: [
               if (switchRM.state)
                 WhenRebuilder<Model>(
@@ -287,7 +292,7 @@ class PessimisticAsyncOnInitState2 extends StatelessWidget {
                       return currentState.futureIncrementImmutable();
                     },
                   ),
-                  ////This is equivalent to this : (uncomment to try)
+                  ////This is NOT equivalent to this : (uncomment to try)
                   //// observe: () => RM.future(
                   ////   IN.get<Model>().futureIncrementImmutable(),
                   //// ),
@@ -320,7 +325,7 @@ class OptimisticAsync extends StatelessWidget {
   //When the async method fails we will  undo the change and display an error message.
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
         //WhenRebuilderOr is the third observer widget
         WhenRebuilderOr<Model>(
@@ -358,7 +363,7 @@ class OptimisticAsyncOnInitState extends StatelessWidget {
     return StateBuilder(
       observe: () => RM.create(false),
       builder: (context, switchRM) {
-        return Row(
+        return Column(
           children: [
             if (switchRM.state)
               WhenRebuilderOr<Model>(
@@ -369,7 +374,7 @@ class OptimisticAsyncOnInitState extends StatelessWidget {
                   return state.streamIncrementImmutable();
                 }),
 
-                ////This is equivalent to this : (uncomment to try)
+                ////This is NOT equivalent to this : (uncomment to try)
                 //// observe: () => RM.stream(
                 ////   IN.get<Model>().streamIncrementImmutable(),
                 //// ),
@@ -404,4 +409,5 @@ class OptimisticAsyncOnInitState extends StatelessWidget {
     );
   }
 }
+
 ```
