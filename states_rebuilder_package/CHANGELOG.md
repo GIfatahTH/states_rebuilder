@@ -1,6 +1,8 @@
-## 2.2.0 (2020-05-18)
-* add notify method to the `ReactiveModel` object.
-* Refactor the logic of `future` and `stream` methods
+## 2.2.0 (2020-06-02)
+* Add the ability to do side effects without context (navigation, show dialogs ...). [See more](https://github.com/GIfatahTH/states_rebuilder/wiki/side-effects-without-context)
+* add `refresh` method to the `ReactiveModel` object. [See more](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh)
+* add `notify` method to the `ReactiveModel` object.
+* Refactor the logic of `future` and `stream` methods.
 
 ## 2.1.0 (2020-05-24)
 * add `debounceDelay` and `throttleDelay` to `setState` method.

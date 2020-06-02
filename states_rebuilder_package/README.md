@@ -6,10 +6,11 @@
 
 
 A Flutter state management combined with dependency injection solution that allows : 
-  * a 100% separation of User Interface (UI) representation from your logic classes
-  * an effective control on how your widgets rebuild to reflect the actual state of your application.
-Model classes are simple vanilla dart classes without any need for inheritance, notification, streams or annotation, and code generation. states_rebuild works well with immutable and mutable objects.
-  * 
+  * A 100% separation between business logic and UI logic. You wWrite your business logic with pure dart class without depending on any external library (Flutter and states_rebuilder included).
+  * Immutable and immutable state. You are free to use immutable or mutable objects or to mix them. Even you can refactor form mutability to immutability (or from immutability to mutability) without affecting the user interface code.
+  * Work with futures and streams. You can change the nature of any method from synchronous to asynchronous; from returning Future to returning Stream or vice versa without changing a single line in the user interface.
+  * Very rich dependency injection system. Asynchronous dependency is injected with the same ease as synchronous dependency.
+  * Side effects without the `BuildContext`. Navigate, get the `ScaffoldState`, `ThemeData`, or `MediaQuery` without requiring the `BuildContext`.
 
 `states_rebuilder` is built on the observer pattern for state management.
 
@@ -476,11 +477,13 @@ For more information about how to use states_rebuilder see in the [wiki](https:/
   * [setState](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)
   * [future](https://github.com/GIfatahTH/states_rebuilder/wiki/future)
   * [stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream)
+  * [refresh](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh)
   * [listenToRM](https://github.com/GIfatahTH/states_rebuilder/wiki/listenToRM)
   * [StateWithMixinBuilder](https://github.com/GIfatahTH/states_rebuilder/wiki/StateWithMixinBuilder)
 * [Dependency Injection](https://github.com/GIfatahTH/states_rebuilder/wiki/Dependency-Injection)
   * [Asynchronous Dependency Injection](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection)
   * [Development flavor](https://github.com/GIfatahTH/states_rebuilder/wiki/Development-flavor)
+* [Side effects without context](https://github.com/GIfatahTH/states_rebuilder/wiki/side-effects-without-context)
 * [Widget unit testing](https://github.com/GIfatahTH/states_rebuilder/wiki/Widget-unit-testing)
 * [Debugging print](https://github.com/GIfatahTH/states_rebuilder/wiki/Debugging-print)
 * [Update log](https://github.com/GIfatahTH/states_rebuilder/wiki/Update-log)
