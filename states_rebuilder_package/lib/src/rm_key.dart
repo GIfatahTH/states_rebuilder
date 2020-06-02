@@ -67,7 +67,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
   ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
   ///and notify observing widgets.
-  Future<T> refresh() {
+  Future<T> refresh([bool shouldNotify = true]) {
     refreshCallBack?.call(_rm);
     if (!rm.inject.isAsyncInjected) {
       rm.setState((_) => null);
@@ -289,6 +289,7 @@ class RMKey<T> implements ReactiveModel<T> {
   void notify([List tags]) {
     _rm.notify(tags);
   }
+
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

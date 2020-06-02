@@ -6,6 +6,7 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/reactive_model_imp.dart';
 import 'package:states_rebuilder/src/rm_key.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   ReactiveModel<Model> modelRM;
@@ -50,7 +51,7 @@ void main() {
     expect(modelRM.hasError, isTrue);
   });
 
-  test('call global error handler without observers', () {
+  testWidgets('call global error handler without observers', (tester) async {
     BuildContext ctx;
     var error;
     final rm = RM.create(0)
@@ -58,6 +59,8 @@ void main() {
         ctx = context;
         error = e;
       });
+    await tester.pumpWidget(StateBuilder(
+        observe: () => RM.create(0), builder: (_, __) => Container()));
 
     rm.setState(
       (_) {
@@ -68,7 +71,7 @@ void main() {
     );
 
     expect(rm.hasError, isTrue);
-    expect(ctx, isNull);
+    expect(ctx, isNotNull);
     expect(error, isA<Exception>());
   });
 
@@ -2648,6 +2651,82 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
   });
+
+  testWidgets('ReactiveModel.refresh', (tester) async {
+    final rm = RM.create(0);
+
+    final widget = StateBuilder<int>(
+      observe: () => rm,
+      builder: (_, rm) {
+        return Text('${rm.state}');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('0'), findsOneWidget);
+    rm.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    rm.refresh();
+    await tester.pump();
+    expect(find.text('0'), findsOneWidget);
+    expect(rm.isIdle, isTrue);
+  });
+
+  testWidgets('ReactiveModel.refresh stream', (tester) async {
+    final rm = RM.create(Model()).stream(
+          (m, _) => getStream(),
+          initialValue: 0,
+        );
+
+    final widget = WhenRebuilderOr(
+      observe: () => rm,
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('${rm.state}');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+
+    expect(find.text('waiting ...'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    rm.refresh();
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    print(rm);
+    expect(find.text('0'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('ReactiveModel.refresh future', (tester) async {
+    final rm = RM.create(Model()).future((m, _) => m.incrementAsync());
+
+    final widget = WhenRebuilderOr(
+      observe: () => rm,
+      onWaiting: () => Text('waiting ...'),
+      builder: (_, rm) {
+        return Text('data');
+      },
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('data'), findsOneWidget);
+
+    rm.refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('data'), findsOneWidget);
+  });
 }
 
 class Model {
@@ -2720,7 +2799,8 @@ Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
 Future<int> getFutureWithError() => Future.delayed(Duration(seconds: 1), () {
       throw Exception('error message');
     });
-Stream<int> getStream() =>
-    Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+Stream<int> getStream() {
+  return Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+}
 
 enum Seeds { seed1, seed2 }
