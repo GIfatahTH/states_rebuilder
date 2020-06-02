@@ -67,7 +67,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
   ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
   ///and notify observing widgets.
-  Future<T> refresh() {
+  Future<T> refresh([bool shouldNotify = true]) {
     refreshCallBack?.call(_rm);
     if (!rm.inject.isAsyncInjected) {
       rm.setState((_) => null);
@@ -84,8 +84,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   set state(T data) {
-    assert(_rm != null);
-    _rm.state = data;
+    _rm?.state = data;
   }
 
   @override
@@ -284,6 +283,12 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   Future<T> get stateAsync => _rm.stateAsync;
+
+  @override
+  void notify([List tags]) {
+    _rm.notify(tags);
+  }
+
   // @override
   // ReactiveModel<T> as<R>() {
   //   return _rm.as<R>();

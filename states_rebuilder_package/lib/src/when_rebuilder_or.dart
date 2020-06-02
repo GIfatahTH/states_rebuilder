@@ -84,6 +84,11 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///Each [WhenRebuilderOr] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  /// callback to be executed before notifying listeners. It the returned value is
+  /// the same as the last one, the rebuild process is interrupted.
+  ///
+  final Object Function(ReactiveModel<T> model) watch;
+
   ///ReactiveModel key used to control this widget from outside its [builder] method.
   final RMKey rmKey;
 
@@ -128,6 +133,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.observe,
     this.observeMany,
     this.tag,
+    this.watch,
     this.rmKey,
     this.initState,
     this.dispose,
@@ -142,6 +148,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       observe: observe,
       observeMany: observeMany,
       tag: tag,
+      watch: watch,
       rmKey: rmKey,
       initState: initState,
       dispose: dispose,

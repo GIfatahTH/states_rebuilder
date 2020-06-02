@@ -240,11 +240,9 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///
   ///[onError] callback to be executed when ReactiveModel has data.
   ///
-  /// [watch] is a function that returns a single model instance variable or a list of
-  /// them. The rebuild process will be triggered if at least one of
-  /// the return variable changes. Returned variable must be either a primitive variable,
-  /// a List, a Map or a Set.To use a custom type, you should override the `toString` method to reflect
-  /// a unique identity of each instance.
+  /// [watch] callback to be executed before notifying listeners. It the returned value is
+  /// the same as the last one, the rebuild process is interrupted.
+  ///
   /// If it is not defined all listener will be notified when a new state is available.
   ///
   /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
@@ -314,6 +312,14 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///Return the type of the state of the [ReactiveModel]
   String type([bool detailed]);
+
+  /// Notify registered observers to rebuild.
+  void notify([List<dynamic> tags]);
+
+  /// Refresh the [ReactiveModel] state.
+  ///
+  /// ??
+  Future<T> refresh([bool shouldNotify = true]);
 }
 
 ///
@@ -377,4 +383,21 @@ abstract class RM {
   ///get the model that is sending the notification
   static ReactiveModel get notified =>
       StatesRebuilderInternal.getNotifiedModel();
+  static BuildContext get context {
+    assert(InjectorState.contextSet.isNotEmpty);
+    return InjectorState.contextSet.last;
+  }
+
+  static NavigatorState get navigator {
+    return Navigator.of(context);
+  }
+
+  static ThemeData get theme => Theme.of(context);
+  static MediaQueryData get mediaQuery => MediaQuery.of(context);
+
+  static ScaffoldState get scaffold => Scaffold.of(context);
+
+  static void show(void Function(BuildContext context) fn) {
+    fn(context);
+  }
 }

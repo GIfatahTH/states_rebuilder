@@ -224,7 +224,9 @@ void main() {
 
     testWidgets('delete item from the detailed screen and reinsert it on error',
         (tester) async {
-      fakeTodosRepository..throwError = true;
+      fakeTodosRepository
+        ..throwError = true
+        ..delay = 500;
       await tester.pumpWidget(homeScreen);
 
       await tester.pumpAndSettle();
@@ -236,16 +238,18 @@ void main() {
       //
       await tester.tap(find.byKey(ArchSampleKeys.deleteTodoButton));
       await tester.pump();
+      expect(find.byKey(Key('todo_StateBuilder')), findsOneWidget);
 
       //expect we are back in the home screen
       expect(find.byKey(ArchSampleKeys.todoList), findsOneWidget);
+
       //expect to see two Todo items
       expect(find.byType(TodoItem), findsNWidgets(2));
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Undo'), findsOneWidget);
 
       //
-      await tester.pump(Duration(milliseconds: 1000));
+      await tester.pumpAndSettle();
       await tester.pumpAndSettle();
 
       expect(find.byType(TodoItem), findsNWidgets(3));

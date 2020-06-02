@@ -929,14 +929,14 @@ class App extends StatelessWidget {
             activeFilter: VisibilityFilter.all,
             todoRepository: TodosRepository(
               //get the user from the injected AuthState
+              //When a new user is log in, we must update the  TodosRepository
+              //to use the new user.
+              //We will do this in the auth_Page()
               user: IN.get<AuthState>().user,
             ),
           ),
         )
       ],
-      //whenever the AuthState ReactiveModel emits a notification the TodosState injected above
-      //will be refreshed to get the nex user. 
-      reinjectOn: [RM.get<AuthState>()],
       builder: (_) => MaterialApp(
         title: StatesRebuilderLocalizations().appTitle,
         theme: ArchSampleTheme.theme,
@@ -970,10 +970,7 @@ class App extends StatelessWidget {
   }
 }
 ```
-Two notes here:
-* reinjectOn : The injected instance of TodosState depends on the authenticated user. By using `reinjectOn: [RM.get<AuthState>()],` we told states_rebuilder to refresh the todosState registered instance each time the RM.get<AuthState>() emits a notification.
-
-* Global vs Local ReactiveModel: Injected ReactiveModels have global access, that is any widget cas access their state. Also ReactiveModel can local that is created, listen to, and notify state within a widget.
+Global vs Local ReactiveModel: Injected ReactiveModels have global access, that is any widget cas access their state. Also ReactiveModel can local that is created, listen to, and notify state within a widget.
 ```dart
 observe: () => RM.get<AuthState>()
             ..future(

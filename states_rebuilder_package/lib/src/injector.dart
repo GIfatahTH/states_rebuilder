@@ -156,12 +156,14 @@ class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
   static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
       <String, List<Inject<dynamic>>>{};
+
+  static final List<BuildContext> contextSet = [];
   List<Inject<dynamic>> _injects = [];
   @override
   void initState() {
     super.initState();
+    contextSet.add(context);
     _initState();
-
     if (widget.reinjectOn != null) {
       for (StatesRebuilder model in widget.reinjectOn) {
         model.addObserver(
@@ -173,38 +175,7 @@ class InjectorState extends State<Injector> {
               for (Inject<dynamic> inject in _injects) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
                 final rm = inj.getReactive();
-                rm
-                  ..cleaner(rm.unsubscribe, true)
-                  ..unsubscribe();
-                if (inject.isAsyncInjected) {
-                  if (inject.isFutureType) {
-                    inj.creationFutureFunction = inject.creationFutureFunction;
-                    rm.setState(
-                      (dynamic s) => inject.creationFutureFunction(),
-                      catchError: true,
-                      silent: true,
-                      filterTags: inject.filterTags,
-                    );
-                  } else {
-                    inj.creationStreamFunction = inject.creationStreamFunction;
-                    rm.setState(
-                      (dynamic s) => inject.creationStreamFunction(),
-                      catchError: true,
-                      silent: true,
-                      filterTags: inject.filterTags,
-                    );
-                  }
-                } else {
-                  if (inj.singleton != null) {
-                    inj.singleton = inj.creationFunction();
-                    (inj.reactiveSingleton as ReactiveModelImp).state =
-                        inj.singleton;
-                    if (widget.shouldNotifyOnReinjectOn &&
-                        inj.reactiveSingleton.hasObservers) {
-                      inj.reactiveSingleton.setState(null);
-                    }
-                  }
-                }
+                rm.refresh(widget.shouldNotifyOnReinjectOn);
               }
             },
           ),
@@ -251,6 +222,8 @@ class InjectorState extends State<Injector> {
       widget.dispose();
     }
     _injects = null;
+
+    contextSet.remove(context);
     super.dispose();
   }
 

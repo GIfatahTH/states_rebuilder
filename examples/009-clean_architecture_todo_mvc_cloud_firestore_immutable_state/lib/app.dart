@@ -37,7 +37,6 @@ class App extends StatelessWidget {
           ),
         )
       ],
-      reinjectOn: [RM.get<AuthState>()],
       builder: (_) => MaterialApp(
         title: StatesRebuilderLocalizations().appTitle,
         theme: ArchSampleTheme.theme,

@@ -37,9 +37,13 @@ class DetailScreen extends StatelessWidget {
         child: ListView(
           children: [
             StateBuilder<Todo>(
+                key: Key('todo_StateBuilder'),
                 //create a local ReactiveModel for the todo
                 observe: () => RM.create(todo),
                 //associate ti with todoRMKey
+                dispose: (_, __) {
+                  print('dispose');
+                },
                 rmKey: todoRMKey,
                 builder: (context, todosStateRM) {
                   return Row(
@@ -119,7 +123,7 @@ class DetailScreen extends StatelessWidget {
     todoRMKey.state = newTodo;
     RM.get<TodosState>().setState(
       (t) => TodosState.updateTodo(t, newTodo),
-      onError: (ctx, error) {
+      onError: (context, error) {
         todoRMKey.state = oldTodo;
         ErrorHandler.showErrorSnackBar(context, error);
       },
