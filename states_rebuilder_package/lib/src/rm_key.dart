@@ -84,8 +84,7 @@ class RMKey<T> implements ReactiveModel<T> {
 
   @override
   set state(T data) {
-    assert(_rm != null);
-    _rm.state = data;
+    _rm?.state = data;
   }
 
   @override

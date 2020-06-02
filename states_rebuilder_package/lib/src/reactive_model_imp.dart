@@ -271,7 +271,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       return canRebuild;
     }
 
-    final _onSetState = (_) {
+    final _onSetState = () {
       BuildContext context;
       if (hasError) {
         if (onError != null) {
@@ -307,19 +307,14 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
     void _rebuildStates({bool canRebuild = true}) {
       if (silent && !hasObservers) {
-        if (hasData) {
-          _onData?.call(state);
-        }
-        if (hasError) {
-          onErrorHandler?.call(RM.context, error);
-        }
+        _onSetState();
         return;
       }
 
       if (canRebuild) {
         rebuildStates(
           filterTags,
-          _onSetState,
+          (_) => _onSetState(),
         );
         void _rebuildNewReactiveInstances(
           bool notifyAllReactiveInstances,
