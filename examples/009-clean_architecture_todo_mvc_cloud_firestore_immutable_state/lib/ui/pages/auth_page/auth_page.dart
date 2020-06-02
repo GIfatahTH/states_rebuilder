@@ -1,3 +1,4 @@
+import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/service/todos_state.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -145,6 +146,10 @@ class AuthFormWidget extends StatelessWidget {
                             );
                           }
                         },
+                        //When ever a new user is logged in, the injected instance of
+                        //TodosState will be refreshed to account for the new user.
+                        onData: (context, authState) =>
+                            RM.get<TodosState>().refresh(),
                         onError: ErrorHandler.showErrorSnackBar,
                       );
                     }

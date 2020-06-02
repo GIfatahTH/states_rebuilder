@@ -11,6 +11,8 @@
 
 * With `states_rebuilder` you can inject dependencies asynchronously.
 
+* With `states_rebuilder` you can invoke side effects without the `BuildContext`. Navigate, get the `ScaffoldState`, `ThemeData`, or `MediaQuery` without `BuildContext`.
+
 ## Business logic
 
 >The business logic classes are independent of any external library. They are independent even from `states_rebuilder` itself.

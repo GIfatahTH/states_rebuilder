@@ -40,6 +40,8 @@ class TodosRepository implements ITodosRepository {
   @override
   Future saveTodos(List<Todo> todos) async {
     try {
+      // await Future.delayed(Duration(milliseconds: 500));
+      // throw Exception();
       final List<Todo> newTodos = List<Todo>.from(todos);
       for (Todo oldTodo in _cashedTodos) {
         final newTodo =
