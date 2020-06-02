@@ -743,58 +743,59 @@ void main() {
       BuildContext context0;
       BuildContext context1;
       BuildContext context2;
-      ScaffoldState scaffoldState;
       final vm = Model();
       await tester.pumpWidget(
         MaterialApp(
-            home: Scaffold(
-                body: StateBuilder(
-          observeMany: [() => vm],
-          builder: (_, __) {
-            return Column(
-              children: <Widget>[
-                Injector(
-                  inject: [
-                    Inject<VanillaModel>(() => VanillaModel(0)),
-                  ],
-                  builder: (context) {
-                    return StateBuilder(
-                        observeMany: [() => model1 = RM.get<VanillaModel>()],
-                        builder: (context, _) {
-                          context1 = context;
-                          return Container();
-                        });
-                  },
-                ),
-                if (isTrue)
-                  Builder(
-                    builder: (_) {
-                      return StateBuilder(
-                        observeMany: [
-                          () => Injector.getAsReactive<VanillaModel>()
-                        ],
-                        builder: (context, model) {
-                          context2 = context;
-                          return Container();
+          home: Scaffold(
+            body: StateBuilder(
+              observeMany: [() => vm],
+              builder: (_, __) {
+                return Column(
+                  children: <Widget>[
+                    Injector(
+                      inject: [
+                        Inject<VanillaModel>(() => VanillaModel(0)),
+                      ],
+                      builder: (context) {
+                        return StateBuilder(
+                          observeMany: [() => model1 = RM.get<VanillaModel>()],
+                          builder: (context, _) {
+                            context1 = context;
+                            return Container();
+                          },
+                        );
+                      },
+                    ),
+                    if (isTrue)
+                      Builder(
+                        builder: (_) {
+                          return StateBuilder(
+                            observeMany: [
+                              () => Injector.getAsReactive<VanillaModel>()
+                            ],
+                            builder: (context, model) {
+                              context2 = context;
+                              return Container();
+                            },
+                          );
                         },
-                      );
-                    },
-                  )
-                else
-                  Container(),
-              ],
-            );
-          },
-        ))),
+                      )
+                    else
+                      Container(),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       );
 
       model1.setState(null, onSetState: (context) {
         context0 = context;
-        scaffoldState = Scaffold.of(context);
       });
       await tester.pump();
       expect(context2, equals(context0));
-      expect(scaffoldState, isNotNull);
+      expect(RM.scaffold, isNotNull);
 
       isTrue = false;
       vm.rebuildStates();
@@ -802,12 +803,10 @@ void main() {
       await tester.pump();
       model1.setState(null, onSetState: (context) {
         context0 = context;
-        scaffoldState = Scaffold.of(context);
       });
       await tester.pump();
 
       expect(context1, equals(context0));
-      expect(scaffoldState, isNotNull);
     },
   );
 
@@ -1184,8 +1183,9 @@ void main() {
       (tester) async {
     BuildContext firstCtx;
     BuildContext secondCtx;
-    Widget firstPage() => Builder(
-          builder: (context) {
+    Widget firstPage() => StateBuilder(
+          observe: () => RM.create(0),
+          builder: (context, _) {
             firstCtx = context;
             return Text('First page');
           },
@@ -1200,7 +1200,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: firstPage()));
     expect(find.text('First page'), findsOneWidget);
     // Navigate to the second page:
-    Navigator.of(firstCtx).push(
+    RM.navigator.push(
       MaterialPageRoute(
         builder: (ctx) {
           return secondPage();
@@ -1210,11 +1210,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Second page'), findsOneWidget);
     //pop to the first Page,
-    Navigator.of(secondCtx).pop();
+    RM.navigator.pop();
     await tester.pump();
     expect(find.text('First page'), findsOneWidget);
     //rapidly push to the second page.
-    Navigator.of(firstCtx).push(
+    RM.navigator.push(
       MaterialPageRoute(
         builder: (ctx) {
           return secondPage();
@@ -1336,6 +1336,24 @@ void main() {
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('data'), findsOneWidget);
+  });
+
+  testWidgets('Side effects without context', (tester) async {
+    final widget = MaterialApp(
+        home: Scaffold(
+      body: Injector(
+          inject: [Inject(() => 1)], builder: (context) => Container()),
+    ));
+    await tester.pumpWidget(widget);
+    expect(RM.navigator, isNotNull);
+    expect(RM.scaffold, isNotNull);
+    expect(RM.theme, isNotNull);
+    expect(RM.mediaQuery, isNotNull);
+    RM.show((context) {
+      Scaffold.of(context).showSnackBar(SnackBar(content: Text('')));
+    });
+    await tester.pump();
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 
   group('', () {
