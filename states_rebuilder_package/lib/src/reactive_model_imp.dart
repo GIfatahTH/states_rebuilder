@@ -271,18 +271,19 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       return canRebuild;
     }
 
-    final _onSetState = (BuildContext context) {
+    final _onSetState = (_) {
+      BuildContext context;
       if (hasError) {
         if (onError != null) {
-          onError(context, error);
+          onError(context ??= RM.context, error);
         } else {
-          onErrorHandler?.call(context, error);
+          onErrorHandler?.call(context ??= RM.context, error);
         }
       }
 
       if (hasData) {
         if (onData != null) {
-          onData(context, state);
+          onData(context ?? RM.context, state);
         }
         _onData?.call(state);
         if (seeds != null) {
@@ -294,12 +295,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       }
 
       if (onSetState != null) {
-        onSetState(context);
+        onSetState(context ??= RM.context);
       }
 
       if (onRebuildState != null) {
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => onRebuildState(context),
+          (_) => onRebuildState(RM.context),
         );
       }
     };
@@ -310,10 +311,11 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           _onData?.call(state);
         }
         if (hasError) {
-          onErrorHandler?.call(null, error);
+          onErrorHandler?.call(RM.context, error);
         }
         return;
       }
+
       if (canRebuild) {
         rebuildStates(
           filterTags,
@@ -471,11 +473,12 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     final s = inject.getReactive().state;
 
     if (S != dynamic && this is ReactiveModelImp<S>) {
-      return RM.stream(
-        stream(s, subscription),
+      return Inject<S>.stream(
+        () => stream(s, subscription),
         initialValue: initialValue ?? s,
         watch: watch,
-      )..listenToRM(
+      ).getReactive()
+        ..listenToRM(
           (r) {
             if (r.hasData) {
               _state = r.state as T;
@@ -485,14 +488,15 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
               inject.singleton = _state;
             }
           },
-        );
+        )
+        ..inject.creationStreamFunction = () => stream(s, subscription);
     }
 
-    return RM.stream(
-      stream(s, subscription),
+    return Inject<S>.stream(
+      () => stream(s, subscription),
       initialValue: initialValue,
       watch: watch,
-    );
+    ).getReactive();
   }
 
   @override
@@ -504,10 +508,11 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     final s = inject.getReactive().state;
 
     if (F != dynamic && this is ReactiveModelImp<F>) {
-      return RM.future(
-        future(s, stateAsync),
+      return Inject<F>.future(
+        () => future(s, stateAsync),
         initialValue: initialValue ?? s,
-      )..listenToRM(
+      ).getReactive()
+        ..listenToRM(
           (r) {
             if (r.hasData) {
               _state = r.state as T;
@@ -520,10 +525,10 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
         );
     }
 
-    return RM.future(
-      future(s, stateAsync),
+    return Inject<F>.future(
+      () => future(s, stateAsync),
       initialValue: initialValue,
-    );
+    ).getReactive();
   }
 
   AsyncSnapshot<T> get _combinedSnapshotState {
@@ -604,6 +609,38 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     if (hasObservers) {
       rebuildStates(tags);
     }
+  }
+
+  @override
+  Future<T> refresh([bool shouldNotify = true]) {
+    cleaner(unsubscribe, true);
+    unsubscribe();
+    if (inject.isAsyncInjected) {
+      if (inject.isFutureType) {
+        setState(
+          (dynamic s) => inject.creationFutureFunction(),
+          catchError: true,
+          silent: true,
+          filterTags: inject.filterTags,
+        );
+      } else {
+        setState(
+          (dynamic s) => inject.creationStreamFunction(),
+          catchError: true,
+          silent: true,
+          filterTags: inject.filterTags,
+        );
+      }
+    } else {
+      resetToIdle();
+      inject.singleton = inject.creationFunction();
+      _state = inject.singleton;
+      (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
+      if (shouldNotify) {
+        notify();
+      }
+    }
+    return stateAsync;
   }
 
   @override
