@@ -20,7 +20,7 @@ A Flutter state management combined with dependency injection solution that allo
 `states_rebuilder` state management solution is based on what is called the `ReactiveModel`.
 
 
-Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](https://github.com/GIfatahTH/states_rebuilder/wiki/changelog/v-2.0.0.md)
+Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
 
 To start using `states_rebuilder`, just start writing your business logic in a separate class.
 
@@ -125,7 +125,7 @@ To get the injected model at any level of the widget tree, we use:
 //get the injected instance
 final Model model = IN.get<Model>(); 
 //get the injected instance decorated with a ReactiveModel
-final ReactiveModel<Model> modelRM =  RM.<get><Model>();
+final ReactiveModel<Model> modelRM =  RM.get<Model>();
 ```
 
 The next step is to subscribe to the injected ReactiveModel and mutate the state and notify observers.

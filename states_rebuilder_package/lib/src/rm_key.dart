@@ -158,6 +158,7 @@ class RMKey<T> implements ReactiveModel<T> {
     bool shouldAwait = false,
     int debounceDelay,
     int throttleDelay,
+    bool skipWaiting = false,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -182,6 +183,7 @@ class RMKey<T> implements ReactiveModel<T> {
       notifyAllReactiveInstances: notifyAllReactiveInstances,
       debounceDelay: debounceDelay,
       throttleDelay: throttleDelay,
+      skipWaiting: skipWaiting,
     );
   }
 

@@ -71,10 +71,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```
   ///Use [unsubscribe] to dispose of the stream.
   factory ReactiveModel.stream(Stream<T> stream,
-      {dynamic name,
-      T initialValue,
-      List<dynamic> filterTags,
-      Object Function(T) watch}) {
+      {dynamic name, T initialValue, List<dynamic> filterTags, Object Function(T) watch}) {
     final inject = Inject<T>.stream(
       () => stream,
       initialValue: initialValue,
@@ -91,8 +88,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```dart
   ///RM.future<T>(future<T> future);
   ///```
-  factory ReactiveModel.future(Future<T> future,
-      {dynamic name, T initialValue, List<dynamic> filterTags}) {
+  factory ReactiveModel.future(Future<T> future, {dynamic name, T initialValue, List<dynamic> filterTags}) {
     final inject = Inject<T>.future(
       () => future,
       initialValue: initialValue,
@@ -257,6 +253,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
     bool shouldAwait = false,
     int debounceDelay,
     int throttleDelay,
+    bool skipWaiting = false,
     void Function(BuildContext context) onSetState,
     void Function(BuildContext context) onRebuildState,
     void Function(BuildContext context, dynamic error) onError,
@@ -381,10 +378,13 @@ abstract class RM {
   static bool debugWidgetsRebuild = false;
 
   ///get the model that is sending the notification
-  static ReactiveModel get notified =>
-      StatesRebuilderInternal.getNotifiedModel();
+  static ReactiveModel get notified => StatesRebuilderInternal.getNotifiedModel();
   static BuildContext get context {
     assert(InjectorState.contextSet.isNotEmpty);
+    // if (InjectorState.contextSet.last.findRenderObject() == null) {
+    //   InjectorState.contextSet.removeLast();
+    //   return context;
+    // }
     return InjectorState.contextSet.last;
   }
 
@@ -397,7 +397,7 @@ abstract class RM {
 
   static ScaffoldState get scaffold => Scaffold.of(context);
 
-  static void show(void Function(BuildContext context) fn) {
-    fn(context);
+  static dynamic show(void Function(BuildContext context) fn) {
+    return fn(context);
   }
 }
