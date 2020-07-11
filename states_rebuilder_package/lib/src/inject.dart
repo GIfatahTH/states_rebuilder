@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'injector.dart';
 import 'reactive_model.dart';
@@ -195,24 +196,56 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   ///Get the registered singleton
   T getSingleton() {
-    if (isAsyncInjected == true) {
-      singleton = getReactive().state;
-      return singleton;
-    }
-    singleton ??= creationFunction();
+    try {
+      if (isAsyncInjected == true) {
+        singleton = getReactive().state;
+        return singleton;
+      }
+      singleton ??= creationFunction();
 
-    return singleton;
+      return singleton;
+    } catch (e, s) {
+      assert(() {
+        if (RM.debugError != null) {
+          developer.log(
+            e.toString(),
+            name: 'states_rebuilder::getSingleton',
+            error: e,
+            stackTrace: s,
+          );
+        }
+        // RM.debugError?.call(e, s);
+        return true;
+      }());
+      rethrow;
+    }
   }
 
   ///Get the registered reactive singleton or new reactive instance
   ReactiveModel<T> getReactive([bool asNew = false]) {
-    ReactiveModel<T> rs;
-    if (reactiveSingleton == null || asNew) {
-      rs = ReactiveModelImp<T>(this, asNew);
-      addToReactiveNewInstanceList(asNew ? rs : null);
-    }
+    try {
+      ReactiveModel<T> rs;
+      if (reactiveSingleton == null || asNew) {
+        rs = ReactiveModelImp<T>(this, asNew);
+        addToReactiveNewInstanceList(asNew ? rs : null);
+      }
 
-    return asNew ? rs : reactiveSingleton ??= rs;
+      return asNew ? rs : reactiveSingleton ??= rs;
+    } catch (e, s) {
+      assert(() {
+        if (RM.debugError != null) {
+          developer.log(
+            e.toString(),
+            name: 'states_rebuilder::getReactive',
+            error: e,
+            stackTrace: s,
+          );
+        }
+        // RM.debugError?.call(e, s);
+        return true;
+      }());
+      rethrow;
+    }
   }
 
   ///Add the reactive model in the inject new reactive models list.

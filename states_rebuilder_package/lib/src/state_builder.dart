@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 import 'assertions.dart';
 import 'injector.dart';
@@ -332,11 +333,22 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
             onWaiting: () => 'isWaiting',
             onData: (T _) => 'hasData',
             onError: (dynamic _) => 'hasError',
+            catchError: false,
           );
           final name = widget.key != null ? '${widget.key} | ' : '';
-          print('|# ${++_numberOfRebuild} #| $observer($hashCode) | '
+
+          // print('|# ${++_numberOfRebuild} #| $observer($hashCode) | '
+          //     '$name'
+          //     '${_exposedModelFromNotification?.type()}($status)');
+          if (RM.debugError != null) {
+            developer.log(
+              '$observer($hashCode) |'
               '$name'
-              '${_exposedModelFromNotification?.type()}($status)');
+              '${_exposedModelFromNotification?.type()}($status)',
+              name: 'states_rebuilder Widget Rebuild',
+              error: '|# ${++_numberOfRebuild} #| rebuild times',
+            );
+          }
         }
         return true;
       }());

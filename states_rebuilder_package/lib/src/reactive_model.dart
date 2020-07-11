@@ -71,7 +71,10 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```
   ///Use [unsubscribe] to dispose of the stream.
   factory ReactiveModel.stream(Stream<T> stream,
-      {dynamic name, T initialValue, List<dynamic> filterTags, Object Function(T) watch}) {
+      {dynamic name,
+      T initialValue,
+      List<dynamic> filterTags,
+      Object Function(T) watch}) {
     final inject = Inject<T>.stream(
       () => stream,
       initialValue: initialValue,
@@ -88,7 +91,8 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```dart
   ///RM.future<T>(future<T> future);
   ///```
-  factory ReactiveModel.future(Future<T> future, {dynamic name, T initialValue, List<dynamic> filterTags}) {
+  factory ReactiveModel.future(Future<T> future,
+      {dynamic name, T initialValue, List<dynamic> filterTags}) {
     final inject = Inject<T>.future(
       () => future,
       initialValue: initialValue,
@@ -328,6 +332,11 @@ abstract class RM {
     return ReactiveModel<T>.create(_model);
   }
 
+  ///Create a [ReactiveModel] from callback
+  static ReactiveModel<T> callback<T>(T Function() model) {
+    return Inject<T>(model).getReactive();
+  }
+
   ///Create a [ReactiveModel] from future.
   static ReactiveModel<T> future<T>(
     Future<T> future, {
@@ -371,21 +380,25 @@ abstract class RM {
     );
   }
 
-  ///if true, An informative message is printed in the consol, showing the model being sending the Notification,
-  static bool debugPrintActiveRM = false;
-
-  ///Consol log information about the widgets that have just rebuild
-  static bool debugWidgetsRebuild = false;
-
   ///get the model that is sending the notification
-  static ReactiveModel get notified => StatesRebuilderInternal.getNotifiedModel();
+  static ReactiveModel get notified =>
+      StatesRebuilderInternal.getNotifiedModel();
+
+  static BuildContext _context;
   static BuildContext get context {
+    if (_context != null) {
+      return _context;
+    }
     assert(InjectorState.contextSet.isNotEmpty);
-    // if (InjectorState.contextSet.last.findRenderObject() == null) {
-    //   InjectorState.contextSet.removeLast();
-    //   return context;
-    // }
-    return InjectorState.contextSet.last;
+    print(InjectorState.contextSet.last?.findRenderObject()?.attached);
+    if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
+      InjectorState.contextSet.removeLast();
+      return context;
+    }
+    WidgetsBinding.instance.scheduleFrameCallback(
+      (_) => _context = null,
+    );
+    return _context = InjectorState.contextSet.last;
   }
 
   static NavigatorState get navigator {
@@ -400,4 +413,13 @@ abstract class RM {
   static dynamic show(void Function(BuildContext context) fn) {
     return fn(context);
   }
+
+  ///if true, An informative message is printed in the consol, showing the model being sending the Notification,
+  static bool debugPrintActiveRM = false;
+
+  ///Consol log information about the widgets that have just rebuild
+  static bool debugWidgetsRebuild = false;
+
+  static bool debugError = true;
+  static bool debugErrorWithStackTrace = false;
 }

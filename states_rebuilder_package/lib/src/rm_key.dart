@@ -208,6 +208,7 @@ class RMKey<T> implements ReactiveModel<T> {
       onWaiting: onWaiting,
       onData: onData,
       onError: onError,
+      catchError: catchError,
     );
   }
 
