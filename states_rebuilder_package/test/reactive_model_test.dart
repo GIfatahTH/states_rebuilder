@@ -35,8 +35,7 @@ void main() {
     'ReactiveModel: throw error if error is not caught',
     () {
       //throw
-      expect(
-          () => modelRM.setState((s) => s.incrementError()), throwsException);
+      expect(() => modelRM.setState((s) => s.incrementError()), throwsException);
       //do not throw
       modelRM.setState((s) => s.incrementError(), catchError: true);
     },
@@ -46,8 +45,7 @@ void main() {
     modelRM.setState((s) => s.incrementError(), catchError: true);
 
     expect(modelRM.error.message, equals('error message'));
-    expect(
-        (modelRM.snapshot.error as dynamic).message, equals('error message'));
+    expect((modelRM.snapshot.error as dynamic).message, equals('error message'));
     expect(modelRM.hasError, isTrue);
   });
 
@@ -59,8 +57,7 @@ void main() {
         ctx = context;
         error = e;
       });
-    await tester.pumpWidget(StateBuilder(
-        observe: () => RM.create(0), builder: (_, __) => Container()));
+    await tester.pumpWidget(StateBuilder(observe: () => RM.create(0), builder: (_, __) => Container()));
 
     rm.setState(
       (_) {
@@ -479,8 +476,7 @@ void main() {
       expect(contextFromOnSetState, isNotNull);
       expect(numberOfOnRebuildStateCall, equals(1));
       expect(contextFromOnRebuildState, isNotNull);
-      expect(lifeCycleTracker,
-          equals('build, onSetState, build, onRebuildState, '));
+      expect(lifeCycleTracker, equals('build, onSetState, build, onRebuildState, '));
     },
   );
 
@@ -1162,8 +1158,7 @@ void main() {
           StateBuilder(
             observeMany: [() => modelRM0],
             builder: (context, _) {
-              return _widgetBuilder(
-                  'modelRM0-${modelRM0.joinSingletonToNewData}');
+              return _widgetBuilder('modelRM0-${modelRM0.joinSingletonToNewData}');
             },
           ),
           StateBuilder(
@@ -1185,9 +1180,7 @@ void main() {
 
       //mutate reactive instance 1
       modelRM1.setState((s) => s.increment(),
-          joinSingleton: true,
-          catchError: true,
-          joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
+          joinSingleton: true, catchError: true, joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
       await tester.pump();
       expect(find.text('modelRM0-modelRM1-1'), findsOneWidget);
       expect(find.text('modelRM1-1'), findsOneWidget);
@@ -1195,9 +1188,7 @@ void main() {
 
       //mutate reactive instance 2
       modelRM2.setState((s) => s.increment(),
-          joinSingleton: true,
-          catchError: true,
-          joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
+          joinSingleton: true, catchError: true, joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
       await tester.pump();
       expect(find.text('modelRM0-modelRM2-2'), findsOneWidget);
       expect(find.text('modelRM1-1'), findsOneWidget);
@@ -1205,9 +1196,7 @@ void main() {
     },
   );
 
-  testWidgets(
-      'ReactiveModel : throws if setState is called on async injected models',
-      (tester) async {
+  testWidgets('ReactiveModel : throws if setState is called on async injected models', (tester) async {
     final inject = Inject.future(() => getFuture());
     final modelRM0 = inject.getReactive();
     expect(() => modelRM0.setState(null), throwsException);
@@ -1465,8 +1454,7 @@ void main() {
     testWidgets(
       'Nested dependent futures ',
       (tester) async {
-        final future1 =
-            RM.future(Future.delayed(Duration(seconds: 1), () => 2));
+        final future1 = RM.future(Future.delayed(Duration(seconds: 1), () => 2));
         final inject = Inject.future(() async {
           final future1Value = await future1.stateAsync;
           await Future.delayed(Duration(seconds: 1));
@@ -1533,8 +1521,7 @@ void main() {
     testWidgets(
       'ReactiveModel : inject stream with data and error works',
       (tester) async {
-        final ReactiveModelImp<int> modelRM0 =
-            RM.stream(Model().incrementStream(), initialValue: 0);
+        final ReactiveModelImp<int> modelRM0 = RM.stream(Model().incrementStream(), initialValue: 0);
 
         final widget = Column(
           children: <Widget>[
@@ -1614,8 +1601,7 @@ void main() {
           return num + 1;
         }).take(3);
 
-        final rmStream = ReactiveModel.stream(snapStream,
-            watch: (rm) => rm, initialValue: 0);
+        final rmStream = ReactiveModel.stream(snapStream, watch: (rm) => rm, initialValue: 0);
         final widget = Injector(
           inject: [Inject(() => 'n')],
           builder: (_) {
@@ -1897,8 +1883,7 @@ void main() {
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
         await tester.pumpWidget(widget);
-        modelRM
-            .setState((_) => modelRM.state + 1, filterTags: ['nonExistingTag']);
+        modelRM.setState((_) => modelRM.state + 1, filterTags: ['nonExistingTag']);
         await tester.pump();
         expect(find.text(('2')), findsOneWidget);
       },
@@ -1932,8 +1917,7 @@ void main() {
     testWidgets(
       'onSetState and onRebuildState work',
       (tester) async {
-        final ReactiveModelImp<int> modelRM =
-            ReactiveModelImp<int>(Inject(() => 0));
+        final ReactiveModelImp<int> modelRM = ReactiveModelImp<int>(Inject(() => 0));
 
         int numberOfOnSetStateCall = 0;
         int numberOfOnRebuildStateCall = 0;
@@ -1968,8 +1952,7 @@ void main() {
         expect(contextFromOnSetState, isNotNull);
         expect(numberOfOnRebuildStateCall, equals(1));
         expect(contextFromOnRebuildState, isNotNull);
-        expect(lifeCycleTracker,
-            equals('build, onSetState, build, onRebuildState, '));
+        expect(lifeCycleTracker, equals('build, onSetState, build, onRebuildState, '));
       },
     );
 
@@ -2215,9 +2198,7 @@ void main() {
     );
   });
 
-  test(
-      'ReactiveModel: get new reactive model with the same seed returns the same instance',
-      () {
+  test('ReactiveModel: get new reactive model with the same seed returns the same instance', () {
     //get new reactive instance with the default seed
     final modelNewRM1 = modelRM.asNew();
 
@@ -2293,8 +2274,7 @@ void main() {
       expect(find.text('modelRM2-0'), findsOneWidget);
 
       //
-      modelRM0.setState((s) => s.increment(),
-          seeds: [Seeds.seed1, Seeds.seed2, 'nonExistingSeed']);
+      modelRM0.setState((s) => s.increment(), seeds: [Seeds.seed1, Seeds.seed2, 'nonExistingSeed']);
       await tester.pump();
       expect(find.text('modelRM0-2'), findsOneWidget);
       expect(find.text('modelRM1-2'), findsOneWidget);
@@ -2428,14 +2408,12 @@ void main() {
       expect(modelRM.toString(), contains(" | hasData : (Counter(1))"));
 
       //
-      modelRM.setState((s) => s.incrementAsyncError());
+      modelRM.setState((s) => s.incrementAsyncError(), catchError: true);
       await tester.pump(Duration(seconds: 1));
-      expect(modelRM.toString(),
-          contains(' | hasError : (Exception: Error message)'));
+      expect(modelRM.toString(), contains(' | hasError : (Exception: Error message)'));
 
       //
-      expect('${modelRM.asNew('seed1')}',
-          contains('<Model> RM (new seed: "seed1")'));
+      expect('${modelRM.asNew('seed1')}', contains('<Model> RM (new seed: "seed1")'));
       expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
 
       final intStream = ReactiveModel.stream(getStream());
@@ -2445,8 +2423,7 @@ void main() {
       expect(intStream.toString(), contains('| hasData : (2)'));
 
       final intFuture = ReactiveModel.future(getFuture()).asNew();
-      expect(intFuture.toString(),
-          contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
+      expect(intFuture.toString(), contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
       expect(intFuture.toString(), contains('| isWaiting'));
       await tester.pump(Duration(seconds: 3));
       expect(intFuture.toString(), contains('| hasData : (1)'));
@@ -2726,6 +2703,133 @@ void main() {
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('data'), findsOneWidget);
+  });
+
+  testWidgets('subscription using context', (tester) async {
+    ReactiveModel<Model> rm;
+    final widget = Injector(
+        inject: [Inject(() => Model())],
+        builder: (context) {
+          rm = RM.get<Model>(context: context);
+          return Text(rm.state.counter.toString());
+        });
+
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: widget));
+
+    expect(find.text('0'), findsOneWidget);
+    //
+    rm.setState((s) => s.increment());
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    //
+  });
+
+  testWidgets('automatically remove context from subscription set if it is not mounted', (tester) async {
+    ReactiveModel<Model> rm;
+    ReactiveModel<bool> switcherRM = RM.create(true);
+    final widget = Injector(
+        inject: [Inject(() => Model())],
+        builder: (context) {
+          return StateBuilder(
+            observe: () => switcherRM,
+            builder: (_, __) {
+              return Column(
+                children: <Widget>[
+                  if (switcherRM.state)
+                    Builder(builder: (
+                      context,
+                    ) {
+                      rm = RM.get<Model>(context: context);
+                      return Text(rm.state.counter.toString());
+                    }),
+                  if (!switcherRM.state) Text('NAN'),
+                ],
+              );
+            },
+          );
+        });
+
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: widget));
+
+    expect(find.text('0'), findsOneWidget);
+    //
+    rm.setState((s) => s.increment());
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    //
+    switcherRM.state = false;
+    await tester.pump();
+    expect(find.text('NAN'), findsOneWidget);
+    expect(() => rm.setState((s) => s.increment()), throwsException);
+  });
+
+  testWidgets('whenConnection state with context subscription works', (tester) async {
+    ReactiveModel<Model> rm;
+    final widget = Injector(
+      inject: [Inject(() => Model())],
+      builder: (context) {
+        rm = RM.get<Model>(context: context);
+        return rm.whenConnectionState(
+          onIdle: () => Text('idle'),
+          onWaiting: () => Text('waiting'),
+          onError: (e) => Text('${e.message}'),
+          onData: (d) => Text(d.counter.toString()),
+        );
+      },
+    );
+
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: widget));
+
+    expect(find.text('idle'), findsOneWidget);
+    //
+    rm.setState((s) => s.incrementAsyncError());
+    await tester.pump();
+    expect(find.text('waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+    //
+    rm.setState((s) => s.incrementAsync());
+    await tester.pump();
+    expect(find.text('waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    //
+  });
+
+  testWidgets('skip waiting works', (tester) async {
+    ReactiveModel<Model> rm;
+    final widget = Injector(
+      inject: [Inject(() => Model())],
+      builder: (context) {
+        rm = RM.get<Model>(context: context);
+        return rm.whenConnectionState(
+          onIdle: () => Text('idle'),
+          onWaiting: () => Text('waiting'),
+          onError: (e) => Text('${e.message}'),
+          onData: (d) => Text(d.counter.toString()),
+        );
+      },
+    );
+
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: widget));
+
+    expect(find.text('idle'), findsOneWidget);
+    //
+    rm.setState((s) => s.incrementAsync(), skipWaiting: true);
+    await tester.pump();
+    expect(find.text('idle'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+
+    //
+    rm.setState((s) => s.incrementAsync(), skipWaiting: true);
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+    //
   });
 }
 
