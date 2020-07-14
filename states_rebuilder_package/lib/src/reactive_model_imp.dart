@@ -10,11 +10,9 @@ import 'reactive_model.dart';
 import 'states_rebuilder.dart';
 
 ///An implementation of [ReactiveModel]
-class ReactiveModelImp<T> extends StatesRebuilder<T>
-    implements ReactiveModel<T> {
+class ReactiveModelImp<T> extends StatesRebuilder<T> implements ReactiveModel<T> {
   ///An abstract class that defines the reactive environment.
-  ReactiveModelImp(this.inject, [this.isNewReactiveInstance = false])
-      : assert(inject != null) {
+  ReactiveModelImp(this.inject, [this.isNewReactiveInstance = false]) : assert(inject != null) {
     _isGlobal = inject.isGlobal;
     if (!inject.isAsyncInjected) {
       _state = inject?.getSingleton();
@@ -102,9 +100,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
 
   @override
   bool get hasData =>
-      !hasError &&
-      (connectionState == ConnectionState.done ||
-          connectionState == ConnectionState.active);
+      !hasError && (connectionState == ConnectionState.done || connectionState == ConnectionState.active);
 
   ///true if the stream is done
   bool isStreamDone;
@@ -147,7 +143,9 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     @required R Function(dynamic error) onError,
     bool catchError = true,
   }) {
-    _whenConnectionState = catchError;
+    if (!_whenConnectionState) {
+      _whenConnectionState = catchError;
+    }
     if (isIdle) {
       return onIdle();
     }
@@ -170,8 +168,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     if (isNewReactiveInstance) {
       return inject.getReactive().asNew(seed);
     }
-    ReactiveModelImp<T> rm =
-        inject.newReactiveMapFromSeed[seed.toString()] as ReactiveModelImp<T>;
+    ReactiveModelImp<T> rm = inject.newReactiveMapFromSeed[seed.toString()] as ReactiveModelImp<T>;
     if (rm != null) {
       return rm;
     }
@@ -220,8 +217,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     bool notifyAllReactiveInstances = false,
     bool silent = false,
   }) async {
-    void Function(dynamic Function(T) fn) _setStateCallBack =
-        (dynamic Function(T) fn) {
+    void Function(dynamic Function(T) fn) _setStateCallBack = (dynamic Function(T) fn) {
       setState(
         fn,
         catchError: catchError,
@@ -266,8 +262,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       }
       bool canRebuild;
       dynamic watchAfter = watch?.call(state);
-      canRebuild =
-          !(const DeepCollectionEquality()).equals(watchAfter, watchBefore);
+      canRebuild = !(const DeepCollectionEquality()).equals(watchAfter, watchBefore);
 
       watchBefore = watchAfter;
       return canRebuild;
@@ -320,20 +315,16 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           if (notifyAllReactiveInstances == true) {
             _notifyAll();
           } else if (isNewReactiveInstance) {
-            final reactiveSingleton =
-                inject.getReactive() as ReactiveModelImp<T>;
+            final reactiveSingleton = inject.getReactive() as ReactiveModelImp<T>;
             if (joinSingletonToNewData != null) {
-              reactiveSingleton._joinSingletonToNewData =
-                  joinSingletonToNewData();
+              reactiveSingleton._joinSingletonToNewData = joinSingletonToNewData();
             }
 
-            if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance ||
-                joinSingleton == true) {
+            if (inject.joinSingleton == JoinSingleton.withNewReactiveInstance || joinSingleton == true) {
               reactiveSingleton
                 ..snapshot = snapshot
                 ..rebuildStates();
-            } else if (inject.joinSingleton ==
-                JoinSingleton.withCombinedReactiveInstances) {
+            } else if (inject.joinSingleton == JoinSingleton.withCombinedReactiveInstances) {
               reactiveSingleton
                 ..snapshot = _combinedSnapshotState
                 ..rebuildStates();
@@ -376,24 +367,17 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
       snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
       _rebuildStates(canRebuild: true); //TODO
       bool _catchError = catchError ??
-          false ||
-              _whenConnectionState ||
-              onError != null ||
-              inject.hasOnSetStateListener ||
-              onErrorHandler != null;
+          false || _whenConnectionState || onError != null || inject.hasOnSetStateListener || onErrorHandler != null;
       _whenConnectionState = false;
       assert(() {
-        // All these errors are routed to the FlutterError.onError handler. By default, this calls FlutterError.dumpErrorToConsole, which, as you might guess, dumps the error to the device logs. When running from an IDE, the inspector overrides this so that errors can also be routed to the IDE’s console, allowing you to inspect the objects mentioned in the message
         if (RM.debugError) {
           developer.log(
-            "This error ${_catchError ? 'is caught by' : 'is thrown from'} ReactiveModel<$T>:\n${_catchError ? '$e' : ''} ",
+            "This error ${_catchError ? 'is caught by' : 'is thrown from'} ReactiveModel<$T>:\n${_catchError ? '$e' : ''}",
             name: 'states_rebuilder::onError',
             error: _catchError ? null : e,
-            stackTrace:
-                _catchError ? RM.debugErrorWithStackTrace ? s : null : s,
+            stackTrace: _catchError ? RM.debugErrorWithStackTrace ? s : null : s,
           );
         }
-        // RM.debugError?.call(error, stackTrace);
         return true;
       }());
 
@@ -491,8 +475,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           (r) {
             if (r.hasData) {
               _state = r.state as T;
-              snapshot =
-                  AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+              snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
               (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
               inject.singleton = _state;
             }
@@ -525,8 +508,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
           (r) {
             if (r.hasData) {
               _state = r.state as T;
-              snapshot =
-                  AsyncSnapshot<T>.withData(ConnectionState.done, _state);
+              snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, _state);
               (inject.reactiveSingleton as ReactiveModelImp<T>)._state = _state;
               inject.singleton = _state;
             }
@@ -607,9 +589,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     if (!detailed) {
       return '$T';
     }
-    String type = inject.isAsyncInjected
-        ? inject.isFutureType ? 'Future of ' : 'Stream of '
-        : '';
+    String type = inject.isAsyncInjected ? inject.isFutureType ? 'Future of ' : 'Stream of ' : '';
     type += '<$T>';
     return type;
   }
@@ -652,10 +632,27 @@ class ReactiveModelImp<T> extends StatesRebuilder<T>
     return stateAsync;
   }
 
+  final Set<BuildContext> _contextSet = {};
+
+  void contextSubscription(BuildContext context) {
+    if (_contextSet.add(context)) {
+      Disposer disposer;
+      disposer = listenToRM(
+        (rm) {
+          if (context.findRenderObject()?.attached == true) {
+            (context as Element).markNeedsBuild();
+          } else {
+            _contextSet.remove(context);
+            disposer();
+          }
+        },
+      );
+    }
+  }
+
   @override
   String toString() {
-    String rm =
-        '${type()} ${!isNewReactiveInstance ? 'RM' : 'RM (new seed: "$_seed")'}'
+    String rm = '${type()} ${!isNewReactiveInstance ? 'RM' : 'RM (new seed: "$_seed")'}'
         ' (#Code $hashCode)';
     int num = 0;
     observers().values.toSet().forEach((o) {
