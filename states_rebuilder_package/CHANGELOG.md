@@ -1,3 +1,28 @@
+## 2.3.0 (2020-07-14)
+* Add context subscription (#108)
+```dart
+Injector(
+      inject: [Inject(() => Model())],
+      builder: (context) {
+        //Get the injected ReactiveModel and subscribe this ContextBuilder to it.
+        final rm = RM.get<Model>(context: context);
+
+        return rm.whenConnectionState(
+          onIdle: () => Text('idle'),
+          onWaiting: () => Text('waiting'),
+          onError: (e) => Text('${e.message}'),
+          onData: (d) => Text(d.counter.toString()),
+        );
+      },
+);
+```
+
+* Add possibility to skip onWaiting while calling setState. (#109)
+
+* Add two static flags `debugError` and `debugErrorWithStackTrace` to console log states__rebuilder related errors.
+
+* Improve logics and docs.
+
 ## 2.2.0 (2020-06-02)
 * Add the ability to do side effects without context (navigation, show dialogs ...). [See more](https://github.com/GIfatahTH/states_rebuilder/wiki/side-effects-without-context)
 * add `refresh` method to the `ReactiveModel` object. [See more](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh)
