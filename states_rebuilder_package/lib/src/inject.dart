@@ -11,7 +11,40 @@ abstract class Injectable {}
 
 ///A class used to wrap injected models, streams or futures.
 ///It caches the rew singleton and the reactive singleton.
-
+///
+///ith states_rebuilder as dependency injection you can :
+///
+///* Inject a primitive value or enum :
+///    ```dart
+///    Inject<int>(()=> 10);
+///    ```
+///* Inject service classes :
+///    ```dart
+///    Inject<Foo>(()=> Foo());
+///    ```
+///* Inject service classes via interface (loose dependence)
+///    ```dart
+///    Inject<FooInterface>(()=> Foo());
+///    ```
+///* Inject devolvement dependent implementation
+///    ```dart
+///    Inject<FooInterface>.interface({
+///        'dev' :() => FooDev(),
+///        'prod' :() => FooProd(),
+///    });
+///    ```
+///* Inject future and streams
+///    ```dart
+///    Inject<Foo>.future(()=> fooFuture()),
+///    Inject<Foo>.stream(()=> fooStream()),
+///    ```
+///To consume any of the above injected model you can use :
+///```dart
+///IN.get<Foo>(); // to get the injected instance (equivalent to Injector.get<Foo>())
+///RM.get<Foo>(); // to get the injected instance decorated with ReactiveModel  (equivalent to Injector.getAsReactive<Foo>())
+///```
+///
+///See also : [Injector], [RM.create], [RM.future] and [RM.stream]
 class Inject<T> implements Injectable {
   /// The Creation Function.
   T Function() creationFunction;
