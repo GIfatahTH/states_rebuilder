@@ -2831,6 +2831,26 @@ void main() {
     expect(find.text('2'), findsOneWidget);
     //
   });
+
+  testWidgets('refresh a reactive model', (tester) async {
+    int x = 0;
+    ReactiveModel<int> rm = RM.createFromCallback(() => x);
+    final widget = StateBuilder(
+      observe: () => rm,
+      builder: (_, __) {
+        return Text(rm.state.toString());
+      },
+    );
+
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: widget));
+
+    expect(find.text('0'), findsOneWidget);
+    //
+    x = 1;
+    rm.refresh();
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+  });
 }
 
 class Model {
