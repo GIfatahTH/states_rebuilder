@@ -463,7 +463,7 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   /// Refresh the [ReactiveModel] state.
   ///
-  /// ??
+  /// Reset the ReactiveModel to its initial state by reinvoking its creation function.
   Future<T> refresh([bool shouldNotify = true]);
 }
 
@@ -472,13 +472,15 @@ abstract class RM {
   ///Create a [ReactiveModel] from primitives or any object
   static ReactiveModel<T> create<T>(T model) {
     final T _model = model;
-    // assert(T != dynamic);
     return ReactiveModel<T>.create(_model);
   }
 
-  ///Create a [ReactiveModel] from callback
-  static ReactiveModel<T> callback<T>(T Function() model) {
-    return Inject<T>(model).getReactive();
+  ///Create a [ReactiveModel] from callback. It's like [create] with the difference
+  ///that when [ReactiveModel.refresh] is called, an updated value is obtained.
+  ///
+  ///Useful with [ReactiveModel.refresh] method.
+  static ReactiveModel<T> createFromCallback<T>(T Function() creationFunction) {
+    return Inject<T>(creationFunction).getReactive();
   }
 
   ///Create a [ReactiveModel] from future.
@@ -533,12 +535,19 @@ abstract class RM {
   static ReactiveModel get notified => StatesRebuilderInternal.getNotifiedModel();
 
   static BuildContext _context;
+
+  ///Get an active [BuildContext].
+  ///
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static BuildContext get context {
     if (_context != null) {
       return _context;
     }
     assert(InjectorState.contextSet.isNotEmpty);
-    print(InjectorState.contextSet.last?.findRenderObject()?.attached);
+
     if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
       InjectorState.contextSet.removeLast();
       return context;
@@ -549,32 +558,76 @@ abstract class RM {
     return _context = InjectorState.contextSet.last;
   }
 
+  ///get The state for a [Navigator] widget.
+  ///
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static NavigatorState get navigator {
     return Navigator.of(context);
   }
 
+  ///Get the [ThemeData] of [MaterialApp]
+  ///
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static ThemeData get theme => Theme.of(context);
+
+  ///Get the [MediaQueryData]
+  ///
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static MediaQueryData get mediaQuery => MediaQuery.of(context);
 
+  ///Get the [ScaffoldState]
+  ///
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static ScaffoldState get scaffold => Scaffold.of(context);
 
+  ///A callBack that exposes an active [BuildContext]
+  ///
+  ///  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
+  ///[Injector], [StateBuilder], ... .
+  ///
+  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static dynamic show(void Function(BuildContext context) fn) {
     return fn(context);
   }
 
-  ///if true, An informative message is printed in the consol, showing the model being sending the Notification,
+  ///if true, An informative message is printed in the consol,
+  ///showing the model being sending the Notification,
+  ///
+  ///See : [debugWidgetsRebuild], [debugError] and [debugErrorWithStackTrace]
+
   static bool debugPrintActiveRM = false;
 
   ///Consol log information about the widgets that have just rebuild
+  ///
+  ///See : [debugPrintActiveRM], [debugError] and [debugErrorWithStackTrace]
   static bool debugWidgetsRebuild = false;
 
   ///If true , print error message
   ///
+  ///As states_rebuilder can catches errors, bu using [debugError]
+  ///you can console log them.
+  ///
   ///Default value is false
+  ///
+  ///See : [debugPrintActiveRM], [debugWidgetsRebuild] and [debugErrorWithStackTrace]
   static bool debugError = false;
 
   ///If true (default), print error message and stack trace
   ///
   ///Default value is false
+  ///
+  ///See : [debugPrintActiveRM], [debugWidgetsRebuild] and [debugError]
   static bool debugErrorWithStackTrace = false;
 }
