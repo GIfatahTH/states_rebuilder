@@ -1,4 +1,4 @@
-## 2.3.0 (2020-07-14)
+## 2.3.0 (2020-07-16)
 * Add context subscription (#108)
 ```dart
 Injector(
