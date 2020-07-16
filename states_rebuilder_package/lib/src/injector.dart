@@ -6,7 +6,98 @@ import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
 import 'states_rebuilder.dart';
 
-///A class used to register (inject) models.
+///A widget used to provide a business logic model to the widget tree,
+///and make one instance of the model available to all its children.
+///
+///```dart
+/// //Your pure dare model
+/// class Foo {}
+///
+/// //Your user interface
+/// class App extends StatelessWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     return Injector(
+///       inject: [Inject(() => Foo())],
+///       builder: (BuildContext context) {
+///         return ChildWidgetTree();
+///       },
+///     );
+///   }
+/// }
+/// ```
+///
+///
+/// With `Injector` you can inject multiple dependent or independent models (BloCs, Services) at the same time. Also you can inject stream and future.
+///```dart
+///Injector(
+///  inject: [
+///    //The order is not mandatory even for dependent models.
+///    Inject<ModelA>(() => ModelA()),
+///    Inject(() => ModelB()),//Generic type in inferred.
+///    Inject(() => ModelC(Injector.get<ModelA>())),// Directly inject ModelA in ModelC constructor
+///    Inject(() => ModelC(Injector.get())),// Type in inferred.
+///    Inject<IModelD>(() => ModelD()),// Register with Interface type.
+///    Inject<IModelE>({ //Inject through interface with environment flavor.
+///      'prod': ()=>ModelImplA(),
+///      'test': ()=>ModelImplB(),
+///    }), // you have to set the `Inject.env = 'prod'` before `runApp` method
+///    //You can inject streams and future and make them accessible to all the widget tree.
+///    Inject<bool>.future(() => Future(), initialValue:0),// Register a future.
+///    Inject<int>.stream(() => Stream()),// Register a stream.
+///    Inject(() => ModelD(),name:"customName"), // Use custom name
+///
+///    //Inject and reinject with previous value provided.
+///    Inject<ModelA>.previous((ModelA previous){
+///      return ModelA(id: previous.id);
+///    })
+///  ],
+///  builder: (BuildContext context) {
+///         return ChildWidgetTree();
+///   },
+///);
+///```
+///
+///Models are registered lazily by default. That is, they will not be instantiated until they are first used. To instantiate a particular model at the time of registration, you can set the `isLazy` variable of the class `Inject` to false.
+///
+///To consume any of the above injected model you can use :
+///```dart
+///IN.get<Foo>(); // to get the injected instance (equivalent to Injector.get<Foo>())
+///RM.get<Foo>(); // to get the injected instance decorated with ReactiveModel  (equivalent to Injector.getAsReactive<Foo>())
+///```
+///You can injected asynchronously dependent object
+///
+///```dart
+///Injector(
+///    inject: [
+///        //Inject the first future
+///        Inject<FutureA>.future(() => futureA()),
+///        //Inject the second future that depends on the first future
+///        Inject<FutureB>.future(
+///          () async => futureB(await RM.get<FutureA>().stateAsync),
+///        ),
+///        //Inject the third future that depends on the second future
+///        Inject<FutureC>.future(
+///          () async => futureC(await RM.get<FutureB>().stateAsync),
+///        ),
+///    ],
+///    builder: (context) {
+///        return WhenRebuilderOr(
+///        observe: () => RM.get<FutureC>(),
+///        onWaiting: () => CircularProgressIndicator(),
+///        builder: (context, futureCRM) {
+///            //
+///            //here the three future are resolved and their values can be obtained
+///            final futureAValue = IN.get<FutureA>();
+///            final futureBValue = IN.get<FutureB>();
+///            final futureCValue = IN.get<FutureC>();
+///          },
+///        );
+///    },
+///),
+///```
+///see also : [ReactiveModel], [RM.get] and [IN.get].
+
 class Injector extends StatefulWidget {
   ///List of models to register (inject).
   ///
@@ -101,8 +192,7 @@ class Injector extends StatefulWidget {
   }
 
   ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
-  static ReactiveModel<T> getAsReactive<T>(
-      {dynamic name, bool silent = false}) {
+  static ReactiveModel<T> getAsReactive<T>({dynamic name, bool silent = false}) {
     final String _name = name == null ? '$T' : name.toString();
 
     final Inject<T> inject = _getInject<T>(_name, silent);
@@ -114,18 +204,17 @@ class Injector extends StatefulWidget {
     assert(
       () {
         if (reactiveModel.state is StatesRebuilder) {
-          throw Exception(AssertMessage.gettingAsReactiveAStatesRebuilderModel(
-              '${reactiveModel.state.runtimeType}'));
+          throw Exception(AssertMessage.gettingAsReactiveAStatesRebuilderModel('${reactiveModel.state.runtimeType}'));
         }
         return true;
       }(),
     );
+
     return reactiveModel;
   }
 
   static Inject<T> _getInject<T>(String name, [bool silent = false]) {
-    final Inject<dynamic> inject =
-        InjectorState.allRegisteredModelInApp[name]?.last;
+    final Inject<dynamic> inject = InjectorState.allRegisteredModelInApp[name]?.last;
     assert(
       () {
         if (silent != true && inject == null) {
@@ -154,8 +243,7 @@ class Injector extends StatefulWidget {
 ///
 class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
-  static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
-      <String, List<Inject<dynamic>>>{};
+  static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp = <String, List<Inject<dynamic>>>{};
 
   static final List<BuildContext> contextSet = [];
   List<Inject<dynamic>> _injects = [];
@@ -261,8 +349,7 @@ class InjectorState extends State<Injector> {
 }
 
 ///State of injector mixin with WidgetsBindingObserver
-class InjectorStateAppLifeCycle extends InjectorState
-    with WidgetsBindingObserver {
+class InjectorStateAppLifeCycle extends InjectorState with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

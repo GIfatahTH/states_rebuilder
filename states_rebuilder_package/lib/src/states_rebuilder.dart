@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import 'reactive_model.dart';
 import 'state_builder.dart';
+import 'dart:developer' as developer;
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -121,9 +122,21 @@ class StatesRebuilder<T> implements Subject {
   void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
     assert(() {
       if (RM.debugPrintActiveRM == true) {
-        print(
-          '$this | filterTags: ${tags != null ? tags : "None"}',
-        );
+        // print(
+        //   '$this | filterTags: ${tags != null ? tags : "None"}',
+        // );
+        if (this is ReactiveModel) {
+          final ReactiveModel self = this as ReactiveModel;
+          developer.log(
+            'RM ${self.type()}. Tag: ${tags == null ? "no tags" : tags}',
+            name: 'ReactiveModel Notification',
+            error: self.hasData
+                ? 'hasData : ${self.state}'
+                : self.isIdle
+                    ? 'isIdle'
+                    : self.isWaiting ? 'isWaiting' : 'hasError : ${self.error}',
+          );
+        }
       }
 
       if (!hasObservers) {
