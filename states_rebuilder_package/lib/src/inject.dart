@@ -239,7 +239,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       return singleton;
     } catch (e, s) {
       assert(() {
-        if (RM.debugError != null) {
+        if (RM.debugError != null || RM.debugErrorWithStackTrace) {
           developer.log(
             e.toString(),
             name: 'states_rebuilder::getSingleton',
@@ -247,7 +247,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
             stackTrace: s,
           );
         }
-        // RM.debugError?.call(e, s);
         return true;
       }());
       rethrow;
@@ -266,7 +265,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       return asNew ? rs : reactiveSingleton ??= rs;
     } catch (e, s) {
       assert(() {
-        if (RM.debugError != null) {
+        if (RM.debugError != null || RM.debugErrorWithStackTrace) {
           developer.log(
             e.toString(),
             name: 'states_rebuilder::getReactive',

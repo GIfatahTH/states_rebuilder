@@ -43,6 +43,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T> implements ReactiveModel<T>
         inject.cleanInject();
         inject = null;
         _debounceTimer?.cancel();
+        _contextSet.clear();
       });
     }
   }
@@ -370,7 +371,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T> implements ReactiveModel<T>
           false || _whenConnectionState || onError != null || inject.hasOnSetStateListener || onErrorHandler != null;
       _whenConnectionState = false;
       assert(() {
-        if (RM.debugError) {
+        if (RM.debugError || RM.debugErrorWithStackTrace) {
           developer.log(
             "This error ${_catchError ? 'is caught by' : 'is thrown from'} ReactiveModel<$T>:\n${_catchError ? '$e' : ''}",
             name: 'states_rebuilder::onError',
@@ -636,6 +637,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T> implements ReactiveModel<T>
 
   void contextSubscription(BuildContext context) {
     if (_contextSet.add(context)) {
+      InjectorState.contextSet.add(context);
       Disposer disposer;
       disposer = listenToRM(
         (rm) {
@@ -643,6 +645,7 @@ class ReactiveModelImp<T> extends StatesRebuilder<T> implements ReactiveModel<T>
             (context as Element).markNeedsBuild();
           } else {
             _contextSet.remove(context);
+            InjectorState.contextSet.add(context);
             disposer();
           }
         },
