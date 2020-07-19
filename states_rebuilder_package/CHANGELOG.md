@@ -1,3 +1,6 @@
+## 2.3.1 (2020-07-19)
+* Refactor internal logic.
+
 ## 2.3.0 (2020-07-16)
 * Add context subscription (#108)
 ```dart
