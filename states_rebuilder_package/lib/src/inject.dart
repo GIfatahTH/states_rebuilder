@@ -238,6 +238,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
       return singleton;
     } catch (e, s) {
+      RM.errorLog?.call(e, s);
       assert(() {
         if (RM.debugError != null || RM.debugErrorWithStackTrace) {
           developer.log(
@@ -264,6 +265,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
       return asNew ? rs : reactiveSingleton ??= rs;
     } catch (e, s) {
+      RM.errorLog?.call(e, s);
       assert(() {
         if (RM.debugError != null || RM.debugErrorWithStackTrace) {
           developer.log(
