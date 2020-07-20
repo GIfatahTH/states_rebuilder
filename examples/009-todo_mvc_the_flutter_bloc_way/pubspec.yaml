@@ -38,6 +38,7 @@ dependencies:
       path: todos_repository_local_storage
   equatable: ^1.1.1
   key_value_store_flutter:
+  key_value_store_web:
   shared_preferences:
 
   # The following adds the Cupertino Icons font to your application.

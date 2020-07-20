@@ -192,7 +192,10 @@ class Injector extends StatefulWidget {
   }
 
   ///Get the singleton [ReactiveModel] instance of a model registered with [Injector].
-  static ReactiveModel<T> getAsReactive<T>({dynamic name, bool silent = false}) {
+  static ReactiveModel<T> getAsReactive<T>({
+    dynamic name,
+    bool silent = false,
+  }) {
     final String _name = name == null ? '$T' : name.toString();
 
     final Inject<T> inject = _getInject<T>(_name, silent);
@@ -204,7 +207,8 @@ class Injector extends StatefulWidget {
     assert(
       () {
         if (reactiveModel.state is StatesRebuilder) {
-          throw Exception(AssertMessage.gettingAsReactiveAStatesRebuilderModel('${reactiveModel.state.runtimeType}'));
+          throw Exception(AssertMessage.gettingAsReactiveAStatesRebuilderModel(
+              '${reactiveModel.state.runtimeType}'));
         }
         return true;
       }(),
@@ -214,7 +218,8 @@ class Injector extends StatefulWidget {
   }
 
   static Inject<T> _getInject<T>(String name, [bool silent = false]) {
-    final Inject<dynamic> inject = InjectorState.allRegisteredModelInApp[name]?.last;
+    final Inject<dynamic> inject =
+        InjectorState.allRegisteredModelInApp[name]?.last;
     assert(
       () {
         if (silent != true && inject == null) {
@@ -243,7 +248,8 @@ class Injector extends StatefulWidget {
 ///
 class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
-  static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp = <String, List<Inject<dynamic>>>{};
+  static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
+      <String, List<Inject<dynamic>>>{};
 
   static final List<BuildContext> contextSet = [];
   List<Inject<dynamic>> _injects = [];
@@ -349,7 +355,8 @@ class InjectorState extends State<Injector> {
 }
 
 ///State of injector mixin with WidgetsBindingObserver
-class InjectorStateAppLifeCycle extends InjectorState with WidgetsBindingObserver {
+class InjectorStateAppLifeCycle extends InjectorState
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

@@ -218,8 +218,13 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///RM.stream<T>(Stream<T> stream);
   ///```
   ///Use [unsubscribe] to dispose of the stream.
-  factory ReactiveModel.stream(Stream<T> stream,
-      {dynamic name, T initialValue, List<dynamic> filterTags, Object Function(T) watch}) {
+  factory ReactiveModel.stream(
+    Stream<T> stream, {
+    dynamic name,
+    T initialValue,
+    List<dynamic> filterTags,
+    Object Function(T) watch,
+  }) {
     final inject = Inject<T>.stream(
       () => stream,
       initialValue: initialValue,
@@ -236,7 +241,12 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///```dart
   ///RM.future<T>(future<T> future);
   ///```
-  factory ReactiveModel.future(Future<T> future, {dynamic name, T initialValue, List<dynamic> filterTags}) {
+  factory ReactiveModel.future(
+    Future<T> future, {
+    dynamic name,
+    T initialValue,
+    List<dynamic> filterTags,
+  }) {
     final inject = Inject<T>.future(
       () => future,
       initialValue: initialValue,
@@ -532,7 +542,8 @@ abstract class RM {
   }
 
   ///get the model that is sending the notification
-  static ReactiveModel get notified => StatesRebuilderInternal.getNotifiedModel();
+  static ReactiveModel get notified =>
+      StatesRebuilderInternal.getNotifiedModel();
 
   static BuildContext _context;
 
@@ -630,4 +641,6 @@ abstract class RM {
   ///
   ///See : [debugPrintActiveRM], [debugWidgetsRebuild] and [debugError]
   static bool debugErrorWithStackTrace = false;
+
+  static void Function(dynamic e, StackTrace s) errorLog;
 }
