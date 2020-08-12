@@ -250,6 +250,12 @@ class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
   static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
       <String, List<Inject<dynamic>>>{};
+  static cleanInjector() {
+    final map = {...allRegisteredModelInApp};
+    map.forEach((key, value) {
+      unregisterInjects([...value]);
+    });
+  }
 
   static final List<BuildContext> contextSet = [];
   List<Inject<dynamic>> _injects = [];
@@ -257,7 +263,10 @@ class InjectorState extends State<Injector> {
   void initState() {
     super.initState();
     contextSet.add(context);
-    _initState();
+    if (widget.inject != null) {
+      _injects = List<Inject<dynamic>>.from(widget.inject);
+      registerInjects(_injects);
+    }
     if (widget.reinjectOn != null) {
       for (StatesRebuilder model in widget.reinjectOn) {
         model.addObserver(
@@ -289,28 +298,9 @@ class InjectorState extends State<Injector> {
     }
   }
 
-  void _initState() {
-    if (widget.inject != null) {
-      _injects = List<Inject<dynamic>>.from(widget.inject);
-      for (Inject<dynamic> inject in _injects) {
-        assert(inject != null);
-        final name = inject.getName();
-        inject.isGlobal = true;
-        final lastInject = allRegisteredModelInApp[name];
-        if (lastInject == null) {
-          allRegisteredModelInApp[name] = [inject];
-        } else {
-          if (Injector.enableTestMode == false) {
-            allRegisteredModelInApp[name].add(inject);
-          }
-        }
-      }
-    }
-  }
-
   @override
   void dispose() {
-    _dispose();
+    unregisterInjects(_injects, widget.disposeModels);
 
     if (widget.dispose != null) {
       widget.dispose();
@@ -319,33 +309,6 @@ class InjectorState extends State<Injector> {
 
     contextSet.remove(context);
     super.dispose();
-  }
-
-  void _dispose() {
-    for (Inject<dynamic> inject in _injects) {
-      if (inject.isAsyncInjected) {
-        inject.reactiveSingleton?.unsubscribe();
-      }
-      final name = inject.getName();
-      allRegisteredModelInApp[name]?.remove(inject);
-
-      if (allRegisteredModelInApp[name].isEmpty) {
-        allRegisteredModelInApp.remove(name);
-
-        if (widget.disposeModels == true) {
-          try {
-            (inject.getSingleton() as dynamic)?.dispose();
-          } catch (e) {
-            if (e is! NoSuchMethodError) {
-              rethrow;
-            }
-          }
-        }
-      }
-      inject
-        ..removeAllReactiveNewInstance()
-        ..cleanInject();
-    }
   }
 
   @override
@@ -396,5 +359,53 @@ abstract class IN {
       name: name,
       silent: silent,
     );
+  }
+}
+
+void registerInjects(List<Inject<dynamic>> _injects) {
+  for (Inject<dynamic> inject in _injects) {
+    assert(inject != null);
+    final name = inject.getName();
+    inject.isGlobal = true;
+    final lastInject = InjectorState.allRegisteredModelInApp[name];
+    if (lastInject == null) {
+      InjectorState.allRegisteredModelInApp[name] = [inject];
+    } else {
+      if (Injector.enableTestMode == false) {
+        InjectorState.allRegisteredModelInApp[name].add(inject);
+      }
+    }
+  }
+}
+
+void unregisterInjects(List<Inject<dynamic>> _injects, [bool disposeModels]) {
+  for (Inject<dynamic> inject in _injects) {
+    if (inject.isAsyncInjected) {
+      inject.reactiveSingleton?.unsubscribe();
+    }
+    final name = inject.getName();
+    final isRemoved =
+        InjectorState.allRegisteredModelInApp[name]?.remove(inject);
+    if (isRemoved != true) {
+      continue;
+    }
+
+    if (InjectorState.allRegisteredModelInApp[name].isEmpty) {
+      InjectorState.allRegisteredModelInApp.remove(name);
+
+      if (disposeModels == true) {
+        try {
+          (inject.getSingleton() as dynamic)?.dispose();
+        } catch (e) {
+          if (e is! NoSuchMethodError) {
+            rethrow;
+          }
+        }
+      }
+    }
+    statesRebuilderCleaner(inject.reactiveSingleton);
+    inject
+      ..removeAllReactiveNewInstance()
+      ..cleanInject();
   }
 }
