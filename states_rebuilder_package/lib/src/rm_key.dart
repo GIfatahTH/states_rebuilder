@@ -139,13 +139,23 @@ class RMKey<T> implements ReactiveModel<T> {
   dynamic get joinSingletonToNewData => _rm?.joinSingletonToNewData;
 
   @override
-  void resetToHasData() {
-    _rm?.resetToHasData();
+  void resetToHasData([T s]) {
+    _rm?.resetToHasData(s);
   }
 
   @override
-  void resetToIdle() {
-    _rm?.resetToIdle();
+  void resetToIdle([T s]) {
+    _rm?.resetToIdle(s);
+  }
+
+  @override
+  void resetToIsWaiting([T s]) {
+    _rm?.resetToIsWaiting(s);
+  }
+
+  @override
+  void resetToHasError(dynamic e) {
+    _rm?.resetToHasError(e);
   }
 
   @override
@@ -272,8 +282,11 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn) {
-    return _rm.listenToRM(fn);
+  Disposer listenToRM(
+    void Function(ReactiveModel<T> rm) fn, {
+    bool listenToOnDataOnly = true,
+  }) {
+    return _rm.listenToRM(fn, listenToOnDataOnly: listenToOnDataOnly);
   }
 
   @override
@@ -290,6 +303,32 @@ class RMKey<T> implements ReactiveModel<T> {
   @override
   void notify([List tags]) {
     _rm.notify(tags);
+  }
+
+  @override
+  bool get canRedoState => _rm.canRedoState;
+
+  @override
+  bool get canUndoState => _rm.canUndoState;
+
+  @override
+  void clearUndoStack() {
+    _rm.clearUndoStack();
+  }
+
+  @override
+  ReactiveModel<T> redoState() {
+    return _rm.redoState();
+  }
+
+  @override
+  ReactiveModel<T> undoState() {
+    return _rm.undoState();
+  }
+
+  @override
+  void set undoStackLength(int length) {
+    _rm.undoStackLength = length;
   }
 
   // @override

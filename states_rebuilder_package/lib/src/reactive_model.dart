@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'inject.dart';
+import 'injected.dart';
 import 'injector.dart';
 import 'reactive_model_imp.dart';
 import 'states_rebuilder.dart';
@@ -342,8 +343,13 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
 
   ///Listen to a ReactiveModel
   ///
+  ///By default,
+  ///
   ///It returns a callback for unsubscription
-  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn);
+  Disposer listenToRM(
+    void Function(ReactiveModel<T> rm) fn, {
+    bool listenToOnDataOnly = true,
+  });
 
   ///The stream (or Future) subscription of the state
   StreamSubscription<dynamic> get subscription;
@@ -367,10 +373,16 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ReactiveModel<T> asNew([dynamic seed = 'defaultReactiveSeed']);
 
   ///Rest the async connection state to [isIdle]
-  void resetToIdle();
+  void resetToIdle([T state]);
 
   ///Rest the async connection state to [hasData]
-  void resetToHasData();
+  void resetToHasData([T state]);
+
+  ///Rest the async connection state to [isWaiting]
+  void resetToIsWaiting([T state]);
+
+  ///Rest the async connection state to [hasError]
+  void resetToHasError(dynamic e);
 
   ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData;
@@ -475,6 +487,14 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///
   /// Reset the ReactiveModel to its initial state by reinvoking its creation function.
   Future<T> refresh([bool shouldNotify = true]);
+
+  ///
+  ReactiveModel<T> undoState();
+  ReactiveModel<T> redoState();
+  void clearUndoStack();
+  bool get canUndoState;
+  bool get canRedoState;
+  set undoStackLength(int length);
 }
 
 ///
@@ -491,6 +511,112 @@ abstract class RM {
   ///Useful with [ReactiveModel.refresh] method.
   static ReactiveModel<T> createFromCallback<T>(T Function() creationFunction) {
     return Inject<T>(creationFunction).getReactive();
+  }
+
+  ///
+  static Injected<T> inject<T>(
+    T Function() creationFunction, {
+    bool autoClean = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    void Function(T s) onDispose,
+  }) {
+    return InjectedImp<T>(
+      creationFunction,
+      autoClean: autoClean,
+      onData: onData,
+      onError: onError,
+      onWaiting: onWaiting,
+      onDispose: onDispose,
+    );
+  }
+
+  static Injected<T> injectFuture<T>(
+    Future<T> Function() creationFunction, {
+    bool isLazy = true,
+    bool autoClean = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    void Function(T s) onDispose,
+    T initialValue,
+  }) {
+    return InjectedFuture<T>(
+      creationFunction,
+      autoClean: autoClean,
+      onData: onData,
+      onError: onError,
+      onWaiting: onWaiting,
+      onDispose: onDispose,
+      isLazy: isLazy,
+      initialValue: initialValue,
+    );
+  }
+
+  static Injected<T> injectStream<T>(
+    Stream<T> Function() creationFunction, {
+    bool isLazy = true,
+    bool autoClean = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    void Function(T s) onDispose,
+    Function(T s) watch,
+    T initialValue,
+  }) {
+    return InjectedStream<T>(
+      creationFunction,
+      autoClean: autoClean,
+      onData: onData,
+      onError: onError,
+      onWaiting: onWaiting,
+      onDispose: onDispose,
+      isLazy: isLazy,
+      watch: watch,
+      initialValue: initialValue,
+    );
+  }
+
+  static Injected<T> injectInterface<T>(
+    Map<dynamic, FutureOr<T> Function()> impl, {
+    bool autoClean = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    void Function(T s) onDispose,
+    T initialValue,
+  }) {
+    return InjectedInterface<T>(
+      impl,
+      autoClean: autoClean,
+      onData: onData,
+      onError: onError,
+      onWaiting: onWaiting,
+      onDispose: onDispose,
+      initialValue: initialValue,
+    );
+  }
+
+  static Injected<T> injectComputed<T>({
+    // @required List<Injected<dynamic>> dependsOn,
+    @required T Function(T s) compute,
+    bool autoClean = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    T initialState,
+    bool Function(T s) shouldCompute,
+  }) {
+    return InjectedComputed<T>(
+      compute,
+      autoClean: autoClean,
+      onData: onData,
+      onError: onError,
+      onWaiting: onWaiting,
+      initialState: initialState,
+      shouldCompute: shouldCompute,
+    );
   }
 
   ///Create a [ReactiveModel] from future.
@@ -535,7 +661,7 @@ abstract class RM {
       name: name,
       silent: silent,
     );
-    if (context != null) {
+    if (rm != null && context != null) {
       (rm as ReactiveModelImp).contextSubscription(context);
     }
     return rm;
@@ -558,16 +684,21 @@ abstract class RM {
       return _context;
     }
     assert(InjectorState.contextSet.isNotEmpty);
-
-    if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
-      InjectorState.contextSet.removeLast();
-      return context;
-    }
+    // final f = InjectorState.contextSet.last?.findRenderObject();
+    // print(f);
+    // print(f?.attached);
+    // final c = InjectorState.contextSet.last;
+    // // if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
+    // // InjectorState.contextSet.removeLast();
+    // // return context;
+    // // }
     WidgetsBinding.instance.scheduleFrameCallback(
       (_) => _context = null,
     );
     return _context = InjectorState.contextSet.last;
   }
+
+  static NavigatorState _navigatorState;
 
   ///get The state for a [Navigator] widget.
   ///
@@ -576,8 +707,17 @@ abstract class RM {
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static NavigatorState get navigator {
-    return Navigator.of(context);
+    try {
+      return _navigatorState ??= Navigator.of(context);
+    } catch (e) {
+      print(e);
+
+      InjectorState.contextSet.removeLast();
+      return navigator;
+    }
   }
+
+  static ThemeData _theme;
 
   ///Get the [ThemeData] of [MaterialApp]
   ///
@@ -585,7 +725,17 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  static ThemeData get theme => Theme.of(context);
+  static ThemeData get theme {
+    try {
+      return _theme ??= Theme.of(context);
+    } catch (e) {
+      print(e);
+      InjectorState.contextSet.removeLast();
+      return theme;
+    }
+  }
+
+  static MediaQueryData _mediaQuery;
 
   ///Get the [MediaQueryData]
   ///
@@ -593,7 +743,17 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  static MediaQueryData get mediaQuery => MediaQuery.of(context);
+
+  static MediaQueryData get mediaQuery {
+    try {
+      return _mediaQuery ??= MediaQuery.of(context);
+    } catch (e) {
+      print(e);
+
+      InjectorState.contextSet.removeLast();
+      return mediaQuery;
+    }
+  }
 
   ///Get the [ScaffoldState]
   ///
@@ -601,7 +761,16 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  static ScaffoldState get scaffold => Scaffold.of(context);
+  static ScaffoldState get scaffold {
+    try {
+      return Scaffold.of(context);
+    } catch (e) {
+      print(e);
+
+      InjectorState.contextSet.removeLast();
+      return scaffold;
+    }
+  }
 
   ///A callBack that exposes an active [BuildContext]
   ///
