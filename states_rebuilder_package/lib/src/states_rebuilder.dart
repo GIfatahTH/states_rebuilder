@@ -1,6 +1,8 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
+import 'package:states_rebuilder/src/injector.dart';
+import 'package:states_rebuilder/src/reactive_model_imp.dart';
 
 import 'reactive_model.dart';
 import 'state_builder.dart';
@@ -53,6 +55,15 @@ class StatesRebuilder<T> implements Subject {
   ///Holds user defined void callback to be executed after removing all observers.
   final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
 
+  static int __observersCount = 0;
+  static set _observersCount(int count) {
+    assert(count >= 0);
+    __observersCount = count;
+    if (__observersCount == 0) {
+      InjectorState.cleanInjector();
+    }
+  }
+
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
@@ -63,6 +74,7 @@ class StatesRebuilder<T> implements Subject {
     } else {
       _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
+    _observersCount = __observersCount + 1;
   }
 
   @override
@@ -89,31 +101,16 @@ class StatesRebuilder<T> implements Subject {
 
     _observersMap[tag].remove(observer);
     _observersSet.remove(observer);
-    if (_observersMap[tag].isEmpty) {
+
+    _observersCount = __observersCount - 1;
+
+    if (_observersMap[tag]?.isEmpty == true) {
       _observersMap.remove(tag);
-      if (_observersMap.isEmpty ||
-          _observersMap.length == 1 &&
-              _observersMap.containsKey('_ReactiveModelSubscriber')) {
-        //Al observers are remove, it is time to execute custom cleaning
-        for (final void Function() voidCallBack in _statesRebuilderCleaner) {
-          if (voidCallBack != null) {
-            voidCallBack();
-          }
-        }
-        _statesRebuilderCleaner.clear();
-        _observersMap.clear();
-        _observersSet.clear();
+      if (_observersMap.isEmpty) {
+        statesRebuilderCleaner(this);
       }
     }
   }
-
-  // dynamic _tag;
-  // bool _isExclusive = false;
-  // StatesRebuilder tag(dynamic tag, [bool isExclusive = false]) {
-  //   _tag = tag;
-  //   _isExclusive = isExclusive;
-  //   return this;
-  // }
 
   /// You call [rebuildStates] inside any of your logic classes that extends [StatesRebuilder].
   ///
@@ -252,4 +249,24 @@ class StatesRebuilderInternal {
         ? StatesRebuilder._notifyingModel as ReactiveModel
         : null;
   }
+}
+
+void statesRebuilderCleaner(StatesRebuilder sr, [bool clean = true]) {
+  if (sr == null ||
+      sr is ReactiveModelImp && sr.numberOfFutureAndStreamBuilder > 0) {
+    return;
+  }
+  if (clean) {
+    //Al observers are remove, it is time to execute custom cleaning
+    for (final void Function() voidCallBack in [
+      ...sr._statesRebuilderCleaner
+    ]) {
+      if (voidCallBack != null) {
+        voidCallBack();
+      }
+    }
+  }
+  sr._statesRebuilderCleaner.clear();
+  sr._observersMap.clear();
+  sr._observersSet.clear();
 }
