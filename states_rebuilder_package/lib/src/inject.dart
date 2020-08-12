@@ -5,6 +5,7 @@ import 'injector.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
 import 'state_builder.dart';
+import 'states_rebuilder.dart';
 
 ///Base class for [Inject]
 abstract class Injectable {}
@@ -118,6 +119,9 @@ class Inject<T> implements Injectable {
     this.joinSingleton,
   }) {
     _name = name?.toString();
+    if (isLazy == false) {
+      getReactive();
+    }
   }
   bool isGlobal = false;
 
@@ -136,6 +140,9 @@ class Inject<T> implements Injectable {
   }) {
     _name = name?.toString();
     _isFutureType = true;
+    if (isLazy == false) {
+      getReactive();
+    }
   }
 
   ///Inject a Stream,
@@ -154,6 +161,9 @@ class Inject<T> implements Injectable {
   }) {
     _name = name?.toString();
     _isStreamType = true;
+    if (isLazy == false) {
+      getReactive();
+    }
   }
 
   factory Inject.interface(
@@ -220,10 +230,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   String getName() {
     assert(T != dynamic);
     assert(T != Object);
-
-    if (isLazy == false) {
-      getReactive();
-    }
     return _name ??= '$T';
   }
 
@@ -301,6 +307,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   }
 
   void cleanInject() {
+    if (reactiveSingleton != null) {
+      statesRebuilderCleaner(reactiveSingleton, false);
+    }
     singleton = null;
     reactiveSingleton = null;
   }
