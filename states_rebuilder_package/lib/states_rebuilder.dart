@@ -21,8 +21,9 @@ export 'src/on_set_state_listener.dart';
 export 'src/on_set_state_listener.dart' show OnSetStateListener;
 
 /// [ReactiveModel] adds a reactive environnement to the injected models.
-export 'src/reactive_model.dart' show ReactiveModel, RM;
+export 'src/reactive_model.dart' show ReactiveModel, RM, Disposer;
 export 'src/rm_key.dart' show RMKey;
+export 'src/injected.dart' show Injected;
 
 /// [StateBuilder] and [StateWithMixinBuilder] are the observers.
 export 'src/state_builder.dart' show StateBuilder;
