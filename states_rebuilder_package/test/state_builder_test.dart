@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/reactive_model_imp.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -208,7 +209,8 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(model.observers().length, equals(2));
-      expect(model2.observers().length, equals(3));
+      expect(model2.observers().length, equals(2));
+      expect((model2 as ReactiveModelImp).listenToRMSet.length, equals(1));
       expect(find.text('0'), findsOneWidget);
 
       switcher = false;
@@ -216,6 +218,7 @@ void main() {
       await tester.pump();
       expect(model.observers().length, equals(2));
       expect(model2.observers().length, equals(0));
+      expect((model2 as ReactiveModelImp).listenToRMSet.length, equals(0));
       expect(numberOfCleanerCall, equals(1));
       expect(find.text('false'), findsOneWidget);
     },
@@ -644,12 +647,12 @@ void main() {
       expect(find.text('2'), findsOneWidget);
 
       //state changes
-      intRM.setState((_) => [0]);
+      intRM.setState((_) => [1]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
 
       //state do not change
-      intRM.setState((_) => [0]);
+      intRM.setState((_) => [1]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
     },

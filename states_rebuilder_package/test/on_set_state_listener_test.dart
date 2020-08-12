@@ -125,7 +125,8 @@ void main() {
     _onSetState = '';
     _onError = '';
     _onData = '';
-    reactiveModel1.setState((s) => s.incrementAsyncWithError());
+    reactiveModel1.setState((s) => s.incrementAsyncWithError(),
+        catchError: true);
     await tester.pump();
     expect(_onSetState, equals('onSetState'));
     expect(_onError, equals(''));
