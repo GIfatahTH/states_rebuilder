@@ -24,8 +24,9 @@ class OnSetStateListener<T> extends StatelessWidget {
 
   ///Callback to execute when any of the observed models emits a notification.
   ///[OnSetStateListener] will not rebuild.
-  final void Function(BuildContext context, ReactiveModel reactiveModel)
-      onSetState;
+  final void Function(BuildContext context, ReactiveModel reactiveModel) onSetState;
+
+  final void Function(BuildContext, ReactiveModel<T>) onRebuildState;
 
   ///Callback to execute when any of the observed models emits a notification with error.
   final void Function(BuildContext context, dynamic error) onError;
@@ -77,6 +78,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     this.observe,
     this.observeMany,
     this.onSetState,
+    this.onRebuildState,
     this.onError,
     this.onData,
     this.onWaiting,
@@ -93,10 +95,10 @@ class OnSetStateListener<T> extends StatelessWidget {
       observeMany: observeMany,
       tag: tag,
       onSetState: _onSetState,
+      onRebuildState: onRebuildState,
       activeRM: [],
       initState: (context, rm) {
-        final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
+        final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
         if (onError != null) {
           for (var reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber++;
@@ -108,12 +110,9 @@ class OnSetStateListener<T> extends StatelessWidget {
       },
       dispose: (context, __) {
         if (onError != null) {
-          final _models =
-              (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+          final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
           for (ReactiveModel reactiveModel in _models) {
-            (reactiveModel as ReactiveModelImp)
-                .inject
-                .onSetStateListenerNumber--;
+            (reactiveModel as ReactiveModelImp).inject.onSetStateListenerNumber--;
           }
         }
       },
@@ -127,8 +126,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     if (onSetState != null) {
       onSetState(context, rm);
     }
-    final _models =
-        (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+    final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
 
     bool _isIdle = false;
     bool _isWaiting = false;

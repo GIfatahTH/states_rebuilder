@@ -89,6 +89,8 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///
   final Object Function(ReactiveModel<T> model) watch;
 
+  final bool Function(ReactiveModel<T>) shouldRebuild;
+
   ///ReactiveModel key used to control this widget from outside its [builder] method.
   final RMKey rmKey;
 
@@ -134,6 +136,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.observeMany,
     this.tag,
     this.watch,
+    this.shouldRebuild,
     this.rmKey,
     this.initState,
     this.dispose,
@@ -149,6 +152,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       observeMany: observeMany,
       tag: tag,
       watch: watch,
+      shouldRebuild: shouldRebuild,
       rmKey: rmKey,
       initState: initState,
       dispose: dispose,

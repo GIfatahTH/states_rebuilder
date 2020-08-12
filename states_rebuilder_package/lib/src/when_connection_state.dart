@@ -81,6 +81,8 @@ class WhenRebuilder<T> extends StatelessWidget {
   ///Each [WhenRebuilder] has a default tag which is its [BuildContext]
   final dynamic tag;
 
+  final bool Function(ReactiveModel<T>) shouldRebuild;
+
   ///ReactiveModel key used to control this widget from outside.
   final RMKey rmKey;
 
@@ -127,6 +129,7 @@ class WhenRebuilder<T> extends StatelessWidget {
     this.observe,
     this.observeMany,
     this.tag,
+    this.shouldRebuild,
     this.rmKey,
     this.initState,
     this.dispose,
@@ -144,6 +147,7 @@ class WhenRebuilder<T> extends StatelessWidget {
       observeMany: observeMany,
       tag: tag,
       rmKey: rmKey,
+      shouldRebuild: shouldRebuild,
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
