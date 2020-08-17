@@ -1,5 +1,7 @@
 # form_validation_with_reactive_model
 
+> See the source code as the same example is rewritten using function injection.
+
 In this tutorial we will explore more feature of the `ReactiveModel` and put in practice what we have seen in the first tutorial.
 
 Let's build a simple login form validation. It consists of two input fields and a submit button. 
@@ -381,3 +383,5 @@ void main() {
 }
 
 ```
+
+> See the source code as the same example is rewritten using function injection.

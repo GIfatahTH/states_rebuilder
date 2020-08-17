@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import './pages/simple_counter.dart' as simpleCounter;
 import './pages/simple_counter_with_error.dart' as simpleCounterWithError;
 import './pages/async_counter_app.dart' as asyncCounter;
+import './pages/simple_counter_with_functional_injection.dart'
+    as functionalInjection;
 
 void main() => runApp(MyApp());
 
@@ -26,6 +28,19 @@ class MyApp extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => simpleCounter.MyHomePage(
+                            title: 'Simple counter app',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  RaisedButton(
+                    child: Text('Simplest counter With functional injection'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => functionalInjection.MyHomePage(
                             title: 'Simple counter app',
                           ),
                         ),

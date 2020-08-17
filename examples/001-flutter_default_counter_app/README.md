@@ -6,6 +6,8 @@ This simple example aims to understand what ReactiveModel means and how it rende
 
 # Simple counter.
 
+> Update: With Functional injection, the life becomes easier (see further examples for more information). 
+
 After adding the latest version of `states_rebuilder` to dependencies in the `pubspec.yaml`, in the  `main.dart` file we have
  
 ```dart
