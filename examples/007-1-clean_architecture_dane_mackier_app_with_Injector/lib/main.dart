@@ -4,7 +4,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'data_source/api.dart';
 import 'service/authentication_service.dart';
 import 'service/interfaces/i_api.dart';
-import 'ui/router.dart';
+import 'ui/router.dart' as route;
 
 void main() => runApp(App());
 
@@ -23,7 +23,7 @@ class App extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData(),
         initialRoute: 'login',
-        onGenerateRoute: Router.generateRoute,
+        onGenerateRoute: route.Router.generateRoute,
       ),
     );
   }

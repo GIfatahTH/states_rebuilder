@@ -12,6 +12,13 @@ Here I will go through the detailed implementation, using states_rebuilder addin
 
 in this example, I will use mutable state. you can find the same app implemented with immutable state [here](../009-clean_architecture_todo_mvc_cloud_firestore_immutable_state)
 
+* [**Todo MVC with immutable state and firebase cloud service**](../009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector).
+* [**Todo MVC with immutable state and firebase cloud service (Using global functional injection)**](../009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection) 
+* [**Todo MVC with mutable state and sharedPreferences for persistence (Using global functional injection)**](../009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection)
+* [**Todo MVC following flutter_bloc library approach**](../009-todo_mvc_the_flutter_bloc_way) 
+* [**Todo MVC following flutter_bloc library approach (Using global functional injection)**](../09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection)
+
+
 This is how I will architect the app: 
 
 ![Clean Architecture](https://github.com/GIfatahTH/repo_images/blob/master/008-Clean-Architecture.png).
@@ -57,7 +64,7 @@ Staring from the most independent part,  the innermost domain layer.
 
 ### User entity
 **file:lib/domain/entities/user.dart**
-
+ 
 ```dart
 @immutable
 class User {

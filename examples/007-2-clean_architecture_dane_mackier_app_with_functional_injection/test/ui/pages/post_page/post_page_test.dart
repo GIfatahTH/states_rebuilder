@@ -10,7 +10,6 @@ import 'package:clean_architecture_dane_mackier_app/ui/pages/post_page/post_page
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_dane_mackier_app/injected.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   Widget postPage;
@@ -20,15 +19,15 @@ void main() {
   authenticationService.injectMock(() => FakeAuthenticationService());
   postsService.injectMock(() => FakePostsService());
   commentsService.injectMock(() => FakeCommentsService());
-  setUp(() {
-    postPage = UseInjected(
-      child: MaterialApp(
+  setUp(
+    () {
+      postPage = MaterialApp(
         home: PostPage(
           post: postFromHomePage = postsService.state.posts[0],
         ),
-      ),
-    );
-  });
+      );
+    },
+  );
 
   testWidgets('display post and user info at start up', (tester) async {
     await tester.pumpWidget(postPage);

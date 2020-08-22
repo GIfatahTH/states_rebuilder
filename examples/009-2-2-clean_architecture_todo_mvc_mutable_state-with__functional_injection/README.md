@@ -1,6 +1,7 @@
 # clean_architecture_todo_mvc_cloud_firestore_mutable_state
 
-In this example I will use functional injection.
+>In this example we will use global functional injection
+
 
 <img align="right" src="https://github.com/brianegan/flutter_architecture_samples/blob/master/assets/todo-list.png" alt="List of Todos Screen">
 
@@ -12,6 +13,14 @@ Here I will go through the detailed implementation, using states_rebuilder addin
 * I will make the app more user friendly in the sense, if the user adds, updates, deletes a todo, the UI is instantly updated and an async request is sent to firebase to perform the action. IF the updating firebase fails, the app returns to the old state and displays a SnackBar informing the user about the error.
 
 in this example, I will use mutable state. you can find the same app implemented with immutable state [here](../009-clean_architecture_todo_mvc_cloud_firestore_immutable_state)
+
+* [**Todo MVC with immutable state and firebase cloud service**](../009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector).
+* [**Todo MVC with immutable state and firebase cloud service (Using global functional injection)**](../009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection) 
+* [**Todo MVC with mutable state and sharedPreferences for persistence**](../009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector)
+* [**Todo MVC following flutter_bloc library approach**](../009-todo_mvc_the_flutter_bloc_way) 
+* [**Todo MVC following flutter_bloc library approach (Using global functional injection)**](../09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection)
+
+
 
 This is how I will architect the app: 
 

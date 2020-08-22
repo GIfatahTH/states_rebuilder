@@ -1,6 +1,14 @@
 # clean_architecture_todo_mvc_cloud_firestore_immutable_state
 
->In this example we will use functional injection
+>In this example we will use global functional injection
+
+see also:
+
+* [**Todo MVC with immutable state and firebase cloud service**](../009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector).
+* [**Todo MVC with mutable state and sharedPreferences for persistence**](../009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector)
+* [**Todo MVC with mutable state and sharedPreferences for persistence (Using global functional injection)**](../009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection)
+* [**Todo MVC following flutter_bloc library approach**](../009-todo_mvc_the_flutter_bloc_way) 
+* [**Todo MVC following flutter_bloc library approach (Using global functional injection)**](../09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection)
 
 <img align="right" src="https://github.com/brianegan/flutter_architecture_samples/blob/master/assets/todo-list.png" alt="List of Todos Screen">
 

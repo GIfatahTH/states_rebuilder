@@ -1,6 +1,6 @@
-# clean_architecture_dane_mackier_app_using_reference_injection
+# clean_architecture_dane_mackier_app using global functional injection
 
-This is the same example as example 7-1 rewritten to use reference injection instead of injection with Injector.
+This is the same example as example 7-1 rewritten to use global functional injection instead of injection with Injector.
 
 Regarding the clean architecture I use, the `domain`, `service`, `data_source` layers remain untouched.
 
@@ -45,8 +45,8 @@ Injected<T> RM.inject<T>(
     //Execute side effect when the model is waiting for an async task
     void Function() onWaiting, 
     //Although injected models are automatically cleaned you can do further cleaning
-    //with onDispose method
-    void Function(T state) onDispose
+    //with onDisposed method
+    void Function(T state) onDisposed
   })
 ```
 To listen to an injected model, you can use rebuilder, `whenRebuilder`, or `whenRebuilderOR` methods:
