@@ -1,22 +1,26 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Counter {
   final int _incrementBy;
-  final bool shouldThrow;
-  Counter({int incrementBy = 1, this.shouldThrow = false})
-      : _incrementBy = incrementBy;
+  Counter({int incrementBy = 1}) : _incrementBy = incrementBy;
   int _count = 0;
   int get count => _count * _incrementBy;
   void increment() {
-    if (shouldThrow) {
+    //This counter will throw randomly
+    //
+    //The app can not be tested unless this counter is mocked
+    if (Random().nextBool()) {
       throw Exception('Counter Error');
     }
     _count++;
   }
 }
 
+//used for the propose of testing demonstration
 int dataFromInjection;
 String errorFromInjection;
 
@@ -38,9 +42,31 @@ class CounterApp extends StatelessWidget {
   }
 }
 
+//To test the app we have to use a fake counter
+class FakeCounter extends Counter {
+  final int _incrementBy;
+
+  final bool shouldThrow;
+  FakeCounter({int incrementBy = 1, this.shouldThrow = false})
+      : _incrementBy = incrementBy;
+  int _count = 0;
+  @override
+  int get count => _count * _incrementBy;
+
+  @override
+  void increment() {
+    //when shouldThrow is true the counter throws
+    if (shouldThrow) {
+      throw Exception('Counter Error');
+    }
+    _count++;
+  }
+}
+
 void main() {
   //Default injected mock
-  counter.injectMock(() => Counter(incrementBy: 2));
+  //It is set to incrementBy 2
+  counter.injectMock(() => FakeCounter(incrementBy: 2));
   testWidgets('should increment counter', (tester) async {
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
@@ -52,7 +78,8 @@ void main() {
     expect(find.text('4'), findsOneWidget);
   });
   testWidgets('should override counter injection', (tester) async {
-    counter.injectMock(() => Counter(incrementBy: 5));
+    //we can override the mocked counter instance for a particular test
+    counter.injectMock(() => FakeCounter(incrementBy: 5));
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
     counter.setState((s) => s.increment());
@@ -78,7 +105,7 @@ void main() {
   });
   testWidgets('should throw error (override injection to throw error)',
       (tester) async {
-    counter.injectMock(() => Counter(incrementBy: 10, shouldThrow: true));
+    counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
     counter.setState((s) => s.increment());
@@ -89,7 +116,7 @@ void main() {
 
   testWidgets('onSetState error override error defined in the injection',
       (tester) async {
-    counter.injectMock(() => Counter(incrementBy: 10, shouldThrow: true));
+    counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
     String _errorMessage;
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);

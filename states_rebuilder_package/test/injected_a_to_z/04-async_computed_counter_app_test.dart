@@ -40,6 +40,7 @@ final computedCounter = RM.injectComputed<int>(
   compute: (s) => counter1.state.count * counter2.state.count,
 );
 
+//this is an example fo a computed counter the depends on another computed counter
 final anOtherComputedCounter = RM.injectComputed(
   compute: (s) => '${computedCounter.state * 10}',
 );
@@ -47,11 +48,6 @@ final anOtherComputedCounter = RM.injectComputed(
 int counter1NbrOfRebuilds = 0;
 int counter2NbrOfRebuilds = 0;
 int computedCounterNbrOfRebuilds = 0;
-void resetRebuildCounts() {
-  counter1NbrOfRebuilds = 0;
-  counter2NbrOfRebuilds = 0;
-  computedCounterNbrOfRebuilds = 0;
-}
 
 class CounterApp extends StatelessWidget {
   @override
@@ -62,7 +58,7 @@ class CounterApp extends StatelessWidget {
         children: [
           counter1.rebuilder(() {
             counter1NbrOfRebuilds++;
-            return Text('${counter1.state.count}');
+            return Text('counter1 :${counter1.state.count}');
           }),
           counter2.whenRebuilder(
               onIdle: () => Text('Idle'),
@@ -70,17 +66,19 @@ class CounterApp extends StatelessWidget {
               onError: (e) => Text(e.message),
               onData: () {
                 counter2NbrOfRebuilds++;
-                return Text('${counter2.state.count}');
+                return Text('counter2 :${counter2.state.count}');
               }),
           computedCounter.whenRebuilderOr(
               onWaiting: () => Text('Waiting...'),
-              onError: (e) => Text(e.message),
+              onError: (e) {
+                return Text(e.message);
+              },
               builder: () {
                 computedCounterNbrOfRebuilds++;
-                return Text('${computedCounter.state}');
+                return Text('computedCounter :${computedCounter.state}');
               }),
           computedCounter.rebuilder(
-            () => Text('rebuilder-${computedCounter.state}'),
+            () => Text('rebuilder :${computedCounter.state}'),
           ),
         ],
       ),
@@ -95,6 +93,7 @@ class CounterApp1 extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
+          //this is an example fo a computed counter the depends on another computed counter
           anOtherComputedCounter.whenRebuilderOr(
               onWaiting: () => Text('Waiting...'),
               onError: (e) => Text(e.message),
@@ -109,16 +108,21 @@ class CounterApp1 extends StatelessWidget {
 }
 
 void main() {
+  setUp(() {
+    counter1NbrOfRebuilds = 0;
+    counter2NbrOfRebuilds = 0;
+    computedCounterNbrOfRebuilds = 0;
+  });
+
   counter1.injectMock(() => Counter1(incrementBy: 2));
   counter2.injectMock(() => Counter2());
-
-  setUp(() {
-    resetRebuildCounts();
-  });
   testWidgets('initial state ', (tester) async {
     await tester.pumpWidget(CounterApp());
-    expect(find.text('0'), findsNWidgets(2));
+    //
+    expect(find.text('counter1 :0'), findsNWidgets(1));
     expect(find.text('Idle'), findsNWidgets(1));
+    expect(find.text('computedCounter :0'), findsNWidgets(1));
+    //
     expect(counter1NbrOfRebuilds, 1);
     expect(counter2NbrOfRebuilds, 0);
     expect(computedCounterNbrOfRebuilds, 1);
@@ -130,9 +134,9 @@ void main() {
     //
     counter1.setState((s) => s.increment());
     await tester.pump();
-    expect(find.text('2'), findsNWidgets(1));
+    expect(find.text('counter1 :2'), findsNWidgets(1));
     expect(find.text('Idle'), findsNWidgets(1));
-    expect(find.text('0'), findsNWidgets(1));
+    expect(find.text('computedCounter :0'), findsNWidgets(1));
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
     //computed counter did not change (1*0 =0) so its listener are not rebuilt.
@@ -140,54 +144,17 @@ void main() {
     //
     counter2.setState((s) => s.increment());
     await tester.pump();
-    expect(find.text('2'), findsNWidgets(1));
+    expect(find.text('counter1 :2'), findsNWidgets(1));
+    //both counter 2 and computed counter are waiting
     expect(find.text('Waiting...'), findsNWidgets(2));
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
     expect(computedCounterNbrOfRebuilds, 1);
     //
     await tester.pump(Duration(seconds: 1));
-    expect(find.text('2'), findsNWidgets(2));
-    expect(find.text('1'), findsNWidgets(1));
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 1);
-    expect(computedCounterNbrOfRebuilds, 2);
-  });
-
-  testWidgets('override counter1 mock injection', (tester) async {
-    counter1.injectMock(() => Counter1(incrementBy: 5));
-
-    await tester.pumpWidget(CounterApp());
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    //
-    counter1.setState((s) => s.increment());
-    await tester.pump();
-    expect(find.text('5'), findsNWidgets(1));
-    expect(find.text('Idle'), findsNWidgets(1));
-    expect(find.text('0'), findsNWidgets(1));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 0);
-    //computed counter did not change (1*0 =0) so its listener are not rebuilt.
-    expect(computedCounterNbrOfRebuilds, 1);
-    //
-    counter2.setState((s) => s.increment());
-    await tester.pump();
-    expect(find.text('5'), findsNWidgets(1));
-    expect(find.text('Waiting...'), findsNWidgets(2));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 0);
-    expect(computedCounterNbrOfRebuilds, 1);
-    //
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('5'), findsNWidgets(2));
-    expect(find.text('1'), findsNWidgets(1));
-    expect(find.text('rebuilder-5'), findsNWidgets(1));
-
+    expect(find.text('counter1 :2'), findsNWidgets(1));
+    expect(find.text('counter2 :1'), findsNWidgets(1));
+    expect(find.text('computedCounter :2'), findsNWidgets(1));
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 1);
     expect(computedCounterNbrOfRebuilds, 2);
@@ -197,15 +164,15 @@ void main() {
     counter2.injectMock(() => Counter2(shouldThrow: true));
 
     await tester.pumpWidget(CounterApp());
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
+    expect(find.text('rebuilder :0'), findsNWidgets(1));
 
     //
     counter1.setState((s) => s.increment());
     await tester.pump();
-    expect(find.text('2'), findsNWidgets(1));
+    expect(find.text('counter1 :2'), findsNWidgets(1));
     expect(find.text('Idle'), findsNWidgets(1));
-    expect(find.text('0'), findsNWidgets(1));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
+    expect(find.text('computedCounter :0'), findsNWidgets(1));
+    expect(find.text('rebuilder :0'), findsNWidgets(1));
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
     //computed counter did not change (1*0 =0) so its listener are not rebuilt.
@@ -213,66 +180,27 @@ void main() {
     //
     counter2.setState((s) => s.increment());
     await tester.pump();
-    expect(find.text('2'), findsNWidgets(1));
+    expect(find.text('counter1 :2'), findsNWidgets(1));
     expect(find.text('Waiting...'), findsNWidgets(2));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
+    expect(find.text('rebuilder :0'), findsNWidgets(1));
 
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
     expect(computedCounterNbrOfRebuilds, 1);
     //
     await tester.pump(Duration(seconds: 1));
-    expect(find.text('2'), findsNWidgets(1));
+    expect(find.text('counter1 :2'), findsNWidgets(1));
+    //both counter2 and computed counter are in the error state
     expect(find.text('Counter Error'), findsNWidgets(2));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
+    expect(find.text('rebuilder :0'), findsNWidgets(1));
 
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
     expect(computedCounterNbrOfRebuilds, 1);
-  });
-
-  testWidgets('computed should not rebuild if value not changed',
-      (tester) async {
-    counter1.injectMock(() => Counter1(incrementBy: 0));
-
-    await tester.pumpWidget(CounterApp());
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    //
-    counter1.setState((s) => s.increment());
-    await tester.pump();
-    expect(find.text('0'), findsNWidgets(2));
-    expect(find.text('Idle'), findsNWidgets(1));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 0);
-    //computed counter did not change (1*0 =0) so its listener are not rebuilt.
-    expect(computedCounterNbrOfRebuilds, 1);
-    //
-    counter2.setState((s) => s.increment());
-    await tester.pump();
-    expect(find.text('0'), findsNWidgets(1));
-    expect(find.text('Waiting...'), findsNWidgets(2));
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 0);
-    expect(computedCounterNbrOfRebuilds, 1);
-    //
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('0'), findsNWidgets(2));
-    expect(find.text('1'), findsNWidgets(1));
-
-    expect(find.text('rebuilder-0'), findsNWidgets(1));
-
-    expect(counter1NbrOfRebuilds, 2);
-    expect(counter2NbrOfRebuilds, 1);
-    //should rebuild to hide progress indicator and display '0'
-    expect(computedCounterNbrOfRebuilds, 2);
   });
 
   testWidgets('computed of a computed counter', (tester) async {
+    //this is an example fo a computed counter the depends on another computed counter
     RM.debugPrintActiveRM = true;
     RM.debugWidgetsRebuild = true;
     await tester.pumpWidget(CounterApp1());
