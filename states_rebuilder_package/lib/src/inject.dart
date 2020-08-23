@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'injector.dart';
+import 'on_set_state_listener.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
 import 'state_builder.dart';
@@ -84,6 +85,8 @@ class Inject<T> implements Injectable {
   bool get isAsyncInjected => _isFutureType || _isStreamType;
 
   bool _isFutureType = false;
+
+  ///Wether this Inject is for Future
   bool get isFutureType => _isFutureType;
 
   bool _isStreamType = false;
@@ -106,7 +109,10 @@ class Inject<T> implements Injectable {
   /// List of [StateBuilder]'s tags to be notified to rebuild.
   List<dynamic> filterTags;
 
+  ///Number of [OnSetStateListener] widget listening the this [ReactiveModel]
   int onSetStateListenerNumber = 0;
+
+  ///Has this ReactiveModel any subscribed [OnSetStateListener]
   bool get hasOnSetStateListener => onSetStateListenerNumber > 0;
 
   static int _envMapLength;
@@ -123,6 +129,8 @@ class Inject<T> implements Injectable {
       getReactive();
     }
   }
+
+  ///Is this [Inject] global
   bool isGlobal = false;
 
   ///Inject a Future
@@ -166,6 +174,7 @@ class Inject<T> implements Injectable {
     }
   }
 
+  ///Injected a map of flavor
   factory Inject.interface(
     Map<dynamic, FutureOr<T> Function()> impl, {
     dynamic name,
@@ -195,13 +204,14 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       );
     }
     return Inject(
-      creationFunction,
+      creationFunction as T Function(),
       name: name,
       isLazy: isLazy,
       joinSingleton: joinSingleton,
     );
   }
 
+  ///Inject a model that depends on its previous state
   factory Inject.previous(
     T Function(T previous) creationFunction, {
     dynamic name,
@@ -306,6 +316,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     newReactiveMapFromSeed.clear();
   }
 
+  ///Clear this [Inject]
   void cleanInject() {
     if (reactiveSingleton != null) {
       statesRebuilderCleaner(reactiveSingleton, false);

@@ -219,9 +219,14 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
   @override
   void initState() {
     super.initState();
-    if (widget.initState != null) {
-      widget.initState(context, _mixin);
-    }
+
+    widget.initState?.call(context, _mixin);
+  }
+
+  @override
+  void dispose() {
+    widget.dispose?.call(context, _mixin);
+    super.dispose();
   }
 
   @override
@@ -254,6 +259,7 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
             widget.afterRebuild(context);
           }
         },
+        shouldRebuild: (_) => true,
         builder: (context, _) {
           if (widget.builderWithChild != null) {
             return widget.builderWithChild(context, widget.child);
@@ -272,26 +278,12 @@ class _StateWithSingleTickerProvider<T> extends _State<T>
     with SingleTickerProviderStateMixin {
   @override
   T get _mixin => this as T;
-  @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _mixin);
-    }
-    super.dispose();
-  }
 }
 
 class _StateWithTickerProvider<T> extends _State<T>
     with TickerProviderStateMixin {
   @override
   T get _mixin => this as T;
-  @override
-  void dispose() {
-    if (widget.dispose != null) {
-      widget.dispose(context, _mixin);
-    }
-    super.dispose();
-  }
 }
 
 class _StateWithKeepAliveClient<T> extends _State<T>

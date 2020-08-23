@@ -1,7 +1,7 @@
+import 'dart:developer' as developer;
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 
 import 'assertions.dart';
 import 'injector.dart';
@@ -176,6 +176,9 @@ class StateBuilder<T> extends StatefulWidget {
   /// the same as the last one, the rebuild process is interrupted.
   ///
   final Object Function(ReactiveModel<T> model) watch;
+
+  ///Callback to determine whether this StateBuilder will rebuild or not.
+  ///
   final bool Function(ReactiveModel<T> model) shouldRebuild;
 
   ///ReactiveModel key used to control this widget from outside its [builder] method.
@@ -231,6 +234,7 @@ class StateBuilder<T> extends StatefulWidget {
   StateBuilderState createState() => StateBuilderState<T>();
 }
 
+///The state of [StateBuilder]
 class StateBuilderState<T> extends State<StateBuilder<T>>
     with ObserverOfStatesRebuilder {
   Set<StatesRebuilder> _models;
@@ -301,8 +305,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
       _cashedWatch = _actualWatch;
     }
 
-    if (canRebuild == false ||
-        widget.shouldRebuild?.call(_exposedModel) == false) {
+    if (canRebuild == false) {
       return;
     }
 
@@ -310,6 +313,13 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
       widget.onSetState(context, _exposedModel);
     } else if (onSetState != null) {
       onSetState(context);
+    }
+
+    if (_exposedModel != null &&
+        (widget.shouldRebuild ??
+                (rm) => rm.hasData || rm.isIdle != false)(_exposedModel) ==
+            false) {
+      return;
     }
 
     setState(() {});
@@ -393,7 +403,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
       oldWidget.rmKey.initCallBack = null;
       widget.rmKey.rm = _exposedModel;
       _models?.where((m) => m is ReactiveModel)?.forEach((rm) {
-        widget.rmKey.associate(rm);
+        widget.rmKey.associate(rm as ReactiveModel);
       });
     }
     if (this is StateBuilderState<Injector>) {
@@ -530,7 +540,7 @@ void _initState<T>(StateBuilderState<T> state) {
     };
 
     state._models.where((m) => m is ReactiveModel).forEach((rm) {
-      state.widget.rmKey.associate(rm);
+      state.widget.rmKey.associate(rm as ReactiveModel);
     });
   }
 }

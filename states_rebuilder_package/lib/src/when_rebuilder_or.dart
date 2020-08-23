@@ -152,7 +152,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       observeMany: observeMany,
       tag: tag,
       watch: watch,
-      shouldRebuild: shouldRebuild,
+      shouldRebuild: shouldRebuild ?? (_) => true,
       rmKey: rmKey,
       initState: initState,
       dispose: dispose,

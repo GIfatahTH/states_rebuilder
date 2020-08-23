@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/widgets.dart';
 
-import 'injector.dart';
 import 'reactive_model.dart';
 import 'reactive_model_imp.dart';
 import 'state_builder.dart';
@@ -13,7 +12,8 @@ import 'state_builder.dart';
 ///Observer classes should implement [ObserverOfStatesRebuilder]
 abstract class ObserverOfStatesRebuilder {
   ///Method to executed when observer is notified.
-  void update([dynamic Function(BuildContext) onSetState, dynamic message]);
+  void update(
+      [dynamic Function(BuildContext) onSetState, dynamic reactiveModel]);
 }
 
 ///[StatesRebuilder] use the observer pattern.
@@ -55,14 +55,14 @@ class StatesRebuilder<T> implements Subject {
   ///Holds user defined void callback to be executed after removing all observers.
   final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
 
-  static int __observersCount = 0;
-  static set _observersCount(int count) {
-    assert(count >= 0);
-    __observersCount = count;
-    if (__observersCount == 0) {
-      InjectorState.cleanInjector();
-    }
-  }
+  // static int __observersCount = 0;
+  // static set _observersCount(int count) {
+  //   assert(count >= 0);
+  //   __observersCount = count;
+  //   if (__observersCount == 0) {
+  //     cleanInjector();
+  //   }
+  // }
 
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
@@ -74,7 +74,7 @@ class StatesRebuilder<T> implements Subject {
     } else {
       _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
-    _observersCount = __observersCount + 1;
+    // _observersCount = __observersCount + 1;
   }
 
   @override
@@ -102,7 +102,7 @@ class StatesRebuilder<T> implements Subject {
     _observersMap[tag].remove(observer);
     _observersSet.remove(observer);
 
-    _observersCount = __observersCount - 1;
+    // _observersCount = __observersCount - 1;
 
     if (_observersMap[tag]?.isEmpty == true) {
       _observersMap.remove(tag);
