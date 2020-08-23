@@ -235,6 +235,8 @@ class Injector extends StatefulWidget {
     return inject as Inject<T>;
   }
 
+  static void cleanInjector() => cleanInjector();
+
   @override
   State<Injector> createState() {
     if (appLifeCycle == null) {
@@ -250,12 +252,6 @@ class InjectorState extends State<Injector> {
   ///Map contains all the registered models of the app
   static final Map<String, List<Inject<dynamic>>> allRegisteredModelInApp =
       <String, List<Inject<dynamic>>>{};
-  static cleanInjector() {
-    final map = {...allRegisteredModelInApp};
-    map.forEach((key, value) {
-      unregisterInjects([...value]);
-    });
-  }
 
   static final List<BuildContext> contextSet = [];
   List<Inject<dynamic>> _injects = [];
@@ -278,7 +274,7 @@ class InjectorState extends State<Injector> {
               for (Inject<dynamic> inject in _injects) {
                 final inj = allRegisteredModelInApp[inject.getName()].last;
                 final rm = inj.getReactive();
-                rm.refresh(widget.shouldNotifyOnReinjectOn);
+                rm.refresh();
               }
             },
           ),
