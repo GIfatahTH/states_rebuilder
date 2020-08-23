@@ -41,8 +41,7 @@ lib/generated_plugin_registrant.dart
 # Exceptions to above rules
 
 
-android/
-ios/
+
 web/
 # Android related
 **/android/**/gradle-wrapper.jar
@@ -105,3 +104,4 @@ states_rebuilder_package/example/android/local.properties
 states_rebuilder_package/example/android/local.properties
 examples/009-clean_architecture_todo_mvc_mutable_state/lib/generated_plugin_registrant.dart
 examples/008-clean_architecture_firebase_login/lib/generated_plugin_registrant.dart
+examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector/android/app/google-services.json
