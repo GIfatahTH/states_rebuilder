@@ -11,49 +11,67 @@ import 'state_builder.dart';
 import 'when_connection_state.dart';
 import 'when_rebuilder_or.dart';
 
+///Basic class for injected models
 abstract class Injected<T> {
   Function() _creationFunction;
-  final bool _autoClean;
+  final bool _autoDisposeWhenNotUsed;
   final void Function(T s) _onData;
   final void Function(dynamic e, StackTrace s) _onError;
   final void Function() _onWaiting;
-  final void Function(T s) _onDispose;
-
-  String get _name => '___Inject${hashCode}ed___';
+  final void Function(T s) _onInitialized;
+  final void Function(T s) _onDisposed;
+  final int _undoStackLength;
+  String get _name;
 
   Inject<T> _inject;
   dynamic Function() _cashedMockCreationFunction;
 
+  ///Basic class for injected models
   Injected({
-    bool autoClean = true,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
-    void Function(T s) onDispose,
-  })  : _autoClean = autoClean,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    int undoStackLength,
+  })  : _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed,
         _onData = onData,
         _onError = onError,
         _onWaiting = onWaiting,
-        _onDispose = onDispose;
+        _onInitialized = onInitialized,
+        _onDisposed = onDisposed,
+        _undoStackLength = undoStackLength;
+  final Set<Injected> _dependsOn = {};
 
   ReactiveModel<T> _rm;
-  ReactiveModel<T> get rm {
+
+  ///Get the [ReactiveModel] associated with the injected model
+  ReactiveModel<T> get getRM => _stateRM;
+
+  ///Get the [ReactiveModel] associated with this model.
+  ReactiveModel<T> get _stateRM {
     if (_rm != null) {
       return _rm;
     }
-    ReactiveModel<T> rm =
-        InjectorState.allRegisteredModelInApp[_name]?.first?.getReactive();
+    // ReactiveModel<T> rm =
+    //     _functionalInjectedModels[_name]?._inject?.getReactive();
 
-    if (rm != null) {
-      return _rm = rm;
-    }
-    _inject ??= _getInject();
+    // if (rm != null) {
+    //   return _rm = rm;
+    // }
+    // assert(_functionalInjectedModels[_name]?._inject == null);
+    _resolveInject();
     _inject.isGlobal = true;
-    assert(InjectorState.allRegisteredModelInApp[_name] == null);
-    InjectorState.allRegisteredModelInApp[_name] = [_inject];
-    rm = _inject.getReactive();
-    if (_autoClean ?? true) {
-      rm.cleaner(_unregisterInject);
+    _functionalInjectedModels[_name] = this;
+    final rm = _rm = _inject.getReactive();
+
+    if (_undoStackLength != null) {
+      rm.undoStackLength = _undoStackLength;
+    }
+
+    if (_autoDisposeWhenNotUsed ?? true) {
+      rm.cleaner(dispose);
     }
     if (_onWaiting != null || _onData != null || _onError != null) {
       rm.listenToRM(
@@ -62,7 +80,7 @@ abstract class Injected<T> {
             onIdle: () => null,
             onWaiting: () => _onWaiting?.call(),
             onData: (s) => _onData?.call(s),
-            onError: (e) {
+            onError: (dynamic e) {
               //if setState has error override this _onError
               if (!(rm as ReactiveModelImp).setStateHasOnErrorCallback) {
                 _onError?.call(e, (rm as ReactiveModelImp).stackTrace);
@@ -75,40 +93,82 @@ abstract class Injected<T> {
       );
     }
     //
+    _onInitialized?.call(_inject.getSingleton());
     return rm;
   }
 
+  ///The state of the model.
   T get state {
-    InjectedComputed._activeDependsOnSet?.add(rm);
-    return _rm?.state ?? (_inject ??= _getInject()).getSingleton();
+    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
+      assert(
+        !_dependsOn.contains(Injected._activeInjected),
+        '$runtimeType depends on ${Injected._activeInjected.runtimeType} and '
+        '${Injected._activeInjected.runtimeType} depends on $runtimeType',
+      );
+      _numberODependence++;
+    }
+    if (_inject == null) {
+      _functionalInjectedModels[_name] = this;
+      _resolveInject();
+      _onInitialized?.call(_inject.getSingleton());
+    }
+    return _inject.getSingleton();
   }
 
   set state(T s) {
-    rm.state = s;
+    _stateRM.state = s;
   }
 
+  ///Get the async state of the model.
   Future<T> get stateAsync {
-    return rm.stateAsync;
+    state;
+    return _stateRM.stateAsync;
   }
+
+  ///The latest error object received by the asynchronous computation.
+  dynamic get error => _rm?.error;
+
+  ///Returns whether this state is in the hasDate state.
+  bool get hasData => _rm?.hasData == true;
+
+  ///Returns whether this state is in the error state.
+  bool get hasError => _rm?.hasError == true;
+
+  ///Returns whether this state is in the waiting state.
+  bool get isWaiting => _rm?.isWaiting == true;
 
   Inject<T> _getInject();
-
-  void _unregisterInject() {
-    assert(InjectorState.allRegisteredModelInApp[_name] == null ||
-        InjectorState.allRegisteredModelInApp[_name].length == 1);
-    if (InjectorState.allRegisteredModelInApp.remove(_name) != null) {
-      if (_inject.isAsyncInjected) {
-        _inject.reactiveSingleton?.unsubscribe();
-      }
-      _onDispose?.call(rm.state);
-      print('`$T` is disposed');
-      if (this is InjectedComputed<T>) {
-        print('set InjectedComputed<T>');
-      }
-      _inject
-        ..removeAllReactiveNewInstance()
-        ..cleanInject();
+  static Injected _activeInjected;
+  void _resolveInject() {
+    if (_inject != null) {
+      return;
     }
+    _dependsOn.clear();
+
+    final cashedInjected = Injected._activeInjected;
+    Injected._activeInjected = this;
+    final inj = _getInject();
+    Injected._activeInjected = cashedInjected;
+    _clearDependence = _dependsOn.isEmpty
+        ? null
+        : () {
+            for (var depend in _dependsOn) {
+              depend._numberODependence--;
+              if (depend._rm?.hasObservers != true &&
+                  depend._numberODependence < 1) {
+                depend.dispose();
+              }
+            }
+          };
+    _inject = inj;
+  }
+
+  int _numberODependence = 0;
+  void Function() _clearDependence;
+  void _dispose() {
+    _onDisposed?.call(state);
+    _clearDependence?.call();
+    print('dispose $T');
     _rm = null;
     _inject = null;
     if (_cashedMockCreationFunction != null) {
@@ -116,57 +176,167 @@ abstract class Injected<T> {
     }
   }
 
+  ///Manually dispose the model(unregister it).
+  void dispose() {
+    _unregisterFunctionalInjectedModel(this);
+  }
+
+  ///Inject a fake implementation of this injected model.
+  ///
+  ///* Required parameters:
+  ///   * [creationFunction] (positional parameter): the fake creation function
   void injectMock(T Function() creationFunction) {
     assert(this is InjectedImp<T>);
   }
 
+  ///Inject a fake future implementation of this injected model.
+  ///
+  ///* Required parameters:
+  ///   * [creationFunction] (positional parameter): the fake future
   void injectFutureMock(Future<T> Function() creationFunction) {
     assert(this is InjectedFuture<T>);
   }
 
+  ///Inject a fake stream implementation of this injected model.
+  ///
+  ///* Required parameters:
+  ///   * [creationFunction] (positional parameter): the fake stream
   void injectStreamMock(Stream<T> Function() creationFunction) {
     assert(this is InjectedStream<T>);
   }
 
+  ///Inject a fake computed implementation of this injected model.
+  ///
+  ///* Required parameters:
+  ///   * [compute] (positional parameter): the fake compute callback
+  /// * Optional parameters:
+  ///   * [initialState] : the desired initial state of the injected model. If not defined, the original initial state is used.
   void injectComputedMock({T Function(T s) compute, T initialState}) {
     assert(this is InjectedComputed<T>);
   }
 
+  ///Mutate the state of the model and notify observers.
+  ///
+  ///* Required parameters:
+  ///  * The mutation function. It takes the current state fo the model.
+  /// The function can have any type of return including Future and Stream.
+  ///* Optional parameters:
+  ///  * [onData]: The callback to execute when the state is successfully mutated
+  /// with data. If defined this [onData] will override any other onData for this particular call.
+  ///  * [onError]: The callback to execute when the state has error. If defined
+  /// this [onError] will override any other onData for this particular call.
+  ///  * [onSetState] and [onRebuildState]: for more general side effects to
+  /// execute before and after rebuilding observers.
+  ///  * [catchError]: automatically catch errors. It defaults to false, but if
+  /// [onError] is defined then it will be true.
+  ///  * [skipWaiting]: Wether to notify observers on the waiting state.
+  ///  * [debounceDelay]: time in seconds to debounce the execution of [setState].
+  ///  * [throttleDelay]: time in seconds to throttle the execution of [setState].
+  ///  * [shouldAwait]: Wether to await of any existing async call.
+  ///  * [silent]: Whether to silent the error of no observers is found.
+  ///  * [watch]: parameters to watch, and only emits notification if they changes.
+  ///  * [filterTags]: List of tags to notify.
+  ///  * [seeds]: List of seeds to notify.
+  ///  * [context]: The [BuildContext] to be used for side effects (Navigation, SnackBar).
+  /// If not defined a default [BuildContext] obtained from the last added [StateBuilder] will be used
   Future<void> setState(
     Function(T s) fn, {
+    void Function(BuildContext context, T model) onData,
+    void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context) onSetState,
+    void Function(BuildContext context) onRebuildState,
     bool catchError,
+    bool skipWaiting = false,
+    int debounceDelay,
+    int throttleDelay,
+    bool shouldAwait = false,
+    bool silent = false,
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
-    bool shouldAwait = false,
-    int debounceDelay,
-    int throttleDelay,
-    bool skipWaiting = false,
-    void Function(BuildContext context) onSetState,
-    void Function(BuildContext context) onRebuildState,
-    void Function(BuildContext context, dynamic error) onError,
-    void Function(BuildContext context, T model) onData,
-    bool silent = false,
+    BuildContext context,
   }) {
-    return rm.setState(
+    return _stateRM.setState(
       fn,
+      onData: onData,
+      onError: onError,
+      onSetState: onSetState,
+      onRebuildState: onRebuildState,
       catchError: catchError,
+      skipWaiting: skipWaiting,
+      debounceDelay: debounceDelay,
+      throttleDelay: throttleDelay,
+      shouldAwait: shouldAwait,
+      silent: silent,
       watch: watch,
       filterTags: filterTags,
       seeds: seeds,
-      shouldAwait: shouldAwait,
-      debounceDelay: debounceDelay,
-      throttleDelay: throttleDelay,
-      skipWaiting: skipWaiting,
-      onSetState: onSetState,
-      onRebuildState: onRebuildState,
-      onData: onData,
-      onError: onError,
+      context: context,
     );
   }
 
-  Future<T> refresh([bool shouldNotify = true]) => rm.refresh(shouldNotify);
-  void notify([List<dynamic> tags]) => rm.notify(tags);
+  ///Refresh the [ReactiveModel] state.
+  ///
+  ///Reset the ReactiveModel to its initial state by reinvoking its creation function.
+  ///
+  ///If first invoke 'onDisposed' if defined that reset the injected model to its initial state
+  ///and call 'onInitialized' if defined.
+  ///
+  Future<T> refresh() async {
+    _onDisposed?.call(state);
+    return _rm?.refresh(
+      onInitRefresh: () => _onInitialized?.call(state),
+    );
+  }
+
+  ///The stream (or Future) subscription of the state
+  StreamSubscription get subscription => _rm?.subscription;
+
+  ///Notify registered observers to rebuild.
+  ///
+  ///* Optional parameters:
+  ///  * [tags] : List of tags to limit the notification on.
+  void notify([List<dynamic> tags]) => _rm?.notify(tags);
+
+  ///Whether the state can be redone.
+  bool get canRedoState => _rm?.canRedoState == true;
+
+  ///Whether the state can be done
+  bool get canUndoState => _rm?.canUndoState == true;
+
+  ///redo to the next valid state (isWaiting and hasError are ignored)
+  ReactiveModel<T> redoState() => _rm?.redoState();
+
+  ///undo to the last valid state (isWaiting and hasError are ignored)
+  ReactiveModel<T> undoState() => _rm?.undoState();
+
+  ///Clear undoStack;
+  void clearUndoStack() => _rm?.clearUndoStack();
+
+  ///Listen to the injected Model and rebuild only **when the model emits a
+  ///notification with new data**.
+  ///
+  ///If you want to rebuild when model emits notification with waiting or error state
+  ///use [Injected.whenRebuilder] or [Injected.whenRebuilderOr].
+  ///
+  /// * Required parameters:
+  ///     * [builder] (positional parameter) is si called each time the injected model has new data.
+  /// * Optional parameters:
+  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///
+  /// Note that this is exactly equivalent to :
+  ///```dart
+  ///  StateBuilder(
+  ///    observe: () => rm,
+  ///    initState: (_, rm) => initState(),
+  ///    dispose:  (_, rm) => dispose(),
+  ///    shouldRebuild: (rm) => rm.hasData,
+  ///    builder: (context, rm) => builder(),
+  ///  )
+  ///```
+  ///
+  ///Use [StateBuilder] if you want to have more options
   Widget rebuilder(
     Widget Function() builder, {
     void Function() initState,
@@ -177,11 +347,37 @@ abstract class Injected<T> {
       key: key,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
-      observe: () => rm,
-      builder: (_, rm) => builder(),
+      shouldRebuild: (rm) => rm.hasData || rm.isIdle,
+      observe: () => _stateRM,
+      builder: (context, rm) => builder(),
     );
   }
 
+  ///Listen to the injected Model and rebuild when it emits a notification.
+  ///
+  /// * Required parameters:
+  ///     * [onIdle] : callback to be executed when injected model is in its initial state.
+  ///     * [onWaiting] : callback to be executed when injected model is in waiting state.
+  ///     * [onError] : callback to be executed when injected model has error.
+  ///     * [onData] : callback to be executed when injected model has data.
+  /// * Optional parameters:
+  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///
+  /// Note that this is exactly equivalent to :
+  ///```dart
+  ///    WhenRebuilder(
+  ///    observe: () => injectedModel.rm,
+  ///    initState: (context, rm) => initState(),
+  ///    dispose: (context, rm) => dispose(),
+  ///    onIdle: onIdle,
+  ///    onWaiting: onWaiting,
+  ///    onError: onError,
+  ///    onData: (s) => onData(),
+  ///  );
+  ///```
+  ///
+  ///Use [WhenRebuilder] if you want to have more options
   Widget whenRebuilder({
     @required Widget Function() onIdle,
     @required Widget Function() onWaiting,
@@ -191,41 +387,119 @@ abstract class Injected<T> {
     void Function() dispose,
     Key key,
   }) {
-    return WhenRebuilder(
+    return StateBuilder<T>(
       key: key,
-      observe: () => rm,
+      observe: () => _stateRM,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
-      onIdle: () => onIdle(),
-      onWaiting: () => onWaiting(),
-      onError: (e) => onError(e),
-      onData: (s) => onData(),
+      shouldRebuild: (_) => true,
+      builder: (context, __) {
+        return _stateRM.whenConnectionState(
+          onIdle: onIdle,
+          onWaiting: onWaiting,
+          onError: onError,
+          onData: (_) => onData(),
+          catchError: onError != null,
+        );
+      },
     );
   }
 
+  ///Listen to the injected Model and rebuild when it emits a notification.
+  ///
+  /// * Required parameters:
+  ///     * [builder] Default callback (called in replacement of any non defined optional parameters [onIdle], [onWaiting], [onError] and [onData]).
+  /// * Optional parameters:
+  ///     * [onIdle] : callback to be executed when injected model is in its initial state.
+  ///     * [onWaiting] : callback to be executed when injected model is in waiting state.
+  ///     * [onError] : callback to be executed when injected model has error.
+  ///     * [onData] : callback to be executed when injected model has data.
+  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///
+  /// Note that this is exactly equivalent to :
+  ///```dart
+  ///    WhenRebuilderOr(
+  ///    observe: () => injectedModel.rm,
+  ///    initState: (context, rm) => initState(),
+  ///    dispose: (context, rm) => dispose(),
+  ///    onIdle: onIdle,
+  ///    onWaiting: onWaiting,
+  ///    onError: onError,
+  ///    onData: (s) => onData(),
+  ///    builder: (context, rm) {
+  ///      return builder();
+  ///    },
+  ///  );
+  ///```
+  ///
+  ///Use [WhenRebuilderOr] if you want to have more options
   Widget whenRebuilderOr({
     Widget Function() onIdle,
     Widget Function() onWaiting,
-    Widget Function() onData,
     Widget Function(dynamic) onError,
+    Widget Function() onData,
     @required Widget Function() builder,
     void Function() initState,
     void Function() dispose,
     Key key,
   }) {
-    return WhenRebuilderOr(
+    return StateBuilder<T>(
       key: key,
-      observe: () => rm,
+      observe: () => _stateRM,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
-      onIdle: onIdle == null ? null : () => onIdle(),
-      onWaiting: onWaiting == null ? null : () => onWaiting(),
-      onError: onError == null ? null : (e) => onError(e),
-      onData: onData == null ? null : (s) => onData(),
-      builder: (_, rm) => builder(),
+      shouldRebuild: (_) {
+        return _stateRM.whenConnectionState<bool>(
+          onIdle: () => true,
+          onWaiting: () => onWaiting != null,
+          onError: (dynamic _) => true,
+          onData: (T _) => true,
+          catchError: onError != null,
+        );
+      },
+      builder: (context, __) {
+        if (_stateRM.isIdle && onIdle != null) {
+          return onIdle();
+        }
+        if (isWaiting && onWaiting != null) {
+          return onWaiting();
+        }
+        if (hasError && onError != null) {
+          return onError(error);
+        }
+        if (hasData && onData != null) {
+          return onData();
+        }
+        return builder();
+      },
     );
   }
 
+  ///Listen to a future from the injected model and rebuild this widget when it resolves.
+  ///
+  ///After the future ends (with data or error), it will mutate the state of the injected model, but only
+  ///rebuilds this widget.
+  ///
+  /// * Required parameters:
+  ///     * [future] : Callback that takes the current state and async state of the injected model.
+  ///     * [onWaiting] : callback to be executed when the future is in the waiting state.
+  ///     * [onError] : callback to be executed when the future ends with error.
+  ///     * [onData] : callback to be executed when the future ends data.
+  ///
+  ///If [onWaiting] or [onError] is set to null, the onData callback will be execute instead.
+  ///
+  ///ex:
+  ///In the following code the onData will be invoked when the future is waiting,
+  ///hasError, or hasData
+  ///```dart
+  ///injectedModel.futureBuilder(
+  ///future : (s, asyncS) => someMethod(),
+  ///onWaiting : null, //onData is called instead
+  ///onError: null, // onData is called instead
+  ///onData: (data)=>SomeWidget(),
+  ///)
+  ///```
   Widget futureBuilder<F>({
     @required Future<F> Function(T data, Future<T> asyncState) future,
     @required Widget Function() onWaiting,
@@ -236,16 +510,16 @@ abstract class Injected<T> {
     return StateBuilder<F>(
       key: key,
       observe: () {
-        return rm.future((s, stateAsync) {
+        return _stateRM.future((s, stateAsync) {
           return future(s, stateAsync);
         });
       },
       initState: (_, __) =>
-          (rm as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
+          (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
       dispose: (_, __) {
-        (rm as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
-        if (!rm.hasObservers) {
-          statesRebuilderCleaner(rm);
+        (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
+        if (!_stateRM.hasObservers) {
+          statesRebuilderCleaner(_stateRM);
         }
       },
       onSetState: (_, rm) {
@@ -256,6 +530,7 @@ abstract class Injected<T> {
           }
         }
       },
+      shouldRebuild: (_) => true,
       builder: (_, rm) {
         if (rm.isWaiting) {
           return onWaiting == null ? onData(rm.state) : onWaiting();
@@ -270,6 +545,33 @@ abstract class Injected<T> {
     );
   }
 
+  ///Listen to a stream from the injected model and rebuild this widget
+  ///when the stream emits data.
+  ///
+  ///when the stream emits data, it will mutate the state of the injected model, but only
+  ///rebuilds this widget.
+  ///
+  /// * Required parameters:
+  ///     * [stream] : Callback that takes the current state and StreamSubscription  of the injected model.
+  ///     * [onWaiting] : callback to be executed when the stream is in the waiting state.
+  ///     * [onError] : callback to be executed when the stream emits error.
+  ///     * [onData] : callback to be executed when the stream emits data.
+  /// * Optional parameters:
+  ///     * [onDone] : callback to be executed when the stream isDone.
+  ///
+  ///If [onWaiting], [onError] or [onDone] is set to null, the onData callback will be execute instead.
+  ///
+  ///ex:
+  ///In the following code the onData will be invoked when the stream is waiting,
+  ///has error, has data, or is done
+  ///```dart
+  ///injectedModel.streamBuilder(
+  ///stream : (s, subscription) => someMethod(),
+  ///onWaiting : null, //onData is called instead
+  ///onError: null, // onData is called instead
+  ///onData: (data)=>SomeWidget(),
+  ///)
+  ///```
   Widget streamBuilder<S>({
     @required Stream<S> Function(T s, StreamSubscription subscription) stream,
     @required Widget Function() onWaiting,
@@ -281,16 +583,16 @@ abstract class Injected<T> {
     return StateBuilder<S>(
       key: key,
       observe: () {
-        return rm.stream((s, subscription) {
+        return _stateRM.stream((s, subscription) {
           return stream(s, subscription);
         });
       },
       initState: (_, __) =>
-          (rm as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
+          (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
       dispose: (_, __) {
-        (rm as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
-        if (!rm.hasObservers) {
-          statesRebuilderCleaner(rm);
+        (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
+        if (!_stateRM.hasObservers) {
+          statesRebuilderCleaner(_stateRM);
         }
       },
       onSetState: (_, rm) {
@@ -301,6 +603,7 @@ abstract class Injected<T> {
           }
         }
       },
+      shouldRebuild: (_) => true,
       builder: (_, rm) {
         if (rm.isWaiting) {
           return onWaiting == null ? onData(rm.state) : onWaiting();
@@ -320,24 +623,30 @@ abstract class Injected<T> {
 
   @override
   String toString() {
-    return rm?.toString();
+    return _stateRM?.toString();
   }
 }
 
+///implementation of [Injected]
 class InjectedImp<T> extends Injected<T> {
+  ///implementation of [Injected]
   InjectedImp(
     T Function() creationFunction, {
-    bool autoClean = true,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
-    void Function(T s) onDispose,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    int undoStackLength,
   }) : super(
-          autoClean: autoClean,
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
           onError: onError,
           onWaiting: onWaiting,
-          onDispose: onDispose,
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          undoStackLength: undoStackLength,
         ) {
     _creationFunction = creationFunction;
   }
@@ -345,124 +654,164 @@ class InjectedImp<T> extends Injected<T> {
   @override
   void injectMock(T Function() creationFunction) {
     super.injectMock(creationFunction);
-    _unregisterInject();
-    _inject = null;
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;
   }
 
   @override
-  Inject<T> _getInject() => Inject(_creationFunction, name: _name);
-}
-
-class InjectedFuture<T> extends Injected<T> {
-  final T _initialValue;
-
-  InjectedFuture(
-    Future<T> Function() creationFunction, {
-    bool autoClean = true,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onDispose,
-    bool isLazy = true,
-    T initialValue,
-  })  : _initialValue = initialValue,
-        super(
-          autoClean: autoClean,
-          onData: onData,
-          onError: onError,
-          onWaiting: onWaiting,
-          onDispose: onDispose,
-        ) {
-    _creationFunction = creationFunction;
-    if (!isLazy) {
-      rm;
-    }
-  }
-  @override
-  void injectFutureMock(Future<T> Function() creationFunction) {
-    _unregisterInject();
-    _inject = null;
-    _creationFunction = creationFunction;
-    _cashedMockCreationFunction ??= _creationFunction;
-  }
+  String get _name => '___Injected${hashCode}Imp___';
 
   @override
-  Inject<T> _getInject() => Inject.future(
-        _creationFunction,
+  Inject<T> _getInject() => Inject<T>(
+        _creationFunction as T Function(),
         name: _name,
-        initialValue: _initialValue,
+        isLazy: false,
       );
 }
 
+///implementation of [Injected] for future injection
+class InjectedFuture<T> extends Injected<T> {
+  final T _initialValue;
+
+  ///implementation of [Injected] for future injection
+  InjectedFuture(
+    Future<T> Function() creationFunction, {
+    bool autoDisposeWhenNotUsed = true,
+    void Function(T s) onData,
+    void Function(dynamic e, StackTrace s) onError,
+    void Function() onWaiting,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    bool isLazy = true,
+    T initialValue,
+    int undoStackLength,
+  })  : _initialValue = initialValue,
+        super(
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+          onData: onData,
+          onError: onError,
+          onWaiting: onWaiting,
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          undoStackLength: undoStackLength,
+        ) {
+    _creationFunction = creationFunction;
+    if (!isLazy) {
+      _stateRM;
+    }
+  }
+
+  @override
+  String get _name => '___Injected${hashCode}Future___';
+  @override
+  void injectFutureMock(Future<T> Function() creationFunction) {
+    _creationFunction = creationFunction;
+    _cashedMockCreationFunction ??= _creationFunction;
+  }
+
+  @override
+  Inject<T> _getInject() => Inject<T>.future(
+        () => _creationFunction() as Future<T>,
+        name: _name,
+        initialValue: _initialValue,
+        isLazy: false,
+      );
+}
+
+///implementation of [Injected] for Stream injection
 class InjectedStream<T> extends Injected<T> {
   final T _initialValue;
   final Function(T) _watch;
 
+  ///implementation of [Injected] for Stream injection
   InjectedStream(
     Stream<T> Function() creationFunction, {
-    bool autoClean = true,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
-    void Function(T s) onDispose,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
     Function(T) watch,
     bool isLazy = true,
     T initialValue,
+    int undoStackLength,
   })  : _initialValue = initialValue,
         _watch = watch,
         super(
-          autoClean: autoClean,
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
           onError: onError,
           onWaiting: onWaiting,
-          onDispose: onDispose,
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          undoStackLength: undoStackLength,
         ) {
     _creationFunction = creationFunction;
     if (!isLazy) {
-      rm;
+      _stateRM;
     }
   }
   @override
+  String get _name => '___Injected${hashCode}Stream___';
+  @override
   void injectStreamMock(Stream<T> Function() creationFunction) {
     assert(this is InjectedStream<T>);
-    _unregisterInject();
-    _inject = null;
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;
   }
 
   @override
-  Inject<T> _getInject() => Inject.stream(
-        _creationFunction,
+  Inject<T> _getInject() => Inject<T>.stream(
+        _creationFunction as Stream<T> Function(),
         name: _name,
         initialValue: _initialValue,
         watch: _watch,
+        isLazy: false,
       );
+
+  @override
+  Future<T> refresh() async {
+    state = _initialValue;
+    return super.refresh();
+  }
 }
 
+///implementation of [Injected] for Flavor injection
 class InjectedInterface<T> extends Injected<T> {
   final Map<dynamic, FutureOr<T> Function()> _impl;
   final T _initialValue;
+
+  ///implementation of [Injected] for Flavor injection
   InjectedInterface(
     Map<dynamic, FutureOr<T> Function()> impl, {
-    bool autoClean = true,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
-    void Function(T s) onDispose,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
     T initialValue,
+    int undoStackLength,
+    bool isLazy = true,
   })  : _impl = impl,
         _initialValue = initialValue,
         super(
-          autoClean: autoClean,
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
           onError: onError,
           onWaiting: onWaiting,
-          onDispose: onDispose,
-        );
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          undoStackLength: undoStackLength,
+        ) {
+    if (!isLazy) {
+      _stateRM;
+    }
+  }
   static int _envMapLength;
+  @override
+  String get _name => '___Injected${hashCode}Interface___';
   @override
   Inject<T> _getInject() {
     assert(Injector.env != null, '''
@@ -483,54 +832,100 @@ you had $_envMapLength flavors and you are defining ${_impl.length} flavors.
         creationFunction,
         name: _name,
         initialValue: _initialValue,
+        isLazy: false,
       );
     }
-    return Inject(creationFunction, name: _name);
+    return Inject(
+      creationFunction as T Function(),
+      name: _name,
+    );
   }
 }
 
+///implementation of [Injected] for computed injection
 class InjectedComputed<T> extends Injected<T> {
   final T _initialState;
   final bool Function(T s) _shouldCompute;
-  final Set<ReactiveModel> _dependsOn = {};
-  InjectedComputed(
-    T Function(T s) compute, {
-    bool autoClean = true,
+  final List<Injected<dynamic>> _asyncDependsOn;
+
+  ///implementation of [Injected] for computed injection
+  InjectedComputed({
+    T Function(T s) compute,
+    List<Injected<dynamic>> asyncDependsOn,
+    Stream<T> Function(T s) computeAsync,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
-    void Function(T s) onDispose,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
     bool Function(T s) shouldCompute,
     T initialState,
+    int undoStackLength,
+    bool isLazy = true,
   })  : _initialState = initialState,
         _shouldCompute = shouldCompute,
+        _asyncDependsOn = asyncDependsOn,
+        assert(
+          compute != null || computeAsync != null,
+          'Define `compute` for sync computation or `computeAsync` for async computation',
+        ),
+        assert(
+          compute == null || computeAsync == null,
+          'You can not define both `compute` and `computeAsync`',
+        ),
+        assert(
+          computeAsync == null && asyncDependsOn == null ||
+              computeAsync != null && asyncDependsOn != null,
+          'When using `computeAsync` you have to define `asyncDependsOn``',
+        ),
+        assert(
+          asyncDependsOn == null || asyncDependsOn.isNotEmpty,
+          'asyncDependsOn can not be null',
+        ),
         super(
-          autoClean: autoClean,
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
           onError: onError,
           onWaiting: onWaiting,
-          onDispose: onDispose,
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          undoStackLength: undoStackLength,
         ) {
-    _creationFunction = () {
-      if (_dependsOn?.isNotEmpty == true) {
+    if (_asyncDependsOn == null) {
+      _creationFunction = () {
         if (_shouldCompute?.call(_rm?.state ?? _initialState) == false) {
           return _rm?.state ?? _initialState;
         }
         return compute(_rm?.state ?? _initialState);
-      }
-      final cashedSet = _activeDependsOnSet;
-      _activeDependsOnSet = _dependsOn;
-      final fn = compute(_rm?.state ?? _initialState);
-      _activeDependsOnSet = cashedSet;
-      return fn;
-    };
-  }
+      };
+    } else {
+      _creationFunction = () async* {
+        if (_shouldCompute?.call(_rm?.state ?? _initialState) == false) {
+          yield _rm?.state ?? _initialState;
+        }
+        yield* computeAsync(_rm?.state ?? _initialState);
+      };
+    }
 
+    if (!isLazy) {
+      _stateRM;
+    }
+  }
   @override
-  ReactiveModel<T> get rm {
-    final rm = super.rm;
-    if (_dependsOn.isNotEmpty) {
-      for (var reactiveModel in _dependsOn) {
+  String get _name => '___Injected${hashCode}Computed___';
+
+  bool _isRegistered = false;
+  @override
+  ReactiveModel<T> get _stateRM {
+    final rm = super._stateRM;
+    if (_isRegistered) {
+      return rm;
+    }
+    _isRegistered = true;
+    if (_asyncDependsOn != null || _dependsOn.isNotEmpty) {
+      for (var depend in _asyncDependsOn ?? _dependsOn) {
+        final reactiveModel = depend._stateRM;
         if (rm.hasData || rm.isIdle) {
           if (reactiveModel.isWaiting) {
             rm.resetToIsWaiting();
@@ -541,12 +936,13 @@ class InjectedComputed<T> extends Injected<T> {
         final disposer = reactiveModel.listenToRM(
           (_) {
             ReactiveModel errorRM;
-            for (var r in _dependsOn) {
+            for (var depend in _dependsOn) {
+              final r = depend._stateRM;
               r.whenConnectionState(
                 onIdle: null,
                 onWaiting: null,
                 onData: null,
-                onError: (e) => errorRM = r,
+                onError: (dynamic e) => errorRM = r,
                 catchError: r.hasError,
               );
               if (r.isWaiting) {
@@ -563,16 +959,11 @@ class InjectedComputed<T> extends Injected<T> {
                 ..notify();
               return;
             }
-            rm.setState(
-              (s) => rm.inject.creationFunction(),
-              silent: true,
-            );
+            rm.refresh();
           },
           listenToOnDataOnly: false,
         );
-        rm.cleaner(() {
-          disposer();
-        });
+        rm.cleaner(disposer);
       }
     }
     return rm;
@@ -580,46 +971,98 @@ class InjectedComputed<T> extends Injected<T> {
 
   @override
   T get state {
-    if (InjectedComputed._activeDependsOnSet?.add(rm) == true) {
-      print(InjectedComputed._activeDependsOnSet);
+    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
+      _numberODependence++;
     }
-    return rm.state;
+    //override to force calling rm getter
+    return _stateRM.state;
   }
 
-  static Set<ReactiveModel> _activeDependsOnSet;
   @override
-  void injectComputedMock({T Function(T s) compute, T initialState}) {
+  void injectComputedMock({
+    T Function(T s) compute,
+    Stream<T> Function(T s) computeAsync,
+    initialState,
+  }) {
     assert(this is InjectedComputed<T>);
-    final s = rm.state ?? initialState ?? _initialState;
-    _unregisterInject();
     _inject = null;
-    _creationFunction = () {
-      if (_dependsOn?.isNotEmpty == true) {
-        if (!_shouldCompute(s)) {
+    if (_asyncDependsOn == null) {
+      _creationFunction = () {
+        final s = _rm?.state ?? initialState ?? _initialState;
+        // if (_dependsOn?.isNotEmpty == true) {
+        if (_shouldCompute?.call(s) == false) {
           return s;
         }
         return compute(s);
-      }
-      final cashedSet = InjectedComputed._activeDependsOnSet;
-      InjectedComputed._activeDependsOnSet = _dependsOn;
-      final fn = compute(s);
-      InjectedComputed._activeDependsOnSet = cashedSet;
-      return fn;
-    };
+      };
+    } else {
+      _creationFunction = () async* {
+        final s = _rm?.state ?? initialState ?? _initialState;
+        // if (_dependsOn?.isNotEmpty == true) {
+        if (_shouldCompute?.call(s) == false) {
+          yield s;
+        }
+        yield* computeAsync(s);
+      };
+    }
+
     _cashedMockCreationFunction ??= _creationFunction;
   }
 
   @override
-  Inject<T> _getInject() => Inject<T>(_creationFunction, name: _name);
+  Inject<T> _getInject() => _asyncDependsOn == null
+      ? Inject<T>(
+          _creationFunction as T Function(),
+          name: _name,
+          isLazy: false,
+        )
+      : Inject<T>.stream(
+          _creationFunction as Stream<T> Function(),
+          name: _name,
+          isLazy: false,
+          initialValue: _initialState,
+        );
 
   @override
-  void _unregisterInject() {
-    super._unregisterInject();
+  void _dispose() {
+    super._dispose();
     _dependsOn.clear();
+    _isRegistered = false;
   }
 
   @override
   String toString() {
-    return 'Computed : ' + super.toString();
+    return 'Computed : ${super.toString()}';
   }
+}
+
+final Map<String, Injected<dynamic>> _functionalInjectedModels =
+    <String, Injected<dynamic>>{};
+Map<String, Injected<dynamic>> get functionalInjectedModels =>
+    _functionalInjectedModels;
+
+///Dispose and clean all injected model
+void cleanInjector() {
+  Map<String, Injected<dynamic>>.from(_functionalInjectedModels).forEach(
+    (key, injected) {
+      _unregisterFunctionalInjectedModel(injected);
+    },
+  );
+  assert(_functionalInjectedModels.isEmpty);
+}
+
+void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
+  if (injected._inject == null) {
+    return;
+  }
+  final name = injected._inject.getName();
+  if (injected._inject.isAsyncInjected) {
+    injected._rm?.unsubscribe();
+  }
+
+  injected._inject
+    ..removeAllReactiveNewInstance()
+    ..cleanInject();
+  injected._dispose();
+  _functionalInjectedModels.remove(name);
 }
