@@ -38,12 +38,12 @@ build/
 # Web related
 lib/generated_plugin_registrant.dart
 
-# Exceptions to above rules.
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+# Exceptions to above rules
 
 
-
-
+android/
+ios/
+web/
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
@@ -56,6 +56,7 @@ lib/generated_plugin_registrant.dart
 *.jks
 
 # iOS/XCode related
+
 **/ios/**/*.mode1v3
 **/ios/**/*.mode2v3
 **/ios/**/*.moved-aside
