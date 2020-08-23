@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/injected.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
 final streamVanillaModel = RM.injectStream(
@@ -19,7 +20,7 @@ final futureModel = RM.injectFuture(
   initialValue: 0,
 );
 
-final interface = RM.injectInterface({
+final interface = RM.injectFlavor({
   Env.prod: () => ModelProd(),
   Env.test: () => ModelTest(),
 });
@@ -45,10 +46,10 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(vanillaModel.rm.isWaiting, isTrue);
+      expect(vanillaModel.isWaiting, isTrue);
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
-      expect(vanillaModel.rm.hasError, isTrue);
+      expect(vanillaModel.hasError, isTrue);
     },
   );
 
@@ -56,7 +57,6 @@ void main() {
     '  will  stream dispose if the injected stream is disposed',
     (tester) async {
       final switcherRM = RM.inject(() => true);
-      ReactiveModel<VanillaModel> intRM = streamVanillaModel.rm;
 
       final widget = switcherRM.rebuilder(() {
         if (switcherRM.state) {
@@ -75,14 +75,14 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('1'), findsOneWidget);
 
-      expect(intRM.subscription.isPaused, isFalse);
+      expect(streamVanillaModel.subscription.isPaused, isFalse);
       switcherRM.state = false;
 
       await tester.pump();
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('1'), findsNothing);
-      expect(intRM.subscription, isNull);
+      expect(streamVanillaModel.subscription, isNull);
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsNothing);
@@ -92,24 +92,25 @@ void main() {
   testWidgets(
     'models are injected lazily and disposed automatically',
     (tester) async {
-      expect(InjectorState.allRegisteredModelInApp.length, 0);
+      expect(functionalInjectedModels.length, 0);
       final switcherRM = RM.create(true);
       final widget = StateBuilder(
         observe: () => switcherRM,
+        dispose: (_, __) => RM.disposeAll(),
         builder: (_, __) => switcherRM.state
             ? vanillaModel.rebuilder(() => Container())
             : Container(),
       );
       await tester.pumpWidget(widget);
-      expect(InjectorState.allRegisteredModelInApp.length, 1);
+      expect(functionalInjectedModels.length, 1);
       switcherRM.state = false;
       await tester.pumpWidget(widget);
-      expect(InjectorState.allRegisteredModelInApp.length, 0);
+      expect(functionalInjectedModels.length, 0);
       //
-      streamVanillaModel.rm;
+      streamVanillaModel.getRM;
       switcherRM.state = true;
       await tester.pumpWidget(widget);
-      expect(InjectorState.allRegisteredModelInApp.length, 2);
+      expect(functionalInjectedModels.length, 2);
     },
   );
 
@@ -405,17 +406,20 @@ void main() {
         () => Future.delayed(Duration(seconds: 1), () => 2),
         isLazy: false,
       );
-      final future2 = RM.injectFuture<int>(() async {
-        final future1Value = await future1.stateAsync;
-        await Future.delayed(Duration(seconds: 1));
-        return future1Value * 2;
-      });
+      final future2 = RM.injectFuture<int>(
+        () async {
+          final future1Value = await future1.stateAsync;
+          await Future.delayed(Duration(seconds: 1));
+          return future1Value * 2;
+        },
+        isLazy: false,
+      );
 
-      expect(future1.rm.isWaiting, isTrue);
-      expect(future2.rm.isWaiting, isTrue);
+      expect(future1.isWaiting, isTrue);
+      expect(future2.isWaiting, isTrue);
       await tester.pump(Duration(seconds: 1));
-      expect(future1.rm.hasData, isTrue);
-      expect(future2.rm.isWaiting, isTrue);
+      expect(future1.hasData, isTrue);
+      expect(future2.isWaiting, isTrue);
       future2.setState(
         (future) => Future.delayed(Duration(seconds: 1), () => 2 * future),
         silent: true,
@@ -423,12 +427,215 @@ void main() {
       );
       await tester.pump(Duration(seconds: 1));
       expect(future1.state, 2);
-      expect(future2.rm.isWaiting, isTrue);
+      expect(future2.isWaiting, isTrue);
       await tester.pump(Duration(seconds: 1));
       expect(future1.state, 2);
       expect(future2.state, 8);
     },
   );
+
+  testWidgets(
+    'Injector : should not throw when using whenRebuilderOr',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        vanillaModel.whenRebuilderOr(
+          onError: (e) => Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(e.message),
+          ),
+          builder: () => Container(),
+        ),
+      );
+      vanillaModel.setState(
+        (state) => state.incrementError(),
+      );
+      await tester.pump();
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Error message'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Injector : whenRebuilderOr should not rebuild if onWaiting is not defined',
+    (WidgetTester tester) async {
+      int numberOfRebuilds = 0;
+      await tester.pumpWidget(
+        vanillaModel.whenRebuilderOr(
+          builder: () {
+            numberOfRebuilds++;
+            return Container();
+          },
+        ),
+      );
+      expect(numberOfRebuilds, 1);
+      vanillaModel.setState(
+        (state) => state.incrementAsync(),
+      );
+      await tester.pump();
+      expect(numberOfRebuilds, 1);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(numberOfRebuilds, 2);
+    },
+  );
+
+  testWidgets(
+    'Injector : whenRebuilderOr should rebuild if onError is not defined',
+    (WidgetTester tester) async {
+      int numberOfRebuilds = 0;
+      await tester.pumpWidget(
+        vanillaModel.whenRebuilderOr(
+          builder: () {
+            numberOfRebuilds++;
+            return Container();
+          },
+        ),
+      );
+      expect(numberOfRebuilds, 1);
+      vanillaModel.setState(
+        (state) => state.incrementError(),
+        catchError: true,
+      );
+      await tester.pump();
+      expect(numberOfRebuilds, 1);
+
+      await tester.pump(Duration(seconds: 2));
+      expect(numberOfRebuilds, 2);
+    },
+  );
+
+  testWidgets('autoDispose dependent injected model', (tester) async {
+    bool counter1IsDisposed = false;
+    bool counter2IsDisposed = false;
+    bool counter3IsDisposed = false;
+    final counter1 = RM.inject(
+      () => 0,
+      onDisposed: (_) => counter1IsDisposed = true,
+    );
+    final counter2 = RM.inject(
+      () => 0,
+      onDisposed: (_) => counter2IsDisposed = true,
+    );
+    final counter3 = RM.inject<int>(
+      () {
+        return counter1.state + counter2.state;
+      },
+      onDisposed: (_) => counter3IsDisposed = true,
+    );
+    final switcher = RM.create(true);
+    await tester.pumpWidget(StateBuilder(
+      observe: () => switcher,
+      builder: (_, __) {
+        if (switcher.state) {
+          return counter3.rebuilder(() => Container());
+        }
+        return Container();
+      },
+    ));
+    switcher.state = false;
+    await tester.pump();
+    expect(counter3IsDisposed, true);
+    await tester.pump();
+    expect(counter1IsDisposed, true);
+    expect(counter2IsDisposed, true);
+  });
+
+  testWidgets('autoDispose dependent injected model (do not dispose counter1)',
+      (tester) async {
+    bool counter1IsDisposed = false;
+    bool counter2IsDisposed = false;
+    bool counter3IsDisposed = false;
+    bool counter4IsDisposed = false;
+    final counter1 = RM.inject(
+      () => 0,
+      onDisposed: (_) => counter1IsDisposed = true,
+    );
+    final counter2 = RM.inject(
+      () => 0,
+      onDisposed: (_) => counter2IsDisposed = true,
+    );
+    final counter3 = RM.inject<int>(
+      () {
+        return counter1.state + counter2.state;
+      },
+      onDisposed: (_) => counter3IsDisposed = true,
+    );
+    final counter4 = RM.inject(
+      () => counter1.state,
+      onDisposed: (_) => counter4IsDisposed = true,
+    );
+    final switcher = RM.create(true);
+    await tester.pumpWidget(StateBuilder(
+      observe: () => switcher,
+      builder: (_, __) {
+        if (switcher.state) {
+          return counter3.rebuilder(() => Container());
+        }
+        return Container();
+      },
+    ));
+    switcher.state = false;
+    counter4.state;
+    await tester.pump();
+    expect(counter3IsDisposed, true);
+    await tester.pump();
+    expect(counter1IsDisposed, false);
+    expect(counter2IsDisposed, true);
+    expect(counter4IsDisposed, false);
+  });
+
+  testWidgets('async computed assertion', (tester) async {
+    //Define compute computeAsync
+    expect(() => RM.injectComputed<int>(), throwsAssertionError);
+    //You can not define both `compute` and `computeAsync
+    expect(
+      () => RM.injectComputed(compute: (_) => null, computeAsync: (_) => null),
+      throwsAssertionError,
+    );
+    //When using `computeAsync` you have to define `asyncDependsOn``
+    expect(
+      () => RM.injectComputed(computeAsync: (_) => null),
+      throwsAssertionError,
+    );
+    //asyncDependsOn can not be null
+    expect(
+      () => RM.injectComputed(computeAsync: (_) => null, asyncDependsOn: []),
+      throwsAssertionError,
+    );
+    //Will not throw
+    expect(RM.injectComputed(compute: (_) => null), isNotNull);
+    expect(
+      RM.injectComputed(computeAsync: (_) => null, asyncDependsOn: [null]),
+      isNotNull,
+    );
+  });
+  testWidgets('async computed ', (tester) async {
+    final counter1 = RM.inject(() => 1);
+    final counter2 = RM.inject(() => 1);
+
+    final counter3 = RM.injectComputed(
+      computeAsync: (_) async* {
+        await Future.delayed(Duration(seconds: 1));
+        yield counter1.state + counter2.state;
+      },
+      asyncDependsOn: [counter1, counter2],
+      initialState: 0,
+      isLazy: false,
+    );
+
+    expect(counter3.isWaiting, isTrue);
+    expect(counter3.state, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter3.hasData, isTrue);
+    expect(counter3.state, 2);
+    //
+    counter1.state++;
+    expect(counter3.isWaiting, isTrue);
+    expect(counter3.state, 2);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter3.hasData, isTrue);
+    expect(counter3.state, 3);
+  });
 }
 
 class VanillaModel {

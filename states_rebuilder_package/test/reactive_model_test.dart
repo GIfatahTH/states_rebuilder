@@ -98,6 +98,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -121,6 +122,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -159,6 +161,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.hasError ? modelRM.error.message : modelRM.state.counter}',
@@ -196,6 +199,7 @@ void main() {
       RM.debugWidgetsRebuild = true;
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         key: Key('whenConnectionState'),
         builder: (_, __) {
           return modelRM.whenConnectionState(
@@ -247,6 +251,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return modelRM.whenConnectionState(
             onIdle: () => _widgetBuilder('onIdle'),
@@ -785,18 +790,21 @@ void main() {
         children: <Widget>[
           StateBuilder(
             observeMany: [() => modelRM0],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
             observeMany: [() => modelRM1],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
             observeMany: [() => modelRM2],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -880,18 +888,21 @@ void main() {
         children: <Widget>[
           StateBuilder(
             observeMany: [() => modelRM0],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
             },
           ),
           StateBuilder(
             observeMany: [() => modelRM1],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
             },
           ),
           StateBuilder(
             observeMany: [() => modelRM2],
+            shouldRebuild: (_) => true,
             builder: (context, _) {
               return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
             },
@@ -1622,6 +1633,7 @@ void main() {
             return StateBuilder(
               observeMany: [() => rmStream],
               tag: 'MyTag',
+              shouldRebuild: (_) => true,
               builder: (_, rmStream) {
                 numberOfRebuild++;
                 return Container();
@@ -1980,6 +1992,7 @@ void main() {
 
         final widget = StateBuilder(
           observeMany: [() => modelRM],
+          shouldRebuild: (_) => true,
           builder: (_, __) {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
@@ -2077,6 +2090,7 @@ void main() {
 
         final widget = StateBuilder(
           observeMany: [() => modelRM],
+          shouldRebuild: (_) => true,
           builder: (_, __) {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
@@ -2318,6 +2332,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -2350,6 +2365,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         builder: (_, __) {
           return _widgetBuilder(
             '${modelRM.state.counter}',
@@ -2384,6 +2400,7 @@ void main() {
       int numberOfRebuild = 0;
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         tag: 'tag1',
         builder: (_, __) {
           return _widgetBuilder('${++numberOfRebuild}');
@@ -2667,7 +2684,8 @@ void main() {
     rm.state++;
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
-    rm.refresh();
+    await rm.refresh();
+
     await tester.pump();
     expect(find.text('0'), findsOneWidget);
     expect(rm.isIdle, isTrue);
