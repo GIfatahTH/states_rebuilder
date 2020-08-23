@@ -82,6 +82,7 @@ class MyHomePage extends StatelessWidget {
                 observe: () => RM.create(Email('')),
                 // associate the emailRM ReactiveModel key with the create ReactiveModel in observe parameter
                 rmKey: emailRM,
+                shouldRebuild: (_) => true,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String email) {
@@ -106,6 +107,7 @@ class MyHomePage extends StatelessWidget {
                 observe: () => RM.create(Password('')),
                 // associate the passwordRM ReactiveModel key with the create ReactiveModel in observe parameter
                 rmKey: passwordRM,
+                shouldRebuild: (_) => true,
                 builder: (_, __) {
                   return TextField(
                     onChanged: (String password) {
@@ -125,6 +127,7 @@ class MyHomePage extends StatelessWidget {
             StateBuilder(
                 //subscribe to both emailRM and passwordRM
                 models: [emailRM, passwordRM],
+                shouldRebuild: (_) => true,
                 builder: (_, __) {
                   //this builder is called each time emailRM or passwordRM emit a notification
                   return RaisedButton(
@@ -222,6 +225,7 @@ Then the exposed model is also dynamic. By dynamic I mean it will hold the insta
 ```dart
 StateBuilder(
     observeMany: [()=> emailRM,()=> passwordRM],
+    shouldRebuild: (_) => true,
     builder: (BuildContext context, ReactiveModel exposedModel) {
 
       //exposedModel is neither  ReactiveModel<Email> nor ReactiveModel<Password>

@@ -24,6 +24,7 @@ class SignInPage extends StatelessWidget {
           //NOTE1: helper getter
           return StateBuilder<UserService>(
               observe: () => RM.get<UserService>(),
+              shouldRebuild: (_) => true,
               builder: (context, userServiceRM) {
                 bool isLoading = userServiceRM.isWaiting;
                 // print('signin page rebuild');

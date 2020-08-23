@@ -580,7 +580,7 @@ class FormWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        StateBuilder(
+        WhenRebuilderOr(
           //NOTE2: create and subscribe to local ReactiveModel of empty string
           observe: () => RM.create(''),
           //NOTE3: couple this StateBuilder with the email ReactiveModel key
@@ -606,7 +606,7 @@ class FormWidget extends StatelessWidget {
             );
           },
         ),
-        StateBuilder(
+        WhenRebuilderOr(
           observe: () => RM.create(''),
           rmKey: _passwordRM,
           builder: (_, __) {
@@ -656,6 +656,7 @@ class FormWidget extends StatelessWidget {
               () => _isRegisterRM,
               () => RM.get<UserService>().asNew('signInRegisterForm'),
             ],
+            shouldRebuild: (_) => true,
             //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
             builder: (_, userServiceRM) {
               if (userServiceRM.isWaiting) {

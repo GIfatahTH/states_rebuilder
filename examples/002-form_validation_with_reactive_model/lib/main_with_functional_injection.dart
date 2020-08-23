@@ -96,7 +96,7 @@ class MyHomePage extends StatelessWidget {
                 );
               },
             ),
-            StateBuilder(
+            WhenRebuilderOr(
               //subscribe to both email and password ReactiveModel keys
               observeMany: [() => email.getRM, () => password.getRM],
               builder: (_, exposedModel) {
