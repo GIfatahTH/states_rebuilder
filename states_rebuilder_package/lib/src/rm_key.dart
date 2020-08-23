@@ -36,6 +36,7 @@ class RMKey<T> implements ReactiveModel<T> {
     _rm.cleaner(unsubscribe);
   }
 
+  ///Clean the RMKey
   void cleanRMKey() {
     refreshCallBack = null;
     _rm = null;
@@ -65,9 +66,8 @@ class RMKey<T> implements ReactiveModel<T> {
   Set<void Function(ReactiveModel rm, StatesRebuilder initRM)> initCallBack =
       {};
 
-  ///refresh (reset to initial value) of the ReactiveModel associate with this RMKey
-  ///and notify observing widgets.
-  Future<T> refresh([bool shouldNotify = true]) {
+  @override
+  Future<T> refresh({bool shouldNotify = true, void Function() onInitRefresh}) {
     refreshCallBack?.call(_rm);
     if (!rm.inject.isAsyncInjected) {
       rm.setState((_) => null);
@@ -177,6 +177,7 @@ class RMKey<T> implements ReactiveModel<T> {
     bool joinSingleton = false,
     bool notifyAllReactiveInstances = false,
     bool silent = false,
+    BuildContext context,
   }) async {
     return _rm?.setState(
       fn,
@@ -194,6 +195,7 @@ class RMKey<T> implements ReactiveModel<T> {
       debounceDelay: debounceDelay,
       throttleDelay: throttleDelay,
       skipWaiting: skipWaiting,
+      context: context,
     );
   }
 
@@ -327,7 +329,7 @@ class RMKey<T> implements ReactiveModel<T> {
   }
 
   @override
-  void set undoStackLength(int length) {
+  set undoStackLength(int length) {
     _rm.undoStackLength = length;
   }
 

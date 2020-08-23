@@ -24,7 +24,8 @@ class OnSetStateListener<T> extends StatelessWidget {
 
   ///Callback to execute when any of the observed models emits a notification.
   ///[OnSetStateListener] will not rebuild.
-  final void Function(BuildContext context, ReactiveModel reactiveModel) onSetState;
+  final void Function(BuildContext context, ReactiveModel reactiveModel)
+      onSetState;
 
   final void Function(BuildContext, ReactiveModel<T>) onRebuildState;
 
@@ -98,7 +99,8 @@ class OnSetStateListener<T> extends StatelessWidget {
       onRebuildState: onRebuildState,
       activeRM: [],
       initState: (context, rm) {
-        final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
+        final _models =
+            (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
         if (onError != null) {
           for (var reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber++;
@@ -110,13 +112,17 @@ class OnSetStateListener<T> extends StatelessWidget {
       },
       dispose: (context, __) {
         if (onError != null) {
-          final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+          final _models =
+              (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
           for (ReactiveModel reactiveModel in _models) {
-            (reactiveModel as ReactiveModelImp).inject.onSetStateListenerNumber--;
+            (reactiveModel as ReactiveModelImp)
+                .inject
+                .onSetStateListenerNumber--;
           }
         }
       },
       watch: watch,
+      shouldRebuild: (_) => true,
       child: child,
       builderWithChild: (_, __, child) => child,
     );
@@ -126,7 +132,8 @@ class OnSetStateListener<T> extends StatelessWidget {
     if (onSetState != null) {
       onSetState(context, rm);
     }
-    final _models = (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+    final _models =
+        (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
 
     bool _isIdle = false;
     bool _isWaiting = false;

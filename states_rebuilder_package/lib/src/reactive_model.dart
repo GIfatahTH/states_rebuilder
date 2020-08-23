@@ -387,51 +387,51 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   ///Holds data to be sent between reactive singleton and reactive new instances.
   dynamic get joinSingletonToNewData;
 
-  /// Mutate the state of the model and notify observers.
+  ///Mutate the state of the model and notify observers.
   ///
-  /// [fn] takes the current state as argument. You can optionally define
-  /// a list of [StateBuilder] [filterTags] to be notified after state mutation.
-  ///
-  /// To limit the rebuild process to a particular set of model instance variables use [watch].
-  ///
-  /// If you want to catch error define [catchError] to be true
-  ///
-  /// With [onSetState] you can define callBacks to be executed after mutating the state such as Navigation,
-  /// show dialog or SnackBar.
-  ///
-  /// [onRebuildState] is similar to [onSetState] except that it is executed after
-  /// the rebuilding process is completed.
-  ///
-  ///[onData] callback to be executed when ReactiveModel has data.
-  ///
-  ///[onError] callback to be executed when ReactiveModel has data.
-  ///
-  /// [watch] callback to be executed before notifying listeners. It the returned value is
-  /// the same as the last one, the rebuild process is interrupted.
-  ///
-  /// If it is not defined all listener will be notified when a new state is available.
-  ///
-  /// To notify all reactive instances created from the same [Inject] set [notifyAllReactiveInstances] true.
-  ///
-  /// [joinSingleton] used to define how new reactive instances will notify and modify the state of the reactive singleton
+  ///* Required parameters:
+  ///  * The mutation function. It takes the current state fo the model.
+  /// The function can have any type of return including Future and Stream.
+  ///* Optional parameters:
+  ///  * [onData]: The callback to execute when the state is successfully mutated
+  /// with data. If defined this [onData] will override any other onData for this particular call.
+  ///  * [onError]: The callback to execute when the state has error. If defined
+  /// this [onError] will override any other onData for this particular call.
+  ///  * [onSetState] and [onRebuildState]: for more general side effects to
+  /// execute before and after rebuilding observers.
+  ///  * [catchError]: automatically catch errors. It defaults to false, but if
+  /// [onError] is defined then it will be true.
+  ///  * [skipWaiting]: Wether to notify observers on the waiting state.
+  ///  * [debounceDelay]: time in seconds to debounce the execution of [setState].
+  ///  * [throttleDelay]: time in seconds to throttle the execution of [setState].
+  ///  * [shouldAwait]: Wether to await of any existing async call.
+  ///  * [silent]: Whether to silent the error of no observers is found.
+  ///  * [watch]: parameters to watch, and only emits notification if they changes.
+  ///  * [filterTags]: List of tags to notify.
+  ///  * [seeds]: List of seeds to notify.
+  ///  * [context]: The [BuildContext] to be used for side effects (Navigation, SnackBar).
+  /// If not defined a default [BuildContext] obtained from the last added [StateBuilder] will be used.
+  ///  * [joinSingleton]:  used to define how new reactive instances will notify and modify the state of the reactive singleton.
+  ///  * [notifyAllReactiveInstances]: Whether to notify all reactive instances created from the same [Inject]
   Future<void> setState(
     Function(T s) fn, {
+    void Function(BuildContext context, T model) onData,
+    void Function(BuildContext context, dynamic error) onError,
+    void Function(BuildContext context) onSetState,
+    void Function(BuildContext context) onRebuildState,
     bool catchError,
+    bool skipWaiting = false,
+    int debounceDelay,
+    int throttleDelay,
+    bool shouldAwait = false,
+    bool silent = false,
     Object Function(T state) watch,
     List<dynamic> filterTags,
     List<dynamic> seeds,
-    bool shouldAwait = false,
-    int debounceDelay,
-    int throttleDelay,
-    bool skipWaiting = false,
-    void Function(BuildContext context) onSetState,
-    void Function(BuildContext context) onRebuildState,
-    void Function(BuildContext context, dynamic error) onError,
-    void Function(BuildContext context, T model) onData,
-    dynamic Function() joinSingletonToNewData,
+    BuildContext context,
     bool joinSingleton = false,
+    dynamic Function() joinSingletonToNewData,
     bool notifyAllReactiveInstances = false,
-    bool silent = false,
   });
 
   ///Get a stream from the state and subscribe to it and
@@ -486,13 +486,21 @@ abstract class ReactiveModel<T> implements StatesRebuilder<T> {
   /// Refresh the [ReactiveModel] state.
   ///
   /// Reset the ReactiveModel to its initial state by reinvoking its creation function.
-  Future<T> refresh([bool shouldNotify = true]);
+  Future<T> refresh({void Function() onInitRefresh});
 
-  ///
+  ///undo to the last valid state (isWaiting and hasError are ignored)
   ReactiveModel<T> undoState();
+
+  ///redo to the next valid state (isWaiting and hasError are ignored)
   ReactiveModel<T> redoState();
+
+  ///Clear undoStack;
   void clearUndoStack();
+
+  ///Whether the state can be done
   bool get canUndoState;
+
+  ///Whether the state can be redone.
   bool get canRedoState;
   set undoStackLength(int length);
 }
@@ -513,110 +521,243 @@ abstract class RM {
     return Inject<T>(creationFunction).getReactive();
   }
 
+  ///Functional injection of a primitive, enum or object.
   ///
+  ///* Required parameters:
+  ///  * [creationFunction]:  (positional parameter) a callback that
+  /// creates an instance of the injected object
+  /// * optional parameters:
+  ///   * [onInitialized]: Callback to be executed after the injected model is first created.
+  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
+  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model is in the awaiting state.
+  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with data.
+  ///   * [onError]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with error.
+  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// The default value is true.
+  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
   static Injected<T> inject<T>(
     T Function() creationFunction, {
-    bool autoClean = true,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    void Function() onWaiting,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onDispose,
+    bool autoDisposeWhenNotUsed = true,
+    int undoStackLength,
   }) {
     return InjectedImp<T>(
       creationFunction,
-      autoClean: autoClean,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onDispose: onDispose,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      undoStackLength: undoStackLength,
     );
   }
 
+  ///Functional injection of a [Future].
+  ///
+  ///* Required parameters:
+  ///  * [creationFunction]:  (positional parameter) a callback that return a [Future].
+  /// * optional parameters:
+  ///   * [onInitialized]: Callback to be executed after the
+  /// injected model is first created.
+  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
+  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model is in the awaiting state.
+  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with data.
+  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with error.
+  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// The default value is true.
+  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
+  ///   * [initialValue]: Initial value of the Future.
+  ///   * [isLazy]: Whether to lazily invoke the Future. Default value is true.
   static Injected<T> injectFuture<T>(
     Future<T> Function() creationFunction, {
-    bool isLazy = true,
-    bool autoClean = true,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    void Function() onWaiting,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onDispose,
+    bool autoDisposeWhenNotUsed = true,
+    int undoStackLength,
     T initialValue,
+    bool isLazy = true,
   }) {
     return InjectedFuture<T>(
       creationFunction,
-      autoClean: autoClean,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onDispose: onDispose,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
       isLazy: isLazy,
       initialValue: initialValue,
+      undoStackLength: undoStackLength,
     );
   }
 
+  ///Functional injection of a [Stream].
+  ///
+  ///* Required parameters:
+  ///  * [creationFunction]:  (positional parameter) a callback that return a [Stream].
+  /// * optional parameters:
+  ///   * [onInitialized]: Callback to be executed after the
+  /// injected model is first created.
+  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
+  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model is in the awaiting state.
+  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with data.
+  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with error.
+  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// The default value is true.
+  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
+  ///   * [initialValue]: Initial value of the Future.
+  ///   * [isLazy]: Whether to lazily invoke the Future. Default value is true.
+  ///   * [watch]: callback to determine the parameter to watch and do not emit a notification
+  /// unless they changed.
   static Injected<T> injectStream<T>(
     Stream<T> Function() creationFunction, {
-    bool isLazy = true,
-    bool autoClean = true,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    void Function() onWaiting,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onDispose,
-    Function(T s) watch,
+    bool autoDisposeWhenNotUsed = true,
+    int undoStackLength,
     T initialValue,
+    bool isLazy = true,
+    Function(T s) watch,
   }) {
     return InjectedStream<T>(
       creationFunction,
-      autoClean: autoClean,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onDispose: onDispose,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
       isLazy: isLazy,
       watch: watch,
       initialValue: initialValue,
+      undoStackLength: undoStackLength,
     );
   }
 
-  static Injected<T> injectInterface<T>(
+  ///Functional injection of flavors (environments).
+  ///
+  ///* Required parameters:
+  ///  * [impl]:  (positional parameter) Map of the implementations of the interface.
+  /// * optional parameters:
+  ///   * [onInitialized]: Callback to be executed after the
+  /// injected model is first created.
+  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
+  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model is in the awaiting state.
+  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with data.
+  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with error.
+  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// The default value is true.
+  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
+  ///   * [initialValue]: Initial value of the Future.
+  ///   * [isLazy]: Whether to lazily execute the impl callback. Default value is true.
+  static Injected<T> injectFlavor<T>(
     Map<dynamic, FutureOr<T> Function()> impl, {
-    bool autoClean = true,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
+    void Function() onWaiting,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onDispose,
+    bool autoDisposeWhenNotUsed = true,
+    int undoStackLength,
     T initialValue,
+    bool isLazy = true,
   }) {
     return InjectedInterface<T>(
       impl,
-      autoClean: autoClean,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onDispose: onDispose,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
       initialValue: initialValue,
+      undoStackLength: undoStackLength,
+      isLazy: isLazy,
     );
   }
 
+  ///Functional injection of a computed model.
+  ///
+  ///The model
+  ///
+  ///* Required parameters:
+  ///  * [impl]:  (positional parameter) Map of the implementations of the interface.
+  /// * optional parameters:
+  ///   * [onInitialized]: Callback to be executed after the
+  /// injected model is first created.
+  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
+  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model is in the awaiting state.
+  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with data.
+  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
+  /// model emits a notification with error.
+  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// The default value is true.
+  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
+  ///   * [initialValue]: Initial value of the Future.
+  ///   * [isLazy]: Whether to lazily execute the compute method. Default value is true.
   static Injected<T> injectComputed<T>({
-    // @required List<Injected<dynamic>> dependsOn,
-    @required T Function(T s) compute,
-    bool autoClean = true,
+    T Function(T s) compute,
+    List<Injected<dynamic>> asyncDependsOn,
+    Stream<T> Function(T s) computeAsync,
+    bool autoDisposeWhenNotUsed = true,
     void Function(T s) onData,
     void Function(dynamic e, StackTrace s) onError,
     void Function() onWaiting,
+    void Function(T s) onInitialized,
+    void Function(T s) onDisposed,
     T initialState,
     bool Function(T s) shouldCompute,
+    int undoStackLength,
+    bool isLazy = true,
   }) {
     return InjectedComputed<T>(
-      compute,
-      autoClean: autoClean,
+      compute: compute,
+      computeAsync: computeAsync,
+      asyncDependsOn: asyncDependsOn,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
       initialState: initialState,
       shouldCompute: shouldCompute,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      undoStackLength: undoStackLength,
+      isLazy: isLazy,
     );
+  }
+
+  ///Clean and dispose all Injected model;
+  ///
+  ///Although Injected models are auto cleaned, sometimes, we need to
+  ///manually clean the Injected models especially in tests.
+  static void disposeAll() {
+    cleanInjector();
   }
 
   ///Create a [ReactiveModel] from future.
@@ -683,22 +824,31 @@ abstract class RM {
     if (_context != null) {
       return _context;
     }
-    assert(InjectorState.contextSet.isNotEmpty);
-    // final f = InjectorState.contextSet.last?.findRenderObject();
-    // print(f);
-    // print(f?.attached);
-    // final c = InjectorState.contextSet.last;
-    // // if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
-    // // InjectorState.contextSet.removeLast();
-    // // return context;
-    // // }
-    WidgetsBinding.instance.scheduleFrameCallback(
-      (_) => _context = null,
-    );
-    return _context = InjectorState.contextSet.last;
+    // assert(
+    //   InjectorState.contextSet.isNotEmpty,
+    //   'No `BuildContext` is found. To get a valid `BuildContext` you have to '
+    //   'use at least one of the following widgets under the the `MaterialApp` widget:\n'
+    //   '`UseInjected`, `StateBuilder`, `WhenRebuilder`, `WhenRebuilderOR` or `Injector`',
+    // );
+    if (InjectorState.contextSet.isEmpty) {
+      return null;
+    }
+    if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
+      InjectorState.contextSet.removeLast();
+      return context;
+    }
+
+    return context = InjectorState.contextSet.last;
   }
 
-  static NavigatorState _navigatorState;
+  static set context(BuildContext context) {
+    _context = context;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        return _context = null;
+      },
+    );
+  }
 
   ///get The state for a [Navigator] widget.
   ///
@@ -708,52 +858,13 @@ abstract class RM {
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static NavigatorState get navigator {
     try {
-      return _navigatorState ??= Navigator.of(context);
+      return Navigator.of(context);
     } catch (e) {
-      print(e);
-
-      InjectorState.contextSet.removeLast();
-      return navigator;
-    }
-  }
-
-  static ThemeData _theme;
-
-  ///Get the [ThemeData] of [MaterialApp]
-  ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
-  ///
-  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  static ThemeData get theme {
-    try {
-      return _theme ??= Theme.of(context);
-    } catch (e) {
-      print(e);
-      InjectorState.contextSet.removeLast();
-      return theme;
+      rethrow;
     }
   }
 
   static MediaQueryData _mediaQuery;
-
-  ///Get the [MediaQueryData]
-  ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
-  ///
-  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-
-  static MediaQueryData get mediaQuery {
-    try {
-      return _mediaQuery ??= MediaQuery.of(context);
-    } catch (e) {
-      print(e);
-
-      InjectorState.contextSet.removeLast();
-      return mediaQuery;
-    }
-  }
 
   ///Get the [ScaffoldState]
   ///
@@ -762,14 +873,7 @@ abstract class RM {
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static ScaffoldState get scaffold {
-    try {
-      return Scaffold.of(context);
-    } catch (e) {
-      print(e);
-
-      InjectorState.contextSet.removeLast();
-      return scaffold;
-    }
+    return Scaffold.of(context);
   }
 
   ///A callBack that exposes an active [BuildContext]
