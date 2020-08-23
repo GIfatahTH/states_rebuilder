@@ -10,7 +10,8 @@ A Flutter state management combined with dependency injection solution that allo
   * Immutable and immutable state. You are free to use immutable or mutable objects or to mix them. Even you can refactor form mutability to immutability (or from immutability to mutability) without affecting the user interface code.
   * Work with futures and streams. You can change the nature of any method from synchronous to asynchronous; from returning Future to returning Stream or vice versa without changing a single line in the user interface.
   * Very rich dependency injection system. Asynchronous dependency is injected with the same ease as synchronous dependency.
-  * Side effects without the `BuildContext`. Navigate, get the `ScaffoldState`, `ThemeData`, or `MediaQuery` without requiring the `BuildContext`.
+  * Global functional injection for dependency injection.
+  * Side effects without the `BuildContext`. Navigate and get the `ScaffoldState`without requiring the `BuildContext`.
 
 `states_rebuilder` is built on the observer pattern for state management.
 
@@ -23,6 +24,8 @@ A Flutter state management combined with dependency injection solution that allo
 Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
 
 To start using `states_rebuilder`, just start writing your business logic in a separate class.
+
+To see global functional injection in action and feel how easy and effecient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
 
 Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
 
@@ -460,6 +463,7 @@ If we want to automatically call the streamIncrementMutable once the widget is i
 [Get the full working example](example/README.md)
 
 For more information about how to use states_rebuilder see in the [wiki](https://github.com/GIfatahTH/states_rebuilder/wiki) :
+* [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
 * [What is a `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/what-is-a-ReactiveModel)
 * [Local and Global `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-and-Global-ReactiveModel)
   * [Local ReactiveModels](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-ReactiveModels)

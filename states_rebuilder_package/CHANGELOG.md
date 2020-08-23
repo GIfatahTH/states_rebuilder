@@ -1,3 +1,26 @@
+## 3.0.0 (2020-08-22)
+### New features :
+* Add global functional injection feature.
+* Add undo / redo state feature.
+### Breaking change :
+Add `shouldRebuild` parameter to `StateBuilder` and other widgets.
+  Now `StateBuilder` will build only if the exposed model hasData (For performance reason).
+  This make cause some unexpected behavior.
+  To all the widget to rebuild on other state (onWaiting, onError), you can:
+  - Use `WhenRebuilderOr` widget. Or,
+  - return true in `shouldRebuild` parameter
+  ```dart
+  StateBuilder(
+    observe: ()=>MyReactiveModel(),
+    shouldRebuild: (rm)=> true,
+    builder: (context, rm){
+      //--
+    }
+  )
+  ```
+### Non breaking change :
+* Refactor internal logic.
+
 ## 2.3.1 (2020-07-19)
 * Refactor internal logic.
 
