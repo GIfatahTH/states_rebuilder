@@ -644,9 +644,7 @@ void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
     return;
   }
   final name = injected._inject.getName();
-  // if (injected._inject.isAsyncInjected) {//TODO
   injected._rm?.unsubscribe();
-  // }
 
   injected._inject
     ..removeAllReactiveNewInstance()

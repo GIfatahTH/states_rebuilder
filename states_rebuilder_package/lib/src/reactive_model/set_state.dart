@@ -144,7 +144,7 @@ class _SetState<T> {
   void onErrorCallBack(dynamic e, StackTrace s) {
     rm.snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
     rm._stackTrace = s;
-    rebuildStates(canRebuild: true); //TODO
+    rebuildStates(canRebuild: true);
     bool _catchError = catchError ??
         false ||
             rm._whenConnectionState ||

@@ -35,19 +35,6 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   ///
   final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
 
-  ///List of observable classes to which you want this [WhenRebuilder] to subscribe.
-  ///```dart
-  ///WhenRebuilderOr(
-  ///  models:[myModel1, myModel2, myModel3],
-  ///  onWaiting: ()=> ...
-  ///  onError: (error)=> ...
-  ///  builder: (context, reactiveModel)=> ...
-  ///)
-  ///```
-  ///
-  ///For the sake of performance consider using [observe] or [observeMany] instead.
-  // final List<ReactiveModel> models;//TODO
-
   ///an observable class to which you want [WhenRebuilder] to subscribe.
   ///```dart
   ///WhenRebuilderOr(

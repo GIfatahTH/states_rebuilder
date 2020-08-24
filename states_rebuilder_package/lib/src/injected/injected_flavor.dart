@@ -32,35 +32,14 @@ class InjectedInterface<T> extends Injected<T> {
       _stateRM;
     }
   }
-  static int _envMapLength;
   @override
   String get _name => '___Injected${hashCode}Interface___';
   @override
   Inject<T> _getInject() {
-    assert(Injector.env != null, '''
-You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
-    ''');
-    assert(_impl[Injector.env] != null, '''
-There is no implementation for ${Injector.env} of $T interface
-    ''');
-    _envMapLength ??= _impl.length;
-    assert(_impl.length == _envMapLength, '''
-You must be consistent about the number of flavor environment you have.
-you had $_envMapLength flavors and you are defining ${_impl.length} flavors.
-    ''');
-
-    final creationFunction = _impl[Injector.env];
-    if (creationFunction is Future<T> Function()) {
-      return Inject.future(
-        creationFunction,
-        name: _name,
-        initialValue: _initialValue,
-        isLazy: false,
-      );
-    }
-    return Inject(
-      creationFunction as T Function(),
+    return Inject.interface(
+      _impl,
       name: _name,
+      initialValue: _initialValue,
     );
   }
 }

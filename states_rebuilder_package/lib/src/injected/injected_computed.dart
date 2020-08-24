@@ -142,8 +142,8 @@ class InjectedComputed<T> extends Injected<T> {
     Stream<T> Function(T s) computeAsync,
     initialState,
   }) {
-    assert(this is InjectedComputed<T>);
-    _inject = null;
+    super.injectComputedMock();
+
     if (_asyncDependsOn == null) {
       _creationFunction = () {
         final s = _rm?.state ?? initialState ?? _initialState;

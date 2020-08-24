@@ -151,6 +151,9 @@ void main() {
     expect(numberOfRebuild, equals(4));
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, equals(4));
+    streamVanillaModel.notify();
+    await tester.pump();
+    expect(numberOfRebuild, equals(5));
   });
 
   testWidgets('RM.injectFuture', (WidgetTester tester) async {
@@ -690,7 +693,7 @@ void main() {
           },
         ),
       );
-
+      expect(streamVanillaModel.subscription, isNotNull);
       expect(find.text('0'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('2'), findsOneWidget);

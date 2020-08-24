@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import 'builders.dart';
 import 'inject.dart';
-import 'injector.dart';
 import 'reactive_model.dart';
 import 'states_rebuilder.dart';
 

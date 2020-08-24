@@ -176,4 +176,34 @@ void main() {
     //The initial state
     expect(find.text('0'), findsOneWidget);
   });
+
+  testWidgets('clearUndoStack should clear the history', (tester) async {
+    await tester.pumpWidget(MyApp());
+    expect(find.text('0'), findsOneWidget);
+
+    //First increment
+    counter.state++;
+    await tester.pump();
+    //Second increment
+    counter.state++;
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+
+    //We can undo but not redo
+    expect(counter.canUndoState, isTrue);
+    expect(counter.canRedoState, isFalse);
+
+    //First undo
+    counter.undoState();
+    await tester.pump();
+
+    expect(counter.canUndoState, isTrue);
+    expect(counter.canRedoState, isTrue);
+    //
+    counter.clearUndoStack();
+    await tester.pump();
+
+    expect(counter.canUndoState, isFalse);
+    expect(counter.canRedoState, isFalse);
+  });
 }

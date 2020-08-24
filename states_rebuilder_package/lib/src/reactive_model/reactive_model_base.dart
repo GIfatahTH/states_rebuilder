@@ -112,7 +112,6 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///A representation of the most recent state (instance) of the injected model.
   AsyncSnapshot<T> get snapshot => _snapshot;
   set snapshot(AsyncSnapshot<T> snap) {
-    assert(snap != null);
     _state = snap.data ?? _state;
     _snapshot = snap;
     inject.reactiveSingleton?._state = _state;
