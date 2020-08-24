@@ -12,7 +12,7 @@ final Injected<int> counter = RM.inject<int>(
   autoDisposeWhenNotUsed: false,
 
   //onDispose will be called when the app is closed
-  onDisposed: (int state) => print('disposed'),
+  // onDisposed: (int state) => print('disposed'),
 );
 
 class CounterApp extends StatelessWidget {

@@ -289,4 +289,9 @@ class _SetState<T> {
     }
     onWaitingCallback();
   }
+
+  @override
+  String toString() {
+    return '$rm';
+  }
 }

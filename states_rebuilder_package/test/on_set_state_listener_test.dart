@@ -183,7 +183,6 @@ void main() {
         Inject.future(() => Future.delayed(Duration(seconds: 2), () => '10')),
       ],
       builder: (context) {
-        print(intRM = Injector.getAsReactive<int>());
         return Directionality(
           textDirection: TextDirection.ltr,
           child: OnSetStateListener(

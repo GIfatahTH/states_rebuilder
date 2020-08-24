@@ -39,23 +39,6 @@ class ReactiveModelImpNew<T> extends ReactiveModelImp<T> {
   }
 
   String toString() {
-    String rm = '${type()} RM (new seed: "$_seed")'
-        ' (#Code $hashCode)';
-    int num = 0;
-    observers().forEach((key, value) {
-      if (key != '_ReactiveModelSubscriber') {
-        if (!'$value'.contains('$Injector')) {
-          num++;
-        }
-      }
-    });
-
-    return '$rm | ${whenConnectionState<String>(
-      onIdle: () => 'isIdle ($state)',
-      onWaiting: () => 'isWaiting ($state)',
-      onData: (data) => 'hasData : ($data)',
-      onError: (dynamic e) => 'hasError : ($e)',
-      catchError: false,
-    )} | $num observing widgets';
+    return '(new seed: "$_seed") ${super.toString()}';
   }
 }

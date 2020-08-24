@@ -84,10 +84,11 @@ class InjectedComputed<T> extends Injected<T> {
     if (_asyncDependsOn != null || _dependsOn.isNotEmpty) {
       for (var depend in _asyncDependsOn ?? _dependsOn) {
         final reactiveModel = depend._stateRM;
+        //Initial status for the computed
         if (rm.hasData || rm.isIdle) {
           if (reactiveModel.isWaiting) {
             rm.resetToIsWaiting();
-          } else if (!reactiveModel.isWaiting && reactiveModel.hasError) {
+          } else if (reactiveModel.hasError) {
             rm.resetToHasError(reactiveModel.error);
           }
         }

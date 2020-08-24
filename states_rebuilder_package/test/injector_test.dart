@@ -473,14 +473,12 @@ void main() {
           });
       await tester.pumpWidget(widget);
       expect(find.text('null'), findsOneWidget);
-      print(Injector.getAsReactive<int>());
       await tester.pump(Duration(seconds: 1));
       expect(find.text('0'), findsOneWidget);
       expect(intRM.subscription.isPaused, isFalse);
       switcher = false;
       model.rebuildStates();
       await tester.pump();
-      print(Injector.getAsReactive<int>());
 
       await tester.pump(Duration(seconds: 1));
       expect(find.text('1'), findsNothing);

@@ -686,7 +686,7 @@ void main() {
 
       //
       expect('${modelRM.asNew('seed1')}',
-          contains('<Model> RM (new seed: "seed1")'));
+          contains('(new seed: "seed1") <Model> RM'));
       expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
 
       final intStream = ReactiveModel.stream(getStream());

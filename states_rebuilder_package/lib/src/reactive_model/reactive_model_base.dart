@@ -224,14 +224,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     };
     _listenToRMSet.add(listener);
 
-    // final _isIdle = isIdle;
-    // Future.microtask(() {
-    //   if (!_isIdle) {
-    //     observer.update();
-    //   }
-    // });
     return () {
-      print('remove');
       _listenToRMSet.remove(listener);
       if (_listenToRMSet.isEmpty && !hasObservers) {
         statesRebuilderCleaner(this);
@@ -428,8 +421,6 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
         },
       );
       rm.cleaner(disposer);
-      (rm.inject as InjectStream).creationStreamFunction =
-          () => stream(s, subscription);
       return rm;
     }
 

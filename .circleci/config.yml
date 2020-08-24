@@ -15,7 +15,7 @@ jobs:
       - run: cd examples/007-1-clean_architecture_dane_mackier_app_with_Injector && flutter test
       - run: cd examples/007-2-clean_architecture_dane_mackier_app_with_functional_injection && flutter test
       - run: cd examples/008-clean_architecture_firebase_login && flutter test
-      - run: cd examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector && flutter test
+      # - run: cd examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector && flutter test
       - run: cd examples/009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection && flutter test
       - run: cd examples/009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector && flutter test
       - run: cd examples/009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection-clean_architecture_firebase_login && flutter test

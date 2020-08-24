@@ -157,7 +157,6 @@ abstract class Injected<T> {
   void _dispose() {
     _onDisposed?.call(state);
     _clearDependence?.call();
-    print('dispose $T');
     _rm = null;
     _inject = null;
     if (_cashedMockCreationFunction != null) {
@@ -310,8 +309,8 @@ abstract class Injected<T> {
   ///Clear undoStack;
   void clearUndoStack() => _rm?.clearUndoStack();
 
-  ///Listen to the injected Model and rebuild only **when the model emits a
-  ///notification with new data**.
+  ///Listen to the injected Model and ***rebuild only when the model emits a
+  ///notification with new data***.
   ///
   ///If you want to rebuild when model emits notification with waiting or error state
   ///use [Injected.whenRebuilder] or [Injected.whenRebuilderOr].
@@ -449,7 +448,7 @@ abstract class Injected<T> {
       shouldRebuild: (_) {
         return _stateRM.whenConnectionState<bool>(
           onIdle: () => true,
-          onWaiting: () => onWaiting != null,
+          onWaiting: () => true,
           onError: (dynamic _) => true,
           onData: (T _) => true,
           catchError: onError != null,

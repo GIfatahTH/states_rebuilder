@@ -6,9 +6,6 @@ part of '../builders.dart';
 ///
 ///See [StateBuilder], [WhenRebuilder] and [WhenRebuilderOr].
 class OnSetStateListener<T> extends StatelessWidget {
-  ///List of [ReactiveModel]s to observe
-  // final List<ReactiveModel> models;TODO
-
   ///an observable to which you want [OnSetStateListener] to subscribe to.
   final StatesRebuilder<T> Function() observe;
 

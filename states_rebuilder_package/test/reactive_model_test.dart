@@ -2450,7 +2450,7 @@ void main() {
 
       //
       expect('${modelRM.asNew('seed1')}',
-          contains('<Model> RM (new seed: "seed1")'));
+          contains('(new seed: "seed1") <Model> RM'));
       expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
 
       final intStream = ReactiveModel.stream(getStream());
@@ -2715,7 +2715,7 @@ void main() {
     rm.refresh();
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
-    print(rm);
+
     expect(find.text('0'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('1'), findsOneWidget);

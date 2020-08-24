@@ -16,21 +16,6 @@ class StateBuilder<T> extends StatefulWidget {
   ///The builder is provided with a [BuildContext] and [ReactiveModel] parameters.
   final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
 
-  ///List of observable classes to which you want [StateBuilder] to subscribe.
-  ///```dart
-  ///StateBuilder(
-  ///  models:[myModel1, myModel2, myModel3],
-  ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
-  ///)
-  ///```
-  ///states_rebuilder uses the observer pattern.
-  ///
-  ///Observable classes are classes that extends [StatesRebuilder].
-  ///[ReactiveModel] is one of them.
-  ///
-  ///For the sake of performance consider using [observe] or [observeMany] instead.
-  // final List<StatesRebuilder> models;TODO
-
   ///an observable class to which you want [StateBuilder] to subscribe.
   ///```dart
   ///StateBuilder(
