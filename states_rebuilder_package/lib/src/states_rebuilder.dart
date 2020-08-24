@@ -3,9 +3,8 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/widgets.dart';
 
+import 'builders.dart';
 import 'reactive_model.dart';
-import 'reactive_model_imp.dart';
-import 'state_builder.dart';
 
 ///[StatesRebuilder] use the observer pattern.
 ///
@@ -253,7 +252,7 @@ class StatesRebuilderInternal {
 
 void statesRebuilderCleaner(StatesRebuilder sr, [bool clean = true]) {
   if (sr == null ||
-      sr is ReactiveModelImp && sr.numberOfFutureAndStreamBuilder > 0) {
+      sr is ReactiveModelInt && sr.numberOfFutureAndStreamBuilder > 0) {
     return;
   }
   if (clean) {

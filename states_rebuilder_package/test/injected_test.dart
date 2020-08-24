@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/injected.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
@@ -24,6 +24,17 @@ final interface = RM.injectFlavor({
   Env.prod: () => ModelProd(),
   Env.test: () => ModelTest(),
 });
+
+final asyncComputed = RM.injectComputed<VanillaModel>(
+  asyncDependsOn: [vanillaModel],
+  computeAsync: (_) async* {
+    yield await Future.delayed(
+      Duration(seconds: 1),
+      () => vanillaModel.state,
+    );
+  },
+  initialState: VanillaModel(0),
+);
 
 void main() {
   testWidgets(
@@ -635,6 +646,114 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(counter3.hasData, isTrue);
     expect(counter3.state, 3);
+  });
+
+  testWidgets('compute async works', (WidgetTester tester) async {
+    vanillaModel.injectMock(() => VanillaModel(10));
+
+    await tester.pumpWidget(
+      asyncComputed.rebuilder(
+        () {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text('${asyncComputed.state.counter}'),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('0'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('10'), findsOneWidget);
+    vanillaModel.state = VanillaModel(20);
+    await tester.pump();
+    expect(find.text('10'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('20'), findsOneWidget);
+  });
+  group('description', () {
+    testWidgets(
+        'Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
+        (WidgetTester tester) async {
+      streamVanillaModel.injectStreamMock(
+        () => Stream.periodic(
+          Duration(seconds: 1),
+          (num) => VanillaModel((num + 1) * 2),
+        ).take(6),
+      );
+      await tester.pumpWidget(
+        streamVanillaModel.rebuilder(
+          () {
+            return Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(streamVanillaModel.state.counter.toString()));
+          },
+        ),
+      );
+
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('2'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('4'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('6'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('8'), findsOneWidget);
+    });
+
+    testWidgets('mock future', (WidgetTester tester) async {
+      futureModel.injectFutureMock(
+        () => Future.delayed(Duration(seconds: 1), () => 100),
+      );
+      await tester.pumpWidget(
+        futureModel.rebuilder(
+          () {
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text('${futureModel.state}'),
+            );
+          },
+        ),
+      );
+
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('100'), findsOneWidget);
+    });
+
+    testWidgets('mock compute async works', (WidgetTester tester) async {
+      vanillaModel.injectMock(() => VanillaModel(10));
+
+      asyncComputed.injectComputedMock(
+        computeAsync: (_) async* {
+          yield await Future.delayed(
+            Duration(seconds: 1),
+            () => VanillaModel(vanillaModel.state.counter + 100),
+          );
+        },
+      );
+
+      await tester.pumpWidget(
+        asyncComputed.rebuilder(
+          () {
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text('${asyncComputed.state.counter}'),
+            );
+          },
+        ),
+      );
+
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('110'), findsOneWidget);
+      vanillaModel.state = VanillaModel(20);
+      await tester.pump();
+      expect(find.text('110'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('120'), findsOneWidget);
+    });
   });
 }
 

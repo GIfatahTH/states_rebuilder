@@ -1,11 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'reactive_model.dart';
-import 'reactive_model_imp.dart';
-import 'state_builder.dart';
-import 'states_rebuilder.dart';
-import 'when_connection_state.dart';
-import 'when_rebuilder_or.dart';
+part of '../builders.dart';
 
 ///One of the four observer widgets in states_rebuilder.
 ///
@@ -97,10 +90,9 @@ class OnSetStateListener<T> extends StatelessWidget {
       tag: tag,
       onSetState: _onSetState,
       onRebuildState: onRebuildState,
-      activeRM: [],
       initState: (context, rm) {
         final _models =
-            (context.widget as StateBuilder).activeRM.cast<ReactiveModelImp>();
+            (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
         if (onError != null) {
           for (var reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber++;
@@ -113,11 +105,9 @@ class OnSetStateListener<T> extends StatelessWidget {
       dispose: (context, __) {
         if (onError != null) {
           final _models =
-              (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+              (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
           for (ReactiveModel reactiveModel in _models) {
-            (reactiveModel as ReactiveModelImp)
-                .inject
-                .onSetStateListenerNumber--;
+            reactiveModel.inject.onSetStateListenerNumber--;
           }
         }
       },
@@ -133,7 +123,7 @@ class OnSetStateListener<T> extends StatelessWidget {
       onSetState(context, rm);
     }
     final _models =
-        (context.widget as StateBuilder).activeRM.cast<ReactiveModel>();
+        (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
 
     bool _isIdle = false;
     bool _isWaiting = false;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
-import 'package:states_rebuilder/src/state_with_mixin_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 void main() {

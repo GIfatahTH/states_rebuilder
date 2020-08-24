@@ -71,8 +71,8 @@ abstract class Injected<T> {
             onData: (s) => _onData?.call(s),
             onError: (dynamic e) {
               //if setState has error override this _onError
-              if (!(rm as ReactiveModelImp).setStateHasOnErrorCallback) {
-                _onError?.call(e, (rm as ReactiveModelImp).stackTrace);
+              if (!(rm as ReactiveModelInt).setStateHasOnErrorCallback) {
+                _onError?.call(e, (rm as ReactiveModelInt).stackTrace);
               }
             },
             catchError: _onError != null,
@@ -176,6 +176,7 @@ abstract class Injected<T> {
   ///   * [creationFunction] (positional parameter): the fake creation function
   void injectMock(T Function() creationFunction) {
     assert(this is InjectedImp<T>);
+    dispose();
   }
 
   ///Inject a fake future implementation of this injected model.
@@ -184,6 +185,7 @@ abstract class Injected<T> {
   ///   * [creationFunction] (positional parameter): the fake future
   void injectFutureMock(Future<T> Function() creationFunction) {
     assert(this is InjectedFuture<T>);
+    dispose();
   }
 
   ///Inject a fake stream implementation of this injected model.
@@ -192,6 +194,7 @@ abstract class Injected<T> {
   ///   * [creationFunction] (positional parameter): the fake stream
   void injectStreamMock(Stream<T> Function() creationFunction) {
     assert(this is InjectedStream<T>);
+    dispose();
   }
 
   ///Inject a fake computed implementation of this injected model.
@@ -200,8 +203,13 @@ abstract class Injected<T> {
   ///   * [compute] (positional parameter): the fake compute callback
   /// * Optional parameters:
   ///   * [initialState] : the desired initial state of the injected model. If not defined, the original initial state is used.
-  void injectComputedMock({T Function(T s) compute, T initialState}) {
+  void injectComputedMock({
+    T Function(T s) compute,
+    Stream<T> Function(T s) computeAsync,
+    T initialState,
+  }) {
     assert(this is InjectedComputed<T>);
+    dispose();
   }
 
   ///Mutate the state of the model and notify observers.
@@ -504,9 +512,9 @@ abstract class Injected<T> {
         });
       },
       initState: (_, __) =>
-          (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
+          (_stateRM as ReactiveModelInt).numberOfFutureAndStreamBuilder++,
       dispose: (_, __) {
-        (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
+        (_stateRM as ReactiveModelInt).numberOfFutureAndStreamBuilder--;
         if (!_stateRM.hasObservers) {
           statesRebuilderCleaner(_stateRM);
         }
@@ -514,8 +522,8 @@ abstract class Injected<T> {
       onSetState: (_, rm) {
         if (rm.hasError) {
           //if setState has error override this _onError
-          if (!(rm as ReactiveModelImp).setStateHasOnErrorCallback) {
-            _onError?.call(rm.error, (rm as ReactiveModelImp).stackTrace);
+          if (!(rm as ReactiveModelInt).setStateHasOnErrorCallback) {
+            _onError?.call(rm.error, (rm as ReactiveModelInt).stackTrace);
           }
         }
       },
@@ -577,9 +585,9 @@ abstract class Injected<T> {
         });
       },
       initState: (_, __) =>
-          (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder++,
+          (_stateRM as ReactiveModelInt).numberOfFutureAndStreamBuilder++,
       dispose: (_, __) {
-        (_stateRM as ReactiveModelImp).numberOfFutureAndStreamBuilder--;
+        (_stateRM as ReactiveModelInt).numberOfFutureAndStreamBuilder--;
         if (!_stateRM.hasObservers) {
           statesRebuilderCleaner(_stateRM);
         }
@@ -587,8 +595,8 @@ abstract class Injected<T> {
       onSetState: (_, rm) {
         if (rm.hasError) {
           //if setState has error override this _onError
-          if (!(rm as ReactiveModelImp).setStateHasOnErrorCallback) {
-            _onError?.call(rm.error, (rm as ReactiveModelImp).stackTrace);
+          if (!(rm as ReactiveModelInt).setStateHasOnErrorCallback) {
+            _onError?.call(rm.error, (rm as ReactiveModelInt).stackTrace);
           }
         }
       },
@@ -602,7 +610,7 @@ abstract class Injected<T> {
           return onError == null ? onData(rm.state) : onError(rm.error);
         }
 
-        if ((rm as ReactiveModelImp).isStreamDone == true) {
+        if (rm.isStreamDone == true) {
           return onDone == null ? onData(rm.state) : onDone(rm.state);
         }
         return onData(rm.state);
@@ -636,9 +644,9 @@ void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
     return;
   }
   final name = injected._inject.getName();
-  if (injected._inject.isAsyncInjected) {
-    injected._rm?.unsubscribe();
-  }
+  // if (injected._inject.isAsyncInjected) {//TODO
+  injected._rm?.unsubscribe();
+  // }
 
   injected._inject
     ..removeAllReactiveNewInstance()

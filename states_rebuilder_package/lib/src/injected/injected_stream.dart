@@ -38,7 +38,7 @@ class InjectedStream<T> extends Injected<T> {
   String get _name => '___Injected${hashCode}Stream___';
   @override
   void injectStreamMock(Stream<T> Function() creationFunction) {
-    assert(this is InjectedStream<T>);
+    super.injectStreamMock(creationFunction);
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;
   }

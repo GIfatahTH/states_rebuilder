@@ -4,8 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'reactive_model.dart';
-import 'state_builder.dart';
-import 'states_rebuilder.dart';
+part of '../builders.dart';
 
 ///Mixin StateWithMixinBuilder
 enum MixinWith {

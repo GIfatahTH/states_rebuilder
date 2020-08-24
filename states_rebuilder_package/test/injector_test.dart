@@ -4,11 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
-import 'package:states_rebuilder/src/when_rebuilder_or.dart';
 
 void main() {
   test(
@@ -943,7 +941,7 @@ void main() {
       await tester.pumpWidget(widget);
       final text = StatesRebuilderDebug.printInjectedModel();
       expect(text, contains('Number of registered models : 1'));
-      expect(text, contains('Model : [Inject<Model>('));
+      expect(text, contains('Model : [InjectImp<Model>('));
     },
   );
 

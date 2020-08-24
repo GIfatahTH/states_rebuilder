@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
-import 'package:states_rebuilder/src/when_connection_state.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {

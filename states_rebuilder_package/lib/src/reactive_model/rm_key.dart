@@ -1,22 +1,15 @@
-import 'dart:async';
-
-import 'package:flutter/widgets.dart';
-
-import 'inject.dart';
-import 'reactive_model.dart';
-import 'reactive_model_imp.dart';
-import 'states_rebuilder.dart';
+part of '../reactive_model.dart';
 
 ///ReactiveModel Key
-class RMKey<T> implements ReactiveModel<T> {
+class RMKey<T> extends ReactiveModel<T> {
   ///ReactiveModel Key
-  RMKey([this.initialValue]);
+  RMKey([this.initialValue]) : super._(null);
 
   StatesRebuilder<T> _rmInitial;
-  ReactiveModelImp<T> _rm;
+  ReactiveModel<T> _rm;
 
   ///ReactiveModel associated with this key
-  ReactiveModelImp<T> get rm => _rm;
+  ReactiveModel<T> get rm => _rm;
 
   ///initial value
   T initialValue;
@@ -31,7 +24,7 @@ class RMKey<T> implements ReactiveModel<T> {
       fn(rm, _rmInitial);
     }
 
-    _rm = rm as ReactiveModelImp<T>;
+    _rm = rm;
     _rmInitial = null;
     _rm.cleaner(unsubscribe);
   }
@@ -69,7 +62,7 @@ class RMKey<T> implements ReactiveModel<T> {
   @override
   Future<T> refresh({bool shouldNotify = true, void Function() onInitRefresh}) {
     refreshCallBack?.call(_rm);
-    if (!rm.inject.isAsyncInjected) {
+    if (rm.inject is InjectImp) {
       rm.setState((_) => null);
     } else {
       rm.rebuildStates();
@@ -247,10 +240,12 @@ class RMKey<T> implements ReactiveModel<T> {
   ReactiveModel<F> future<F>(
     Future<F> Function(T, Future<T> stateAsync) future, {
     F initialValue,
+    int debounceDelay,
   }) {
     return _rm.future(
       future,
       initialValue: initialValue,
+      debounceDelay: debounceDelay,
     );
   }
 

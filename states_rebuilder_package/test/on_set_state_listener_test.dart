@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
-import 'package:states_rebuilder/src/on_set_state_listener.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
@@ -175,14 +175,15 @@ void main() {
   testWidgets('onSetStateListener works for two Future reactiveModels',
       (tester) async {
     String _onSetState = '';
-    ReactiveModel intRM;
-    ReactiveModel stringRM;
+    ReactiveModel<int> intRM;
+    ReactiveModel<String> stringRM;
     final widget = Injector(
       inject: [
         Inject.future(() => Future.delayed(Duration(seconds: 1), () => 10)),
         Inject.future(() => Future.delayed(Duration(seconds: 2), () => '10')),
       ],
       builder: (context) {
+        print(intRM = Injector.getAsReactive<int>());
         return Directionality(
           textDirection: TextDirection.ltr,
           child: OnSetStateListener(

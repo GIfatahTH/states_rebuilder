@@ -156,7 +156,6 @@ class InjectedComputed<T> extends Injected<T> {
     } else {
       _creationFunction = () async* {
         final s = _rm?.state ?? initialState ?? _initialState;
-        // if (_dependsOn?.isNotEmpty == true) {
         if (_shouldCompute?.call(s) == false) {
           yield s;
         }

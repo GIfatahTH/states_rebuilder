@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'reactive_model.dart';
-import 'rm_key.dart';
-import 'state_builder.dart';
+part of '../builders.dart';
 
 ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
 ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
@@ -152,7 +148,6 @@ class WhenRebuilder<T> extends StatelessWidget {
       dispose: dispose,
       onSetState: onSetState,
       child: const Text('StatesRebuilder#|0|#'),
-      activeRM: [],
       builder: (context, modelRM) {
         bool isIdle = false;
         bool isWaiting = false;
@@ -160,7 +155,7 @@ class WhenRebuilder<T> extends StatelessWidget {
         dynamic error;
 
         final _models = List<ReactiveModel>.from(
-          (context.widget as StateBuilder).activeRM,
+          (context.widget as StateBuilder)._activeRM,
         );
         assert(() {
           if (modelRM == null) {

@@ -36,6 +36,7 @@ class InjectedFuture<T> extends Injected<T> {
   String get _name => '___Injected${hashCode}Future___';
   @override
   void injectFutureMock(Future<T> Function() creationFunction) {
+    super.injectFutureMock(creationFunction);
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;
   }

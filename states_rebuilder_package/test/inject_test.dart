@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
   test(
@@ -65,7 +65,7 @@ void main() {
         final singletonInject = Inject.future(() => getFuture());
         singletonInject.getName();
         expect(singletonInject.singleton, isNull);
-        expect(singletonInject.isAsyncInjected, isTrue);
+        expect(singletonInject is InjectFuture, isTrue);
         singletonInject.getSingleton();
       },
     );
@@ -95,7 +95,7 @@ void main() {
         final singletonInject = Inject.stream(() => getStream());
         singletonInject.getName();
         expect(singletonInject.singleton, isNull);
-        expect(singletonInject.isAsyncInjected, isTrue);
+        expect(singletonInject is InjectStream, isTrue);
         singletonInject.getSingleton();
       },
     );
@@ -175,17 +175,17 @@ void main() {
     'Inject : get new reactive instance',
     () {
       final inject = Inject(() => Model());
-      final ReactiveModelImp<Model> modelRM0 = inject.getReactive();
-      final ReactiveModelImp<Model> modelRM1 = inject.getReactive(true);
-      final ReactiveModelImp<Model> modelRM2 = inject.getReactive(true);
+      final ReactiveModel<Model> modelRM0 = inject.getReactive();
+      final ReactiveModel<Model> modelRM1 = inject.getReactive(true);
+      final ReactiveModel<Model> modelRM2 = inject.getReactive(true);
       //
       expect(modelRM0 != modelRM1, isTrue);
       expect(modelRM0 != modelRM2, isTrue);
       expect(modelRM1 != modelRM2, isTrue);
       //
-      expect(modelRM0.isNewReactiveInstance, isFalse);
-      expect(modelRM1.isNewReactiveInstance, isTrue);
-      expect(modelRM2.isNewReactiveInstance, isTrue);
+      expect(modelRM0 is ReactiveModelImp, isTrue);
+      expect(modelRM1 is ReactiveModelImpNew, isTrue);
+      expect(modelRM2 is ReactiveModelImpNew, isTrue);
       //
       expect(inject.newReactiveInstanceList.length, equals(2));
       //
@@ -353,7 +353,7 @@ void main() {
       //defined generic type
       expect(inject1.getName(), equals('IInterface'));
 
-      expect(inject1.creationFutureFunction, isNotNull);
+      expect(inject1 is InjectFuture, isTrue);
     },
   );
 }

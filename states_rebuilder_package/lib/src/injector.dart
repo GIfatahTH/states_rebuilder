@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'assertions.dart';
 import 'inject.dart';
 import 'reactive_model.dart';
-import 'reactive_model_imp.dart';
 import 'states_rebuilder.dart';
 
 ///A widget used to provide a business logic model to the widget tree,
@@ -268,7 +267,7 @@ class InjectorState extends State<Injector> {
         model.addObserver(
           observer: _ObserverOfStatesRebuilder(
             () {
-              if (model is ReactiveModelImp && !model.hasData) {
+              if (model is ReactiveModel && !model.hasData) {
                 return;
               }
               for (Inject<dynamic> inject in _injects) {
@@ -376,9 +375,8 @@ void registerInjects(List<Inject<dynamic>> _injects) {
 
 void unregisterInjects(List<Inject<dynamic>> _injects, [bool disposeModels]) {
   for (Inject<dynamic> inject in _injects) {
-    if (inject.isAsyncInjected) {
-      inject.reactiveSingleton?.unsubscribe();
-    }
+    inject.reactiveSingleton?.unsubscribe();
+
     final name = inject.getName();
     final isRemoved =
         InjectorState.allRegisteredModelInApp[name]?.remove(inject);

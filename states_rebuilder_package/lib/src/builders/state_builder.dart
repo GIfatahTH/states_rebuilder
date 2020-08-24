@@ -1,17 +1,4 @@
-import 'dart:developer' as developer;
-import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-
-import 'assertions.dart';
-import 'injector.dart';
-import 'on_set_state_listener.dart';
-import 'reactive_model.dart';
-import 'reactive_model_imp.dart';
-import 'rm_key.dart';
-import 'states_rebuilder.dart';
-import 'when_connection_state.dart';
-import 'when_rebuilder_or.dart';
+part of '../builders.dart';
 
 /// One of the four observer widgets in states_rebuilder
 ///
@@ -69,9 +56,6 @@ class StateBuilder<T> extends StatefulWidget {
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
   final List<StatesRebuilder Function()> observeMany;
-
-  ///Active ReactiveModel used in WhenRebuilder and WhenRebuilderOr
-  final List<ReactiveModel> activeRM;
 
   ///A tag or list of tags you want this [StateBuilder] to register with.
   ///
@@ -187,7 +171,7 @@ class StateBuilder<T> extends StatefulWidget {
   /// One of the four observer widgets in states_rebuilder
   ///
   /// [WhenRebuilder], [WhenRebuilderOr] and [OnSetStateListener]
-  const StateBuilder({
+  StateBuilder({
     Key key,
     // For state management
     this.builder,
@@ -211,9 +195,6 @@ class StateBuilder<T> extends StatefulWidget {
     this.afterInitialBuild,
     this.afterRebuild,
     this.disposeModels,
-    //Holds a list of resolved ReactiveModel (used internally in states_rebuilder)
-    //TO IMPROVE
-    this.activeRM,
   })  : assert(builder != null || builderWithChild != null, '''
   
   | ***Builder not defined*** 
@@ -230,6 +211,9 @@ class StateBuilder<T> extends StatefulWidget {
   
         '''),
         super(key: key);
+
+  ///Active ReactiveModel used in WhenRebuilder and WhenRebuilderOr
+  final List<ReactiveModel> _activeRM = [];
   @override
   StateBuilderState createState() => StateBuilderState<T>();
 }
@@ -410,9 +394,9 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
       return;
     }
 
-    if (_models != null && widget.activeRM != null) {
-      widget.activeRM.clear();
-      widget.activeRM.addAll(
+    if (_models != null) {
+      widget._activeRM.clear();
+      widget._activeRM.addAll(
         _models.where((m) => m is ReactiveModel).cast<ReactiveModel>(),
       );
     }
@@ -448,9 +432,7 @@ void _initState<T>(StateBuilderState<T> state) {
           throw Exception(AssertMessage.noModelsAndDynamicType());
         }
         state._exposedModelFromGenericType =
-            (Injector.getAsReactive<T>() as ReactiveModelImp<T>)
-                ?.inject
-                ?.getReactive(true);
+            Injector.getAsReactive<T>()?.inject?.getReactive(true);
 
         subscribe<T>(state._exposedModelFromGenericType);
         return;
@@ -471,12 +453,11 @@ void _initState<T>(StateBuilderState<T> state) {
       }
       i++;
     }
-    if (widget.activeRM != null) {
-      state.widget.activeRM.clear();
-      state.widget.activeRM.addAll(
-        state._models.where((m) => m is ReactiveModel).cast<ReactiveModel>(),
-      );
-    }
+
+    state.widget._activeRM.clear();
+    state.widget._activeRM.addAll(
+      state._models.where((m) => m is ReactiveModel).cast<ReactiveModel>(),
+    );
 
     if (widget.observe != null) {
       if (state._models.first is! ReactiveModel<T>) {
