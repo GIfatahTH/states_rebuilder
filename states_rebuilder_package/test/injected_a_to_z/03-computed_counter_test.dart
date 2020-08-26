@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final counter1 = RM.inject(() => 10);
+final counter1 = RM.inject(
+  () => 10,
+  debugPrintWhenNotifiedPreMessage: 'counter1',
+);
 final counter2 = RM.inject(() => 10);
 
 //use to test the number of computed method call

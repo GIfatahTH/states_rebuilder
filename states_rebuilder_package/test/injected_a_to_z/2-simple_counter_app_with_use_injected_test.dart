@@ -20,7 +20,7 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return StateWithMixinBuilder(
         mixinWith: MixinWith.widgetsBindingObserver,
-        dispose: (_, __) {
+        dispose: (_, __, ___) {
           RM.disposeAll();
         },
         builder: (context, snapshot) {

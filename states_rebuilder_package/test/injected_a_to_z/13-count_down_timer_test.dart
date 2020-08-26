@@ -11,6 +11,7 @@ final Injected<int> timer = RM.injectStream<int>(
     timer.subscription.pause();
     timerStatus.state = TimerStatus.ready;
   },
+  debugPrintWhenNotifiedPreMessage: 'timer',
 );
 
 final timerStatus = RM.inject<TimerStatus>(
@@ -46,6 +47,7 @@ final duration = RM.injectComputed<int>(
     yield d;
   },
   initialState: initialTimer,
+  debugPrintWhenNotifiedPreMessage: 'duration',
 );
 
 class TimerApp extends StatelessWidget {

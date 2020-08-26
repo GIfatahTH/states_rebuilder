@@ -668,32 +668,31 @@ void main() {
         ..listenToRM((rm) {});
 
       //
-      expect(modelRM.toString(), contains('<Model> RM'));
-      expect(modelRM.toString(), contains(' | isIdle'));
+      expect(modelRM.toString(),
+          contains('RM<Model>-[isIdle] | Observers(0 widgets, 0 models) | '));
       //
       modelRM.setState((s) => s.incrementAsync());
 
-      expect(modelRM.toString(), contains(' | isWaiting'));
+      expect(modelRM.toString(), contains('RM<Model>-[isWaiting] '));
       await tester.pump(Duration(seconds: 1));
-      expect(
-          modelRM.toString(), contains(" | hasData : (Instance of 'Model')"));
+      expect(modelRM.toString(), contains(" state: (Instance of 'Model')"));
 
       //
       modelRM.setState((s) => s.incrementAsyncError(), catchError: true);
       await tester.pump(Duration(seconds: 1));
-      expect(modelRM.toString(),
-          contains(' | hasError : (Exception: Error message)'));
+      expect(
+          modelRM.toString(), contains(' error: (Exception: Error message)'));
 
       //
       expect('${modelRM.asNew('seed1')}',
-          contains('(new seed: "seed1") <Model> RM'));
-      expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
+          contains('(seed: "seed1") new RM<Model>'));
+      expect('${modelRM.asNew('seed1')}', contains('RM<Model>-[isIdle] '));
 
       final intStream = ReactiveModel.stream(getStream());
-      expect(intStream.toString(), contains('Stream of <int> RM'));
-      expect(intStream.toString(), contains('| isWaiting'));
+      expect(intStream.toString(), contains('RM<Stream<int>>'));
+      expect(intStream.toString(), contains('RM<Stream<int>>-[isWaiting] '));
       await tester.pump(Duration(seconds: 3));
-      expect(intStream.toString(), contains('| hasData : (2)'));
+      expect(intStream.toString(), contains('RM<Stream<int>>-[hasData] '));
 
       // final intFuture = ReactiveModel.future(getFuture()).asNew();
       // expect(intFuture.toString(),

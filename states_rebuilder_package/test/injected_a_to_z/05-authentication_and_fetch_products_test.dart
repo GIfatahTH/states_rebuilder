@@ -92,7 +92,10 @@ class ProductService {
 //Inject the FirebaseAuth and register it with IAuthRepository (It will be mocked)
 final authRepository = RM.inject<IAuthRepository>(() => FirebaseAuth());
 //Inject the authService
-final authService = RM.inject(() => AuthService(authRepository.state));
+final authService = RM.inject(
+  () => AuthService(authRepository.state),
+  debugPrintWhenNotifiedPreMessage: '',
+);
 //
 //Inject the IProductRepository and register it with FirebaseCloud (It will be mocked)
 //As it depends on the authService, we use  injectComputed
@@ -107,7 +110,10 @@ final productRepository = RM.injectComputed<IProductRepository>(
 );
 
 //Inject Product Service
-final productService = RM.inject(() => ProductService(productRepository.state));
+final productService = RM.inject(
+  () => ProductService(productRepository.state),
+  debugPrintWhenNotifiedPreMessage: '',
+);
 
 /* -- The UI --*/
 class MyApp extends StatelessWidget {
