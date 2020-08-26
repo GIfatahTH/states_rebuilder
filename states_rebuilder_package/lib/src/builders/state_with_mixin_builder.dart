@@ -16,7 +16,7 @@ enum MixinWith {
 }
 
 ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
-class StateWithMixinBuilder<T> extends StatefulWidget {
+class StateWithMixinBuilder<T, R> extends StatefulWidget {
   ///```dart
   ///StateWithMixinBuilder(
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
@@ -25,8 +25,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///```
   ///The build strategy currently used to rebuild the state.
   ///
-  ///The builder is provided with an [BuildContext] and [ReactiveModel<T>] parameters.
-  final Widget Function(BuildContext context, ReactiveModel<T> model) builder;
+  ///The builder is provided with an [BuildContext] and [ReactiveModel<R>] parameters.
+  final Widget Function(BuildContext context, ReactiveModel<R> rm) builder;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -38,7 +38,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///The build strategy currently used to rebuild the state with child parameter.
   ///
   ///The builder is provided with a [BuildContext], [ReactiveModel] and [Widget] parameters.
-  final Widget Function(BuildContext context, Widget child) builderWithChild;
+  final Widget Function(BuildContext context, ReactiveModel<R> rm, Widget child)
+      builderWithChild;
 
   ///The child to be used in [builderWithChild].
   final Widget child;
@@ -55,7 +56,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   // final List<StatesRebuilder> models;
 
   ///an observable to which you want [StateWithMixinBuilder] to subscribe.
-  final StatesRebuilder Function() observe;
+  final StatesRebuilder<R> Function() observe;
 
   ///List of observables to which you want [StateWithMixinBuilder] to subscribe.
   final List<StatesRebuilder Function()> observeMany;
@@ -73,7 +74,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
 
   ///```dart
   ///StateWithMixinBuilder(
-  ///  initState:(BuildContext context,  TickerProvider ticker)=> myModel.init([context, ticker]),
+  ///  initState:(BuildContext context, ReactiveModel model,  TickerProvider ticker)=> myModel.init([context, ticker]),
   ///  MixinWith : MixinWith.singleTickerProviderStateMixin
   ///  builder:(BuildContext context, ReactiveModel model) =>MyWidget(),
   ///)
@@ -81,7 +82,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///Called when this object is inserted into the tree.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, T mix) initState;
+  final void Function(BuildContext context, ReactiveModel<R> rm, T mix)
+      initState;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -93,7 +95,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///Called when this object is removed from the tree permanently.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, T mix) dispose;
+  final void Function(BuildContext context, ReactiveModel<R> rm, T mix) dispose;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -105,7 +107,8 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///Called when a dependency of this [State] object changes.
   ///
   ///The second parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
-  final void Function(BuildContext context, T mix) didChangeDependencies;
+  final void Function(BuildContext context, ReactiveModel<R> rm, T mix)
+      didChangeDependencies;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -118,14 +121,15 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///
   ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
   final void Function(
-          BuildContext context, StateWithMixinBuilder<dynamic> oldWidget, T mix)
+          BuildContext context, StateWithMixinBuilder<T, R> oldWidget, T mix)
       didUpdateWidget;
 
   ///Called after the widget is inserted in the widget tree.
-  final void Function(BuildContext context, T mix) afterInitialBuild;
+  final void Function(BuildContext context, ReactiveModel<R> rm)
+      afterInitialBuild;
 
   ///Called after each rebuild of the widget.
-  final void Function(BuildContext context) afterRebuild;
+  final void Function(BuildContext context, ReactiveModel<R> rm) afterRebuild;
 
   ///```dart
   ///StateWithMixinBuilder(
@@ -139,6 +143,15 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
   ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
   final void Function(BuildContext context, AppLifecycleState state)
       didChangeAppLifecycleState;
+
+  ///Called when the system tells the app that the user's locale has changed.
+  ///For example, if the user changes the system language settings.
+  ///* Required parameters:
+  ///   * [BuildContext] (positional parameter): the [BuildContext]
+  ///   * [List<Locale>] (positional parameter): List of system Locales as defined in
+  /// the system language settings
+  final void Function(BuildContext context, List<Locale> locale)
+      didChangeLocales;
 
   ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
   StateWithMixinBuilder({
@@ -156,6 +169,7 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
     this.afterInitialBuild,
     this.afterRebuild,
     this.didChangeAppLifecycleState,
+    this.didChangeLocales,
     @required this.mixinWith,
   })  : assert(builder != null || builderWithChild != null, '''
   
@@ -174,8 +188,270 @@ class StateWithMixinBuilder<T> extends StatefulWidget {
         '''),
         assert(mixinWith != null),
         super(key: key);
+
+  ///StateBuilder mixin with [TickerProviderStateMixin]
+  ///
+  ///* Required parameters:
+  ///   * [builder] : The builder callback to be executed whenever the widget is
+  /// notified.
+  ///   * [builderWithChild] : The builder callback to be executed whenever the
+  /// widget is notified. It must be use with [child] parameter.
+  ///   * [child] : Widget to be used with [builderWithChild]. Used for optimization.
+  /// [builder] or and only or [builderWithChild]  with [child] must be defined.
+  /// * Optional parameters:
+  ///   * [observe] : The model to observer.
+  ///   * [observeMany] Callback to be called when the widget is first inserted.
+  ///   * [dispose] : Callback to be called when the widget is removed.
+  ///   * [didChangeDependencies] : Callback to be called when dependencies changed.
+  ///   * [didUpdateWidget] : Callback to be called when the widget updated
+  ///   * [afterInitialBuild] : Callback to be called after the first build of the
+  /// widget.
+  ///   * [afterRebuild] : Callback to be called after each build.
+  static StateWithMixinBuilder<TickerProviderStateMixin, R> tickerProvider<R>({
+    Key key,
+    dynamic tag,
+    Widget Function(BuildContext context, ReactiveModel<R> rm) builder,
+    Widget Function(BuildContext context, ReactiveModel<R> rm, Widget child)
+        builderWithChild,
+    Widget child,
+    StatesRebuilder<R> Function() observe,
+    List<StatesRebuilder<dynamic> Function()> observeMany,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            TickerProviderStateMixin ticker)
+        initState,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            TickerProviderStateMixin ticker)
+        dispose,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            TickerProviderStateMixin ticker)
+        didChangeDependencies,
+    void Function(
+            BuildContext context,
+            StateWithMixinBuilder<TickerProviderStateMixin, R> old,
+            TickerProviderStateMixin ticker)
+        didUpdateWidget,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterInitialBuild,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterRebuild,
+  }) {
+    return StateWithMixinBuilder<TickerProviderStateMixin, R>(
+      mixinWith: MixinWith.tickerProviderStateMixin,
+      key: key,
+      observe: observe,
+      observeMany: observeMany,
+      builder: builder,
+      builderWithChild: builderWithChild,
+      child: child,
+      initState: initState,
+      dispose: dispose,
+      didChangeDependencies: didChangeDependencies,
+      didUpdateWidget: didUpdateWidget,
+      afterInitialBuild: afterInitialBuild,
+      afterRebuild: afterRebuild,
+    );
+  }
+
+  ///StateBuilder mixin with [SingleTickerProviderStateMixin]
+  ///
+  ///* Required parameters:
+  ///   * [builder] : The builder callback to be executed whenever the widget is
+  /// notified.
+  ///   * [builderWithChild] : The builder callback to be executed whenever the
+  /// widget is notified. It must be use with [child] parameter.
+  ///   * [child] : Widget to be used with [builderWithChild]. Used for optimization.
+  /// [builder] or and only or [builderWithChild]  with [child] must be defined.
+  /// * Optional parameters:
+  ///   * [observe] : The model to observer.
+  ///   * [observeMany] Callback to be called when the widget is first inserted.
+  ///   * [dispose] : Callback to be called when the widget is removed.
+  ///   * [didChangeDependencies] : Callback to be called when dependencies changed.
+  ///   * [didUpdateWidget] : Callback to be called when the widget updated
+  ///   * [afterInitialBuild] : Callback to be called after the first build of the
+  /// widget.
+  ///   * [afterRebuild] : Callback to be called after each build.
+  static StateWithMixinBuilder<SingleTickerProviderStateMixin, R>
+      singleTickerProvider<R>({
+    Key key,
+    dynamic tag,
+    StatesRebuilder<R> Function() observe,
+    List<StatesRebuilder<dynamic> Function()> observeMany,
+    Widget Function(BuildContext context, ReactiveModel<R> rm) builder,
+    Widget Function(BuildContext context, ReactiveModel<R> rm, Widget child)
+        builderWithChild,
+    Widget child,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            SingleTickerProviderStateMixin ticker)
+        initState,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            SingleTickerProviderStateMixin ticker)
+        dispose,
+    void Function(BuildContext context, ReactiveModel<R> rm,
+            SingleTickerProviderStateMixin ticker)
+        didChangeDependencies,
+    void Function(
+            BuildContext context,
+            StateWithMixinBuilder<SingleTickerProviderStateMixin, R> old,
+            SingleTickerProviderStateMixin ticker)
+        didUpdateWidget,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterInitialBuild,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterRebuild,
+  }) {
+    return StateWithMixinBuilder<SingleTickerProviderStateMixin, R>(
+      mixinWith: MixinWith.singleTickerProviderStateMixin,
+      key: key,
+      observe: observe,
+      observeMany: observeMany,
+      builder: builder,
+      builderWithChild: builderWithChild,
+      child: child,
+      initState: initState,
+      dispose: dispose,
+      didChangeDependencies: didChangeDependencies,
+      didUpdateWidget: didUpdateWidget,
+      afterInitialBuild: afterInitialBuild,
+      afterRebuild: afterRebuild,
+    );
+  }
+
+  ///StateBuilder mixin with [AutomaticKeepAliveClientMixin]
+  ///
+  ///* Required parameters:
+  ///   * [builder] : The builder callback to be executed whenever the widget is
+  /// notified.
+  ///   * [builderWithChild] : The builder callback to be executed whenever the
+  /// widget is notified. It must be use with [child] parameter.
+  ///   * [child] : Widget to be used with [builderWithChild]. Used for optimization.
+  /// [builder] or and only or [builderWithChild]  with [child] must be defined.
+  /// * Optional parameters:
+  ///   * [observe] : The model to observer.
+  ///   * [observeMany] Callback to be called when the widget is first inserted.
+  ///   * [dispose] : Callback to be called when the widget is removed.
+  ///   * [didChangeDependencies] : Callback to be called when dependencies changed.
+  ///   * [didUpdateWidget] : Callback to be called when the widget updated
+  ///   * [afterInitialBuild] : Callback to be called after the first build of the
+  /// widget.
+  ///   * [afterRebuild] : Callback to be called after each build.
+
+  static StateWithMixinBuilder<AutomaticKeepAliveClientMixin, R>
+      automaticKeepAlive<R>({
+    Key key,
+    dynamic tag,
+    StatesRebuilder<R> Function() observe,
+    List<StatesRebuilder<dynamic> Function()> observeMany,
+    Widget Function(BuildContext context, ReactiveModel<R> rm) builder,
+    Widget Function(BuildContext context, ReactiveModel<R> rm, Widget child)
+        builderWithChild,
+    Widget child,
+    void Function(BuildContext context, ReactiveModel<R> rm) initState,
+    void Function(BuildContext context, ReactiveModel<R> rm) dispose,
+    void Function(BuildContext context, ReactiveModel<R> rm)
+        didChangeDependencies,
+    void Function(
+      BuildContext context,
+      StateWithMixinBuilder<AutomaticKeepAliveClientMixin, R> old,
+    )
+        didUpdateWidget,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterInitialBuild,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterRebuild,
+  }) {
+    return StateWithMixinBuilder<AutomaticKeepAliveClientMixin, R>(
+      mixinWith: MixinWith.automaticKeepAliveClientMixin,
+      key: key,
+      observe: observe,
+      observeMany: observeMany,
+      builder: builder,
+      builderWithChild: builderWithChild,
+      child: child,
+      initState: initState != null
+          ? (context, rm, mix) => initState(context, rm)
+          : null,
+      dispose:
+          dispose != null ? (context, rm, mix) => dispose(context, rm) : null,
+      didChangeDependencies: didChangeDependencies != null
+          ? (context, rm, mix) => didChangeDependencies(context, rm)
+          : null,
+      didUpdateWidget: didUpdateWidget != null
+          ? (context, old, mix) => didUpdateWidget(context, old)
+          : null,
+      afterInitialBuild: afterInitialBuild,
+      afterRebuild: afterRebuild,
+    );
+  }
+
+  ///StateBuilder mixin with [WidgetsBindingObserver]
+  ///
+  ///* Required parameters:
+  ///   * [builder] : The builder callback to be executed whenever the widget is
+  /// notified.
+  ///   * [builderWithChild] : The builder callback to be executed whenever the
+  /// widget is notified. It must be use with [child] parameter.
+  ///   * [child] : Widget to be used with [builderWithChild]. Used for optimization.
+  /// [builder] or and only or [builderWithChild]  with [child] must be defined.
+  /// * Optional parameters:
+  ///   * [observe] : The model to observer.
+  ///   * [observeMany] Callback to be called when the widget is first inserted.
+  ///   * [dispose] : Callback to be called when the widget is removed.
+  ///   * [didChangeDependencies] : Callback to be called when dependencies changed.
+  ///   * [didUpdateWidget] : Callback to be called when the widget updated
+  ///   * [afterInitialBuild] : Callback to be called after the first build of the
+  /// widget.
+  ///   * [afterRebuild] : Callback to be called after each build.
+  ///   * [didChangeAppLifecycleState] : Called when the system puts the app in
+  /// the background or returns the app to the foreground.
+  ///   * [didChangeLocales] : Called when the system tells the app that the
+  /// user's locale has changed. For example, if the user changes the system language settings..
+  static StateWithMixinBuilder<WidgetsBindingObserver, R>
+      widgetsBindingObserver<R>({
+    Key key,
+    dynamic tag,
+    StatesRebuilder<R> Function() observe,
+    List<StatesRebuilder<dynamic> Function()> observeMany,
+    Widget Function(BuildContext context, ReactiveModel<R> rm) builder,
+    Widget Function(BuildContext context, ReactiveModel<R> rm, Widget child)
+        builderWithChild,
+    Widget child,
+    void Function(BuildContext context, ReactiveModel<R> rm) initState,
+    void Function(BuildContext context, ReactiveModel<R> rm) dispose,
+    void Function(BuildContext context, ReactiveModel<R> rm)
+        didChangeDependencies,
+    void Function(
+      BuildContext context,
+      StateWithMixinBuilder<WidgetsBindingObserver, R> old,
+    )
+        didUpdateWidget,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterInitialBuild,
+    void Function(BuildContext context, ReactiveModel<R> rm) afterRebuild,
+    void Function(BuildContext context, AppLifecycleState lifecycleState)
+        didChangeAppLifecycleState,
+    void Function(BuildContext context, List<Locale> locale) didChangeLocales,
+  }) {
+    return StateWithMixinBuilder<WidgetsBindingObserver, R>(
+      mixinWith: MixinWith.widgetsBindingObserver,
+      key: key,
+      observe: observe,
+      observeMany: observeMany,
+      builder: builder,
+      builderWithChild: builderWithChild,
+      child: child,
+      initState: initState != null
+          ? (context, rm, mix) => initState(context, rm)
+          : null,
+      dispose:
+          dispose != null ? (context, rm, mix) => dispose(context, rm) : null,
+      didChangeDependencies: didChangeDependencies != null
+          ? (context, rm, mix) => didChangeDependencies(context, rm)
+          : null,
+      didUpdateWidget: didUpdateWidget != null
+          ? (context, old, mix) => didUpdateWidget(context, old)
+          : null,
+      afterInitialBuild: afterInitialBuild,
+      afterRebuild: afterRebuild,
+      didChangeAppLifecycleState: didChangeAppLifecycleState,
+      didChangeLocales: didChangeLocales,
+    );
+  }
+
   @override
-  _State<T> createState() {
+  _State<T, R> createState() {
     switch (mixinWith) {
       case MixinWith.singleTickerProviderStateMixin:
         assert(
@@ -185,7 +461,7 @@ initState` `dispose` must not be null because you are using SingleTickerProvider
 and you are supposed to to instantiate your controllers in the initState() and dispose them
  in the dispose() method'
         ''');
-        return _StateWithSingleTickerProvider<T>();
+        return _StateWithSingleTickerProvider<T, R>();
         break;
       case MixinWith.tickerProviderStateMixin:
         assert(
@@ -195,13 +471,13 @@ initState` `dispose` must not be null because you are using TickerProviderStateM
 and you are supposed to to instantiate your controllers in the initState() and dispose them
  in the dispose() method'
         ''');
-        return _StateWithTickerProvider<T>();
+        return _StateWithTickerProvider<T, R>();
         break;
       case MixinWith.automaticKeepAliveClientMixin:
-        return _StateWithKeepAliveClient<T>();
+        return _StateWithKeepAliveClient<T, R>();
         break;
       case MixinWith.widgetsBindingObserver:
-        return _StateWithWidgetsBindingObserver<T>();
+        return _StateWithWidgetsBindingObserver<T, R>();
         break;
       default:
         return null;
@@ -209,56 +485,38 @@ and you are supposed to to instantiate your controllers in the initState() and d
   }
 }
 
-class _State<T> extends State<StateWithMixinBuilder<T>> {
+class _State<T, R> extends State<StateWithMixinBuilder<T, R>> {
   T _mixin;
 
   @override
-  void initState() {
-    super.initState();
-
-    widget.initState?.call(context, _mixin);
-  }
-
-  @override
-  void dispose() {
-    widget.dispose?.call(context, _mixin);
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.didChangeDependencies != null) {
-      widget.didChangeDependencies(context, _mixin);
-    }
-  }
-
-  @override
-  void didUpdateWidget(StateWithMixinBuilder<T> oldWidget) {
+  void didUpdateWidget(StateWithMixinBuilder<T, R> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.didUpdateWidget != null) {
-      widget.didUpdateWidget(context, oldWidget, _mixin);
-    }
+    widget.didUpdateWidget?.call(context, oldWidget, _mixin);
   }
 
-  Widget get _stateBuilder => StateBuilder<dynamic>(
+  Widget get _stateBuilder => StateBuilder<R>(
         observe: widget.observe,
         observeMany: widget.observeMany ?? [],
         tag: widget.tag,
-        afterInitialBuild: (context, _) {
-          if (widget.afterInitialBuild != null) {
-            widget.afterInitialBuild(context, _mixin);
-          }
-        },
-        afterRebuild: (context, _) {
-          if (widget.afterRebuild != null) {
-            widget.afterRebuild(context);
-          }
-        },
+        initState: widget.initState != null
+            ? (context, rm) => widget.initState(context, rm, _mixin)
+            : null,
+        dispose: widget.dispose != null
+            ? (context, rm) => widget.dispose(context, rm, _mixin)
+            : null,
+        didChangeDependencies: widget.didChangeDependencies != null
+            ? (context, rm) => widget.didChangeDependencies(context, rm, _mixin)
+            : null,
+        afterInitialBuild: widget.afterInitialBuild != null
+            ? (context, rm) => widget.afterInitialBuild(context, rm)
+            : null,
+        afterRebuild: widget.afterRebuild != null
+            ? (context, rm) => widget.afterRebuild(context, rm)
+            : null,
         shouldRebuild: (_) => true,
-        builder: (context, _) {
+        builder: (context, rm) {
           if (widget.builderWithChild != null) {
-            return widget.builderWithChild(context, widget.child);
+            return widget.builderWithChild(context, rm, widget.child);
           }
           return widget.builder(context, null);
         },
@@ -270,19 +528,19 @@ class _State<T> extends State<StateWithMixinBuilder<T>> {
   }
 }
 
-class _StateWithSingleTickerProvider<T> extends _State<T>
+class _StateWithSingleTickerProvider<T, R> extends _State<T, R>
     with SingleTickerProviderStateMixin {
   @override
   T get _mixin => this as T;
 }
 
-class _StateWithTickerProvider<T> extends _State<T>
+class _StateWithTickerProvider<T, R> extends _State<T, R>
     with TickerProviderStateMixin {
   @override
   T get _mixin => this as T;
 }
 
-class _StateWithKeepAliveClient<T> extends _State<T>
+class _StateWithKeepAliveClient<T, R> extends _State<T, R>
     with AutomaticKeepAliveClientMixin {
   @override
   T get _mixin => this as T;
@@ -297,7 +555,7 @@ class _StateWithKeepAliveClient<T> extends _State<T>
   bool get wantKeepAlive => true;
 }
 
-class _StateWithWidgetsBindingObserver<T> extends _State<T>
+class _StateWithWidgetsBindingObserver<T, R> extends _State<T, R>
     with WidgetsBindingObserver {
   @override
   T get _mixin => this as T;
@@ -314,8 +572,13 @@ class _StateWithWidgetsBindingObserver<T> extends _State<T>
     super.dispose();
   }
 
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.didChangeAppLifecycleState != null)
-      widget.didChangeAppLifecycleState(context, state);
+    widget.didChangeAppLifecycleState?.call(context, state);
+  }
+
+  @override
+  void didChangeLocales(List<Locale> locale) {
+    widget.didChangeLocales?.call(context, locale);
   }
 }
