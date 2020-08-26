@@ -94,9 +94,10 @@ class _SetState<T> {
 
   void rebuildStates({bool canRebuild = true}) {
     if (rm._listenToRMSet.isNotEmpty) {
-      rm._setStateHasOnErrorCallback = onError != null;
-      rm._listenToRMCall();
-      rm._setStateHasOnErrorCallback = false;
+      rm
+        .._setStateHasOnErrorCallback = onError != null
+        .._listenToRMCall()
+        .._setStateHasOnErrorCallback = false;
     }
 
     if ((silent || rm._listenToRMSet.isNotEmpty) && !rm.hasObservers) {
@@ -105,14 +106,15 @@ class _SetState<T> {
     }
 
     if (canRebuild) {
-      rm.rebuildStates(
-        filterTags,
-        (_) => _onSetState(),
-      );
-      rm._joinSingleton(
-        joinSingleton,
-        joinSingletonToNewData,
-      );
+      rm
+        ..rebuildStates(
+          filterTags,
+          (_) => _onSetState(),
+        )
+        .._joinSingleton(
+          joinSingleton,
+          joinSingletonToNewData,
+        );
     }
   }
 
@@ -131,8 +133,9 @@ class _SetState<T> {
           _deepEquality.equals(rm.inject.getReactive().state, data)) {
         return false;
       }
-      rm._addToUndoQueue();
-      rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
+      rm
+        .._addToUndoQueue()
+        ..snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
 
       return true;
     }
@@ -142,8 +145,9 @@ class _SetState<T> {
   }
 
   void onErrorCallBack(dynamic e, StackTrace s) {
-    rm.snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e);
-    rm._stackTrace = s;
+    rm
+      ..snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e)
+      .._stackTrace = s;
     rebuildStates(canRebuild: true);
     bool _catchError = catchError ??
         false ||
@@ -229,7 +233,7 @@ class _SetState<T> {
     return _setStateCompleter.future;
   }
 
-  void _syncHandler(_result) {
+  void _syncHandler(dynamic _result) {
     if (onDataCallback(_result)) {
       rebuildStates(canRebuild: _canRebuild());
     }
@@ -239,24 +243,25 @@ class _SetState<T> {
 
   void _futureHandler(Future<dynamic> _result) {
     silent = true;
-    rm.subscription = Stream<dynamic>.fromFuture(_result).listen(
-      (dynamic d) {
-        final isStateModified = onDataCallback(d);
-        if (isStateModified) {
-          rebuildStates(canRebuild: _canRebuild());
-        }
-        completer.complete(rm.state);
-      },
-      onError: (dynamic e, StackTrace s) {
-        onErrorCallBack(e, s);
-        completer.completeError(e, s);
-      },
-      onDone: () {
-        rm.cleaner(rm.unsubscribe, true);
-        _setStateCompleter.complete(rm.state);
-      },
-    );
-    rm.cleaner(rm.unsubscribe);
+    rm
+      ..subscription = Stream<dynamic>.fromFuture(_result).listen(
+        (dynamic d) {
+          final isStateModified = onDataCallback(d);
+          if (isStateModified) {
+            rebuildStates(canRebuild: _canRebuild());
+          }
+          completer.complete(rm.state);
+        },
+        onError: (dynamic e, StackTrace s) {
+          onErrorCallBack(e, s);
+          completer.completeError(e, s);
+        },
+        onDone: () {
+          rm.cleaner(rm.unsubscribe, true);
+          _setStateCompleter.complete(rm.state);
+        },
+      )
+      ..cleaner(rm.unsubscribe);
     onWaitingCallback();
   }
 

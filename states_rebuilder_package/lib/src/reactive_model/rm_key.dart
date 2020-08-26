@@ -50,7 +50,7 @@ class RMKey<T> extends ReactiveModel<T> {
   }
 
   ReactiveModel<T> get<T>([int index = 0]) =>
-      _associatedReactiveModels['$T'][index];
+      _associatedReactiveModels['$T'][index] as ReactiveModel<T>;
 
   ///cashed refresh callback
   void Function(ReactiveModel rm) refreshCallBack;

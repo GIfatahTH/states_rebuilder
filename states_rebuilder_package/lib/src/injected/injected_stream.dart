@@ -18,6 +18,7 @@ class InjectedStream<T> extends Injected<T> {
     bool isLazy = true,
     T initialValue,
     int undoStackLength,
+    String debugPrintWhenNotifiedPreMessage,
   })  : _initialValue = initialValue,
         _watch = watch,
         super(
@@ -28,6 +29,7 @@ class InjectedStream<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _creationFunction = creationFunction;
     if (!isLazy) {

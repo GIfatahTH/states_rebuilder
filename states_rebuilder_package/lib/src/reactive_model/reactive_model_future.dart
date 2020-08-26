@@ -33,7 +33,7 @@ class ReactiveModelFuture<T> extends ReactiveModelInt<T> {
   @override
   String type([bool detailed = true]) {
     if (detailed) {
-      return 'Future of <$T>';
+      return '<Future<$T>>';
     }
     return '$T';
   }

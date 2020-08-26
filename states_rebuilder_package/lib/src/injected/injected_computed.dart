@@ -21,6 +21,7 @@ class InjectedComputed<T> extends Injected<T> {
     T initialState,
     int undoStackLength,
     bool isLazy = true,
+    String debugPrintWhenNotifiedPreMessage,
   })  : _initialState = initialState,
         _shouldCompute = shouldCompute,
         _asyncDependsOn = asyncDependsOn,
@@ -49,6 +50,7 @@ class InjectedComputed<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     if (_asyncDependsOn == null) {
       _creationFunction = () {
@@ -92,7 +94,7 @@ class InjectedComputed<T> extends Injected<T> {
             rm.resetToHasError(reactiveModel.error);
           }
         }
-        final disposer = reactiveModel.listenToRM(
+        final disposer = (reactiveModel as ReactiveModelInt).listenToRMInternal(
           (_) {
             ReactiveModel errorRM;
             for (var depend in _dependsOn) {
@@ -121,10 +123,24 @@ class InjectedComputed<T> extends Injected<T> {
             rm.refresh();
           },
           listenToOnDataOnly: false,
+          isInjectedModel: true,
         );
         rm.cleaner(disposer);
       }
     }
+
+    _clearDependence ??= (_asyncDependsOn ?? _dependsOn).isEmpty
+        ? null
+        : () {
+            for (var depend in (_asyncDependsOn ?? _dependsOn)) {
+              depend._numberODependence--;
+              if (depend._rm?.hasObservers != true &&
+                  depend._numberODependence < 1) {
+                depend.dispose();
+              }
+            }
+          };
+
     return rm;
   }
 
@@ -190,6 +206,6 @@ class InjectedComputed<T> extends Injected<T> {
 
   @override
   String toString() {
-    return 'Computed : ${super.toString()}';
+    return 'Computed${super.toString()}';
   }
 }

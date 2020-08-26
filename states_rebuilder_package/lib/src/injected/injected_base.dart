@@ -10,6 +10,7 @@ abstract class Injected<T> {
   final void Function(T s) _onInitialized;
   final void Function(T s) _onDisposed;
   final int _undoStackLength;
+  final String _debugPrintWhenNotifiedPreMessage;
   String get _name;
 
   Inject<T> _inject;
@@ -24,13 +25,15 @@ abstract class Injected<T> {
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
     int undoStackLength,
+    String debugPrintWhenNotifiedPreMessage,
   })  : _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed,
         _onData = onData,
         _onError = onError,
         _onWaiting = onWaiting,
         _onInitialized = onInitialized,
         _onDisposed = onDisposed,
-        _undoStackLength = undoStackLength;
+        _undoStackLength = undoStackLength,
+        _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
   final Set<Injected> _dependsOn = {};
 
   ReactiveModel<T> _rm;
@@ -62,13 +65,24 @@ abstract class Injected<T> {
     if (_autoDisposeWhenNotUsed ?? true) {
       rm.cleaner(dispose);
     }
+
+    assert(() {
+      (rm as ReactiveModelInt).listenToRMInternal((rm) {
+        if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+          print(
+              '[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}$this');
+        }
+      });
+      return true;
+    }());
+
     if (_onWaiting != null || _onData != null || _onError != null) {
-      rm.listenToRM(
+      (rm as ReactiveModelInt).listenToRMInternal(
         (rm) {
           rm.whenConnectionState<void>(
             onIdle: () => null,
             onWaiting: () => _onWaiting?.call(),
-            onData: (s) => _onData?.call(s),
+            onData: (dynamic s) => _onData?.call(s as T),
             onError: (dynamic e) {
               //if setState has error override this _onError
               if (!(rm as ReactiveModelInt).setStateHasOnErrorCallback) {
@@ -81,7 +95,15 @@ abstract class Injected<T> {
         listenToOnDataOnly: false,
       );
     }
+
     //
+    assert(() {
+      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+        print(
+            '[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}(initialized) $this');
+      }
+      return true;
+    }());
     _onInitialized?.call(_inject.getSingleton());
     return rm;
   }
@@ -155,6 +177,13 @@ abstract class Injected<T> {
   int _numberODependence = 0;
   void Function() _clearDependence;
   void _dispose() {
+    assert(() {
+      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+        print(
+            '[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}(disposed) $this');
+      }
+      return true;
+    }());
     _onDisposed?.call(state);
     _clearDependence?.call();
     _rm = null;
@@ -619,12 +648,16 @@ abstract class Injected<T> {
 
   @override
   String toString() {
-    return _stateRM?.toString();
+    return _rm == null
+        ? '$T = $state (RM<$T> not initialized yet)'
+        : _rm?.toString();
   }
 }
 
 final Map<String, Injected<dynamic>> _functionalInjectedModels =
     <String, Injected<dynamic>>{};
+
+///
 Map<String, Injected<dynamic>> get functionalInjectedModels =>
     _functionalInjectedModels;
 

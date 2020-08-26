@@ -17,6 +17,7 @@ class InjectedInterface<T> extends Injected<T> {
     T initialValue,
     int undoStackLength,
     bool isLazy = true,
+    String debugPrintWhenNotifiedPreMessage,
   })  : _impl = impl,
         _initialValue = initialValue,
         super(
@@ -27,6 +28,7 @@ class InjectedInterface<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     if (!isLazy) {
       _stateRM;

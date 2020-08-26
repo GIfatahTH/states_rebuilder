@@ -11,4 +11,16 @@ abstract class ReactiveModelInt<T> extends ReactiveModel<T> {
 
   ///Wether [setState] is called with a defined onError callback.
   bool get setStateHasOnErrorCallback => _setStateHasOnErrorCallback;
+
+  //Called internally to use isInjectedModel
+  Disposer listenToRMInternal(
+    void Function(ReactiveModel<T> rm) fn, {
+    bool listenToOnDataOnly = true,
+    bool isInjectedModel = false,
+  }) =>
+      _listenToRM(
+        fn,
+        listenToOnDataOnly: listenToOnDataOnly,
+        isInjectedModel: isInjectedModel,
+      );
 }

@@ -35,7 +35,7 @@ class ReactiveModelStream<T> extends ReactiveModelInt<T> {
   @override
   String type([bool detailed = true]) {
     if (detailed) {
-      return 'Stream of <$T>';
+      return '<Stream<$T>>';
     }
     return '$T';
   }

@@ -39,6 +39,6 @@ class ReactiveModelImpNew<T> extends ReactiveModelImp<T> {
   }
 
   String toString() {
-    return '(new seed: "$_seed") ${super.toString()}';
+    return '(seed: "$_seed") new ${super.toString()}';
   }
 }

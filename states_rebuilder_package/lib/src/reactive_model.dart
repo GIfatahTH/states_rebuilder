@@ -17,4 +17,5 @@ part 'reactive_model/reactive_model_imp_new.dart';
 part 'reactive_model/reactive_model_stream.dart';
 part 'reactive_model/reactive_model_internal.dart';
 part 'reactive_model/rm_key.dart';
+part 'reactive_model/rm.dart';
 part 'reactive_model/set_state.dart';

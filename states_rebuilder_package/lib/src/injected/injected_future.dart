@@ -16,6 +16,7 @@ class InjectedFuture<T> extends Injected<T> {
     bool isLazy = true,
     T initialValue,
     int undoStackLength,
+    String debugPrintWhenNotifiedPreMessage,
   })  : _initialValue = initialValue,
         super(
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
@@ -25,6 +26,7 @@ class InjectedFuture<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _creationFunction = creationFunction;
     if (!isLazy) {

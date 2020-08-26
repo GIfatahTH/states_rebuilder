@@ -12,6 +12,7 @@ class InjectedImp<T> extends Injected<T> {
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
     int undoStackLength,
+    String debugPrintWhenNotifiedPreMessage,
   }) : super(
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
@@ -20,6 +21,7 @@ class InjectedImp<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _creationFunction = creationFunction;
   }
