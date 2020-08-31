@@ -113,7 +113,7 @@ StateBuilder<int>(
 
 * To set the state of the counter and notify listeners from outside the `builder` method we use `ReactiveModel` key.
 
-* In a similar fashion as used in Flutter, ReactiveModel keys are used to control a ReactiveModel from outside the widget where is is created, ReactiveModel key inherited all the state and behavior of the ReactiveModel is is associated with.
+* In a similar fashion as used in Flutter, ReactiveModel keys are used to control a ReactiveModel from outside the widget wheres is created, ReactiveModel key inherited all the state and behavior of the ReactiveModel it is associated with.
 
 > Before update 1.15.0 you can created local ReactiveModels outside the any observer, this no longer supported.
 

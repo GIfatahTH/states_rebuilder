@@ -41,7 +41,8 @@ lib/generated_plugin_registrant.dart
 # Exceptions to above rules
 
 
-
+android/
+iOS/
 web/
 # Android related
 **/android/**/gradle-wrapper.jar
