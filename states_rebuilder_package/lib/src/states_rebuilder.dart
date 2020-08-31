@@ -233,9 +233,7 @@ class StatesRebuilder<T> implements Subject {
     sb._observersSet.addAll(_observersSet);
     sb._statesRebuilderCleaner.addAll(_statesRebuilderCleaner);
     if (clear) {
-      _observersMap.clear();
-      _observersSet.clear();
-      _statesRebuilderCleaner.clear();
+      statesRebuilderCleaner(this);
     }
   }
 }
