@@ -1,7 +1,5 @@
 part of '../inject.dart';
 
-main() {}
-
 abstract class Injectable {}
 
 ///Base class for [Inject]
@@ -210,6 +208,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   void removeAllReactiveNewInstance() {
     newReactiveInstanceList?.clear();
     newReactiveMapFromSeed.clear();
+  }
+
+  @override
+  String toString() {
+    return 'Inject<$T>(singleton: ${singleton}, singletonRM: ${reactiveSingleton})';
   }
 }
 
