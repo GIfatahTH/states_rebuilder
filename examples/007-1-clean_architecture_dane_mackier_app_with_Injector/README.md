@@ -1,5 +1,7 @@
 # clean_architecture_dane_mackier_app
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 >This is readme version 1, after finishing it take a look to [readme version 2](README_v2.md) to see more features of states_rebuilder notably how easy and straightforward unit testing of widgets and logic classes it is.
 
 

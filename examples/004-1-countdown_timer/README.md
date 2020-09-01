@@ -1,5 +1,7 @@
 # countdown_timer
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 In this example, we will build a countdown timer.
 
 ![countDown timer](https://github.com/GIfatahTH/repo_images/blob/master/006-countdown_timer.gif).

@@ -1,5 +1,7 @@
 # clean_architecture_todo_mvc_cloud_firestore_mutable_state
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 >In this example we will use global functional injection
 
 

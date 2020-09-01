@@ -1,5 +1,6 @@
 # clean_architecture_todo_mvc_cloud_firestore_mutable_state
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
 
 <img align="right" src="https://github.com/brianegan/flutter_architecture_samples/blob/master/assets/todo-list.png" alt="List of Todos Screen">
 

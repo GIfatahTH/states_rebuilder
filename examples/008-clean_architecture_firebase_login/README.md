@@ -1,5 +1,7 @@
 # clean_architecture_firebase_login
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 ![Sign in with firebase 1](https://github.com/GIfatahTH/repo_images/blob/master/009-sign_in_with_firebase2.gif).
 
 ![Sign in with firebase 2](https://github.com/GIfatahTH/repo_images/blob/master/009-sign_in_with_firebase1.gif).

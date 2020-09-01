@@ -1,5 +1,8 @@
 # form_validation_with_reactive_model
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
+
 > See the source code as the same example is rewritten using function injection.
 
 In this tutorial we will explore more feature of the `ReactiveModel` and put in practice what we have seen in the first tutorial.

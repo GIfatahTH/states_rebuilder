@@ -1,5 +1,7 @@
 # async_counter_app_with_injector
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 In this example, we will go towards more realistic situations. Let's define the counter store:
 
 > For the sake of comparison, the same example is rewritten using functional injection. [see lib folder]

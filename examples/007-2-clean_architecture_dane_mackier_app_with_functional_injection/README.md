@@ -1,5 +1,7 @@
 # clean_architecture_dane_mackier_app using global functional injection
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 This is the same example as example 7-1 rewritten to use global functional injection instead of injection with Injector.
 
 Regarding the clean architecture I use, the `domain`, `service`, `data_source` layers remain untouched.

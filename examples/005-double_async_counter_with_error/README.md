@@ -1,5 +1,7 @@
 # double_future_counter_with_error
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 This is a counter application that has two counter that shares the same model. The first counter increments a counter after waiting for 1 second and has a 1/2 probability of generating an error. Whereas the second counter does the same thing but after waiting for 3 seconds.
 
 If an error is thrown, an alert snackBar will appear giving information about the error.

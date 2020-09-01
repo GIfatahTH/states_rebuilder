@@ -1,5 +1,7 @@
 # flutter_default_counter_app
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 In this example, we will build the default counter app using states_rebuilder for managing the state.
 
 This simple example aims to understand what ReactiveModel means and how it renders a pure dart object to reactive and how observers subscribe to it and how the observable reactive model notifies observers to rebuild.
