@@ -1,4 +1,4 @@
-## 3.0.0 (2020-08-26)
+## 3.0.0 (2020-09-01)
 ### Non breaking change :
 * Refactor internal logic.
 ### New features :

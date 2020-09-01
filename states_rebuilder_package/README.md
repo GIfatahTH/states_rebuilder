@@ -23,9 +23,10 @@ A Flutter state management combined with dependency injection solution that allo
 
 Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
 
+> 🚀 To see global functional injection 🚀 in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
+
 To start using `states_rebuilder`, just start writing your business logic in a separate class.
 
-To see global functional injection in action and feel how easy and effecient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
 
 Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
 
