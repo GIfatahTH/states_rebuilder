@@ -52,6 +52,7 @@ class InjectedComputed<T> extends Injected<T> {
           undoStackLength: undoStackLength,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
+    _name = '___Injected${hashCode}Computed___';
     if (_asyncDependsOn == null) {
       _creationFunction = () {
         if (_shouldCompute?.call(_rm?.state ?? _initialState) == false) {
@@ -72,8 +73,6 @@ class InjectedComputed<T> extends Injected<T> {
       _stateRM;
     }
   }
-  @override
-  String get _name => '___Injected${hashCode}Computed___';
 
   bool _isRegistered = false;
   @override
@@ -94,10 +93,17 @@ class InjectedComputed<T> extends Injected<T> {
             rm.resetToHasError(reactiveModel.error);
           }
         }
-        final disposer = (reactiveModel as ReactiveModelInt).listenToRMInternal(
+        Disposer disposer;
+        disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
           (_) {
+            final Injected<T> injected =
+                _functionalInjectedModels[rm.inject.getName()];
+            if (injected == null) {
+              disposer();
+              return;
+            }
             ReactiveModel errorRM;
-            for (var depend in _dependsOn) {
+            for (var depend in injected._dependsOn) {
               final r = depend._stateRM;
               r.whenConnectionState(
                 onIdle: null,
@@ -149,7 +155,7 @@ class InjectedComputed<T> extends Injected<T> {
     if (Injected._activeInjected?._dependsOn?.add(this) == true) {
       _numberODependence++;
     }
-    //override to force calling rm getter
+    //override to force calling _stateRM getter
     return _stateRM.state;
   }
 
@@ -205,7 +211,13 @@ class InjectedComputed<T> extends Injected<T> {
   }
 
   @override
+  void _cloneTo(Injected<T> to) {
+    super._cloneTo(to);
+    (to as InjectedComputed)._isRegistered = _isRegistered;
+  }
+
+  @override
   String toString() {
-    return 'Computed${super.toString()}';
+    return 'Computed ${super.toString()} depends on ${(_asyncDependsOn ?? _dependsOn?.length ?? 0)} models';
   }
 }

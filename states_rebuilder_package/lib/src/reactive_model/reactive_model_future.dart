@@ -1,6 +1,6 @@
 part of '../reactive_model.dart';
 
-class ReactiveModelFuture<T> extends ReactiveModelInt<T> {
+class ReactiveModelFuture<T> extends ReactiveModelInternal<T> {
   ReactiveModelFuture(InjectFuture<T> inject)
       : assert(inject != null),
         super._(inject) {

@@ -30,12 +30,12 @@ class InjectedInterface<T> extends Injected<T> {
           undoStackLength: undoStackLength,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
+    _name = '___Injected${hashCode}Interface___';
     if (!isLazy) {
       _stateRM;
     }
   }
-  @override
-  String get _name => '___Injected${hashCode}Interface___';
+
   @override
   Inject<T> _getInject() {
     return Inject.interface(

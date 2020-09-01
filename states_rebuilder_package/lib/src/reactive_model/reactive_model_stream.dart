@@ -1,6 +1,6 @@
 part of '../reactive_model.dart';
 
-class ReactiveModelStream<T> extends ReactiveModelInt<T> {
+class ReactiveModelStream<T> extends ReactiveModelInternal<T> {
   ReactiveModelStream(InjectStream<T> inject)
       : assert(inject != null),
         super._(inject) {

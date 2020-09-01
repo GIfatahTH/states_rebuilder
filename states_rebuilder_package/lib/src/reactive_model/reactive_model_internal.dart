@@ -1,7 +1,7 @@
 part of '../reactive_model.dart';
 
-abstract class ReactiveModelInt<T> extends ReactiveModel<T> {
-  ReactiveModelInt._(Inject<T> inject) : super._(inject);
+abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
+  ReactiveModelInternal._(Inject<T> inject) : super._(inject);
 
   ///Error stackTrace
   StackTrace get stackTrace => _stackTrace;

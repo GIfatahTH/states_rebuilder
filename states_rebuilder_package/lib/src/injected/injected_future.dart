@@ -28,14 +28,13 @@ class InjectedFuture<T> extends Injected<T> {
           undoStackLength: undoStackLength,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
+    _name = '___Injected${hashCode}Future___';
     _creationFunction = creationFunction;
     if (!isLazy) {
       _stateRM;
     }
   }
 
-  @override
-  String get _name => '___Injected${hashCode}Future___';
   @override
   void injectFutureMock(Future<T> Function() creationFunction) {
     super.injectFutureMock(creationFunction);

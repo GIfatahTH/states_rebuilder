@@ -31,13 +31,13 @@ class InjectedStream<T> extends Injected<T> {
           undoStackLength: undoStackLength,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
+    _name = '___Injected${hashCode}Stream___';
     _creationFunction = creationFunction;
-    if (!isLazy) {
-      _stateRM;
-    }
+    // if (!isLazy) {
+    //   _stateRM;
+    // }
   }
-  @override
-  String get _name => '___Injected${hashCode}Stream___';
+
   @override
   void injectStreamMock(Stream<T> Function() creationFunction) {
     super.injectStreamMock(creationFunction);

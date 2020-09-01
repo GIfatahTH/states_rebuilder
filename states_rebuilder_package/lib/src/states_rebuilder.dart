@@ -118,9 +118,6 @@ class StatesRebuilder<T> implements Subject {
   void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
     assert(() {
       if (RM.debugPrintActiveRM == true) {
-        // print(
-        //   '$this | filterTags: ${tags != null ? tags : "None"}',
-        // );
         if (this is ReactiveModel) {
           final ReactiveModel self = this as ReactiveModel;
           developer.log(
@@ -250,7 +247,7 @@ class StatesRebuilderInternal {
 
 void statesRebuilderCleaner(StatesRebuilder sr, [bool clean = true]) {
   if (sr == null ||
-      sr is ReactiveModelInt && sr.numberOfFutureAndStreamBuilder > 0) {
+      sr is ReactiveModelInternal && sr.numberOfFutureAndStreamBuilder > 0) {
     return;
   }
   if (clean) {

@@ -24,6 +24,7 @@ class InjectedImp<T> extends Injected<T> {
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _creationFunction = creationFunction;
+    _name = '___Injected${hashCode}Imp___';
   }
 
   @override
@@ -32,9 +33,6 @@ class InjectedImp<T> extends Injected<T> {
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;
   }
-
-  @override
-  String get _name => '___Injected${hashCode}Imp___';
 
   @override
   Inject<T> _getInject() => Inject<T>(

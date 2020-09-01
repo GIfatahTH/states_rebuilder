@@ -8,6 +8,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     _isGlobal = inject?.isGlobal == true;
     if (!_isGlobal) {
       cleaner(() {
+        unsubscribe();
         inject?.cleanInject();
         inject = null;
         _debounceTimer?.cancel();
@@ -609,49 +610,6 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     }
   }
 
-  String toString() {
-    int numOfWidget = 0;
-    int numOfModels = 0;
-    String _status;
-    String _state;
-    observers().forEach((key, value) {
-      if (!'$value'.contains('$Injector')) {
-        numOfWidget++;
-      }
-    });
-
-    _listenToRMSet.forEach((listenToRM) {
-      if (listenToRM.isWidget) {
-        numOfWidget++;
-      } else if (listenToRM.isInjectedModel) {
-        numOfModels++;
-      }
-    });
-
-    whenConnectionState<void>(
-      onIdle: () {
-        _status = 'isIdle';
-        _state = 'state: ($state)';
-      },
-      onWaiting: () {
-        _status = 'isWaiting';
-        _state = 'state: ($state)';
-      },
-      onData: (data) {
-        _status = 'hasData';
-        _state = 'state: ($data)';
-      },
-      onError: (dynamic e) {
-        _status = 'hasError';
-        _state = 'error: ($e)';
-      },
-      catchError: false,
-    );
-
-    return 'RM${type()}-[$_status] | Observers($numOfWidget widgets, $numOfModels models) | '
-        '(#C $hashCode) | $_state';
-  }
-
   final Queue<AsyncSnapshot<T>> _undoQueue = ListQueue();
   final Queue<AsyncSnapshot<T>> _redoQueue = ListQueue();
   int _undoStackLength = 0;
@@ -709,6 +667,50 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///Set the undo/redo stack length
   set undoStackLength(int length) {
     _undoStackLength = length;
+  }
+
+  @override
+  String toString() {
+    int numOfWidget = 0;
+    int numOfModels = 0;
+    String _status;
+    String _state;
+    observers().forEach((key, value) {
+      if (!'$value'.contains('$Injector')) {
+        numOfWidget++;
+      }
+    });
+
+    _listenToRMSet.forEach((listenToRM) {
+      if (listenToRM.isWidget) {
+        numOfWidget++;
+      } else if (listenToRM.isInjectedModel) {
+        numOfModels++;
+      }
+    });
+
+    whenConnectionState<void>(
+      onIdle: () {
+        _status = 'isIdle';
+        _state = 'state: ($state)';
+      },
+      onWaiting: () {
+        _status = 'isWaiting';
+        _state = 'state: ($state)';
+      },
+      onData: (data) {
+        _status = 'hasData';
+        _state = 'state: ($data)';
+      },
+      onError: (dynamic e) {
+        _status = 'hasError';
+        _state = 'error: ($e)';
+      },
+      catchError: false,
+    );
+
+    return 'RM${type()}-[$_status] | Observers($numOfWidget widgets, $numOfModels models) | '
+        '(#C $hashCode) | $_state';
   }
 }
 

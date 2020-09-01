@@ -334,7 +334,9 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
 
     if (widget.onRebuildState != null) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => widget.onRebuildState(context, _exposedModel),
+        (_) {
+          widget.onRebuildState(context, _exposedModel);
+        },
       );
     }
   }
@@ -344,6 +346,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
   @override
   Widget build(BuildContext context) {
     _isDirty = false;
+
     if (widget.afterRebuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterRebuild(context, _exposedModel),
