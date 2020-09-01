@@ -60,14 +60,14 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 
 
 # Documentation
-* [**Official Documentation**](states_rebuilder_package/readme.md)
+* [**Official Documentation**](states_rebuilder_package)
 
 # List of Article
-* [**List of article about `states_rebuilder`**](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+* [**List of articles about `states_rebuilder`**](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
 
 # Examples:
 
-* [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
+* [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
 
 ## Basics:
 You are new to `states_rebuilder` this is right place to start from. The order is tailor-made for you:
