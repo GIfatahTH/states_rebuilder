@@ -2457,7 +2457,6 @@ void main() {
               'new RM<Model>-[isIdle] | Observers(0 widgets, 0 models) |'));
 
       final intStream = ReactiveModel.stream(getStream());
-      print(intStream);
       expect(intStream.toString(), contains('RM<Stream<int>>'));
       expect(intStream.toString(), contains('RM<Stream<int>>-[isWaiting] '));
       await tester.pump(Duration(seconds: 3));

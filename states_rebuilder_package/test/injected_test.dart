@@ -260,6 +260,7 @@ void main() {
       onDone: (state) {
         return Text('done ${state}');
       },
+      dispose: () {},
     );
 
     await tester.pumpWidget(MaterialApp(home: widget));
@@ -319,6 +320,7 @@ void main() {
       onData: (rm) {
         return Text('data');
       },
+      dispose: () {},
     );
 
     await tester.pumpWidget(MaterialApp(home: widget));
@@ -765,6 +767,181 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('120'), findsOneWidget);
     });
+  });
+
+  testWidgets(
+      'injected model preserve state when when created inside a build method',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.rebuilder(
+        () {
+          counter2 = RM.inject(
+            () => 0,
+            debugPrintWhenNotifiedPreMessage: 'counter2',
+          );
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('counter1: ${counter1.state}'),
+                counter2.rebuilder(
+                  () => Text('counter2: ${counter2.state}'),
+                ),
+                counter2.whenRebuilderOr(
+                  builder: () => Column(
+                    children: [
+                      Text('whenRebuilderOr counter2: ${counter2.state}'),
+                      counter2.whenRebuilder(
+                        onIdle: () => Text('idle'),
+                        onWaiting: () => Text('Waiting'),
+                        onData: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
+                        onError: (_) => Text('Error'),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilderOr counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
+  });
+
+  testWidgets('injected model preserve state with stream',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.rebuilder(
+        () {
+          counter2 = RM.injectStream(
+            () =>
+                Stream.periodic(Duration(seconds: 1), (num) => num + 1).take(3),
+            initialValue: 0,
+          );
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('counter1: ${counter1.state}'),
+                counter2.rebuilder(
+                  () => Text('counter2: ${counter2.state}'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    // increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 3'), findsOneWidget);
+  });
+
+  testWidgets('injected model preserve state computed injected',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.rebuilder(
+        () {
+          counter2 = RM.injectComputed(
+            compute: (_) => counter1.state * 10,
+          );
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('counter1: ${counter1.state}'),
+                counter2.rebuilder(
+                  () => Text('counter2: ${counter2.state}'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    // increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 10'), findsOneWidget);
+
+    // increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 11'), findsOneWidget);
+
+    // increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 20'), findsOneWidget);
+    //the dependency is not lost
+    expect(counter2.toString(), contains('depends on 1 models'));
   });
 }
 

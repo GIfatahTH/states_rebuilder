@@ -7,11 +7,11 @@ enum TimerStatus { ready, running, paused }
 final Injected<int> timer = RM.injectStream<int>(
   () => Stream.periodic(Duration(seconds: 1), (num) => num + 1),
   initialValue: 0,
+  isLazy: false,
   onInitialized: (_) {
-    timer.subscription.pause();
     timerStatus.state = TimerStatus.ready;
   },
-  debugPrintWhenNotifiedPreMessage: 'timer',
+  // debugPrintWhenNotifiedPreMessage: 'timer',
 );
 
 final timerStatus = RM.inject<TimerStatus>(
@@ -47,7 +47,7 @@ final duration = RM.injectComputed<int>(
     yield d;
   },
   initialState: initialTimer,
-  debugPrintWhenNotifiedPreMessage: 'duration',
+  // debugPrintWhenNotifiedPreMessage: 'duration',
 );
 
 class TimerApp extends StatelessWidget {
@@ -156,7 +156,6 @@ void main() {
   });
 
   testWidgets('Reset timer while stopped', (tester) async {
-    RM.debugPrintActiveRM = true;
     await tester.pumpWidget(TimerApp());
     _resume();
     await tester.pump(Duration(seconds: 3));

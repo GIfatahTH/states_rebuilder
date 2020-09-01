@@ -201,8 +201,6 @@ void main() {
 
   testWidgets('computed of a computed counter', (tester) async {
     //this is an example fo a computed counter the depends on another computed counter
-    RM.debugPrintActiveRM = true;
-    RM.debugWidgetsRebuild = true;
     await tester.pumpWidget(CounterApp1());
     expect(find.text('0'), findsNWidgets(1));
     computedCounter.state++;

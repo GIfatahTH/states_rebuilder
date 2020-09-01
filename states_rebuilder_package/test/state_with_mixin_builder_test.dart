@@ -290,10 +290,10 @@ void main() {
           afterInitialBuild: (context, ReactiveModel<Model> rm) {},
           afterRebuild: (context, ReactiveModel<Model> rm) {},
           didChangeAppLifecycleState: (context, state) {
-            print(state);
+            // print(state);
           },
           didChangeLocales: (context, locals) {
-            print(locals);
+            // print(locals);
           });
 
       await tester.pumpWidget(widget);

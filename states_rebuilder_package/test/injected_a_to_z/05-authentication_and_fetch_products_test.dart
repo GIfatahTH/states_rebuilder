@@ -94,7 +94,7 @@ final authRepository = RM.inject<IAuthRepository>(() => FirebaseAuth());
 //Inject the authService
 final authService = RM.inject(
   () => AuthService(authRepository.state),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 //
 //Inject the IProductRepository and register it with FirebaseCloud (It will be mocked)
@@ -112,7 +112,7 @@ final productRepository = RM.injectComputed<IProductRepository>(
 //Inject Product Service
 final productService = RM.inject(
   () => ProductService(productRepository.state),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 /* -- The UI --*/
