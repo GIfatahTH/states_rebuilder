@@ -20,7 +20,7 @@
 .classpath
 .project
 .settings/
-*/.vscode/settings.json
+.vscode/
 
 
 # Flutter/Dart/Pub related
@@ -35,54 +35,15 @@ build/
 
 
 
+
 # Web related
 lib/generated_plugin_registrant.dart
-
-# Exceptions to above rules
-
 
 android/
 iOS/
 web/
-# Android related
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.java
-**/android/key.properties
+
 *.jks
-
-# iOS/XCode related
-
-**/ios/**/*.mode1v3
-**/ios/**/*.mode2v3
-**/ios/**/*.moved-aside
-**/ios/**/*.pbxuser
-**/ios/**/*.perspectivev3
-**/ios/**/*sync/
-**/ios/**/.sconsign.dblite
-**/ios/**/.tags*
-**/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/Flutter/flutter_export_environment.sh
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
 
 # Coverage
 coverage/
@@ -90,20 +51,6 @@ coverage/
 
 analysis_options.yaml
 pubspec.lock
- 
-# Exceptions to above rules. 
-!**/ios/**/default.mode1v3
-!**/ios/**/default.mode2v3
-!**/ios/**/default.pbxuser
-!**/ios/**/default.perspectivev3
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-!/dev/ci/**/Gemfile.lock
-states_rebuilder_package/example/android/local.properties
-examples/008-clean_architecture_firebase_login/android/app/google-services.json
-examples/clean_architecture_todo_mvc_cloud_firestore_immutable_state/android/app/google-services.json
-states_rebuilder_package/example/android/local.properties
-states_rebuilder_package/example/android/local.properties
-examples/009-clean_architecture_todo_mvc_mutable_state/lib/generated_plugin_registrant.dart
-examples/008-clean_architecture_firebase_login/lib/generated_plugin_registrant.dart
-examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector/android/app/google-services.json
-examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector/android/app/src/main/kotlin/com/example/clean_architecture_todo_mvc_cloud_firestore_immutable_state/MainActivity.kt
+ states_rebuilder_package/example/android/
+ states_rebuilder_package/example/ios/
+ states_rebuilder_package/example/web/
