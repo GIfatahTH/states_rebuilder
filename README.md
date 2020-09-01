@@ -1,4 +1,4 @@
-# `states_rebuilder`
+# `States_rebuilder`
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
@@ -18,9 +18,9 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 * Invoke side effects without `BuildContext`, like Navigate,, MediaQuery and many others.
 
 ## Breaking Changes
-> Latest ver: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123)
-</br>
-> Version 2.0: [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
+> Latest ver: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123) 
+
+>Since 2.0: &nbsp;&nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
 
 
 ## Business logic
@@ -62,14 +62,17 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 # Documentation
 * [**Official Documentation**](states_rebuilder_package/readme.md)
 
+# List of Article
+* [**List of article about `states_rebuilder`**](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
+
 # Examples:
 
-* [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
+* [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
 
 ## Basics:
-You are new to `states_rebuilder` this is right place to start from. The order is important:
+You are new to `states_rebuilder` this is right place to start from. The order is tailor-made for you:
 
-* [**The simplest counter app :**](examples/001-flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
+* [**The simplest counter app**](examples/001-flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
 
 * [**Login form validation**](examples/002-form_validation_with_reactive_model) Simple form login validation. The basic `ReactiveModel` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
 
@@ -85,12 +88,14 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 * [**Multi async counters**](examples/006-multi_async_counter_with_error) The is a solution of an imaginary and very tricky state management requirement. You will see how the concept of ReactiveModel can solve very difficult state management requirements. You will see How can Reactive singleton interact with new reactive models. You will use
  `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData`
 
+</br>
+
 ## Advanced:
 Here, you will take your programming skills up a notch, deep dive in Architecture:
 
 * [**User posts and comments**](examples/007-1-clean_architecture_dane_mackier_app_with_Injector)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
-* [**User posts and comments (Using global functional injection)**](examples/007-2-clean_architecture_dane_mackier_app_with_functional_injection): The  User posts and comments rewritten using global functional injection.
+* [**User posts and comments (🚀Global functional injection appoarch)**](examples/007-2-clean_architecture_dane_mackier_app_with_functional_injection): The  User posts and comments rewritten using global functional injection.
 
 * [**GitHub use search app**](examples/011-github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds.
 
@@ -118,12 +123,8 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 * [**Todo MVC following flutter_bloc library approach (🚀Global functional injection appoarch)**](examples/09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection) : This is the same Todos App built following the same approach as in flutter_bloc library using global functional injection.
 
 
-
-
-
+</br>
 **Note that all of the above examples are tested. With `states_rebuilder`, testing your business logic is the simplest part of your coding time as it is made up of simple dart classes. On the other hand, testing widgets is no less easy, because with `states_rebuilder` you can isolate the widget under test and mock its dependencies.**
 
 
-# List of Article
-> [List of article about `states_rebuilder`](https://medium.com/@meltft/states-rebuilder-and-animator-articles-4b178a09cdfa?source=friends_link&sk=7bef442f49254bfe7adc2c798395d9b9)
 
