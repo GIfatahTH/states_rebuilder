@@ -1,8 +1,8 @@
 # `states_rebuilder`
 
-[![pub package](https://github.com/GIfatahTH/states_rebuilder/wiki/https://img.shields.io/pub/v/states_rebuilder.svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://pub.dev/packages/states_rebuilder)
-[![CircleCI](https://github.com/GIfatahTH/states_rebuilder/wiki/https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://circleci.com/gh/GIfatahTH/states_rebuilder)
-[![codecov](https://github.com/GIfatahTH/states_rebuilder/wiki/https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://codecov.io/gh/GIfatahTH/states_rebuilder)
+[![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
+[![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
+[![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 
 A Flutter state management combined with dependency injection solution that allows : 
@@ -23,7 +23,7 @@ A Flutter state management combined with dependency injection solution that allo
 
 Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
 
-> 🚀 To see global functional injection 🚀 in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
+> 🚀 To see global functional injection 🚀 in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
 
 To start using `states_rebuilder`, just start writing your business logic in a separate class.
 
@@ -464,7 +464,7 @@ If we want to automatically call the streamIncrementMutable once the widget is i
 [Get the full working example](example/README.md)
 
 For more information about how to use states_rebuilder see in the [wiki](https://github.com/GIfatahTH/states_rebuilder/wiki) :
-* [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection.md)
+* [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
 * [What is a `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/what-is-a-ReactiveModel)
 * [Local and Global `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-and-Global-ReactiveModel)
   * [Local ReactiveModels](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-ReactiveModels)
