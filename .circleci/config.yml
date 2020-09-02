@@ -9,10 +9,18 @@ jobs:
       - run: cd examples/001-flutter_default_counter_app && flutter test
       - run: cd examples/002-form_validation_with_reactive_model && flutter test
       - run: cd examples/003-async_counter_app_with_injector && flutter test
-      - run: cd examples/004-countdown_timer && flutter test
+      - run: cd examples/004-1-countdown_timer && flutter test
+      - run: cd examples/004-2-countdown_timer_with_functional_injection && flutter test
       - run: cd examples/005-double_async_counter_with_error && flutter test
-      - run: cd examples/007-clean_architecture_dane_mackier_app && flutter test
+      - run: cd examples/007-1-clean_architecture_dane_mackier_app_with_Injector && flutter test
+      - run: cd examples/007-2-clean_architecture_dane_mackier_app_with_functional_injection && flutter test
       - run: cd examples/008-clean_architecture_firebase_login && flutter test
+      - run: cd examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector && flutter test
+      - run: cd examples/009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection && flutter test
+      - run: cd examples/009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector && flutter test
+      - run: cd examples/009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection && flutter test
+      # - run: cd examples/009-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection && flutter test
       - run: cd examples/010-clean_architecture__multi_counter_realtime_firebase && flutter test
-      - run : cd states_rebuilder_package && flutter test --coverage
+      - run: cd examples/011-github_search_app && flutter test
+      - run: cd states_rebuilder_package && flutter test --coverage
       - run: bash <(curl -s https://codecov.io/bash)

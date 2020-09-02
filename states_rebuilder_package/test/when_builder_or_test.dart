@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/when_rebuilder_or.dart';
+import 'package:states_rebuilder/src/builders.dart';
 
 void main() {
   testWidgets(

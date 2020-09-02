@@ -4,11 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/reactive_model_imp.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 import 'package:states_rebuilder/src/states_rebuilder_debug.dart';
-import 'package:states_rebuilder/src/when_rebuilder_or.dart';
 
 void main() {
   test(
@@ -36,7 +34,8 @@ void main() {
     },
   );
 
-  testWidgets('Injector throw when getting not registered model', (tester) async {
+  testWidgets('Injector throw when getting not registered model',
+      (tester) async {
     final widget = Injector(
       inject: [Inject(() => Model())],
       builder: (context) {
@@ -47,7 +46,8 @@ void main() {
     expect(() => Injector.get<int>(), throwsException);
   });
 
-  testWidgets('Injector not throw when getting not registered model if Injector.get silent is set to true',
+  testWidgets(
+      'Injector not throw when getting not registered model if Injector.get silent is set to true',
       (tester) async {
     final widget = Injector(
       inject: [Inject(() => Model())],
@@ -227,7 +227,8 @@ void main() {
               inject: [Inject(() => Model())],
               initState: () => lifeCycleTracker += 'initState, ',
               dispose: () => lifeCycleTracker += 'dispose, ',
-              afterInitialBuild: (context) => lifeCycleTracker += 'afterInitialBuild, ',
+              afterInitialBuild: (context) =>
+                  lifeCycleTracker += 'afterInitialBuild, ',
               builder: (_) {
                 lifeCycleTracker += 'builder, ';
                 return Container();
@@ -239,26 +240,32 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(lifeCycleTracker, equals('initState, builder, afterInitialBuild, '));
+      expect(
+          lifeCycleTracker, equals('initState, builder, afterInitialBuild, '));
 
       modelStatesBuilder.rebuildStates();
       await tester.pump();
-      expect(lifeCycleTracker, equals('initState, builder, afterInitialBuild, builder, '));
+      expect(lifeCycleTracker,
+          equals('initState, builder, afterInitialBuild, builder, '));
       switcher = false;
       modelStatesBuilder.rebuildStates();
       await tester.pump();
-      expect(lifeCycleTracker, equals('initState, builder, afterInitialBuild, builder, dispose, '));
+      expect(lifeCycleTracker,
+          equals('initState, builder, afterInitialBuild, builder, dispose, '));
     },
   );
 
-  testWidgets('Injector throws if inject  parameter are not defined', (tester) async {
-    expect(() => Injector(inject: null, builder: (_) => Container()), throwsAssertionError);
+  testWidgets('Injector throws if inject  parameter are not defined',
+      (tester) async {
+    expect(() => Injector(inject: null, builder: (_) => Container()),
+        throwsAssertionError);
   });
 
   //
   //ReactiveModel
 
-  testWidgets('Injector throw when getting as reactive not registered model', (tester) async {
+  testWidgets('Injector throw when getting as reactive not registered model',
+      (tester) async {
     final widget = Injector(
       inject: [Inject(() => Model())],
       builder: (context) {
@@ -269,7 +276,8 @@ void main() {
     expect(() => Injector.getAsReactive<int>(), throwsException);
   });
 
-  testWidgets('Injector throw when getting as reactive of StatesRebuilder type', (tester) async {
+  testWidgets('Injector throw when getting as reactive of StatesRebuilder type',
+      (tester) async {
     final widget = Injector(
       inject: [Inject(() => Model())],
       builder: (context) {
@@ -280,7 +288,8 @@ void main() {
     expect(() => Injector.getAsReactive<Model>(), throwsException);
   });
 
-  testWidgets('Injector not throw when getting as reactive not registered model if Injector.get silent is set to true',
+  testWidgets(
+      'Injector not throw when getting as reactive not registered model if Injector.get silent is set to true',
       (tester) async {
     final widget = Injector(
       inject: [Inject(() => Model())],
@@ -303,9 +312,12 @@ void main() {
       );
       await tester.pumpWidget(widget);
 
-      expect(Injector.getAsReactive<VanillaModel>(), isA<ReactiveModel<VanillaModel>>());
-      expect(Injector.getAsReactive<VanillaModel>().observers().length, equals(0));
-      expect(Injector.getAsReactive<VanillaModel>(), equals(Injector.getAsReactive<VanillaModel>()));
+      expect(Injector.getAsReactive<VanillaModel>(),
+          isA<ReactiveModel<VanillaModel>>());
+      expect(
+          Injector.getAsReactive<VanillaModel>().observers().length, equals(0));
+      expect(Injector.getAsReactive<VanillaModel>(),
+          equals(Injector.getAsReactive<VanillaModel>()));
     },
   );
 
@@ -320,7 +332,8 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(Injector.getAsReactive<int>(), isA<ReactiveModel<int>>());
-      expect(Injector.getAsReactive<int>(), equals(Injector.getAsReactive<int>()));
+      expect(
+          Injector.getAsReactive<int>(), equals(Injector.getAsReactive<int>()));
       await tester.pump(Duration(seconds: 1));
     },
   );
@@ -335,7 +348,8 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(Injector.getAsReactive<int>(), isA<ReactiveModel<int>>());
-      expect(Injector.getAsReactive<int>(), equals(Injector.getAsReactive<int>()));
+      expect(
+          Injector.getAsReactive<int>(), equals(Injector.getAsReactive<int>()));
       await tester.pump(Duration(seconds: 3));
     },
   );
@@ -408,13 +422,20 @@ void main() {
       );
       await tester.pumpWidget(widget);
       expect(
-        (Injector.getAsReactive<VanillaModel>() as ReactiveModelImp<VanillaModel>).inject.getReactive(true),
+        (Injector.getAsReactive<VanillaModel>()
+                as ReactiveModelImp<VanillaModel>)
+            .inject
+            .getReactive(true),
         isA<ReactiveModel<VanillaModel>>(),
       );
-      final modelRM1 =
-          (Injector.getAsReactive<VanillaModel>() as ReactiveModelImp<VanillaModel>).inject.getReactive(true);
-      final modelRM2 =
-          (Injector.getAsReactive<VanillaModel>() as ReactiveModelImp<VanillaModel>).inject.getReactive(true);
+      final modelRM1 = (Injector.getAsReactive<VanillaModel>()
+              as ReactiveModelImp<VanillaModel>)
+          .inject
+          .getReactive(true);
+      final modelRM2 = (Injector.getAsReactive<VanillaModel>()
+              as ReactiveModelImp<VanillaModel>)
+          .inject
+          .getReactive(true);
 
       expect(modelRM1 != modelRM2, isTrue);
     },
@@ -452,7 +473,6 @@ void main() {
           });
       await tester.pumpWidget(widget);
       expect(find.text('null'), findsOneWidget);
-
       await tester.pump(Duration(seconds: 1));
       expect(find.text('0'), findsOneWidget);
       expect(intRM.subscription.isPaused, isFalse);
@@ -534,7 +554,9 @@ void main() {
     },
   );
 
-  testWidgets('Injector : should Injector.get work for model injected with Inject.Future', (WidgetTester tester) async {
+  testWidgets(
+      'Injector : should Injector.get work for model injected with Inject.Future',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       Injector(
         inject: [
@@ -557,14 +579,16 @@ void main() {
     expect(Injector.get<bool>(), isFalse);
   });
 
-  testWidgets('Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
+  testWidgets(
+      'Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
       (WidgetTester tester) async {
     int numberOfRebuild = 0;
     await tester.pumpWidget(
       Injector(
         inject: [
           Inject<VanillaModel>.stream(
-            () => Stream.periodic(Duration(seconds: 1), (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
+            () => Stream.periodic(Duration(seconds: 1),
+                (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
             initialValue: VanillaModel(0),
             watch: (model) {
               return model?.counter;
@@ -598,7 +622,8 @@ void main() {
     expect(numberOfRebuild, equals(4));
   });
 
-  testWidgets('should register new ReactiveModel with generic StateBuilder ', (WidgetTester tester) async {
+  testWidgets('should register new ReactiveModel with generic StateBuilder ',
+      (WidgetTester tester) async {
     int numberOfRebuild = 0;
     ReactiveModel<VanillaModel> integerModel;
     bool switcher = true;
@@ -742,7 +767,9 @@ void main() {
                       Builder(
                         builder: (_) {
                           return StateBuilder(
-                            observeMany: [() => Injector.getAsReactive<VanillaModel>()],
+                            observeMany: [
+                              () => Injector.getAsReactive<VanillaModel>()
+                            ],
                             builder: (context, model) {
                               context2 = context;
                               return Container();
@@ -815,7 +842,9 @@ void main() {
                   Builder(
                     builder: (_) {
                       return StateBuilder(
-                        observeMany: [() => Injector.getAsReactive<VanillaModel>()],
+                        observeMany: [
+                          () => Injector.getAsReactive<VanillaModel>()
+                        ],
                         builder: (context, model) {
                           context2 = context;
                           return Container();
@@ -910,7 +939,7 @@ void main() {
       await tester.pumpWidget(widget);
       final text = StatesRebuilderDebug.printInjectedModel();
       expect(text, contains('Number of registered models : 1'));
-      expect(text, contains('Model : [Inject<Model>('));
+      expect(text, contains('Model : [InjectImp<Model>('));
     },
   );
 
@@ -976,7 +1005,9 @@ void main() {
     expect(find.text('2'), findsOneWidget);
   });
 
-  testWidgets('avoid throwing if Injector is deactivated be reinserted before dispose', (tester) async {
+  testWidgets(
+      'avoid throwing if Injector is deactivated be reinserted before dispose',
+      (tester) async {
     final model = Model();
     final widget = StateBuilder(
       observeMany: [() => model],
@@ -1104,7 +1135,9 @@ void main() {
     final rm = ReactiveModel.create(0);
     Widget widget = Injector(
       inject: [
-        Inject.future(() => Future.delayed(Duration(seconds: 2), () => 'future ${rm.state}'),
+        Inject.future(
+            () => Future.delayed(
+                Duration(seconds: 2), () => 'future ${rm.state}'),
             initialValue: 'future null')
       ],
       reinjectOn: [rm],
@@ -1142,7 +1175,9 @@ void main() {
     expect(find.text('future 2'), findsOneWidget);
   });
 
-  testWidgets('issue72: rapidly pushing to second page while it is popping to the first page', (tester) async {
+  testWidgets(
+      'issue72: rapidly pushing to second page while it is popping to the first page',
+      (tester) async {
     BuildContext firstCtx;
     BuildContext secondCtx;
     Widget firstPage() => StateBuilder(
@@ -1191,7 +1226,11 @@ void main() {
       inject: [Inject(() => VanillaModel())],
       builder: (_) {
         return WhenRebuilderOr(
-          observeMany: [() => RM.get<VanillaModel>().future<void>((m, _) => m.incrementAsync())],
+          observeMany: [
+            () => RM
+                .get<VanillaModel>()
+                .future<void>((m, _) => m.incrementAsync())
+          ],
           onWaiting: () => Text('waiting ...'),
           builder: (_, rm) {
             return Text('data');
@@ -1239,7 +1278,8 @@ void main() {
     expect(find.text('2'), findsOneWidget);
   });
 
-  testWidgets('ReactiveModel.getStream should get the default initialValue', (tester) async {
+  testWidgets('ReactiveModel.getStream should get the default initialValue',
+      (tester) async {
     final intRM = RM.create<int>(2);
     final widget = Injector(
       inject: [Inject(() => VanillaModel())],
@@ -1298,13 +1338,12 @@ void main() {
   testWidgets('Side effects without context', (tester) async {
     final widget = MaterialApp(
         home: Scaffold(
-      body: Injector(inject: [Inject(() => 1)], builder: (context) => Container()),
+      body: Injector(
+          inject: [Inject(() => 1)], builder: (context) => Container()),
     ));
     await tester.pumpWidget(widget);
     expect(RM.navigator, isNotNull);
     expect(RM.scaffold, isNotNull);
-    expect(RM.theme, isNotNull);
-    expect(RM.mediaQuery, isNotNull);
     RM.show((context) {
       Scaffold.of(context).showSnackBar(SnackBar(content: Text('')));
     });
@@ -1312,7 +1351,8 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
-  testWidgets('Side effects without context using context subscription', (tester) async {
+  testWidgets('Side effects without context using context subscription',
+      (tester) async {
     final widget = MaterialApp(
       home: Injector(
         inject: [Inject(() => 0)],
@@ -1331,8 +1371,6 @@ void main() {
     await tester.pumpWidget(widget);
     expect(RM.navigator, isNotNull);
     expect(RM.scaffold, isNotNull);
-    expect(RM.theme, isNotNull);
-    expect(RM.mediaQuery, isNotNull);
     RM.show((context) {
       Scaffold.of(context).showSnackBar(SnackBar(content: Text('')));
     });
@@ -1340,9 +1378,45 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
+  testWidgets(
+    'dispose the last StateBuilder will not clean Injector',
+    (tester) async {
+      bool switcher = true;
+      final widget = Injector(
+        inject: [Inject.stream(() => getStream(), name: 'int')],
+        builder: (context) {
+          return Builder(
+            builder: (context) {
+              RM.get<int>(context: context);
+              if (switcher) {
+                return StateBuilder(
+                  observeMany: [() => Injector.getAsReactive<int>(name: 'int')],
+                  builder: (ctx, intRM$) {
+                    return Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(intRM$.state.toString()),
+                    );
+                  },
+                );
+              } else {
+                return Container();
+              }
+            },
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(RM.get<int>(name: 'int'), isNotNull);
+      switcher = false;
+      await tester.pump(Duration(seconds: 1));
+      // expect(RM.get<int>(), isNotNull);
+    },
+  );
+
   group('', () {
     testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
-      final BinaryMessenger defaultBinaryMessenger = ServicesBinding.instance.defaultBinaryMessenger;
+      final BinaryMessenger defaultBinaryMessenger =
+          ServicesBinding.instance.defaultBinaryMessenger;
       AppLifecycleState lifecycleState;
       final widget = Injector(
         inject: [Inject(() => Model())],
@@ -1355,21 +1429,26 @@ void main() {
       await tester.pumpWidget(widget);
 
       expect(lifecycleState, isNull);
-      ByteData message = const StringCodec().encodeMessage('AppLifecycleState.paused');
-      await defaultBinaryMessenger.handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      ByteData message =
+          const StringCodec().encodeMessage('AppLifecycleState.paused');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
       await tester.pump();
       expect(lifecycleState, AppLifecycleState.paused);
 
       message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
-      await defaultBinaryMessenger.handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
       expect(lifecycleState, AppLifecycleState.resumed);
 
       message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
-      await defaultBinaryMessenger.handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
       expect(lifecycleState, AppLifecycleState.inactive);
 
       message = const StringCodec().encodeMessage('AppLifecycleState.detached');
-      await defaultBinaryMessenger.handlePlatformMessage('flutter/lifecycle', message, (_) {});
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
       expect(lifecycleState, AppLifecycleState.detached);
     });
   });

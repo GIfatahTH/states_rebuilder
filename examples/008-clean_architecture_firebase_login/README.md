@@ -1,5 +1,7 @@
 # clean_architecture_firebase_login
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 ![Sign in with firebase 1](https://github.com/GIfatahTH/repo_images/blob/master/009-sign_in_with_firebase2.gif).
 
 ![Sign in with firebase 2](https://github.com/GIfatahTH/repo_images/blob/master/009-sign_in_with_firebase1.gif).
@@ -580,7 +582,7 @@ class FormWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        StateBuilder(
+        WhenRebuilderOr(
           //NOTE2: create and subscribe to local ReactiveModel of empty string
           observe: () => RM.create(''),
           //NOTE3: couple this StateBuilder with the email ReactiveModel key
@@ -606,7 +608,7 @@ class FormWidget extends StatelessWidget {
             );
           },
         ),
-        StateBuilder(
+        WhenRebuilderOr(
           observe: () => RM.create(''),
           rmKey: _passwordRM,
           builder: (_, __) {
@@ -656,6 +658,7 @@ class FormWidget extends StatelessWidget {
               () => _isRegisterRM,
               () => RM.get<UserService>().asNew('signInRegisterForm'),
             ],
+            shouldRebuild: (_) => true,
             //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
             builder: (_, userServiceRM) {
               if (userServiceRM.isWaiting) {

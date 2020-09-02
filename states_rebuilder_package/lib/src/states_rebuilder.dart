@@ -1,17 +1,18 @@
 import 'dart:collection';
+import 'dart:developer' as developer;
 
 import 'package:flutter/widgets.dart';
 
+import 'builders.dart';
 import 'reactive_model.dart';
-import 'state_builder.dart';
-import 'dart:developer' as developer;
 
 ///[StatesRebuilder] use the observer pattern.
 ///
 ///Observer classes should implement [ObserverOfStatesRebuilder]
 abstract class ObserverOfStatesRebuilder {
   ///Method to executed when observer is notified.
-  void update([dynamic Function(BuildContext) onSetState, dynamic message]);
+  void update(
+      [dynamic Function(BuildContext) onSetState, dynamic reactiveModel]);
 }
 
 ///[StatesRebuilder] use the observer pattern.
@@ -53,6 +54,15 @@ class StatesRebuilder<T> implements Subject {
   ///Holds user defined void callback to be executed after removing all observers.
   final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
 
+  // static int __observersCount = 0;
+  // static set _observersCount(int count) {
+  //   assert(count >= 0);
+  //   __observersCount = count;
+  //   if (__observersCount == 0) {
+  //     cleanInjector();
+  //   }
+  // }
+
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
@@ -63,6 +73,7 @@ class StatesRebuilder<T> implements Subject {
     } else {
       _observersMap[tag] = {observer, ..._observersMap[tag]};
     }
+    // _observersCount = __observersCount + 1;
   }
 
   @override
@@ -89,31 +100,16 @@ class StatesRebuilder<T> implements Subject {
 
     _observersMap[tag].remove(observer);
     _observersSet.remove(observer);
-    if (_observersMap[tag].isEmpty) {
+
+    // _observersCount = __observersCount - 1;
+
+    if (_observersMap[tag]?.isEmpty == true) {
       _observersMap.remove(tag);
-      if (_observersMap.isEmpty ||
-          _observersMap.length == 1 &&
-              _observersMap.containsKey('_ReactiveModelSubscriber')) {
-        //Al observers are remove, it is time to execute custom cleaning
-        for (final void Function() voidCallBack in _statesRebuilderCleaner) {
-          if (voidCallBack != null) {
-            voidCallBack();
-          }
-        }
-        _statesRebuilderCleaner.clear();
-        _observersMap.clear();
-        _observersSet.clear();
+      if (_observersMap.isEmpty) {
+        statesRebuilderCleaner(this);
       }
     }
   }
-
-  // dynamic _tag;
-  // bool _isExclusive = false;
-  // StatesRebuilder tag(dynamic tag, [bool isExclusive = false]) {
-  //   _tag = tag;
-  //   _isExclusive = isExclusive;
-  //   return this;
-  // }
 
   /// You call [rebuildStates] inside any of your logic classes that extends [StatesRebuilder].
   ///
@@ -122,9 +118,6 @@ class StatesRebuilder<T> implements Subject {
   void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
     assert(() {
       if (RM.debugPrintActiveRM == true) {
-        // print(
-        //   '$this | filterTags: ${tags != null ? tags : "None"}',
-        // );
         if (this is ReactiveModel) {
           final ReactiveModel self = this as ReactiveModel;
           developer.log(
@@ -237,9 +230,7 @@ class StatesRebuilder<T> implements Subject {
     sb._observersSet.addAll(_observersSet);
     sb._statesRebuilderCleaner.addAll(_statesRebuilderCleaner);
     if (clear) {
-      _observersMap.clear();
-      _observersSet.clear();
-      _statesRebuilderCleaner.clear();
+      statesRebuilderCleaner(this);
     }
   }
 }
@@ -252,4 +243,24 @@ class StatesRebuilderInternal {
         ? StatesRebuilder._notifyingModel as ReactiveModel
         : null;
   }
+}
+
+void statesRebuilderCleaner(StatesRebuilder sr, [bool clean = true]) {
+  if (sr == null ||
+      sr is ReactiveModelInternal && sr.numberOfFutureAndStreamBuilder > 0) {
+    return;
+  }
+  if (clean) {
+    //Al observers are remove, it is time to execute custom cleaning
+    for (final void Function() voidCallBack in [
+      ...sr._statesRebuilderCleaner
+    ]) {
+      if (voidCallBack != null) {
+        voidCallBack();
+      }
+    }
+  }
+  sr._statesRebuilderCleaner.clear();
+  sr._observersMap.clear();
+  sr._observersSet.clear();
 }

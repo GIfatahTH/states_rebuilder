@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
-import 'package:states_rebuilder/src/state_with_mixin_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
 
 void main() {
@@ -29,7 +29,7 @@ void main() {
           () => StateWithMixinBuilder(
                 mixinWith: MixinWith.tickerProviderStateMixin,
                 observeMany: [() => model],
-                builderWithChild: (_, child) => child,
+                builderWithChild: (_, rm, child) => child,
               ),
           throwsAssertionError);
     },
@@ -55,10 +55,10 @@ void main() {
       Widget widget = StateWithMixinBuilder(
         observeMany: [() => model],
         mixinWith: MixinWith.singleTickerProviderStateMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
-        dispose: (_, __) {},
+        dispose: (_, __, ___) {},
         builder: (_, __) => Container(),
       );
 
@@ -72,13 +72,14 @@ void main() {
     "StateWithMixinBuilder should mixin with singleTickerProviderStateMixin with generic type ",
     (WidgetTester tester) async {
       var ticker;
-      Widget widget = StateWithMixinBuilder<SingleTickerProviderStateMixin>(
+      Widget widget =
+          StateWithMixinBuilder<SingleTickerProviderStateMixin, dynamic>(
         observeMany: [() => model],
         mixinWith: MixinWith.singleTickerProviderStateMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
-        dispose: (_, __) {},
+        dispose: (_, __, ___) {},
         builder: (_, __) => Container(),
       );
 
@@ -87,7 +88,32 @@ void main() {
       expect(ticker, isA<SingleTickerProviderStateMixin>());
     },
   );
+  testWidgets(
+    "StateWithMixinBuilder.singleTickerProvider should  work ",
+    (WidgetTester tester) async {
+      var ticker;
+      Widget widget = StateWithMixinBuilder.singleTickerProvider<Model>(
+        observe: () => model,
+        initState: (context, ReactiveModel<Model> rm,
+            SingleTickerProviderStateMixin tick) {
+          ticker = tick;
+        },
+        dispose: (context, ReactiveModel<Model> rm,
+            SingleTickerProviderStateMixin tick) {},
+        builder: (context, ReactiveModel<Model> rm) => Container(),
+        didChangeDependencies: (context, ReactiveModel<Model> rm,
+            SingleTickerProviderStateMixin ticker) {},
+        didUpdateWidget:
+            (context, old, SingleTickerProviderStateMixin ticker) {},
+        afterInitialBuild: (context, ReactiveModel<Model> rm) {},
+        afterRebuild: (context, ReactiveModel<Model> rm) {},
+      );
 
+      await tester.pumpWidget(widget);
+
+      expect(ticker, isA<SingleTickerProviderStateMixin>());
+    },
+  );
   testWidgets(
     "StateWithMixinBuilder should mixin with TickerProviderStateMixin ",
     (WidgetTester tester) async {
@@ -95,10 +121,10 @@ void main() {
       Widget widget = StateWithMixinBuilder(
         observeMany: [() => model],
         mixinWith: MixinWith.tickerProviderStateMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
-        dispose: (_, __) {},
+        dispose: (_, __, ___) {},
         builder: (_, __) => Container(),
       );
 
@@ -112,14 +138,40 @@ void main() {
     "StateWithMixinBuilder should mixin with TickerProviderStateMixin with generic type ",
     (WidgetTester tester) async {
       var ticker;
-      Widget widget = StateWithMixinBuilder<TickerProviderStateMixin>(
+      Widget widget = StateWithMixinBuilder<TickerProviderStateMixin, dynamic>(
         observeMany: [() => model],
         mixinWith: MixinWith.tickerProviderStateMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
-        dispose: (_, __) {},
+        dispose: (_, __, ___) {},
         builder: (_, __) => Container(),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(ticker, isA<TickerProviderStateMixin>());
+    },
+  );
+
+  testWidgets(
+    "StateWithMixinBuilder.tickerProvider should  work ",
+    (WidgetTester tester) async {
+      var ticker;
+      Widget widget = StateWithMixinBuilder.tickerProvider<Model>(
+        observe: () => model,
+        initState:
+            (context, ReactiveModel<Model> rm, TickerProviderStateMixin tick) {
+          ticker = tick;
+        },
+        dispose: (context, ReactiveModel<Model> rm,
+            TickerProviderStateMixin tick) {},
+        builder: (context, ReactiveModel<Model> rm) => Container(),
+        didChangeDependencies: (context, ReactiveModel<Model> rm,
+            TickerProviderStateMixin ticker) {},
+        didUpdateWidget: (context, old, TickerProviderStateMixin ticker) {},
+        afterInitialBuild: (context, ReactiveModel<Model> rm) {},
+        afterRebuild: (context, ReactiveModel<Model> rm) {},
       );
 
       await tester.pumpWidget(widget);
@@ -135,7 +187,7 @@ void main() {
       Widget widget = StateWithMixinBuilder(
         observeMany: [() => model],
         mixinWith: MixinWith.automaticKeepAliveClientMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
         builder: (_, __) => Container(),
@@ -151,10 +203,11 @@ void main() {
     "StateWithMixinBuilder should mixin with automaticKeepAliveClientMixin with generic type ",
     (WidgetTester tester) async {
       var ticker;
-      Widget widget = StateWithMixinBuilder<AutomaticKeepAliveClientMixin>(
+      Widget widget =
+          StateWithMixinBuilder<AutomaticKeepAliveClientMixin, dynamic>(
         observeMany: [() => model],
         mixinWith: MixinWith.automaticKeepAliveClientMixin,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
         builder: (_, __) => Container(),
@@ -167,13 +220,32 @@ void main() {
   );
 
   testWidgets(
+    "StateWithMixinBuilder.automaticKeepAlive should  work ",
+    (WidgetTester tester) async {
+      Widget widget = StateWithMixinBuilder.automaticKeepAlive<Model>(
+        observe: () => model,
+        initState: (context, ReactiveModel<Model> rm) {},
+        dispose: (context, ReactiveModel<Model> rm) {},
+        builder: (context, ReactiveModel<Model> rm) => Container(),
+        didChangeDependencies: (context, ReactiveModel<Model> rm) {},
+        didUpdateWidget: (context,
+            StateWithMixinBuilder<AutomaticKeepAliveClientMixin, Model> old) {},
+        afterInitialBuild: (context, ReactiveModel<Model> rm) {},
+        afterRebuild: (context, ReactiveModel<Model> rm) {},
+      );
+
+      await tester.pumpWidget(widget);
+    },
+  );
+
+  testWidgets(
     "StateWithMixinBuilder should mixin with widgetsBindingObserver ",
     (WidgetTester tester) async {
       var ticker;
       Widget widget = StateWithMixinBuilder(
         observeMany: [() => model],
         mixinWith: MixinWith.widgetsBindingObserver,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
         builder: (_, __) => Container(),
@@ -189,10 +261,10 @@ void main() {
     "StateWithMixinBuilder should mixin with widgetsBindingObserver with generic type",
     (WidgetTester tester) async {
       var ticker;
-      Widget widget = StateWithMixinBuilder<WidgetsBindingObserver>(
+      Widget widget = StateWithMixinBuilder<WidgetsBindingObserver, dynamic>(
         observeMany: [() => model],
         mixinWith: MixinWith.widgetsBindingObserver,
-        initState: (context, tick) {
+        initState: (context, rm, tick) {
           ticker = tick;
         },
         builder: (_, __) => Container(),
@@ -201,6 +273,30 @@ void main() {
       await tester.pumpWidget(widget);
 
       expect(ticker, isA<WidgetsBindingObserver>());
+    },
+  );
+
+  testWidgets(
+    "StateWithMixinBuilder.widgetsBindingObserver should  work ",
+    (WidgetTester tester) async {
+      Widget widget = StateWithMixinBuilder.widgetsBindingObserver<Model>(
+          observe: () => model,
+          initState: (context, ReactiveModel<Model> rm) {},
+          dispose: (context, ReactiveModel<Model> rm) {},
+          builder: (context, ReactiveModel<Model> rm) => Container(),
+          didChangeDependencies: (context, ReactiveModel<Model> rm) {},
+          didUpdateWidget: (context,
+              StateWithMixinBuilder<WidgetsBindingObserver, Model> old) {},
+          afterInitialBuild: (context, ReactiveModel<Model> rm) {},
+          afterRebuild: (context, ReactiveModel<Model> rm) {},
+          didChangeAppLifecycleState: (context, state) {
+            // print(state);
+          },
+          didChangeLocales: (context, locals) {
+            // print(locals);
+          });
+
+      await tester.pumpWidget(widget);
     },
   );
 
@@ -228,17 +324,17 @@ void main() {
                     afterInitialBuild: (_, __) {
                       numberOfAfterInitialBuilds++;
                     },
-                    dispose: (_, tick) {
+                    dispose: (_, __, tick) {
                       numberOfDispose++;
                       ticker = tick;
                     },
-                    didChangeDependencies: (_, __) {
+                    didChangeDependencies: (_, ___, __) {
                       numberOfDidChangeDependencies++;
                     },
                     didUpdateWidget: (_, __, ___) {
                       numberOfDidUpdateWidget++;
                     },
-                    afterRebuild: (_) {
+                    afterRebuild: (_, __) {
                       numberAfterRebuild++;
                     },
                     observe: () => model,
@@ -292,9 +388,9 @@ void main() {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.singleTickerProviderStateMixin,
         observeMany: [() => model],
-        initState: (_, __) => null,
-        dispose: (_, __) => null,
-        builderWithChild: (ctx, child) {
+        initState: (_, ___, __) => null,
+        dispose: (_, __, ___) => null,
+        builderWithChild: (ctx, rm, child) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: Column(
@@ -325,9 +421,9 @@ void main() {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
         observeMany: [() => model],
-        initState: (_, __) => null,
-        dispose: (_, __) => null,
-        builderWithChild: (ctx, child) {
+        initState: (_, ___, __) => null,
+        dispose: (_, __, ___) => null,
+        builderWithChild: (ctx, rm, child) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: Column(
@@ -370,7 +466,7 @@ void main() {
     (WidgetTester tester) async {
       Widget widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
-        initState: (_, __) => null,
+        initState: (_, ___, __) => null,
         observeMany: [() => model],
         builder: (_, __) => Container(),
       );
@@ -494,7 +590,7 @@ void main() {
   });
 }
 
-class Model extends StatesRebuilder {
+class Model extends StatesRebuilder<Model> {
   int counter = 0;
   int numberOfDisposeCall = 0;
   void increment() {

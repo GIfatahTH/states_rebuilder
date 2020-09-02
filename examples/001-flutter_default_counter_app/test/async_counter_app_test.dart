@@ -1,3 +1,4 @@
+import 'package:flutter_test/flutter_test.dart';
 //Can not be tested because the business logic is mixed with the UI logic
 
 // The Random().nextBool() can not be neither expected nor mocked.
@@ -14,4 +15,7 @@
 //     catchError: true,
 //   );
 // },
-void main() {}
+
+void main() {
+  test('notest', () {});
+}

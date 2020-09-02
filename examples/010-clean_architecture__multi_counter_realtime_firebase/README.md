@@ -1,5 +1,7 @@
 # clean_architecture_andrea_multi_counter_with_firebase
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 This app consists of a list of counters, where we can increment/decrement a counter add a counter or delete one counter. The app is connected with realtime firebase store.
 
 Actually we will build the app with two flavor environments, one with real firebase connection for production and the other with a fake data base mimicking firebase for development.

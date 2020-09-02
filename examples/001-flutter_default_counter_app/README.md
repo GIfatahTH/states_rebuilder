@@ -1,10 +1,14 @@
 # flutter_default_counter_app
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 In this example, we will build the default counter app using states_rebuilder for managing the state.
 
 This simple example aims to understand what ReactiveModel means and how it renders a pure dart object to reactive and how observers subscribe to it and how the observable reactive model notifies observers to rebuild.
 
 # Simple counter.
+
+> Update: With Functional injection, the life becomes easier (see further examples for more information). 
 
 After adding the latest version of `states_rebuilder` to dependencies in the `pubspec.yaml`, in the  `main.dart` file we have
  
@@ -111,7 +115,7 @@ StateBuilder<int>(
 
 * To set the state of the counter and notify listeners from outside the `builder` method we use `ReactiveModel` key.
 
-* In a similar fashion as used in Flutter, ReactiveModel keys are used to control a ReactiveModel from outside the widget where is is created, ReactiveModel key inherited all the state and behavior of the ReactiveModel is is associated with.
+* In a similar fashion as used in Flutter, ReactiveModel keys are used to control a ReactiveModel from outside the widget wheres is created, ReactiveModel key inherited all the state and behavior of the ReactiveModel it is associated with.
 
 > Before update 1.15.0 you can created local ReactiveModels outside the any observer, this no longer supported.
 

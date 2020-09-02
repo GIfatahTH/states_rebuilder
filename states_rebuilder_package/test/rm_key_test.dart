@@ -3,10 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
-import 'package:states_rebuilder/src/rm_key.dart';
-import 'package:states_rebuilder/src/state_builder.dart';
+import 'package:states_rebuilder/src/builders.dart';
 import 'package:states_rebuilder/src/states_rebuilder.dart';
-import 'package:states_rebuilder/src/when_connection_state.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -40,7 +38,11 @@ void main() {
                 rmKey = RMKey();
                 if (switcher) {
                   return StateBuilder(
-                    observeMany: [() => stringRM, () => intRM, () => RM.create<String>('String')],
+                    observeMany: [
+                      () => stringRM,
+                      () => intRM,
+                      () => RM.create<String>('String')
+                    ],
                     rmKey: rmKey,
                     initState: (_, rm) {
                       rmFromInitState = rm;
@@ -164,7 +166,9 @@ void main() {
     },
   );
 
-  testWidgets("StateBuilder should work with ReactiveModel.create when widget is updated", (WidgetTester tester) async {
+  testWidgets(
+      "StateBuilder should work with ReactiveModel.create when widget is updated",
+      (WidgetTester tester) async {
     RMKey<int> modelRM1 = RMKey();
     RMKey<int> modelRM2;
 
@@ -221,7 +225,8 @@ void main() {
     expect(find.text('modelRM2-2'), findsOneWidget);
   });
 
-  testWidgets("StateBuilder should work with RMKey, Key subscription first", (WidgetTester tester) async {
+  testWidgets("StateBuilder should work with RMKey, Key subscription first",
+      (WidgetTester tester) async {
     RMKey<int> rmKey = RMKey();
 
     final widget = Builder(
@@ -272,7 +277,8 @@ void main() {
     expect(find.text('modelRM2-0'), findsOneWidget);
   });
 
-  testWidgets("StateBuilder should work with RMKey, Key subscription last", (WidgetTester tester) async {
+  testWidgets("StateBuilder should work with RMKey, Key subscription last",
+      (WidgetTester tester) async {
     RMKey<int> rmKey = RMKey(0);
 
     final widget = Builder(
@@ -332,6 +338,7 @@ void main() {
       final rmKey = RMKey<Model>();
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         rmKey: rmKey,
         builder: (_, __) {
           return WhenRebuilder(
@@ -473,6 +480,7 @@ void main() {
       RMKey rmKey = RMKey();
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         rmKey: rmKey,
         builder: (_, __) {
           return _widgetBuilder(
@@ -508,6 +516,7 @@ void main() {
 
       final widget = StateBuilder(
         observeMany: [() => modelRM],
+        shouldRebuild: (_) => true,
         rmKey: rmKey,
         builder: (_, __) {
           return _widgetBuilder(
@@ -606,7 +615,8 @@ void main() {
             observeMany: [() => inject.getReactive()],
             rmKey: modelRM0,
             builder: (context, _) {
-              return _widgetBuilder('modelRM0-${modelRM0.joinSingletonToNewData}');
+              return _widgetBuilder(
+                  'modelRM0-${modelRM0.joinSingletonToNewData}');
             },
           ),
           StateBuilder(
@@ -630,7 +640,9 @@ void main() {
 
       //mutate reactive instance 1
       modelRM1.setState((s) => s.increment(),
-          joinSingleton: true, catchError: true, joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
+          joinSingleton: true,
+          catchError: true,
+          joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
       await tester.pump();
       expect(find.text('modelRM0-modelRM1-1'), findsOneWidget);
       expect(find.text('modelRM1-1'), findsOneWidget);
@@ -638,7 +650,9 @@ void main() {
 
       //mutate reactive instance 2
       modelRM2.setState((s) => s.increment(),
-          joinSingleton: true, catchError: true, joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
+          joinSingleton: true,
+          catchError: true,
+          joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
       await tester.pump();
       expect(find.text('modelRM0-modelRM2-2'), findsOneWidget);
       expect(find.text('modelRM1-1'), findsOneWidget);
@@ -654,35 +668,38 @@ void main() {
         ..listenToRM((rm) {});
 
       //
-      expect(modelRM.toString(), contains('<Model> RM'));
-      expect(modelRM.toString(), contains(' | isIdle'));
+      expect(modelRM.toString(),
+          contains('RM<Model>-[isIdle] | Observers(0 widgets, 0 models) | '));
       //
       modelRM.setState((s) => s.incrementAsync());
 
-      expect(modelRM.toString(), contains(' | isWaiting'));
+      expect(modelRM.toString(), contains('RM<Model>-[isWaiting] '));
       await tester.pump(Duration(seconds: 1));
-      expect(modelRM.toString(), contains(" | hasData : (Instance of 'Model')"));
+      expect(modelRM.toString(), contains(" state: (Instance of 'Model')"));
 
       //
       modelRM.setState((s) => s.incrementAsyncError(), catchError: true);
       await tester.pump(Duration(seconds: 1));
-      expect(modelRM.toString(), contains(' | hasError : (Exception: Error message)'));
+      expect(
+          modelRM.toString(), contains(' error: (Exception: Error message)'));
 
       //
-      expect('${modelRM.asNew('seed1')}', contains('<Model> RM (new seed: "seed1")'));
-      expect('${modelRM.asNew('seed1')}', contains(' | isIdle'));
+      expect('${modelRM.asNew('seed1')}',
+          contains('(seed: "seed1") new RM<Model>'));
+      expect('${modelRM.asNew('seed1')}', contains('RM<Model>-[isIdle] '));
 
       final intStream = ReactiveModel.stream(getStream());
-      expect(intStream.toString(), contains('Stream of <int> RM'));
-      expect(intStream.toString(), contains('| isWaiting'));
+      expect(intStream.toString(), contains('RM<Stream<int>>'));
+      expect(intStream.toString(), contains('RM<Stream<int>>-[isWaiting] '));
       await tester.pump(Duration(seconds: 3));
-      expect(intStream.toString(), contains('| hasData : (2)'));
+      expect(intStream.toString(), contains('RM<Stream<int>>-[hasData] '));
 
-      final intFuture = ReactiveModel.future(getFuture()).asNew();
-      expect(intFuture.toString(), contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
-      expect(intFuture.toString(), contains('| isWaiting'));
-      await tester.pump(Duration(seconds: 3));
-      expect(intFuture.toString(), contains('| hasData : (1)'));
+      // final intFuture = ReactiveModel.future(getFuture()).asNew();
+      // expect(intFuture.toString(),
+      //     contains('Future of <int> RM (new seed: "defaultReactiveSeed")'));
+      // expect(intFuture.toString(), contains('| isWaiting'));
+      // await tester.pump(Duration(seconds: 3));
+      // expect(intFuture.toString(), contains('| hasData : (1)'));
     },
   );
 
@@ -1023,5 +1040,7 @@ Widget _widgetBuilder(String text1, [String text2, String text3]) {
 }
 
 Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
-Future<int> getFutureWithError() => Future.delayed(Duration(seconds: 1), () => throw Exception('Error message'));
-Stream<int> getStream() => Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+Future<int> getFutureWithError() => Future.delayed(
+    Duration(seconds: 1), () => throw Exception('Error message'));
+Stream<int> getStream() =>
+    Stream.periodic(Duration(seconds: 1), (num) => num).take(3);

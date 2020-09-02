@@ -1,5 +1,7 @@
 # multi_future_counter_with_error
 
+> Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
+
 This example is a continuation from the [double_future_counter_with_error](https://github.com/GIfatahTH/states-rebuilder-examples/tree/master/002-double_future_counter_with_error).
 
 In this example, we will refactor the code of [double_future_counter_with_error](https://github.com/GIfatahTH/states-rebuilder-examples/tree/master/002-double_future_counter_with_error) so that it will be reusable and will display four instance of it in a GridView :

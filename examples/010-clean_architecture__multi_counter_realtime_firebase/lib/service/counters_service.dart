@@ -11,13 +11,15 @@ class CountersService {
   }
 
   void increment(Counter counter) async {
-    counter.value++;
-    await _counterRepository.setCounter(counter);
+    await _counterRepository.setCounter(
+      Counter(id: counter.id, value: counter.value + 1),
+    );
   }
 
   void decrement(Counter counter) async {
-    counter.value--;
-    await _counterRepository.setCounter(counter);
+    await _counterRepository.setCounter(
+      Counter(id: counter.id, value: counter.value - 1),
+    );
   }
 
   void delete(Counter counter) async {
