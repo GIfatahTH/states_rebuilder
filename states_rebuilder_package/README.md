@@ -1,8 +1,8 @@
 # `states_rebuilder`
 
-[![pub package](https://github.com/GIfatahTH/states_rebuilder/wiki/https://img.shields.io/pub/v/states_rebuilder.svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://pub.dev/packages/states_rebuilder)
-[![CircleCI](https://github.com/GIfatahTH/states_rebuilder/wiki/https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://circleci.com/gh/GIfatahTH/states_rebuilder)
-[![codecov](https://github.com/GIfatahTH/states_rebuilder/wiki/https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://github.com/GIfatahTH/states_rebuilder/wiki/https://codecov.io/gh/GIfatahTH/states_rebuilder)
+[![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
+[![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
+[![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 
 A Flutter state management combined with dependency injection solution that allows : 
