@@ -49,31 +49,31 @@ abstract class Injected<T> {
     _resolveInject();
     _inject.isGlobal = true;
 
-    final rm = _rm = _inject.getReactive();
+    _rm = _inject.getReactive();
     if (_undoStackLength != null) {
-      rm.undoStackLength = _undoStackLength;
+      _rm.undoStackLength = _undoStackLength;
     }
     _onInitialized?.call(_inject.getSingleton());
     if (_autoDisposeWhenNotUsed ?? true) {
-      rm.cleaner(dispose);
+      _rm.cleaner(dispose);
     }
 
     assert(() {
-      (rm as ReactiveModelInternal).listenToRMInternal((rm) {
-        final Injected<T> injected =
-            _functionalInjectedModels[rm.inject.getName()];
-        assert(injected != null);
-        if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+        (_rm as ReactiveModelInternal).listenToRMInternal((rm) {
+          final Injected<T> injected =
+              _functionalInjectedModels[rm.inject.getName()];
+          assert(injected != null);
           print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
               '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
               '$injected');
-        }
-      });
+        });
+      }
       return true;
     }());
 
     if (_onWaiting != null || _onData != null || _onError != null) {
-      (rm as ReactiveModelInternal).listenToRMInternal(
+      (_rm as ReactiveModelInternal).listenToRMInternal(
         (rm) {
           final Injected<T> injected =
               _functionalInjectedModels[rm.inject.getName()];
@@ -105,7 +105,7 @@ abstract class Injected<T> {
       return true;
     }());
 
-    return rm;
+    return _rm;
   }
 
   //used internally so not to call state and _resolveInject (as in toString)
@@ -216,7 +216,7 @@ abstract class Injected<T> {
 
   ///Manually dispose the model(unregister it).
   void dispose() {
-    _unregisterFunctionalInjectedModel(this);
+    _unregisterFunctionalInjectedModel(_name);
   }
 
   ///Inject a fake implementation of this injected model.
@@ -700,6 +700,12 @@ abstract class Injected<T> {
   }
 
   @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _cachedHash;
+  final int _cachedHash = _nextHashCode = (_nextHashCode + 1) % 0xffffff;
+  static int _nextHashCode = 1;
+
+  @override
   String toString() {
     return _rm == null
         ? '<$T> = $_state (RM<$T> not initialized yet)'
@@ -718,22 +724,24 @@ Map<String, Injected<dynamic>> get functionalInjectedModels =>
 void cleanInjector() {
   Map<String, Injected<dynamic>>.from(_functionalInjectedModels).forEach(
     (key, injected) {
-      _unregisterFunctionalInjectedModel(injected);
+      _unregisterFunctionalInjectedModel(injected._name);
     },
   );
   assert(_functionalInjectedModels.isEmpty);
 }
 
-void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
-  if (injected._inject == null) {
+void _unregisterFunctionalInjectedModel(String name) {
+  if (name == null) {
     return;
   }
-  final name = injected._inject.getName();
-  injected._rm?.unsubscribe();
 
+  Injected<dynamic> injected = _functionalInjectedModels.remove(name);
+  if (injected?._inject == null) {
+    return;
+  }
+  injected._rm?.unsubscribe();
   injected._inject
     ..removeAllReactiveNewInstance()
     ..cleanInject();
   injected._dispose();
-  _functionalInjectedModels.remove(name);
 }
