@@ -515,6 +515,8 @@ void _initState<T>(StateBuilderState<T> state) {
 }
 
 void _dispose<T>(StateBuilderState<T> state) {
+  print(functionalInjectedModels.length);
+  print(functionalInjectedModels);
   final widget = state.widget;
   state._exposedModelFromGenericType?.inject
       ?.removeFromReactiveNewInstanceList(state._exposedModelFromGenericType);
@@ -544,7 +546,10 @@ void _dispose<T>(StateBuilderState<T> state) {
       }
     }
   }
-
+  state.widget._activeRM.clear();
+  print('$T activeMoel is disposed ${state.widget._activeRM}');
+  print(functionalInjectedModels.length);
+  print(functionalInjectedModels);
   if (widget.rmKey != null) {
     widget.rmKey.cleanRMKey();
   }
