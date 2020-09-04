@@ -139,14 +139,19 @@ class StatesRebuilder<T> implements Subject {
 ***No observer is subscribed yet***
 | There is no observer subscribed to this observable $runtimeType model.
 | To subscribe a widget you use:
-| 1- StateRebuilder for an already defined:
+| 1- StateBuilder for an already defined:
 |   ex:
-|   StatesRebuilder(
+|   StateBuilder(
 |     observer: () => ${runtimeType}instance,
 |     builder : ....
 |   )
 | 2 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
-| 
+| 3 _ With global functional injection use rebuilder(), whenRebuilder() or whenRebuilderOr():
+|      ex :
+|      final model = RM.inject(()=>Model());
+|
+|      model.rebuilder(()=> MyWidget());
+|
 | To silent this error you check for the existence of observers before calling [rebuildStates]
 | ex:
 |  if(hasObservers){
