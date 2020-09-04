@@ -621,11 +621,7 @@ void main() {
       () => RM.injectComputed(computeAsync: (_) => null),
       throwsAssertionError,
     );
-    //asyncDependsOn can not be null
-    expect(
-      () => RM.injectComputed(computeAsync: (_) => null, asyncDependsOn: []),
-      throwsAssertionError,
-    );
+
     //Will not throw
     expect(RM.injectComputed(compute: (_) => null), isNotNull);
     expect(
