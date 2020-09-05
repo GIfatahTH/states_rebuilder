@@ -330,6 +330,12 @@ abstract class Injected<T> {
   ///
   Future<T> refresh() async {
     _onDisposed?.call(_state);
+    if (_rm == null && _inject != null) {
+      _inject
+        ..singleton = null
+        ..getSingleton();
+      _onInitialized?.call(state);
+    }
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
