@@ -358,6 +358,8 @@ abstract class RM {
     );
   }
 
+  static NavigatorState _navigator;
+
   ///get The state for a [Navigator] widget.
   ///
   ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
@@ -366,9 +368,16 @@ abstract class RM {
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   static NavigatorState get navigator {
     try {
-      return Navigator.of(context);
+      return _navigator ??= Navigator.of(context);
     } catch (e) {
-      rethrow;
+      if (context == null) {
+        throw Exception(
+          'No BuildContext is recognized by states_rebuilder\n'
+          'You have to use at least on of the states_rebuilder observers widgets, or'
+          'define the context parameter of setState',
+        );
+      }
+      throw e;
     }
   }
 
