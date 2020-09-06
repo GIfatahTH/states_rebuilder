@@ -93,6 +93,9 @@ class _SetState<T> {
   }
 
   void rebuildStates({bool canRebuild = true}) {
+    if (context != null) {
+      RM.context = context;
+    }
     if (rm._listenToRMSet.isNotEmpty) {
       rm
         .._setStateHasOnErrorCallback = onError != null
@@ -196,9 +199,6 @@ class _SetState<T> {
         (_) => _setStateHandler(),
       );
       return null;
-    }
-    if (context != null) {
-      RM.context = context;
     }
 
     return _setStateHandler();
