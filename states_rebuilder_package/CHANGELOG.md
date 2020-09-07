@@ -1,4 +1,29 @@
-## 3.0.0+1 (2020-09-04)
+## 3.1.0 (2020-09-07)
+* Add `RM.navigate` for simple navigation.
+Now, we use:
+```dart
+MaterialApp(
+  navigatorKey : RM.navigate.navigatorKey,
+  //
+)
+
+//to push navigate:
+
+* RM.navigator.to(Page1());
+* RM.navigator.toNamed('/page1');
+* RM.navigator.toReplacement(Page1());
+* RM.navigator.toReplacementNamed('/page1');
+* RM.navigator.toAndRemoveUntil(Page1(), '/page2');
+* RM.navigator.pushNamedAndRemoveUntil('/page1', '/page2');
+* RM.navigator.back();
+* RM.navigator.backUntil('/page2');
+* RM.navigator.backAndToNamed('/page2');
+```
+
+* Deprecate `RM.navigator` and `RM.show`.
+* Refactor internal logic to improve performance.
+
+## 3.0.0 (2020-09-04)
 ### Non breaking change :
 * Refactor internal logic.
 ### New features :
