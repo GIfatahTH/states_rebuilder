@@ -366,20 +366,44 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
+  @Deprecated('use RM.navigate instead')
   static NavigatorState get navigator {
     try {
-      return _navigator ??= Navigator.of(context);
+      return _navigator ??=
+          navigate.navigatorKey.currentState ?? Navigator.of(context);
     } catch (e) {
       if (context == null) {
         throw Exception(
-          'No BuildContext is recognized by states_rebuilder\n'
-          'You have to use at least on of the states_rebuilder observers widgets, or'
+          'No NavigatorState is recognized by states_rebuilder yet\n'
+          ''
+          'You have to use at least on of the states_rebuilder observers '
+          'widgets, or'
           'define the context parameter of setState',
         );
       }
       throw e;
     }
   }
+
+  ///Boiler-plate-less helper for Navigation and routing.
+  ///
+  ///It does not requires the definition of a BuildContext, MaterialPageRoute or
+  ///ModalRoute
+  ///
+  ///equivalence:
+  ///* to => push,
+  ///* toNamed => pushNamed,
+  ///* toReplacement => pushReplacement,
+  ///* toReplacementNamed => pushReplacementNamed,
+  ///* toAndRemoveUntil => pushAndRemoveUntil,
+  ///* toNamedAndRemoveUntil => pushNamedAndRemoveUntil,
+  ///
+  ///* back => pop,
+  ///* backUntil => popUntil,
+  ///* backAndToNamed => popAndPushNamed,
+  ///
+  ///For any other operations you can use navigatorState getter.
+  static _Navigate navigate = _navigate;
 
   ///Get the [ScaffoldState]
   ///
@@ -397,6 +421,7 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
+  @deprecated
   static dynamic show(void Function(BuildContext context) fn) {
     return fn(context);
   }
@@ -431,4 +456,154 @@ abstract class RM {
   static bool debugErrorWithStackTrace = false;
 
   static void Function(dynamic e, StackTrace s) errorLog;
+}
+
+final _navigate = _Navigate();
+
+class _Navigate {
+  ///get the NavigatorState
+  NavigatorState get navigatorState {
+    final navigatorState = _navigatorKey.currentState;
+    assert(navigatorState != null, '''
+The MaterialApp has no defined navigatorKey.
+
+To fix:
+MaterialApp(
+   navigatorKey: RM.navigate.navigatorKey,
+   //
+   //
+)
+''');
+    return navigatorState;
+  }
+
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  GlobalKey<NavigatorState> get navigatorKey {
+    return _navigatorKey;
+  }
+
+  ///navigate to the given page.
+  ///
+  ///see: [NavigatorState.push]
+  Future<T> to<T extends Object>(Widget page) {
+    return navigatorState.push<T>(
+      MaterialPageRoute<T>(
+        builder: (_) => page,
+      ),
+    );
+  }
+
+  ///Navigate to the page with the given named route.
+  ///
+  ///see: [NavigatorState.pushNamed]
+  Future<T> toNamed<T extends Object>(String routeName, {Object arguments}) {
+    return navigatorState.pushNamed<T>(
+      routeName,
+      arguments: arguments,
+    );
+  }
+
+  ///Navigate to the given page, and remove the current route and replace it
+  ///with the new one.
+  ///
+  ///see: [NavigatorState.pushReplacement]
+  Future<T> toReplacement<T extends Object, TO extends Object>(
+    Widget page, {
+    TO result,
+  }) {
+    return navigatorState.pushReplacement<T, TO>(
+      MaterialPageRoute<T>(
+        builder: (_) => page,
+      ),
+      result: result,
+    );
+  }
+
+  ///Navigate to the page with the given named route, and remove the current
+  ///route and replace it with the new one.
+  ///
+  ///see: [NavigatorState.pushReplacementNamed]
+  Future<T> toReplacementNamed<T extends Object, TO extends Object>(
+      String routeName,
+      {TO result,
+      Object arguments}) {
+    return navigatorState.pushReplacementNamed<T, TO>(
+      routeName,
+      arguments: arguments,
+      result: result,
+    );
+  }
+
+  ///Navigate to the given page, and then remove all the previous routes until
+  ///meeting the route with defined route name [untilRouteName].
+  ///
+  ///If no route name is given ([untilRouteName] is null) , all routes will be
+  ///removed except the new page route.
+  ///
+  ///see: [NavigatorState.pushAndRemoveUntil]
+  Future<T> toAndRemoveUntil<T extends Object>(
+    Widget page, {
+    String untilRouteName,
+  }) {
+    return navigatorState.pushAndRemoveUntil<T>(
+      MaterialPageRoute<T>(
+        builder: (_) => page,
+      ),
+      untilRouteName != null
+          ? ModalRoute.withName(untilRouteName)
+          : (r) => false,
+    );
+  }
+
+  ///Navigate to the page with the given named route (first argument), and then
+  ///remove all the previous routes until meeting the route with defined route
+  ///name [untilRouteName].
+  ///
+  ///If no route name is given ([untilRouteName] is null) , all routes will be
+  ///removed except the new page route.
+  ///
+  ///see: [NavigatorState.pushNamedAndRemoveUntil]
+  Future<T> toNamedAndRemoveUntil<T extends Object>(String newRouteName,
+      {String untilRouteName, Object arguments}) {
+    return navigatorState.pushNamedAndRemoveUntil<T>(
+      newRouteName,
+      untilRouteName != null
+          ? ModalRoute.withName(untilRouteName)
+          : (r) => false,
+      arguments: arguments,
+    );
+  }
+
+  ///Navigate back to the last page, ie
+  ///Pop the top-most route off the navigator.
+  ///
+  ///see: [NavigatorState.pop]
+  void back<T extends Object>([T result]) {
+    navigatorState.pop<T>(result);
+  }
+
+  ///Navigate back and remove all the previous routes until meeting the route
+  ///with defined name
+  ///
+  ///see: [NavigatorState.popUntil]
+  void backUntil(String untilRouteName) {
+    return navigatorState.popUntil(
+      ModalRoute.withName(untilRouteName),
+    );
+  }
+
+  ///Navigate back than to the page with the given named route
+  ///
+  ///see: [NavigatorState.popAndPushNamed]
+  Future<T> backAndToNamed<T extends Object, TO extends Object>(
+    String routeName, {
+    TO result,
+    Object arguments,
+  }) {
+    return navigatorState.popAndPushNamed<T, TO>(
+      routeName,
+      arguments: arguments,
+      result: result,
+    );
+  }
 }
