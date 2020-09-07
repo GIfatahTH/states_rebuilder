@@ -63,7 +63,6 @@ abstract class Injected<T> {
         (_rm as ReactiveModelInternal).listenToRMInternal((rm) {
           final Injected<T> injected =
               _functionalInjectedModels[rm.inject.getName()];
-          assert(injected != null);
           print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
               '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
               '$injected');
