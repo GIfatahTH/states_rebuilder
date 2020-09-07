@@ -102,7 +102,7 @@ void main() {
       expect(RM.context, isNotNull);
       expect(RM.navigate.navigatorState, isNotNull);
       //Scaffold.of() called with a context that does not contain a Scaffold.
-      expect(() => RM.scaffold, throwsFlutterError);
+      expect(() => RM.scaffoldShow.scaffoldState, throwsException);
     },
   );
 
@@ -122,7 +122,7 @@ void main() {
       await tester.pumpWidget(widget);
 
       expect(RM.context, isNotNull);
-      expect(RM.scaffold, isNotNull);
+      expect(Scaffold.of(RM.context), isNotNull);
     },
   );
 }

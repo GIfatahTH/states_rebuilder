@@ -792,7 +792,7 @@ void main() {
       });
       await tester.pump();
       expect(context2, equals(context0));
-      expect(RM.scaffold, isNotNull);
+      expect(Scaffold.of(RM.context), isNotNull);
 
       isTrue = false;
       vm.rebuildStates();
@@ -1346,7 +1346,7 @@ void main() {
         ));
     await tester.pumpWidget(widget);
     expect(RM.navigate.navigatorState, isNotNull);
-    expect(RM.scaffold, isNotNull);
+    expect(Scaffold.of(RM.context), isNotNull);
 
     Scaffold.of(RM.context).showSnackBar(SnackBar(content: Text('')));
     await tester.pump();
@@ -1371,7 +1371,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(widget);
-    expect(RM.scaffold, isNotNull);
+    expect(Scaffold.of(RM.context), isNotNull);
     Scaffold.of(RM.context).showSnackBar(SnackBar(content: Text('')));
 
     await tester.pump();
