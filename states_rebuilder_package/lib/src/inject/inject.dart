@@ -212,7 +212,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   @override
   String toString() {
-    return 'Inject<$T>(singleton: ${singleton}, singletonRM: ${reactiveSingleton})';
+    return 'Inject<$T>(singleton: $singleton, singletonRM: $reactiveSingleton)';
   }
 }
 
