@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todos_app_core/todos_app_core.dart';
 
 import 'localization.dart';
@@ -19,6 +20,7 @@ class StatesRebuilderApp extends StatelessWidget {
         ArchSampleRoutes.home: (context) => HomeScreen(),
         ArchSampleRoutes.addTodo: (context) => AddEditPage(),
       },
+      navigatorKey: RM.navigate.navigatorKey,
     );
   }
 }

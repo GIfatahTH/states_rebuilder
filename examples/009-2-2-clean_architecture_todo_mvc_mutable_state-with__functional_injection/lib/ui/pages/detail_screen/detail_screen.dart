@@ -97,14 +97,10 @@ class DetailScreen extends StatelessWidget {
         child: Icon(Icons.edit),
         key: ArchSampleKeys.editTodoFab,
         onPressed: () async {
-          await RM.navigator.push(
-            MaterialPageRoute(
-              builder: (context) {
-                return AddEditPage(
-                  key: ArchSampleKeys.editTodoScreen,
-                  todo: todo.state,
-                );
-              },
+          await RM.navigate.to(
+            AddEditPage(
+              key: ArchSampleKeys.editTodoScreen,
+              todo: todo.state,
             ),
           );
           //await if todosService is in the waiting state

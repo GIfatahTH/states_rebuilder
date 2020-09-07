@@ -27,12 +27,8 @@ class TodoItem extends StatelessWidget {
       },
       child: ListTile(
         onTap: () async {
-          final shouldDelete = await RM.navigator.push(
-            MaterialPageRoute(
-              builder: (_) {
-                return DetailScreen(index);
-              },
-            ),
+          final shouldDelete = await RM.navigate.to(
+            DetailScreen(index),
           );
           if (shouldDelete == true) {
             removeTodo(context, todo);
