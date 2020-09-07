@@ -71,7 +71,7 @@ class CounterPage extends StatelessWidget {
                 (state) => state.increment(seconds),
                 filterTags: [tag],
                 onError: (BuildContext context, dynamic error) {
-                  Scaffold.of(context).showSnackBar(
+                  RM.scaffoldShow.snackBar(
                     SnackBar(
                       content: Text(counterService.error.message),
                     ),

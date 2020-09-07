@@ -50,24 +50,23 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
+            //context to be used to show snackBar
+            context: context,
             onError: (context, dynamic error) {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    content: Text('${error.message}'),
-                  );
-                },
+              RM.navigate.toDialog(
+                AlertDialog(
+                  content: Text('${error.message}'),
+                ),
               );
             },
             onData: (context, int data) {
-              Scaffold.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text('$data'),
-                  ),
-                );
+              //show snackBar
+              //any current snackBar is hidden.
+              RM.scaffoldShow.snackBar(
+                SnackBar(
+                  content: Text('$data'),
+                ),
+              );
             },
           );
         },

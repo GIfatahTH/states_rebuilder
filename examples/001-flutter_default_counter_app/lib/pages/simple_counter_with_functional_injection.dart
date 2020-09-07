@@ -40,28 +40,37 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          counter.setState(
-            (counter) => counter + 1,
-            //onSetState callback is invoked after counterRM emits a notification and before rebuild
-            onSetState: (context) {
-              Scaffold.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
+      floatingActionButton: Builder(
+        builder: (context) => FloatingActionButton(
+          onPressed: () {
+            counter.setState(
+              (counter) => counter + 1,
+              //onSetState callback is invoked after counterRM emits a notification and before rebuild
+              //context to be used to shw snackBar
+              //
+              //Notice we wrap with Builder to get a valid Bui
+              context: context,
+              onSetState: (context) {
+                //show snackBar
+                //any current snackBar is hidden.
+
+                //This call of snackBar is independent of BuildContext
+                //Can be called any where
+                RM.scaffoldShow.snackBar(
                   SnackBar(
                     content: Text('${counter.state}'),
                   ),
                 );
-            },
-            //onRebuildState is called after rebuilding the observer widget
-            onRebuildState: (context) {
-              //
-            },
-          );
-        },
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
+              },
+              //onRebuildState is called after rebuilding the observer widget
+              onRebuildState: (context) {
+                //
+              },
+            );
+          },
+          tooltip: 'Increment',
+          child: Icon(Icons.add),
+        ),
       ),
     );
   }

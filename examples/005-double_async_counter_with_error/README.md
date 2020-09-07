@@ -177,11 +177,11 @@ class CounterPage extends StatelessWidget {
                 onSetState: (BuildContext context) {
                   //NOTE3: context parameter of the onSetState is the context of the last add observer. In our case, it is the BuildContext of the Injector widget.
                   if (counterService.hasError) {
-                    Scaffold.of(context).showSnackBar(
+                    RM.scaffoldShow.snackBar(
                       SnackBar(
                         content: Text(counterService.error.message),
                       ),
-                    );
+                   );
                   }
                 },
                 //You can replace the catchError and onSetState parameter with onError parameter
@@ -330,11 +330,11 @@ class CounterPage extends StatelessWidget {
                 //NOTE3: Defining list of tags to be notified.
                 filterTags: [tag],
                 onError: (BuildContext context, dynamic error) {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(counterService.error.message),
-                    ),
-                  );
+                   RM.scaffoldShow.snackBar(
+                      SnackBar(
+                        content: Text(counterService.error.message),
+                      ),
+                   );
                 },
               );
             },
@@ -536,11 +536,11 @@ class CounterPage extends StatelessWidget {
                 (state) => state.increment(seconds),
                 //NOTE1 : remove of filteredTag parameter. Notification is sent to all observers
                 onError: (BuildContext context, dynamic error) {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(counterService.error.message),
-                    ),
-                  );
+                   RM.scaffoldShow.snackBar(
+                      SnackBar(
+                        content: Text(counterService.error.message),
+                      ),
+                   );
                 },
               );
             },

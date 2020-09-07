@@ -8,6 +8,8 @@ class MyHomePage extends StatelessWidget {
   final String title;
 
   //creating a ReactiveModel key from the integer value of 0.
+
+  //Note that if you use global functional injection, you do not need to use RMKey
   final RMKey<int> counterRMKey = RMKey<int>(0);
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import './pages/simple_counter.dart' as simpleCounter;
 import './pages/simple_counter_with_error.dart' as simpleCounterWithError;
 import './pages/async_counter_app.dart' as asyncCounter;
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      navigatorKey: RM.navigate.navigatorKey,
       home: Scaffold(
         body: Builder(
           builder: (context) {

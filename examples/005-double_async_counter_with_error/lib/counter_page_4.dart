@@ -67,8 +67,9 @@ class CounterPage extends StatelessWidget {
             onPressed: () {
               counterState.setState(
                 (c) => c.increment(seconds),
+                context: context,
                 onError: (context, error) {
-                  Scaffold.of(context).showSnackBar(
+                  RM.scaffoldShow.snackBar(
                     SnackBar(
                       content: Text(counterState.error.message),
                     ),

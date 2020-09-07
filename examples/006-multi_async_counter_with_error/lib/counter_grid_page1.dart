@@ -129,8 +129,9 @@ class CounterBox extends StatelessWidget {
               counterService.setState(
                 (state) => state.increment(seconds),
                 filterTags: [tag],
+                context: context,
                 onError: (BuildContext context, dynamic error) {
-                  Scaffold.of(context).showSnackBar(
+                  RM.scaffoldShow.snackBar(
                     SnackBar(
                       content: Text(counterService.error.message),
                     ),

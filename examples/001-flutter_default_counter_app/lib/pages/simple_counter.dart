@@ -6,6 +6,7 @@ class MyHomePage extends StatelessWidget {
   final String title;
 
   //creating a ReactiveModel key from the integer value of 0.
+  //Note that if you use global functional injection, you do not need to use RMKey
   final RMKey<int> counterRMKey = RMKey<int>(0);
 
   @override
@@ -47,13 +48,16 @@ class MyHomePage extends StatelessWidget {
             //onSetState callback is invoked after counterRM emits a notification and before rebuild
             onSetState: (context) {
               print('onSetState : before rebuild');
-              Scaffold.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text('${counterRMKey.state}'),
-                  ),
-                );
+              //show snackBar
+              //any current snackBar is hidden.
+
+              //This call of snackBar is independent of BuildContext
+              //Can be called any where
+              RM.scaffoldShow.snackBar(
+                SnackBar(
+                  content: Text('${counterRMKey.state}'),
+                ),
+              );
             },
             //onRebuildState is called after rebuilding the observer widget
             onRebuildState: (context) {

@@ -27,6 +27,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      //Assign navigatorKey so we can route and showDialog without context
+      navigatorKey: RM.navigate.navigatorKey,
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -39,6 +41,7 @@ class MyHomePage extends StatelessWidget {
   final String title;
 
   //creating a ReactiveModel key from the integer value of 0.
+  //Note that if you use global functional injection, you do not need to use RMKey
   final RMKey<int> counterRMKey = RMKey<int>(0);
 
   @override
@@ -169,15 +172,20 @@ floatingActionButton: FloatingActionButton(
 onPressed: () {
     counterRM.setState(
     (int currentState) => currentState+ 1,
+    //BuildContext to be use to show a snackBar
+    context: context,
     onSetState: (context) {
 
-        Scaffold.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-            SnackBar(
-            content: Text('${counterRM.state}'),
-            ),
-        );
+      //show snackBar
+      //any current snackBar is hidden
+      //This call of snackBar is independent of BuildContext
+      //Can be called any where
+      RM.scaffoldShow.snackBar(
+        SnackBar(
+          content: Text('${counterRM.state}'),
+        ),
+      );
+
     },
   );
 },
@@ -202,24 +210,25 @@ onPressed: () {
     },
     onError: (context, dynamic error) {
         //Show an alert dialog
-        showDialog(
-        context: context,
-        builder: (context) {
-            return AlertDialog(
+        //It is independent from the context
+        //It can be called anywhere
+        RM.navigate.toDialog(
+          AlertDialog(
             content: Text('${error.message}'),
-            );
-        },
+          ),
+        );
         );
     },
     onData: (context, int data) {
-        //show a snackBar
-        Scaffold.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-            SnackBar(
-            content: Text('$data'),
-            ),
-        );
+      //show snackBar
+      //any current snackBar is hidden
+      //This call of snackBar is independent of BuildContext
+      //Can be called any where
+      RM.scaffoldShow.snackBar(
+        SnackBar(
+          content: Text('$data'),
+        ),
+      );
     },
   );
 },
@@ -342,9 +351,9 @@ finally, alongside with the concept of `ReactiveModel`, it remains three other c
 3. the watch parameter which helps to prevent the rebuild unless the watched parameters change.
 
 
-# Test:
+### Test:
 
-## simple_counter_test:
+### simple_counter_test:
 ```dart
 void main() {
   testWidgets('should increment counter and show snackbar', (tester) async {
@@ -375,10 +384,127 @@ void main() {
 }
 ```
 
-## simple_counter_with_error.dart and async_counter_app.dart 
+### simple counter_with_error.dart and async_counter_app.dart 
 
 Can not be tested because the business logic is mixed with the UI logic
 The `Random().nextBool()` can not be neither expected nor mocked.
 
 This is an example of bad code. In the next tutorials we will introduce `Injector` and our code will be easily tested.
 
+# simple_counter_with_global_functional_injection.dart 
+
+Global functional injection is the simplest and the most efficient. It is the recommended approach.
+
+## global functional injection
+```dart
+//counter is a global variable but the state of the counter is not.
+//It can be easily mocked and tested.
+//With functional injection we do not need to use RMKey.
+final Injected<int> counter = RM.inject<int>(() => 0);
+``` 
+## The UI
+
+```dart
+class MyHomePage extends StatelessWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'You have pushed the button this many times:',
+            ),
+            counter.rebuilder(
+              () => Text(
+                '${counter.state}',
+                style: Theme.of(context).textTheme.headline5,
+              ),
+            ),
+            //We can use StateBuilder instead
+            // StateBuilder(
+            //   observe: () => counter.getRM,
+            //   builder: (context, counterRM) => Text(
+            //     '${counter.state}',
+            //     style: Theme.of(context).textTheme.headline5,
+            //   ),
+            // )
+          ],
+        ),
+      ),
+      floatingActionButton: Builder(
+        builder: (context) => FloatingActionButton(
+          onPressed: () {
+            counter.setState(
+              (counter) => counter + 1,
+              //onSetState callback is invoked after counterRM emits a notification and before rebuild
+              //context to be used to shw snackBar
+              //
+              //Notice we wrap with Builder to get a valid Bui
+              context: context,
+              onSetState: (context) {
+                //show snackBar
+                //any current snackBar is hidden.
+
+                //This call of snackBar is independent of BuildContext
+                //Can be called any where
+                RM.scaffoldShow.snackBar(
+                  SnackBar(
+                    content: Text('${counter.state}'),
+                  ),
+                );
+              },
+              //onRebuildState is called after rebuilding the observer widget
+              onRebuildState: (context) {
+                //
+              },
+            );
+          },
+          tooltip: 'Increment',
+          child: Icon(Icons.add),
+        ),
+      ),
+    );
+  }
+}
+```
+
+## Testing with global functional injection
+
+```dart
+void main() {
+  testWidgets('should increment counter and show snackbar', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: MyHomePage(
+        title: 'simple counter',
+      ),
+    ));
+
+    expect(find.text('0'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+
+    //first tap
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump();
+
+    //find two: one in the body of the scaffold and the other in the SnackBar
+    expect(find.text('1'), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
+
+    //second tap
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pump();
+
+    expect(find.text('2'), findsNWidgets(2));
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+}
+
+```

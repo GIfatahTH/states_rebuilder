@@ -538,11 +538,11 @@ class CounterBox extends StatelessWidget {
                 //NOTE2 : Send custom data to reactive singleton
                 joinSingletonToNewData: name,
                 onError: (BuildContext context, dynamic error) {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(counterServiceRM.error.message),
-                    ),
-                  );
+                    RM.scaffoldShow.snackBar(
+                      SnackBar(
+                        content: Text(counterService.error.message),
+                      ),
+                   );
                 },
               );
             },
