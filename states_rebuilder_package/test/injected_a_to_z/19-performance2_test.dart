@@ -9,7 +9,7 @@ final model = RM.create('');
 //Use in Tests
 int numberOfWHoleListRebuild = 0;
 
-final counters = [0, 10, 100, 1000];
+final counters = [0, 10, 100, 1000]; //can be fetched from a backend service
 
 class Counters extends StatelessWidget {
   @override
