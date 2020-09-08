@@ -131,9 +131,13 @@ class _SetState<T> {
 
   bool onDataCallback(dynamic data) {
     if (data is T) {
-      if (!rm.hasError &&
-          !rm.isWaiting &&
-          _deepEquality.equals(rm.inject.getReactive().state, data)) {
+      if (_deepEquality.equals(rm.inject.getReactive().state, data)) {
+        if (rm.isWaiting || rm.hasError) {
+          rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
+          if (rm.hasObservers) {
+            rm.rebuildStates(filterTags);
+          }
+        }
         return false;
       }
       rm

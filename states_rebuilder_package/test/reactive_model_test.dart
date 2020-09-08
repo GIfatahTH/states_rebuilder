@@ -2978,6 +2978,48 @@ void main() {
     expect(find.text('2'), findsOneWidget);
     expect(rm.canRedoState, false);
   });
+  testWidgets(
+      'onData of immutable is not called when state not changed after waiting',
+      (tester) async {
+    int numberOfRebuild = 0;
+    int numberOfOnData = 0;
+    final counter = RM.inject(
+      () => 0,
+      onData: (_) => numberOfOnData++,
+    );
+    final widget = counter.whenRebuilderOr(builder: () {
+      numberOfRebuild++;
+      return Container();
+    });
+
+    await tester.pumpWidget(widget);
+    expect(numberOfRebuild, 1);
+    expect(numberOfOnData, 0);
+
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 0));
+    await tester.pump();
+    expect(numberOfRebuild, 2);
+    expect(numberOfOnData, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 3);
+    expect(numberOfOnData, 0);
+    //
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
+    await tester.pump();
+    expect(numberOfRebuild, 4);
+    expect(numberOfOnData, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 5);
+    expect(numberOfOnData, 1);
+    //
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
+    await tester.pump();
+    expect(numberOfRebuild, 6);
+    expect(numberOfOnData, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 7);
+    expect(numberOfOnData, 1);
+  });
 }
 
 class Model {
