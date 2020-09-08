@@ -44,4 +44,11 @@ class InjectedInterface<T> extends Injected<T> {
       initialValue: _initialValue,
     );
   }
+
+  @override
+  T get state {
+    super.state;
+    _state = getRM.state;
+    return _state;
+  }
 }

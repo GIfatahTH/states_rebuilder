@@ -40,4 +40,15 @@ class InjectedImp<T> extends Injected<T> {
         name: _name,
         isLazy: false,
       );
+
+  @override
+  T get state {
+    super.state;
+    if (_inject == null) {
+      _resolveInject();
+      _onInitialized?.call(_inject.getSingleton());
+    }
+    _state = _inject.getSingleton();
+    return _state;
+  }
 }

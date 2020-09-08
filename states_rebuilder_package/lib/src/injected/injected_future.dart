@@ -49,4 +49,11 @@ class InjectedFuture<T> extends Injected<T> {
         initialValue: _initialValue,
         isLazy: false,
       );
+
+  @override
+  T get state {
+    super.state;
+    _state = getRM.state;
+    return _state;
+  }
 }

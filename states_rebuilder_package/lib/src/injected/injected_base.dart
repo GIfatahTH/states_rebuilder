@@ -120,12 +120,7 @@ abstract class Injected<T> {
       );
       _numberODependence++;
     }
-    if (_inject == null) {
-      _resolveInject();
-      _onInitialized?.call(_inject.getSingleton());
-    }
-    _state = _inject.getSingleton();
-    return _state;
+    return null;
   }
 
   set state(T s) {
