@@ -353,8 +353,6 @@ abstract class RM {
     );
   }
 
-  static NavigatorState _navigator;
-
   ///get The state for a [Navigator] widget.
   ///
   ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
@@ -363,21 +361,7 @@ abstract class RM {
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
   @Deprecated('use RM.navigate instead')
   static NavigatorState get navigator {
-    try {
-      return _navigator ??=
-          navigate.navigatorKey.currentState ?? Navigator.of(context);
-    } catch (e) {
-      if (context == null) {
-        throw Exception(
-          'No NavigatorState is recognized by states_rebuilder yet\n'
-          ''
-          'You have to use at least on of the states_rebuilder observers '
-          'widgets, or'
-          'define the context parameter of setState',
-        );
-      }
-      throw e;
-    }
+    return Navigator.of(context);
   }
 
   ///Boiler-plate-less helper for Navigation and routing.
@@ -447,19 +431,8 @@ abstract class RM {
   ///[Injector], [StateBuilder], ... .
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  @deprecated
+  @Deprecated('use RM.scaffoldShow instead')
   static ScaffoldState get scaffold {
-    if (RM._context == null) {
-      if (InjectorState.contextSet.isEmpty) {
-        return null;
-      }
-      if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
-        InjectorState.contextSet.removeLast();
-        RM.context = context;
-      }
-      RM.context = InjectorState.contextSet.last;
-    }
-
     return Scaffold.of(context);
   }
 

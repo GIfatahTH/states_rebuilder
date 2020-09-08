@@ -292,7 +292,6 @@ class NavigationApp extends StatelessWidget {
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print('home');
     return Text('Home');
   }
 }
@@ -300,7 +299,6 @@ class Home extends StatelessWidget {
 class PageOne extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print('page1');
     return Text('Page one');
   }
 }
@@ -308,7 +306,6 @@ class PageOne extends StatelessWidget {
 class PageTwo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print('page2');
     return Text('Page two');
   }
 }
@@ -316,7 +313,6 @@ class PageTwo extends StatelessWidget {
 class PageThree extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print('page3');
     return Text('Page three');
   }
 }
