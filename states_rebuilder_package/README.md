@@ -24,6 +24,7 @@ A Flutter state management combined with dependency injection solution that allo
 Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
 
 > 🚀 To see global functional injection 🚀 in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
+> 🚀 To see how to navigate and show dialogs, menus, bottom sheets and snackBars without BuildContext, please refer to this document [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
 
 To start using `states_rebuilder`, just start writing your business logic in a separate class.
 
@@ -465,6 +466,7 @@ If we want to automatically call the streamIncrementMutable once the widget is i
 
 For more information about how to use states_rebuilder see in the [wiki](https://github.com/GIfatahTH/states_rebuilder/wiki) :
 * [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
+* [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
 * [What is a `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/what-is-a-ReactiveModel)
 * [Local and Global `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-and-Global-ReactiveModel)
   * [Local ReactiveModels](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-ReactiveModels)
