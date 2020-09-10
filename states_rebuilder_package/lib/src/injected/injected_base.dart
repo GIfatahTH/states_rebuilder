@@ -60,13 +60,16 @@ abstract class Injected<T> {
 
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        (_rm as ReactiveModelInternal).listenToRMInternal((rm) {
-          final Injected<T> injected =
-              _functionalInjectedModels[rm.inject.getName()];
-          print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
-              '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-              '$injected');
-        });
+        (_rm as ReactiveModelInternal).listenToRMInternal(
+          (rm) {
+            final Injected<T> injected =
+                _functionalInjectedModels[rm.inject.getName()];
+            print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
+                '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
+                '$injected');
+          },
+          listenToOnDataOnly: false,
+        );
       }
       return true;
     }());
@@ -76,14 +79,19 @@ abstract class Injected<T> {
         (rm) {
           final Injected<T> injected =
               _functionalInjectedModels[rm.inject.getName()];
-          assert(injected != null);
           rm.whenConnectionState<void>(
             onIdle: () => null,
             onWaiting: () => injected._onWaiting?.call(),
-            onData: (dynamic s) => injected._onData?.call(s as T),
+            onData: (dynamic s) {
+              if (!(rm as ReactiveModelInternal)
+                  .setStateHasOnErrorCallback[0]) {
+                injected._onData?.call(s as T);
+              }
+            },
             onError: (dynamic e) {
               //if setState has error override this _onError
-              if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback) {
+              if (!(rm as ReactiveModelInternal)
+                  .setStateHasOnErrorCallback[1]) {
                 injected._onError
                     ?.call(e, (rm as ReactiveModelInternal).stackTrace);
               }
@@ -324,12 +332,6 @@ abstract class Injected<T> {
   ///
   Future<T> refresh() async {
     _onDisposed?.call(_state);
-    if (_rm == null && _inject != null) {
-      _inject
-        ..singleton = null
-        ..getSingleton();
-      _onInitialized?.call(state);
-    }
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
@@ -595,11 +597,18 @@ abstract class Injected<T> {
         // futureRM.unsubscribe();
       },
       onSetState: (_, rm) {
-        if (rm.hasError) {
-          //if setState has error override this _onError
-          if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback) {
-            _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
+        if (rm.hasData) {
+          //if setState has data override this _onData
+          // if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[0]) {
+          if (rm.state is T) {
+            _onData?.call(state);
           }
+          // }
+        } else if (rm.hasError) {
+          //if setState has error override this _onError//TODO
+          // if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[1]) {
+          _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
+          // }
         }
       },
       shouldRebuild: (_) => true,
@@ -674,11 +683,16 @@ abstract class Injected<T> {
         dispose?.call();
       },
       onSetState: (_, rm) {
-        if (rm.hasError) {
-          //if setState has error override this _onError
-          if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback) {
-            _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
+        if (rm.hasData) {
+          //if setState has data override this _onData
+          if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[0]) {
+            _onData?.call(state);
           }
+        } else if (rm.hasError) {
+          //if setState has error override this _onError
+          // if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[1]) {
+          _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
+          // }
         }
       },
       shouldRebuild: (_) => true,
