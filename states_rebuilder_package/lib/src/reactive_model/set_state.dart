@@ -98,9 +98,9 @@ class _SetState<T> {
     }
     if (rm._listenToRMSet.isNotEmpty) {
       rm
-        .._setStateHasOnErrorCallback = onError != null
+        .._setStateHasOnErrorCallback = [onData != null, onError != null]
         .._listenToRMCall()
-        .._setStateHasOnErrorCallback = false;
+        .._setStateHasOnErrorCallback = [false, false];
     }
 
     if ((silent || rm._listenToRMSet.isNotEmpty) && !rm.hasObservers) {

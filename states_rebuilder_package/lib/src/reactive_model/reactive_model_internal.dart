@@ -10,7 +10,7 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   int numberOfFutureAndStreamBuilder = 0;
 
   ///Wether [setState] is called with a defined onError callback.
-  bool get setStateHasOnErrorCallback => _setStateHasOnErrorCallback;
+  List<bool> get setStateHasOnErrorCallback => _setStateHasOnErrorCallback;
 
   //Called internally to use isInjectedModel
   Disposer listenToRMInternal(
