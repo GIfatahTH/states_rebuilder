@@ -775,7 +775,7 @@ void main() {
         () {
           counter2 = RM.inject(
             () => 0,
-            debugPrintWhenNotifiedPreMessage: 'counter2',
+            // debugPrintWhenNotifiedPreMessage: 'counter2',
           );
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -798,6 +798,158 @@ void main() {
                       )
                     ],
                   ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilderOr counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
+  });
+
+  testWidgets('injected model preserve state (with whenRebuilderOr)',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.rebuilder(
+        () {
+          counter2 = RM.inject(
+            () => 0,
+            // debugPrintWhenNotifiedPreMessage: 'counter2',
+          );
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('counter1: ${counter1.state}'),
+                counter2.whenRebuilderOr(
+                  builder: () => Column(
+                    children: [
+                      Text('whenRebuilderOr counter2: ${counter2.state}'),
+                      counter2.whenRebuilder(
+                        onIdle: () => Text('idle'),
+                        onWaiting: () => Text('Waiting'),
+                        onData: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
+                        onError: (_) => Text('Error'),
+                      )
+                    ],
+                  ),
+                ),
+                counter2.rebuilder(
+                  () => Text('counter2: ${counter2.state}'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilderOr counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
+  });
+
+  testWidgets('injected model preserve state (with whenRebuilder)',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.rebuilder(
+        () {
+          counter2 = RM.inject(
+            () => 0,
+            debugPrintWhenNotifiedPreMessage: 'counter2',
+          );
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('counter1: ${counter1.state}'),
+                counter2.whenRebuilder(
+                  onIdle: () => Text('idle'),
+                  onWaiting: () => Text('Waiting'),
+                  onError: (_) => Text('Error'),
+                  onData: () => Column(
+                    children: [
+                      Text('whenRebuilderOr counter2: ${counter2.state}'),
+                      counter2.whenRebuilderOr(
+                        builder: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
+                      )
+                    ],
+                  ),
+                ),
+                counter2.rebuilder(
+                  () => Text('counter2: ${counter2.state}'),
                 ),
               ],
             ),
@@ -939,6 +1091,117 @@ void main() {
     //the dependency is not lost
     expect(counter2.toString(), contains('depends on 1 models'));
   });
+
+  testWidgets('setState onDate and onError overrides global definition',
+      (tester) async {
+    String data;
+    String error;
+    final model = RM.inject(
+      () => VanillaModel(),
+      onData: (_) => data = 'Data from global',
+      onError: (_, __) => error = 'Error from global',
+    );
+
+    model.setState((s) => s.increment());
+    expect(data, 'Data from global');
+    model.setState(
+      (s) => s.increment(),
+      onData: (_, __) => data = 'Data from setState',
+    );
+    expect(data, 'Data from setState');
+
+    //
+    model.setState((s) => throw Exception('error'));
+    expect(error, 'Error from global');
+
+    model.setState(
+      (s) => throw Exception('error'),
+      onError: (_, __) => error = 'Error from setState',
+    );
+    expect(error, 'Error from setState');
+
+    //
+    data = null;
+    error = null;
+    final modelFuture = RM.inject(
+      () => VanillaModel(),
+      onData: (_) => data = 'Data from global $_',
+      onError: (_, __) => error = 'Error from global $_',
+    );
+    await tester.pumpWidget(modelFuture.futureBuilder(
+      future: (s, __) => s.incrementAsync(),
+      onWaiting: () => Container(),
+      onError: (_) => Container(),
+      onData: (_) => Container(),
+    ));
+
+    await tester.pump(Duration(seconds: 1));
+    expect(data, null); //mutable and future return different type
+    //
+  });
+
+  //
+  testWidgets('futureBuilder do not call global onData if types are different',
+      (tester) async {
+    String data;
+
+    final modelFuture = RM.inject(
+      () => VanillaModel(),
+      onData: (_) => data = 'Data from global $_',
+    );
+    await tester.pumpWidget(modelFuture.futureBuilder(
+      future: (s, __) => s.incrementAsync(),
+      onWaiting: () => Container(),
+      onError: (_) => Container(),
+      onData: (_) => Container(),
+    ));
+
+    await tester.pump(Duration(seconds: 1));
+    expect(data, null); //mutable and future return different type
+    //
+  });
+
+  testWidgets(
+      'futureBuilder call global onData if types are the same (immutable)',
+      (tester) async {
+    String data;
+
+    final modelFuture = RM.inject(
+      () => VanillaModel(),
+      onData: (_) => data = 'Data from global $_',
+    );
+    await tester.pumpWidget(modelFuture.futureBuilder(
+      future: (s, __) => s.incrementAsyncImmutable(),
+      onWaiting: () => Container(),
+      onError: (_) => Container(),
+      onData: (_) => Container(),
+    ));
+
+    await tester.pump(Duration(seconds: 1));
+    expect(data,
+        'Data from global VanillaModel(1)'); //mutable and future return different type
+    //
+  });
+
+  testWidgets('futureBuilder call global onError', (tester) async {
+    String error;
+
+    final modelFuture = RM.inject(
+      () => VanillaModel(),
+      onError: (_, __) => error = 'Error from global $_',
+    );
+    await tester.pumpWidget(modelFuture.futureBuilder(
+      future: (s, __) => s.incrementError(),
+      onWaiting: () => Container(),
+      onError: (_) => Container(),
+      onData: (_) => Container(),
+    ));
+
+    await tester.pump(Duration(seconds: 1));
+    expect(error,
+        'Error from global Exception: Error message'); //mutable and future return different type
+    //
+  });
 }
 
 class VanillaModel {
@@ -952,6 +1215,11 @@ class VanillaModel {
   Future<void> incrementAsync() async {
     await getFuture();
     counter++;
+  }
+
+  Future<VanillaModel> incrementAsyncImmutable() async {
+    await getFuture();
+    return VanillaModel(counter + 1);
   }
 
   Future<void> incrementError() async {
