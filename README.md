@@ -33,13 +33,10 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 - [Documentation](#documentation)
 - [List of Article](#list-of-article)
 - [Examples:](#examples)
-  - [Basics 🧗‍♀️:](#basics-️)
-  - [Advanced 🏋️‍♀️:](#advanced-️️)
+  - [Basics:](#basics)
+  - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
-      #### [`- Immutable State`](#immutable-state)
-      #### [`- Mutable State`](#mutable-state)
-      #### [`- Code in Bloc Style`](#code-in-bloc-style)
 
 # Getting Started with States_rebuilder
 1. Add this to your package's pubspec.yaml file:
@@ -157,8 +154,8 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 
 * [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)
 
-## Basics 🧗‍♀️:
-You are new to `states_rebuilder` this is right place to start from. The order is tailor-made for you:
+## Basics:
+Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
 
 * [**The simplest counter app**](examples/001-flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
 
@@ -178,8 +175,8 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 
 </br>
 
-## Advanced 🏋️‍♀️:
-Here, you will take your programming skills up a notch, deep dive in Architecture:
+## Advanced:
+Here, you will take your programming skills up a notch, deep dive in Architecture 🧐:
 
 * [**User posts and comments**](examples/007-1-clean_architecture_dane_mackier_app_with_Injector)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
