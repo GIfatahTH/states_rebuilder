@@ -160,6 +160,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///
   ///You can override this error handling to use a specific handling in response to particular events
   ///using the onError callback of [setState] or [setValue].
+  @deprecated
   void onError(
     void Function(BuildContext context, dynamic error) errorHandler,
   ) {
@@ -170,6 +171,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
 
   ///The global data event handler of this ReactiveModel.
   ///
+  @deprecated
   void onData(void Function(T data) fn) {
     _onData = fn;
   }
@@ -409,6 +411,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///
   /// See
   ///* [Inject.stream]: Stream injected using [Inject.stream] can be consumed with [RM.get].
+
   ReactiveModel<S> stream<S>(
     Stream<S> Function(T s, StreamSubscription<dynamic> subscription) stream, {
     S initialValue,
@@ -416,12 +419,13 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   }) {
     final s = inject.getReactive().state;
 
-    if (S != dynamic && this is ReactiveModelImp<S>) {
-      final rm = Inject<S>.stream(
-        () => stream(s, subscription),
-        initialValue: initialValue ?? (s as S),
-        watch: watch,
-      ).getReactive();
+    final rm = Inject<S>.stream(
+      () => stream(s, subscription),
+      initialValue: initialValue ?? (T == S ? s : null),
+      watch: watch,
+    ).getReactive();
+
+    if (rm.isA<Stream<T>>()) {
       final disposer = rm._listenToRM(
         (r) {
           if (r.hasData) {
@@ -433,14 +437,9 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
         },
       );
       rm.cleaner(disposer);
-      return rm;
     }
 
-    return Inject<S>.stream(
-      () => stream(s, subscription),
-      initialValue: initialValue,
-      watch: watch,
-    ).getReactive();
+    return rm;
   }
 
   ///Get a Future from the state and subscribe to it and
@@ -461,19 +460,16 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   }) {
     final s = inject.getReactive().state;
 
-    if (F != dynamic && this is ReactiveModelImp<F>) {
-      final rm = Inject<F>.future(
-        () => future(s, stateAsync),
-        initialValue: initialValue ?? (s as F),
-      ).getReactive();
+    final rm = Inject<F>.future(
+      () => future(s, stateAsync),
+      initialValue: initialValue ?? (T == F ? s : null),
+    ).getReactive();
+
+    if (rm.isA<Future<T>>()) {
       Disposer disposer;
       disposer = rm._listenToRM(
         (r) {
           if (r.hasData) {
-            if (r.state is! T) {
-              disposer();
-              return;
-            }
             snapshot = AsyncSnapshot<T>.withData(
               ConnectionState.done,
               r.state as T,
@@ -484,13 +480,8 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
       rm.cleaner(() {
         disposer();
       });
-      return rm;
     }
-
-    return Inject<F>.future(
-      () => future(s, stateAsync),
-      initialValue: initialValue,
-    ).getReactive();
+    return rm;
   }
 
   void _joinSingleton(
@@ -566,14 +557,18 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   String type([bool detailed = true]);
 
   ///Wether [setState] is called with a defined onError callback.
-  bool _setStateHasOnErrorCallback = false;
+  List<bool> _setStateHasOnErrorCallback = List<bool>.filled(
+    2,
+    false,
+    growable: false,
+  );
 
   /// Notify registered observers to rebuild.
   void notify([List<dynamic> tags]) {
     if (_listenToRMSet.isNotEmpty) {
-      _setStateHasOnErrorCallback = onError != null;
+      // _setStateHasOnErrorCallback = onError != null;
       _listenToRMCall();
-      _setStateHasOnErrorCallback = false;
+      // _setStateHasOnErrorCallback = false;
     }
     if (hasObservers) {
       rebuildStates(tags);
