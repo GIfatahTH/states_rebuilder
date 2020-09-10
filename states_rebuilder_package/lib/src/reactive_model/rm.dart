@@ -859,6 +859,8 @@ No valid BuildContext is defined yet
 
   ///Shows a [SnackBar] at the bottom of the scaffold.
   ///
+  ///By default any current SnackBar will be hidden.
+  ///
   ///* Required parameters:
   ///  * [snackBar]:  (positional parameter) The SnackBar to display.
   /// * optional parameters:
