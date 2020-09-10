@@ -69,7 +69,7 @@ class ServiceState {
 }
 
 
-// 🌎 Global Functional Injection 
+// 🚀 Global Functional Injection 
 final serviceState = RM.inject(() => ServiceState(Model(0)));
 
 
