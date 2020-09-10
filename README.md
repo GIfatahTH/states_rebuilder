@@ -9,19 +9,92 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 </p>
 
  With `states_rebuilder`, you can easily: 
-* Manage / refactor the immutable and mutable state without affect your UI code.
+* Manage / Refactor the immutable and mutable state without affecting your UI code. [ 📗 immutable](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) &nbsp; [ 📘 mutable](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management)
 
-* Work with Futures and Stream, it's "hot pluggable",  without affect your UI code.
+* Work with Futures and Stream, it's "hot pluggable", without affecting your UI code. [ 📗 Future](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) &nbsp; [ 📘 Stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream).
 
-* Achieve inject dependencies asynchronously (no Provider needed).
+* Achieve injected dependencies asynchronously (no Provider needed). [ 📗 Appoarch 1 - Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) &nbsp; [ 📘 (Easier) Appoarch 2 - FI](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection) &nbsp;&nbsp; [ 📚 Difference? ](https://github.com/GIfatahTH/states_rebuilder/issues/123)
 
-* Invoke side effects without `BuildContext`, like Navigate,, MediaQuery and many others.
+* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, MediaQuery, and many others. [ 📗 Detail](https://github.com/GIfatahTH/states_rebuilder/issues/129)
 
-## Breaking Changes
-> Latest ver: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123) 
+# Getting Started with States_rebuilder
+1. Add this to your package's pubspec.yaml file:
+```
+dependencies:
+  states_rebuilder: ^3.0.0
+```
+2. Import it in any Dart code:
+```
+import 'package:states_rebuilder/states_rebuilder.dart';
+```
+3. Basic use case:
+```
+// Plain Data Class
+class Model {
+  int counter;
 
->Since 2.0: &nbsp;&nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
+  Model(this.counter);
+}  
 
+
+// Business Logic
+class ServiceState {
+  ServiceSatate(this.model);
+  final Model model;  
+
+  void incrementMutable() { model.counter++ };
+}
+
+
+// Gobel Functional Injection
+final serviceState = RM.inject(() => ServiceState(Model(0)));
+
+
+// UI
+class CounterApp extends StatelessWidget {
+  final _model = serviceState.state.model;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column (
+        children: [
+            RaisedButton(
+                child: Text('Counter ++'),
+                onPressed: () => serviceState.setState(
+                    (s) => s.incrementMutable(),
+                ),
+            ),
+            RaisedButton(
+                child: Text('Undo'),
+                onPressed: () => serviceState.setState(
+                    (s) => serviceState.canUndoState? serviceState.undoState() : null;,
+                ),
+            ),
+            serviceState.rebuilder(
+                    () => Text('${_model.counter}'),
+            ),
+        ],
+    );
+  }  
+}
+```
+
+
+# Table of Content
+### 1. The mechanism of States_rebuilder
+### 2. 
+
+
+# Breaking Changes
+
+Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123) 
+
+Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
+
+
+
+
+# Library design
 
 ## Business logic
 
