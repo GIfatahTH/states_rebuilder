@@ -8,14 +8,18 @@
 States Rebuilder is a easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
 </p>
 
- With `states_rebuilder`, you can easily: 
-* Manage / Refactor the immutable and mutable state without affecting your UI code. [ 📙 Immutable](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) &nbsp; [ 📘 Mutable](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management)
+ With `States_rebuilder`, you can easily: 
+* Manage / Refactor the [Immutable](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) and [Mutable](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management) state without affecting your UI code. 
 
-* Work with Futures and Stream, it's "hot pluggable", without affecting your UI code. [ 📙 Future](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) &nbsp; [ 📘 Stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream).
+* Work with [Future](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) and [Stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream), it's "hot pluggable", without affecting your UI code.
 
-* Achieve injected dependencies asynchronously (no Provider needed). [ 📙 Appoarch 1 - Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) &nbsp; [ 📘 (Easier) Appoarch 2 - FI](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection) &nbsp;&nbsp; [ 📚 Difference? ](https://github.com/GIfatahTH/states_rebuilder/issues/123)
 
-* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, MediaQuery, and many others. [ 📗 Detail](https://github.com/GIfatahTH/states_rebuilder/issues/129)
+* Achieve injected dependencies asynchronously (no Provider needed). 
+    - [📙 Appoarch 1 - Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) &nbsp; 
+      [📘 (Easier) Appoarch 2 - Funtional Injection (FI)](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)&nbsp;&nbsp; 
+      [📚 Difference? ](https://github.com/GIfatahTH/states_rebuilder/issues/123)
+
+* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, MediaQuery, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
 
 
 # Table of Contents
