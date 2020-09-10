@@ -37,9 +37,9 @@ States Rebuilder is a easy flutter state management solution that allows for cle
   - [Advanced 🏋️‍♀️:](#advanced-️️)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
-      #### [`Immutable State`](#immutable-state)
-      #### [`Mutable State`](#mutable-state)
-      #### [`Code in Bloc Style`](#code-in-bloc-style)
+      #### [`- Immutable State`](#immutable-state)
+      #### [`- Mutable State`](#mutable-state)
+      #### [`- Code in Bloc Style`](#code-in-bloc-style)
 
 # Getting Started with States_rebuilder
 1. Add this to your package's pubspec.yaml file:
