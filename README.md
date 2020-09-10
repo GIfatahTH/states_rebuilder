@@ -50,14 +50,14 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 ```
 3. Basic use case:
 ```
-// 🗄️ Plain Data Class
+// 🗄️Plain Data Class
 class Model {
   int counter;
 
   Model(this.counter);
 }  
 
-// 🤔 Business Logic
+// 🤔Business Logic
 class ServiceState {
   ServiceSatate(this.model);
   final Model model;  
@@ -65,15 +65,12 @@ class ServiceState {
   void incrementMutable() { model.counter++ };
 }
 
-
-// 🚀 Global Functional Injection 
+// 🚀Global Functional Injection 
 final serviceState = RM.inject(() => ServiceState(Model(0)));
 
-
-// 👀 UI  
+// 👀UI  
 class CounterApp extends StatelessWidget {
   final _model = serviceState.state.model;
-
   @override
   Widget build(BuildContext context) {
     return Column (
