@@ -1178,19 +1178,15 @@ void main() {
   testWidgets(
       'issue72: rapidly pushing to second page while it is popping to the first page',
       (tester) async {
-    BuildContext firstCtx;
-    BuildContext secondCtx;
     Widget firstPage() => StateBuilder(
           observe: () => RM.create(0),
           builder: (context, _) {
-            firstCtx = context;
             return Text('First page');
           },
         );
     Widget secondPage() => Injector(
           inject: [Inject(() => VanillaModel())],
           builder: (context) {
-            secondCtx = context;
             return Text('Second page');
           },
         );

@@ -1272,6 +1272,10 @@ void main() {
               ],
             ),
           ),
+          initState: () {},
+          dispose: () {},
+          shouldRebuild: () => true,
+          watch: () => [counter1.state, counter2.state],
         );
       },
     );
@@ -1312,6 +1316,62 @@ void main() {
               ],
             ),
             onError: (e) => Text('${e.message}'),
+            initState: () {},
+            dispose: () {},
+            shouldRebuild: () => true,
+          ),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('Idle'), findsOneWidget);
+    //
+    counter1.setState((s) => s.incrementAsync());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Idle'), findsOneWidget);
+
+    //
+    counter2.setState((s) => s.incrementAsync());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('11'), findsOneWidget);
+
+    //
+    counter2.setState((s) => s.incrementError());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+  });
+
+  testWidgets('whenRebuilderOr with many observers preserve state',
+      (tester) async {
+    final counter1 = RM.inject(() => VanillaModel(0),
+        debugPrintWhenNotifiedPreMessage: 'counter1');
+    Injected<VanillaModel> counter2;
+    final widget = counter1.rebuilder(
+      () {
+        counter2 = RM.inject(() => VanillaModel(10));
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: [counter1, counter2].whenRebuilderOr(
+            onWaiting: () => Text('onWaiting'),
+            builder: () => Column(
+              children: [
+                Text('${counter1.state.counter}'),
+                Text('${counter2.state.counter}'),
+              ],
+            ),
+            onIdle: () => Text('Idle'),
+            onError: (e) => Text('${e.message}'),
+            initState: () {},
+            dispose: () {},
+            shouldRebuild: () => true,
           ),
         );
       },
