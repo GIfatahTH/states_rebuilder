@@ -46,25 +46,9 @@ class InjectedInterface<T> extends Injected<T> {
       );
     }
 
-    if (_creationFunction is T Function()) {
-      return Inject<T>(
-        _creationFunction as T Function(),
-        name: _name,
-        isLazy: false,
-      );
-    }
-
     if (_creationFunction is Future<T> Function()) {
       return Inject<T>.future(
         _creationFunction as Future<T> Function(),
-        name: _name,
-        isLazy: false,
-      );
-    }
-
-    if (_creationFunction is Stream<T> Function()) {
-      return Inject<T>.stream(
-        _creationFunction as Stream<T> Function(),
         name: _name,
         isLazy: false,
       );
@@ -93,13 +77,6 @@ class InjectedInterface<T> extends Injected<T> {
 
   @override
   void injectFutureMock(Future<T> Function() creationFunction) {
-    dispose();
-    _creationFunction = creationFunction;
-    _cashedMockCreationFunction ??= _creationFunction;
-  }
-
-  @override
-  void injectStreamMock(Stream<T> Function() creationFunction) {
     dispose();
     _creationFunction = creationFunction;
     _cashedMockCreationFunction ??= _creationFunction;

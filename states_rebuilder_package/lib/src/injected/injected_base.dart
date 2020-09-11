@@ -361,6 +361,7 @@ abstract class Injected<T> {
   ///Clear undoStack;
   void clearUndoStack() => _rm?.clearUndoStack();
 
+  /// {@template injected.rebuilder}
   ///Listen to the injected Model and ***rebuild only when the model emits a
   ///notification with new data***.
   ///
@@ -368,10 +369,18 @@ abstract class Injected<T> {
   ///use [Injected.whenRebuilder] or [Injected.whenRebuilderOr].
   ///
   /// * Required parameters:
-  ///     * [builder] (positional parameter) is si called each time the injected model has new data.
+  ///     * [builder] (positional parameter) is si called each time the
+  /// injected model has new data.
   /// * Optional parameters:
-  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
-  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///     * [initState] : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from
+  /// the widget tree.
+  ///     * [shouldRebuild] : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
+  ///     * [watch] : callback to be executed before notifying listeners.
+  /// It the returned value is the same as the last one, the rebuild process
+  /// is interrupted.
   ///
   /// Note that this is exactly equivalent to :
   ///```dart
@@ -385,17 +394,21 @@ abstract class Injected<T> {
   ///```
   ///
   ///Use [StateBuilder] if you want to have more options
-  Widget rebuilder(
+  /// {@endtemplate}Widget
+  rebuilder(
     Widget Function() builder, {
     void Function() initState,
     void Function() dispose,
+    Object Function() watch,
+    bool Function() shouldRebuild,
     Key key,
   }) {
     return StateBuilder<T>(
       key: key,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
-      shouldRebuild: (rm) => rm.hasData || rm.isIdle,
+      shouldRebuild: shouldRebuild == null ? null : (_) => shouldRebuild(),
+      watch: watch == null ? null : (_) => watch(),
       observe: () => _stateRM,
       didUpdateWidget: (_, rm, __) {
         if (_rm?.hasObservers != true) {
@@ -407,16 +420,23 @@ abstract class Injected<T> {
     );
   }
 
+  /// {@template injected.whenRebuilder}
   ///Listen to the injected Model and rebuild when it emits a notification.
   ///
   /// * Required parameters:
-  ///     * [onIdle] : callback to be executed when injected model is in its initial state.
-  ///     * [onWaiting] : callback to be executed when injected model is in waiting state.
+  ///     * [onIdle] : callback to be executed when injected model is in its
+  /// initial state.
+  ///     * [onWaiting] : callback to be executed when injected model is in
+  /// waiting state.
   ///     * [onError] : callback to be executed when injected model has error.
   ///     * [onData] : callback to be executed when injected model has data.
   /// * Optional parameters:
-  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
-  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///     * [initState] : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed
+  /// from the widget tree.
+  ///     * [shouldRebuild] : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
   ///
   /// Note that this is exactly equivalent to :
   ///```dart
@@ -432,6 +452,7 @@ abstract class Injected<T> {
   ///```
   ///
   ///Use [WhenRebuilder] if you want to have more options
+  // {@endtemplate}
   Widget whenRebuilder({
     @required Widget Function() onIdle,
     @required Widget Function() onWaiting,
@@ -439,6 +460,7 @@ abstract class Injected<T> {
     @required Widget Function(dynamic) onError,
     void Function() initState,
     void Function() dispose,
+    bool Function() shouldRebuild,
     Key key,
   }) {
     return StateBuilder<T>(
@@ -446,7 +468,8 @@ abstract class Injected<T> {
       observe: () => _stateRM,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
-      shouldRebuild: (_) => true,
+      shouldRebuild:
+          shouldRebuild == null ? (_) => true : (_) => shouldRebuild(),
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
@@ -465,17 +488,29 @@ abstract class Injected<T> {
     );
   }
 
+  /// {@template injected.whenRebuilderOr}
   ///Listen to the injected Model and rebuild when it emits a notification.
   ///
   /// * Required parameters:
-  ///     * [builder] Default callback (called in replacement of any non defined optional parameters [onIdle], [onWaiting], [onError] and [onData]).
+  ///     * [builder] Default callback (called in replacement of any non
+  /// defined optional parameters [onIdle], [onWaiting], [onError] and
+  /// [onData]).
   /// * Optional parameters:
-  ///     * [onIdle] : callback to be executed when injected model is in its initial state.
-  ///     * [onWaiting] : callback to be executed when injected model is in waiting state.
+  ///     * [onIdle] : callback to be executed when injected model is in its
+  /// initial state.
+  ///     * [onWaiting] : callback to be executed when injected model is in
+  /// waiting state.
   ///     * [onError] : callback to be executed when injected model has error.
   ///     * [onData] : callback to be executed when injected model has data.
-  ///     * [initState] : callback to be executed when the widget is first inserted into the widget tree.
-  ///     * [dispose] : callback to be executed when the widget is removed from the widget tree.
+  ///     * [initState] : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed
+  /// from the widget tree.
+  ///     * [shouldRebuild] : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
+  ///     * [watch] : callback to be executed before notifying listeners.
+  /// It the returned value is the same as the last one, the rebuild process
+  /// is interrupted.
   ///
   /// Note that this is exactly equivalent to :
   ///```dart
@@ -494,6 +529,7 @@ abstract class Injected<T> {
   ///```
   ///
   ///Use [WhenRebuilderOr] if you want to have more options
+  /// {@endtemplate}
   Widget whenRebuilderOr({
     Widget Function() onIdle,
     Widget Function() onWaiting,
@@ -502,6 +538,8 @@ abstract class Injected<T> {
     @required Widget Function() builder,
     void Function() initState,
     void Function() dispose,
+    Object Function() watch,
+    bool Function() shouldRebuild,
     Key key,
   }) {
     return StateBuilder<T>(
@@ -509,14 +547,17 @@ abstract class Injected<T> {
       observe: () => _stateRM,
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
+      watch: watch == null ? null : (_) => watch(),
       shouldRebuild: (_) {
-        return _stateRM.whenConnectionState<bool>(
-          onIdle: () => true,
-          onWaiting: () => true,
-          onError: (dynamic _) => true,
-          onData: (T _) => true,
-          catchError: onError != null,
-        );
+        return shouldRebuild == null
+            ? _stateRM.whenConnectionState<bool>(
+                onIdle: () => true,
+                onWaiting: () => true,
+                onError: (dynamic _) => true,
+                onData: (T _) => true,
+                catchError: onError != null,
+              )
+            : (_) => shouldRebuild();
       },
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {

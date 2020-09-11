@@ -114,9 +114,13 @@ class WhenRebuilder<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
+  ///Called whenever the widget configuration changes.
+  void Function(BuildContext, ReactiveModel<T>, StateBuilder<T>)
+      didUpdateWidget;
+
   ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
   ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
-  const WhenRebuilder({
+  WhenRebuilder({
     Key key,
     @required this.onIdle,
     @required this.onWaiting,
@@ -130,6 +134,7 @@ class WhenRebuilder<T> extends StatelessWidget {
     this.initState,
     this.dispose,
     this.onSetState,
+    this.didUpdateWidget,
   })  : assert(onWaiting != null),
         assert(onError != null),
         assert(onData != null),
@@ -147,6 +152,7 @@ class WhenRebuilder<T> extends StatelessWidget {
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
+      didUpdateWidget: didUpdateWidget,
       child: const Text('StatesRebuilder#|0|#'),
       builder: (context, modelRM) {
         bool isIdle = false;
@@ -154,9 +160,8 @@ class WhenRebuilder<T> extends StatelessWidget {
         bool hasError = false;
         dynamic error;
 
-        final _models = List<ReactiveModel>.from(
-          (context.widget as StateBuilder)._activeRM,
-        );
+        final _models = (modelRM as ReactiveModelInternal)?.activeRM;
+
         assert(() {
           if (modelRM == null) {
             throw Exception(

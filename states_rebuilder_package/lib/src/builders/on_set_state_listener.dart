@@ -88,8 +88,7 @@ class OnSetStateListener<T> extends StatelessWidget {
       onSetState: _onSetState,
       onRebuildState: onRebuildState,
       initState: (context, rm) {
-        final _models =
-            (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
+        final _models = (rm as ReactiveModelInternal)?.activeRM;
         if (onError != null) {
           for (var reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber++;
@@ -99,10 +98,9 @@ class OnSetStateListener<T> extends StatelessWidget {
           _onSetState(context, rm);
         }
       },
-      dispose: (context, __) {
+      dispose: (context, rm) {
         if (onError != null) {
-          final _models =
-              (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
+          final _models = (rm as ReactiveModelInternal)?.activeRM;
           for (ReactiveModel reactiveModel in _models) {
             reactiveModel.inject.onSetStateListenerNumber--;
           }
@@ -119,8 +117,7 @@ class OnSetStateListener<T> extends StatelessWidget {
     if (onSetState != null) {
       onSetState(context, rm);
     }
-    final _models =
-        (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
+    final _models = (rm as ReactiveModelInternal)?.activeRM;
 
     bool _isIdle = false;
     bool _isWaiting = false;

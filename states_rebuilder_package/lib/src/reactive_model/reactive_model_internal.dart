@@ -23,4 +23,10 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
         listenToOnDataOnly: listenToOnDataOnly,
         isInjectedModel: isInjectedModel,
       );
+
+  ///set on exposing a reactive model in a widget listener
+  ///It holds all reactive models the widget listen to.
+  ///Used in WhenRebuilder, WhenRebuilderOr and didUpdateWidget of
+  ///StateRebuilderListX.
+  List<ReactiveModel<dynamic>> activeRM;
 }

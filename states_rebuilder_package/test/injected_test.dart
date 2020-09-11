@@ -1202,6 +1202,145 @@ void main() {
         'Error from global Exception: Error message'); //mutable and future return different type
     //
   });
+
+  testWidgets('Mock flavor case InjectedImp', (tester) async {
+    final interface = RM.injectFlavor({
+      '1': () => 1,
+      '2': () => 2,
+    });
+    interface.injectMock(() => 10);
+    expect(interface.state, 10);
+  });
+
+  testWidgets('Mock flavor case InjectFuture', (tester) async {
+    final interface = RM.injectFlavor({
+      '1': () => Future.delayed(Duration(seconds: 1), () => 1),
+      '2': () => Future.delayed(Duration(seconds: 1), () => 2),
+    });
+    interface
+        .injectFutureMock(() => Future.delayed(Duration(seconds: 1), () => 10));
+    expect(interface.state, null);
+    await tester.pump(Duration(seconds: 1));
+    expect(interface.state, 10);
+  });
+
+  testWidgets('rebuilder with many observers', (tester) async {
+    final counter1 = RM.inject(() => 0);
+    final counter2 = RM.inject(() => 10);
+
+    final widget = [counter1, counter2].rebuilder(
+      () => Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: [
+            Text('${counter1.state}'),
+            Text('${counter2.state}'),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('10'), findsOneWidget);
+
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('10'), findsOneWidget);
+    //
+
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('11'), findsOneWidget);
+  });
+
+  testWidgets('rebuilder with many observers preserve state', (tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    final widget = counter1.rebuilder(
+      () {
+        counter2 = RM.inject(() => 10);
+        return [counter1, counter2].rebuilder(
+          () => Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Text('${counter1.state}'),
+                Text('${counter2.state}'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('10'), findsOneWidget);
+
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('10'), findsOneWidget);
+    //
+
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('11'), findsOneWidget);
+  });
+
+  testWidgets('whenRebuilder with many observers preserve state',
+      (tester) async {
+    final counter1 = RM.inject(() => VanillaModel(0),
+        debugPrintWhenNotifiedPreMessage: 'counter1');
+    Injected<VanillaModel> counter2;
+    final widget = counter1.rebuilder(
+      () {
+        counter2 = RM.inject(() => VanillaModel(10));
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: [counter1, counter2].whenRebuilder(
+            onIdle: () => Text('Idle'),
+            onWaiting: () => Text('onWaiting'),
+            onData: () => Column(
+              children: [
+                Text('${counter1.state.counter}'),
+                Text('${counter2.state.counter}'),
+              ],
+            ),
+            onError: (e) => Text('${e.message}'),
+          ),
+        );
+      },
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('Idle'), findsOneWidget);
+    //
+    counter1.setState((s) => s.incrementAsync());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Idle'), findsOneWidget);
+
+    //
+    counter2.setState((s) => s.incrementAsync());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('11'), findsOneWidget);
+
+    //
+    counter2.setState((s) => s.incrementError());
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+  });
 }
 
 class VanillaModel {

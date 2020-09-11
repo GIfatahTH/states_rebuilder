@@ -1,7 +1,7 @@
 part of '../reactive_model.dart';
 
 ///ReactiveModel Key
-class RMKey<T> extends ReactiveModel<T> {
+class RMKey<T> extends ReactiveModelInternal<T> {
   ///ReactiveModel Key
   RMKey([this.initialValue]) : super._(null);
 

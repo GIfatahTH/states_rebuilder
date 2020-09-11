@@ -107,6 +107,10 @@ class WhenRebuilderOr<T> extends StatelessWidget {
   final dynamic Function(BuildContext context, ReactiveModel<T> model)
       onSetState;
 
+  ///Called whenever the widget configuration changes.
+  void Function(BuildContext, ReactiveModel<T>, StateBuilder<T>)
+      didUpdateWidget;
+
   ///Just like [WhenRebuilder] but you do not have to define all possible states.
   WhenRebuilderOr({
     Key key,
@@ -124,6 +128,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
     this.initState,
     this.dispose,
     this.onSetState,
+    this.didUpdateWidget,
   })  : assert(builder != null),
         super(key: key);
 
@@ -140,6 +145,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
       initState: initState,
       dispose: dispose,
       onSetState: onSetState,
+      didUpdateWidget: didUpdateWidget,
       child: const Text('StatesRebuilder#|1|#'),
       builder: (context, modelRM) {
         bool isIdle = false;
@@ -148,9 +154,7 @@ class WhenRebuilderOr<T> extends StatelessWidget {
         bool hasData = false;
         dynamic error;
 
-        final _models = List<ReactiveModel>.from(
-          (context.widget as StateBuilder)._activeRM,
-        );
+        final _models = (modelRM as ReactiveModelInternal)?.activeRM;
 
         assert(() {
           if (modelRM == null) {

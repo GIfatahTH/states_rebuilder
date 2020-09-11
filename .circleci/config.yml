@@ -22,7 +22,6 @@ jobs:
       - run: cd examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi && flutter test
       - run: cd examples/ex_009_2_1_ca_todo_mvc_mutable_with_injector && flutter test
       - run: cd examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi && flutter test
-      # - run: cd examples/ex_009_3_1_todo_mvc_the_flutter_bloc_way_with_injector && flutter test
       - run: cd examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi && flutter test
       - run: cd examples/ex_010_clean_architecture_multi_counter_realtime_firebase && flutter test
       - run: cd examples/ex_011_github_search_app && flutter test
