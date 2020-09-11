@@ -35,7 +35,6 @@ abstract class RM {
   ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
   ///   * [debugPrintWhenNotifiedPreMessage]: if not null, print an informative message when this model is notified in the debug mode.
   /// The entered message will pré-append the debug message. Useful if the type of the injected model is primitive to distinguish
-  /// the model message.//TODO
   static Injected<T> inject<T>(
     T Function() creationFunction, {
     void Function(T s) onInitialized,
