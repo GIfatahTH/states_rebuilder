@@ -226,7 +226,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
 
     if (widget.initState != null) {
       final rm = _observersResolver._exposedModelFromGenericType;
-      (rm as ReactiveModelInternal).activeRM = _observersResolver._activeRM;
+      (rm as ReactiveModelInternal)?.activeRM = _observersResolver._activeRM;
       widget.initState(
         context,
         rm,
@@ -248,7 +248,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
   void dispose() {
     if (widget.dispose != null) {
       final rm = _observersResolver._exposedModelFromGenericType;
-      (rm as ReactiveModelInternal).activeRM = _observersResolver._activeRM;
+      (rm as ReactiveModelInternal)?.activeRM = _observersResolver._activeRM;
       widget.dispose(
         context,
         rm,
@@ -552,7 +552,7 @@ class _ObserversResolverMany<T> extends _IObserversResolver<T> {
     final rm = T == dynamic
         ? _exposedModelFromNotification ?? _exposedModelFromGenericType
         : _exposedModelFromGenericType;
-    (rm as ReactiveModelInternal).activeRM = _activeRM;
+    (rm as ReactiveModelInternal)?.activeRM = _activeRM;
     return rm;
   }
 
