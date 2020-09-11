@@ -26,13 +26,10 @@ class ExtraActionsButton extends StatelessWidget {
               extraActionRM.state = action;
 
               if (action == ExtraAction.signOut) {
-                RM.get<AuthState>()
-                  ..setState(
-                    (authState) => AuthState.signOut(authState),
-                  )
-                  ..onError(
-                    ErrorHandler.showErrorSnackBar,
-                  );
+                RM.get<AuthState>().setState(
+                      (authState) => AuthState.signOut(authState),
+                      onError: ErrorHandler.showErrorSnackBar,
+                    );
                 return;
               }
 
