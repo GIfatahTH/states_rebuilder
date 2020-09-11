@@ -1,4 +1,4 @@
-# `States_rebuilder`
+# `States_rebuilder` <!-- omit in toc --> 
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
@@ -8,20 +8,100 @@
 States Rebuilder is a easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
 </p>
 
- With `states_rebuilder`, you can easily: 
-* Manage / refactor the immutable and mutable state without affect your UI code.
+ With `States_rebuilder`, you can easily: 
+* Manage / Refactor the [Immutable](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) and [Mutable](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management) state without affecting your UI code. 
 
-* Work with Futures and Stream, it's "hot pluggable",  without affect your UI code.
+* Work with [Future](https://github.com/GIfatahTH/states_rebuilder/wiki/stream) and [Stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream), it's "hot pluggable", without affecting your UI code.
 
-* Achieve inject dependencies asynchronously (no Provider needed).
 
-* Invoke side effects without `BuildContext`, like Navigate,, MediaQuery and many others.
+* Achieve injected dependencies asynchronously (no Provider needed). 
+    - [📙 Appoarch 1 - Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) &nbsp; 
+      [📘 (Easier) Appoarch 2 - Funtional Injection (FI)](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)&nbsp;&nbsp; 
+      [📚 Difference? ](https://github.com/GIfatahTH/states_rebuilder/issues/123)
 
-## Breaking Changes
-> Latest ver: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123) 
+* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, MediaQuery, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
 
->Since 2.0: &nbsp;&nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
 
+# Table of Contents <!-- omit in toc --> 
+- [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
+- [Breaking Changes](#breaking-changes)
+- [Mechanism](#mechanism)
+  - [Business logic](#business-logic)
+  - [UI logic](#ui-logic)
+- [Documentation](#documentation)
+- [List of Article](#list-of-article)
+- [Examples:](#examples)
+  - [Basics:](#basics)
+  - [Advanced:](#advanced)
+    - [Firebase Series:](#firebase-series)
+    - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
+
+# Getting Started with States_rebuilder
+1. Add this to your package's pubspec.yaml file:
+```
+dependencies:
+  states_rebuilder: ^3.0.0
+```
+2. Import it in any Dart code:
+```
+import 'package:states_rebuilder/states_rebuilder.dart';
+```
+3. Basic use case:
+```
+// 🗄️Plain Data Class
+class Model {
+  int counter;
+
+  Model(this.counter);
+}  
+
+// 🤔Business Logic
+class ServiceState {
+  ServiceSatate(this.model);
+  final Model model;  
+
+  void incrementMutable() { model.counter++ };
+}
+
+// 🚀Global Functional Injection 
+final serviceState = RM.inject(() => ServiceState(Model(0)));
+
+// 👀UI  
+class CounterApp extends StatelessWidget {
+  final _model = serviceState.state.model;
+  @override
+  Widget build(BuildContext context) {
+    return Column (
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+            RaisedButton(
+                child: const Text('🏎️ Counter ++'),
+                onPressed: () => serviceState.setState(
+                    (s) => s.incrementMutable(),
+                ),
+            ),
+            RaisedButton(
+                child: const Text('⏱️ Undo'),
+                onPressed: () => serviceState.setState(
+                    (s) => serviceState.canUndoState? serviceState.undoState() : null;,
+                ),
+            ),
+            serviceState.rebuilder(() => Text('🏁Result: ${_model.counter}')),
+        ],
+    );
+  }  
+}
+```
+
+
+# Breaking Changes
+
+### Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/issues/123) <!-- omit in toc --> 
+
+### Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) <!-- omit in toc --> 
+
+
+# Mechanism
 
 ## Business logic
 
@@ -70,7 +150,7 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 * [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)
 
 ## Basics:
-You are new to `states_rebuilder` this is right place to start from. The order is tailor-made for you:
+Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
 
 * [**The simplest counter app**](examples/001-flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
 
@@ -91,7 +171,7 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 </br>
 
 ## Advanced:
-Here, you will take your programming skills up a notch, deep dive in Architecture:
+Here, you will take your programming skills up a notch, deep dive in Architecture 🧐:
 
 * [**User posts and comments**](examples/007-1-clean_architecture_dane_mackier_app_with_Injector)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
@@ -107,17 +187,18 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 
 ### Firestore Series in Todo App:
 
-## <p align='center'>`Immutable State`</p>
+## <p align='center'>`Immutable State` </p> <!-- omit in toc --> 
 * [**Todo MVC with immutable state and firebase cloud service**](examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
 
 * [**Todo MVC with immutable state and firebase cloud service (🚀Global functional injection appoarch)**](examples/009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection) : Immutable TodoMVC rewritten using global functional injection.
-## <p align='center'>`Mutable State`</p>
+
+## <p align='center'>`Mutable State`</p> <!-- omit in toc --> 
 * [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
 
 * [**Todo MVC with mutable state and sharedPreferences for persistence (🚀Global functional injection appoarch)**](examples/009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection) : The mutable TodoMVC rewritten using global functional injection.
 
 
-## <p align='center'>`Code in BLOC Style`</p>
+## <p align='center'>`Code in Bloc Style`</p> <!-- omit in toc --> 
 * [**Todo MVC following flutter_bloc library approach**](examples/009-3-1-todo_mvc_the_flutter_bloc_way_with_injector) : This is the same Todos App built following the same approach as in flutter_bloc library.
 
 * [**Todo MVC following flutter_bloc library approach (🚀Global functional injection appoarch)**](examples/09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection) : This is the same Todos App built following the same approach as in flutter_bloc library using global functional injection.
