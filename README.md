@@ -1,4 +1,4 @@
-# `States_rebuilder`
+# `States_rebuilder` <!-- omit in toc --> 
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
@@ -22,9 +22,7 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 * Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, MediaQuery, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
 
 
-# Table of Contents
-- [`States_rebuilder`](#states_rebuilder)
-- [Table of Contents](#table-of-contents)
+# Table of Contents <!-- omit in toc --> 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
 - [Mechanism](#mechanism)
