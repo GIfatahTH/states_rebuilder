@@ -72,20 +72,20 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 ## Basics:
 You are new to `states_rebuilder` this is right place to start from. The order is tailor-made for you:
 
-* [**The simplest counter app**](examples/001-flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
+* [**The simplest counter app**](examples/ex_001_1_flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
 
-* [**Login form validation**](examples/002-form_validation_with_reactive_model) Simple form login validation. The basic `ReactiveModel` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
+* [**Login form validation**](examples/ex_002_1_form_validation_with_reactive_model) Simple form login validation. The basic `ReactiveModel` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
 
 
-* [**Counter app with flavors**](examples/003-async_counter_app_with_injector) Injector as dependency injection is used, and a counter app with two flavors is built. You will see the use of `Injector`, `Injector.get`, `Injector.getAsReactive`, `Inject.interface`, `Inject.env`, and `setState`.
+* [**Counter app with flavors**](examples/ex_003_1_async_counter_app_with_injector) Injector as dependency injection is used, and a counter app with two flavors is built. You will see the use of `Injector`, `Injector.get`, `Injector.getAsReactive`, `Inject.interface`, `Inject.env`, and `setState`.
 
-* [**CountDown timer**](examples/004-1-countdown_timer) This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted. You see how to inject enumeration and how to make two reactive models interact. You will see the use of `OnSetStateListener`.
+* [**CountDown timer**](examples/ex_004_1_countdown_timer) This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted. You see how to inject enumeration and how to make two reactive models interact. You will see the use of `OnSetStateListener`.
 
-* [**CountDown timer (🚀Global functional injection appoarch)**](examples/004-2-countdown_timer_with_functional_injection) This is a timer rewritten using global functional injection.
+* [**CountDown timer (🚀Global functional injection appoarch)**](examples/ex_004_2_countdown_timer_with_functional_injection) This is a timer rewritten using global functional injection.
 
-* [**Double async counters**](examples/005-double_async_counter_with_error) Two counter that share the same model. You will see the use of tags to filter notifications and the concept of new reactive models to limit rebuild process. You will see `tag`, `filteredTags` and `asNew` 
+* [**Double async counters**](examples/ex_005_double_async_counter_with_error) Two counter that share the same model. You will see the use of tags to filter notifications and the concept of new reactive models to limit rebuild process. You will see `tag`, `filteredTags` and `asNew` 
 
-* [**Multi async counters**](examples/006-multi_async_counter_with_error) The is a solution of an imaginary and very tricky state management requirement. You will see how the concept of ReactiveModel can solve very difficult state management requirements. You will see How can Reactive singleton interact with new reactive models. You will use
+* [**Multi async counters**](examples/ex_006_multi_async_counter_with_error) The is a solution of an imaginary and very tricky state management requirement. You will see how the concept of ReactiveModel can solve very difficult state management requirements. You will see How can Reactive singleton interact with new reactive models. You will use
  `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData`
 
 </br>
@@ -93,34 +93,34 @@ You are new to `states_rebuilder` this is right place to start from. The order i
 ## Advanced:
 Here, you will take your programming skills up a notch, deep dive in Architecture:
 
-* [**User posts and comments**](examples/007-1-clean_architecture_dane_mackier_app_with_Injector)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
+* [**User posts and comments**](examples/ex_007_1_clean_architecture_dane_mackier_app_with_Injector)  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
-* [**User posts and comments (🚀Global functional injection appoarch)**](examples/007-2-clean_architecture_dane_mackier_app_with_functional_injection): The  User posts and comments rewritten using global functional injection.
+* [**User posts and comments (🚀Global functional injection appoarch)**](examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi): The  User posts and comments rewritten using global functional injection.
 
-* [**GitHub use search app**](examples/011-github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds.
+* [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds.
 
 ### Firebase Series:
 
-* [**Firebase login** ](examples/008-clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
+* [**Firebase login** ](examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
 
-* [**Firebase Realtime Database**](examples/010-clean_architecture__multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
+* [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
 
 ### Firestore Series in Todo App:
 
 ## <p align='center'>`Immutable State`</p>
-* [**Todo MVC with immutable state and firebase cloud service**](examples/009-1-1-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_injector) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
+* [**Todo MVC with immutable state and firebase cloud service**](examples/ex_009_1_1_ca_todo_mvc_cloud_firestore_immutable_with_injector) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
 
-* [**Todo MVC with immutable state and firebase cloud service (🚀Global functional injection appoarch)**](examples/009-1-2-clean_architecture_todo_mvc_cloud_firestore_immutable_state_with_functional_injection) : Immutable TodoMVC rewritten using global functional injection.
+* [**Todo MVC with immutable state and firebase cloud service (🚀Global functional injection appoarch)**](examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi) : Immutable TodoMVC rewritten using global functional injection.
 ## <p align='center'>`Mutable State`</p>
-* [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/009-2-1-clean_architecture_todo_mvc_mutable_state_with_injector) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
+* [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/ex_009_2_1_ca_todo_mvc_mutable_with_injector) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
 
-* [**Todo MVC with mutable state and sharedPreferences for persistence (🚀Global functional injection appoarch)**](examples/009-2-2-clean_architecture_todo_mvc_mutable_state-with__functional_injection) : The mutable TodoMVC rewritten using global functional injection.
+* [**Todo MVC with mutable state and sharedPreferences for persistence (🚀Global functional injection appoarch)**](examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi) : The mutable TodoMVC rewritten using global functional injection.
 
 
 ## <p align='center'>`Code in BLOC Style`</p>
-* [**Todo MVC following flutter_bloc library approach**](examples/009-3-1-todo_mvc_the_flutter_bloc_way_with_injector) : This is the same Todos App built following the same approach as in flutter_bloc library.
+* [**Todo MVC following flutter_bloc library approach**](examples/ex_009_3_1_todo_mvc_the_flutter_bloc_way_with_injector) : This is the same Todos App built following the same approach as in flutter_bloc library.
 
-* [**Todo MVC following flutter_bloc library approach (🚀Global functional injection appoarch)**](examples/09-3-2-todo_mvc_the_flutter_bloc_way_with__functional_injection) : This is the same Todos App built following the same approach as in flutter_bloc library using global functional injection.
+* [**Todo MVC following flutter_bloc library approach (🚀Global functional injection appoarch)**](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi) : This is the same Todos App built following the same approach as in flutter_bloc library using global functional injection.
 
 
 </br>
