@@ -60,6 +60,8 @@ extension StateRebuilderListX on List<Injected> {
             }
           },
         );
+        //clean it
+        (reactiveModel as ReactiveModelInternal)?.activeRM = null;
       },
       onIdle: onIdle,
       onWaiting: onWaiting,
@@ -77,7 +79,6 @@ extension StateRebuilderListX on List<Injected> {
     @required Widget Function() builder,
     void Function() initState,
     void Function() dispose,
-    Object Function() watch,
     bool Function() shouldRebuild,
     Key key,
   }) {
@@ -87,7 +88,6 @@ extension StateRebuilderListX on List<Injected> {
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
       shouldRebuild: shouldRebuild == null ? null : (_) => shouldRebuild(),
-      watch: watch == null ? null : (_) => watch(),
       didUpdateWidget: (_, reactiveModel, old) {
         final models = (reactiveModel as ReactiveModelInternal)?.activeRM;
         assert(models.length == this.length);
@@ -99,11 +99,13 @@ extension StateRebuilderListX on List<Injected> {
             }
           },
         );
+        //clean it
+        (reactiveModel as ReactiveModelInternal)?.activeRM = null;
       },
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
-      onData: (_) => onData(),
+      onData: onData == null ? null : (_) => onData(),
       builder: (_, __) => builder(),
     );
   }

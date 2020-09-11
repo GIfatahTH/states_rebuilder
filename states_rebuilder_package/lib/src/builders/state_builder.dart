@@ -520,8 +520,8 @@ class _ObserversResolverOne<T> extends _IObserversResolver<T> {
       _exposedModelFromGenericType =
           Injector.getAsReactive<T>()?.inject?.getReactive(true);
 
-      _activeRM = (_exposedModelFromGenericType as ReactiveModelInternal)
-          .activeRM = [_exposedModelFromGenericType];
+      // _activeRM = (_exposedModelFromGenericType as ReactiveModelInternal)
+      //     .activeRM = [_exposedModelFromGenericType];//TODO
 
       _subscribe<T>(_exposedModelFromGenericType, state);
       return;
@@ -536,8 +536,8 @@ class _ObserversResolverOne<T> extends _IObserversResolver<T> {
 
     if (_models.first is ReactiveModel<T>) {
       _exposedModelFromGenericType = _models.first as ReactiveModel<T>;
-      _activeRM = (_exposedModelFromGenericType as ReactiveModelInternal)
-          .activeRM = [_exposedModelFromGenericType];
+      // _activeRM = (_exposedModelFromGenericType as ReactiveModelInternal)
+      //     .activeRM = [_exposedModelFromGenericType];
     }
   }
 }
@@ -577,14 +577,16 @@ class _ObserversResolverMany<T> extends _IObserversResolver<T> {
       return;
     }
 
-    if (observeMany != null) {
+    if (observeMany != null && !refresh) {
+      _activeRM = [];
       for (var fn in observeMany) {
-        _models.add(fn?.call());
+        final m = fn?.call();
+        _models.add(m);
+        if (m is ReactiveModel) {
+          _activeRM.add(m);
+        }
       }
     }
-
-    _activeRM =
-        _models.where((m) => m is ReactiveModel).toList().cast<ReactiveModel>();
 
     if (_exposedModelFromGenericType != null) {
       //if _exposedModelFromGenericType is obtained for observer, return;

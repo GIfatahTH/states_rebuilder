@@ -115,7 +115,7 @@ class WhenRebuilder<T> extends StatelessWidget {
       onSetState;
 
   ///Called whenever the widget configuration changes.
-  void Function(BuildContext, ReactiveModel<T>, StateBuilder<T>)
+  final void Function(BuildContext, ReactiveModel<T>, StateBuilder<T>)
       didUpdateWidget;
 
   ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
@@ -160,8 +160,6 @@ class WhenRebuilder<T> extends StatelessWidget {
         bool hasError = false;
         dynamic error;
 
-        final _models = (modelRM as ReactiveModelInternal)?.activeRM;
-
         assert(() {
           if (modelRM == null) {
             throw Exception(
@@ -172,7 +170,8 @@ class WhenRebuilder<T> extends StatelessWidget {
           }
           return true;
         }());
-        _models.first.whenConnectionState<bool>(
+
+        modelRM.whenConnectionState<bool>(
           onIdle: () => isIdle = true,
           onWaiting: () => isWaiting = true,
           onError: (dynamic err) {
@@ -182,16 +181,22 @@ class WhenRebuilder<T> extends StatelessWidget {
           onData: (dynamic data) => true,
         );
 
-        for (var i = 1; i < _models.length; i++) {
-          _models[i].whenConnectionState(
-            onIdle: () => isIdle = true,
-            onWaiting: () => isWaiting = true,
-            onError: (dynamic err) {
-              error = err;
-              return hasError = true;
-            },
-            onData: (dynamic data) => true,
-          );
+        var _models = (modelRM as ReactiveModelInternal)?.activeRM;
+        if (_models != null) {
+          _models = [..._models]..remove(modelRM);
+          for (var rm in _models) {
+            rm.whenConnectionState(
+              onIdle: () => isIdle = true,
+              onWaiting: () => isWaiting = true,
+              onError: (dynamic err) {
+                error = err;
+                return hasError = true;
+              },
+              onData: (dynamic data) => true,
+            );
+          }
+          //clean it
+          (modelRM as ReactiveModelInternal)?.activeRM = null;
         }
 
         if (isWaiting) {

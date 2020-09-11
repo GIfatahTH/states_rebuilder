@@ -160,7 +160,6 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///
   ///You can override this error handling to use a specific handling in response to particular events
   ///using the onError callback of [setState] or [setValue].
-  @deprecated
   void onError(
     void Function(BuildContext context, dynamic error) errorHandler,
   ) {
@@ -171,7 +170,6 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
 
   ///The global data event handler of this ReactiveModel.
   ///
-  @deprecated
   void onData(void Function(T data) fn) {
     _onData = fn;
   }

@@ -635,21 +635,14 @@ abstract class Injected<T> {
           statesRebuilderCleaner(_stateRM);
         }
         dispose?.call();
-        // futureRM.unsubscribe();
       },
       onSetState: (_, rm) {
         if (rm.hasData) {
-          //if setState has data override this _onData
-          // if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[0]) {
           if (rm.state is T) {
             _onData?.call(state);
           }
-          // }
         } else if (rm.hasError) {
-          //if setState has error override this _onError//TODO
-          // if (!(rm as ReactiveModelInternal).setStateHasOnErrorCallback[1]) {
           _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
-          // }
         }
       },
       shouldRebuild: (_) => true,
