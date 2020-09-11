@@ -31,19 +31,16 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 - [Documentation](#documentation)
 - [List of Article](#list-of-article)
 - [Examples:](#examples)
-  - [Basics:](#basics)Examples using 🚀Global functional injection approach
-    -[Examples using widget-wise injection (Injector)](#Examples-using-Widget-wise-injection-(Injector-widget)-approach)
-    -[Examples using global functional injection](#Examples-using-🚀Global-functional-injection-approach)
+  - [Basics:](#basics)
+    - [Using Injector widget](#using-injector-widget)
+    - [Using global functional injection](#using-global-functional-injection)
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
 
 # Getting Started with States_rebuilder
-1. Add this to your package's pubspec.yaml file:
-```yaml
-dependencies:
-  states_rebuilder: ^3.0.0
-```
+1. Add the latest version to your package's pubspec.yaml file.
+
 2. Import it in any Dart code:
 ```dart
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -99,9 +96,9 @@ class CounterApp extends StatelessWidget {
 
 # Breaking Changes
 
-### Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) <!-- omit in toc --> 
+### Since 3.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-3.0.0.md) <!-- omit in toc --> 
 
-### Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) <!-- omit in toc --> 
+### Since 2.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-2.0.0.md) <!-- omit in toc --> 
 
 
 # Mechanism
@@ -155,7 +152,7 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 ## Basics:
 Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
 
-### Examples using Widget-wise injection (Injector widget) approach:
+### Using Injector Widget:
 * [**The simplest counter app**](examples/ex_001_1_flutter_default_counter_app) Default flutter counter app refactored using `states_rebuilder`. You will understand the concept of `ReactiveModel` and how to make a pure dart class reactive. You will see the use of `ReactiveModel.create`, `setValue`, `isIdle`, `isWaiting`, `hasData`, `hasError`, `onIdle`, `onWaiting`, `onError`, `onData`, `whenConnectionState`, `StateBuilder` and `WhenRebuilder`.
 
 * [**Login form validation**](examples/ex_002_1_form_validation_with_reactive_model) Simple form login validation. The basic `ReactiveModel` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
@@ -169,7 +166,7 @@ Since you are new to `states_rebuilder`, this is the right place for you to expl
 * [**Multi async counters**](examples/ex_006_multi_async_counter_with_error) The is a solution of an imaginary and very tricky state management requirement. You will see how the concept of ReactiveModel can solve very difficult state management requirements. You will see How can Reactive singleton interact with new reactive models. You will use
  `joinSingleton`, `JoinSingleton.withCombinedReactiveInstances`, `joinSingletonToNewData`
 
-### Examples using 🚀Global functional injection approach:
+### Using Global Functional Injection:
 These are the same examples as above rewritten using global functional injection.
 
 * [**The simplest counter app**](examples/ex_001_2_flutter_default_counter_app_with_functional_injection).
@@ -178,7 +175,7 @@ These are the same examples as above rewritten using global functional injection
 
 * [**Counter app with flavors**](examples/ex_003_2_async_counter_app_with_functional_injection).
 
-* [**CountDown timer](examples/ex_004_2_countdown_timer_with_functional_injection).
+* [**CountDown timer**](examples/ex_004_2_countdown_timer_with_functional_injection).
 
 
 </br>
