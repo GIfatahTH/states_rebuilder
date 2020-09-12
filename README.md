@@ -82,9 +82,7 @@ class CounterApp extends StatelessWidget {
             ),
             RaisedButton(
                 child: const Text('⏱️ Undo'),
-                onPressed: () => serviceState.setState(
-                    (s) => serviceState.canUndoState? serviceState.undoState() : null;,
-                ),
+                onPressed: () => serviceState.undoState(),
             ),
             serviceState.rebuilder(() => Text('🏁Result: ${_model.counter}')),
         ],
