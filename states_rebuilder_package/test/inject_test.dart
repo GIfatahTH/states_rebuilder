@@ -15,8 +15,8 @@ void main() {
       expect(Inject(() => Model(), name: 'customName').getName(),
           equals('customName'));
       //throws for dynamic type
-
-      expect(() => Inject(() => dynamic).getName(), throwsAssertionError);
+      var temp;
+      expect(() => Inject(() => temp).getName(), throwsAssertionError);
     },
   );
 
