@@ -105,7 +105,7 @@ class MyModel(){
   model.state= newState;
   //or for more options
   model.setState(
-    (s)=>s.someMethod()
+    (s)=> s.someMethod()//can be sync or async
     debounceDelay=500,
   );
   ```
@@ -136,6 +136,11 @@ class MyModel(){
       throttleDelay: 1000,
     ),
   );
+  ```
+  You can manually persist or delete the state
+  ```dart
+  model.persistState();
+  model.deletePersistState();
   ```
 And many more features.
 
