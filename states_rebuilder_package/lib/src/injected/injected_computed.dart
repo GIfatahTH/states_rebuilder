@@ -38,10 +38,10 @@ class InjectedComputed<T> extends Injected<T> {
               computeAsync != null && asyncDependsOn != null,
           'When using `computeAsync` you have to define `asyncDependsOn``',
         ),
-        assert(
-          asyncDependsOn == null || asyncDependsOn.isNotEmpty,
-          'asyncDependsOn can not be null',
-        ),
+        // assert(
+        //   asyncDependsOn != null,
+        //   'asyncDependsOn can not be null',
+        // ),
         super(
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
@@ -97,7 +97,7 @@ class InjectedComputed<T> extends Injected<T> {
         disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
           (_) {
             final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()];
+                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
             if (injected == null) {
               disposer();
               return;

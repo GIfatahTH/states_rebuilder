@@ -87,25 +87,35 @@ class OnSetStateListener<T> extends StatelessWidget {
       tag: tag,
       onSetState: _onSetState,
       onRebuildState: onRebuildState,
-      initState: (context, rm) {
-        final _models =
-            (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
+      initState: (context, modelRM) {
         if (onError != null) {
-          for (var reactiveModel in _models) {
-            reactiveModel.inject.onSetStateListenerNumber++;
+          var _models = (modelRM as ReactiveModelInternal)?.activeRM;
+          if (_models != null) {
+            _models = [..._models]..remove(modelRM);
+            for (var rm in _models) {
+              rm.inject.onSetStateListenerNumber++;
+            }
+            //clean It,
+            (modelRM as ReactiveModelInternal)?.activeRM = null;
           }
+          modelRM.inject.onSetStateListenerNumber++;
         }
         if (shouldOnInitState) {
-          _onSetState(context, rm);
+          _onSetState(context, modelRM);
         }
       },
-      dispose: (context, __) {
+      dispose: (context, modelRM) {
         if (onError != null) {
-          final _models =
-              (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
-          for (ReactiveModel reactiveModel in _models) {
-            reactiveModel.inject.onSetStateListenerNumber--;
+          var _models = (modelRM as ReactiveModelInternal)?.activeRM;
+          if (_models != null) {
+            _models = [..._models]..remove(modelRM);
+            for (var rm in _models) {
+              rm.inject.onSetStateListenerNumber--;
+            }
+            //clean It,
+            (modelRM as ReactiveModelInternal)?.activeRM = null;
           }
+          modelRM.inject.onSetStateListenerNumber--;
         }
       },
       watch: watch,
@@ -115,30 +125,44 @@ class OnSetStateListener<T> extends StatelessWidget {
     );
   }
 
-  void _onSetState(BuildContext context, ReactiveModel<T> rm) {
+  void _onSetState(BuildContext context, ReactiveModel<T> modelRM) {
     if (onSetState != null) {
-      onSetState(context, rm);
+      onSetState(context, modelRM);
     }
-    final _models =
-        (context.widget as StateBuilder)._activeRM.cast<ReactiveModel>();
-
     bool _isIdle = false;
     bool _isWaiting = false;
     bool _hasError = false;
     dynamic error;
+    if (modelRM.isWaiting) {
+      _isWaiting = true;
+    }
+    if (modelRM.hasError) {
+      _hasError = true;
+      error = modelRM.error;
+    }
 
-    for (var reactiveModel in _models) {
-      if (reactiveModel.isWaiting) {
-        _isWaiting = true;
-      }
-      if (reactiveModel.hasError) {
-        _hasError = true;
-        error = reactiveModel.error;
-      }
+    if (modelRM.isIdle) {
+      _isIdle = true;
+    }
 
-      if (reactiveModel.isIdle) {
-        _isIdle = true;
+    var _models = (modelRM as ReactiveModelInternal)?.activeRM;
+    if (_models != null) {
+      _models = [..._models]..remove(modelRM);
+      for (var rm in _models) {
+        if (rm.isWaiting) {
+          _isWaiting = true;
+        }
+        if (rm.hasError) {
+          _hasError = true;
+          error = rm.error;
+        }
+
+        if (rm.isIdle) {
+          _isIdle = true;
+        }
       }
+      //clean it
+      (modelRM as ReactiveModelInternal)?.activeRM = null;
     }
 
     if (_isWaiting) {
@@ -154,6 +178,6 @@ class OnSetStateListener<T> extends StatelessWidget {
       return;
     }
 
-    onData?.call(context, rm);
+    onData?.call(context, modelRM);
   }
 }

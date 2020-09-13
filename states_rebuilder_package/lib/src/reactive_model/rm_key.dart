@@ -1,7 +1,7 @@
 part of '../reactive_model.dart';
 
 ///ReactiveModel Key
-class RMKey<T> extends ReactiveModel<T> {
+class RMKey<T> extends ReactiveModelInternal<T> {
   ///ReactiveModel Key
   RMKey([this.initialValue]) : super._(null);
 
@@ -141,15 +141,15 @@ class RMKey<T> extends ReactiveModel<T> {
     _rm?.resetToIdle(s);
   }
 
-  @override
-  void resetToIsWaiting([T s]) {
-    _rm?.resetToIsWaiting(s);
-  }
+  // @override
+  // void resetToIsWaiting([T s]) {
+  //   _rm?.resetToIsWaiting(s);
+  // }
 
-  @override
-  void resetToHasError(dynamic e) {
-    _rm?.resetToHasError(e);
-  }
+  // @override
+  // void resetToHasError(dynamic e) {
+  //   _rm?.resetToHasError(e);
+  // }
 
   @override
   Future<void> setState(
@@ -302,31 +302,31 @@ class RMKey<T> extends ReactiveModel<T> {
     _rm.notify(tags);
   }
 
-  @override
-  bool get canRedoState => _rm.canRedoState;
+  // @override
+  // bool get canRedoState => _rm.canRedoState;
 
-  @override
-  bool get canUndoState => _rm.canUndoState;
+  // @override
+  // bool get canUndoState => _rm.canUndoState;
 
-  @override
-  void clearUndoStack() {
-    _rm.clearUndoStack();
-  }
+  // @override
+  // void clearUndoStack() {
+  //   _rm.clearUndoStack();
+  // }
 
-  @override
-  ReactiveModel<T> redoState() {
-    return _rm.redoState();
-  }
+  // @override
+  // ReactiveModel<T> redoState() {
+  //   return _rm.redoState();
+  // }
 
-  @override
-  ReactiveModel<T> undoState() {
-    return _rm.undoState();
-  }
+  // @override
+  // ReactiveModel<T> undoState() {
+  //   return _rm.undoState();
+  // }
 
-  @override
-  set undoStackLength(int length) {
-    _rm.undoStackLength = length;
-  }
+  // @override
+  // set undoStackLength(int length) {
+  //   _rm.undoStackLength = length;
+  // }
 
   // @override
   // ReactiveModel<T> as<R>() {

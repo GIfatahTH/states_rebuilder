@@ -59,4 +59,11 @@ class InjectedStream<T> extends Injected<T> {
     state = _initialValue;
     return super.refresh();
   }
+
+  @override
+  T get state {
+    super.state;
+    _state = getRM.state;
+    return _state;
+  }
 }

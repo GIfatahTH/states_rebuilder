@@ -93,11 +93,14 @@ class _SetState<T> {
   }
 
   void rebuildStates({bool canRebuild = true}) {
+    if (context != null) {
+      RM.context = context;
+    }
     if (rm._listenToRMSet.isNotEmpty) {
       rm
-        .._setStateHasOnErrorCallback = onError != null
+        .._setStateHasOnErrorCallback = [onData != null, onError != null]
         .._listenToRMCall()
-        .._setStateHasOnErrorCallback = false;
+        .._setStateHasOnErrorCallback = [false, false];
     }
 
     if ((silent || rm._listenToRMSet.isNotEmpty) && !rm.hasObservers) {
@@ -128,9 +131,13 @@ class _SetState<T> {
 
   bool onDataCallback(dynamic data) {
     if (data is T) {
-      if (!rm.hasError &&
-          !rm.isWaiting &&
-          _deepEquality.equals(rm.inject.getReactive().state, data)) {
+      if (_deepEquality.equals(rm.inject.getReactive().state, data)) {
+        if (rm.isWaiting || rm.hasError) {
+          rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
+          if (rm.hasObservers) {
+            rm.rebuildStates(filterTags);
+          }
+        }
         return false;
       }
       rm
@@ -196,9 +203,6 @@ class _SetState<T> {
         (_) => _setStateHandler(),
       );
       return null;
-    }
-    if (context != null) {
-      RM.context = context;
     }
 
     return _setStateHandler();

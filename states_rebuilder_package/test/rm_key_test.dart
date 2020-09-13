@@ -297,6 +297,7 @@ void main() {
                 builder: (context) {
                   return StateBuilder<int>(
                       observe: () => ReactiveModel.create(0),
+                      observeMany: [() => ReactiveModel<String>.create('zero')],
                       rmKey: rmKey,
                       builder: (_, rm) {
                         return Text('modelRM2-${rm.state}');

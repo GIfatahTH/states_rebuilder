@@ -16,6 +16,7 @@ class InjectedFuture<T> extends Injected<T> {
     bool isLazy = true,
     T initialValue,
     int undoStackLength,
+    PersistState<T> persist,
     String debugPrintWhenNotifiedPreMessage,
   })  : _initialValue = initialValue,
         super(
@@ -26,6 +27,7 @@ class InjectedFuture<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          persist: persist,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _name = '___Injected${hashCode}Future___';
@@ -43,10 +45,22 @@ class InjectedFuture<T> extends Injected<T> {
   }
 
   @override
-  Inject<T> _getInject() => Inject<T>.future(
-        () => _creationFunction() as Future<T>,
-        name: _name,
-        initialValue: _initialValue,
-        isLazy: false,
-      );
+  Inject<T> _getInject() {
+    _initialStoredState = _persist?.read();
+    return Inject<T>.future(
+      () => _initialStoredState != null
+          ? Future.value(_initialStoredState)
+          : _creationFunction() as Future<T>,
+      name: _name,
+      initialValue: _initialValue,
+      isLazy: false,
+    );
+  }
+
+  @override
+  T get state {
+    super.state;
+    _state = getRM.state;
+    return _state;
+  }
 }

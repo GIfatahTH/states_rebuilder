@@ -1,4 +1,39 @@
-## 3.0.0 (2020-09-01)
+## 3.1.0 (2020-09-07)
+* Add `RM.navigate` for simple navigation.
+Now, we use:
+```dart
+MaterialApp(
+  navigatorKey : RM.navigate.navigatorKey,
+  //
+)
+
+//to  navigate:
+* RM.navigator.to(Page1());
+* RM.navigator.toNamed('/page1');
+* RM.navigator.toReplacement(Page1());
+* RM.navigator.toReplacementNamed('/page1');
+* RM.navigator.toAndRemoveUntil(Page1(), '/page2');
+* RM.navigator.pushNamedAndRemoveUntil('/page1', '/page2');
+* RM.navigator.back();
+* RM.navigator.backUntil('/page2');
+* RM.navigator.backAndToNamed('/page2');
+//To show dialogs, menu and bottom sheets
+* RM.navigator.toDialog => showDialog
+* RM.navigator.toCupertinoDialog => showCupertinoDialog
+* RM.navigator.toBottomSheet => showModalBottomSheet
+* RM.navigator.toCupertinoModalPopup => showCupertinoModalPopup
+//To show Scaffold related snackBars, bottom sheets and drawers
+* RM.scaffoldShow.bottomSheet => Scaffold.of(context).showBottomSheet,
+* RM.scaffoldShow.snackBar => Scaffold.of(context).showSnackBar,
+* RM.scaffoldShow.openDrawer => Scaffold.of(context).openDrawer,
+* RM.scaffoldShow.openEndDrawer => Scaffold.of(context).openEndDrawer,
+```
+
+* Deprecate `RM.navigator`, `RM.Scaffold` and `RM.show`.
+* Add state persistance feature.
+* Refactor internal logic to improve performance.
+
+## 3.0.0 (2020-09-04)
 ### Non breaking change :
 * Refactor internal logic.
 ### New features :

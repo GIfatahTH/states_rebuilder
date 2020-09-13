@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+//For navigation we have to defined the navigatorKey of the MaterialApp widget to
+//use the RM.navigate.navigatorKey.
 
+//For other side effects we have to get a valid BuildContext
 //The idea is that states_rebuilder obtains a valid BuildContext from : (By order)
 // * From the BuildContext of the invoked setState.
 // * The last added StateBuilder (or WhenRebuild, WhenRebuildOR or Injector).
@@ -15,16 +18,22 @@ final model = RM.inject<int>(
   onData: (data) {
     //Here is the right place to call side effects that uses the BuildContext
     contextFromOnData = RM.context;
+    navigatorStateFromOnData = RM.navigate.navigatorState;
+
     //Navigation
-    navigatorStateFromOnData = RM.navigator;
+    // RM.navigate.to(Page1());
+
     //show Alert Dialog
-    showDialog(
-      context: RM.context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text('Alert'),
-        );
-      },
+    RM.navigate.toDialog(
+      AlertDialog(
+        content: Text('Alert'),
+      ),
+    );
+  },
+
+  onError: (e, s) {
+    RM.scaffoldShow.snackBar(
+      SnackBar(content: Text(e.message)),
     );
   },
 
@@ -46,62 +55,75 @@ void main() {
   );
 
   testWidgets(
-    'get BuildContext, navigatorState form setState',
+    'get BuildContext, navigatorState and showDialog',
     (tester) async {
       final widget = MaterialApp(
+        //set the navigator key
+        navigatorKey: RM.navigate.navigatorKey,
         home: Builder(
           builder: (context) {
-            return Column(
-              children: [
-                Text(model.state.toString()),
-                RaisedButton(
-                  onPressed: () {
-                    model.setState(
-                      (s) => s + 1,
-                      //Here we tell setStat to use this context for side effects.
-                      context: context,
-                      silent: true,
-                    );
-                  },
-                  child: Text('Tap here'),
-                )
-              ],
-            );
+            return Text(model.state.toString());
           },
         ),
       );
 
       await tester.pumpWidget(widget);
-      //Tap on the RaisedButton
-      await tester.tap(find.byType(RaisedButton));
+
+      //we get navigator state
+
+      expect(RM.navigate.navigatorState, isNotNull);
+      //
+      model.state++;
+
       await tester.pump();
       //We verify that when the onData is execute, it get the provided context
       expect(contextFromOnData, isNotNull);
-      //we get navigator state
       expect(navigatorStateFromOnData, isNotNull);
-      //
+
       //Expect to see an AlertDialog
       expect(find.byType(AlertDialog), findsOneWidget);
     },
   );
+
   testWidgets(
-    'get BuildContext, navigatorState from StateBuilder ',
+    'get ScaffoldState from setStat ',
     (tester) async {
       final widget = MaterialApp(
-        home: model.rebuilder(() => Text(model.state.toString())),
+        navigatorKey: RM.navigate.navigatorKey,
+        home: Scaffold(
+          body: Column(
+            children: [
+              Text(
+                model.state.toString(),
+              ),
+              Builder(
+                builder: (context) {
+                  return RaisedButton(
+                    onPressed: () {
+                      model.setState(
+                        (s) => throw Exception('An error!'),
+                        context: context,
+                      );
+                    },
+                  );
+                },
+              )
+            ],
+          ),
+        ),
       );
 
       await tester.pumpWidget(widget);
-
-      expect(RM.context, isNotNull);
-      expect(RM.navigator, isNotNull);
-      //Scaffold.of() called with a context that does not contain a Scaffold.
-      expect(() => RM.scaffold, throwsFlutterError);
+      expect(find.byType(SnackBar), findsNothing);
+      await tester.tap(find.byType(RaisedButton));
+      await tester.pump();
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('An error!'), findsOneWidget);
     },
   );
 
   testWidgets(
-    'get ScaffoldState ',
+    'get ScaffoldState from StateBuilder ',
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
@@ -115,9 +137,8 @@ void main() {
 
       await tester.pumpWidget(widget);
 
+      expect(RM.scaffoldShow.scaffoldState, isNotNull);
       expect(RM.context, isNotNull);
-      expect(RM.navigator, isNotNull);
-      expect(RM.scaffold, isNotNull);
     },
   );
 }

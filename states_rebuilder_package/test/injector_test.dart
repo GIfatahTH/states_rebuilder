@@ -792,7 +792,7 @@ void main() {
       });
       await tester.pump();
       expect(context2, equals(context0));
-      expect(RM.scaffold, isNotNull);
+      expect(Scaffold.of(RM.context), isNotNull);
 
       isTrue = false;
       vm.rebuildStates();
@@ -1178,26 +1178,22 @@ void main() {
   testWidgets(
       'issue72: rapidly pushing to second page while it is popping to the first page',
       (tester) async {
-    BuildContext firstCtx;
-    BuildContext secondCtx;
     Widget firstPage() => StateBuilder(
           observe: () => RM.create(0),
           builder: (context, _) {
-            firstCtx = context;
             return Text('First page');
           },
         );
     Widget secondPage() => Injector(
           inject: [Inject(() => VanillaModel())],
           builder: (context) {
-            secondCtx = context;
             return Text('Second page');
           },
         );
     await tester.pumpWidget(MaterialApp(home: firstPage()));
     expect(find.text('First page'), findsOneWidget);
     // Navigate to the second page:
-    RM.navigator.push(
+    Navigator.of(RM.context).push(
       MaterialPageRoute(
         builder: (ctx) {
           return secondPage();
@@ -1207,11 +1203,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Second page'), findsOneWidget);
     //pop to the first Page,
-    RM.navigator.pop();
+    Navigator.of(RM.context).pop();
     await tester.pump();
     expect(find.text('First page'), findsOneWidget);
     //rapidly push to the second page.
-    RM.navigator.push(
+    Navigator.of(RM.context).push(
       MaterialPageRoute(
         builder: (ctx) {
           return secondPage();
@@ -1337,16 +1333,18 @@ void main() {
 
   testWidgets('Side effects without context', (tester) async {
     final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
         home: Scaffold(
-      body: Injector(
-          inject: [Inject(() => 1)], builder: (context) => Container()),
-    ));
+          body: Injector(
+            inject: [Inject(() => 1)],
+            builder: (context) => Container(),
+          ),
+        ));
     await tester.pumpWidget(widget);
-    expect(RM.navigator, isNotNull);
-    expect(RM.scaffold, isNotNull);
-    RM.show((context) {
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text('')));
-    });
+    expect(RM.navigate.navigatorState, isNotNull);
+    expect(Scaffold.of(RM.context), isNotNull);
+
+    Scaffold.of(RM.context).showSnackBar(SnackBar(content: Text('')));
     await tester.pump();
     expect(find.byType(SnackBar), findsOneWidget);
   });
@@ -1369,11 +1367,9 @@ void main() {
       ),
     );
     await tester.pumpWidget(widget);
-    expect(RM.navigator, isNotNull);
-    expect(RM.scaffold, isNotNull);
-    RM.show((context) {
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text('')));
-    });
+    expect(Scaffold.of(RM.context), isNotNull);
+    Scaffold.of(RM.context).showSnackBar(SnackBar(content: Text('')));
+
     await tester.pump();
     expect(find.byType(SnackBar), findsOneWidget);
   });

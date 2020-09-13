@@ -73,24 +73,6 @@ void main() {
     expect(error, isA<Exception>());
   });
 
-  // testWidgets(//TODO
-  //   'ReactiveModel: Subscribe using StateBuilder and setState mutate the state and notify observers',
-  //   (tester) async {
-  //     final widget = StateBuilder(
-  //       observeMany: [() => modelRM],
-  //       builder: (context, __) {
-  //         return _widgetBuilder('${modelRM.state.counter}');
-  //       },
-  //     );
-  //     await tester.pumpWidget(widget);
-  //     //
-  //     modelRM.setState((s) => s.increment());
-  //     expect(RM.notified.isA<Model>(), isTrue);
-  //     await tester.pump();
-  //     expect(find.text(('1')), findsOneWidget);
-  //   },
-  // );
-
   testWidgets(
     'ReactiveModel: catch sync error and notify observers',
     (tester) async {
@@ -718,60 +700,6 @@ void main() {
       expect(find.text('modelRM2-2'), findsOneWidget);
     },
   );
-
-  // testWidgets(//TODO
-  //   'ReactiveModel : (case Inject.interface)new reactive notify reactive singleton with its state if joinSingleton = withNewReactiveInstance',
-  //   (tester) async {
-  //     Injector.env = 'prod';
-  //     final inject = Inject.interface(
-  //       {'prod': () => Model()},
-  //       joinSingleton: JoinSingleton.withNewReactiveInstance,
-  //     );
-  //     final modelRM2 = inject.getReactive(true);
-  //     final modelRM1 = inject.getReactive(true);
-  //     final modelRM0 = inject.getReactive();
-
-  //     final widget = Column(
-  //       children: <Widget>[
-  //         StateBuilder(
-  //           observeMany: [() => modelRM0],
-  //           builder: (context, _) {
-  //             return _widgetBuilder('modelRM0-${modelRM0.state.counter}');
-  //           },
-  //         ),
-  //         StateBuilder(
-  //           observeMany: [() => modelRM1],
-  //           builder: (context, _) {
-  //             return _widgetBuilder('modelRM1-${modelRM1.state.counter}');
-  //           },
-  //         ),
-  //         StateBuilder(
-  //           observeMany: [() => modelRM2],
-  //           builder: (context, _) {
-  //             return _widgetBuilder('modelRM2-${modelRM2.state.counter}');
-  //           },
-  //         )
-  //       ],
-  //     );
-
-  //     await tester.pumpWidget(widget);
-
-  //     //mutate reactive instance 1
-  //     modelRM1.setState((s) => s.increment());
-  //     await tester.pump();
-
-  //     expect(find.text('modelRM0-1'), findsOneWidget);
-  //     expect(find.text('modelRM1-1'), findsOneWidget);
-  //     expect(find.text('modelRM2-0'), findsOneWidget);
-
-  //     //mutate reactive instance 1
-  //     modelRM2.setState((s) => s.increment());
-  //     await tester.pump();
-  //     expect(find.text('modelRM0-2'), findsOneWidget);
-  //     expect(find.text('modelRM1-1'), findsOneWidget);
-  //     expect(find.text('modelRM2-2'), findsOneWidget);
-  //   },
-  // );
 
   testWidgets(
     'ReactiveModel : singleton holds the combined state of new instances if joinSingleton = withCombinedReactiveInstances case sync with error call',
@@ -2977,6 +2905,48 @@ void main() {
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
     expect(rm.canRedoState, false);
+  });
+  testWidgets(
+      'onData of immutable is not called when state not changed after waiting',
+      (tester) async {
+    int numberOfRebuild = 0;
+    int numberOfOnData = 0;
+    final counter = RM.inject(
+      () => 0,
+      onData: (_) => numberOfOnData++,
+    );
+    final widget = counter.whenRebuilderOr(builder: () {
+      numberOfRebuild++;
+      return Container();
+    });
+
+    await tester.pumpWidget(widget);
+    expect(numberOfRebuild, 1);
+    expect(numberOfOnData, 0);
+
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 0));
+    await tester.pump();
+    expect(numberOfRebuild, 2);
+    expect(numberOfOnData, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 3);
+    expect(numberOfOnData, 0);
+    //
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
+    await tester.pump();
+    expect(numberOfRebuild, 4);
+    expect(numberOfOnData, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 5);
+    expect(numberOfOnData, 1);
+    //
+    counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
+    await tester.pump();
+    expect(numberOfRebuild, 6);
+    expect(numberOfOnData, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(numberOfRebuild, 7);
+    expect(numberOfOnData, 1);
   });
 }
 
