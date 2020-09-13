@@ -11,6 +11,7 @@ class InjectedImp<T> extends Injected<T> {
     void Function() onWaiting,
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
+    PersistState<T> persist,
     int undoStackLength,
     String debugPrintWhenNotifiedPreMessage,
   }) : super(
@@ -21,6 +22,7 @@ class InjectedImp<T> extends Injected<T> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           undoStackLength: undoStackLength,
+          persist: persist,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
     _creationFunction = creationFunction;
@@ -35,11 +37,14 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   @override
-  Inject<T> _getInject() => Inject<T>(
-        _creationFunction as T Function(),
-        name: _name,
-        isLazy: false,
-      );
+  Inject<T> _getInject() {
+    _initialStoredState = _persist?.read();
+    return Inject<T>(
+      () => _creationFunction() as T,
+      name: _name,
+      isLazy: false,
+    );
+  }
 
   @override
   T get state {

@@ -10,10 +10,10 @@ extension StateRebuilderListX on List<Injected> {
     bool Function() shouldRebuild,
     Key key,
   }) {
-    assert(this.length > 1, 'You have one Injected model');
-    return StateBuilder(
+    assert(length > 1, 'You have one Injected model');
+    return StateBuilder<dynamic>(
       key: key,
-      observeMany: this.map((e) => () => e.getRM).toList(),
+      observeMany: map((e) => () => e.getRM).toList(),
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
       shouldRebuild: shouldRebuild == null ? null : (_) => shouldRebuild(),
@@ -43,20 +43,19 @@ extension StateRebuilderListX on List<Injected> {
     bool Function() shouldRebuild,
     Key key,
   }) {
-    return WhenRebuilder(
+    return WhenRebuilder<dynamic>(
       key: key,
-      observeMany: this.map((e) => () => e.getRM).toList(),
+      observeMany: map((e) => () => e.getRM).toList(),
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
       shouldRebuild: shouldRebuild == null ? null : (_) => shouldRebuild(),
       didUpdateWidget: (_, reactiveModel, old) {
         final models = (reactiveModel as ReactiveModelInternal)?.activeRM;
-        assert(models.length == this.length);
+        assert(models.length == length);
         models.asMap().forEach(
           (i, rm) {
             if (this[i]._rm?.hasObservers != true) {
-              final injected = _functionalInjectedModels[rm.inject.getName()];
-              injected._cloneTo(this[i]);
+              _functionalInjectedModels[rm.inject.getName()]?._cloneTo(this[i]);
             }
           },
         );
@@ -66,7 +65,7 @@ extension StateRebuilderListX on List<Injected> {
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
-      onData: (_) => onData(),
+      onData: (dynamic _) => onData(),
     );
   }
 
@@ -82,20 +81,19 @@ extension StateRebuilderListX on List<Injected> {
     bool Function() shouldRebuild,
     Key key,
   }) {
-    return WhenRebuilderOr(
+    return WhenRebuilderOr<dynamic>(
       key: key,
-      observeMany: this.map((e) => () => e.getRM).toList(),
+      observeMany: map((e) => () => e.getRM).toList(),
       initState: initState == null ? null : (_, rm) => initState(),
       dispose: dispose == null ? null : (_, rm) => dispose(),
       shouldRebuild: shouldRebuild == null ? null : (_) => shouldRebuild(),
       didUpdateWidget: (_, reactiveModel, old) {
         final models = (reactiveModel as ReactiveModelInternal)?.activeRM;
-        assert(models.length == this.length);
+        assert(models.length == length);
         models.asMap().forEach(
           (i, rm) {
             if (this[i]._rm?.hasObservers != true) {
-              final injected = _functionalInjectedModels[rm.inject.getName()];
-              injected._cloneTo(this[i]);
+              _functionalInjectedModels[rm.inject.getName()]?._cloneTo(this[i]);
             }
           },
         );
@@ -105,7 +103,7 @@ extension StateRebuilderListX on List<Injected> {
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
-      onData: onData == null ? null : (_) => onData(),
+      onData: onData == null ? null : (dynamic _) => onData(),
       builder: (_, __) => builder(),
     );
   }
