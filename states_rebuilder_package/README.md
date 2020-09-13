@@ -8,29 +8,143 @@
     <image src="../assets/Logo-Black.png" width="500" alt=''/>
 </p>
 
-A Flutter state management combined with dependency injection solution that allows : 
-  * A 100% separation between business logic and UI logic. You wWrite your business logic with pure dart class without depending on any external library (Flutter and states_rebuilder included).
-  * Immutable and immutable state. You are free to use immutable or mutable objects or to mix them. Even you can refactor form mutability to immutability (or from immutability to mutability) without affecting the user interface code.
-  * Work with futures and streams. You can change the nature of any method from synchronous to asynchronous; from returning Future to returning Stream or vice versa without changing a single line in the user interface.
-  * Very rich dependency injection system. Asynchronous dependency is injected with the same ease as synchronous dependency.
-  * Global functional injection for dependency injection.
-  * Side effects without the `BuildContext`. Navigate and get the `ScaffoldState`without requiring the `BuildContext`.
+A Flutter state management combined with a dependency injection solution to get the best experience with state management. 
 
-`states_rebuilder` is built on the observer pattern for state management.
+- Performance
+  - Strictly rebuild control
+  - Auto clean state when not used
+  - Immutable / Mutable states support
 
-> **Intent of observer pattern**    
->Define a one-to-many dependency between objects so that when one object changes state (observable object), all its dependents (observer objects) are notified and updated automatically.
+- Code Clean
+  - Zero Boilerplate
+  - No annotation & code-generation
+  - Separation of UI & business logic
+  - Achieve business logic in pure Dart.
 
-`states_rebuilder` state management solution is based on what is called the `ReactiveModel`.
+- User Friendly
+  - Built-in dependency injection system
+  - `SetState` in StatelessWidget.
+  - Hot-pluggable Stream / Futures
+  - Easily Undo / Redo
+  - Navigate, show dialogs without `BuildContext`
+  - Easily persist the state and retrieve it back
+
+- Maintainable
+  - Easy to test, mock the dependencies
+  - Built-in debugging print function
+  - Capable for complex apps
+
+## A Quick Tour of global functional injection (Newer Approach)
+
+Start by your business logic. Use plain old vanilla dart class only.
+
+```dart
+class MyModel(){
+  //Can return any type, futures and streams included
+  someMethod(){ ... }
+}
+```
+
+* To inject it following functional injection approach:
+  ```dart
+  //Can be defined globally, as a class field or even inside the build method.
+  final model = RM.inject<MyModel>(
+      ()=>MyModel(),
+      //After initialized, it preserves the state it refers to until it is disposed
+      onInitialized : (MyModel state) => print('Initialized'),
+      //Default callbacks for side effects.
+      onWaiting : () => print('Is waiting'),
+      hasData : (MyModel data) => print('Has data'),
+      hasError : (error, stack) => print('Has error'),
+      //It is disposed when no longer needed
+      onDisposed: (MyModel state) => print('Disposed'),
+  );
+  ```
+
+* To mock it in test:
+  ```dart
+  model.injectMock(()=> MyMockModel());
+  //You can even mock the mocked implementation
+  ```
+  Similar to `RM.inject` there are:
+  ```dart
+  RM.injectFuture//For Future, 
+  RM.injectStream,//For Stream,
+  RM.injectComputed//depends on other injected Models and watches them.
+  RM.injectFlavor// For flavor and development environment
+  ```
+
+* To listen to an injected model from the User Interface:
+  - Rebuild when model has data only:
+    ```dart
+    model.rebuilder(()=> Text('${model.state}')); 
+    ```
+  -Handle all possible async status:
+    ```dart
+    model.whenRebuilder(
+        isIdle: ()=> Text('Idle'),
+        isWaiting: ()=> Text('Waiting'),
+        hasError: ()=> Text('Error'),
+        hasData: ()=> Text('Data'),
+    )
+    ```
+
+* To listen to many injected models and exposes and merged state:
+  ```dart
+    [model1, model1 ..., modelN].whenRebuilder(
+        isWaiting: ()=> Text('Waiting'),//If any is waiting
+        hasError: ()=> Text('Error'),//If any has error
+        isIdle: ()=> Text('Idle'),//If any is Idle
+        hasData: ()=> Text('Data'),//All have Data
+    )
+  ```
+
+* To mutate the state and notify listener:
+  ```dart
+  //Direct mutation
+  model.state= newState;
+  //or for more options
+  model.setState(
+    (s)=>s.someMethod()
+    debounceDelay=500,
+  );
+  ```
+* To undo and redo immutable state:
+  ```dart
+  model.undoState();
+  model.redoState();
+  ```
+
+* To navigate, show dialogs and snackBars without `BuildContext`:
+  ```dart
+  RM.navigate.to(HomePage());
+
+  RM.navigate.toDialog(AlertDialog( ... ));
+
+  RM.scaffoldShow.snackbar(SnackBar( ... ));
+  ```
+
+* To Persist the state and retrieve it when the app restarts,
+  ```dart
+  final model = RM.inject<MyModel>(
+      ()=>MyModel(),
+    persist: PersistState(
+      key: 'modelKey',
+      toJson: (MyModel s) => s.toJson(),
+      fromJson: (String json) => MyModel.fromJson(json),
+      //Optionally, throttle the state persistance
+      throttleDelay: 1000,
+    ),
+  );
+  ```
+And many more features.
 
 
-Note: version 2.0.0 is marked by some breaking changes, please be aware of them. [2.0.0 update](changelog/v-2.0.0.md)
+> 🚀 To see global functional injection in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
+> 🚀 To see how to navigate and show dialogs, menus, bottom sheets, and snackBars without BuildContext, please refer to this document [**Navigate and show dialogs, menus, bottom sheets, and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
+> 🚀 To see how to how to persist the state and retrieve it on app restart, please refer to this document [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/17-persisting_the_state)
 
-> 🚀 To see global functional injection 🚀 in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
-> 🚀 To see how to navigate and show dialogs, menus, bottom sheets and snackBars without BuildContext, please refer to this document [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
-
-To start using `states_rebuilder`, just start writing your business logic in a separate class.
-
+## An Example of widget-wise injection using Injector.
 
 Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
 
@@ -465,7 +579,7 @@ If we want to automatically call the streamIncrementMutable once the widget is i
   }
 ```
 
-[Get the full working example](example/README.md)
+[Get the full working example](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/example/README.md)
 
 For more information about how to use states_rebuilder see in the [wiki](https://github.com/GIfatahTH/states_rebuilder/wiki) :
 * [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)

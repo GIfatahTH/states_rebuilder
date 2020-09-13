@@ -9,7 +9,7 @@
 </p>
 
 <p align="justify">
-States Rebuilder is a easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
+States Rebuilder is an easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
 </p>
 
  With `States_rebuilder`, you can easily: 
@@ -25,6 +25,7 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 
 * Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, SnackBars, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
 
+* [Persist state](https://github.com/GIfatahTH/states_rebuilder/issues/134) to localStorage and restore it when the application is restarted.
 
 # Table of Contents <!-- omit in toc --> 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
