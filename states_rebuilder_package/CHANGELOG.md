@@ -30,6 +30,7 @@ MaterialApp(
 ```
 
 * Deprecate `RM.navigator`, `RM.Scaffold` and `RM.show`.
+* Add state persistance feature.
 * Refactor internal logic to improve performance.
 
 ## 3.0.0 (2020-09-04)
