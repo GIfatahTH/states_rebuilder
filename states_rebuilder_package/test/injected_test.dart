@@ -112,6 +112,8 @@ void main() {
         builder: (_, __) => switcherRM.state
             ? vanillaModel.rebuilder(
                 () => Container(),
+                shouldRebuild: () => true,
+                watch: () => 1,
                 dispose: () => disposeIsCalled = true,
               )
             : Container(),
@@ -786,6 +788,7 @@ void main() {
                   () => Text('counter2: ${counter2.state}'),
                 ),
                 counter2.whenRebuilderOr(
+                  shouldRebuild: () => true,
                   builder: () => Column(
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),

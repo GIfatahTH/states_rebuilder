@@ -44,6 +44,7 @@ abstract class RM {
     void Function(dynamic e, StackTrace s) onError,
     bool autoDisposeWhenNotUsed = true,
     int undoStackLength,
+    PersistState<T> persist,
     String debugPrintWhenNotifiedPreMessage,
   }) {
     return InjectedImp<T>(
@@ -56,6 +57,7 @@ abstract class RM {
       onDisposed: onDisposed,
       undoStackLength: undoStackLength,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      persist: persist,
     );
   }
 
@@ -87,6 +89,7 @@ abstract class RM {
     void Function(dynamic e, StackTrace s) onError,
     bool autoDisposeWhenNotUsed = true,
     int undoStackLength,
+    PersistState<T> persist,
     T initialValue,
     bool isLazy = true,
     String debugPrintWhenNotifiedPreMessage,
@@ -102,6 +105,7 @@ abstract class RM {
       isLazy: isLazy,
       initialValue: initialValue,
       undoStackLength: undoStackLength,
+      persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
   }
@@ -476,7 +480,23 @@ abstract class RM {
   static bool debugErrorWithStackTrace = false;
 
   static void Function(dynamic e, StackTrace s) errorLog;
+
+  static Future<void> localStorageInitializer(IPersistStore store) {
+    if (persistState != null) {
+      return null;
+    }
+    persistState = store;
+    return persistState.init();
+  }
+
+  static Future<Map<dynamic, dynamic>> localStorageInitializerMock() async {
+    persistState = PersistStoreMock();
+    await persistState.init();
+    return (persistState as PersistStoreMock).store;
+  }
 }
+
+IPersistStore persistState;
 
 final _navigate = _Navigate();
 final _scaffold = _Scaffold();

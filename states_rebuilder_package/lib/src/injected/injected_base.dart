@@ -7,6 +7,7 @@ abstract class Injected<T> {
   final void Function(T s) _onData;
   final void Function(dynamic e, StackTrace s) _onError;
   final void Function() _onWaiting;
+  final bool _hasSideEffect;
   final void Function(T s) _onInitialized;
   final void Function(T s) _onDisposed;
   final int _undoStackLength;
@@ -14,6 +15,8 @@ abstract class Injected<T> {
   String _name;
   Inject<T> _inject;
   dynamic Function() _cashedMockCreationFunction;
+  PersistState<T> _persist;
+  T _initialStoredState;
 
   ///Basic class for injected models
   Injected({
@@ -24,14 +27,17 @@ abstract class Injected<T> {
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
     int undoStackLength,
+    PersistState<T> persist,
     String debugPrintWhenNotifiedPreMessage,
   })  : _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed,
         _onData = onData,
         _onError = onError,
         _onWaiting = onWaiting,
+        _hasSideEffect = onData != null || onError != null || onWaiting != null,
         _onInitialized = onInitialized,
         _onDisposed = onDisposed,
         _undoStackLength = undoStackLength,
+        _persist = persist,
         _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
   final Set<Injected> _dependsOn = {};
 
@@ -63,7 +69,7 @@ abstract class Injected<T> {
         (_rm as ReactiveModelInternal).listenToRMInternal(
           (rm) {
             final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()];
+                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
             print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
                 '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
                 '$injected');
@@ -74,11 +80,11 @@ abstract class Injected<T> {
       return true;
     }());
 
-    if (_onWaiting != null || _onData != null || _onError != null) {
+    if (_hasSideEffect) {
       (_rm as ReactiveModelInternal).listenToRMInternal(
         (rm) {
           final Injected<T> injected =
-              _functionalInjectedModels[rm.inject.getName()];
+              _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
           rm.whenConnectionState<void>(
             onIdle: () => null,
             onWaiting: () => injected._onWaiting?.call(),
@@ -103,6 +109,17 @@ abstract class Injected<T> {
       );
     }
 
+    if (_persist != null) {
+      if (_initialStoredState != null) {
+        _rm.resetToHasData(_initialStoredState);
+      }
+      if (_persist.persistOn == null) {
+        (_rm as ReactiveModelInternal<T>).listenToRMInternal((rm) {
+          _persist.write(rm.state);
+        });
+      }
+    }
+
     //
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
@@ -120,6 +137,7 @@ abstract class Injected<T> {
 
   ///The state of the model.
   T get state {
+    print(Injected._activeInjected?._dependsOn);
     if (Injected._activeInjected?._dependsOn?.add(this) == true) {
       assert(
         !_dependsOn.contains(Injected._activeInjected),
@@ -132,7 +150,8 @@ abstract class Injected<T> {
   }
 
   set state(T s) {
-    _stateRM.state = s;
+    final r = _hasSideEffect ? getRM : _rm;
+    r?.state = s;
   }
 
   ///Get the async state of the model.
@@ -164,20 +183,25 @@ abstract class Injected<T> {
 
     final cashedInjected = Injected._activeInjected;
     Injected._activeInjected = this;
-    final inj = _getInject();
-    Injected._activeInjected = cashedInjected;
-    _clearDependence = _dependsOn.isEmpty
-        ? null
-        : () {
-            for (var depend in _dependsOn) {
-              depend._numberODependence--;
-              if (depend._rm?.hasObservers != true &&
-                  depend._numberODependence < 1) {
-                depend.dispose();
+    try {
+      final inj = _getInject();
+      Injected._activeInjected = cashedInjected;
+      _clearDependence = _dependsOn.isEmpty
+          ? null
+          : () {
+              for (var depend in _dependsOn) {
+                depend._numberODependence--;
+                if (depend._rm?.hasObservers != true &&
+                    depend._numberODependence < 1) {
+                  depend.dispose();
+                }
               }
-            }
-          };
-    _inject = inj;
+            };
+      _inject = inj;
+    } catch (e) {
+      Injected._activeInjected = cashedInjected;
+      rethrow;
+    }
   }
 
   int _numberODependence = 0;
@@ -191,6 +215,9 @@ abstract class Injected<T> {
       }
       return true;
     }());
+    if (_persist != null && _persist.persistOn == PersistOn.disposed) {
+      _persist.write(_rm.state);
+    }
     _onDisposed?.call(_state);
     _clearDependence?.call();
     _rm = null;
@@ -304,7 +331,9 @@ abstract class Injected<T> {
     List<dynamic> seeds,
     BuildContext context,
   }) {
-    return _stateRM.setState(
+    final r = _hasSideEffect ? getRM : _rm;
+
+    return r?.setState(
       fn,
       onData: onData,
       onError: onError,
@@ -332,6 +361,7 @@ abstract class Injected<T> {
   ///
   Future<T> refresh() async {
     _onDisposed?.call(_state);
+    _initialStoredState = null;
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
@@ -360,6 +390,15 @@ abstract class Injected<T> {
 
   ///Clear undoStack;
   void clearUndoStack() => _rm?.clearUndoStack();
+
+  ///Save the current state to localStorage.
+  void persistState() => _persist?.write(state);
+
+  ///Delete the saved instance of this state form localStorage.
+  void deletePersistState() => _persist?.delete();
+
+  ///Clear localStorage
+  void deleteAllPersistState() => _persist?.deleteAll();
 
   /// {@template injected.rebuilder}
   ///Listen to the injected Model and ***rebuild only when the model emits a
@@ -395,7 +434,7 @@ abstract class Injected<T> {
   ///
   ///Use [StateBuilder] if you want to have more options
   /// {@endtemplate}Widget
-  rebuilder(
+  Widget rebuilder(
     Widget Function() builder, {
     void Function() initState,
     void Function() dispose,
@@ -557,7 +596,7 @@ abstract class Injected<T> {
                 onData: (T _) => true,
                 catchError: onError != null,
               )
-            : (_) => shouldRebuild();
+            : shouldRebuild();
       },
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {

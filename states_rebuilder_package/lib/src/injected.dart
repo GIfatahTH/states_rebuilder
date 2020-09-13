@@ -14,3 +14,4 @@ part 'injected/injected_future.dart';
 part 'injected/injected_imp.dart';
 part 'injected/injected_stream.dart';
 part 'injected/injected_base_extension.dart';
+part 'injected/injected_persistance.dart';

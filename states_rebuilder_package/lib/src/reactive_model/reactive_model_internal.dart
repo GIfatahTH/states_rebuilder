@@ -1,7 +1,12 @@
 part of '../reactive_model.dart';
 
+///ReactiveModel used internally
 abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
-  ReactiveModelInternal._(Inject<T> inject) : super._(inject);
+  ReactiveModelInternal._(Inject<T> inject) : super._(inject) {
+    cleaner(() {
+      activeRM = null;
+    });
+  }
 
   ///Error stackTrace
   StackTrace get stackTrace => _stackTrace;
@@ -12,7 +17,7 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   ///Wether [setState] is called with a defined onError callback.
   List<bool> get setStateHasOnErrorCallback => _setStateHasOnErrorCallback;
 
-  //Called internally to use isInjectedModel
+  ///Called internally to use isInjectedModel
   Disposer listenToRMInternal(
     void Function(ReactiveModel<T> rm) fn, {
     bool listenToOnDataOnly = true,

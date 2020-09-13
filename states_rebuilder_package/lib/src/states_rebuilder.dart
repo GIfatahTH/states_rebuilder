@@ -54,15 +54,6 @@ class StatesRebuilder<T> implements Subject {
   ///Holds user defined void callback to be executed after removing all observers.
   final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
 
-  // static int __observersCount = 0;
-  // static set _observersCount(int count) {
-  //   assert(count >= 0);
-  //   __observersCount = count;
-  //   if (__observersCount == 0) {
-  //     cleanInjector();
-  //   }
-  // }
-
   @override
   void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(observer != null);
