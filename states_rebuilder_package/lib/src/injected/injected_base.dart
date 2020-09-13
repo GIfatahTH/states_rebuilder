@@ -70,9 +70,11 @@ abstract class Injected<T> {
           (rm) {
             final Injected<T> injected =
                 _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-            print('[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage'
-                '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-                '$injected');
+            StatesRebuilerLogger.log(
+              '$_debugPrintWhenNotifiedPreMessage'
+              '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
+              '$injected',
+            );
           },
           listenToOnDataOnly: false,
         );
@@ -123,8 +125,11 @@ abstract class Injected<T> {
     //
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        print(
-            '[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}(initialized) $this');
+        StatesRebuilerLogger.log(
+          '$_debugPrintWhenNotifiedPreMessage'
+          '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
+          '(initialized) $this',
+        );
       }
       return true;
     }());
@@ -137,7 +142,6 @@ abstract class Injected<T> {
 
   ///The state of the model.
   T get state {
-    print(Injected._activeInjected?._dependsOn);
     if (Injected._activeInjected?._dependsOn?.add(this) == true) {
       assert(
         !_dependsOn.contains(Injected._activeInjected),
@@ -210,8 +214,11 @@ abstract class Injected<T> {
   void _dispose() {
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        print(
-            '[states_rebuilder] : $_debugPrintWhenNotifiedPreMessage${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}(disposed) $this');
+        StatesRebuilerLogger.log(
+          '$_debugPrintWhenNotifiedPreMessage'
+          '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}(disposed) '
+          '$this',
+        );
       }
       return true;
     }());
