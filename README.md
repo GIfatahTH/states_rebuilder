@@ -4,6 +4,10 @@
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
+<p align="center">
+    <image src="assets/Logo-Black.png" width="500" alt=''/>
+</p>
+
 <p align="justify">
 States Rebuilder is a easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
 </p>
@@ -82,9 +86,7 @@ class CounterApp extends StatelessWidget {
             ),
             RaisedButton(
                 child: const Text('⏱️ Undo'),
-                onPressed: () => serviceState.setState(
-                    (s) => serviceState.canUndoState? serviceState.undoState() : null;,
-                ),
+                onPressed: () => serviceState.undoState(),
             ),
             serviceState.rebuilder(() => Text('🏁Result: ${_model.counter}')),
         ],
