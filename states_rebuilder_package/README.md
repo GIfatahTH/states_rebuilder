@@ -4,6 +4,9 @@
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
+<p align="center">
+    <image src="../assets/Logo-Black.png" width="500" alt=''/>
+</p>
 
 A Flutter state management combined with dependency injection solution that allows : 
   * A 100% separation between business logic and UI logic. You wWrite your business logic with pure dart class without depending on any external library (Flutter and states_rebuilder included).
