@@ -223,6 +223,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
       _listenToRM(
         fn,
         listenToOnDataOnly: listenToOnDataOnly,
+        debugListener: 'User defined',
       );
 
   //Called internally
@@ -232,6 +233,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     //isWidget and isInjectedModel are used in toString override
     bool isWidget = false,
     bool isInjectedModel = false,
+    String debugListener,
   }) {
     final listener = _ListenToRM(
       fn,
@@ -239,6 +241,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
       listenToOnDataOnly: listenToOnDataOnly,
       isWidget: isWidget,
       isInjectedModel: isInjectedModel,
+      debugListener: debugListener,
     );
 
     _listenToRMSet.add(listener);
@@ -721,14 +724,16 @@ class _ListenToRM<T> {
   final bool listenToOnDataOnly;
   final bool isWidget;
   final bool isInjectedModel;
+  final String debugListener;
   _ListenToRM(
     this.fn, {
     this.rm,
     this.listenToOnDataOnly,
     this.isWidget,
     this.isInjectedModel,
+    this.debugListener,
   });
-  void call() {
+  FutureOr<void> call() {
     if (listenToOnDataOnly) {
       if (rm.hasData) {
         fn(rm);
@@ -737,4 +742,8 @@ class _ListenToRM<T> {
       fn(rm);
     }
   }
+
+  @override
+  String toString() =>
+      '$debugListener :_ListenToRM<$T>(isWidget: $isWidget, isInjectedModel: $isInjectedModel)';
 }

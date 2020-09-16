@@ -96,8 +96,10 @@ class InjectedComputed<T> extends Injected<T> {
         Disposer disposer;
         disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
           (_) {
-            final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+            // final Injected<T> injected =
+            //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+
+            final injected = this;
             if (injected == null) {
               disposer();
               return;
@@ -130,7 +132,9 @@ class InjectedComputed<T> extends Injected<T> {
           },
           listenToOnDataOnly: false,
           isInjectedModel: true,
+          debugListener: 'COMPUTED',
         );
+        reactiveModel.cleaner(disposer);
         rm.cleaner(disposer);
       }
     }
