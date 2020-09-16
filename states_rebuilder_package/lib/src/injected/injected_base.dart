@@ -70,21 +70,38 @@ abstract class Injected<T> {
 
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        (_rm as ReactiveModelInternal).listenToRMInternal(
+        final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
           (rm) {
-            final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+            // final Injected<T> injected =
+            //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
             StatesRebuilerLogger.log(
               '$_debugPrintWhenNotifiedPreMessage'
               '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-              '$injected',
+              '$this',
             );
           },
           listenToOnDataOnly: false,
+          debugListener: 'DEBUG_PRINT_STATE',
         );
+        _rm.cleaner(disposer);
       }
       return true;
     }());
+
+    if (_persist != null) {
+      if (_initialStoredState != null) {
+        _rm.resetToHasData(_initialStoredState);
+      }
+      if (_persist.persistOn == null) {
+        final disposer = (_rm as ReactiveModelInternal<T>).listenToRMInternal(
+          (rm) {
+            _persist.write(rm.state);
+          },
+          debugListener: 'PERSISTANCE',
+        );
+        _rm.cleaner(disposer);
+      }
+    }
 
     //
     assert(() {
@@ -102,6 +119,7 @@ abstract class Injected<T> {
 
   //used internally so not to call state and _resolveInject (as in toString)
   T _state;
+  T _oldState;
 
   ///The state of the model.
   T get state {
@@ -119,9 +137,8 @@ abstract class Injected<T> {
   }
 
   set state(T s) {
-    if (_rm == null) {
-      state;
-    }
+    _oldState = state;
+
     _rm?.state = s;
   }
 
@@ -168,6 +185,7 @@ abstract class Injected<T> {
                 }
               }
             };
+      print('_inject _inject _inject _inject _inject');
       _inject = inj;
       _inject.isGlobal = true;
       _registerSideEffects();
@@ -179,13 +197,16 @@ abstract class Injected<T> {
   }
 
   void _registerSideEffects([ReactiveModel<T> reactiveModel]) {
+    print('_registerSideEffects _registerSideEffects _registerSideEffects');
     if (_hasSideEffect) {
+      print('_hasSideEffect _hasSideEffect _hasSideEffect');
+
       _rm ??= reactiveModel ??= _inject.getReactive();
-      (reactiveModel as ReactiveModelInternal).listenToRMInternal(
+      final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
         (rm) {
-          Injected<T> injected =
-              _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-          injected ??= this;
+          // Injected<T> injected =
+          //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+          final injected = this;
           rm.whenConnectionState<void>(
             onIdle: () => null,
             onWaiting: () => injected._onWaiting?.call(),
@@ -207,19 +228,9 @@ abstract class Injected<T> {
           );
         },
         listenToOnDataOnly: false,
+        debugListener: 'SIDE_EFFECT',
       );
-    }
-    if (_persist != null) {
-      _rm ??= reactiveModel ??= _inject.getReactive();
-
-      if (_initialStoredState != null) {
-        _rm.resetToHasData(_initialStoredState);
-      }
-      if (_persist.persistOn == null) {
-        (_rm as ReactiveModelInternal<T>).listenToRMInternal((rm) {
-          _persist.write(rm.state);
-        });
-      }
+      _rm.cleaner(disposer);
     }
   }
 
@@ -242,8 +253,9 @@ abstract class Injected<T> {
     }
     _onDisposed?.call(_state);
     _clearDependence?.call();
-    _rm = null;
     _inject = null;
+    print('cleaning inject $_inject');
+    _rm = null;
     _isRegistered = false;
     if (_cashedMockCreationFunction != null) {
       _creationFunction = _cashedMockCreationFunction;
@@ -355,9 +367,7 @@ abstract class Injected<T> {
     List<dynamic> seeds,
     BuildContext context,
   }) {
-    if (_rm == null) {
-      state;
-    }
+    _oldState = state;
     return _rm?.setState(
       fn,
       onData: onData,
