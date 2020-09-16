@@ -74,14 +74,14 @@ class InjectedComputed<T> extends Injected<T> {
     }
   }
 
-  bool _isRegistered = false;
+  bool _isRegisteredComputed = false;
   @override
   ReactiveModel<T> get _stateRM {
     final rm = super._stateRM;
-    if (_isRegistered) {
+    if (_isRegisteredComputed) {
       return rm;
     }
-    _isRegistered = true;
+    _isRegisteredComputed = true;
     if (_asyncDependsOn != null || _dependsOn.isNotEmpty) {
       for (var depend in _asyncDependsOn ?? _dependsOn) {
         final reactiveModel = depend._stateRM;
@@ -151,15 +151,6 @@ class InjectedComputed<T> extends Injected<T> {
   }
 
   @override
-  T get state {
-    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
-      _numberODependence++;
-    }
-    //override to force calling _stateRM getter
-    return _stateRM.state;
-  }
-
-  @override
   void injectComputedMock({
     T Function(T s) compute,
     Stream<T> Function(T s) computeAsync,
@@ -207,13 +198,13 @@ class InjectedComputed<T> extends Injected<T> {
   void _dispose() {
     super._dispose();
     _dependsOn.clear();
-    _isRegistered = false;
+    _isRegisteredComputed = false;
   }
 
   @override
   void _cloneTo(Injected<T> to) {
     super._cloneTo(to);
-    (to as InjectedComputed)._isRegistered = _isRegistered;
+    (to as InjectedComputed)._isRegisteredComputed = _isRegisteredComputed;
   }
 
   @override

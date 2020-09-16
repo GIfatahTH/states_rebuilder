@@ -7,11 +7,12 @@ abstract class Injected<T> {
   final void Function(T s) _onData;
   final void Function(dynamic e, StackTrace s) _onError;
   final void Function() _onWaiting;
-  final bool _hasSideEffect;
+
   final void Function(T s) _onInitialized;
   final void Function(T s) _onDisposed;
   final int _undoStackLength;
   final String _debugPrintWhenNotifiedPreMessage;
+  bool _hasSideEffect;
   String _name;
   Inject<T> _inject;
   dynamic Function() _cashedMockCreationFunction;
@@ -42,24 +43,27 @@ abstract class Injected<T> {
   final Set<Injected> _dependsOn = {};
 
   ReactiveModel<T> _rm;
+  bool _isRegistered = false;
 
   ///Get the [ReactiveModel] associated with the injected model
   ReactiveModel<T> get getRM => _stateRM;
 
   ///Get the [ReactiveModel] associated with this model.
   ReactiveModel<T> get _stateRM {
-    if (_rm != null) {
+    if (_isRegistered) {
       return _rm;
     }
 
     _resolveInject();
-    _inject.isGlobal = true;
+    _functionalInjectedModels[_name] = this;
 
-    _rm = _inject.getReactive();
+    _rm ??= _inject.getReactive();
+    _isRegistered = _rm != null;
+
     if (_undoStackLength != null) {
       _rm.undoStackLength = _undoStackLength;
     }
-    _onInitialized?.call(_inject.getSingleton());
+
     if (_autoDisposeWhenNotUsed ?? true) {
       _rm.cleaner(dispose);
     }
@@ -82,11 +86,106 @@ abstract class Injected<T> {
       return true;
     }());
 
+    //
+    assert(() {
+      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+        StatesRebuilerLogger.log(
+          '$_debugPrintWhenNotifiedPreMessage'
+          '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
+          '(initialized) $this',
+        );
+      }
+      return true;
+    }());
+    return _rm;
+  }
+
+  //used internally so not to call state and _resolveInject (as in toString)
+  T _state;
+
+  ///The state of the model.
+  T get state {
+    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
+      assert(
+        !_dependsOn.contains(Injected._activeInjected),
+        '$runtimeType depends on ${Injected._activeInjected.runtimeType} and '
+        '${Injected._activeInjected.runtimeType} depends on $runtimeType',
+      );
+      _numberODependence++;
+    }
+    _resolveInject();
+    _state = _inject.getSingleton();
+    return _state;
+  }
+
+  set state(T s) {
+    if (_rm == null) {
+      state;
+    }
+    _rm?.state = s;
+  }
+
+  ///Get the async state of the model.
+  Future<T> get stateAsync {
+    state;
+    return _rm.stateAsync;
+  }
+
+  ///The latest error object received by the asynchronous computation.
+  dynamic get error => _rm?.error;
+
+  ///Returns whether this state is in the hasDate state.
+  bool get hasData => _rm?.hasData == true;
+
+  ///Returns whether this state is in the error state.
+  bool get hasError => _rm?.hasError == true;
+
+  ///Returns whether this state is in the waiting state.
+  bool get isWaiting => _rm?.isWaiting == true;
+
+  Inject<T> _getInject();
+  static Injected _activeInjected;
+  void _resolveInject() {
+    if (_inject != null) {
+      return;
+    }
+
+    _dependsOn.clear();
+
+    final cashedInjected = Injected._activeInjected;
+    Injected._activeInjected = this;
+    try {
+      final inj = _getInject();
+      Injected._activeInjected = cashedInjected;
+      _clearDependence = _dependsOn.isEmpty
+          ? null
+          : () {
+              for (var depend in _dependsOn) {
+                depend._numberODependence--;
+                if (depend._rm?.hasObservers != true &&
+                    depend._numberODependence < 1) {
+                  depend.dispose();
+                }
+              }
+            };
+      _inject = inj;
+      _inject.isGlobal = true;
+      _registerSideEffects();
+      _onInitialized?.call(_inject.getSingleton());
+    } catch (e) {
+      Injected._activeInjected = cashedInjected;
+      rethrow;
+    }
+  }
+
+  void _registerSideEffects([ReactiveModel<T> reactiveModel]) {
     if (_hasSideEffect) {
-      (_rm as ReactiveModelInternal).listenToRMInternal(
+      _rm ??= reactiveModel ??= _inject.getReactive();
+      (reactiveModel as ReactiveModelInternal).listenToRMInternal(
         (rm) {
-          final Injected<T> injected =
+          Injected<T> injected =
               _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+          injected ??= this;
           rm.whenConnectionState<void>(
             onIdle: () => null,
             onWaiting: () => injected._onWaiting?.call(),
@@ -110,8 +209,9 @@ abstract class Injected<T> {
         listenToOnDataOnly: false,
       );
     }
-
     if (_persist != null) {
+      _rm ??= reactiveModel ??= _inject.getReactive();
+
       if (_initialStoredState != null) {
         _rm.resetToHasData(_initialStoredState);
       }
@@ -120,91 +220,6 @@ abstract class Injected<T> {
           _persist.write(rm.state);
         });
       }
-    }
-
-    //
-    assert(() {
-      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        StatesRebuilerLogger.log(
-          '$_debugPrintWhenNotifiedPreMessage'
-          '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-          '(initialized) $this',
-        );
-      }
-      return true;
-    }());
-
-    return _rm;
-  }
-
-  //used internally so not to call state and _resolveInject (as in toString)
-  T _state;
-
-  ///The state of the model.
-  T get state {
-    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
-      assert(
-        !_dependsOn.contains(Injected._activeInjected),
-        '$runtimeType depends on ${Injected._activeInjected.runtimeType} and '
-        '${Injected._activeInjected.runtimeType} depends on $runtimeType',
-      );
-      _numberODependence++;
-    }
-    return null;
-  }
-
-  set state(T s) {
-    final r = _hasSideEffect ? getRM : _rm;
-    r?.state = s;
-  }
-
-  ///Get the async state of the model.
-  Future<T> get stateAsync {
-    state;
-    return _stateRM.stateAsync;
-  }
-
-  ///The latest error object received by the asynchronous computation.
-  dynamic get error => _rm?.error;
-
-  ///Returns whether this state is in the hasDate state.
-  bool get hasData => _rm?.hasData == true;
-
-  ///Returns whether this state is in the error state.
-  bool get hasError => _rm?.hasError == true;
-
-  ///Returns whether this state is in the waiting state.
-  bool get isWaiting => _rm?.isWaiting == true;
-
-  Inject<T> _getInject();
-  static Injected _activeInjected;
-  void _resolveInject() {
-    if (_inject != null) {
-      return;
-    }
-    _functionalInjectedModels[_name] = this;
-    _dependsOn.clear();
-
-    final cashedInjected = Injected._activeInjected;
-    Injected._activeInjected = this;
-    try {
-      final inj = _getInject();
-      Injected._activeInjected = cashedInjected;
-      _clearDependence = _dependsOn.isEmpty
-          ? null
-          : () {
-              for (var depend in _dependsOn) {
-                depend._numberODependence--;
-                if (depend._rm?.hasObservers != true &&
-                    depend._numberODependence < 1) {
-                  depend.dispose();
-                }
-              }
-            };
-      _inject = inj;
-    } catch (e) {
-      Injected._activeInjected = cashedInjected;
-      rethrow;
     }
   }
 
@@ -229,6 +244,7 @@ abstract class Injected<T> {
     _clearDependence?.call();
     _rm = null;
     _inject = null;
+    _isRegistered = false;
     if (_cashedMockCreationFunction != null) {
       _creationFunction = _cashedMockCreationFunction;
     }
@@ -247,12 +263,13 @@ abstract class Injected<T> {
     _functionalInjectedModels[_name] = to;
     _rm = null;
     _inject = null;
+    _isRegistered = false;
     _dependsOn.clear();
   }
 
   ///Manually dispose the model(unregister it).
   void dispose() {
-    _unregisterFunctionalInjectedModel(_name);
+    _unregisterFunctionalInjectedModel(this);
   }
 
   ///Inject a fake implementation of this injected model.
@@ -338,9 +355,10 @@ abstract class Injected<T> {
     List<dynamic> seeds,
     BuildContext context,
   }) {
-    final r = _hasSideEffect ? getRM : _rm;
-
-    return r?.setState(
+    if (_rm == null) {
+      state;
+    }
+    return _rm?.setState(
       fn,
       onData: onData,
       onError: onError,
@@ -818,18 +836,18 @@ Map<String, Injected<dynamic>> get functionalInjectedModels =>
 void cleanInjector() {
   Map<String, Injected<dynamic>>.from(_functionalInjectedModels).forEach(
     (key, injected) {
-      _unregisterFunctionalInjectedModel(injected._name);
+      _unregisterFunctionalInjectedModel(injected);
     },
   );
   assert(_functionalInjectedModels.isEmpty);
 }
 
-void _unregisterFunctionalInjectedModel(String name) {
-  if (name == null) {
-    return;
-  }
+void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
+  // if (name == null) {
+  //   return;
+  // }
 
-  Injected<dynamic> injected = _functionalInjectedModels.remove(name);
+  _functionalInjectedModels.remove(injected._name);
   if (injected?._inject == null) {
     return;
   }

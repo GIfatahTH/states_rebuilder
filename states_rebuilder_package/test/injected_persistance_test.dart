@@ -10,6 +10,8 @@ final counter = RM.inject(
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
   ),
+  onInitialized: (_) => print('onInitialized'),
+  onDisposed: (_) => print('onDisposed'),
 );
 
 class App extends StatelessWidget {
@@ -25,7 +27,6 @@ class App extends StatelessWidget {
 
 class PersistStoreMockImp extends IPersistStore {
   Map<dynamic, dynamic> store;
-
   @override
   Future<void> init() {
     store = {};
@@ -82,5 +83,14 @@ void main() {
     counter.deleteAllPersistState();
     await tester.pump();
     expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
+  });
+
+  testWidgets('Persist before calling getRM', (tester) async {
+    final store = await RM.localStorageInitializerMock();
+    store.addAll({'counter': '10'});
+    expect(counter.state, 10);
+    counter.state++;
+    expect(store, {'counter': '11'});
+    counter.getRM;
   });
 }
