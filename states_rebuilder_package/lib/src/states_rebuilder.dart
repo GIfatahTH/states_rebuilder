@@ -71,6 +71,7 @@ class StatesRebuilder<T> implements Subject {
   void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
     assert(
       () {
+        print(_observersMap);
         if (_observersMap[tag] == null) {
           throw Exception(
             '''

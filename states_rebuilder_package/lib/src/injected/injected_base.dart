@@ -44,6 +44,7 @@ abstract class Injected<T> {
 
   ReactiveModel<T> _rm;
   bool _isRegistered = false;
+  bool _persistHasError = false;
 
   ///Get the [ReactiveModel] associated with the injected model
   ReactiveModel<T> get getRM => _stateRM;
@@ -88,21 +89,6 @@ abstract class Injected<T> {
       return true;
     }());
 
-    if (_persist != null) {
-      if (_initialStoredState != null) {
-        _rm.resetToHasData(_initialStoredState);
-      }
-      if (_persist.persistOn == null) {
-        final disposer = (_rm as ReactiveModelInternal<T>).listenToRMInternal(
-          (rm) {
-            _persist.write(rm.state);
-          },
-          debugListener: 'PERSISTANCE',
-        );
-        _rm.cleaner(disposer);
-      }
-    }
-
     //
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
@@ -139,6 +125,7 @@ abstract class Injected<T> {
   set state(T s) {
     _oldState = state;
 
+    assert(_rm != null);
     _rm?.state = s;
   }
 
@@ -185,7 +172,6 @@ abstract class Injected<T> {
                 }
               }
             };
-      print('_inject _inject _inject _inject _inject');
       _inject = inj;
       _inject.isGlobal = true;
       _registerSideEffects();
@@ -197,10 +183,7 @@ abstract class Injected<T> {
   }
 
   void _registerSideEffects([ReactiveModel<T> reactiveModel]) {
-    print('_registerSideEffects _registerSideEffects _registerSideEffects');
     if (_hasSideEffect) {
-      print('_hasSideEffect _hasSideEffect _hasSideEffect');
-
       _rm ??= reactiveModel ??= _inject.getReactive();
       final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
         (rm) {
@@ -231,6 +214,23 @@ abstract class Injected<T> {
         debugListener: 'SIDE_EFFECT',
       );
       _rm.cleaner(disposer);
+    }
+
+    if (_persist != null) {
+      _rm ??= reactiveModel ??= _inject.getReactive();
+
+      if (_initialStoredState != null) {
+        _rm.resetToHasData(_initialStoredState);
+      }
+      if (_persist.persistOn == null) {
+        final disposer = (_rm as ReactiveModelInternal<T>).listenToRMInternal(
+          (rm) async {
+            await persistState(rm);
+          },
+          debugListener: 'PERSISTANCE',
+        );
+        _rm.cleaner(disposer);
+      }
     }
   }
 
@@ -368,6 +368,7 @@ abstract class Injected<T> {
     BuildContext context,
   }) {
     _oldState = state;
+    assert(silent || _rm != null);
     return _rm?.setState(
       fn,
       onData: onData,
@@ -397,6 +398,21 @@ abstract class Injected<T> {
   Future<T> refresh() async {
     _onDisposed?.call(_state);
     _initialStoredState = null;
+    if ((_rm as ReactiveModelInternal)?.inheritedInjected?.isNotEmpty == true) {
+      for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
+        print((_rm as ReactiveModelInternal).inheritedInjected.length);
+        inj.getRM;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) {
+            inj.refresh();
+          },
+        );
+        // Future.microtask(() {
+        //   return
+        // });
+      }
+      return null;
+    }
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
@@ -427,7 +443,40 @@ abstract class Injected<T> {
   void clearUndoStack() => _rm?.clearUndoStack();
 
   ///Save the current state to localStorage.
-  void persistState() => _persist?.write(state);
+  Future<void> persistState([ReactiveModel reactiveModel]) async {
+    final rm = reactiveModel ?? _rm;
+    if (_rm == null) {
+      return;
+    }
+    Injected<T> injected =
+        _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+    injected ??= this;
+    final oldState = _oldState;
+    try {
+      if (!injected._persistHasError) {
+        await injected._persist.write(rm.state);
+      }
+    } catch (e) {
+      injected._persistHasError = true;
+      // rm.state = oldState;
+      // rm.resetToHasError(e);
+      // // rm.notify();
+      rm.setState(
+        (s) => oldState,
+        onData: (_, __) => rm.hasError
+            ? rm.setState(
+                (s) => throw e,
+                catchError: true,
+              )
+            : null,
+      );
+      injected._persistHasError = false;
+      // rethrow;
+      if (e is! _PersistenceException) {
+        rethrow;
+      }
+    }
+  }
 
   ///Delete the saved instance of this state form localStorage.
   void deletePersistState() => _persist?.delete();
@@ -487,7 +536,7 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, __) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, rm) => builder(),
@@ -547,7 +596,7 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, __) {
@@ -636,7 +685,7 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, __) {
@@ -821,11 +870,65 @@ abstract class Injected<T> {
     );
   }
 
+  Widget reInherited({
+    Key key,
+    Injected<T> Function() injected,
+    Widget Function(BuildContext) builder,
+    bool connectWithGlobal = false,
+    String debugPrintWhenNotifiedPreMessage,
+  }) {
+    return _InheritedState(
+      key: key,
+      builder: (context) => builder(context),
+      globalInjected: this,
+      reInheritedInjected: injected,
+      connectWithGlobal: connectWithGlobal,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+  }
+
+  Widget inherited({
+    Key key,
+    T Function() state,
+    Widget Function(BuildContext) builder,
+    bool connectWithGlobal = false,
+    String debugPrintWhenNotifiedPreMessage,
+  }) {
+    return _InheritedState(
+      key: key,
+      builder: (context) => builder(context),
+      globalInjected: this,
+      state: state,
+      connectWithGlobal: connectWithGlobal,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+  }
+
+  Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
+    final _InheritedInjected<T> _inheritedInjected = context
+        .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
+        ?.widget;
+    if (_inheritedInjected != null) {
+      if (_inheritedInjected.globalInjected == this) {
+        return _inheritedInjected.injected;
+      } else {
+        return call(_inheritedInjected.context);
+      }
+    }
+    if (defaultToGlobal) {
+      return this;
+    }
+    return null;
+  }
+
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _cachedHash;
   final int _cachedHash = _nextHashCode = (_nextHashCode + 1) % 0xffffff;
   static int _nextHashCode = 1;
+
+  @override
+  bool operator ==(o) => o.hashCode == hashCode;
 
   @override
   String toString() {

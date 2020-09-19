@@ -15,7 +15,7 @@ class ReactiveModelImp<T> extends ReactiveModelInternal<T> {
     cleaner(unsubscribe, true);
     unsubscribe();
     setState(
-      (s) => (inject as InjectImp).creationFunction(),
+      (s) => (inject as InjectImp)?.creationFunction(),
       silent: true,
     );
     onInitRefresh?.call();

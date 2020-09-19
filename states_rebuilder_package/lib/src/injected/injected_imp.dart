@@ -43,6 +43,7 @@ class InjectedImp<T> extends Injected<T> {
       () => _creationFunction() as T,
       name: _name,
       isLazy: false,
+      joinSingleton: JoinSingleton.withCombinedReactiveInstances,
     );
   }
 }

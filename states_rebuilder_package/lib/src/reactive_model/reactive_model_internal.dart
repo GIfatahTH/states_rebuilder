@@ -36,4 +36,6 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   ///Used in WhenRebuilder, WhenRebuilderOr and didUpdateWidget of
   ///StateRebuilderListX.
   List<ReactiveModel<dynamic>> activeRM;
+
+  final List<Injected<dynamic>> inheritedInjected = [];
 }
