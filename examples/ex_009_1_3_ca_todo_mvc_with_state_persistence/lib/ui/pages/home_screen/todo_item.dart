@@ -30,7 +30,7 @@ class TodoItem extends StatelessWidget {
             onTap: () async {
               final shouldDelete = await RM.navigate.to(
                 injectedTodo.reInherited(
-                  injected: () => todo,
+                  context: context,
                   builder: (context) => DetailScreen(),
                 ),
               );
@@ -70,7 +70,7 @@ class TodoItem extends StatelessWidget {
 
     RM.scaffoldShow.snackBar(
       SnackBar(
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
         content: Text(
           i18n.state.todoDeleted(todo.task),
           maxLines: 1,

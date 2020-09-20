@@ -7,13 +7,14 @@ import '../../common/localization/localization.dart';
 import '../../pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'extra_actions_button.dart';
 import 'filter_button.dart';
+import 'languages.dart';
 import 'stats_counter.dart';
 import 'todo_list.dart';
 
 class HomeScreen extends StatelessWidget {
   static String routeName = '/';
 
-  HomeScreen({Key key}) : super(key: key);
+  const HomeScreen({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,24 +22,26 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(i18n.state.appTitle),
         actions: [
-          FilterButton(),
-          ExtraActionsButton(),
+          const FilterButton(),
+          const ExtraActionsButton(),
+          const Languages(),
         ],
       ),
       body: todos.whenRebuilderOr(
-        key: Key('WhenRebuilderOr Home screen'),
-        onWaiting: () => Center(
-          child: CircularProgressIndicator(),
+        onWaiting: () => const Center(
+          child: const CircularProgressIndicator(),
         ),
         builder: () => activeTab.rebuilder(
-          () => activeTab.state == AppTab.todos ? TodoList() : StatsCounter(),
+          () => activeTab.state == AppTab.todos
+              ? const TodoList()
+              : const StatsCounter(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           RM.navigate.toNamed(AddEditPage.routeName);
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         tooltip: i18n.state.addTodo,
       ),
       bottomNavigationBar: activeTab.rebuilder(
@@ -47,20 +50,17 @@ class HomeScreen extends StatelessWidget {
           onTap: (index) {
             activeTab.state = AppTab.values[index];
           },
-          items: AppTab.values.map(
-            (tab) {
-              return BottomNavigationBarItem(
-                icon: Icon(
-                  tab == AppTab.todos ? Icons.list : Icons.show_chart,
-                ),
-                title: Text(
-                  tab == AppTab.stats ? i18n.state.stats : i18n.state.todos,
-                ),
-              );
-            },
-          ).toList(),
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list_alt_outlined),
+              title: Text(i18n.state.stats),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.show_chart),
+              title: Text(i18n.state.todos),
+            ),
+          ],
         ),
-        key: Key('StateBuilder AppTab'),
       ),
     );
   }

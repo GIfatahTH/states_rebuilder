@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:todos_app_core/todos_app_core.dart';
 
 import '../../../domain/entities/todo.dart';
 import '../../../injected.dart';
@@ -17,9 +16,9 @@ import '../../common/localization/localization.dart';
 class AddEditPage extends StatefulWidget {
   static String routeName = '/addEditPage';
 
-  AddEditPage({
+  const AddEditPage({
     Key key,
-  }) : super(key: key ?? ArchSampleKeys.addTodoScreen);
+  }) : super(key: key);
 
   @override
   _AddEditPageState createState() => _AddEditPageState();
@@ -51,7 +50,6 @@ class _AddEditPageState extends State<AddEditPage> {
             children: [
               TextFormField(
                 initialValue: todo != null ? todo.state.task : '',
-                key: ArchSampleKeys.taskField,
                 autofocus: isEditing ? false : true,
                 style: Theme.of(context).textTheme.headline5,
                 decoration: InputDecoration(hintText: i18n.state.newTodoHint),
@@ -61,7 +59,6 @@ class _AddEditPageState extends State<AddEditPage> {
               ),
               TextFormField(
                 initialValue: todo != null ? todo.state.note : '',
-                key: ArchSampleKeys.noteField,
                 maxLines: 10,
                 style: Theme.of(context).textTheme.subtitle1,
                 decoration: InputDecoration(
@@ -74,8 +71,6 @@ class _AddEditPageState extends State<AddEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        key:
-            isEditing ? ArchSampleKeys.saveTodoFab : ArchSampleKeys.saveNewTodo,
         tooltip: isEditing ? i18n.state.saveChanges : i18n.state.addTodo,
         child: Icon(isEditing ? Icons.check : Icons.add),
         onPressed: () {

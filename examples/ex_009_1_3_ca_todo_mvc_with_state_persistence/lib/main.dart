@@ -1,3 +1,4 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/common/localization/languages/language_base.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -13,7 +14,16 @@ void main() async {
 
   await RM.localStorageInitializer(SharedPreferencesImp());
 
-  runApp(App());
+  runApp(
+    StateWithMixinBuilder.widgetsBindingObserver(
+      didChangeLocales: (context, locales) {
+        if (locale.state.languageCode == 'und') {
+          locale.state = locales.first;
+        }
+      },
+      builder: (_, __) => App(),
+    ),
+  );
 }
 
 class App extends StatelessWidget {
@@ -28,14 +38,15 @@ class App extends StatelessWidget {
         return MaterialApp(
           title: i18n.state.appTitle,
           theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
-          locale: locale.state,
+          locale: locale.state.languageCode == 'und' ? null : locale.state,
+          supportedLocales: I18N.supportedLocale,
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
           routes: {
-            AddEditPage.routeName: (context) => AddEditPage(),
-            HomeScreen.routeName: (context) => HomeScreen(),
+            AddEditPage.routeName: (context) => const AddEditPage(),
+            HomeScreen.routeName: (context) => const HomeScreen(),
           },
           navigatorKey: RM.navigate.navigatorKey,
         );

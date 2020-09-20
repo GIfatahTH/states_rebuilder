@@ -1,18 +1,19 @@
 import 'dart:ui';
 
-import 'package:states_rebuilder/states_rebuilder.dart';
+import 'ar.dart';
+import 'en_us.dart';
 
 abstract class I18N {
   static Map<Locale, I18N> _supportedLanguage = {
-    Locale.fromSubtags(languageCode: 'en'): EN_US(),
+    Locale.fromSubtags(languageCode: 'en'): EN(),
+    Locale.fromSubtags(languageCode: 'ar'): AR(),
   };
 
   static List<Locale> get supportedLocale => _supportedLanguage.keys.toList();
 
-  static I18N getLanguages(Locale locale) =>
-      _supportedLanguage[locale] ?? EN_US();
+  static I18N getLanguages(Locale locale) => _supportedLanguage[locale] ?? EN();
 
-  String get appTitle => 'States_rebuilder Example';
+  String appTitle = 'States_rebuilder Example';
   String todos = 'Todos';
 
   String stats = 'Stats';
@@ -63,6 +64,6 @@ abstract class I18N {
 
   String switchToDarkMode = 'switch to dark mode';
   String switchToLightMode = 'switch to light mode';
-}
 
-class EN_US extends I18N {}
+  String systemLanguage = 'System language';
+}

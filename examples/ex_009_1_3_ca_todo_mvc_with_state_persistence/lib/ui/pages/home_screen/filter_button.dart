@@ -29,11 +29,10 @@ class FilterButton extends StatelessWidget {
         final _isActive = activeTab.state == AppTab.todos;
         return AnimatedOpacity(
           opacity: _isActive ? 1.0 : 0.0,
-          duration: Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 150),
           child: _isActive ? button : IgnorePointer(child: button),
         );
       },
-      key: Key('StateBuilder filter_button1'),
     );
   }
 }
@@ -88,7 +87,7 @@ class _Button extends StatelessWidget {
               ),
             ),
           ],
-          icon: Icon(Icons.filter_list),
+          icon: const Icon(Icons.filter_list),
         );
       },
     );

@@ -5,19 +5,23 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'languages/language_base.dart';
 
-final locale = RM.inject(
+final locale = RM.inject<Locale>(
   () => Locale.fromSubtags(languageCode: 'en'),
-  onData: (_) => i18n.refresh(),
+  onData: (_) {
+    return i18n.refresh();
+  },
   persist: PersistState(
     key: '__localization__',
-    fromJson: (String json) => json == 'und'
-        ? WidgetsBinding.instance.window.locales.first
-        : Locale.fromSubtags(languageCode: json),
+    fromJson: (String json) => Locale.fromSubtags(languageCode: json),
     toJson: (locale) =>
         I18N.supportedLocale.contains(locale) ? locale.languageCode : 'und',
+    debugPrintOperations: true,
   ),
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final Injected<I18N> i18n = RM.inject(
-  () => I18N.getLanguages(locale.state),
+  () {
+    return I18N.getLanguages(locale.state);
+  },
 );

@@ -1,4 +1,3 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/common/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -6,17 +5,21 @@ import '../../../injected.dart';
 import '../../../service/todos_state.dart';
 import '../../common/enums.dart';
 import '../../common/localization/localization.dart';
-import '../../exceptions/error_handler.dart';
+import '../../common/theme/theme.dart';
+
+final _extraAction = RM.inject(
+  () => ExtraAction.clearCompleted,
+);
 
 class ExtraActionsButton extends StatelessWidget {
-  ExtraActionsButton({Key key}) : super(key: key);
-  final extraAction = RM.inject(() => ExtraAction.clearCompleted);
+  const ExtraActionsButton({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return extraAction.rebuilder(() {
+    return _extraAction.rebuilder(() {
       return PopupMenuButton<ExtraAction>(
         onSelected: (action) {
-          extraAction.state = action;
+          _extraAction.state = action;
 
           if (action == ExtraAction.toggleDarkMode) {
             isDarkMode.state = !isDarkMode.state;

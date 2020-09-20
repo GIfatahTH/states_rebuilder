@@ -2,14 +2,12 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-import '../../../service/todos_state.dart';
-import '../../common/localization/localization.dart';
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../injected.dart';
 import '../../../ui/pages/add_edit_screen.dart/add_edit_screen.dart';
+import '../../common/localization/localization.dart';
 
 class DetailScreen extends StatelessWidget {
   DetailScreen();
@@ -31,7 +29,7 @@ class DetailScreen extends StatelessWidget {
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
             todo.rebuilder(
@@ -77,19 +75,15 @@ class DetailScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: Builder(
-        builder: (context) {
-          return FloatingActionButton(
-            tooltip: i18n.state.editTodo,
-            child: Icon(Icons.edit),
-            onPressed: () async {
-              await RM.navigate.to(
-                injectedTodo.reInherited(
-                  injected: () => todo,
-                  builder: (context) => AddEditPage(),
-                ),
-              );
-            },
+      floatingActionButton: FloatingActionButton(
+        tooltip: i18n.state.editTodo,
+        child: const Icon(Icons.edit),
+        onPressed: () {
+          RM.navigate.to(
+            injectedTodo.reInherited(
+              context: context,
+              builder: (context) => AddEditPage(),
+            ),
           );
         },
       ),
