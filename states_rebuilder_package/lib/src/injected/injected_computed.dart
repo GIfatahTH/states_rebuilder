@@ -82,61 +82,83 @@ class InjectedComputed<T> extends Injected<T> {
       return rm;
     }
     _isRegisteredComputed = true;
-    if (_asyncDependsOn != null || _dependsOn.isNotEmpty) {
-      for (var depend in _asyncDependsOn ?? _dependsOn) {
-        final reactiveModel = depend._stateRM;
-        //Initial status for the computed
-        if (rm.hasData || rm.isIdle) {
-          if (reactiveModel.isWaiting) {
-            rm.resetToIsWaiting();
-          } else if (reactiveModel.hasError) {
-            rm.resetToHasError(reactiveModel.error);
-          }
+    _resolveDependencies(rm, (inj) => inj._stateRM);
+    return rm;
+  }
+
+  @override
+  T get state {
+    final s = super.state;
+    if (_isRegisteredComputed) {
+      return s;
+    }
+    _isRegisteredComputed = true;
+    _resolveDependencies(
+      _setReactiveModel(),
+      (inj) => inj._setReactiveModel(),
+    );
+    return s;
+  }
+
+  void _resolveDependencies(
+      ReactiveModel computedRM, ReactiveModel Function(Injected) getRM) {
+    if (_asyncDependsOn == null && _dependsOn.isEmpty) {
+      return;
+    }
+
+    for (var depend in _asyncDependsOn ?? _dependsOn) {
+      final reactiveModel = getRM(depend);
+      //Initial status for the computed
+      if (computedRM.hasData || computedRM.isIdle) {
+        if (reactiveModel.isWaiting) {
+          computedRM.resetToIsWaiting();
+        } else if (reactiveModel.hasError) {
+          computedRM.resetToHasError(reactiveModel.error);
         }
-        Disposer disposer;
-        disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
-          (_) {
-            // final Injected<T> injected =
-            //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+      }
+      Disposer disposer;
+      disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
+        (_) {
+          // final Injected<T> injected =
+          //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
 
-            final injected = this;
-            if (injected == null) {
-              disposer();
-              return;
-            }
-            ReactiveModel errorRM;
-            for (var depend in injected._dependsOn) {
-              final r = depend._stateRM;
-              r.whenConnectionState(
-                onIdle: null,
-                onWaiting: null,
-                onData: null,
-                onError: (dynamic e) => errorRM = r,
-                catchError: r.hasError,
-              );
-              if (r.isWaiting) {
-                rm
-                  ..resetToIsWaiting()
-                  ..notify();
-                return;
-              }
-            }
-
-            if (errorRM != null) {
-              rm
-                ..resetToHasError(errorRM.error)
+          final injected = this;
+          if (injected == null) {
+            disposer();
+            return;
+          }
+          ReactiveModel errorRM;
+          for (var depend in injected._dependsOn) {
+            final r = depend._stateRM;
+            r.whenConnectionState(
+              onIdle: null,
+              onWaiting: null,
+              onData: null,
+              onError: (dynamic e) => errorRM = r,
+              catchError: r.hasError,
+            );
+            if (r.isWaiting) {
+              computedRM
+                ..resetToIsWaiting()
                 ..notify();
               return;
             }
-            rm.refresh();
-          },
-          listenToOnDataOnly: false,
-          isInjectedModel: true,
-          debugListener: 'COMPUTED',
-        );
-        reactiveModel.cleaner(disposer);
-        rm.cleaner(disposer);
-      }
+          }
+
+          if (errorRM != null) {
+            computedRM
+              ..resetToHasError(errorRM.error)
+              ..notify();
+            return;
+          }
+          computedRM.refresh();
+        },
+        listenToOnDataOnly: false,
+        isInjectedModel: true,
+        debugListener: 'COMPUTED',
+      );
+      reactiveModel.cleaner(disposer);
+      computedRM.cleaner(disposer);
     }
 
     _clearDependence ??= (_asyncDependsOn ?? _dependsOn).isEmpty
@@ -150,8 +172,6 @@ class InjectedComputed<T> extends Injected<T> {
               }
             }
           };
-
-    return rm;
   }
 
   @override

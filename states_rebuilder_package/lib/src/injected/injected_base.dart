@@ -1,7 +1,7 @@
 part of '../injected.dart';
 
 ///Basic class for injected models
-abstract class Injected<T> {
+abstract class Injected<T> extends InjectedBaseCommon<T> {
   Function() _creationFunction;
   final bool _autoDisposeWhenNotUsed;
   final void Function(T s) _onData;
@@ -10,14 +10,12 @@ abstract class Injected<T> {
 
   final void Function(T s) _onInitialized;
   final void Function(T s) _onDisposed;
+
   final int _undoStackLength;
   final String _debugPrintWhenNotifiedPreMessage;
-  bool _hasSideEffect;
-  String _name;
-  Inject<T> _inject;
-  dynamic Function() _cashedMockCreationFunction;
-  PersistState<T> _persist;
-  T _initialStoredState;
+
+  final bool _hasSideEffect;
+  final PersistState<T> _persist;
 
   ///Basic class for injected models
   Injected({
@@ -42,9 +40,16 @@ abstract class Injected<T> {
         _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
   final Set<Injected> _dependsOn = {};
 
-  ReactiveModel<T> _rm;
+  String _name;
+
+  dynamic Function() _cashedMockCreationFunction;
+  T _initialStoredState;
+
   bool _isRegistered = false;
   bool _persistHasError = false;
+  //used internally so not to call state and _resolveInject (as in toString)
+
+  T _oldState;
 
   ///Get the [ReactiveModel] associated with the injected model
   ReactiveModel<T> get getRM => _stateRM;
@@ -58,7 +63,8 @@ abstract class Injected<T> {
     _resolveInject();
     _functionalInjectedModels[_name] = this;
 
-    _rm ??= _inject.getReactive();
+    _setReactiveModel();
+
     _isRegistered = _rm != null;
 
     if (_undoStackLength != null) {
@@ -103,10 +109,6 @@ abstract class Injected<T> {
     return _rm;
   }
 
-  //used internally so not to call state and _resolveInject (as in toString)
-  T _state;
-  T _oldState;
-
   ///The state of the model.
   T get state {
     if (Injected._activeInjected?._dependsOn?.add(this) == true) {
@@ -118,7 +120,7 @@ abstract class Injected<T> {
       _numberODependence++;
     }
     _resolveInject();
-    _state = _inject.getSingleton();
+    _setModelState();
     return _state;
   }
 
@@ -175,7 +177,7 @@ abstract class Injected<T> {
       _inject = inj;
       _inject.isGlobal = true;
       _registerSideEffects();
-      _onInitialized?.call(_inject.getSingleton());
+      _onInitialized?.call(_setModelState());
     } catch (e) {
       Injected._activeInjected = cashedInjected;
       rethrow;
@@ -184,30 +186,33 @@ abstract class Injected<T> {
 
   void _registerSideEffects([ReactiveModel<T> reactiveModel]) {
     if (_hasSideEffect) {
-      _rm ??= reactiveModel ??= _inject.getReactive();
+      _setReactiveModel(reactiveModel);
+
       final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
         (rm) {
-          // Injected<T> injected =
-          //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-          final injected = this;
+          // // Injected<T> injected =
+          // //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+          // final injected = this;
+          // final _onData = this._onData;
+          // final _onError = this._onError;
+          // final _onWaiting = this._onWaiting;
           rm.whenConnectionState<void>(
             onIdle: () => null,
-            onWaiting: () => injected._onWaiting?.call(),
+            onWaiting: () => _onWaiting?.call(),
             onData: (dynamic s) {
               if (!(rm as ReactiveModelInternal)
                   .setStateHasOnErrorCallback[0]) {
-                injected._onData?.call(s as T);
+                _onData?.call(s as T);
               }
             },
             onError: (dynamic e) {
               //if setState has error override this _onError
               if (!(rm as ReactiveModelInternal)
                   .setStateHasOnErrorCallback[1]) {
-                injected._onError
-                    ?.call(e, (rm as ReactiveModelInternal).stackTrace);
+                _onError?.call(e, (rm as ReactiveModelInternal).stackTrace);
               }
             },
-            catchError: injected._onError != null,
+            catchError: _onError != null,
           );
         },
         listenToOnDataOnly: false,
@@ -217,7 +222,7 @@ abstract class Injected<T> {
     }
 
     if (_persist != null) {
-      _rm ??= reactiveModel ??= _inject.getReactive();
+      _setReactiveModel(reactiveModel);
 
       if (_initialStoredState != null) {
         _rm.resetToHasData(_initialStoredState);
@@ -401,19 +406,16 @@ abstract class Injected<T> {
     if ((_rm as ReactiveModelInternal)?.inheritedInjected?.isNotEmpty == true) {
       for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
         print((_rm as ReactiveModelInternal).inheritedInjected.length);
-        inj.getRM;
+
         WidgetsBinding.instance.addPostFrameCallback(
           (_) {
             inj.refresh();
           },
         );
-        // Future.microtask(() {
-        //   return
-        // });
       }
       return null;
     }
-    return _rm?.refresh(
+    return _setReactiveModel(_rm)?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
   }
@@ -872,7 +874,7 @@ abstract class Injected<T> {
 
   Widget reInherited({
     Key key,
-    Injected<T> Function() injected,
+    BuildContext context,
     Widget Function(BuildContext) builder,
     bool connectWithGlobal = false,
     String debugPrintWhenNotifiedPreMessage,
@@ -881,7 +883,7 @@ abstract class Injected<T> {
       key: key,
       builder: (context) => builder(context),
       globalInjected: this,
-      reInheritedInjected: injected,
+      reInheritedInjected: () => call(context),
       connectWithGlobal: connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );

@@ -1451,18 +1451,6 @@ void main() {
     expect(counter4.state, 4);
     expect(functionalInjectedModels.length, 0);
   });
-  testWidgets('InjectedComputed not registered until getRM is called',
-      (tester) async {
-    final counter1 = RM.inject(() => 1);
-    final counter2 = RM.injectComputed(compute: (_) => 2 * counter1.state);
-    final counter3 = RM.injectComputed(compute: (_) => 3 * counter1.state);
-    final counter4 = RM.injectComputed(compute: (_) => 4 * counter1.state);
-    expect(counter1.state, 1);
-    expect(counter2.state, 2);
-    expect(counter3.state, 3);
-    expect(counter4.state, 4);
-    expect(functionalInjectedModels.length, 0);
-  });
 
   testWidgets('InjectedComputed not registered until getRM is called',
       (tester) async {
@@ -1475,6 +1463,16 @@ void main() {
     expect(counter3.state, 3);
     expect(counter4.state, 4);
     expect(functionalInjectedModels.length, 0);
+    counter1.getRM;
+    counter1.setState((s) => s + 1, silent: true);
+    await tester.pump();
+    await tester.pump();
+
+    expect(counter1.state, 2);
+    expect(counter2.state, 4);
+    expect(counter3.state, 6);
+    expect(counter4.state, 8);
+    counter1.dispose();
   });
 
   testWidgets('Injected without calling getRM, setState assert',
@@ -1496,7 +1494,7 @@ void main() {
     });
     expect(counter.state, 0);
     expect(functionalInjectedModels.length, 0);
-    counter.state++; //should assert
+    counter.state++;
     await tester.pump();
     expect(counter.state, 1);
     await tester.pump();
