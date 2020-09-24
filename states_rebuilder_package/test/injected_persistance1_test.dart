@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injected.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final counter = RM.inject(
+var counter = RM.inject(
   () => 0,
-  persist: PersistState(
+  persist: () => PersistState(
     key: 'counter',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
@@ -44,7 +44,7 @@ class PersistStoreMockImp extends IPersistStore {
   }
 
   @override
-  T read<T>(String key) {
+  Object read(String key) {
     throw Exception('Read Error');
   }
 
@@ -83,14 +83,5 @@ void main() {
     counter.deleteAllPersistState();
     await tester.pump();
     expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
-  });
-
-  testWidgets('Persist before calling getRM', (tester) async {
-    final store = await RM.localStorageInitializerMock();
-    store.addAll({'counter': '10'});
-    expect(counter.state, 10);
-    counter.state++;
-    expect(store, {'counter': '11'});
-    counter.getRM;
   });
 }

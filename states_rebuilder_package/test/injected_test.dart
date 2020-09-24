@@ -1480,11 +1480,8 @@ void main() {
     final counter = RM.inject(() => 0);
     expect(counter.state, 0);
     expect(functionalInjectedModels.length, 0);
-    expect(() => counter.state++, throwsAssertionError);
-    expect(() => counter.setState((s) => s + 1), throwsAssertionError);
+    expect(() => counter.setState((s) => s + 1), throwsException);
     counter.setState((s) => s + 1, silent: true);
-    await tester.pump();
-    expect(counter.state, 0);
     await tester.pump();
   });
 
