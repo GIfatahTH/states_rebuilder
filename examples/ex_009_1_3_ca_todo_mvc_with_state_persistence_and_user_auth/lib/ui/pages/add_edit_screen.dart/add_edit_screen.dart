@@ -49,7 +49,6 @@ class _AddEditPageState extends State<AddEditPage> {
           child: ListView(
             children: [
               TextFormField(
-                key: Key('__TaskField'),
                 initialValue: todo != null ? todo.state.task : '',
                 autofocus: isEditing ? false : true,
                 style: Theme.of(context).textTheme.headline5,
@@ -59,7 +58,6 @@ class _AddEditPageState extends State<AddEditPage> {
                 onSaved: (value) => _task = value,
               ),
               TextFormField(
-                key: Key('__NoteField'),
                 initialValue: todo != null ? todo.state.note : '',
                 maxLines: 10,
                 style: Theme.of(context).textTheme.subtitle1,

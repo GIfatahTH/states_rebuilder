@@ -10,8 +10,8 @@ import 'ui/exceptions/error_handler.dart';
 
 final Injected<List<Todo>> todos = RM.inject(
   () => [],
-  persist: PersistState(
-    key: '__Todos__2',
+  persist: () => PersistState(
+    key: '__Todos__',
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
     onPersistError: (e, s) async {
@@ -19,6 +19,7 @@ final Injected<List<Todo>> todos = RM.inject(
     },
     // debugPrintOperations: true,
   ),
+  undoStackLength: 1,
   // debugPrintWhenNotifiedPreMessage: 'todos',
 );
 

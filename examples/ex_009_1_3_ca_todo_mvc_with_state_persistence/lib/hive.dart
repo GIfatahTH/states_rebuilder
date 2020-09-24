@@ -1,20 +1,21 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'service/exceptions/persistance_exception.dart';
 
-class SharedPreferencesImp implements IPersistStore {
-  SharedPreferences _sharedPreferences;
+class HiveImp implements IPersistStore {
+  Box box;
 
   @override
   Future<void> init() async {
-    _sharedPreferences = await SharedPreferences.getInstance();
+    await Hive.initFlutter();
+    box = await Hive.openBox('myBox');
   }
 
   @override
   Object read(String key) {
     try {
-      return _sharedPreferences.getString(key);
+      return box.get(key);
     } catch (e) {
       throw PersistanceException('There is a problem in loading todos: $e');
     }
@@ -25,7 +26,7 @@ class SharedPreferencesImp implements IPersistStore {
     try {
       // await Future.delayed(Duration(seconds: 3));
       // throw Exception('Error');
-      return _sharedPreferences.setString(key, value as String);
+      return box.put(key, value);
     } catch (e) {
       throw PersistanceException('There is a problem in saving todos: $e');
     }
@@ -33,11 +34,11 @@ class SharedPreferencesImp implements IPersistStore {
 
   @override
   Future<void> delete(String key) async {
-    return _sharedPreferences.remove(key);
+    return box.delete(key);
   }
 
   @override
-  Future<void> deleteAll() {
-    return _sharedPreferences.clear();
+  Future<void> deleteAll() async {
+    return box.clear();
   }
 }

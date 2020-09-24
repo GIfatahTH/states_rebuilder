@@ -79,7 +79,7 @@ class TodoItem extends StatelessWidget {
         action: SnackBarAction(
           label: i18n.state.undo,
           onPressed: () {
-            todos.undoState();
+            todos.setState((s) => s.addTodo(todo));
           },
         ),
       ),

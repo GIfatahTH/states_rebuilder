@@ -13,7 +13,6 @@ class Languages extends StatelessWidget {
       },
       itemBuilder: (BuildContext context) => <PopupMenuItem<Locale>>[
         PopupMenuItem<Locale>(
-          key: Key('__System_language__'),
           value: const Locale.fromSubtags(
             languageCode: 'und',
           ),
