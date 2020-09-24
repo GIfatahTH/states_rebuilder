@@ -152,6 +152,12 @@ class _SetState<T> {
   }
 
   void onErrorCallBack(dynamic e, StackTrace s) {
+    if (e is Error) {
+      //Only exception are allowed to be caught.
+      print(e);
+      print(s);
+      throw e;
+    }
     rm
       ..snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e)
       .._stackTrace = s;
