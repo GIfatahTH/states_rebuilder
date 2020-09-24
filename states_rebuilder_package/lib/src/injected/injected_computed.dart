@@ -38,10 +38,6 @@ class InjectedComputed<T> extends Injected<T> {
               computeAsync != null && asyncDependsOn != null,
           'When using `computeAsync` you have to define `asyncDependsOn``',
         ),
-        // assert(
-        //   asyncDependsOn != null,
-        //   'asyncDependsOn can not be null',
-        // ),
         super(
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
@@ -93,21 +89,18 @@ class InjectedComputed<T> extends Injected<T> {
       return s;
     }
     _isRegisteredComputed = true;
-    _resolveDependencies(
-      _setReactiveModel(),
-      (inj) => inj._setReactiveModel(),
-    );
+    _resolveDependencies(_rm);
     return s;
   }
 
-  void _resolveDependencies(
-      ReactiveModel computedRM, ReactiveModel Function(Injected) getRM) {
+  void _resolveDependencies(ReactiveModel computedRM,
+      [ReactiveModel Function(Injected) getRM]) {
     if (_asyncDependsOn == null && _dependsOn.isEmpty) {
       return;
     }
 
     for (var depend in _asyncDependsOn ?? _dependsOn) {
-      final reactiveModel = getRM(depend);
+      final reactiveModel = getRM?.call(depend) ?? depend._rm;
       //Initial status for the computed
       if (computedRM.hasData || computedRM.isIdle) {
         if (reactiveModel.isWaiting) {

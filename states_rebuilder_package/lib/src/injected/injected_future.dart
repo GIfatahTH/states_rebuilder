@@ -16,7 +16,7 @@ class InjectedFuture<T> extends Injected<T> {
     bool isLazy = true,
     T initialValue,
     int undoStackLength,
-    PersistState<T> persist,
+    PersistState<T> Function() persist,
     String debugPrintWhenNotifiedPreMessage,
   })  : _initialValue = initialValue,
         super(
@@ -46,11 +46,40 @@ class InjectedFuture<T> extends Injected<T> {
 
   @override
   Inject<T> _getInject() {
-    _initialStoredState = _persist?.read();
+    if (_persistCallback != null) {
+      _persist ??= _persistCallback();
+      final value = _persist.read();
+      if (value is Future) {
+        return Inject<T>.future(
+          () async {
+            var result = await value;
+
+            if (result is Function) {
+              result = await result();
+            }
+            if (result is Function) {
+              result = await result();
+            }
+
+            if (result != null) {
+              return _initialStoredState = result;
+            }
+
+            return _creationFunction() as T;
+          },
+          name: _name,
+          isLazy: false,
+        );
+      }
+      _initialStoredState = value;
+    }
+
     return Inject<T>.future(
-      () => _initialStoredState != null
-          ? Future.value(_initialStoredState)
-          : _creationFunction() as Future<T>,
+      () {
+        return _initialStoredState != null
+            ? Future.value(_initialStoredState)
+            : _creationFunction() as Future<T>;
+      },
       name: _name,
       initialValue: _initialValue,
       isLazy: false,
