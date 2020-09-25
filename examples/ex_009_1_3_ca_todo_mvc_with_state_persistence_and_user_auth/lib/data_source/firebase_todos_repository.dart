@@ -5,11 +5,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'constants.dart';
 
 class FireBaseTodosRepository implements IPersistStore {
-  final String userId;
   final String authToken;
 
   FireBaseTodosRepository({
-    @required this.userId,
     @required this.authToken,
   });
 
@@ -18,8 +16,7 @@ class FireBaseTodosRepository implements IPersistStore {
 
   @override
   Object read(String key) async {
-    final response =
-        await http.get('$baseUrl/$key/$userId.json?auth=$authToken');
+    final response = await http.get('$baseUrl/$key.json?auth=$authToken');
     if (response.statusCode > 400) {
       throw Exception();
     }
@@ -28,8 +25,8 @@ class FireBaseTodosRepository implements IPersistStore {
 
   @override
   Future<void> write<T>(String key, T value) async {
-    final response = await http
-        .put('$baseUrl/$key/$userId.json?auth=$authToken', body: value);
+    final response =
+        await http.put('$baseUrl/$key.json?auth=$authToken', body: value);
     if (response.statusCode >= 400) {
       throw Exception();
     }

@@ -1,20 +1,17 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_source/firebase_todos_repository.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/widgets/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import 'domain/entities/user.dart';
 import 'hive.dart';
 import 'injected.dart';
-import 'shared_preference.dart';
-import 'sqflite.dart';
 import 'ui/common/localization/languages/language_base.dart';
 import 'ui/common/localization/localization.dart';
 import 'ui/common/theme/theme.dart';
 import 'ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'ui/pages/auth_page/auth_page.dart';
 import 'ui/pages/home_screen/home_screen.dart';
+import 'ui/widgets/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

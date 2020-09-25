@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/injected.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -33,13 +34,16 @@ void main() async {
 
   testWidgets('Start with some stored todos', (tester) async {
     //pre populate the store with tree todos
-    storage.store.addAll({'__Todos__/user1': todos3});
+    storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
+    //await for 2 seconds (one for auto loggin and one for fetch todos)
+    await tester.pumpAndSettle(Duration(seconds: 2));
     expect(find.byType(TodoItem), findsNWidgets(3));
   });
 
   testWidgets('add todo', (tester) async {
     await tester.pumpWidget(App());
+    await tester.pumpAndSettle(Duration(seconds: 2));
     //No todos
     expect(find.byType(TodoItem), findsNothing);
     //Tap on FloatingActionButton to add a todo
@@ -61,16 +65,26 @@ void main() async {
     expect(find.byType(TodoItem), findsOneWidget);
     //
     //The add todo is persisted
-    expect(storage.store['__Todos__'].contains('"task":"Task 1"'), isTrue);
-    expect(storage.store['__Todos__'].contains('"note":"Note 1"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"task":"Task 1"'),
+        isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note 1"'),
+        isTrue);
   });
   testWidgets('Remove todo using a dismissible and undo', (tester) async {
     //pre populate the store with tree todos
-    storage.store.addAll({'__Todos__': todos3});
+    storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
+    await tester.pumpAndSettle(Duration(seconds: 2));
     //Start with three todos
     expect(find.byType(TodoItem), findsNWidgets(3));
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isTrue);
     //Dismiss the second todo
     await tester.drag(find.text('Note2'), Offset(-1000, 0));
     await tester.pumpAndSettle();
@@ -79,7 +93,10 @@ void main() async {
     expect(find.text('Note2'), findsNothing);
     expect(find.byType(TodoItem), findsNWidgets(2));
     //The new state is persisted
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isFalse);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isFalse);
     //A SnackBar is displayed with undo button
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
@@ -88,7 +105,10 @@ void main() async {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(find.byType(TodoItem), findsNWidgets(3));
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isTrue);
   });
 
   testWidgets(
@@ -96,12 +116,16 @@ void main() async {
     (tester) async {
       // storage.should
       //pre populate the store with tree one
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
 
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
       //Start with three todos
       expect(find.byType(TodoItem), findsNWidgets(3));
-      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      expect(
+          storage.store['__Todos__/${user.state.userId}']
+              .contains('"note":"Note2"'),
+          isTrue);
       //
       //Set the mocked store to throw PersistanceException after one seconds,
       //when writing to the store
@@ -115,7 +139,10 @@ void main() async {
       expect(find.text('Note2'), findsNothing);
       expect(find.byType(TodoItem), findsNWidgets(2));
       //The new state is persisted
-      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      expect(
+          storage.store['__Todos__/${user.state.userId}']
+              .contains('"note":"Note2"'),
+          isTrue);
       //A SnackBar is displayed with undo button
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Undo'), findsOneWidget);
@@ -134,8 +161,9 @@ void main() async {
   testWidgets(
     'should toggle a todo form home and from DetailScreen',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -180,8 +208,10 @@ void main() async {
   testWidgets(
     'should Remove a todo form  DetailScreen',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
+
       expect(find.byType(TodoItem), findsNWidgets(3));
 
       //to on the first todo to go to detailed page
@@ -204,8 +234,10 @@ void main() async {
   testWidgets(
     'should edit a todo',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
+
       expect(find.byType(TodoItem), findsNWidgets(3));
 
       //to on the first todo to go to detailed page
@@ -239,8 +271,9 @@ void main() async {
   testWidgets(
     'Show filter todos: all, active and completed todos',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -288,8 +321,9 @@ void main() async {
   testWidgets(
     'toggle all completed / uncompleted',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -326,8 +360,10 @@ void main() async {
   testWidgets(
     ' clear completed',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle(Duration(seconds: 2));
+
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,

@@ -19,14 +19,13 @@ import 'ui/exceptions/error_handler.dart';
 final Injected<List<Todo>> todos = RM.inject(
   () => [],
   persist: () => PersistState(
-    key: '__Todos__',
+    key: '__Todos__/${user.state.userId}',
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
-    onPersistError: (e, s) async {
+    onPersistError: (e, s) {
       ErrorHandler.showErrorSnackBar(e);
     },
     persistStateProvider: FireBaseTodosRepository(
-      userId: user.state.userId,
       authToken: user.state.token.token,
     ),
     debugPrintOperations: true,
