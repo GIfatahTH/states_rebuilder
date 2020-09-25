@@ -3,13 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injected.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final counter = RM.inject(
+var counter = RM.inject(
   () => 0,
-  persist: PersistState(
+  persist: () => PersistState(
     key: 'counter',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
   ),
+  onInitialized: (_) => print('onInitialized'),
+  onDisposed: (_) => print('onDisposed'),
 );
 
 class App extends StatelessWidget {
@@ -25,7 +27,6 @@ class App extends StatelessWidget {
 
 class PersistStoreMockImp extends IPersistStore {
   Map<dynamic, dynamic> store;
-
   @override
   Future<void> init() {
     store = {};
@@ -43,7 +44,7 @@ class PersistStoreMockImp extends IPersistStore {
   }
 
   @override
-  T read<T>(String key) {
+  Object read(String key) {
     throw Exception('Read Error');
   }
 

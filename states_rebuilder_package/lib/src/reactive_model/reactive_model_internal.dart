@@ -22,11 +22,13 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
     void Function(ReactiveModel<T> rm) fn, {
     bool listenToOnDataOnly = true,
     bool isInjectedModel = false,
+    String debugListener,
   }) =>
       _listenToRM(
         fn,
         listenToOnDataOnly: listenToOnDataOnly,
         isInjectedModel: isInjectedModel,
+        debugListener: debugListener,
       );
 
   ///set on exposing a reactive model in a widget listener
@@ -34,4 +36,6 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   ///Used in WhenRebuilder, WhenRebuilderOr and didUpdateWidget of
   ///StateRebuilderListX.
   List<ReactiveModel<dynamic>> activeRM;
+
+  final List<Injected<dynamic>> inheritedInjected = [];
 }

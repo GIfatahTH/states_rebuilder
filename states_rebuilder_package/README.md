@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 <p align="center">
-    <image src="../assets/Logo-Black.png" width="500" alt=''/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="600" alt=''/>
 </p>
 
 A Flutter state management combined with a dependency injection solution to get the best experience with state management. 

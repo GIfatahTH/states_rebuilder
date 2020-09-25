@@ -62,13 +62,6 @@ class InjectedInterface<T> extends Injected<T> {
   }
 
   @override
-  T get state {
-    super.state;
-    _state = getRM.state;
-    return _state;
-  }
-
-  @override
   void injectMock(T Function() creationFunction) {
     dispose();
     _creationFunction = creationFunction;

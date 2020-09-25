@@ -7,7 +7,8 @@ import 'package:states_rebuilder/src/injected.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
 final streamVanillaModel = RM.injectStream(
-  () => Stream.periodic(Duration(seconds: 1), (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
+  () => Stream.periodic(Duration(seconds: 1),
+      (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
   watch: (model) => model?.counter,
   initialValue: VanillaModel(0),
   isLazy: false,
@@ -134,7 +135,8 @@ void main() {
     },
   );
 
-  testWidgets('Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
+  testWidgets(
+      'Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
       (WidgetTester tester) async {
     int numberOfRebuild = 0;
     await tester.pumpWidget(
@@ -570,7 +572,8 @@ void main() {
     expect(counter2IsDisposed, true);
   });
 
-  testWidgets('autoDispose dependent injected model (do not dispose counter1)', (tester) async {
+  testWidgets('autoDispose dependent injected model (do not dispose counter1)',
+      (tester) async {
     bool counter1IsDisposed = false;
     bool counter2IsDisposed = false;
     bool counter3IsDisposed = false;
@@ -689,7 +692,8 @@ void main() {
     expect(find.text('20'), findsOneWidget);
   });
   group('description', () {
-    testWidgets('Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
+    testWidgets(
+        'Injector : should register Stream and Rebuild StateBuilder each time stream sends data with watch',
         (WidgetTester tester) async {
       streamVanillaModel.injectStreamMock(
         () => Stream.periodic(
@@ -701,7 +705,8 @@ void main() {
         streamVanillaModel.rebuilder(
           () {
             return Directionality(
-                textDirection: TextDirection.ltr, child: Text(streamVanillaModel.state.counter.toString()));
+                textDirection: TextDirection.ltr,
+                child: Text(streamVanillaModel.state.counter.toString()));
           },
         ),
       );
@@ -771,7 +776,9 @@ void main() {
     });
   });
 
-  testWidgets('injected model preserve state when when created inside a build method', (WidgetTester tester) async {
+  testWidgets(
+      'injected model preserve state when when created inside a build method',
+      (WidgetTester tester) async {
     final counter1 = RM.inject(() => 0);
     Injected<int> counter2;
     await tester.pumpWidget(
@@ -797,7 +804,8 @@ void main() {
                       counter2.whenRebuilder(
                         onIdle: () => Text('idle'),
                         onWaiting: () => Text('Waiting'),
-                        onData: () => Text('whenRebuilder counter2: ${counter2.state}'),
+                        onData: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
                         onError: (_) => Text('Error'),
                       )
                     ],
@@ -846,7 +854,8 @@ void main() {
     expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
   });
 
-  testWidgets('injected model preserve state (with whenRebuilderOr)', (WidgetTester tester) async {
+  testWidgets('injected model preserve state (with whenRebuilderOr)',
+      (WidgetTester tester) async {
     final counter1 = RM.inject(() => 0);
     Injected<int> counter2;
     await tester.pumpWidget(
@@ -868,7 +877,8 @@ void main() {
                       counter2.whenRebuilder(
                         onIdle: () => Text('idle'),
                         onWaiting: () => Text('Waiting'),
-                        onData: () => Text('whenRebuilder counter2: ${counter2.state}'),
+                        onData: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
                         onError: (_) => Text('Error'),
                       )
                     ],
@@ -920,7 +930,8 @@ void main() {
     expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
   });
 
-  testWidgets('injected model preserve state (with whenRebuilder)', (WidgetTester tester) async {
+  testWidgets('injected model preserve state (with whenRebuilder)',
+      (WidgetTester tester) async {
     final counter1 = RM.inject(() => 0);
     Injected<int> counter2;
     await tester.pumpWidget(
@@ -943,7 +954,8 @@ void main() {
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),
                       counter2.whenRebuilderOr(
-                        builder: () => Text('whenRebuilder counter2: ${counter2.state}'),
+                        builder: () =>
+                            Text('whenRebuilder counter2: ${counter2.state}'),
                       )
                     ],
                   ),
@@ -994,14 +1006,16 @@ void main() {
     expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
   });
 
-  testWidgets('injected model preserve state with stream', (WidgetTester tester) async {
+  testWidgets('injected model preserve state with stream',
+      (WidgetTester tester) async {
     final counter1 = RM.inject(() => 0);
     Injected<int> counter2;
     await tester.pumpWidget(
       counter1.rebuilder(
         () {
           counter2 = RM.injectStream(
-            () => Stream.periodic(Duration(seconds: 1), (num) => num + 1).take(3),
+            () =>
+                Stream.periodic(Duration(seconds: 1), (num) => num + 1).take(3),
             initialValue: 0,
           );
           return Directionality(
@@ -1041,7 +1055,8 @@ void main() {
     expect(find.text('counter2: 3'), findsOneWidget);
   });
 
-  testWidgets('injected model preserve state computed injected', (WidgetTester tester) async {
+  testWidgets('injected model preserve state computed injected',
+      (WidgetTester tester) async {
     final counter1 = RM.inject(() => 0);
     Injected<int> counter2;
     await tester.pumpWidget(
@@ -1089,7 +1104,8 @@ void main() {
     expect(counter2.toString(), contains('depends on 1 models'));
   });
 
-  testWidgets('setState onDate and onError overrides global definition', (tester) async {
+  testWidgets('setState onDate and onError overrides global definition',
+      (tester) async {
     String data;
     String error;
     final model = RM.inject(
@@ -1138,7 +1154,8 @@ void main() {
   });
 
   //
-  testWidgets('futureBuilder do not call global onData if types are different', (tester) async {
+  testWidgets('futureBuilder do not call global onData if types are different',
+      (tester) async {
     String data;
 
     final modelFuture = RM.inject(
@@ -1157,7 +1174,9 @@ void main() {
     //
   });
 
-  testWidgets('futureBuilder call global onData if types are the same (immutable)', (tester) async {
+  testWidgets(
+      'futureBuilder call global onData if types are the same (immutable)',
+      (tester) async {
     String data;
 
     final modelFuture = RM.inject(
@@ -1172,7 +1191,8 @@ void main() {
     ));
 
     await tester.pump(Duration(seconds: 1));
-    expect(data, 'Data from global VanillaModel(1)'); //mutable and future return different type
+    expect(data,
+        'Data from global VanillaModel(1)'); //mutable and future return different type
     //
   });
 
@@ -1191,7 +1211,8 @@ void main() {
     ));
 
     await tester.pump(Duration(seconds: 1));
-    expect(error, 'Error from global Exception: Error message'); //mutable and future return different type
+    expect(error,
+        'Error from global Exception: Error message'); //mutable and future return different type
     //
   });
 
@@ -1209,7 +1230,8 @@ void main() {
       '1': () => Future.delayed(Duration(seconds: 1), () => 1),
       '2': () => Future.delayed(Duration(seconds: 1), () => 2),
     });
-    interface.injectFutureMock(() => Future.delayed(Duration(seconds: 1), () => 10));
+    interface
+        .injectFutureMock(() => Future.delayed(Duration(seconds: 1), () => 10));
     expect(interface.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(interface.state, 10);
@@ -1287,8 +1309,10 @@ void main() {
     expect(find.text('11'), findsOneWidget);
   });
 
-  testWidgets('whenRebuilder with many observers preserve state', (tester) async {
-    final counter1 = RM.inject(() => VanillaModel(0), debugPrintWhenNotifiedPreMessage: 'counter1');
+  testWidgets('whenRebuilder with many observers preserve state',
+      (tester) async {
+    final counter1 = RM.inject(() => VanillaModel(0),
+        debugPrintWhenNotifiedPreMessage: 'counter1');
     Injected<VanillaModel> counter2;
     final widget = counter1.rebuilder(
       () {
@@ -1338,8 +1362,10 @@ void main() {
     expect(find.text('Error message'), findsOneWidget);
   });
 
-  testWidgets('whenRebuilderOr with many observers preserve state', (tester) async {
-    final counter1 = RM.inject(() => VanillaModel(0), debugPrintWhenNotifiedPreMessage: 'counter1');
+  testWidgets('whenRebuilderOr with many observers preserve state',
+      (tester) async {
+    final counter1 = RM.inject(() => VanillaModel(0),
+        debugPrintWhenNotifiedPreMessage: 'counter1');
     Injected<VanillaModel> counter2;
     final widget = counter1.rebuilder(
       () {
@@ -1401,11 +1427,16 @@ void main() {
     expect(functionalInjectedModels.length, 0);
   });
 
-  testWidgets('InjectedFuture not registered until getRM is called', (tester) async {
-    final counter1 = RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 1));
-    final counter2 = RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 2));
-    final counter3 = RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 3));
-    final counter4 = RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 4));
+  testWidgets('InjectedFuture not registered until getRM is called',
+      (tester) async {
+    final counter1 =
+        RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 1));
+    final counter2 =
+        RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 2));
+    final counter3 =
+        RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 3));
+    final counter4 =
+        RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 4));
 
     expect(counter1.state, null);
     expect(counter2.state, null);
@@ -1421,26 +1452,8 @@ void main() {
     expect(functionalInjectedModels.length, 0);
   });
 
-  testWidgets('InjectedStream  not registered until getRM is called', (tester) async {
-    final counter1 = RM.injectStream(() => Stream.periodic(Duration(seconds: 1), (_) => 1).take(1));
-    final counter2 = RM.injectStream(() => Stream.periodic(Duration(seconds: 1), (_) => 2).take(1));
-    final counter3 = RM.injectStream(() => Stream.periodic(Duration(seconds: 1), (_) => 3).take(1));
-    final counter4 = RM.injectStream(() => Stream.periodic(Duration(seconds: 1), (_) => 4).take(1));
-
-    expect(counter1.state, null);
-    expect(counter2.state, null);
-    expect(counter3.state, null);
-    expect(counter4.state, null);
-    expect(functionalInjectedModels.length, 0);
-    await tester.pump(Duration(seconds: 1));
-
-    expect(counter1.state, 1);
-    expect(counter2.state, 2);
-    expect(counter3.state, 3);
-    expect(counter4.state, 4);
-    expect(functionalInjectedModels.length, 0);
-  });
-  testWidgets('InjectedComputed not registered until getRM is called', (tester) async {
+  testWidgets('InjectedComputed not registered until getRM is called',
+      (tester) async {
     final counter1 = RM.inject(() => 1);
     final counter2 = RM.injectComputed(compute: (_) => 2 * counter1.state);
     final counter3 = RM.injectComputed(compute: (_) => 3 * counter1.state);
@@ -1450,6 +1463,38 @@ void main() {
     expect(counter3.state, 3);
     expect(counter4.state, 4);
     expect(functionalInjectedModels.length, 0);
+    counter1.getRM;
+    counter1.setState((s) => s + 1, silent: true);
+    await tester.pump();
+    await tester.pump();
+
+    expect(counter1.state, 2);
+    expect(counter2.state, 4);
+    expect(counter3.state, 6);
+    expect(counter4.state, 8);
+    counter1.dispose();
+  });
+
+  testWidgets('Injected without calling getRM, setState assert',
+      (tester) async {
+    final counter = RM.inject(() => 0);
+    expect(counter.state, 0);
+    expect(functionalInjectedModels.length, 0);
+    expect(() => counter.setState((s) => s + 1), throwsException);
+    counter.setState((s) => s + 1, silent: true);
+    await tester.pump();
+  });
+
+  testWidgets('Injected without calling getRM, with onData', (tester) async {
+    final counter = RM.inject(() => 0, onData: (_) {
+      print('onData');
+    });
+    expect(counter.state, 0);
+    expect(functionalInjectedModels.length, 0);
+    counter.state++;
+    await tester.pump();
+    expect(counter.state, 1);
+    await tester.pump();
   });
 }
 
