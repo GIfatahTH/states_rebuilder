@@ -41,16 +41,19 @@ class ExtraActionsButton extends StatelessWidget {
         itemBuilder: (BuildContext context) {
           return <PopupMenuItem<ExtraAction>>[
             PopupMenuItem<ExtraAction>(
+              key: Key('__toggleAll__'),
               value: ExtraAction.toggleAllComplete,
               child: Text(todosStats.state.allComplete
                   ? i18n.state.markAllIncomplete
                   : i18n.state.markAllComplete),
             ),
             PopupMenuItem<ExtraAction>(
+              key: Key('__toggleClearCompleted__'),
               value: ExtraAction.clearCompleted,
               child: Text(i18n.state.clearCompleted),
             ),
             PopupMenuItem<ExtraAction>(
+              key: Key('__toggleDarkMode__'),
               value: ExtraAction.toggleDarkMode,
               child: Text(
                 isDarkMode.state
@@ -59,6 +62,7 @@ class ExtraActionsButton extends StatelessWidget {
               ),
             ),
             PopupMenuItem<ExtraAction>(
+              key: Key('__logout__'),
               value: ExtraAction.logout,
               child: Text(i18n.state.logout),
             ),

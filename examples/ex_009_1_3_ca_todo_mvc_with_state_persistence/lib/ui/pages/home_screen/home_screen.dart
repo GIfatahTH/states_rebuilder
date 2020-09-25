@@ -52,7 +52,7 @@ class HomeScreen extends StatelessWidget {
           },
           items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.list_alt_outlined),
+              icon: Icon(Icons.list),
               title: Text(i18n.state.stats),
             ),
             BottomNavigationBarItem(

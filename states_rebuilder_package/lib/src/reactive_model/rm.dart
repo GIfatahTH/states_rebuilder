@@ -490,13 +490,14 @@ abstract class RM {
   }
 
   static Future<PersistStoreMock> localStorageInitializerMock() async {
-    persistStateGlobal = PersistStoreMock();
-    await persistStateGlobal.init();
-    return (persistStateGlobal as PersistStoreMock);
+    persistStateGlobalTest = PersistStoreMock();
+    await persistStateGlobalTest.init();
+    return (persistStateGlobalTest as PersistStoreMock);
   }
 }
 
 IPersistStore persistStateGlobal;
+IPersistStore persistStateGlobalTest;
 
 final _navigate = _Navigate();
 final _scaffold = _Scaffold();

@@ -1,38 +1,35 @@
 import 'dart:async';
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_source/firebase_todos_repository.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/auth_state.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/interfaces/i_auth_repository.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/sqflite.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/auth_page/auth_page.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import './ui/common/enums.dart';
 import 'data_source/firebase_auth_repositoy.dart';
+import 'data_source/firebase_todos_repository.dart';
 import 'domain/common/extensions.dart';
 import 'domain/entities/todo.dart';
+import 'domain/entities/user.dart';
 import 'domain/value_object/todos_stats.dart';
+import 'domain/value_object/token.dart';
+import 'service/auth_state.dart';
 import 'service/common/enums.dart';
+import 'service/interfaces/i_auth_repository.dart';
 import 'service/todos_state.dart';
-
 import 'ui/exceptions/error_handler.dart';
 
 final Injected<List<Todo>> todos = RM.inject(
   () => [],
-  persist: PersistState(
-    key: '__Todos__2',
+  persist: () => PersistState(
+    key: '__Todos__',
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
     onPersistError: (e, s) async {
       ErrorHandler.showErrorSnackBar(e);
     },
-    persistStateProvider: () => FireBaseTodosRepository(
+    persistStateProvider: FireBaseTodosRepository(
       userId: user.state.userId,
       authToken: user.state.token.token,
     ),
-    // debugPrintOperations: true,
+    debugPrintOperations: true,
   ),
   // debugPrintWhenNotifiedPreMessage: 'todos',
 );
@@ -83,7 +80,7 @@ final authService = RM.inject(
 
 final user = RM.inject<User>(
   () => UnsignedUser(),
-  persist: PersistState(
+  persist: () => PersistState(
     key: '__UserToken__',
     toJson: (user) => user.toJson(),
     fromJson: (json) {
@@ -92,34 +89,39 @@ final user = RM.inject<User>(
     },
     debugPrintOperations: true,
   ),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
   onInitialized: (User u) {
-    if (u is UnsignedUser) {
-      // RM.navigate.toNamed(AuthPage.routeName);
-    } else {
-      // RM.navigate.toNamedAndRemoveUntil(HomeScreen.routeName);
-      if (_authTimer != null) {
-        _authTimer.cancel();
-      }
-      final timeToExpiry =
-          u.token.expiryDate.difference(DateTimeX.current).inSeconds;
-      _authTimer = Timer(
-        Duration(seconds: timeToExpiry),
-        () => user.state = authService.state.logout(),
-      );
+    if (u is! UnsignedUser) {
+      _setExpirationTimer(u.token);
     }
   },
   onData: (User u) {
     if (u is UnsignedUser) {
-      RM.navigate.toNamedAndRemoveUntil(AuthPage.routeName);
-      if (_authTimer != null) {
-        _authTimer.cancel();
-        _authTimer = null;
-      }
+      _cancelExpirationTimer();
     } else {
-      RM.navigate.toNamedAndRemoveUntil(HomeScreen.routeName);
+      _setExpirationTimer(u.token);
     }
+  },
+  onDisposed: (_) {
+    _cancelExpirationTimer();
   },
 );
 
 Timer _authTimer;
+void _setExpirationTimer(Token token) {
+  _cancelExpirationTimer();
+  final timeToExpiry = token.expiryDate.difference(DateTimeX.current).inSeconds;
+  _authTimer = Timer(
+    Duration(seconds: timeToExpiry),
+    () {
+      user.state = authService.state.logout();
+    },
+  );
+}
+
+void _cancelExpirationTimer() {
+  if (_authTimer != null) {
+    _authTimer.cancel();
+    _authTimer = null;
+  }
+}

@@ -10,7 +10,7 @@ final locale = RM.inject<Locale>(
   onData: (_) {
     return i18n.refresh();
   },
-  persist: PersistState(
+  persist: () => PersistState(
     key: '__localization__',
     fromJson: (String json) => Locale.fromSubtags(languageCode: json),
     toJson: (locale) =>

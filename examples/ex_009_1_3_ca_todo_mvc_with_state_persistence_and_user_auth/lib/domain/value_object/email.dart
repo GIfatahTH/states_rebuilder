@@ -9,7 +9,7 @@ class Email {
 
   static void validate(String password) {
     if (!_emailRegExp.hasMatch(password)) {
-      throw ValidationException('Enter a valid password');
+      throw ValidationException('Enter a valid email');
     }
   }
 

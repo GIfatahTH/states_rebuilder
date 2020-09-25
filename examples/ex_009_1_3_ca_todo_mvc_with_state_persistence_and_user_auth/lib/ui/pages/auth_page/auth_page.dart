@@ -36,6 +36,7 @@ class AuthFormWidget extends StatelessWidget {
       children: <Widget>[
         _email.whenRebuilderOr(
           builder: () => TextField(
+            key: Key('__EmailField__'),
             decoration: InputDecoration(
               icon: Icon(Icons.email),
               labelText: 'Email',
@@ -53,6 +54,7 @@ class AuthFormWidget extends StatelessWidget {
         ),
         _password.whenRebuilderOr(
           builder: () => TextField(
+            key: Key('__PasswordField__'),
             decoration: InputDecoration(
               icon: Icon(Icons.lock),
               labelText: 'Password',

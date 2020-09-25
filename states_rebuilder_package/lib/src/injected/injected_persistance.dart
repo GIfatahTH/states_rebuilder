@@ -30,7 +30,13 @@ class PersistStoreMock extends IPersistStore {
   PersistStoreMock();
   @override
   Future<void> init() {
-    store = <String, String>{};
+    final oldStore = (persistStateGlobalTest as PersistStoreMock)?.store;
+    if (oldStore != null) {
+      store = oldStore;
+    } else {
+      store = <String, String>{};
+    }
+
     return Future.value();
   }
 
@@ -140,7 +146,10 @@ class PersistState<T> {
   });
 
   IPersistStore get _persistState {
-    assert(persistStateGlobal != null, '''
+    persistStateSingleton ??= persistStateGlobalTest;
+    persistStateSingleton ??= (persistStateProvider ?? persistStateGlobal);
+
+    assert(persistStateSingleton != null, '''
 No implementation of `IPersistStore` is provided.
 Pleas implementation the `IPersistStore` interface and Initialize it in the main 
 method.
@@ -158,8 +167,7 @@ await RM.localStorageInitializerMock();
 
 
 ''');
-    return persistStateSingleton ??=
-        (persistStateProvider ?? persistStateGlobal);
+    return persistStateSingleton;
   }
 
   IPersistStore persistStateSingleton;

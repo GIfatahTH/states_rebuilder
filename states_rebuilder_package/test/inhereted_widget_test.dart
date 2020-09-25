@@ -78,11 +78,11 @@ void main() {
         textDirection: TextDirection.ltr,
         child: Column(
           children: [
-            RM.inject(() => 5).inherited((context) {
+            RM.inject(() => 5).inherited(builder: (context) {
               print(counter(context).state);
               return Container();
             }),
-            RM.inject(() => 10).inherited((context) {
+            RM.inject(() => 10).inherited(builder: (context) {
               print(counter(context).state);
               return Container();
             }),
