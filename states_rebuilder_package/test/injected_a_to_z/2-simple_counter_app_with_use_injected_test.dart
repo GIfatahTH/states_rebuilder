@@ -8,7 +8,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //One demonstration that the state is not global is the easiness to test it.
 final Injected<int> counter = RM.inject<int>(
   () => throw Exception('Will be mocked'),
-  //If you set autoClean to false you have to use the UseInjected widget
+  //If you set autoClean to false you have to dispose it manually
   autoDisposeWhenNotUsed: false,
 
   //onDispose will be called when the app is closed
