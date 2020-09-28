@@ -36,14 +36,13 @@ void main() async {
     //pre populate the store with tree todos
     storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
-    //await for 2 seconds (one for auto loggin and one for fetch todos)
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle();
     expect(find.byType(TodoItem), findsNWidgets(3));
   });
 
   testWidgets('add todo', (tester) async {
     await tester.pumpWidget(App());
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle();
     //No todos
     expect(find.byType(TodoItem), findsNothing);
     //Tap on FloatingActionButton to add a todo
@@ -78,7 +77,7 @@ void main() async {
     //pre populate the store with tree todos
     storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle();
     //Start with three todos
     expect(find.byType(TodoItem), findsNWidgets(3));
     expect(
@@ -119,7 +118,7 @@ void main() async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
 
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
       //Start with three todos
       expect(find.byType(TodoItem), findsNWidgets(3));
       expect(
@@ -163,7 +162,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -210,7 +209,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
       expect(find.byType(TodoItem), findsNWidgets(3));
 
@@ -236,7 +235,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
       expect(find.byType(TodoItem), findsNWidgets(3));
 
@@ -273,7 +272,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -323,7 +322,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -362,7 +361,7 @@ void main() async {
     (tester) async {
       storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
-      await tester.pumpAndSettle(Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
       //
       final checkedCheckBox = find.byWidgetPredicate(

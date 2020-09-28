@@ -16,7 +16,7 @@ class SharedPreferencesImp implements IPersistStore {
     try {
       return _sharedPreferences.getString(key);
     } catch (e) {
-      throw PersistanceException('There is a problem in loading todos: $e');
+      throw PersistanceException('There is a problem in reading $key: $e');
     }
   }
 
@@ -27,7 +27,7 @@ class SharedPreferencesImp implements IPersistStore {
       // throw Exception('Error');
       return _sharedPreferences.setString(key, value as String);
     } catch (e) {
-      throw PersistanceException('There is a problem in saving todos: $e');
+      throw PersistanceException('There is a problem in writing $key: $e');
     }
   }
 

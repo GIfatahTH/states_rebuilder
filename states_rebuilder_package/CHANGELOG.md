@@ -1,3 +1,10 @@
+## 3.2.0 (2020-09-07)
+* Errors are not caught
+* PersistState is a function
+* add onPersistError
+* Persist read works with async
+* inhereited
+
 ## 3.1.0 (2020-09-07)
 * Add `RM.navigate` for simple navigation.
 Now, we use:

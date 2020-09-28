@@ -15,9 +15,7 @@ final locale = RM.inject<Locale>(
     fromJson: (String json) => Locale.fromSubtags(languageCode: json),
     toJson: (locale) =>
         I18N.supportedLocale.contains(locale) ? locale.languageCode : 'und',
-    debugPrintOperations: true,
   ),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final Injected<I18N> i18n = RM.inject(

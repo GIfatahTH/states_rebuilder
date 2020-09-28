@@ -17,7 +17,7 @@ class HiveImp implements IPersistStore {
     try {
       return box.get(key);
     } catch (e) {
-      throw PersistanceException('There is a problem in loading todos: $e');
+      throw PersistanceException('There is a problem in reading $key: $e');
     }
   }
 
@@ -28,7 +28,7 @@ class HiveImp implements IPersistStore {
       // throw Exception('Error');
       return box.put(key, value);
     } catch (e) {
-      throw PersistanceException('There is a problem in saving todos: $e');
+      throw PersistanceException('There is a problem in writing $key: $e');
     }
   }
 

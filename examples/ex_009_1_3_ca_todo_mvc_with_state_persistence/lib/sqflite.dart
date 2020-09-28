@@ -37,7 +37,7 @@ class SqfliteImp implements IPersistStore {
       }
       return null;
     } catch (e) {
-      throw PersistanceException('There is a problem in loading todos: $e');
+      throw PersistanceException('There is a problem in reading $key: $e');
     }
   }
 
@@ -56,7 +56,7 @@ class SqfliteImp implements IPersistStore {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      throw PersistanceException('There is a problem in saving todos: $e');
+      throw PersistanceException('There is a problem in writing $key: $e');
     }
   }
 

@@ -60,6 +60,7 @@ class _Button extends StatelessWidget {
           itemBuilder: (BuildContext context) =>
               <PopupMenuItem<VisibilityFilter>>[
             PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_All__'),
               value: VisibilityFilter.all,
               child: Text(
                 i18n.state.showAll,
@@ -69,6 +70,7 @@ class _Button extends StatelessWidget {
               ),
             ),
             PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_Active__'),
               value: VisibilityFilter.active,
               child: Text(
                 i18n.state.showActive,
@@ -78,6 +80,7 @@ class _Button extends StatelessWidget {
               ),
             ),
             PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_Completed__'),
               value: VisibilityFilter.completed,
               child: Text(
                 i18n.state.showCompleted,
