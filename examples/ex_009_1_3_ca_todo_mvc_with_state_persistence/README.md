@@ -1,18 +1,18 @@
 # ex_009_1_3_ca_todo_mvc_with_state_persistence
 
-With this example, we will feel the true power of states_rebuilder with global function injection.
+States_rebuilder is a simple and efficient state management solution for Flutter.
+By this example, I will demonstrate the above statement.
 
-The example consist of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic theme and internationalization.
+The example consist of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic dark/light theme and app internationalization.
 
-## Setting persistance provider
+# Setting persistance provider
 
-As we want to persist the chosen theme and language as well as the todos list, we start by setting the persistance provider.
+Since we want to persist the chosen theme and language as well as the todos list, we start by defining the persistence provider.
 
-with states_rebuilder, you have the freedom of choosing your storage provider. All you need to do is to implement the `IPersistStore` interface
+with states_rebuilder, you have the freedom of choosing your storage provider. All you need to do is to implement the `IPersistStore` interface. 
 
-### SharedPreferences:
+## SharedPreferences:
 ```dart
-
 class SharedPreferencesImp implements IPersistStore {
   SharedPreferences _sharedPreferences;
 
@@ -54,7 +54,7 @@ class SharedPreferencesImp implements IPersistStore {
 }
 ```
 
-### Hive:
+## Hive:
 ```dart
 class HiveImp implements IPersistStore {
   Box box;
@@ -95,7 +95,8 @@ class HiveImp implements IPersistStore {
 }
 ```
 
-### Sqflite:
+## Sqflite:
+It's not the best choice here, but I give it for demonstration purpose.
 ```dart
 class SqfliteImp implements IPersistStore {
   Database _db;
@@ -161,14 +162,15 @@ class SqfliteImp implements IPersistStore {
 }
 ```
 
-## Theme
-As we want to switch between dark and light mode, we inject and persist a boolean value to track whether we have chosen dart or not.
+## Dynamic dark/lith theme
+Since we want to toggle between dark and light mode, we inject and persist a Boolean value to know if we've chosen dark or light.
+
 ```dart
 final isDarkMode = RM.inject<bool>(
   () => true,
   //Show our intention to persist the state by defining the persist parameter
   persist: () => PersistState(
-    //Give it a unique key.
+    //Give it a unique key. [key / value]
     key: '__themeData__',
     //Tell how to transition from json to state and the opposite.
     //Our case is simple:
@@ -178,7 +180,7 @@ final isDarkMode = RM.inject<bool>(
   ),
 );
 ```
-That's all for the business logic part. In the UI  can register to the injected isDarkMode and change its state.
+That's all for the business logic part. In the UI, we can register to the injected `isDarkMode` and change its state.
 
 
 [Refer to main.dart](lib/main.dart)
@@ -205,15 +207,13 @@ class App extends StatelessWidget {
 ```
 To change the theme, we simply switch the state as follows:
 
-
-
 [Refer to Extra Actions Button](lib/ui/pages/home_screen/extra_actions_button.dart#L24)
 ```dart
  isDarkMode.state = !isDarkMode.state;
 ```
 
 <details>
-  <summary>Click here to see how toggling the theme is tested</summary>
+  <summary>Click here to see how dynamic theming is tested</summary>
 
 [Refer to main_test.dart file](test/main_test.dart#L9)
 ```dart
