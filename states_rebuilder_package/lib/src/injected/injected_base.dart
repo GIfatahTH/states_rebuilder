@@ -358,13 +358,12 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     _initialStoredState = null;
     if ((_rm as ReactiveModelInternal)?.inheritedInjected?.isNotEmpty == true) {
       for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
-        print((_rm as ReactiveModelInternal).inheritedInjected.length);
-
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) {
-            inj.refresh();
-          },
-        );
+        inj.refresh();
+        // WidgetsBinding.instance.addPostFrameCallback(
+        //   (_) {
+        //     print('WidgetsBinding');
+        //   },
+        // );
       }
       return null;
     }
@@ -846,7 +845,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     Key key,
     T Function() state,
     Widget Function(BuildContext) builder,
-    bool connectWithGlobal = false,
+    bool connectWithGlobal = true,
     String debugPrintWhenNotifiedPreMessage,
   }) {
     return _InheritedState(
