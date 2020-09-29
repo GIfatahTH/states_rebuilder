@@ -3,7 +3,7 @@
 * PersistState is a function
 * add onPersistError
 * Persist read works with async
-* inhereited
+* inherited
 
 ## 3.1.0 (2020-09-07)
 * Add `RM.navigate` for simple navigation.
