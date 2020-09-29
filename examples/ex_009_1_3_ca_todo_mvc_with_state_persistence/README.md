@@ -182,6 +182,7 @@ final isDarkMode = RM.inject<bool>(
 ```
 That's all for the business logic part. In the UI, we can register to the injected `isDarkMode` and change its state.
 
+>  You can handle a rainbow of themes using enumeration rather than boolean primitive
 
 [Refer to main.dart](lib/main.dart)
 ```dart
