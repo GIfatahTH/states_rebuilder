@@ -31,6 +31,9 @@ class HomeScreen extends StatelessWidget {
         onWaiting: () => const Center(
           child: const CircularProgressIndicator(),
         ),
+
+        //subscribe to activeTab and depending on its state render the wanted widge
+
         builder: () => activeTab.rebuilder(
           () => activeTab.state == AppTab.todos
               ? const TodoList()

@@ -14,7 +14,7 @@ final Injected<List<Todo>> todos = RM.inject(
     key: '__Todos__',
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
-    onPersistError: (e, s) async {
+    onPersistError: (e, s) {
       ErrorHandler.showErrorSnackBar(e);
     },
     // debugPrintOperations: true,
@@ -38,6 +38,8 @@ final Injected<List<Todo>> todosFiltered = RM.injectComputed(
   // debugPrintWhenNotifiedPreMessage: 'TodosFilter',
 );
 
+final activeTab = RM.inject(() => AppTab.todos);
+
 final Injected<TodosStats> todosStats = RM.injectComputed(
   compute: (_) {
     return TodosStats(
@@ -45,16 +47,13 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
       numActive: todos.state.where((t) => !t.complete).length,
     );
   },
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
-
-final activeTab = RM.inject(() => AppTab.todos);
 
 final Injected<Todo> injectedTodo = RM.inject(
   () => null,
-  onData: (t) {
-    todos.setState(
-      (s) => s.updateTodo(t),
-    );
+  onData: (todo) => todos.state.updateTodo(todo), //TODO check when throwing
+  onError: (e, s) {
+    ErrorHandler.showErrorSnackBar(e);
   },
 );

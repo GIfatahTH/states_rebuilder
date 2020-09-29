@@ -2,7 +2,7 @@
 
 With this example, we will feel the true power of states_rebuilder with global function injection.
 
-The example consist of the Todo MVC app extended to handle dynamic theme and internationalization.
+The example consist of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic theme and internationalization.
 
 ## Setting persistance provider
 
@@ -211,6 +211,44 @@ To change the theme, we simply switch the state as follows:
 ```dart
  isDarkMode.state = !isDarkMode.state;
 ```
+
+<details>
+  <summary>Click here to see how toggling the theme is tested</summary>
+
+[Refer to main_test.dart file](test/main_test.dart#L9)
+```dart
+  testWidgets('Toggle theme should work', (tester) async {
+    await tester.pumpWidget(App());
+    //App start with dart model
+    expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
+
+    //tap on the ExtraActionsButton
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    //And tap to toggle light mode
+    await tester.tap(find.byKey(Key('__toggleDarkMode__')));
+    await tester.pumpAndSettle();
+    //
+    //Expect the themeData is persisted
+    expect(storage.store['__themeData__'], '0');
+    //And theme is light
+    expect(Theme.of(RM.context).brightness == Brightness.light, isTrue);
+    //
+    //Tap to toggle theme to dark mode
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleDarkMode__')));
+    await tester.pumpAndSettle();
+    //
+    //The storage.stored themeData is updated
+    expect(storage.store['__themeData__'], '1');
+    //And theme is dark
+    expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
+  });
+```
+</details>
+
+
 ## Localization setup
 
 There are many ways to set up the localization of the app. In this example we first start by defining an abstract class I18N which have tree static methods and the default strings of our app.
@@ -360,4 +398,354 @@ StateWithMixinBuilder.widgetsBindingObserver(
     builder: (_, __) => App(),
 ),
 ```
-## 
+
+<details>
+  <summary>Click here to see how toggling the theme is tested</summary>
+
+[Refer to main_test.dart file](test/main_test.dart#L39)
+```dart
+  testWidgets('Change language should work', (tester) async {
+    await tester.pumpWidget(App());
+    //App start with english
+    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
+
+    await tester.tap(find.byType(Languages));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('AR'));
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    //ar is persisted
+    expect(storage.store['__localization__'], 'ar');
+    //App is in arabic
+    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'تنبيه');
+    //
+    await tester.tap(find.byType(Languages));
+    await tester.pumpAndSettle();
+    //tap to use system language
+    await tester.tap(find.byKey(Key('__System_language__')));
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    //und for systemLanguage is persisted
+    expect(storage.store['__localization__'], 'und');
+    //App is back to system language (english).
+    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
+  });
+```
+</details>
+
+
+## Todos logic
+
+For the todos we first start defining a Todo data class:
+
+
+<details>
+  <summary>Click here to see the Todo class</summary>
+
+[Refer to todo.dart file](lib/domain/entities/todo.dart)
+```dart
+@immutable
+class Todo {
+  final String id;
+  final bool complete;
+  final String note;
+  final String task;
+
+  Todo(this.task, {String id, this.note, this.complete = false})
+      : id = id ?? Uuid().v4();
+
+  factory Todo.fromJson(Map<String, Object> map) {
+    if (map == null) {
+      return null;
+    }
+    return Todo(
+      map['task'] as String,
+      id: map['id'] as String,
+      note: map['note'] as String,
+      complete: map['complete'] as bool,
+    );
+  }
+
+  // toJson is called just before persistance.
+  Map<String, Object> toJson() {
+    _validation();
+    print('toJson');
+    return {
+      'complete': complete,
+      'task': task,
+      'note': note,
+      'id': id,
+    };
+  }
+
+  void _validation() {
+    if (id == null) {
+      // Custom defined error classes
+      throw ValidationException('This todo has no ID!');
+    }
+    if (task == null || task.isEmpty) {
+      throw ValidationException('Empty task are not allowed');
+    }
+  }
+
+  Todo copyWith({
+    String task,
+    String note,
+    bool complete,
+    String id,
+  }) {
+    return Todo(
+      task ?? this.task,
+      id: id ?? this.id,
+      note: note ?? this.note,
+      complete: complete ?? this.complete,
+    );
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+
+    return o is Todo &&
+        o.id == id &&
+        o.complete == complete &&
+        o.note == note &&
+        o.task == task;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^ complete.hashCode ^ note.hashCode ^ task.hashCode;
+  }
+
+  @override
+  String toString() {
+    return 'Todo(task:$task, complete: $complete)';
+  }
+}
+```
+</details>
+
+
+The logic for adding, updating, deleting and toggling todos is encapsulated in ListTodoX extension.
+
+[Refer to todo.dart file](lib/service/todos_state.dart)
+```dart
+extension ListTodoX on List<Todo> {
+  //Add a todo
+  List<Todo> addTodo(Todo todo) {
+    return List<Todo>.from(this)..add(todo);
+  }
+
+  //Update todo
+  List<Todo> updateTodo(Todo todo) {
+    return map((t) => t.id == todo.id ? todo : t).toList();
+  }
+
+  List<Todo> deleteTodo(Todo todo) {
+    return List<Todo>.from(this)..remove(todo);
+  }
+
+  List<Todo> toggleAll() {
+    final allComplete = this.every((e) => e.complete);
+    return map(
+      (t) => t.copyWith(complete: !allComplete),
+    ).toList();
+  }
+
+  List<Todo> clearCompleted() {
+    return List<Todo>.from(this)
+      ..removeWhere(
+        (t) => t.complete,
+      );
+  }
+
+  ///Parsing the state
+  String toJson() => convert.json.encode(this);
+  static List<Todo> fromJson(json) {
+    final result = convert.json.decode(json) as List<dynamic>;
+    return result.map((m) => Todo.fromJson(m)).toList();
+  }
+}
+```
+
+The next step is to inject and persist the todos list:
+
+[Refer to injected.dart file](lib/injected.dart#L10)
+```dart
+final Injected<List<Todo>> todos = RM.inject(
+  () => [],//Start with empty list
+  persist: () => PersistState(
+    key: '__Todos__',
+    //parse the state
+    toJson: (todos) => todos.toJson(),
+    fromJson: (json) => ListTodoX.fromJson(json),
+    onPersistError: (e, s) async {
+      //If the persistence is failed, a snackbar is displayed and the state is undo to the last valid state
+      ErrorHandler.showErrorSnackBar(e);
+    },
+  ),
+  //As we want manually to undo the state after deleting a todo, we set the undo stack length to 1
+  undoStackLength: 1,
+);
+```
+As the todos can be filtered (All, completed, active), we inject a VisibilityFilter enumeration and a computed filtered todos:
+
+[Refer to injected.dart file](lib/injected.dart#L25)
+```dart
+final activeFilter = RM.inject(() => VisibilityFilter.all);
+
+//this todosFiltered will be recomputed whenever the activeFilter or todos state is changed.
+final Injected<List<Todo>> todosFiltered = RM.injectComputed(
+  compute: (_) {
+    //Return the active todos
+    if (activeFilter.state == VisibilityFilter.active) {
+      return todos.state.where((t) => !t.complete).toList();
+    }
+    //Return the completed todos
+    if (activeFilter.state == VisibilityFilter.completed) {
+      return todos.state.where((t) => t.complete).toList();
+    }
+    //Return all todos
+    return todos.state;
+  },
+);
+```
+
+
+
+
+## The UI
+
+### AppTab
+> The home contains two Tabs: [the List of Todos and Stats about the Todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#Home-Screen).
+
+To Navigate between the list of todos and stats we define the AppTab enumeration and inject it.
+
+
+[Refer to injected.dart file](lib/injected.dart#L40)
+```dart
+enum AppTab { todos, stats }
+
+final activeTab = RM.inject(() => AppTab.todos);
+```
+In the home_screen we consume the activeTab injected model:
+
+[Refer to home_screen.dart file](lib\ui\pages\home_screen\home_screen.dart#L33)
+```dart
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: ... ,
+      body: todos.whenRebuilderOr(
+
+        //Shows a loading screen until the Todos have been loaded from file storage or the web.
+        onWaiting: () => const Center(
+          child: const CircularProgressIndicator(),
+        ),
+
+        //subscribe to activeTab and depending on its state render the wanted widget
+        builder: () => activeTab.rebuilder(
+          () => activeTab.state == AppTab.todos
+              ? const TodoList()
+              : const StatsCounter(),
+        ),
+      ),
+      floatingActionButton: ...,
+      bottomNavigationBar: activeTab.rebuilder(
+        () => BottomNavigationBar(
+          currentIndex: AppTab.values.indexOf(activeTab.state),
+          onTap: (index) {
+            //Mutate the state of the activeTab
+            activeTab.state = AppTab.values[index];
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list),
+              title: Text(i18n.state.stats),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.show_chart),
+              title: Text(i18n.state.todos),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+```
+
+### Load and display list of todos
+> [Displays the list of Todos entered by the User](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#List-of-Todos)
+
+On app start, the list of todos is fetched from the provided storage. Once the list of todos is obtained, we use a listView builder to display to todos items.
+
+For performance and build optimization raisons, we will not pass any dynamic parameter to the `TodoItem` so that we can use the `const` modifier.
+
+To get the state of any todo from its `TodoItem` child widgets we will relay on `InheritedWidget`.
+
+With states_rebuilder, we can inject widget-aware state; that is, the state is obtained depending on its position in the widget tree. Here we will use the concept of InheritedWidget.
+
+To do so we first define a global inject to represent the state of an Item.
+
+Note: I assume you are familiar on How InheritedWidget works. [Read here for more information](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
+
+
+[Refer to injected.dart file](lib\injected.dart#L52)
+```dart
+//This is called the global state reference of Injected<Todo> 
+final Injected<Todo> injectedTodo = RM.inject(() => null);
+```
+To injected an Injected<Todo> in the widget tree we use :
+
+```dart
+  //Widget-aware injection
+  return injectedTodo.inherited(
+    state: () =>  todos[index],// the Todo state
+    builder: (_) => const TodoItem(),
+  );
+```
+
+Form a child widget we can get the injected Todo:
+
+```dart
+  final injectedTodo = injectedTodo(context); //Internally call .of(context) of InheritedWidget
+```
+
+
+```dart
+class TodoList extends StatelessWidget {
+  const TodoList();
+  @override
+  Widget build(BuildContext context) {
+
+    //Subscribe to todosFiltered. 
+    //todosFiltered.rebuilder is invoked each time the todos and/or activeFilter injected models are changed
+    return todosFiltered.rebuilder(
+      () {
+        final todos = todosFiltered.state;
+        return ListView.builder(
+          itemCount: todos.length,
+          itemBuilder: (BuildContext context, int index) {
+            
+            //
+            return injectedTodo.inherited(
+              key: Key('${todos[index].id}'),
+              state: () =>  todos[index],
+              //Build is optimized by using const
+              builder: (_) => const TodoItem(),
+              connectWithGlobal: true,
+            );
+          },
+        );
+      },
+      shouldRebuild: () => todosFiltered.hasData || todosFiltered.hasError,
+    );
+  }
+}
+```
+
+
+
