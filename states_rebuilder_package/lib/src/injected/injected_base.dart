@@ -356,15 +356,13 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   Future<T> refresh() async {
     _onDisposed?.call(_state);
     _initialStoredState = null;
+
     if ((_rm as ReactiveModelInternal)?.inheritedInjected?.isNotEmpty == true) {
+      //case globe inherited injected
       for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
         inj.refresh();
-        // WidgetsBinding.instance.addPostFrameCallback(
-        //   (_) {
-        //     print('WidgetsBinding');
-        //   },
-        // );
       }
+      //This is the global for inherited. Do not refresh
       return null;
     }
     return _rm?.refresh(
