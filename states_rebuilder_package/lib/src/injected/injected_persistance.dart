@@ -127,7 +127,7 @@ class PersistState<T> {
   final int throttleDelay;
   final bool debugPrintOperations;
 
-  final dynamic Function(dynamic e, StackTrace s) onPersistError;
+  final bool catchPersistError;
   final IPersistStore persistStateProvider;
 
   Timer _throttleTimer;
@@ -140,7 +140,7 @@ class PersistState<T> {
     @required this.fromJson,
     this.persistOn,
     this.throttleDelay,
-    this.onPersistError,
+    this.catchPersistError = false,
     this.debugPrintOperations = false,
     this.persistStateProvider,
   });
@@ -194,14 +194,11 @@ await RM.localStorageInitializerMock();
 
       return _fromJsonHandler(key, r);
     } catch (e, s) {
-      if (onPersistError != null) {
-        final undo = onPersistError(e, s);
-        if ((undo ?? true) == false) {
-          return null;
-        }
+      if (catchPersistError) {
+        StatesRebuilerLogger.log('Read form localStorage error', e, s);
+        return null;
       }
-      StatesRebuilerLogger.log('Read form localStorage error', e, s);
-      return null;
+      rethrow;
     }
   }
 
@@ -217,51 +214,51 @@ await RM.localStorageInitializerMock();
   ///persist the state
   Future<void> write(T value) async {
     final persistState = _persistState;
-    try {
-      if (throttleDelay != null) {
-        _valueForThrottle = value;
-        if (_throttleTimer != null) {
-          return null;
-        }
-        _throttleTimer = Timer(Duration(milliseconds: throttleDelay), () async {
-          _throttleTimer = null;
-          final r =
-              await persistState.write<String>(key, toJson(_valueForThrottle));
-          _valueForThrottle = null;
-          if (debugPrintOperations) {
-            StatesRebuilerLogger.log(
-              'PersistState: write(${key}, $_valueForThrottle)',
-            );
-          }
-          return r;
-        });
+    // try {
+    if (throttleDelay != null) {
+      _valueForThrottle = value;
+      if (_throttleTimer != null) {
         return null;
       }
-      final json = toJson(value);
-      final r = await persistState.write<String>(key, json);
-      if (debugPrintOperations) {
-        StatesRebuilerLogger.log(
-          'PersistState: write(${key}, $json)',
-        );
-      }
-      return r;
-    } catch (e, s) {
-      if (onPersistError != null) {
-        var undo;
-        final r = onPersistError(e, s);
-        if (r is Future) {
-          undo = await r;
-        } else {
-          undo = r;
+      _throttleTimer = Timer(Duration(milliseconds: throttleDelay), () async {
+        _throttleTimer = null;
+        final r =
+            await persistState.write<String>(key, toJson(_valueForThrottle));
+        _valueForThrottle = null;
+        if (debugPrintOperations) {
+          StatesRebuilerLogger.log(
+            'PersistState: write(${key}, $_valueForThrottle)',
+          );
         }
-        if ((undo ?? true) == false) {
-          return null;
-        }
-      } else {
-        StatesRebuilerLogger.log('Write to localStorage error', e);
-      }
-      throw _PersistenceException(e);
+        return r;
+      });
+      return null;
     }
+    final json = toJson(value);
+    final r = await persistState.write<String>(key, json);
+    if (debugPrintOperations) {
+      StatesRebuilerLogger.log(
+        'PersistState: write(${key}, $json)',
+      );
+    }
+    return r;
+    // } catch (e, s) {
+    //   if (onPersistError != null) {
+    //     var undo;
+    //     final r = onPersistError(e, s);
+    //     if (r is Future) {
+    //       undo = await r;
+    //     } else {
+    //       undo = r;
+    //     }
+    //     if ((undo ?? true) == false) {
+    //       return null;
+    //     }
+    //   } else {
+    //     StatesRebuilerLogger.log('Write to localStorage error', e);
+    //   }
+    //   rethrow;
+    // }
   }
 
   ///Delete the persisted state
@@ -272,8 +269,11 @@ await RM.localStorageInitializerMock();
       StatesRebuilerLogger.log('PersistState: delete(${key})');
       return r;
     } catch (e, s) {
-      StatesRebuilerLogger.log('Delete from localStorage error', e, s);
-      return null;
+      if (catchPersistError) {
+        StatesRebuilerLogger.log('Delete from localStorage error', e, s);
+        return null;
+      }
+      rethrow;
     }
   }
 
@@ -285,8 +285,11 @@ await RM.localStorageInitializerMock();
       StatesRebuilerLogger.log('PersistState: deleteAll');
       return r;
     } catch (e, s) {
-      StatesRebuilerLogger.log('Delete all from localStorage error', e, s);
-      return null;
+      if (catchPersistError) {
+        StatesRebuilerLogger.log('Delete all from localStorage error', e, s);
+        return null;
+      }
+      rethrow;
     }
   }
   //TODO
@@ -304,7 +307,7 @@ enum PersistOn {
   manualPersist,
 }
 
-class _PersistenceException implements Exception {
-  final dynamic error;
-  _PersistenceException(this.error);
-}
+// class _PersistenceException implements Exception {
+//   final dynamic error;
+//   _PersistenceException(this.error);
+// }

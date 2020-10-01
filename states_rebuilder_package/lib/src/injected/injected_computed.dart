@@ -115,13 +115,13 @@ class InjectedComputed<T> extends Injected<T> {
           // final Injected<T> injected =
           //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
 
-          final injected = this;
-          if (injected == null) {
+          // final injected = computedRM;
+          if (computedRM == null) {
             disposer();
             return;
           }
           ReactiveModel errorRM;
-          for (var depend in injected._dependsOn) {
+          for (var depend in _dependsOn) {
             final r = depend._stateRM;
             r.whenConnectionState(
               onIdle: null,

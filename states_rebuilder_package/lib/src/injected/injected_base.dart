@@ -213,7 +213,8 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       return true;
     }());
     if (_persist != null && _persist.persistOn == PersistOn.disposed) {
-      _persist.write(_rm.state);
+      persistState();
+      // _persist.write(_rm.state);
     }
     _onDisposed?.call(_state);
     _clearDependence?.call();
@@ -400,9 +401,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     if (_rm == null) {
       return;
     }
-    Injected<T> injected =
-        _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-    injected ??= this; //TODO
+    // Injected<T> injected =
+    //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+    Injected<T> injected = this; //TODO
     final oldState = _oldState;
     try {
       if (!injected._persistHasError) {
@@ -410,23 +411,17 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       }
     } catch (e) {
       injected._persistHasError = true;
-      // rm.state = oldState;
-      // rm.resetToHasError(e);
-      // // rm.notify();
+
+      //SetState to oldState and set all completed
       rm.setState(
         (s) => oldState,
-        onData: (_, __) => rm.hasError
-            ? rm.setState(
-                (s) => throw e,
-                catchError: true,
-              )
-            : null,
+        //Set to has error
+        onData: (_, __) => rm.setState(
+          (s) => throw e,
+          catchError: _onError != null,
+        ),
       );
       injected._persistHasError = false;
-      // rethrow;
-      if (e is! _PersistenceException) {
-        rethrow;
-      }
     }
   }
 
@@ -824,9 +819,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
 
   Widget reInherited({
     Key key,
-    BuildContext context,
-    Widget Function(BuildContext) builder,
-    bool connectWithGlobal = false,
+    @required BuildContext context,
+    @required Widget Function(BuildContext) builder,
+    bool connectWithGlobal = true,
     String debugPrintWhenNotifiedPreMessage,
   }) {
     return _InheritedState(
@@ -841,8 +836,8 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
 
   Widget inherited({
     Key key,
-    T Function() state,
-    Widget Function(BuildContext) builder,
+    @required T Function() state,
+    @required Widget Function(BuildContext) builder,
     bool connectWithGlobal = true,
     String debugPrintWhenNotifiedPreMessage,
   }) {
