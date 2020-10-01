@@ -34,6 +34,7 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
             debugPrintWhenNotifiedPreMessage:
                 widget.debugPrintWhenNotifiedPreMessage,
           );
+    assert(_injected != null);
     (_rm as ReactiveModelInternal).inheritedInjected.add(_injected);
     if (widget.connectWithGlobal) {
       _disposer1 = _injected.getRM.listenToRM(
