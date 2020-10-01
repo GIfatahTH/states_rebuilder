@@ -41,11 +41,12 @@ void main() async {
     //App start with english
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
 
+    //Tap on the language action button
     await tester.tap(find.byType(Languages));
     await tester.pumpAndSettle();
+    //choose 'AR' language
     await tester.tap(find.text('AR'));
     await tester.pump();
-    await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
     //ar is persisted
     expect(storage.store['__localization__'], 'ar');
@@ -57,9 +58,8 @@ void main() async {
     //tap to use system language
     await tester.tap(find.byKey(Key('__System_language__')));
     await tester.pump();
-    await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
-    //und for systemLanguage is persisted
+    //and for systemLanguage is persisted
     expect(storage.store['__localization__'], 'und');
     //App is back to system language (english).
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');

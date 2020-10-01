@@ -14,11 +14,9 @@ final Injected<List<Todo>> todos = RM.inject(
     key: '__Todos__',
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
-    onPersistError: (e, s) {
-      ErrorHandler.showErrorSnackBar(e);
-    },
     // debugPrintOperations: true,
   ),
+  onError: (e, s) => ErrorHandler.showErrorSnackBar(e),
   undoStackLength: 1,
   // debugPrintWhenNotifiedPreMessage: 'todos',
 );
@@ -43,8 +41,9 @@ final activeTab = RM.inject(() => AppTab.todos);
 final Injected<TodosStats> todosStats = RM.injectComputed(
   compute: (_) {
     return TodosStats(
-      numCompleted: todos.state.where((t) => t.complete).length,
-      numActive: todos.state.where((t) => !t.complete).length,
+      //TODO to check
+      numCompleted: todosFiltered.state.where((t) => t.complete).length,
+      numActive: todosFiltered.state.where((t) => !t.complete).length,
     );
   },
   // debugPrintWhenNotifiedPreMessage: '',

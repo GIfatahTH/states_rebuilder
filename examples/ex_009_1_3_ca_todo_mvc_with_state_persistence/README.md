@@ -162,7 +162,7 @@ class SqfliteImp implements IPersistStore {
 }
 ```
 
-## Dynamic dark/lith theme
+# Dynamic dark/lith theme
 Since we want to toggle between dark and light mode, we inject and persist a Boolean value to know if we've chosen dark or light.
 
 ```dart
@@ -250,9 +250,9 @@ To change the theme, we simply switch the state as follows:
 </details>
 
 
-## Localization setup
+# Localization configuration
 
-There are many ways to set up the localization of the app. In this example we first start by defining an abstract class I18N which have tree static methods and the default strings of our app.
+There are many ways to configure the localization of the app. In this example we first start by defining an abstract class `I18N` which have tree static methods and the default strings of our app.
 
 
 [Refer to language_base file](lib/ui/common/localization/languages/language_base.dart)
@@ -269,18 +269,19 @@ abstract class I18N {
   //Get the supportedLocale. To be used in MaterialApp widget
   static List<Locale>  getSupportedLocale => _supportedLanguage.keys.toList();
   
-  //Get the translation from the chosen locale
+  //Get the language implementation from the chosen locale
   static I18N getLanguages(Locale locale) => _supportedLanguage[locale] ?? EN();
 
-  //Default Strings
+  //Default Strings of the app (in English)
   String appTitle = 'States_rebuilder Example';
   String todos = 'Todos';
-
   String stats = 'Stats';
+
+  //You can use methods
 
 }
 ```
-Now we have to define the EN and AR implementations of I18N interface:
+Now we have to define the EN and AR or any other language implementations of I18N interface:
  
 [Refer to en_us.dart file](lib/ui/common/localization/languages/en_us.dart)
 ```dart
@@ -302,7 +303,7 @@ class AR extends I18N {
 }
 ```
 
-Now, we are ready to inject and persist our chosen locale.
+Now, we are ready to inject and persist our locale.
 
 
 [Refer to ar.dart file](lib/ui/common/localization/localization.dart)
@@ -311,19 +312,17 @@ Now, we are ready to inject and persist our chosen locale.
 final locale = RM.inject<Locale>(
   () => Locale.fromSubtags(languageCode: 'en'),
   onData: (_) {
-      //Each time the locale is changed, we refresh the i18n to get the write language implementation
+    //Each time the locale is changed, we refresh the i18n to get the right language implementation
     return i18n.refresh();
   },
   //Persist the locale
   persist: () => PersistState(
     key: '__localization__',
-    //the stored String (json) represents the 
     //
     //take the stored String and return a Locale object
     fromJson: (String json) => Locale.fromSubtags(languageCode: json),
     //
     //any non supported locale will be stored as 'und'.
-    //
     toJson: (locale) =>
         I18N.supportedLocale.contains(locale) ? locale.languageCode : 'und',
   ),
@@ -333,9 +332,10 @@ final locale = RM.inject<Locale>(
 [Refer to ar.dart file](lib/ui/common/localization/localization.dart)
 ```dart
 //Inject i18n
+//We must register with I18N interface
 final Injected<I18N> i18n = RM.inject(
   () {
-      //Whenever is refreshed, (from onData of locale) it gets the corresponding language implementation
+    //Whenever i18n is refreshed, (from onData of locale) it gets the corresponding language implementation
     return I18N.getLanguages(locale.state);
   },
 );
@@ -351,6 +351,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     //Listen to the injected isDarkModel and locale
     return [isDarkMode, locale].whenRebuilderOr(
+      //If any of isDarkMode or locale injected models are waiting 
+      //we will display a CircularProgressIndicator
       onWaiting: () => const Center(
         child: const CircularProgressIndicator(),
       ),
@@ -359,12 +361,13 @@ class App extends StatelessWidget {
           //get the appTitle fom the state of i18n
           title: i18n.state.appTitle,
           //On app start, the locale is obtained from the storage.
-          //If the languageCode is 'und' the return null to use the system language,
+          //If the languageCode is 'und', null is returned to use the system language,
           //else return the obtained locale
           locale: locale.state.languageCode == 'und' ? null : locale.state,
           //Supported locales from the static method defined in I18N
           supportedLocales: I18N.supportedLocale(),
           //Use flutter defined delegates.
+          //You have to add flutter_localizations to dependencies
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -401,7 +404,7 @@ StateWithMixinBuilder.widgetsBindingObserver(
 ```
 
 <details>
-  <summary>Click here to see how toggling the theme is tested</summary>
+  <summary>Click here to see how app localization is tested</summary>
 
 [Refer to main_test.dart file](test/main_test.dart#L39)
 ```dart
@@ -410,11 +413,12 @@ StateWithMixinBuilder.widgetsBindingObserver(
     //App start with english
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
 
+    //Tap on the language action button
     await tester.tap(find.byType(Languages));
     await tester.pumpAndSettle();
+    //choose 'AR' language
     await tester.tap(find.text('AR'));
     await tester.pump();
-    await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
     //ar is persisted
     expect(storage.store['__localization__'], 'ar');
@@ -426,9 +430,8 @@ StateWithMixinBuilder.widgetsBindingObserver(
     //tap to use system language
     await tester.tap(find.byKey(Key('__System_language__')));
     await tester.pump();
-    await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
-    //und for systemLanguage is persisted
+    //and for systemLanguage is persisted
     expect(storage.store['__localization__'], 'und');
     //App is back to system language (english).
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
@@ -437,7 +440,7 @@ StateWithMixinBuilder.widgetsBindingObserver(
 </details>
 
 
-## Todos logic
+# Todos logic
 
 For the todos we first start defining a Todo data class:
 
@@ -530,7 +533,7 @@ class Todo {
 </details>
 
 
-The logic for adding, updating, deleting and toggling todos is encapsulated in ListTodoX extension.
+The logic for adding, updating, deleting and toggling todos is encapsulated in `ListTodoX` extension.
 
 [Refer to todo.dart file](lib/service/todos_state.dart)
 ```dart
@@ -549,6 +552,7 @@ extension ListTodoX on List<Todo> {
     return List<Todo>.from(this)..remove(todo);
   }
 
+  //toggle all todos
   List<Todo> toggleAll() {
     final allComplete = this.every((e) => e.complete);
     return map(
@@ -563,7 +567,7 @@ extension ListTodoX on List<Todo> {
       );
   }
 
-  ///Parsing the state
+  ///Parsing the state, use is state persistance
   String toJson() => convert.json.encode(this);
   static List<Todo> fromJson(json) {
     final result = convert.json.decode(json) as List<dynamic>;
@@ -583,16 +587,14 @@ final Injected<List<Todo>> todos = RM.inject(
     //parse the state
     toJson: (todos) => todos.toJson(),
     fromJson: (json) => ListTodoX.fromJson(json),
-    onPersistError: (e, s) async {
-      //If the persistence is failed, a snackbar is displayed and the state is undo to the last valid state
-      ErrorHandler.showErrorSnackBar(e);
-    },
   ),
-  //As we want manually to undo the state after deleting a todo, we set the undo stack length to 1
+  //If the persistence is failed, a snackbar is displayed and the state is undo to the last valid state
+  onError: (e, s) => ErrorHandler.showErrorSnackBar(e),
+  //As we want to manually undo the state after deleting a todo, we set the undo stack length to 1
   undoStackLength: 1,
 );
 ```
-As the todos can be filtered (All, completed, active), we inject a VisibilityFilter enumeration and a computed filtered todos:
+As the todos can be filtered (All, completed, active), we inject a `VisibilityFilter` enumeration and a computed filtered todos:
 
 [Refer to injected.dart file](lib/injected.dart#L25)
 ```dart
@@ -614,8 +616,7 @@ final Injected<List<Todo>> todosFiltered = RM.injectComputed(
   },
 );
 ```
-
-
+> `todosFiltered` results in a performance gain. The filtered todos are cached in memory so that they are not recalculated unless the value of the `VisibilityFilter` is modified (by the user) or the original list of todos is changed (add, delete, update the todos ).
 
 
 ## The UI
@@ -632,7 +633,7 @@ enum AppTab { todos, stats }
 
 final activeTab = RM.inject(() => AppTab.todos);
 ```
-In the home_screen we consume the activeTab injected model:
+In the `home_screen` we consume the activeTab injected model:
 
 [Refer to home_screen.dart file](lib\ui\pages\home_screen\home_screen.dart#L33)
 ```dart
@@ -681,29 +682,31 @@ In the home_screen we consume the activeTab injected model:
 ### Load and display list of todos
 > [Displays the list of Todos entered by the User](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#List-of-Todos)
 
-On app start, the list of todos is fetched from the provided storage. Once the list of todos is obtained, we use a listView builder to display to todos items.
+When the application starts, the todos list is retrieved from the provided storage. Once the list of todos is obtained, we use a `ListView` builder to display the todos items (`TodoItem` widget).
 
-For performance and build optimization raisons, we will not pass any dynamic parameter to the `TodoItem` so that we can use the `const` modifier.
+For performance and build optimization, we won't pass any dynamic parameters to the `TodoItem` so we can use the `const` modifier.
 
-To get the state of any todo from its `TodoItem` child widgets we will relay on `InheritedWidget`.
+To get the state of any todo from its `TodoItem` child widgets, we will relay on` InheritedWidget`.
 
-With states_rebuilder, we can inject widget-aware state; that is, the state is obtained depending on its position in the widget tree. Here we will use the concept of InheritedWidget.
+With states_rebuilder, we can inject widget-aware state; in other words, the state is obtained according to its position in the widget tree. Here we are referring to the concept of `InheritedWidget`.
 
-To do so we first define a global inject to represent the state of an Item.
 
 Note: I assume you are familiar on How InheritedWidget works. [Read here for more information](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
 
+To do this, we first define a global injection to represent the state of an Item.
 
 [Refer to injected.dart file](lib\injected.dart#L52)
 ```dart
-//This is called the global state reference of Injected<Todo> 
+//This is called the global state reference of Injected<Todo> items
+//This can be seen as a template for a todo state
 final Injected<Todo> injectedTodo = RM.inject(() => null);
 ```
-To injected an Injected<Todo> in the widget tree we use :
+To injected an `Injected<Todo>` in the widget tree we use :
 
 ```dart
   //Widget-aware injection
   return injectedTodo.inherited(
+    //How one todo state is obtained from list of todos
     state: () =>  todos[index],// the Todo state
     builder: (_) => const TodoItem(),
   );
@@ -715,7 +718,37 @@ Form a child widget we can get the injected Todo:
   final injectedTodo = injectedTodo(context); //Internally call .of(context) of InheritedWidget
 ```
 
+injectedTodo has onWaiting, onError and onData callbacks.
+```dart
+final Injected<Todo> injectedTodo = RM.inject(
+  () => null,
+  //Called if at least one todo item state is waiting
+  onWaiting: (){
+    print('onWaiting');
+  }
+  //Called if at least one todo item state throws an error
+  onError: (e, s) {
+    ErrorHandler.showErrorSnackBar(e);
+  },
+  //Called if all todo items has data and exposed the todo state of the item emitting data
+  onData: (todo) => todos.state.updateTodo(todo), 
+);
+```
 
+Wrap up:
+* `Injected.inherited` is useful when display a list of items of the same type (Products, todos, ..).
+* Relaying on the concept of Inherited widget, right item state is obtained using the BuildContext.
+* Global state reference, is some thing like a template for one items
+* The global state reference, exposes there callbacks:
+  * `onWaiting` : called if at least one item is waiting for a pending async task.
+  * `onError`: called if no item is waiting, and at least one item has error.
+  * `onData`: called if all items has data.
+* When refresh method is called on a global state reference, all item states will be refreshed.
+
+
+
+
+[Refer to todo list file](lib/ui/pages/home_screen/todo_list.dart)
 ```dart
 class TodoList extends StatelessWidget {
   const TodoList();
@@ -733,20 +766,320 @@ class TodoList extends StatelessWidget {
             
             //
             return injectedTodo.inherited(
+              //As this is a list of dismissible items a key must be given
               key: Key('${todos[index].id}'),
               state: () =>  todos[index],
               //Build is optimized by using const
-              builder: (_) => const TodoItem(),
-              connectWithGlobal: true,
+              builder: (context) => const TodoItem(),
             );
           },
         );
       },
+      //By default 'rebuilder' will rebuild on data only.
+      //In addition, in our case we want it to rebuild on error so to return back to the last state if 
+      //the persistance failed. (We can use whenRebuilderOr instead)
       shouldRebuild: () => todosFiltered.hasData || todosFiltered.hasError,
     );
   }
 }
 ```
 
+The TodoItem looks like this :
+
+[Refer to todo item file](lib/ui/pages/home_screen/todo_item.dart)
+```dart
+class TodoItem extends StatelessWidget {
+  //const constructor
+  const TodoItem({ Key key }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    //Get the todo state using the context.
+    //Similar ot of(context) in inheritedWidget
+    final todo = injectedTodo(context);
+    return todo.rebuilder(
+      () {
+        return Dismissible(
+          key: Key('__${todo.state.id}__'),
+          onDismissed: (direction) {
+            //remove a todo on dismiss
+            removeTodo(todo.state);
+          },
+          child: ListTile(
+            onTap: () async {
+              //Navigate to DetailScreen
+              final shouldDelete = await RM.navigate.to(
+                //As this is a new route, getting a todo state from context no longer possible.
+                //Using 'reInherited' method will make the todo state available on the new route.
+                injectedTodo.reInherited(
+                  context: context,
+                  builder: (context) => const DetailScreen(),
+                ),
+              );
+              if (shouldDelete == true) {
+                //Removing todo will show a Snackbar
+                //We explicitly set the context to get the right scaffold
+                RM.scaffoldShow.context = context;
+                removeTodo(todo.state);
+              }
+            },
+            leading: Checkbox(
+              //key used for test
+              key: Key('__Checkbox${todo.state.id}__'),
+              value: todo.state.complete,
+              onChanged: (value) {
+                final newTodo = todo.state.copyWith(
+                  complete: value,
+                );
+                //set the new todo state
+                //This will toggle the value of th checkBox
+                //and
+                //the onData of injectedTodo is invoked to update the todos list
+                todo.state = newTodo;
+              },
+            ),
+            title: Text(
+              todo.state.task,
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            subtitle: Text(
+              todo.state.note,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.subtitle1,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+### Filter Todos
+> [User can filter to show All Todos (Active and Complete), ONLY active todos, or ONLY completed todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#filter-todos)
+
+[Refer to filter button file](lib/ui/pages/home_screen/filter_button.dart)
+```dart
+ @override
+  Widget build(BuildContext context) {
+    //Register to activeFilter model
+    return activeFilter.rebuilder(
+      () {
+        return PopupMenuButton<VisibilityFilter>(
+          tooltip: i18n.state.filterTodos,
+          onSelected: (filter) {
+            //mutate  activeFilter and notify listener
+            activeFilter.state = filter;
+            //As filteredTodos injected model depends on activeFilter, it will be revaluated
+            //and display the wanted todos
+          },
+          itemBuilder: (BuildContext context) =>
+              <PopupMenuItem<VisibilityFilter>>[
+            PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_All__'),
+              value: VisibilityFilter.all,
+              child: Text(
+                i18n.state.showAll,
+                style: activeFilter.state == VisibilityFilter.all
+                    ? activeStyle
+                    : defaultStyle,
+              ),
+            ),
+            PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_Active__'),
+              value: VisibilityFilter.active,
+              child: Text(
+                i18n.state.showActive,
+                style: activeFilter.state == VisibilityFilter.active
+                    ? activeStyle
+                    : defaultStyle,
+              ),
+            ),
+            PopupMenuItem<VisibilityFilter>(
+              key: Key('__Filter_Completed__'),
+              value: VisibilityFilter.completed,
+              child: Text(
+                i18n.state.showCompleted,
+                style: activeFilter.state == VisibilityFilter.completed
+                    ? activeStyle
+                    : defaultStyle,
+              ),
+            ),
+          ],
+          icon: const Icon(Icons.filter_list),
+        );
+      },
+    );
+  }
+```
 
 
+### Toggle all todos and clear completed todos
+> [If all or some todos are incomplete, all todos in the list are marked as complete. Or if all the todos are marked as complete, all todos in the list are marked as incomplete.](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#overflow-menu)
+
+First define and ExtraAction enum and inject it:
+[Refer to extra action file](lib/ui/pages/ome_screen/extra_actions_button.dart)
+```dart
+enum ExtraAction {
+  toggleAllComplete,
+  clearCompleted,
+  toggleDarkMode,
+}
+
+final _extraAction = RM.inject(
+  () => ExtraAction.clearCompleted,
+);
+```
+
+[Refer to extra action file](lib/ui/pages/ome_screen/extra_actions_button.dart)
+```dart
+ @override
+  Widget build(BuildContext context) {
+    //Register to _extraAction
+    return _extraAction.rebuilder(() {
+      return PopupMenuButton<ExtraAction>(
+        onSelected: (action) {
+          //mutate the state of _extraAction
+          _extraAction.state = action;
+
+          if (action == ExtraAction.toggleDarkMode) {
+            //toggle the darkMode theme
+            isDarkMode.state = !isDarkMode.state;
+            return;
+          }
+
+          if (action == ExtraAction.toggleAllComplete) {
+            //set the todos state to toggle all,
+            todos.setState((s) => s.toggleAll());
+            //Refresh the global injectedTodo state so that all todo items will be refreshed.
+            //Only todo items that are changed will be rebuilt.
+            injectedTodo.refresh();
+          } else {
+            //Clear all todos
+            todos.setState((s) => s.clearCompleted());
+          }
+        },
+        itemBuilder: (BuildContext context) {
+          return <PopupMenuItem<ExtraAction>>[
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleAll__'),
+              value: ExtraAction.toggleAllComplete,
+              child: Text(todosStats.state.allComplete
+                  ? i18n.state.markAllIncomplete
+                  : i18n.state.markAllComplete),
+            ),
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleClearCompleted__'),
+              value: ExtraAction.clearCompleted,
+              child: Text(i18n.state.clearCompleted),
+            ),
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleDarkMode__'),
+              value: ExtraAction.toggleDarkMode,
+              child: Text(
+                isDarkMode.state
+                    ? i18n.state.switchToLightMode
+                    : i18n.state.switchToDarkMode,
+              ),
+            ),
+          ];
+        },
+      );
+    });
+  }
+```
+
+### Stats Screen
+> [Shows a stats of number of completed and active todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#stats-screen)
+
+First let's define a data class that contains the stats we want to display:
+
+[Refer to extra action file](lib/domain/value_object/todos_stats.dart)
+```dart
+class TodosStats {
+  final int numCompleted;
+  final int numActive;
+  final bool allComplete;
+
+  TodosStats({
+    @required this.numCompleted,
+    @required this.numActive,
+  }) : allComplete = numActive == 0;
+}
+```
+
+
+The next step is to inject the `TodosStats` as computed:
+
+[Refer to extra action file](lib/ui/pages/ome_screen/extra_actions_button.dart)
+```dart
+final Injected<TodosStats> todosStats = RM.injectComputed(
+  compute: (_) {
+    return TodosStats(
+      //todosFiltered is a computed inject. todosStats is computed form the computed inject
+      numCompleted: todosFiltered.state.where((t) => t.complete).length,
+      numActive: todosFiltered.state.where((t) => !t.complete).length,
+    );
+  },
+  // debugPrintWhenNotifiedPreMessage: '',
+);
+```
+
+[Refer to extra action file](lib/ui/pages/ome_screen/extra_actions_button.dart)
+```dart
+ @override
+  Widget build(BuildContext context) {
+    //Register to _extraAction
+    return _extraAction.rebuilder(() {
+      return PopupMenuButton<ExtraAction>(
+        onSelected: (action) {
+          //mutate the state of _extraAction
+          _extraAction.state = action;
+
+          if (action == ExtraAction.toggleDarkMode) {
+            //toggle the darkMode theme
+            isDarkMode.state = !isDarkMode.state;
+            return;
+          }
+
+          if (action == ExtraAction.toggleAllComplete) {
+            //set the todos state to toggle all,
+            todos.setState((s) => s.toggleAll());
+            //Refresh the global injectedTodo state so that all todo items will be refreshed.
+            //Only todo items that are changed will be rebuilt.
+            injectedTodo.refresh();
+          } else {
+            //Clear all todos
+            todos.setState((s) => s.clearCompleted());
+          }
+        },
+        itemBuilder: (BuildContext context) {
+          return <PopupMenuItem<ExtraAction>>[
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleAll__'),
+              value: ExtraAction.toggleAllComplete,
+              child: Text(todosStats.state.allComplete
+                  ? i18n.state.markAllIncomplete
+                  : i18n.state.markAllComplete),
+            ),
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleClearCompleted__'),
+              value: ExtraAction.clearCompleted,
+              child: Text(i18n.state.clearCompleted),
+            ),
+            PopupMenuItem<ExtraAction>(
+              key: Key('__toggleDarkMode__'),
+              value: ExtraAction.toggleDarkMode,
+              child: Text(
+                isDarkMode.state
+                    ? i18n.state.switchToLightMode
+                    : i18n.state.switchToDarkMode,
+              ),
+            ),
+          ];
+        },
+      );
+    });
+  }
+```

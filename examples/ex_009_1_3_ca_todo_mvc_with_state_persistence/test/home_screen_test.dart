@@ -8,6 +8,7 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/detail_sc
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/extra_actions_button.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/filter_button.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/home_screen.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/stats_counter.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/todo_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -359,6 +360,21 @@ void main() async {
       //all todos are removed
       expect(checkedCheckBox, findsNWidgets(0));
       expect(unCheckedCheckBox, findsNWidgets(0));
+    },
+  );
+
+  testWidgets(
+    ' Todos stats',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      //
+      await tester.tap(find.byIcon(Icons.show_chart));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StatsCounter), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
     },
   );
 }

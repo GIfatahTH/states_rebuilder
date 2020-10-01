@@ -31,11 +31,13 @@ class TodoItem extends StatelessWidget {
               final shouldDelete = await RM.navigate.to(
                 injectedTodo.reInherited(
                   context: context,
-                  builder: (context) => DetailScreen(),
+                  builder: (context) => const DetailScreen(),
                 ),
               );
               if (shouldDelete == true) {
-                RM.scaffoldShow.context = context;
+                //Removing todo will show a Snackbar
+                //We explicitly set the context to get the right scaffold
+                RM.scaffoldShow.context = context; //TODO
                 removeTodo(todo.state);
               }
             },

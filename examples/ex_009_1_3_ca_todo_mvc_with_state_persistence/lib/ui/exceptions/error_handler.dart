@@ -14,7 +14,6 @@ class ErrorHandler {
     }
 
     if (error is PersistanceException) {
-      return 'error';
       return error.message;
     }
     // return '$error';

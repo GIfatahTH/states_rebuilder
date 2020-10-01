@@ -11,8 +11,8 @@ class TodoList extends StatelessWidget {
   const TodoList();
   @override
   Widget build(BuildContext context) {
-    return todosFiltered.rebuilder(
-      () {
+    return todosFiltered.whenRebuilderOr(
+      builder: () {
         final todos = todosFiltered.state;
         return ListView.builder(
           itemCount: todos.length,
@@ -21,7 +21,7 @@ class TodoList extends StatelessWidget {
               key: Key('${todos[index].id}'),
               connectWithGlobal: true,
               state: () {
-                return todos[index];
+                return todosFiltered.state[index];
               },
               builder: (_) => const TodoItem(),
               // debugPrintWhenNotifiedPreMessage: 'todo $index',
@@ -29,7 +29,6 @@ class TodoList extends StatelessWidget {
           },
         );
       },
-      shouldRebuild: () => todosFiltered.hasData || todosFiltered.hasError,
     );
   }
 }

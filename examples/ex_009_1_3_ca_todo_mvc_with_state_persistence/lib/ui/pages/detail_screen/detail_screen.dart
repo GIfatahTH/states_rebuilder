@@ -10,7 +10,7 @@ import '../../../ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import '../../common/localization/localization.dart';
 
 class DetailScreen extends StatelessWidget {
-  DetailScreen();
+  const DetailScreen();
 
   @override
   Widget build(BuildContext context) {

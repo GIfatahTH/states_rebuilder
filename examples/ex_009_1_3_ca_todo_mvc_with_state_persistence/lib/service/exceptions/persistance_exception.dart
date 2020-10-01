@@ -1,4 +1,4 @@
-class PersistanceException extends Error {
+class PersistanceException implements Exception {
   final String message;
   PersistanceException(this.message);
   @override

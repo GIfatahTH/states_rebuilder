@@ -26,12 +26,12 @@ class ExtraActionsButton extends StatelessWidget {
             return;
           }
 
-          todos.setState(
-            (action == ExtraAction.toggleAllComplete)
-                ? (s) => s.toggleAll()
-                : (s) => s.clearCompleted(),
-          );
-          injectedTodo.refresh();
+          if (action == ExtraAction.toggleAllComplete) {
+            todos.setState((s) => s.toggleAll());
+            injectedTodo.refresh();
+          } else {
+            todos.setState((s) => s.clearCompleted());
+          }
         },
         itemBuilder: (BuildContext context) {
           return <PopupMenuItem<ExtraAction>>[

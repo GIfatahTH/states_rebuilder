@@ -3,6 +3,4 @@ enum ExtraAction {
   toggleAllComplete,
   clearCompleted,
   toggleDarkMode,
-  arabic,
-  english
 }
