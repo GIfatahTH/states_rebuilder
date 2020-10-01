@@ -9,7 +9,9 @@ var counter = RM.inject(
     key: 'counter',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
+    catchPersistError: true,
   ),
+  onError: (e, s) => print('error'),
   onInitialized: (_) => print('onInitialized'),
   onDisposed: (_) => print('onDisposed'),
 );
@@ -67,13 +69,16 @@ void main() {
     // persistState.read();
     expect(StatesRebuilerLogger.message.contains('Read Error'), isTrue);
 
+    // expect(() => counter.state++, throwsException);
     counter.state++;
     await tester.pump();
-    expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
-    //
-    counter.persistState();
-    await tester.pump();
-    expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+    // expect(tester.takeException(), isException);
+    // // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+    // // //
+    // expect(() => counter.persistState(), throwsException);
+
+    // await tester.pump();
+    // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
 
     //
     counter.deletePersistState();

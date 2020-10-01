@@ -63,25 +63,27 @@ Map<String, int> numberOfRebuild;
 class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Column(
-        //Colum here can be replaced with ListView.builder
-        //I use Column for the sake of clarity
-        children: [
-          injectedCounter.inherited(
-            state: () => _listOfCounters[0],
-            builder: (_) => const CounterItem(),
-          ),
-          injectedCounter.inherited(
-            state: () => _listOfCounters[1],
-            builder: (_) => const CounterItem(),
-          ),
-          injectedCounter.inherited(
-            state: () => _listOfCounters[2],
-            builder: (_) => const CounterItem(),
-          ),
-        ],
+    return MaterialApp(
+      navigatorKey: RM.navigate.navigatorKey,
+      home: Scaffold(
+        body: Column(
+          //Colum here can be replaced with ListView.builder
+          //I use Column for the sake of clarity
+          children: [
+            injectedCounter.inherited(
+              state: () => _listOfCounters[0],
+              builder: (_) => const CounterItem(),
+            ),
+            injectedCounter.inherited(
+              state: () => _listOfCounters[1],
+              builder: (_) => const CounterItem(),
+            ),
+            injectedCounter.inherited(
+              state: () => _listOfCounters[2],
+              builder: (_) => const CounterItem(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -105,9 +107,32 @@ class CounterItem extends StatelessWidget {
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),
           child: Text(counter.state.id),
+        ),
+        RaisedButton(
+          key: Key('Navigate to ' + counter.state.id),
+          onPressed: () {
+            RM.navigate.to(
+              counter.reInherited(
+                context: context,
+                builder: (context) => const CounterItemDetailed(),
+              ),
+            );
+          },
+          child: Text('Navigate to counter detailed'),
         )
       ],
     );
+  }
+}
+
+//Detailed counter. used to test the availability of inherited counter state
+//in a new route page
+class CounterItemDetailed extends StatelessWidget {
+  const CounterItemDetailed();
+  @override
+  Widget build(BuildContext context) {
+    final counter = injectedCounter(context);
+    return Text('Detailed of ${counter.state.id}: ${counter.state.value}');
   }
 }
 
@@ -234,5 +259,23 @@ void main() {
     expect(find.text('counter1: 1'), findsOneWidget);
     expect(find.text('counter2: 1'), findsOneWidget);
     expect(find.text('counter3: 1'), findsOneWidget);
+  });
+
+  testWidgets(
+      'Inherited counter state is available in a new route using reInherit',
+      (tester) async {
+    await tester.pumpWidget(_App());
+    //We expect to see three CounterItem widgets
+    await tester.tap(find.byKey(Key('counter1')));
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    //
+    //Tap to navigate to new route
+    await tester.tap(find.byKey(Key('Navigate to counter1')));
+    await tester.pumpAndSettle();
+    //We are in the detailed screen
+    expect(find.byType(CounterItemDetailed), findsOneWidget);
+    //And we get the counter1 state using the context.
+    expect(find.text('Detailed of counter1: 1'), findsOneWidget);
   });
 }
