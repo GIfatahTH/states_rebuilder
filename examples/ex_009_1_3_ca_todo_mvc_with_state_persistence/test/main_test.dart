@@ -46,22 +46,24 @@ void main() async {
     await tester.pumpAndSettle();
     //choose 'AR' language
     await tester.tap(find.text('AR'));
-    await tester.pump();
     await tester.pumpAndSettle();
     //ar is persisted
     expect(storage.store['__localization__'], 'ar');
     //App is in arabic
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'تنبيه');
+    //The app bar title is in arabic
+    expect(find.text('States_rebuilder مثال'), findsOneWidget);
     //
     await tester.tap(find.byType(Languages));
     await tester.pumpAndSettle();
     //tap to use system language
     await tester.tap(find.byKey(Key('__System_language__')));
-    await tester.pump();
     await tester.pumpAndSettle();
     //and for systemLanguage is persisted
     expect(storage.store['__localization__'], 'und');
     //App is back to system language (english).
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
+    //The app bar title is in english
+    expect(find.text('States_rebuilder Example'), findsOneWidget);
   });
 }

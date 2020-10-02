@@ -490,6 +490,84 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     );
   }
 
+  Widget listen({
+    @required When<Widget> rebuild,
+    When<dynamic> onSetState,
+    When<dynamic> onRebuildState,
+    void Function() initState,
+    void Function() dispose,
+    Object Function() watch,
+    bool Function() shouldRebuild,
+    Key key,
+  }) {
+    return StateBuilder<T>(
+      key: key,
+      initState: initState == null ? null : (_, rm) => initState(),
+      dispose: dispose == null ? null : (_, rm) => dispose(),
+      shouldRebuild: (_) {
+        if (shouldRebuild != null) {
+          return shouldRebuild();
+        }
+        if (rebuild._whenType == _WhenType.onData) {
+          return _stateRM.hasData || _stateRM.isIdle;
+        }
+        if (rebuild._whenType == _WhenType.onWaiting) {
+          return _stateRM.isWaiting || _stateRM.isIdle;
+        }
+        if (rebuild._whenType == _WhenType.onError) {
+          return _stateRM.hasError || _stateRM.isIdle;
+        }
+        return true;
+      },
+      watch: watch == null ? null : (_) => watch(),
+      observe: () => _stateRM,
+      didUpdateWidget: (_, rm, __) {
+        if (_rm?.hasObservers != true) {
+          final injected = _functionalInjectedModels[rm.inject.getName()];
+          injected?._cloneTo(this);
+        }
+      },
+      onSetState: (context, rm) {
+        if (onSetState == null) {
+          return;
+        }
+
+        _stateRM.whenConnectionState(
+          onIdle: () => onSetState.onIdle?.call(),
+          onWaiting: () => onSetState.onWaiting?.call(),
+          onError: (err) => onSetState.onError?.call(err),
+          onData: (_) => onSetState.onData?.call(),
+          catchError: onSetState.onError != null,
+        );
+      },
+      onRebuildState: (context, rm) {
+        if (onRebuildState == null) {
+          return;
+        }
+        _stateRM.whenConnectionState(
+          onIdle: () => onRebuildState.onIdle?.call(),
+          onWaiting: () => onRebuildState.onWaiting?.call(),
+          onError: (err) => onRebuildState.onError?.call(err),
+          onData: (_) => onRebuildState.onData?.call(),
+          catchError: onRebuildState.onError != null,
+        );
+      },
+      builder: (context, rm) {
+        return _stateRM.whenConnectionState(
+          onIdle: () =>
+              rebuild.onIdle?.call() ??
+              rebuild.onData?.call() ??
+              rebuild.onWaiting?.call() ??
+              rebuild.onError?.call(_stateRM.error),
+          onWaiting: () => rebuild.onWaiting?.call(),
+          onError: (err) => rebuild.onError?.call(err),
+          onData: (_) => rebuild.onData?.call(),
+          catchError: rebuild.onError != null,
+        );
+      },
+    );
+  }
+
   /// {@template injected.whenRebuilder}
   ///Listen to the injected Model and rebuild when it emits a notification.
   ///
@@ -884,3 +962,100 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
         : _rm?.toString();
   }
 }
+
+class When<T> {
+  final T Function() onIdle;
+  final T Function() onWaiting;
+  final T Function(dynamic err) onError;
+  final T Function() onData;
+  _WhenType _whenType;
+  When._({
+    @required this.onIdle,
+    @required this.onWaiting,
+    @required this.onError,
+    @required this.onData,
+  });
+
+  factory When.always(
+    T Function() builder,
+  ) {
+    return When._(
+      onIdle: builder,
+      onWaiting: builder,
+      onError: (_) => builder(),
+      onData: builder,
+    ).._whenType = _WhenType.when;
+  }
+
+  factory When.data(T Function() builder) {
+    return When._(
+      onIdle: null,
+      onWaiting: null,
+      onError: null,
+      onData: builder,
+    ).._whenType = _WhenType.onData;
+  }
+
+  factory When.waiting(T Function() builder) {
+    return When._(
+      onIdle: null,
+      onWaiting: builder,
+      onError: null,
+      onData: null,
+    ).._whenType = _WhenType.onWaiting;
+  }
+  factory When.error(T Function(dynamic err) builder) {
+    return When._(
+      onIdle: null,
+      onWaiting: null,
+      onError: builder,
+      onData: null,
+    ).._whenType = _WhenType.onError;
+  }
+
+  factory When.or({
+    T Function() onIdle,
+    T Function() onWaiting,
+    T Function(dynamic err) onError,
+    T Function() onData,
+    @required T Function() or,
+  }) {
+    return When._(
+      onIdle: onIdle ?? or,
+      onWaiting: onWaiting ?? or,
+      onError: onError ?? (_) => or(),
+      onData: onData ?? or,
+    ).._whenType = _WhenType.when;
+  }
+  factory When.all({
+    @required T Function() onIdle,
+    @required T Function() onWaiting,
+    @required T Function(dynamic err) onError,
+    @required T Function() onData,
+  }) {
+    return When._(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      onData: onData,
+    ).._whenType = _WhenType.when;
+  }
+}
+
+enum _WhenType { onData, onWaiting, onError, when }
+
+// class WhenOr<T> implements Listener<T> {
+//   final T Function() onIdle;
+//   final T Function() onWaiting;
+//   final T Function(dynamic err) onError;
+//   final T Function() onData;
+//   final T Function() or;
+
+//   WhenOr({
+//     this.onIdle,
+//     this.onWaiting,
+//     this.onError,
+//     this.onData,
+//     @required this.or,
+//   });
+// }
