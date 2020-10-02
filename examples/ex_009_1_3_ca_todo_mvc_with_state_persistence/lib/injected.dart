@@ -41,9 +41,8 @@ final activeTab = RM.inject(() => AppTab.todos);
 final Injected<TodosStats> todosStats = RM.injectComputed(
   compute: (_) {
     return TodosStats(
-      //TODO to check
-      numCompleted: todosFiltered.state.where((t) => t.complete).length,
-      numActive: todosFiltered.state.where((t) => !t.complete).length,
+      numCompleted: todos.state.where((t) => t.complete).length,
+      numActive: todos.state.where((t) => !t.complete).length,
     );
   },
   // debugPrintWhenNotifiedPreMessage: '',
@@ -51,7 +50,11 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
 
 final Injected<Todo> injectedTodo = RM.inject(
   () => null,
-  onData: (todo) => todos.state.updateTodo(todo), //TODO check when throwing
+  onData: (todo) {
+    if (todo != null) {
+      todos.state.updateTodo(todo);
+    }
+  }, //TODO check when throwing
   onError: (e, s) {
     ErrorHandler.showErrorSnackBar(e);
   },
