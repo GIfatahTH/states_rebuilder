@@ -358,6 +358,12 @@ class App extends StatelessWidget {
       ),
       builder: () {
         return MaterialApp(
+          //It is hight probable that you have const widgets. (You should have const widgets)
+          //When the locale rebuilds, the const widget will not rebuild and thus do keep
+          //displaying with the old language until they rebuild.
+          //
+          //To prevent this behavior,
+          key: Key('${locale.state}'),
           //get the appTitle fom the state of i18n
           title: i18n.state.appTitle,
           //On app start, the locale is obtained from the storage.

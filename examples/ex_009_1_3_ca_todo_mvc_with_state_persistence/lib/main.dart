@@ -15,8 +15,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // await RM.localStorageInitializer(SharedPreferencesImp());
-  // await RM.localStorageInitializer(HiveImp());
-  await RM.localStorageInitializer(SqfliteImp());
+  await RM.localStorageInitializer(HiveImp());
+  // await RM.localStorageInitializer(SqfliteImp());
 
   runApp(
     StateWithMixinBuilder.widgetsBindingObserver(
@@ -40,6 +40,7 @@ class App extends StatelessWidget {
       ),
       builder: () {
         return MaterialApp(
+          key: UniqueKey(),
           title: i18n.state.appTitle,
           theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
           locale: locale.state.languageCode == 'und' ? null : locale.state,
