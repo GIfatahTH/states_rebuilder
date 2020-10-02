@@ -51,7 +51,7 @@ class App extends StatelessWidget {
           ],
           routes: {
             AddEditPage.routeName: (context) => const AddEditPage(),
-            HomeScreen.routeName: (context) => const HomeScreen(),
+            HomeScreen.routeName: (context) => HomeScreen(), //FIXME const
           },
           navigatorKey: RM.navigate.navigatorKey,
         );

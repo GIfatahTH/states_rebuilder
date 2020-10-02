@@ -162,7 +162,7 @@ class SqfliteImp implements IPersistStore {
 }
 ```
 
-# Dynamic dark/lith theme
+# Dynamic dark/light theme
 Since we want to toggle between dark and light mode, we inject and persist a Boolean value to know if we've chosen dark or light.
 
 ```dart
@@ -249,6 +249,7 @@ To change the theme, we simply switch the state as follows:
 ```
 </details>
 
+<br>
 
 # Localization configuration
 
@@ -444,7 +445,7 @@ StateWithMixinBuilder.widgetsBindingObserver(
   });
 ```
 </details>
-
+<br>
 
 # Todos logic
 
@@ -537,7 +538,7 @@ class Todo {
 }
 ```
 </details>
-
+<br>
 
 The logic for adding, updating, deleting and toggling todos is encapsulated in `ListTodoX` extension.
 
@@ -861,6 +862,252 @@ class TodoItem extends StatelessWidget {
   }
 }
 ```
+**Tests**
+<details>
+  <summary>Click here to see add a todo test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L33)
+```dart
+  testWidgets('add todo', (tester) async {
+    await tester.pumpWidget(App());
+    //No todos
+    expect(find.byType(TodoItem), findsNothing);
+    //Tap on FloatingActionButton to add a todo
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    //We are in the AddEditPage
+    expect(find.byType(AddEditPage), findsOneWidget);
+    //
+    //Enter some text
+    await tester.enterText(find.byKey(Key('__TaskField')), 'Task 1');
+    await tester.enterText(find.byKey(Key('__NoteField')), 'Note 1');
+    //
+    //Tap on FloatingActionButton to add  the todo
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    //We are back in the HomeScreen
+    expect(find.byType(HomeScreen), findsOneWidget);
+    //And a todo is displayed
+    expect(find.byType(TodoItem), findsOneWidget);
+    //
+    //The add todo is persisted
+    expect(storage.store['__Todos__'].contains('"task":"Task 1"'), isTrue);
+    expect(storage.store['__Todos__'].contains('"note":"Note 1"'), isTrue);
+  });
+```
+</details>
+
+
+<details>
+  <summary>Click here to see remove todo using a dismissible and undo test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L59)
+```dart
+  testWidgets('Remove todo using a dismissible and manual undo', (tester) async {
+    //pre populate the store with tree todos
+    storage.store.addAll({'__Todos__': todos3});
+    await tester.pumpWidget(App());
+    //Start with three todos
+    expect(find.byType(TodoItem), findsNWidgets(3));
+    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+    //Dismiss the second todo
+    await tester.drag(find.text('Note2'), Offset(-1000, 0));
+    await tester.pumpAndSettle();
+    //
+    //the second todo is removed
+    expect(find.text('Note2'), findsNothing);
+    expect(find.byType(TodoItem), findsNWidgets(2));
+    //The new state is persisted
+    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isFalse);
+    //A SnackBar is displayed with undo button
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('Undo'), findsOneWidget);
+    //
+    //tap undo to restore the removed todo
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TodoItem), findsNWidgets(3));
+    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+  });
+```
+</details>
+<br>
+This is important. Here we fake a persistance provider failure and see that states_rebuilder mutate the state to the new desired state and try to persist it, as it fails it goes back to the last valid state and displays an error message.
+
+<details>
+  <summary>Click here to see remove todo using a dismissible and auto undo if persistance fails test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L86)
+```dart
+   testWidgets(
+    'Remove todo using a dismissible and undo if persistance fails',
+    (tester) async {
+      // storage.should
+      //pre populate the store with tree one
+      storage.store.addAll({'__Todos__': todos3});
+
+      await tester.pumpWidget(App());
+      //Start with three todos
+      expect(find.byType(TodoItem), findsNWidgets(3));
+      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      //
+      //Set the mocked store to throw PersistanceException after one seconds,
+      //when writing to the store
+      storage.exception = PersistanceException('mock message');
+      storage.timeToThrow = 1000;
+      //Dismiss the second todo
+      await tester.drag(find.text('Note2'), Offset(-1000, 0));
+      await tester.pumpAndSettle();
+      //
+      //the second todo is removed
+      expect(find.text('Note2'), findsNothing);
+      expect(find.byType(TodoItem), findsNWidgets(2));
+      //The new state is persisted
+      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      //A SnackBar is displayed with undo button
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+      //
+      //After one seconds
+      await tester.pumpAndSettle(Duration(seconds: 1));
+      //The second todo is displayed back
+      expect(find.text('Note2'), findsOneWidget);
+      expect(find.byType(TodoItem), findsNWidgets(3));
+      //A SnackBar with error is displayed
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    },
+  );
+```
+</details>
+<br>
+<details>
+  <summary>Click here to see toggling a todo form home and from DetailScreen test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L126)
+```dart
+  testWidgets(
+    'should toggle a todo form home and from DetailScreen',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      //
+      final checkedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final unCheckedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == false,
+      );
+
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+
+      //Check the first todo
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      expect(checkedCheckBox, findsNWidgets(2));
+      expect(unCheckedCheckBox, findsNWidgets(1));
+      //
+      //to on the first todo to go to detailed page
+      await tester.tap(find.byType(TodoItem).first);
+      await tester.pumpAndSettle();
+      //We are in the DetailScreen
+      expect(find.byType(DetailScreen), findsOneWidget);
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(0));
+      //toggle the todo in the detailed screen
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      //It is unchecked
+      expect(checkedCheckBox, findsNWidgets(0));
+      expect(unCheckedCheckBox, findsNWidgets(1));
+      //
+      //Back to the home screen
+      RM.navigate.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      //it is updated
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+    },
+  );
+```
+</details>
+
+<details>
+  <summary>Click here to see removing a todo form  DetailScreen test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L172)
+```dart
+  testWidgets(
+    'should Remove a todo form  DetailScreen',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      expect(find.byType(TodoItem), findsNWidgets(3));
+
+      //to on the first todo to go to detailed page
+      await tester.tap(find.byType(TodoItem).first);
+      await tester.pumpAndSettle();
+      //We are in the DetailScreen
+      expect(find.byType(DetailScreen), findsOneWidget);
+      //tap on the delete icon
+      await tester.tap(find.byIcon(Icons.delete));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      expect(find.byType(TodoItem), findsNWidgets(2));
+      //A SnackBar is displayed with undo button
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+    },
+  );
+```
+</details>
+
+<details>
+  <summary>Click here to see editing a todo test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L196)
+```dart
+  testWidgets(
+    'should edit a todo',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      expect(find.byType(TodoItem), findsNWidgets(3));
+
+      //to on the first todo to go to detailed page
+      await tester.tap(find.text('Note1').first);
+      await tester.pumpAndSettle();
+      //We are in the DetailScreen
+      expect(find.byType(DetailScreen), findsOneWidget);
+      //top on FloatingActionButton to edit todo
+      await tester.tap(find.byType(FloatingActionButton).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(AddEditPage), findsOneWidget);
+      //
+      //Enter some text
+      await tester.enterText(find.byKey(Key('__TaskField')), 'New Task 1');
+      await tester.enterText(find.byKey(Key('__NoteField')), 'New Note 1');
+      //
+      //Tap on FloatingActionButton to submit  the todo
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      //It is updated
+      expect(find.byType(DetailScreen), findsOneWidget);
+      expect(find.text('New Task 1'), findsOneWidget);
+      //Navigate to home screen
+      RM.navigate.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      //it is updated
+      expect(find.text('New Task 1'), findsOneWidget);
+    },
+  );
+```
+</details>
+<br>
 
 ### Filter Todos
 > [User can filter to show All Todos (Active and Complete), ONLY active todos, or ONLY completed todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#filter-todos)
@@ -920,6 +1167,63 @@ class TodoItem extends StatelessWidget {
   }
 ```
 
+<details>
+  <summary>Click here to see filter todos test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L231)
+```dart
+testWidgets(
+    'Show filter todos: all, active and completed todos',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      //
+      final checkedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final unCheckedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == false,
+      );
+
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+
+      //Top to filter active todos
+      await tester.tap(find.byType(FilterButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__Filter_Active__')));
+      await tester.pumpAndSettle();
+
+      //Only active todos are displayed
+      expect(checkedCheckBox, findsNWidgets(0));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+      //
+      //Top to filter complete todos
+      await tester.tap(find.byType(FilterButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__Filter_Completed__')));
+      await tester.pumpAndSettle();
+
+      //Only completed todos are displayed
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(0));
+      //
+      //Top to show all todos
+      await tester.tap(find.byType(FilterButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__Filter_All__')));
+      await tester.pumpAndSettle();
+
+      //Only completed todos are displayed
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+      //
+    },
+  );
+```
+</details>
+
+<br>
 
 ### Toggle all todos and clear completed todos
 > [If all or some todos are incomplete, all todos in the list are marked as complete. Or if all the todos are marked as complete, all todos in the list are marked as incomplete.](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#overflow-menu)
@@ -996,6 +1300,112 @@ final _extraAction = RM.inject(
   }
 ```
 
+
+<details>
+  <summary>Click here to see toggle all test</summary>
+
+[Refer to stats_test.dart file](test/home_screen_test.dart#L280)
+```dart
+  testWidgets(
+    'toggle all completed / uncompleted',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      //
+      final checkedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final unCheckedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == false,
+      );
+
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+
+      //Top to toggle all to completed
+      await tester.tap(find.byType(ExtraActionsButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__toggleAll__')));
+      await tester.pumpAndSettle();
+
+      //
+      expect(checkedCheckBox, findsNWidgets(3));
+      expect(unCheckedCheckBox, findsNWidgets(0));
+      //
+      //Toggle all to uncompleted
+      await tester.tap(find.byType(ExtraActionsButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__toggleAll__')));
+      await tester.pumpAndSettle();
+
+      //Only active todos are displayed
+      expect(checkedCheckBox, findsNWidgets(0));
+      expect(unCheckedCheckBox, findsNWidgets(3));
+    },
+  );
+
+```
+</details>
+
+
+<details>
+  <summary>Click here to see clear competed test</summary>
+
+[Refer to home_screen_test.dart file](test/home_screen_test.dart#L318)
+```dart
+
+  testWidgets(
+    ' clear completed',
+    (tester) async {
+      storage.store.addAll({'__Todos__': todos3});
+      await tester.pumpWidget(App());
+      //
+      final checkedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final unCheckedCheckBox = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == false,
+      );
+
+      expect(checkedCheckBox, findsNWidgets(1));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+
+      //Top to clear completed
+      await tester.tap(find.byType(ExtraActionsButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
+      await tester.pumpAndSettle();
+
+      //one completed todo is removed
+      expect(checkedCheckBox, findsNWidgets(0));
+      expect(unCheckedCheckBox, findsNWidgets(2));
+      //
+      //Toggle all to completed
+      await tester.tap(find.byType(ExtraActionsButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__toggleAll__')));
+      await tester.pumpAndSettle();
+
+      //
+      expect(checkedCheckBox, findsNWidgets(2));
+      expect(unCheckedCheckBox, findsNWidgets(0));
+
+      await tester.tap(find.byType(ExtraActionsButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
+      await tester.pumpAndSettle();
+
+      //all todos are removed
+      expect(checkedCheckBox, findsNWidgets(0));
+      expect(unCheckedCheckBox, findsNWidgets(0));
+    },
+  );
+
+```
+</details>
+
+<br>
+
 ### Stats Screen
 > [Shows a stats of number of completed and active todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#stats-screen)
 
@@ -1023,69 +1433,138 @@ The next step is to inject the `TodosStats` as computed:
 final Injected<TodosStats> todosStats = RM.injectComputed(
   compute: (_) {
     return TodosStats(
-      //todosFiltered is a computed inject. todosStats is computed form the computed inject
-      numCompleted: todosFiltered.state.where((t) => t.complete).length,
-      numActive: todosFiltered.state.where((t) => !t.complete).length,
+      numCompleted: todos.state.where((t) => t.complete).length,
+      numActive: todos.state.where((t) => !t.complete).length,
     );
   },
-  // debugPrintWhenNotifiedPreMessage: '',
 );
 ```
 
-[Refer to extra action file](lib/ui/pages/ome_screen/extra_actions_button.dart)
+[Refer to stats file](lib/ui/pages/home_screen/stats_counter.dart)
 ```dart
- @override
+  @override
   Widget build(BuildContext context) {
-    //Register to _extraAction
-    return _extraAction.rebuilder(() {
-      return PopupMenuButton<ExtraAction>(
-        onSelected: (action) {
-          //mutate the state of _extraAction
-          _extraAction.state = action;
-
-          if (action == ExtraAction.toggleDarkMode) {
-            //toggle the darkMode theme
-            isDarkMode.state = !isDarkMode.state;
-            return;
-          }
-
-          if (action == ExtraAction.toggleAllComplete) {
-            //set the todos state to toggle all,
-            todos.setState((s) => s.toggleAll());
-            //Refresh the global injectedTodo state so that all todo items will be refreshed.
-            //Only todo items that are changed will be rebuilt.
-            injectedTodo.refresh();
-          } else {
-            //Clear all todos
-            todos.setState((s) => s.clearCompleted());
-          }
-        },
-        itemBuilder: (BuildContext context) {
-          return <PopupMenuItem<ExtraAction>>[
-            PopupMenuItem<ExtraAction>(
-              key: Key('__toggleAll__'),
-              value: ExtraAction.toggleAllComplete,
-              child: Text(todosStats.state.allComplete
-                  ? i18n.state.markAllIncomplete
-                  : i18n.state.markAllComplete),
-            ),
-            PopupMenuItem<ExtraAction>(
-              key: Key('__toggleClearCompleted__'),
-              value: ExtraAction.clearCompleted,
-              child: Text(i18n.state.clearCompleted),
-            ),
-            PopupMenuItem<ExtraAction>(
-              key: Key('__toggleDarkMode__'),
-              value: ExtraAction.toggleDarkMode,
+    return todosStats.rebuilder(
+      () => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                isDarkMode.state
-                    ? i18n.state.switchToLightMode
-                    : i18n.state.switchToDarkMode,
+                i18n.state.completedTodos,
+                style: Theme.of(context).textTheme.headline6,
               ),
             ),
-          ];
-        },
-      );
-    });
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Text(
+                '${todosStats.state.numCompleted}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                i18n.state.activeTodos,
+                style: Theme.of(context).textTheme.headline6,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Text(
+                '${todosStats.state.numActive}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 ```
+
+<details>
+  <summary>Click here to see stats test</summary>
+
+[Refer to stats_test.dart file](test/stats_test.dart#L9)
+```dart
+void main() async {
+  final storage = await RM.localStorageInitializerMock();
+  setUp(() {
+    storage.clear();
+  });
+  testWidgets('Show stats, and toggle completed', (tester) async {
+    storage.store.addAll({'__Todos__': todos3});
+    await tester.pumpWidget(App());
+    //
+    await tester.tap(find.byIcon(Icons.show_chart));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StatsCounter), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+
+    //Top to toggle all to completed
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleAll__')));
+    await tester.pumpAndSettle();
+
+    //
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+    //
+    //Toggle all to uncompleted
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleAll__')));
+    await tester.pumpAndSettle();
+
+    //Only active todos are displayed
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+  });
+
+  testWidgets('Show stats, and clear completed', (tester) async {
+    storage.store.addAll({'__Todos__': todos3});
+    await tester.pumpWidget(App());
+    //
+    await tester.tap(find.byIcon(Icons.show_chart));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StatsCounter), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+
+    //Top to clear completed
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
+    await tester.pumpAndSettle();
+
+    //one completed todo is removed. Remains to active todos
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+    //
+    //Toggle all to completed
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleAll__')));
+    await tester.pumpAndSettle();
+
+    //Two completed todos
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+
+    await tester.tap(find.byType(ExtraActionsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
+    await tester.pumpAndSettle();
+
+    //all todos are removed
+    expect(find.text('0'), findsNWidgets(2));
+  });
+}
+```
+</details>
