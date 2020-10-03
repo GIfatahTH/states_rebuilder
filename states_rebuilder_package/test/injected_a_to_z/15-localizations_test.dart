@@ -84,6 +84,7 @@ class LocalizationsApp extends StatelessWidget {
           );
         }
         return MaterialApp(
+          key:Key('${currentLocale.state}'),
           locale: currentLocale.state,
           // List all of the app's supported locales here
           supportedLocales: [
