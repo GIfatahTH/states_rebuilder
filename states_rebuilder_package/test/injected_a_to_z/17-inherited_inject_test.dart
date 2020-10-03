@@ -265,17 +265,48 @@ void main() {
       'Inherited counter state is available in a new route using reInherit',
       (tester) async {
     await tester.pumpWidget(_App());
-    //We expect to see three CounterItem widgets
+    //top to increment counter 1
     await tester.tap(find.byKey(Key('counter1')));
     await tester.pump();
     expect(find.text('counter1: 1'), findsOneWidget);
     //
-    //Tap to navigate to new route
+    //Tap on counter to navigate to detailed page
     await tester.tap(find.byKey(Key('Navigate to counter1')));
     await tester.pumpAndSettle();
     //We are in the detailed screen
     expect(find.byType(CounterItemDetailed), findsOneWidget);
     //And we get the counter1 state using the context.
     expect(find.text('Detailed of counter1: 1'), findsOneWidget);
+    //
+    //Pop back to list of counter page
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    //
+    //Tap on counter to navigate to detailed page
+    await tester.tap(find.byKey(Key('Navigate to counter2')));
+    await tester.pumpAndSettle();
+    //We are in the detailed screen
+    expect(find.byType(CounterItemDetailed), findsOneWidget);
+    //And we get the counter2 state using the context.
+    expect(find.text('Detailed of counter2: 0'), findsOneWidget);
+    //
+    //Pop back to list of counter page
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    //
+    //top to increment counter 3 twice
+    await tester.tap(find.byKey(Key('counter3')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('counter3')));
+    await tester.pump();
+    expect(find.text('counter3: 2'), findsOneWidget);
+    //
+    //Tap on counter to navigate to detailed page
+    await tester.tap(find.byKey(Key('Navigate to counter3')));
+    await tester.pumpAndSettle();
+    //We are in the detailed screen
+    expect(find.byType(CounterItemDetailed), findsOneWidget);
+    //And we get the counter3 state using the context.
+    expect(find.text('Detailed of counter3: 2'), findsOneWidget);
   });
 }

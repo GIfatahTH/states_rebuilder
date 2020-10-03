@@ -13,7 +13,7 @@ class _InheritedState<T> extends StatefulWidget {
   final Widget Function(BuildContext) builder;
   final T Function() state;
   final Injected<T> globalInjected;
-  final Injected<T> Function() reInheritedInjected;
+  final Injected<T> reInheritedInjected;
   final bool connectWithGlobal;
   final String debugPrintWhenNotifiedPreMessage;
 
@@ -28,7 +28,7 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
   void initState() {
     final _rm = widget.globalInjected.getRM;
     _injected = widget.reInheritedInjected != null
-        ? widget.reInheritedInjected()
+        ? widget.reInheritedInjected
         : RM.inject(
             () => widget.state(),
             debugPrintWhenNotifiedPreMessage:

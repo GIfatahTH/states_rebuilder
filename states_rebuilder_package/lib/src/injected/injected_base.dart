@@ -902,11 +902,15 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     bool connectWithGlobal = true,
     String debugPrintWhenNotifiedPreMessage,
   }) {
+    final globalInject = (context
+            .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
+            ?.widget as _InheritedInjected<T>)
+        ?.globalInjected;
     return _InheritedState(
       key: key,
       builder: (context) => builder(context),
-      globalInjected: this,
-      reInheritedInjected: () => call(context),
+      globalInjected: globalInject,
+      reInheritedInjected: globalInject.call(context),
       connectWithGlobal: connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
@@ -937,7 +941,10 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       if (_inheritedInjected.globalInjected == this) {
         return _inheritedInjected.injected;
       } else {
-        return call(_inheritedInjected.context);
+        return call(
+          _inheritedInjected.context,
+          defaultToGlobal: defaultToGlobal,
+        );
       }
     }
     if (defaultToGlobal) {
