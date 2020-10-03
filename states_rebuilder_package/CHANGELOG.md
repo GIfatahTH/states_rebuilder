@@ -1,9 +1,35 @@
-## 3.2.0 (2020-09-07)
-* Errors are not caught
-* PersistState is a function
-* add onPersistError
+## 3.2.0 (2020-10-03)
+* `Injected.persist` is a function instead of a simple object
+* add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
 * Persist read works with async
-* inherited
+```dart
+  ```dart
+  final model = RM.inject<Model>(
+    () => 0,
+    persist:()=> PersistState(
+      key: '__model_Key__',
+      toJson: (state) => json.encode(state),
+      fromJson: (json) => json.decode(json),
+      onError: (err, stack){
+        //If the persistance fails, the error is captured here, and the state is undone to the
+        //last valid state
+      }
+      //For this state the default persistance provider is overridden.
+      persistStateProvider: MyAnOtherPersistanceProvider()
+      //Print an informative message on the Read, Write, Delete operations
+      debugPrintOperations: true,
+      //Catch read, delete Exceptions
+      catchPersistError: true,
+    ),
+  );
+```
+
+* Since [errors](https://api.flutter.dev/flutter/dart-core/Error-class.html) are not created to be caught, states_rebuilder will not catch errors unless the parameter [StatesRebuilderConfig.shouldCatchError] is true. Instead, [Exceptions](https://api.flutter.dev/flutter/dart-core/Exception-class.html) are intended to be caught. Your costume error/exception classes must implement `Exception` not `Error`. 
+As this may leads the app to break, to fix just search for all `extends Error {` and replace with `implements Exception {`
+
+* Introduction of `Injected.inherit` and `Inject.reInherit` methods for widget-wise injection. Similar to `InheritedWidget`.
+
+* Experimental with `Injected.listen` as possible substitution of `Injected.rebuilder`, `Injected.whenRebuilder` and `Injected.whenRebuilderOr`.
 
 ## 3.1.0 (2020-09-07)
 * Add `RM.navigate` for simple navigation.

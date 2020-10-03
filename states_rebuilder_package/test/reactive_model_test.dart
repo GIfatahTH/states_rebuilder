@@ -4,6 +4,7 @@ import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/builders.dart';
+import 'package:states_rebuilder/src/states_rebuilder_config.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -71,6 +72,44 @@ void main() {
     expect(rm.hasError, isTrue);
     expect(ctx, isNotNull);
     expect(error, isA<Exception>());
+  });
+
+  testWidgets(
+      'Errors are not caught unless StatesRebuild.shouldCatchError is true',
+      (tester) async {
+    BuildContext ctx;
+    var error;
+    final rm = RM.create(0)
+      ..onError((context, e) {
+        ctx = context;
+        error = e;
+      });
+    await tester.pumpWidget(StateBuilder(
+        observe: () => RM.create(0), builder: (_, __) => Container()));
+    StatesRebuilerLogger.isTestMode = true;
+    expect(
+        () => rm.setState(
+              (_) {
+                throw StateError('bad State');
+              },
+              silent: true,
+              catchError: true,
+            ),
+        throwsStateError);
+    StatesRebuilderConfig.shouldCatchError = true;
+
+    rm.setState(
+      (_) {
+        throw StateError('bad State');
+      },
+      silent: true,
+      catchError: true,
+    );
+    expect(rm.hasError, isTrue);
+    expect(ctx, isNotNull);
+    expect(error, isA<Error>());
+    StatesRebuilderConfig.shouldCatchError = false;
+    StatesRebuilerLogger.isTestMode = false;
   });
 
   testWidgets(

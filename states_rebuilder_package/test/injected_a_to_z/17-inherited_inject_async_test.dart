@@ -95,7 +95,7 @@ class _App extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   const CounterItem();
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context);
+    final counter = injectedCounter.of(context);
     return Row(
       children: [
         counter.whenRebuilderOr(

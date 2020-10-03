@@ -116,7 +116,7 @@ class Password {
 ## exceptions
 **file:lib/domain/exceptions/validation_exception.dart**
 ```dart
-class ValidationException extends Error {
+class ValidationException implements Exception {
 
   ValidationException(this.message);
 
@@ -184,14 +184,14 @@ The service layer must contain custom error classes to be thrown by the service 
 **file:lib/service/exceptions/sign_in_out_exception.dart**
 
 ```dart
-class SignInException extends Error {
+class SignInException implements Exception {
   final title;
   final String code;
   final String message;
   SignInException({this.title, this.code, this.message});
 }
 
-class SignOutException extends Error {
+class SignOutException implements Exception {
   final title;
   final String code;
   final String message;

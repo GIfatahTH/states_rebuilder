@@ -286,7 +286,7 @@ class Password {
 ### ValidationException
 **lib\domain\exceptions\validation_exception.dart**
 ```dart
-class ValidationException extends Error {
+class ValidationException implements Exception {
   final String message;
 
   ValidationException(this.message);
@@ -327,7 +327,7 @@ In the Exceptions folder we define the Exceptions classes as expected from the s
 ### PersistanceException
 **lib\service\exceptions\persistance_exception.dart**
 ```dart
-class PersistanceException extends Error {
+class PersistanceException implements Exception {
   final String message;
   PersistanceException(this.message);
   @override

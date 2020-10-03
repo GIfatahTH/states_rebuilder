@@ -64,7 +64,7 @@ void main() {
   });
 
   testWidgets('Test try catch of PersistState', (tester) async {
-    await RM.localStorageInitializer(PersistStoreMockImp());
+    await RM.storageInitializer(PersistStoreMockImp());
     await tester.pumpWidget(App());
     // persistState.read();
     expect(StatesRebuilerLogger.message.contains('Read Error'), isTrue);

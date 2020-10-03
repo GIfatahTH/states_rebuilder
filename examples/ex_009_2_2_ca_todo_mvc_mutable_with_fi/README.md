@@ -170,7 +170,7 @@ In the Exceptions folder we define the Exceptions classes as expected from the s
 ### PersistanceException
 **lib\service\exceptions\persistance_exception.dart**
 ```dart
-class PersistanceException extends Error {
+class PersistanceException implements Exception {
   final String message;
   PersistanceException(this.message);
   @override

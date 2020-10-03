@@ -490,6 +490,35 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     );
   }
 
+  ///Listen to this Injected model and register:
+  ///* Side effects to be invoked before rebuilding the widget ([onSetState]
+  ///parameter).
+  ///* builder to be called to rebuild some part of the widget tree ([rebuild]
+  ///parameter).
+  ///* Side effects to be invoked after rebuilding ([onRebuildState] parameter).
+  ///
+  ///[onSetState], [rebuild] and [onRebuildState] parameters receives a [When]
+  ///object.
+  ///
+  /// * Required parameters:
+  ///     * [rebuild]: of type When<Widget>. defines the widget to render when
+  /// this injected model emits a notification.
+  /// * Optional parameters:
+  ///     * [onSetState] :  of type When<dynamic>. Defines callbacks to be
+  /// executed when this injected model emits a notification before rebuilding
+  /// the widget.
+  ///     * [onRebuildStateState] :  of type When<dynamic>. Defines callbacks
+  /// to be executed when this injected model emits a notification after
+  /// rebuilding the widget.
+  ///     * [initState] : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from
+  /// the widget tree.
+  ///     * [shouldRebuild] : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
+  ///     * [watch] : callback to be executed before notifying listeners.
+  /// It the returned value is the same as the last one, the rebuild process
+  /// is interrupted.
   Widget listen({
     @required When<Widget> rebuild,
     When<dynamic> onSetState,
@@ -909,8 +938,8 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     return _InheritedState(
       key: key,
       builder: (context) => builder(context),
-      globalInjected: globalInject,
-      reInheritedInjected: globalInject.call(context),
+      globalInjected: this,
+      reInheritedInjected: of(context),
       connectWithGlobal: connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
@@ -933,7 +962,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     );
   }
 
-  Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
+  Injected<T> of(BuildContext context, {bool defaultToGlobal = false}) {
     final _InheritedInjected<T> _inheritedInjected = context
         .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
         ?.widget;
@@ -941,10 +970,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       if (_inheritedInjected.globalInjected == this) {
         return _inheritedInjected.injected;
       } else {
-        return call(
-          _inheritedInjected.context,
-          defaultToGlobal: defaultToGlobal,
-        );
+        return of(_inheritedInjected.context);
       }
     }
     if (defaultToGlobal) {
@@ -970,10 +996,18 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   }
 }
 
+///Callbacks to be invoked depending on the state status of an [Injected] model
 class When<T> {
+  ///Callback to be called when first the model is initialized.
   final T Function() onIdle;
+
+  ///Callback to be called when first the model is waiting for and async task.
   final T Function() onWaiting;
+
+  ///Callback to be called when first the model has an error.
   final T Function(dynamic err) onError;
+
+  ///Callback to be called when first the model has data.
   final T Function() onData;
   _WhenType _whenType;
   When._({
@@ -983,6 +1017,8 @@ class When<T> {
     @required this.onData,
   });
 
+  ///The callback is always invoked when the [Injected] model emits a
+  ///notification.
   factory When.always(
     T Function() builder,
   ) {
@@ -994,6 +1030,8 @@ class When<T> {
     ).._whenType = _WhenType.when;
   }
 
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with onData status.
   factory When.data(T Function() builder) {
     return When._(
       onIdle: null,
@@ -1003,6 +1041,8 @@ class When<T> {
     ).._whenType = _WhenType.onData;
   }
 
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with waiting status.
   factory When.waiting(T Function() builder) {
     return When._(
       onIdle: null,
@@ -1011,6 +1051,9 @@ class When<T> {
       onData: null,
     ).._whenType = _WhenType.onWaiting;
   }
+
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with error status.
   factory When.error(T Function(dynamic err) builder) {
     return When._(
       onIdle: null,
@@ -1020,6 +1063,13 @@ class When<T> {
     ).._whenType = _WhenType.onError;
   }
 
+  ///Set of callbacks to be invoked  when the [Injected] model emits a
+  ///notification with the corresponding state status.
+  ///
+  ///[onIdle], [onWaiting], [onError] and [onData] are optional. Non defined ones
+  /// default to the [or] callback.
+  ///
+  ///To be forced to define all state status use [When.all].
   factory When.or({
     T Function() onIdle,
     T Function() onWaiting,
@@ -1034,6 +1084,13 @@ class When<T> {
       onData: onData ?? or,
     ).._whenType = _WhenType.when;
   }
+
+  ///Set of callbacks to be invoked  when the [Injected] model emits a
+  ///notification with the corresponding state status.
+  ///
+  ///[onIdle], [onWaiting], [onError] and [onData] are required.
+  ///
+  ///For optional callbacks use [When.or].
   factory When.all({
     @required T Function() onIdle,
     @required T Function() onWaiting,
@@ -1050,19 +1107,3 @@ class When<T> {
 }
 
 enum _WhenType { onData, onWaiting, onError, when }
-
-// class WhenOr<T> implements Listener<T> {
-//   final T Function() onIdle;
-//   final T Function() onWaiting;
-//   final T Function(dynamic err) onError;
-//   final T Function() onData;
-//   final T Function() or;
-
-//   WhenOr({
-//     this.onIdle,
-//     this.onWaiting,
-//     this.onError,
-//     this.onData,
-//     @required this.or,
-//   });
-// }

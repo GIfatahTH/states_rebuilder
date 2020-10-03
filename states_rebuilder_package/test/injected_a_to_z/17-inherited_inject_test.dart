@@ -92,7 +92,7 @@ class _App extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   const CounterItem();
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context);
+    final counter = injectedCounter.of(context);
     return Row(
       children: [
         counter.rebuilder(
@@ -131,7 +131,7 @@ class CounterItemDetailed extends StatelessWidget {
   const CounterItemDetailed();
   @override
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context);
+    final counter = injectedCounter.of(context);
     return Text('Detailed of ${counter.state.id}: ${counter.state.value}');
   }
 }

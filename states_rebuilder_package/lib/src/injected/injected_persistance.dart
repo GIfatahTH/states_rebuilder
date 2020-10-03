@@ -119,15 +119,21 @@ class PersistState<T> {
   ///- PersistOn.disposed: The state is persisted one time when the state is
   ///disposed.
   ///- PersistOn.manualPersist: The state is persisted manually using
-  ///[Injected._persistState] method.
+  ///[Injected.persistState] method.
   final PersistOn persistOn;
 
   ///The throttle delay in milliseconds. The state is persisted once at the
   ///end of the given delay.
   final int throttleDelay;
+
+  ///Debug print an informative message on the Read, Write, Delete operations
   final bool debugPrintOperations;
 
+  ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
+
+  ///Persistance provider that will be used to persist this state instead of
+  ///the default persistance provider defined with [RM.storageInitializer].
   final IPersistStore persistStateProvider;
 
   Timer _throttleTimer;

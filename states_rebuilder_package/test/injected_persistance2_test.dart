@@ -28,7 +28,7 @@ class App extends StatelessWidget {
 void main() async {
   StatesRebuilerLogger.isTestMode = true;
 
-  final store = await RM.localStorageInitializerMock();
+  final store = await RM.storageInitializerMock();
   setUp(() {
     store.clear();
   });
