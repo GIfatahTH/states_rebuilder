@@ -27,10 +27,7 @@ dependencies:
     path: ../../states_rebuilder_package
   todos_app_core:
     path: ../todos_app_core/
-  # todos_repository_core:
-  #   git:
-  #     url: https://github.com/brianegan/flutter_architecture_samples/
-      # path: todos_repository_core
+
   todos_repository_local_storage:
     git:
       url: https://github.com/brianegan/flutter_architecture_samples/

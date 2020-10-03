@@ -65,7 +65,7 @@ class InjectedFuture<T> extends Injected<T> {
               return _initialStoredState = result;
             }
 
-            return _creationFunction() as T;
+            return _creationFunction() as Future<T>;
           },
           name: _name,
           isLazy: false,

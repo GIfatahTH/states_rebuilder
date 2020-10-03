@@ -25,7 +25,11 @@ class PersistStoreMock extends IPersistStore {
   ///The fake store
   Map<String, String> store;
   bool isAsyncRead = false;
-  dynamic exception;
+
+  ///Exception to throw
+  Exception exception;
+
+  ///Milliseconds to await before throwing
   int timeToThrow = 0;
   PersistStoreMock();
   @override

@@ -89,4 +89,30 @@ void main() {
     await tester.pump();
     expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
   });
+
+  testWidgets('persistStateProvider, catchPersistError and onError',
+      (tester) async {
+    counter =
+        RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 10),
+            persist: () => PersistState(
+                  key: 'Future_counter',
+                  fromJson: (json) => int.parse(json),
+                  toJson: (s) => '$s',
+                  persistStateProvider: PersistStoreMockImp(),
+                  catchPersistError: true,
+                ),
+            onError: (e, s) {
+              StatesRebuilerLogger.log('', e);
+            });
+    expect(counter.state, null);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter.state, 10);
+    counter.state++;
+    await tester.pump(Duration(seconds: 1));
+    expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+    await tester.pump(Duration(seconds: 1));
+
+    await tester.pump(Duration(seconds: 1));
+    counter.dispose();
+  });
 }

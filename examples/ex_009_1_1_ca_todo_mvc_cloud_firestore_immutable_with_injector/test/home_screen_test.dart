@@ -10,6 +10,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todos_app_core/todos_app_core.dart';
 
 import 'fake_todo_repository.dart';
+import 'fake_user_repository.dart';
 
 /// Demonstrates how to test Widgets
 void main() {
@@ -27,7 +28,7 @@ void main() {
       inject: [
         Inject(
           () => AuthState(
-            authRepository: null,
+            authRepository: AuthRepository(),
             user: User(
               uid: '1',
               displayName: 'user1',

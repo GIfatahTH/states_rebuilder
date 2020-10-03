@@ -8,12 +8,17 @@ import 'injected_test.dart';
 final counter = RM.inject(() => 0);
 
 void main() {
+  StatesRebuilerLogger.isTestMode = true;
   testWidgets('OnData for widget and onSetState', (tester) async {
     //
     int onData;
     final widget = Directionality(
       textDirection: TextDirection.ltr,
       child: counter.listen(
+        initState: () {
+          StatesRebuilerLogger.log('initState');
+        },
+        dispose: () {},
         onSetState: When.data(() => onData = counter.state),
         onRebuildState: When.data(() => onData++),
         rebuild: When.data(
@@ -22,6 +27,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(widget);
+    expect(StatesRebuilerLogger.message.contains('initState'), isTrue);
     expect(find.text('0'), findsOneWidget);
     //
     counter.state++;
@@ -400,6 +406,8 @@ void main() {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: [counter1, counter2].listen(
+              onSetState: When.always(() => null),
+              onRebuildState: When.always(() => null),
               rebuild: When.or(
                 onWaiting: () => Text('onWaiting'),
                 or: () => Column(
@@ -413,7 +421,6 @@ void main() {
               ),
               initState: () {},
               dispose: () {},
-              shouldRebuild: () => true,
             ),
           );
         },
@@ -443,5 +450,101 @@ void main() {
     expect(find.text('onWaiting'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Error message'), findsOneWidget);
+  });
+
+  testWidgets(
+      'injected model preserve state when when created inside a build method',
+      (WidgetTester tester) async {
+    final counter1 = RM.inject(() => 0);
+    Injected<int> counter2;
+    await tester.pumpWidget(
+      counter1.listen(
+        shouldRebuild: () => true,
+        rebuild: When.data(
+          () {
+            counter2 = RM.inject(
+              () => 0,
+              // debugPrintWhenNotifiedPreMessage: 'counter2',
+            );
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Column(
+                children: [
+                  Text('counter1: ${counter1.state}'),
+                  counter2.listen(
+                    onSetState: When.data(() => null),
+                    onRebuildState: When.data(() => null),
+                    rebuild: When.data(
+                      () => Text('counter2: ${counter2.state}'),
+                    ),
+                  ),
+                  counter2.listen(
+                    onSetState: When.waiting(() => null),
+                    onRebuildState: When.waiting(() => null),
+                    rebuild: When.data(
+                      () => Text(''),
+                    ),
+                  ),
+                  counter2.listen(
+                    shouldRebuild: () => true,
+                    rebuild: When.or(
+                      or: () => Column(
+                        children: [
+                          Text('whenRebuilderOr counter2: ${counter2.state}'),
+                          counter2.whenRebuilder(
+                            onIdle: () => Text('idle'),
+                            onWaiting: () => Text('Waiting'),
+                            onData: () => Text(
+                                'whenRebuilder counter2: ${counter2.state}'),
+                            onError: (_) => Text('Error'),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 0'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 0'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    // expect(find.text('counter2-waiting-null'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 1'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 1'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter1
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 2'), findsOneWidget);
+
+    //increment counter2
+    counter2.state++;
+    await tester.pump();
+    expect(find.text('counter1: 2'), findsOneWidget);
+    expect(find.text('counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilderOr counter2: 3'), findsOneWidget);
+    expect(find.text('whenRebuilder counter2: 3'), findsOneWidget);
   });
 }

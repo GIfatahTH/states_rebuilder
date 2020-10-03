@@ -132,14 +132,14 @@ extension StateRebuilderListX on List<Injected> {
           return stateStatus.hasData ||
               stateStatus.connectionState == ConnectionState.none;
         }
-        if (rebuild._whenType == _WhenType.onWaiting) {
-          return stateStatus.connectionState == ConnectionState.waiting ||
-              stateStatus.connectionState == ConnectionState.none;
-        }
-        if (rebuild._whenType == _WhenType.onError) {
-          return stateStatus.hasError ||
-              stateStatus.connectionState == ConnectionState.none;
-        }
+        // if (rebuild._whenType == _WhenType.onWaiting) {
+        //   return stateStatus.connectionState == ConnectionState.waiting ||
+        //       stateStatus.connectionState == ConnectionState.none;
+        // }
+        // if (rebuild._whenType == _WhenType.onError) {
+        //   return stateStatus.hasError ||
+        //       stateStatus.connectionState == ConnectionState.none;
+        // }
         return true;
       },
       watch: watch == null ? null : (_) => watch(),

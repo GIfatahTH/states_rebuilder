@@ -938,8 +938,8 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     return _InheritedState(
       key: key,
       builder: (context) => builder(context),
-      globalInjected: this,
-      reInheritedInjected: of(context),
+      globalInjected: globalInject,
+      reInheritedInjected: globalInject.of(context),
       connectWithGlobal: connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
@@ -970,7 +970,10 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       if (_inheritedInjected.globalInjected == this) {
         return _inheritedInjected.injected;
       } else {
-        return of(_inheritedInjected.context);
+        return of(
+          _inheritedInjected.context,
+          defaultToGlobal: defaultToGlobal,
+        );
       }
     }
     if (defaultToGlobal) {
