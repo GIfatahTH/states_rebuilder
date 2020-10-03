@@ -152,10 +152,8 @@ class _SetState<T> {
   }
 
   void onErrorCallBack(dynamic e, StackTrace s) {
-    if (e is Error) {
-      //Only exception are allowed to be caught.
-      print(e);
-      print(s);
+    if (e is Error && !StatesRebuilderConfig.shouldCatchError) {
+      StatesRebuilerLogger.log('', e, s);
       throw e;
     }
     rm
@@ -176,7 +174,11 @@ class _SetState<T> {
           "This error ${_catchError ? 'is caught by' : 'is thrown from'} ReactiveModel<$T>:\n${_catchError ? '$e' : ''}",
           name: 'states_rebuilder::onError',
           error: _catchError ? null : e,
-          stackTrace: _catchError ? RM.debugErrorWithStackTrace ? s : null : s,
+          stackTrace: _catchError
+              ? RM.debugErrorWithStackTrace
+                  ? s
+                  : null
+              : s,
         );
       }
       return true;
