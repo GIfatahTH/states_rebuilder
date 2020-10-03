@@ -42,7 +42,7 @@ To handle error it is very convenient to use your custom error classes.
 *file : counter_error.dart*
 
 ```dart
-class CounterError extends Error {
+class CounterError implements Exception {
   final String message = 'A permission issue, please contact your administrator';
 }
 ```

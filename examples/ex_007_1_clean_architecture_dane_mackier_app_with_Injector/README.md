@@ -215,7 +215,7 @@ class Email {
 ## exceptions
 **file:lib/domain/exceptions/validation_exception.dart**
 ```dart
-class ValidationException extends Error {
+class ValidationException implements Exception {
   ValidationException(this.message);
   final String message;
 }
@@ -341,30 +341,30 @@ class InputParser {
 ## exceptions
 **file:lib/exceptions/input_exception.dart**
 ```dart
-class NotNumberException extends Error {
+class NotNumberException implements Exception {
   final message = 'The entered value is not a number';
 }
 ```
 
 **file:lib/exceptions/fetch_exception.dart**
 ```dart
-class NetworkErrorException extends Error {
+class NetworkErrorException implements Exception {
   final message = 'A NetWork problem';
 }
 
-class UserNotFoundException extends Error {
+class UserNotFoundException implements Exception {
   UserNotFoundException(this._userID);
   final int _userID;
   String get message => 'No user find with this number $_userID';
 }
 
-class PostNotFoundException extends Error {
+class PostNotFoundException implements Exception {
   PostNotFoundException(this._userID);
   final int _userID;
   String get message => 'No post fount of user with id:  $_userID';
 }
 
-class CommentNotFoundException extends Error {
+class CommentNotFoundException implements Exception {
   CommentNotFoundException(this._postID);
   final int _postID;
   String get message => 'No comment fount of post with id:  $_postID';
