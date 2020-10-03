@@ -22,7 +22,12 @@ class StatesRebuilerLogger {
     errorMessage ??= '';
 
     message = '[states_rebuilder]: $m: $errorMessage';
-    if (!isTestMode) print(message);
+    if (!isTestMode) {
+      print(message);
+      if (s != null) {
+        print(s);
+      }
+    }
   }
 }
 

@@ -481,7 +481,11 @@ abstract class RM {
 
   static void Function(dynamic e, StackTrace s) errorLog;
 
-  static Future<void> localStorageInitializer(IPersistStore store) {
+  ///Initialize the default persistance provider to be used
+  ///
+  ///This is considered as the default storage provider. It can be overridden
+  ///with [PersistState.persistStateProvider]
+  static Future<void> storageInitializer(IPersistStore store) {
     if (persistStateGlobal != null) {
       return null;
     }
@@ -489,7 +493,10 @@ abstract class RM {
     return persistStateGlobal.init();
   }
 
-  static Future<PersistStoreMock> localStorageInitializerMock() async {
+  ///Initialize a mock persistance provider.
+  ///
+  ///Used for tests.
+  static Future<PersistStoreMock> storageInitializerMock() async {
     persistStateGlobalTest = PersistStoreMock();
     await persistStateGlobalTest.init();
     return (persistStateGlobalTest as PersistStoreMock);
