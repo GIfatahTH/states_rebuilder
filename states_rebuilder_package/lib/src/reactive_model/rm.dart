@@ -485,6 +485,8 @@ abstract class RM {
   ///
   ///This is considered as the default storage provider. It can be overridden
   ///with [PersistState.persistStateProvider]
+  ///
+  ///For test use [RM.storageInitializerMock].
   static Future<void> storageInitializer(IPersistStore store) {
     if (persistStateGlobal != null) {
       return null;
@@ -496,7 +498,21 @@ abstract class RM {
   ///Initialize a mock persistance provider.
   ///
   ///Used for tests.
+  ///
+  ///It is wise to clear the store in setUp method, to ensure a fresh store for each test
+  ///```dart
+  /// setUp(() {
+  ///  storage.clear();
+  /// });
+  ///```
   static Future<PersistStoreMock> storageInitializerMock() async {
+    persistStateGlobalTest = PersistStoreMock();
+    await persistStateGlobalTest.init();
+    return (persistStateGlobalTest as PersistStoreMock);
+  }
+
+  @Deprecated('use storageInitializerMock instead')
+  static Future<PersistStoreMock> localStorageInitializerMock() async {
     persistStateGlobalTest = PersistStoreMock();
     await persistStateGlobalTest.init();
     return (persistStateGlobalTest as PersistStoreMock);
