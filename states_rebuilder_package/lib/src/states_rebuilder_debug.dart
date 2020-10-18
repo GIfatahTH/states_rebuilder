@@ -16,7 +16,7 @@ class StatesRebuilerLogger {
     String errorMessage;
     try {
       errorMessage = e?.message as String;
-    } catch (e) {
+    } catch (_) {
       errorMessage = '$e';
     }
     errorMessage ??= '';
