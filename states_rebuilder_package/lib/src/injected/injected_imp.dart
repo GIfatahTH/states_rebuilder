@@ -60,7 +60,6 @@ class InjectedImp<T> extends Injected<T> {
             return _creationFunction() as T;
           },
           name: _name,
-          isLazy: false,
         );
       }
       _initialStoredState = value;
@@ -68,7 +67,6 @@ class InjectedImp<T> extends Injected<T> {
     return Inject<T>(
       () => _creationFunction() as T,
       name: _name,
-      isLazy: false,
     );
   }
 }

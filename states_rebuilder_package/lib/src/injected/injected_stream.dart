@@ -51,7 +51,6 @@ class InjectedStream<T> extends Injected<T> {
         name: _name,
         initialValue: _initialValue,
         watch: _watch,
-        isLazy: false,
       );
 
   @override

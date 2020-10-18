@@ -202,12 +202,10 @@ class InjectedComputed<T> extends Injected<T> {
       ? Inject<T>(
           _creationFunction as T Function(),
           name: _name,
-          isLazy: false,
         )
       : Inject<T>.stream(
           _creationFunction as Stream<T> Function(),
           name: _name,
-          isLazy: false,
           initialValue: _initialState,
         );
 

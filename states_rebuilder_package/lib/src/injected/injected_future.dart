@@ -68,7 +68,6 @@ class InjectedFuture<T> extends Injected<T> {
             return _creationFunction() as Future<T>;
           },
           name: _name,
-          isLazy: false,
         );
       }
       _initialStoredState = value;
@@ -81,8 +80,7 @@ class InjectedFuture<T> extends Injected<T> {
             : _creationFunction() as Future<T>;
       },
       name: _name,
-      initialValue: _initialValue,
-      isLazy: false,
+      initialValue: _initialStoredState ?? _initialValue,
     );
   }
 }
