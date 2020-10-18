@@ -67,7 +67,7 @@ class RMKey<T> extends ReactiveModelInternal<T> {
     } else {
       rm.rebuildStates();
     }
-    return stateAsync;
+    return stateAsync.catchError((_) {});
   }
 
   @override

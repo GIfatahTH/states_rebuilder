@@ -105,7 +105,9 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///
   ///You can await for it when the [ConnectionState] is awaiting
   Future<T> get stateAsync {
-    return _completer?.future?.catchError((dynamic e) => throw (e)) ??
+    return _completer?.future?.catchError((dynamic e) {
+          throw (e);
+        }) ??
         Future.value(_state);
   }
 
@@ -248,9 +250,9 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
 
     return () {
       _listenToRMSet.remove(listener);
-      if (_listenToRMSet.isEmpty && !hasObservers) {
-        statesRebuilderCleaner(this);
-      }
+      // if (_listenToRMSet.isEmpty && !hasObservers) {
+      //   statesRebuilderCleaner(this, false);
+      // }
     };
   }
 
@@ -309,26 +311,35 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
 
   ///Rest the async connection state to [hasData]
   void resetToIdle([T state]) {
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.complete();
+    }
     snapshot =
         AsyncSnapshot.withData(ConnectionState.none, state ?? this.state);
   }
 
   ///Rest the async connection state to [hasData]
   void resetToHasData([T state]) {
-    subscription?.cancel();
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.complete(state ?? this.state);
+    }
     snapshot =
         AsyncSnapshot.withData(ConnectionState.done, state ?? this.state);
   }
 
   ///Rest the async connection state to [isWaiting]
   void resetToIsWaiting([T state]) {
+    _completer = Completer();
     snapshot =
         AsyncSnapshot.withData(ConnectionState.waiting, state ?? this.state);
   }
 
   ///Rest the async connection state to [hasError]
-  void resetToHasError(dynamic e) {
-    subscription?.cancel();
+  void resetToHasError(dynamic e, [StackTrace s]) {
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.future.catchError((dynamic d) => null);
+      _completer.completeError(e, s);
+    }
     snapshot = AsyncSnapshot.withError(ConnectionState.done, e);
   }
 
@@ -469,9 +480,8 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     int debounceDelay,
   }) {
     final s = inject.getReactive().state;
-
     final rm = Inject<F>.future(
-      () => future(s, stateAsync),
+      () => future(s, _completer?.future ?? Future.value(_state)),
       initialValue: initialValue ?? (T == F ? (s as F) : null),
     ).getReactive();
 

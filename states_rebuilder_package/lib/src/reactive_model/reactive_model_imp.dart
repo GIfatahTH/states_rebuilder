@@ -20,7 +20,7 @@ class ReactiveModelImp<T> extends ReactiveModelInternal<T> {
     );
     onInitRefresh?.call();
     resetToIdle();
-    return stateAsync;
+    return stateAsync.catchError((_) {});
   }
 
   @override
