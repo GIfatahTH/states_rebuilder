@@ -130,7 +130,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
 
     Injected._activeInjected = this;
     try {
-      final inj = _getInject();
+      final inj = _getInject()
+        ..isGlobal = true
+        ..getReactive();
       Injected._activeInjected = cashedInjected;
       _setClearDependence();
       _setAndGetInject(inj);
@@ -362,6 +364,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       //case globe inherited injected
       for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
         inj.refresh();
+        inj._rm.rebuildStates(['_InheritedInjected']);
       }
       //This is the global for inherited. Do not refresh
       return null;
@@ -409,7 +412,10 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       if (!injected._persistHasError) {
         await injected._persist.write(rm.state);
       }
-    } catch (e) {
+    } catch (e, s) {
+      if (e is Error) {
+        rethrow;
+      }
       injected._persistHasError = true;
 
       //SetState to oldState and set all completed
@@ -421,6 +427,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
           catchError: _onError != null,
         ),
       );
+      if (injected._persist.debugPrintOperations) {
+        StatesRebuilerLogger.log('PersistState Write ERROR', e, s);
+      }
       injected._persistHasError = false;
     }
   }
@@ -818,7 +827,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
           if (rm.state is T) {
             _onData?.call(state);
           }
-        } else if (rm.hasError) {
+        } else if (rm.hasError && rm.error != _stateRM.error) {
           _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
         }
       },
@@ -947,7 +956,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
 
   Widget inherited({
     Key key,
-    @required T Function() state,
+    T Function() state,
     @required Widget Function(BuildContext) builder,
     bool connectWithGlobal = true,
     String debugPrintWhenNotifiedPreMessage,
@@ -956,8 +965,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       key: key,
       builder: (context) => builder(context),
       globalInjected: this,
+      reInheritedInjected: state == null ? this : null,
       state: state,
-      connectWithGlobal: connectWithGlobal,
+      connectWithGlobal: state == null ? false : connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
   }
@@ -1035,21 +1045,21 @@ class When<T> {
 
   ///The callback is invoked only when the [Injected] model emits a
   ///notification with onData status.
-  factory When.data(T Function() builder) {
+  factory When.data(T Function() fn) {
     return When._(
       onIdle: null,
       onWaiting: null,
       onError: null,
-      onData: builder,
+      onData: fn,
     ).._whenType = _WhenType.onData;
   }
 
   ///The callback is invoked only when the [Injected] model emits a
   ///notification with waiting status.
-  factory When.waiting(T Function() builder) {
+  factory When.waiting(T Function() fn) {
     return When._(
       onIdle: null,
-      onWaiting: builder,
+      onWaiting: fn,
       onError: null,
       onData: null,
     ).._whenType = _WhenType.onWaiting;
@@ -1057,11 +1067,11 @@ class When<T> {
 
   ///The callback is invoked only when the [Injected] model emits a
   ///notification with error status.
-  factory When.error(T Function(dynamic err) builder) {
+  factory When.error(T Function(dynamic err) fn) {
     return When._(
       onIdle: null,
       onWaiting: null,
-      onError: builder,
+      onError: fn,
       onData: null,
     ).._whenType = _WhenType.onError;
   }

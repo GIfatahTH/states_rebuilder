@@ -24,7 +24,6 @@ abstract class InjectedBaseCommon<T> {
 
   Inject<T> _setAndGetInject(Inject<T> inject) {
     _inject = inject;
-    _inject?.isGlobal = true;
     _rm = _inject?.getReactive();
     return _inject;
   }

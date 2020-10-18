@@ -35,7 +35,9 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
                 widget.debugPrintWhenNotifiedPreMessage,
           );
     assert(_injected != null);
-    (_rm as ReactiveModelInternal).inheritedInjected.add(_injected);
+    if (widget.state != null) {
+      (_rm as ReactiveModelInternal).inheritedInjected.add(_injected);
+    }
     if (widget.connectWithGlobal) {
       _disposer1 = _injected.getRM.listenToRM(
         (rm) {
@@ -76,7 +78,9 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
   dispose() {
     _disposer1?.call();
     final _rm = widget.globalInjected.getRM;
-    (_rm as ReactiveModelInternal).inheritedInjected.remove(_injected);
+    if (widget.state != null) {
+      (_rm as ReactiveModelInternal).inheritedInjected.remove(_injected);
+    }
 
     if (_injected._rm?.hasObservers == false) {
       _injected.dispose();
@@ -86,14 +90,22 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return _InheritedInjected(
+    return StateBuilder(
       key: Key("${_injected.hashCode}"),
-      child: Builder(
-        builder: (context) => widget.builder(context),
-      ),
-      injected: _injected,
-      globalInjected: widget.globalInjected,
-      context: context,
+      observe: () => widget.globalInjected.getRM,
+      // tag: '_InheritedInjected',
+      initState: (_, __) {},
+      dispose: (_, __) {},
+      builder: (_, __) {
+        return _InheritedInjected(
+          child: Builder(
+            builder: (context) => widget.builder(context),
+          ),
+          injected: _injected,
+          globalInjected: widget.globalInjected,
+          context: context,
+        );
+      },
     );
   }
 }
@@ -113,6 +125,6 @@ class _InheritedInjected<T> extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_InheritedInjected _) {
-    return false;
+    return true;
   }
 }
