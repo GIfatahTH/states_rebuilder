@@ -118,7 +118,7 @@ extension StateRebuilderListX on List<Injected> {
     bool Function() shouldRebuild,
     Key key,
   }) {
-    AsyncSnapshot stateStatus;
+    AsyncSnapshot _stateStatus;
     return StateBuilder<dynamic>(
       key: key,
       observeMany: map((e) => () => e.getRM).toList(),
@@ -129,8 +129,8 @@ extension StateRebuilderListX on List<Injected> {
           return shouldRebuild();
         }
         if (rebuild._whenType == _WhenType.onData) {
-          return stateStatus.hasData ||
-              stateStatus.connectionState == ConnectionState.none;
+          return _stateStatus.hasData ||
+              _stateStatus.connectionState == ConnectionState.none;
         }
         // if (rebuild._whenType == _WhenType.onWaiting) {
         //   return stateStatus.connectionState == ConnectionState.waiting ||
@@ -157,20 +157,20 @@ extension StateRebuilderListX on List<Injected> {
         (reactiveModel as ReactiveModelInternal)?.activeRM = null;
       },
       onSetState: (context, rm) {
-        stateStatus = _getStateStatus();
+        _stateStatus = _getStateStatus();
         if (onSetState == null) {
           return;
         }
-        if (stateStatus.connectionState == ConnectionState.none) {
+        if (_stateStatus.connectionState == ConnectionState.none) {
           onSetState.onIdle?.call();
           return;
         }
-        if (stateStatus.connectionState == ConnectionState.waiting) {
+        if (_stateStatus.connectionState == ConnectionState.waiting) {
           onSetState.onWaiting?.call();
           return;
         }
-        if (stateStatus.hasError) {
-          onSetState.onError?.call(stateStatus.error);
+        if (_stateStatus.hasError) {
+          onSetState.onError?.call(_stateStatus.error);
           return;
         }
         onSetState.onData?.call();
@@ -179,33 +179,36 @@ extension StateRebuilderListX on List<Injected> {
         if (onRebuildState == null) {
           return;
         }
-        if (stateStatus.connectionState == ConnectionState.none) {
+        if (_stateStatus.connectionState == ConnectionState.none) {
           onRebuildState.onIdle?.call();
           return;
         }
-        if (stateStatus.connectionState == ConnectionState.waiting) {
+        if (_stateStatus.connectionState == ConnectionState.waiting) {
           onRebuildState.onWaiting?.call();
           return;
         }
-        if (stateStatus.hasError) {
-          onRebuildState.onError?.call(stateStatus.error);
+        if (_stateStatus.hasError) {
+          onRebuildState.onError?.call(_stateStatus.error);
           return;
         }
         onRebuildState.onData?.call();
       },
       builder: (context, rm) {
-        stateStatus ??= _getStateStatus();
-        if (stateStatus.connectionState == ConnectionState.none) {
-          return rebuild.onIdle?.call() ??
-              rebuild.onData?.call() ??
-              rebuild.onWaiting?.call() ??
-              rebuild.onError?.call(rm.error);
+        if (rebuild._whenType == _WhenType.onWaiting ||
+            rebuild._whenType == _WhenType.onError) {
+          throw Exception('use When.data or When.always or when.or, when.all');
         }
-        if (stateStatus.connectionState == ConnectionState.waiting) {
-          return rebuild.onWaiting?.call();
+        _stateStatus ??= _getStateStatus();
+
+        if (_stateStatus.connectionState == ConnectionState.none) {
+          return rebuild.onIdle?.call() ?? rebuild.onData?.call();
         }
-        if (stateStatus.hasError) {
-          return rebuild.onError?.call(stateStatus.error);
+        if (_stateStatus.connectionState == ConnectionState.waiting) {
+          return rebuild.onWaiting?.call() ?? rebuild.onData?.call();
+        }
+        if (_stateStatus.hasError) {
+          return rebuild.onError?.call(_stateStatus.error) ??
+              rebuild.onData?.call();
         }
         return rebuild.onData?.call();
       },
@@ -216,13 +219,14 @@ extension StateRebuilderListX on List<Injected> {
     bool isIdle = false;
     bool isWaiting = false;
     dynamic error;
+    dynamic data;
 
     for (var m in this) {
       m.getRM.whenConnectionState(
         onIdle: () => isIdle = true,
         onWaiting: () => isWaiting = true,
         onError: (e) => error = e,
-        onData: (_) => null,
+        onData: (d) => data = d,
       );
     }
     if (isWaiting) {
@@ -235,6 +239,6 @@ extension StateRebuilderListX on List<Injected> {
     if (isIdle) {
       return AsyncSnapshot.withData(ConnectionState.none, null);
     }
-    return AsyncSnapshot.withData(ConnectionState.done, null);
+    return AsyncSnapshot.withData(ConnectionState.done, data);
   }
 }
