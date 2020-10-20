@@ -17,14 +17,13 @@ class TodoList extends StatelessWidget {
         return ListView.builder(
           itemCount: todos.length,
           itemBuilder: (BuildContext context, int index) {
-            return injectedTodo.inherited(
+            return todoItem.inherited(
               key: Key('${todos[index].id}'),
               connectWithGlobal: true,
-              state: () {
+              stateOverride: () {
                 return todosFiltered.state[index];
               },
               builder: (_) => const TodoItem(),
-              // debugPrintWhenNotifiedPreMessage: 'todo $index',
             );
           },
         );

@@ -18,7 +18,7 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = injectedTodo(context);
+    final todo = todoItem(context);
     return todo.rebuilder(
       () {
         return Dismissible(
@@ -29,7 +29,7 @@ class TodoItem extends StatelessWidget {
           child: ListTile(
             onTap: () async {
               final shouldDelete = await RM.navigate.to(
-                injectedTodo.reInherited(
+                todoItem.reInherited(
                   context: context,
                   builder: (context) => const DetailScreen(),
                 ),

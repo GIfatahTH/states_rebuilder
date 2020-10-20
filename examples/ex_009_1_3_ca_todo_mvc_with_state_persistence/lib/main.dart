@@ -14,9 +14,9 @@ import 'ui/pages/home_screen/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // await RM.localStorageInitializer(SharedPreferencesImp());
-  await RM.localStorageInitializer(HiveImp());
-  // await RM.localStorageInitializer(SqfliteImp());
+  // await RM.storageInitializer(SharedPreferencesImp());
+  await RM.storageInitializer(HiveImp());
+  // await RM.storageInitializer(SqfliteImp());
 
   runApp(
     StateWithMixinBuilder.widgetsBindingObserver(
@@ -35,25 +35,30 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return [isDarkMode, locale].whenRebuilderOr(
+      //If any of isDarkModel or locale is getting data from async task, wait for it
       onWaiting: () => const Center(
         child: const CircularProgressIndicator(),
       ),
       builder: () {
-        return MaterialApp(
-          key: UniqueKey(),
-          title: i18n.state.appTitle,
-          theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
-          locale: locale.state.languageCode == 'und' ? null : locale.state,
-          supportedLocales: I18N.supportedLocale,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          routes: {
-            AddEditPage.routeName: (context) => const AddEditPage(),
-            HomeScreen.routeName: (context) => HomeScreen(), //FIXME const
-          },
-          navigatorKey: RM.navigate.navigatorKey,
+        return i18n.inherited(
+          builder: (context) => MaterialApp(
+            //Get the i18n translation using the of(context) method
+            title: i18n.of(context).appTitle,
+            theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
+            locale: locale.state.languageCode == 'und' ? null : locale.state,
+            supportedLocales: I18N.supportedLocale,
+            localizationsDelegates: [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            routes: {
+              //Notice const here and everywhere in this app.
+              // This is a huge benefit in performance term.
+              AddEditPage.routeName: (context) => const AddEditPage(),
+              HomeScreen.routeName: (context) => const HomeScreen(),
+            },
+            navigatorKey: RM.navigate.navigatorKey,
+          ),
         );
       },
     );

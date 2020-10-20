@@ -31,12 +31,13 @@ class _AddEditPageState extends State<AddEditPage> {
   String _note;
   @override
   Widget build(BuildContext context) {
-    final todo = injectedTodo(context);
+    final todo = todoItem(context);
     bool isEditing = todo != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? i18n.state.editTodo : i18n.state.addTodo),
+        title: Text(
+            isEditing ? i18n.of(context).editTodo : i18n.of(context).addTodo),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -53,9 +54,10 @@ class _AddEditPageState extends State<AddEditPage> {
                 initialValue: todo != null ? todo.state.task : '',
                 autofocus: isEditing ? false : true,
                 style: Theme.of(context).textTheme.headline5,
-                decoration: InputDecoration(hintText: i18n.state.newTodoHint),
+                decoration:
+                    InputDecoration(hintText: i18n.of(context).newTodoHint),
                 validator: (val) =>
-                    val.trim().isEmpty ? i18n.state.emptyTodoError : null,
+                    val.trim().isEmpty ? i18n.of(context).emptyTodoError : null,
                 onSaved: (value) => _task = value,
               ),
               TextFormField(
@@ -64,7 +66,7 @@ class _AddEditPageState extends State<AddEditPage> {
                 maxLines: 10,
                 style: Theme.of(context).textTheme.subtitle1,
                 decoration: InputDecoration(
-                  hintText: i18n.state.notesHint,
+                  hintText: i18n.of(context).notesHint,
                 ),
                 onSaved: (value) => _note = value,
               )
@@ -73,7 +75,8 @@ class _AddEditPageState extends State<AddEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: isEditing ? i18n.state.saveChanges : i18n.state.addTodo,
+        tooltip:
+            isEditing ? i18n.of(context).saveChanges : i18n.of(context).addTodo,
         child: Icon(isEditing ? Icons.check : Icons.add),
         onPressed: () {
           final form = formKey.currentState;

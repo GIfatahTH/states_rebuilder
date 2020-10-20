@@ -18,7 +18,7 @@ class Languages extends StatelessWidget {
             languageCode: 'und',
           ),
           child: Text(
-            i18n.state.systemLanguage,
+            i18n.of(context).systemLanguage,
           ),
         ),
         ...I18N.supportedLocale.map(

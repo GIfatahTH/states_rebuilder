@@ -53,7 +53,7 @@ class _Button extends StatelessWidget {
     return activeFilter.rebuilder(
       () {
         return PopupMenuButton<VisibilityFilter>(
-          tooltip: i18n.state.filterTodos,
+          tooltip: i18n.of(context).filterTodos,
           onSelected: (filter) {
             activeFilter.state = filter;
           },
@@ -63,7 +63,7 @@ class _Button extends StatelessWidget {
               key: Key('__Filter_All__'),
               value: VisibilityFilter.all,
               child: Text(
-                i18n.state.showAll,
+                i18n.of(context).showAll,
                 style: activeFilter.state == VisibilityFilter.all
                     ? activeStyle
                     : defaultStyle,
@@ -73,7 +73,7 @@ class _Button extends StatelessWidget {
               key: Key('__Filter_Active__'),
               value: VisibilityFilter.active,
               child: Text(
-                i18n.state.showActive,
+                i18n.of(context).showActive,
                 style: activeFilter.state == VisibilityFilter.active
                     ? activeStyle
                     : defaultStyle,
@@ -83,7 +83,7 @@ class _Button extends StatelessWidget {
               key: Key('__Filter_Completed__'),
               value: VisibilityFilter.completed,
               child: Text(
-                i18n.state.showCompleted,
+                i18n.of(context).showCompleted,
                 style: activeFilter.state == VisibilityFilter.completed
                     ? activeStyle
                     : defaultStyle,

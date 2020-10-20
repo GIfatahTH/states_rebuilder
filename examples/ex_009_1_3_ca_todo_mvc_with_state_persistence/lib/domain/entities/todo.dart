@@ -28,7 +28,6 @@ class Todo {
   // toJson is called just before persistance.
   Map<String, Object> toJson() {
     _validation();
-    print('toJson');
     return {
       'complete': complete,
       'task': task,

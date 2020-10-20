@@ -8,7 +8,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'home_screen_test.dart';
 
 void main() async {
-  final storage = await RM.localStorageInitializerMock();
+  final storage = await RM.storageInitializerMock();
   setUp(() {
     storage.clear();
   });

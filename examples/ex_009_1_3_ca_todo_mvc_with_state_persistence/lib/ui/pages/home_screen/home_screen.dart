@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(i18n.state.appTitle),
+        title: Text(i18n.of(context).appTitle),
         actions: [
           const FilterButton(),
           const ExtraActionsButton(),
@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
           RM.navigate.toNamed(AddEditPage.routeName);
         },
         child: const Icon(Icons.add),
-        tooltip: i18n.state.addTodo,
+        tooltip: i18n.of(context).addTodo,
       ),
       bottomNavigationBar: activeTab.rebuilder(
         () => BottomNavigationBar(
@@ -56,11 +56,11 @@ class HomeScreen extends StatelessWidget {
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.list),
-              title: Text(i18n.state.stats),
+              label: i18n.of(context).stats,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.show_chart),
-              title: Text(i18n.state.todos),
+              label: i18n.of(context).todos,
             ),
           ],
         ),

@@ -1,7 +1,3 @@
-// Copyright 2018 The Flutter Architecture Sample Authors. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found
-// in the LICENSE file.
-
 import 'package:flutter/material.dart';
 
 import '../../../injected.dart';
@@ -20,7 +16,7 @@ class StatsCounter extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                i18n.state.completedTodos,
+                i18n.of(context).completedTodos,
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),
@@ -34,7 +30,7 @@ class StatsCounter extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                i18n.state.activeTodos,
+                i18n.of(context).activeTodos,
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),

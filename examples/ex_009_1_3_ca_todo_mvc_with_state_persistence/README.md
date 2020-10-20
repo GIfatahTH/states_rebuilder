@@ -4,6 +4,7 @@ States_rebuilder is a simple and efficient state management solution for Flutter
 By this example, I will demonstrate the above statement.
 
 The example consist of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic dark/light theme and app internationalization.
+The app state will be stored using SharedPreferences, Hive and sqflite for demonstration purpose.
 
 # Setting persistance provider
 
@@ -220,13 +221,13 @@ To change the theme, we simply switch the state as follows:
 ```dart
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
-    //App start with dart model
+    //App start in dark mode
     expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
 
     //tap on the ExtraActionsButton
     await tester.tap(find.byType(ExtraActionsButton));
     await tester.pumpAndSettle();
-    //And tap to toggle light mode
+    //And tap to toggle to light mode
     await tester.tap(find.byKey(Key('__toggleDarkMode__')));
     await tester.pumpAndSettle();
     //
@@ -324,6 +325,7 @@ final locale = RM.inject<Locale>(
     fromJson: (String json) => Locale.fromSubtags(languageCode: json),
     //
     //any non supported locale will be stored as 'und'.
+    //'und' also will be used for system local
     toJson: (locale) =>
         I18N.supportedLocale.contains(locale) ? locale.languageCode : 'und',
   ),
@@ -358,29 +360,29 @@ class App extends StatelessWidget {
         child: const CircularProgressIndicator(),
       ),
       builder: () {
-        return MaterialApp(
-          //It is hight probable that you have const widgets. (You should have const widgets)
-          //When the locale rebuilds, the const widget will not rebuild and thus do keep
-          //displaying with the old language until they rebuild.
-          //
-          //To prevent this behavior,
-          key: Key('${locale.state}'),
-          //get the appTitle fom the state of i18n
-          title: i18n.state.appTitle,
-          //On app start, the locale is obtained from the storage.
-          //If the languageCode is 'und', null is returned to use the system language,
-          //else return the obtained locale
-          locale: locale.state.languageCode == 'und' ? null : locale.state,
-          //Supported locales from the static method defined in I18N
-          supportedLocales: I18N.supportedLocale(),
-          //Use flutter defined delegates.
-          //You have to add flutter_localizations to dependencies
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
-          home: ....
+        // Resister to i18n with an InheritedWidget of its type.
+        //the state of i18n can be obtained using of(context) method and 
+        //when the i18n changes, all widgets that have used the of(context) will rebuild.
+        return i18n.inherited(
+          builder: (context) => MaterialApp(
+            //Get the i18n translation using the of(context) method
+            title: i18n.of(context).appTitle,
+            theme: isDarkMode.state ? ThemeData.dark() : ThemeData.light(),
+            locale: locale.state.languageCode == 'und' ? null : locale.state,
+            supportedLocales: I18N.supportedLocale,
+            localizationsDelegates: [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            routes: {
+              //Notice const here and everywhere in this app.
+              // This is a huge benefit in performance term.
+              AddEditPage.routeName: (context) => const AddEditPage(),
+              HomeScreen.routeName: (context) => const HomeScreen(),
+            },
+            //Set navigation key so states_rebuilder can navigate without BuildContext
+            navigatorKey: RM.navigate.navigatorKey,
+          ),
         );
       },
     );
@@ -482,7 +484,6 @@ class Todo {
   // toJson is called just before persistance.
   Map<String, Object> toJson() {
     _validation();
-    print('toJson');
     return {
       'complete': complete,
       'task': task,
@@ -673,11 +674,11 @@ In the `home_screen` we consume the activeTab injected model:
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.list),
-              title: Text(i18n.state.stats),
+              title: Text(i18n.of(context).stats),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.show_chart),
-              title: Text(i18n.state.todos),
+              title: Text(i18n.of(context).todos),
             ),
           ],
         ),
@@ -706,35 +707,37 @@ To do this, we first define a global injection to represent the state of an Item
 ```dart
 //This is called the global state reference of Injected<Todo> items
 //This can be seen as a template for a todo state
-final Injected<Todo> injectedTodo = RM.inject(() => null);
+final Injected<Todo> todoItem = RM.inject(() => null);//Will be overridden
 ```
 To injected an `Injected<Todo>` in the widget tree we use :
 
 ```dart
   //Widget-aware injection
-  return injectedTodo.inherited(
-    //How one todo state is obtained from list of todos
-    state: () =>  todos[index],// the Todo state
-    builder: (_) => const TodoItem(),
+  return todoItem.inherited(
+    //The global state is null as defined above. Here we
+    //override it. and define how one todo state is obtained 
+    //from list of todos
+    stateOverride: () =>  todos[index],// the Todo state
+    builder: (_) => const TodoItem(), // const here
   );
 ```
 
 Form a child widget we can get the injected Todo:
 
 ```dart
-  final injectedTodo = injectedTodo(context); //Internally call .of(context) of InheritedWidget
+  final todoItem = todoItem(context); //Internally call InheritedWidget
 ```
 
-injectedTodo has onWaiting, onError and onData callbacks.
+todoItem has onWaiting, onError and onData callbacks.
 ```dart
-final Injected<Todo> injectedTodo = RM.inject(
+final Injected<Todo> todoItem = RM.inject(
   () => null,
-  //Called if at least one todo item state is waiting
   onWaiting: (){
+  //Called if at least one todo item state is waiting
     print('onWaiting');
   }
-  //Called if at least one todo item state throws an error
   onError: (e, s) {
+  //Called if at least one todo item state throws an error
     ErrorHandler.showErrorSnackBar(e);
   },
   //Called if all todo items has data and exposed the todo state of the item emitting data
@@ -744,15 +747,13 @@ final Injected<Todo> injectedTodo = RM.inject(
 
 Wrap up:
 * `Injected.inherited` is useful when display a list of items of the same type (Products, todos, ..).
-* Relaying on the concept of Inherited widget, right item state is obtained using the BuildContext.
+* Relaying on the concept of Inherited widget, the right item state is obtained using the BuildContext.
 * Global state reference, is some thing like a template for one items
 * The global state reference, exposes there callbacks:
   * `onWaiting` : called if at least one item is waiting for a pending async task.
   * `onError`: called if no item is waiting, and at least one item has error.
   * `onData`: called if all items has data.
 * When refresh method is called on a global state reference, all item states will be refreshed.
-
-
 
 
 [Refer to todo list file](lib/ui/pages/home_screen/todo_list.dart)
@@ -772,10 +773,10 @@ class TodoList extends StatelessWidget {
           itemBuilder: (BuildContext context, int index) {
             
             //
-            return injectedTodo.inherited(
+            return todoItem.inherited(
               //As this is a list of dismissible items a key must be given
               key: Key('${todos[index].id}'),
-              state: () =>  todos[index],
+              stateOverride: () =>  todos[index],
               //Build is optimized by using const
               builder: (context) => const TodoItem(),
             );
@@ -802,8 +803,7 @@ class TodoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //Get the todo state using the context.
-    //Similar ot of(context) in inheritedWidget
-    final todo = injectedTodo(context);
+    final todo = todoItem(context);
     return todo.rebuilder(
       () {
         return Dismissible(
@@ -818,7 +818,7 @@ class TodoItem extends StatelessWidget {
               final shouldDelete = await RM.navigate.to(
                 //As this is a new route, getting a todo state from context no longer possible.
                 //Using 'reInherited' method will make the todo state available on the new route.
-                injectedTodo.reInherited(
+                todoItem.reInherited(
                   context: context,
                   builder: (context) => const DetailScreen(),
                 ),
@@ -841,7 +841,7 @@ class TodoItem extends StatelessWidget {
                 //set the new todo state
                 //This will toggle the value of th checkBox
                 //and
-                //the onData of injectedTodo is invoked to update the todos list
+                //the onData of todoItem is invoked to update the todos list
                 todo.state = newTodo;
               },
             ),
@@ -1120,7 +1120,7 @@ This is important. Here we fake a persistance provider failure and see that stat
     return activeFilter.rebuilder(
       () {
         return PopupMenuButton<VisibilityFilter>(
-          tooltip: i18n.state.filterTodos,
+          tooltip: i18n.of(context).filterTodos,
           onSelected: (filter) {
             //mutate  activeFilter and notify listener
             activeFilter.state = filter;
@@ -1133,7 +1133,7 @@ This is important. Here we fake a persistance provider failure and see that stat
               key: Key('__Filter_All__'),
               value: VisibilityFilter.all,
               child: Text(
-                i18n.state.showAll,
+                i18n.of(context).showAll,
                 style: activeFilter.state == VisibilityFilter.all
                     ? activeStyle
                     : defaultStyle,
@@ -1143,7 +1143,7 @@ This is important. Here we fake a persistance provider failure and see that stat
               key: Key('__Filter_Active__'),
               value: VisibilityFilter.active,
               child: Text(
-                i18n.state.showActive,
+                i18n.of(context).showActive,
                 style: activeFilter.state == VisibilityFilter.active
                     ? activeStyle
                     : defaultStyle,
@@ -1153,7 +1153,7 @@ This is important. Here we fake a persistance provider failure and see that stat
               key: Key('__Filter_Completed__'),
               value: VisibilityFilter.completed,
               child: Text(
-                i18n.state.showCompleted,
+                i18n.of(context).showCompleted,
                 style: activeFilter.state == VisibilityFilter.completed
                     ? activeStyle
                     : defaultStyle,
@@ -1262,9 +1262,9 @@ final _extraAction = RM.inject(
           if (action == ExtraAction.toggleAllComplete) {
             //set the todos state to toggle all,
             todos.setState((s) => s.toggleAll());
-            //Refresh the global injectedTodo state so that all todo items will be refreshed.
+            //Refresh the global todoItem state so that all todo items will be refreshed.
             //Only todo items that are changed will be rebuilt.
-            injectedTodo.refresh();
+            todoItem.refresh();
           } else {
             //Clear all todos
             todos.setState((s) => s.clearCompleted());
@@ -1276,21 +1276,21 @@ final _extraAction = RM.inject(
               key: Key('__toggleAll__'),
               value: ExtraAction.toggleAllComplete,
               child: Text(todosStats.state.allComplete
-                  ? i18n.state.markAllIncomplete
-                  : i18n.state.markAllComplete),
+                  ? i18n.of(context).markAllIncomplete
+                  : i18n.of(context).markAllComplete),
             ),
             PopupMenuItem<ExtraAction>(
               key: Key('__toggleClearCompleted__'),
               value: ExtraAction.clearCompleted,
-              child: Text(i18n.state.clearCompleted),
+              child: Text(i18n.of(context).clearCompleted),
             ),
             PopupMenuItem<ExtraAction>(
               key: Key('__toggleDarkMode__'),
               value: ExtraAction.toggleDarkMode,
               child: Text(
                 isDarkMode.state
-                    ? i18n.state.switchToLightMode
-                    : i18n.state.switchToDarkMode,
+                    ? i18n.of(context).switchToLightMode
+                    : i18n.of(context).switchToDarkMode,
               ),
             ),
           ];
@@ -1452,7 +1452,7 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                i18n.state.completedTodos,
+                i18n.of(context).completedTodos,
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),
@@ -1466,7 +1466,7 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                i18n.state.activeTodos,
+                i18n.of(context).activeTodos,
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),

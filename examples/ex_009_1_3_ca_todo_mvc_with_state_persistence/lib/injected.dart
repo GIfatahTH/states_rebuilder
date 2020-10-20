@@ -45,16 +45,18 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
       numActive: todos.state.where((t) => !t.complete).length,
     );
   },
-  // debugPrintWhenNotifiedPreMessage: '',
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
-final Injected<Todo> injectedTodo = RM.inject(
-  () => null,
+final Injected<Todo> todoItem = RM.inject(
+  () =>
+      null, //null here. It will be overridden when inflating TodoItem widget in ListView builder
   onData: (todo) {
+    //called when any todoItem is updated
     if (todo != null) {
-      todos.state.updateTodo(todo);
+      todos.setState((s) => s.updateTodo(todo));
     }
-  }, //TODO check when throwing
+  },
   onError: (e, s) {
     ErrorHandler.showErrorSnackBar(e);
   },

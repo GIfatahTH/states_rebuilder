@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/domain/entities/todo.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/injected.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/main.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/service/exceptions/persistance_exception.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
@@ -15,7 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() async {
-  final storage = await RM.localStorageInitializerMock();
+  final storage = await RM.storageInitializerMock();
   setUp(() {
     storage.clear();
   });
@@ -167,6 +168,11 @@ void main() async {
       //it is updated
       expect(checkedCheckBox, findsNWidgets(1));
       expect(unCheckedCheckBox, findsNWidgets(2));
+      //Check the first todo
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      expect(checkedCheckBox, findsNWidgets(2));
+      expect(unCheckedCheckBox, findsNWidgets(1));
     },
   );
 
@@ -379,17 +385,7 @@ void main() async {
   );
 }
 
-final todos1 = json.encode(
-  [
-    Todo(
-      'Task1',
-      id: 'user1-1',
-      note: 'Note1',
-    ),
-  ],
-);
-
-final todos3 = json.encode(
+String todos3 = json.encode(
   [
     Todo(
       'Task1',

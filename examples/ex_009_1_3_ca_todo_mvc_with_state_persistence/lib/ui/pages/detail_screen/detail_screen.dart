@@ -14,13 +14,13 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = injectedTodo(context);
+    final todo = todoItem(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(i18n.state.todoDetails),
+        title: Text(i18n.of(context).todoDetails),
         actions: [
           IconButton(
-            tooltip: i18n.state.deleteTodo,
+            tooltip: i18n.of(context).deleteTodo,
             icon: Icon(Icons.delete),
             onPressed: () {
               RM.navigate.back(true);
@@ -76,11 +76,11 @@ class DetailScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: i18n.state.editTodo,
+        tooltip: i18n.of(context).editTodo,
         child: const Icon(Icons.edit),
         onPressed: () {
           RM.navigate.to(
-            injectedTodo.reInherited(
+            todoItem.reInherited(
               context: context,
               builder: (context) => AddEditPage(),
             ),

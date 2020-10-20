@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() async {
-  final storage = await RM.localStorageInitializerMock();
+  final storage = await RM.storageInitializerMock();
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
     //App start with dart model
