@@ -1,23 +1,31 @@
 import 'dart:convert';
-
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/domain/entities/todo.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/main.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/service/exceptions/persistance_exception.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/detail_screen/detail_screen.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/extra_actions_button.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/filter_button.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/home_screen.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/stats_counter.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/todo_item.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/injected.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/todo.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/persistance_exception.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/detail_screen/detail_screen.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/extra_actions_button.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/filter_button.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/todo_item.dart';
+
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
+
 void main() async {
-  final storage = await RM.storageInitializerMock();
+  final storage = await RM.localStorageInitializerMock();
   setUp(() {
     storage.clear();
+    //auto log with _user;
+    storage.store.addAll({
+      '__UserToken__': _user,
+    });
   });
   testWidgets('Start with zero todo', (tester) async {
     await tester.pumpWidget(App());
@@ -26,13 +34,15 @@ void main() async {
 
   testWidgets('Start with some stored todos', (tester) async {
     //pre populate the store with tree todos
-    storage.store.addAll({'__Todos__': todos3});
+    storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
+    await tester.pumpAndSettle();
     expect(find.byType(TodoItem), findsNWidgets(3));
   });
 
   testWidgets('add todo', (tester) async {
     await tester.pumpWidget(App());
+    await tester.pumpAndSettle();
     //No todos
     expect(find.byType(TodoItem), findsNothing);
     //Tap on FloatingActionButton to add a todo
@@ -54,16 +64,26 @@ void main() async {
     expect(find.byType(TodoItem), findsOneWidget);
     //
     //The add todo is persisted
-    expect(storage.store['__Todos__'].contains('"task":"Task 1"'), isTrue);
-    expect(storage.store['__Todos__'].contains('"note":"Note 1"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"task":"Task 1"'),
+        isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note 1"'),
+        isTrue);
   });
   testWidgets('Remove todo using a dismissible and undo', (tester) async {
     //pre populate the store with tree todos
-    storage.store.addAll({'__Todos__': todos3});
+    storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
     await tester.pumpWidget(App());
+    await tester.pumpAndSettle();
     //Start with three todos
     expect(find.byType(TodoItem), findsNWidgets(3));
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isTrue);
     //Dismiss the second todo
     await tester.drag(find.text('Note2'), Offset(-1000, 0));
     await tester.pumpAndSettle();
@@ -72,7 +92,10 @@ void main() async {
     expect(find.text('Note2'), findsNothing);
     expect(find.byType(TodoItem), findsNWidgets(2));
     //The new state is persisted
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isFalse);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isFalse);
     //A SnackBar is displayed with undo button
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
@@ -81,7 +104,10 @@ void main() async {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(find.byType(TodoItem), findsNWidgets(3));
-    expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+    expect(
+        storage.store['__Todos__/${user.state.userId}']
+            .contains('"note":"Note2"'),
+        isTrue);
   });
 
   testWidgets(
@@ -89,12 +115,16 @@ void main() async {
     (tester) async {
       // storage.should
       //pre populate the store with tree one
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
 
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
       //Start with three todos
       expect(find.byType(TodoItem), findsNWidgets(3));
-      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      expect(
+          storage.store['__Todos__/${user.state.userId}']
+              .contains('"note":"Note2"'),
+          isTrue);
       //
       //Set the mocked store to throw PersistanceException after one seconds,
       //when writing to the store
@@ -108,7 +138,10 @@ void main() async {
       expect(find.text('Note2'), findsNothing);
       expect(find.byType(TodoItem), findsNWidgets(2));
       //The new state is persisted
-      expect(storage.store['__Todos__'].contains('"note":"Note2"'), isTrue);
+      expect(
+          storage.store['__Todos__/${user.state.userId}']
+              .contains('"note":"Note2"'),
+          isTrue);
       //A SnackBar is displayed with undo button
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Undo'), findsOneWidget);
@@ -127,8 +160,9 @@ void main() async {
   testWidgets(
     'should toggle a todo form home and from DetailScreen',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -167,19 +201,16 @@ void main() async {
       //it is updated
       expect(checkedCheckBox, findsNWidgets(1));
       expect(unCheckedCheckBox, findsNWidgets(2));
-      //Check the first todo
-      await tester.tap(find.byType(Checkbox).first);
-      await tester.pumpAndSettle();
-      expect(checkedCheckBox, findsNWidgets(2));
-      expect(unCheckedCheckBox, findsNWidgets(1));
     },
   );
 
   testWidgets(
     'should Remove a todo form  DetailScreen',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
+
       expect(find.byType(TodoItem), findsNWidgets(3));
 
       //to on the first todo to go to detailed page
@@ -202,8 +233,10 @@ void main() async {
   testWidgets(
     'should edit a todo',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
+
       expect(find.byType(TodoItem), findsNWidgets(3));
 
       //to on the first todo to go to detailed page
@@ -237,8 +270,9 @@ void main() async {
   testWidgets(
     'Show filter todos: all, active and completed todos',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -286,8 +320,9 @@ void main() async {
   testWidgets(
     'toggle all completed / uncompleted',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -324,8 +359,10 @@ void main() async {
   testWidgets(
     ' clear completed',
     (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
+      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
       await tester.pumpWidget(App());
+      await tester.pumpAndSettle();
+
       //
       final checkedCheckBox = find.byWidgetPredicate(
         (widget) => widget is Checkbox && widget.value == true,
@@ -356,35 +393,21 @@ void main() async {
       //
       expect(checkedCheckBox, findsNWidgets(2));
       expect(unCheckedCheckBox, findsNWidgets(0));
-
-      await tester.tap(find.byType(ExtraActionsButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
-      await tester.pumpAndSettle();
-
-      //all todos are removed
-      expect(checkedCheckBox, findsNWidgets(0));
-      expect(unCheckedCheckBox, findsNWidgets(0));
-    },
-  );
-
-  testWidgets(
-    ' Todos stats',
-    (tester) async {
-      storage.store.addAll({'__Todos__': todos3});
-      await tester.pumpWidget(App());
-      //
-      await tester.tap(find.byIcon(Icons.show_chart));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(StatsCounter), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget);
     },
   );
 }
 
-String todos3 = json.encode(
+final todos1 = json.encode(
+  [
+    Todo(
+      'Task1',
+      id: 'user1-1',
+      note: 'Note1',
+    ),
+  ],
+);
+
+final todos3 = json.encode(
   [
     Todo(
       'Task1',
@@ -405,3 +428,14 @@ String todos3 = json.encode(
     ),
   ],
 );
+
+final _user = User(
+  userId: 'user1',
+  email: 'user1@mail.com',
+  token: Token(
+    token: 'token_user1',
+    expiryDate: DateTimeX.current.add(
+      Duration(seconds: 10),
+    ),
+  ),
+).toJson();
