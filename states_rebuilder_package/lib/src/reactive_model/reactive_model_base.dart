@@ -309,7 +309,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     return rm;
   }
 
-  ///Rest the async connection state to [hasData]
+  ///Rest the async connection state to [isIdle]
   void resetToIdle([T state]) {
     if (_completer != null && !_completer.isCompleted) {
       _completer.complete();

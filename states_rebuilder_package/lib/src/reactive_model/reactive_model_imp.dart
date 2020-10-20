@@ -14,12 +14,24 @@ class ReactiveModelImp<T> extends ReactiveModelInternal<T> {
   Future<T> refresh({void Function() onInitRefresh}) {
     cleaner(unsubscribe, true);
     unsubscribe();
-    setState(
-      (s) => (inject as InjectImp)?.creationFunction(),
-      silent: true,
-    );
+    try {
+      final s = (inject as InjectImp)?.creationFunction();
+      if (_deepEquality.equals(state, s)) {
+        resetToIdle(s);
+      } else {
+        resetToIdle(s);
+        if (hasObservers) {
+          rebuildStates();
+        }
+      }
+    } catch (e) {
+      if (e is Error) {
+        rethrow;
+      }
+      resetToHasError(e);
+      notify();
+    }
     onInitRefresh?.call();
-    resetToIdle();
     return stateAsync.catchError((_) {});
   }
 

@@ -24,9 +24,12 @@ class _InheritedState<T> extends StatefulWidget {
 class __InheritedStateState<T> extends State<_InheritedState<T>> {
   Injected<T> _injected;
   Disposer _disposer1;
-
+  Disposer _disposer2;
+  ReactiveModel<T> _rm;
+  List<Injected<dynamic>> get _inheritedInjects =>
+      (_rm as ReactiveModelInternal).inheritedInjected;
   void initState() {
-    final _rm = widget.globalInjected.getRM;
+    _rm = widget.globalInjected.getRM;
     _injected = widget.reInheritedInjected != null
         ? widget.reInheritedInjected
         : RM.inject(
@@ -36,15 +39,16 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
           );
     assert(_injected != null);
     if (widget.state != null) {
-      (_rm as ReactiveModelInternal).inheritedInjected.add(_injected);
+      _inheritedInjects.add(_injected);
     }
     if (widget.connectWithGlobal) {
-      _disposer1 = _injected.getRM.listenToRM(
+      _disposer1 =
+          (_injected.getRM as ReactiveModelInternal).listenToRMInternal(
         (rm) {
           bool isWaiting = false;
           bool hasError = false;
 
-          (_rm as ReactiveModelInternal).inheritedInjected.forEach((inj) {
+          _inheritedInjects.forEach((inj) {
             if (inj.isWaiting) {
               isWaiting = true;
               return;
@@ -70,42 +74,46 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
           }
         },
         listenToOnDataOnly: false,
+        debugListener: 'CONNECT_WITH_GLOBAL_INHERITED',
       );
     }
+    _disposer2 = (_injected.getRM as ReactiveModelInternal).listenToRMInternal(
+      (rm) {
+        setState(() {});
+      },
+      debugListener: 'SET_STATE_INHERITED',
+    );
+    (_rm as ReactiveModelInternal).numberOfFutureAndStreamBuilder++;
     super.initState();
   }
 
   dispose() {
     _disposer1?.call();
-    final _rm = widget.globalInjected.getRM;
+    _disposer2();
     if (widget.state != null) {
-      (_rm as ReactiveModelInternal).inheritedInjected.remove(_injected);
+      _inheritedInjects.remove(_injected);
     }
 
     if (_injected._rm?.hasObservers == false) {
       _injected.dispose();
+    }
+    (_rm as ReactiveModelInternal).numberOfFutureAndStreamBuilder--;
+    if (!_rm.hasObservers &&
+        (_rm as ReactiveModelInternal).numberOfFutureAndStreamBuilder < 1) {
+      widget.globalInjected.dispose();
     }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StateBuilder(
-      key: Key("${_injected.hashCode}"),
-      observe: () => widget.globalInjected.getRM,
-      // tag: '_InheritedInjected',
-      initState: (_, __) {},
-      dispose: (_, __) {},
-      builder: (_, __) {
-        return _InheritedInjected(
-          child: Builder(
-            builder: (context) => widget.builder(context),
-          ),
-          injected: _injected,
-          globalInjected: widget.globalInjected,
-          context: context,
-        );
-      },
+    return _InheritedInjected(
+      child: Builder(
+        builder: (context) => widget.builder(context),
+      ),
+      injected: _injected,
+      globalInjected: widget.globalInjected,
+      context: context,
     );
   }
 }

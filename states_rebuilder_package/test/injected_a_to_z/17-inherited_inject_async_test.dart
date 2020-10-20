@@ -75,15 +75,15 @@ class _App extends StatelessWidget {
         //I use Column for the sake of clarity
         children: [
           injectedCounter.inherited(
-            state: () => _listOfCounters[0],
+            stateOverride: () => _listOfCounters[0],
             builder: (_) => const CounterItem(),
           ),
           injectedCounter.inherited(
-            state: () => _listOfCounters[1],
+            stateOverride: () => _listOfCounters[1],
             builder: (_) => const CounterItem(),
           ),
           injectedCounter.inherited(
-            state: () => _listOfCounters[2],
+            stateOverride: () => _listOfCounters[2],
             builder: (_) => const CounterItem(),
           ),
         ],
@@ -95,7 +95,7 @@ class _App extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   const CounterItem();
   Widget build(BuildContext context) {
-    final counter = injectedCounter.of(context);
+    final counter = injectedCounter(context);
     return Row(
       children: [
         counter.whenRebuilderOr(

@@ -144,7 +144,14 @@ class InjectedComputed<T> extends Injected<T> {
               ..notify();
             return;
           }
-          computedRM.refresh();
+          if (computedRM is ReactiveModelImp) {
+            computedRM.setState(
+              (s) => (computedRM.inject as InjectImp)?.creationFunction(),
+              silent: true,
+            );
+          } else {
+            computedRM.refresh();
+          }
         },
         listenToOnDataOnly: false,
         isInjectedModel: true,

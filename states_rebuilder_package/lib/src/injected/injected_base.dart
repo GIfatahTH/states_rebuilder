@@ -216,7 +216,6 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     }());
     if (_persist != null && _persist.persistOn == PersistOn.disposed) {
       persistState();
-      // _persist.write(_rm.state);
     }
     _onDisposed?.call(_state);
     _clearDependence?.call();
@@ -364,11 +363,18 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       //case globe inherited injected
       for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
         inj.refresh();
-        inj._rm.rebuildStates(['_InheritedInjected']);
       }
       //This is the global for inherited. Do not refresh
       return null;
     }
+    if (_rm is ReactiveModelImp && _persist != null) {
+      await _rm?.refresh(
+        onInitRefresh: () => _onInitialized?.call(state),
+      );
+      persistState();
+      return _rm.state;
+    }
+
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
@@ -948,39 +954,138 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       key: key,
       builder: (context) => builder(context),
       globalInjected: globalInject,
-      reInheritedInjected: globalInject.of(context),
+      reInheritedInjected: globalInject(context),
       connectWithGlobal: connectWithGlobal,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
   }
 
+  ///Resister to the injected model with an [InheritedWidget] that wraps its state.
+  ///
+  ///By default the [InheritedWidget] holds the state of the injected model, but this can be
+  ///overridden using the [stateOverride] parameter.
+  ///
+  ///Child widgets can obtain the wrapped state using `.of(context)` or `.call(context)` methods.
+  ///
+  ///* `myModel.of(context)` looks up in the widget tree to find the state of `myModel` and register
+  ///the `BuildContext` to rebuild when `myModel` is notified.
+  ///
+  ///* `myModel.call(context) or myModel(context)` looks up in the widget tree to find the injected
+  /// model `myModel` without registering the `BuildContext`.
+  ///
+  ///ex:
+  ///
+  ///```dart
+  ///final counter1 = RM.inject<int>(()=> 0);
+  ///final counter2 = RM.inject<int>(()=> 0);
+  ///
+  ///class MyApp extends StatelessWidget{
+  ///
+  /// Widget build(context){
+  ///  counter1.inherited(
+  ///   builder: (context):{
+  ///     return counter2.inherited(
+  ///       builder: (context){
+  ///         //Getting the counters state using `of` will
+  ///         //resister this BuildContext
+  ///         final int counter1State = counter1.of(context);
+  ///         //Although both counters are of the same type we get
+  ///         //the right state
+  ///         final int counter2State = counter2.of(context);
+  ///
+  ///
+  ///         //Getting the counters using the `call` method will
+  ///         //not register this BuildContext
+  ///          final Injected<int> counter1 = counter1(context);
+  ///          final Injected<int> counter2 = counter2(context);
+  ///       }
+  ///     )
+  ///   }
+  ///  )
+  /// }
+  ///}
+  ///```
+  ///
+  /// * Required parameters:
+  ///     * [builder]: Callback to be rendered. It exposed the [BuildContext].
+  /// * Optional parameters:
+  ///     * [stateOverride]: CallBack to override the exposed state.
+  ///     * [connectWithGlobal]: If state is overridden, whether to mutate the global
+  ///     * [debugPrintWhenNotifiedPreMessage]: if not null, print an informative
+  /// message when this model is notified in the debug mode.The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model is primitive to distinguish
   Widget inherited({
     Key key,
-    T Function() state,
+    T Function() stateOverride,
     @required Widget Function(BuildContext) builder,
-    bool connectWithGlobal = true,
+    bool connectWithGlobal,
     String debugPrintWhenNotifiedPreMessage,
   }) {
     return _InheritedState(
       key: key,
       builder: (context) => builder(context),
       globalInjected: this,
-      reInheritedInjected: state == null ? this : null,
-      state: state,
-      connectWithGlobal: state == null ? false : connectWithGlobal,
+      reInheritedInjected: stateOverride == null ? this : null,
+      state: stateOverride,
+      connectWithGlobal:
+          stateOverride == null ? false : connectWithGlobal ?? true,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
   }
 
-  Injected<T> of(BuildContext context, {bool defaultToGlobal = false}) {
+  ///Obtain the state from the nearest [InheritedWidget] inserted using [inherited].
+  ///
+  ///The [BuildContext] used, will be registered so that when this Injected model emits
+  ///a notification, the [Element] related the the [BuildContext] will rebuild.
+  ///
+  ///If you want to obtain the state without registering use the [call] method.
+  ///
+  ///```dart
+  ///myModel.of(context); // Will return the state and register the BuildContext.
+  ///myModel(context); // Will return the Injected model and do not register the BuildContext.
+  ///```
+  ///
+  T of(BuildContext context, {bool defaultToGlobal = false}) {
+    final _InheritedInjected<T> _inheritedInjected =
+        context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
+
+    if (_inheritedInjected != null) {
+      if (_inheritedInjected.globalInjected == this) {
+        return _inheritedInjected.injected.state;
+      } else {
+        return of(
+          _inheritedInjected.context,
+          defaultToGlobal: defaultToGlobal,
+        );
+      }
+    }
+    if (defaultToGlobal) {
+      return state;
+    }
+    return null;
+  }
+
+  ///Obtain the Injected model from the nearest [InheritedWidget] inserted using [inherited].
+  ///
+  ///The [BuildContext] used, will not be registered.
+  ///
+  ///If you want to obtain the state and  register it use the [of] method.
+  ///
+  ///```dart
+  ///myModel.of(context); // Will return the state and register the BuildContext.
+  ///myModel(context); // Will return the Injected model and do not register the BuildContext.
+  ///```
+  ///
+  Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
     final _InheritedInjected<T> _inheritedInjected = context
         .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
         ?.widget;
+
     if (_inheritedInjected != null) {
       if (_inheritedInjected.globalInjected == this) {
         return _inheritedInjected.injected;
       } else {
-        return of(
+        return call(
           _inheritedInjected.context,
           defaultToGlobal: defaultToGlobal,
         );
@@ -993,7 +1098,6 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   }
 
   @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _cachedHash;
   final int _cachedHash = _nextHashCode = (_nextHashCode + 1) % 0xffffff;
   static int _nextHashCode = 1;
