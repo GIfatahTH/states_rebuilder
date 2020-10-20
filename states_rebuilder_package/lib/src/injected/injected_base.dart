@@ -49,7 +49,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     }
 
     _resolveInject();
-    _functionalInjectedModels[_name] = this;
+    _addToFunctionalInjectedModels(_name, this);
 
     _isRegistered = _rm != null;
 
@@ -76,7 +76,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
           listenToOnDataOnly: false,
           debugListener: 'DEBUG_PRINT_STATE',
         );
-        _rm.cleaner(disposer);
+        if (_autoDisposeWhenNotUsed ?? true) {
+          _rm.cleaner(disposer);
+        }
       }
       return true;
     }());
@@ -87,7 +89,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
 
   ///The state of the model.
   T get state {
-    _resolveInject();
+    _resolveInject(true);
     _setAndGetModelState();
     return _state;
   }
@@ -118,14 +120,22 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   Inject<T> _getInject();
   static Injected _activeInjected;
 
-  void _resolveInject() {
+  void _resolveInject([bool fromState = false]) {
+    if (_inject != null) {
+      final cashedInjected = Injected._activeInjected;
+      if (cashedInjected != null) {
+        _addToDependsOn(cashedInjected);
+      }
+      return;
+    }
+
+    if (fromState) {
+      _addToNonInjectedModels(_name, this);
+    }
+
     final cashedInjected = Injected._activeInjected;
     if (cashedInjected != null) {
       _addToDependsOn(cashedInjected);
-    }
-
-    if (_inject != null) {
-      return;
     }
 
     Injected._activeInjected = this;
@@ -180,7 +190,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
         listenToOnDataOnly: false,
         debugListener: 'SIDE_EFFECT',
       );
-      _rm.cleaner(disposer);
+      if (_autoDisposeWhenNotUsed ?? true) {
+        _rm.cleaner(disposer);
+      }
     }
 
     if (_persistCallback != null) {
@@ -198,7 +210,9 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
           },
           debugListener: 'PERSISTANCE',
         );
-        _rm.cleaner(disposer);
+        if (_autoDisposeWhenNotUsed ?? true) {
+          _rm.cleaner(disposer);
+        }
       }
     }
   }
@@ -505,6 +519,8 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     );
   }
 
+  ///**Experimental Feature**
+  ///
   ///Listen to this Injected model and register:
   ///* Side effects to be invoked before rebuilding the widget ([onSetState]
   ///parameter).
@@ -781,11 +797,13 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   ///rebuilds this widget.
   ///
   /// * Required parameters:
-  ///     * [future] : Callback that takes the current state and async state of the injected model.
   ///     * [onWaiting] : callback to be executed when the future is in the waiting state.
   ///     * [onError] : callback to be executed when the future ends with error.
   ///     * [onData] : callback to be executed when the future ends data.
   ///  * Optional parameters:
+  ///     * [future] : Callback that takes the current state and async state of the injected model.
+  /// If not defined and if the injected model is of type (InjectedFuture), the async state is used by
+  /// default
   ///     * [dispose] : called when the widget is removed from the widget tree.
   ///
   ///If [onWaiting] or [onError] is set to null, the onData callback will be execute instead.
@@ -805,7 +823,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
   ///**Performance:** When this [futureBuilder] is removed from the widget tree, the
   ///future is canceled if not resolved yet.
   Widget futureBuilder<F>({
-    @required Future<F> Function(T data, Future<T> asyncState) future,
+    Future<F> Function(T data, Future<T> asyncState) future,
     @required Widget Function() onWaiting,
     @required Widget Function(dynamic) onError,
     @required Widget Function(F data) onData,
@@ -816,7 +834,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
       key: key,
       observe: () {
         return _stateRM.future((s, stateAsync) {
-          return future(s, stateAsync);
+          return future == null ? stateAsync : future(s, stateAsync);
         });
       },
       initState: (_, __) =>

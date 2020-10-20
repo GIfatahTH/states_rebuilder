@@ -45,6 +45,7 @@ abstract class InjectedBaseCommon<T> {
         '$runtimeType depends on ${Injected._activeInjected.runtimeType} and '
         '${Injected._activeInjected.runtimeType} depends on $runtimeType',
       );
+      _nonInjectedModels.remove(_name);
       _numberODependence++;
     }
   }
@@ -82,6 +83,18 @@ abstract class InjectedBaseCommon<T> {
 final Map<String, Injected<dynamic>> _functionalInjectedModels =
     <String, Injected<dynamic>>{};
 
+final Map<String, Injected<dynamic>> _nonInjectedModels =
+    <String, Injected<dynamic>>{};
+
+void _addToFunctionalInjectedModels(String name, Injected<dynamic> inj) {
+  _functionalInjectedModels[name] = inj;
+  _nonInjectedModels.remove(name);
+}
+
+void _addToNonInjectedModels(String name, Injected<dynamic> inj) {
+  _nonInjectedModels[name] = inj;
+}
+
 ///
 Map<String, Injected<dynamic>> get functionalInjectedModels =>
     _functionalInjectedModels;
@@ -97,11 +110,8 @@ void cleanInjector() {
 }
 
 void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
-  // if (name == null) {
-  //   return;
-  // }
-
   _functionalInjectedModels.remove(injected._name);
+
   if (injected?._inject == null) {
     return;
   }
@@ -110,4 +120,13 @@ void _unregisterFunctionalInjectedModel(Injected<dynamic> injected) {
     ..removeAllReactiveNewInstance()
     ..cleanInject();
   injected._dispose();
+
+  if (_functionalInjectedModels.isEmpty) {
+    _nonInjectedModels.forEach((key, inj) {
+      if (inj._autoDisposeWhenNotUsed) {
+        inj._resetInjected();
+      }
+    });
+    _nonInjectedModels.clear();
+  }
 }

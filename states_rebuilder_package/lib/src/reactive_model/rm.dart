@@ -517,6 +517,15 @@ abstract class RM {
     await persistStateGlobalTest.init();
     return (persistStateGlobalTest as PersistStoreMock);
   }
+
+  @Deprecated('use storageInitializer instead')
+  static Future<void> localStorageInitializer(IPersistStore store) {
+    if (persistStateGlobal != null) {
+      return null;
+    }
+    persistStateGlobal = store;
+    return persistStateGlobal.init();
+  }
 }
 
 IPersistStore persistStateGlobal;

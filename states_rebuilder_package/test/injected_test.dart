@@ -1496,6 +1496,43 @@ void main() {
     expect(counter.state, 1);
     await tester.pump();
   });
+
+  testWidgets(
+    'Dispose non registered models',
+    (tester) async {
+      final switcher = RM.create(true);
+      final counter1 = RM.inject(
+        () => 0,
+        onDisposed: (_) {
+          print('disposed');
+        },
+        debugPrintWhenNotifiedPreMessage: 'counter1',
+      );
+      final counter2 = RM.inject(() => 0);
+
+      final widget = Directionality(
+          textDirection: TextDirection.ltr,
+          child: StateBuilder(
+            observe: () => switcher,
+            builder: (_, __) {
+              return switcher.state
+                  ? counter1.rebuilder(() => Container())
+                  : Container();
+            },
+          ));
+      await tester.pumpWidget(widget);
+      counter1.state++;
+      // counter2.state++;
+      // counter2.getRM.resetToHasData(1);
+
+      expect(counter1.state, 1);
+      expect(counter2.state, 0);
+      switcher.state = !switcher.state;
+      await tester.pump();
+      expect(counter1.state, 0);
+      expect(counter2.state, 0);
+    },
+  );
 }
 
 class VanillaModel {

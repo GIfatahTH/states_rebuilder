@@ -99,6 +99,9 @@ class PersistStoreMock extends IPersistStore {
 
   ///Milliseconds to await before throwing
   int timeToThrow = 0;
+
+  ///Milliseconds to await for async operation
+  int timeToWait = 0;
   PersistStoreMock();
   @override
   Future<void> init() {
@@ -109,7 +112,9 @@ class PersistStoreMock extends IPersistStore {
       store = <String, String>{};
     }
 
-    return Future.value();
+    return timeToWait == null
+        ? Future.value()
+        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   @override
@@ -121,7 +126,9 @@ class PersistStoreMock extends IPersistStore {
       );
     }
     store.remove(key);
-    return Future.value();
+    return timeToWait == null
+        ? Future.value()
+        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   @override
@@ -133,7 +140,9 @@ class PersistStoreMock extends IPersistStore {
       );
     }
     store.clear();
-    return Future.value();
+    return timeToWait == null
+        ? Future.value()
+        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   @override
@@ -145,7 +154,10 @@ class PersistStoreMock extends IPersistStore {
           () => throw exception,
         );
       }
-      return Future.value(store[key]);
+      return timeToWait == null
+          ? Future.value(store[key])
+          : Future.delayed(
+              Duration(milliseconds: timeToWait), () => store[key]);
     }
     if (exception != null) {
       throw exception;
@@ -162,7 +174,9 @@ class PersistStoreMock extends IPersistStore {
       );
     }
     store[key] = '$value';
-    return Future.value();
+    return timeToWait == null
+        ? Future.value()
+        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   ///Clear the store, Typically used indide setUp method of tests
