@@ -3,12 +3,12 @@
 States_rebuilder is a simple and efficient state management solution for Flutter.
 By this example, I will demonstrate the above statement.
 
-The example consist of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic dark/light theme and app internationalization.
-The app state will be stored using SharedPreferences, Hive and sqflite for demonstration purpose.
+The example consists of the [Todo MVC app](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to handle dynamic dark/light theme and app internationalization.
+The app state will be stored using SharedPreferences, Hive, and sqflite for demonstration purposes.
 
-# Setting persistance provider
+# Setting persistence provider
 
-Since we want to persist the chosen theme and language as well as the todos list, we start by defining the persistence provider.
+Since we want to persist in the chosen theme and language as well as the todos list, we start by defining the persistence provider.
 
 with states_rebuilder, you have the freedom of choosing your storage provider. All you need to do is to implement the `IPersistStore` interface. 
 
@@ -254,7 +254,7 @@ To change the theme, we simply switch the state as follows:
 
 # Localization configuration
 
-There are many ways to configure the localization of the app. In this example we first start by defining an abstract class `I18N` which have tree static methods and the default strings of our app.
+There are many ways to configure the localization of the app. In this example, we first start by defining an abstract class `I18N` which have tree static methods and the default strings of our app.
 
 
 [Refer to language_base file](lib/ui/common/localization/languages/language_base.dart)
@@ -376,7 +376,7 @@ class App extends StatelessWidget {
             ],
             routes: {
               //Notice const here and everywhere in this app.
-              // This is a huge benefit in performance term.
+              // This is a huge benefit in performance terms.
               AddEditPage.routeName: (context) => const AddEditPage(),
               HomeScreen.routeName: (context) => const HomeScreen(),
             },
@@ -481,7 +481,7 @@ class Todo {
     );
   }
 
-  // toJson is called just before persistance.
+  // toJson is called just before persistence.
   Map<String, Object> toJson() {
     _validation();
     return {
@@ -541,7 +541,7 @@ class Todo {
 </details>
 <br>
 
-The logic for adding, updating, deleting and toggling todos is encapsulated in `ListTodoX` extension.
+The logic for adding, updating, deleting, and toggling todos is encapsulated in `ListTodoX` extension.
 
 [Refer to todo.dart file](lib/service/todos_state.dart)
 ```dart
@@ -694,12 +694,12 @@ When the application starts, the todos list is retrieved from the provided stora
 
 For performance and build optimization, we won't pass any dynamic parameters to the `TodoItem` so we can use the `const` modifier.
 
-To get the state of any todo from its `TodoItem` child widgets, we will relay on` InheritedWidget`.
+To get the state of any todo from its `TodoItem` child widgets, we will rely on` InheritedWidget`.
 
-With states_rebuilder, we can inject widget-aware state; in other words, the state is obtained according to its position in the widget tree. Here we are referring to the concept of `InheritedWidget`.
+With states_rebuilder, we can inject a widget-aware state; in other words, the state is obtained according to its position in the widget tree. Here we are referring to the concept of `InheritedWidget`.
 
 
-Note: I assume you are familiar on How InheritedWidget works. [Read here for more information](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
+Note: I assume you are familiar with how InheritedWidget works. [Read here for more information](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
 
 To do this, we first define a global injection to represent the state of an Item.
 
@@ -746,14 +746,14 @@ final Injected<Todo> todoItem = RM.inject(
 ```
 
 Wrap up:
-* `Injected.inherited` is useful when display a list of items of the same type (Products, todos, ..).
-* Relaying on the concept of Inherited widget, the right item state is obtained using the BuildContext.
-* Global state reference, is some thing like a template for one items
+* `Injected.inherited` is useful when displaying a list of items of the same type (Products, todos, ..).
+* Relying on the concept of Inherited widget, the right item state is obtained using the BuildContext.
+* Global state reference is something like a template for one item
 * The global state reference, exposes there callbacks:
   * `onWaiting` : called if at least one item is waiting for a pending async task.
-  * `onError`: called if no item is waiting, and at least one item has error.
-  * `onData`: called if all items has data.
-* When refresh method is called on a global state reference, all item states will be refreshed.
+  * `onError`: called if no item is waiting, and at least one item has an error.
+  * `onData`: called if all items have data.
+* When the refresh method is called on a global state reference, all item states will be refreshed.
 
 
 [Refer to todo list file](lib/ui/pages/home_screen/todo_list.dart)
@@ -817,7 +817,7 @@ class TodoItem extends StatelessWidget {
               //Navigate to DetailScreen
               final shouldDelete = await RM.navigate.to(
                 //As this is a new route, getting a todo state from context no longer possible.
-                //Using 'reInherited' method will make the todo state available on the new route.
+                //Using the 'reInherited' method will make the todo state available on the new route.
                 todoItem.reInherited(
                   context: context,
                   builder: (context) => const DetailScreen(),
@@ -932,7 +932,7 @@ class TodoItem extends StatelessWidget {
 ```
 </details>
 <br>
-This is important. Here we fake a persistance provider failure and see that states_rebuilder mutate the state to the new desired state and try to persist it, as it fails it goes back to the last valid state and displays an error message.
+This is important. Here we fake a persistence provider failure and see that states_rebuilder mutate the state to the new desired state and try to persist it, as it fails it goes back to the last valid state and displays an error message.
 
 <details>
   <summary>Click here to see remove todo using a dismissible and auto undo if persistance fails test</summary>
@@ -1409,7 +1409,7 @@ final _extraAction = RM.inject(
 ### Stats Screen
 > [Shows a stats of number of completed and active todos](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md#stats-screen)
 
-First let's define a data class that contains the stats we want to display:
+First, let's define a data class that contains the stats we want to display:
 
 [Refer to extra action file](lib/domain/value_object/todos_stats.dart)
 ```dart

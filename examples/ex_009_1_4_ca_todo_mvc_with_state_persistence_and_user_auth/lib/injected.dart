@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import './ui/common/enums.dart';
-import 'data_source/firebase_auth_repositoy.dart';
+import 'data_source/firebase_auth_repository.dart';
 import 'data_source/firebase_todos_repository.dart';
 import 'domain/common/extensions.dart';
 import 'domain/entities/todo.dart';
 import 'domain/entities/user.dart';
 import 'domain/value_object/todos_stats.dart';
 import 'domain/value_object/token.dart';
-import 'service/auth_state.dart';
+import 'service/auth_service.dart';
 import 'service/common/enums.dart';
 import 'service/interfaces/i_auth_repository.dart';
 import 'service/todos_state.dart';

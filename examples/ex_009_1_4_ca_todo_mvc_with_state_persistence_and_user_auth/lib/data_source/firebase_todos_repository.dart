@@ -2,7 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'constants.dart';
+import 'my_project_data.dart' as myProjectData; //TODO Delete this.
+
+//1. create firebase project.
+//2. create a realtime database and start in test mode.
+//3. notice the generated url which we will use. If your project name is YOUR_PROJECT_NAME the the generated url is https://YOUR_PROJECT_NAME.firebaseio.com/. This will be your `baseUrl` const.
+const baseUrl = myProjectData.baseUrl; //TODO Use yours.
 
 class FireBaseTodosRepository implements IPersistStore {
   final String authToken;

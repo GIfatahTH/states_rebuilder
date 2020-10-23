@@ -27,6 +27,8 @@ States Rebuilder is an easy flutter state management solution that allows for cl
 
 * [Persist state](https://github.com/GIfatahTH/states_rebuilder/issues/134) to localStorage and restore it when the application is restarted.
 
+* [Override the state](https://github.com/GIfatahTH/states_rebuilder/wiki/17-inherited_inject) for a particular widget tree branch (Widget-aware state).
+
 # Table of Contents <!-- omit in toc --> 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
@@ -151,6 +153,10 @@ With `states_rebuilder`, you can create as many `ReactiveModel`s as you want fro
 # Examples:
 
 * [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)
+
+* Here are two **must-read examples** that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
+  1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
+  2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
 
 ## Basics:
 Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
