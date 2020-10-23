@@ -978,7 +978,7 @@ abstract class Injected<T> extends InjectedBaseCommon<T> {
     );
   }
 
-  ///Resister to the injected model with an [InheritedWidget] that wraps its state.
+  ///Provide the injected model using an [InheritedWidget] that wraps its state.
   ///
   ///By default the [InheritedWidget] holds the state of the injected model, but this can be
   ///overridden using the [stateOverride] parameter.

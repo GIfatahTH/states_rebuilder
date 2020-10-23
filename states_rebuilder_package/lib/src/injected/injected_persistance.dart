@@ -101,7 +101,7 @@ class PersistStoreMock extends IPersistStore {
   int timeToThrow = 0;
 
   ///Milliseconds to await for async operation
-  int timeToWait = 0;
+  int timeToWait;
   PersistStoreMock();
   @override
   Future<void> init() {
