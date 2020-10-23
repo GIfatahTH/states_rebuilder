@@ -241,4 +241,23 @@ extension StateRebuilderListX on List<Injected> {
     }
     return AsyncSnapshot.withData(ConnectionState.done, data);
   }
+
+  ///Provide the injected models using an [InheritedWidget] that wraps their state.
+  Widget inherited({
+    Key key,
+    @required Widget Function(BuildContext) builder,
+  }) {
+    final lastWidget =
+        this[length - 1].inherited(builder: (ctx) => builder(ctx));
+    if (length == 1) {
+      return lastWidget;
+    }
+
+    Widget widget;
+    for (var i = length - 2; i >= 0; i--) {
+      Widget temp = widget ?? lastWidget;
+      widget = this[i].inherited(builder: (ctx) => temp);
+    }
+    return widget;
+  }
 }
