@@ -42,7 +42,7 @@ class DetailScreen extends StatelessWidget {
                 observe: () => RM.create(todo),
                 //associate ti with todoRMKey
                 dispose: (_, __) {
-                  print('dispose');
+                  // print('dispose');
                 },
                 rmKey: todoRMKey,
                 builder: (context, todosStateRM) {

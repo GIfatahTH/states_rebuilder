@@ -45,7 +45,7 @@ final Injected<TodosStats> todosStats = RM.injectComputed(
       numActive: todos.state.where((t) => !t.complete).length,
     );
   },
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 final Injected<Todo> todoItem = RM.inject(

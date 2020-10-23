@@ -19,7 +19,7 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/e
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 
 void main() async {
-  final storage = await RM.localStorageInitializerMock();
+  final storage = await RM.storageInitializerMock();
   setUp(() {
     storage.clear();
     //auto log with _user;
@@ -383,16 +383,6 @@ void main() async {
       //one completed todo is removed
       expect(checkedCheckBox, findsNWidgets(0));
       expect(unCheckedCheckBox, findsNWidgets(2));
-      //
-      //Toggle all to completed
-      await tester.tap(find.byType(ExtraActionsButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('__toggleAll__')));
-      await tester.pumpAndSettle();
-
-      //
-      expect(checkedCheckBox, findsNWidgets(2));
-      expect(unCheckedCheckBox, findsNWidgets(0));
     },
   );
 }
