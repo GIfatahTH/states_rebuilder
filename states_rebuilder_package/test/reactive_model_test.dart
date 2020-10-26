@@ -2946,7 +2946,7 @@ void main() {
     expect(rm.canRedoState, false);
   });
   testWidgets(
-      'onData of immutable is not called when state not changed after waiting',
+      'onData of immutable is  called when state not changed after waiting',
       (tester) async {
     int numberOfRebuild = 0;
     int numberOfOnData = 0;
@@ -2969,23 +2969,23 @@ void main() {
     expect(numberOfOnData, 0);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 3);
-    expect(numberOfOnData, 0);
+    expect(numberOfOnData, 1);
     //
     counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
     await tester.pump();
     expect(numberOfRebuild, 4);
-    expect(numberOfOnData, 0);
+    expect(numberOfOnData, 1);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 5);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 2);
     //
     counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
     await tester.pump();
     expect(numberOfRebuild, 6);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 2);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 7);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 3);
   });
 }
 

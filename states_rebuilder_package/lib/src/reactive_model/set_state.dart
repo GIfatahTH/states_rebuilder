@@ -133,9 +133,7 @@ class _SetState<T> {
       if (_deepEquality.equals(rm.inject.getReactive().state, data)) {
         if (rm.isWaiting || rm.hasError) {
           rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
-          if (rm.hasObservers) {
-            rm.rebuildStates(filterTags);
-          }
+          rebuildStates();
         }
         return false;
       }
