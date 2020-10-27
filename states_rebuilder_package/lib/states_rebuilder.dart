@@ -3,7 +3,13 @@ library states_rebuilder;
 export 'src/inject.dart' show Inject, Injectable, JoinSingleton;
 export 'src/injector.dart' show Injector, IN;
 export 'src/injected.dart'
-    show Injected, StateRebuilderListX, IPersistStore, PersistState, PersistOn;
+    show
+        Injected,
+        StateRebuilderListX,
+        IPersistStore,
+        PersistState,
+        PersistOn,
+        When;
 
 export 'src/reactive_model.dart' show ReactiveModel, RM, Disposer, RMKey;
 

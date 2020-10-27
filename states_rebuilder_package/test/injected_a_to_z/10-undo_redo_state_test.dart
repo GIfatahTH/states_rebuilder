@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final counter = RM.inject(
+final counter = RM.inject<int>(
   () => 0,
+  onData: (_) {},
   undoStackLength: 8,
 );
 
@@ -21,6 +22,8 @@ class MyApp extends StatelessWidget {
 
 void main() {
   testWidgets('undo and redo state works', (tester) async {
+    counter.state++;
+    counter.state--;
     await tester.pumpWidget(MyApp());
     //first build
     expect(find.text('0'), findsOneWidget);

@@ -46,7 +46,7 @@ final Map<Locale, I18n> supportedLocalesMap = {
 //
 //Here we simulate that we get the stored locale.
 //When the stored locale is null, the default system locale will be used
-Locale _storedLocale = null;
+Locale _storedLocale;
 Locale _localeFromTheApp;
 
 final currentLocale = RM.inject<Locale>(

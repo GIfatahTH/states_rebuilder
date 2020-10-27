@@ -21,7 +21,6 @@ class _SetState<T> {
   bool silent;
   final BuildContext context;
 
-  final Completer<T> completer = Completer<T>();
   final Completer<T> _setStateCompleter = Completer<T>();
 
   _SetState(
@@ -125,7 +124,7 @@ class _SetState<T> {
     if (skipWaiting) {
       return;
     }
-    rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.waiting, rm.state);
+    rm.resetToIsWaiting();
     rebuildStates(canRebuild: _canRebuild());
   }
 
@@ -134,26 +133,28 @@ class _SetState<T> {
       if (_deepEquality.equals(rm.inject.getReactive().state, data)) {
         if (rm.isWaiting || rm.hasError) {
           rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
-          if (rm.hasObservers) {
-            rm.rebuildStates(filterTags);
-          }
+          rebuildStates();
         }
         return false;
       }
       rm
         .._addToUndoQueue()
-        ..snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, data);
+        ..resetToHasData(data);
 
       return true;
     }
 
-    rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, rm._state);
+    rm.resetToHasData();
     return true;
   }
 
   void onErrorCallBack(dynamic e, StackTrace s) {
+    if (e is Error && !StatesRebuilderConfig.shouldCatchError) {
+      StatesRebuilerLogger.log('', e, s);
+      throw e;
+    }
     rm
-      ..snapshot = AsyncSnapshot<T>.withError(ConnectionState.done, e)
+      ..resetToHasError(e, s)
       .._stackTrace = s;
     rebuildStates(canRebuild: true);
     bool _catchError = catchError ??
@@ -170,7 +171,11 @@ class _SetState<T> {
           "This error ${_catchError ? 'is caught by' : 'is thrown from'} ReactiveModel<$T>:\n${_catchError ? '$e' : ''}",
           name: 'states_rebuilder::onError',
           error: _catchError ? null : e,
-          stackTrace: _catchError ? RM.debugErrorWithStackTrace ? s : null : s,
+          stackTrace: _catchError
+              ? RM.debugErrorWithStackTrace
+                  ? s
+                  : null
+              : s,
         );
       }
       return true;
@@ -209,9 +214,6 @@ class _SetState<T> {
   }
 
   Future<T> _setStateHandler() {
-    rm._completer = completer;
-    completer.future.catchError((dynamic d) => null);
-
     try {
       if (fn == null) {
         rm.snapshot = AsyncSnapshot<T>.withData(ConnectionState.done, rm.state);
@@ -230,7 +232,7 @@ class _SetState<T> {
     } catch (e, s) {
       if (e is! FlutterError) {
         onErrorCallBack(e, s);
-        completer.completeError(e, s);
+
         _setStateCompleter.complete(rm.state);
       }
     }
@@ -241,7 +243,7 @@ class _SetState<T> {
     if (onDataCallback(_result)) {
       rebuildStates(canRebuild: _canRebuild());
     }
-    completer.complete();
+
     _setStateCompleter.complete(rm.state);
   }
 
@@ -254,11 +256,9 @@ class _SetState<T> {
           if (isStateModified) {
             rebuildStates(canRebuild: _canRebuild());
           }
-          completer.complete(rm.state);
         },
         onError: (dynamic e, StackTrace s) {
           onErrorCallBack(e, s);
-          completer.completeError(e, s);
         },
         onDone: () {
           rm.cleaner(rm.unsubscribe, true);
@@ -276,15 +276,9 @@ class _SetState<T> {
         if (onDataCallback(d)) {
           rebuildStates(canRebuild: _canRebuild());
         }
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
       },
       onError: (dynamic e, StackTrace s) {
         onErrorCallBack(e, s);
-        if (!completer.isCompleted) {
-          completer.completeError(e, s);
-        }
       },
       onDone: () {
         rm.cleaner(rm.unsubscribe, true);

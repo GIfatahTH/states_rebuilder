@@ -11,7 +11,7 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   ///Error stackTrace
   StackTrace get stackTrace => _stackTrace;
 
-  ///Number of [Injected.futureBuilder] and [Injected.streamBuilder] listening to this RM
+  ///Number of [Injected.futureBuilder] and [Injected.streamBuilder] and [Injected.inherited] listening to this RM
   int numberOfFutureAndStreamBuilder = 0;
 
   ///Wether [setState] is called with a defined onError callback.
@@ -22,11 +22,13 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
     void Function(ReactiveModel<T> rm) fn, {
     bool listenToOnDataOnly = true,
     bool isInjectedModel = false,
+    String debugListener,
   }) =>
       _listenToRM(
         fn,
         listenToOnDataOnly: listenToOnDataOnly,
         isInjectedModel: isInjectedModel,
+        debugListener: debugListener,
       );
 
   ///set on exposing a reactive model in a widget listener
@@ -34,4 +36,6 @@ abstract class ReactiveModelInternal<T> extends ReactiveModel<T> {
   ///Used in WhenRebuilder, WhenRebuilderOr and didUpdateWidget of
   ///StateRebuilderListX.
   List<ReactiveModel<dynamic>> activeRM;
+
+  final List<Injected<dynamic>> inheritedInjected = [];
 }

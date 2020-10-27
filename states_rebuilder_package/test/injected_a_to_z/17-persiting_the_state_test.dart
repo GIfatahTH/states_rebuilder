@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 final counterFuture = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => 0),
   //Once the persist parameter is defined the state is persisted
-  persist: PersistState(
+  persist: () => PersistState(
     key: 'counterFuture',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
@@ -15,7 +15,7 @@ final counterFuture = RM.injectFuture(
 //We use var here to set counter for another options in test
 var counter = RM.inject(
   () => 0,
-  persist: PersistState(
+  persist: () => PersistState(
     key: 'counter',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
@@ -52,7 +52,7 @@ class App extends StatelessWidget {
 void main() async {
   //Inject a mocked implementation of ILocalStorage
   //it return a store of type Mao
-  final store = await RM.localStorageInitializerMock();
+  final store = (await RM.storageInitializerMock()).store;
   setUp(() {
     store.clear();
   });
@@ -98,7 +98,7 @@ void main() async {
 
     await tester.pumpWidget(App());
 
-    //The state is retreaded from the store,
+    //The state is recreated from the store,
     //The future does not started
     expect(find.text('counter: 10'), findsOneWidget);
     expect(find.text('counterFuture: 10'), findsOneWidget);
@@ -142,7 +142,7 @@ void main() async {
   testWidgets('persist state onDisposed ', (tester) async {
     counter = RM.inject(
       () => 0,
-      persist: PersistState(
+      persist: () => PersistState(
         key: 'counter',
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
@@ -178,7 +178,7 @@ void main() async {
   testWidgets('persist and delete state manually ', (tester) async {
     counter = RM.inject(
       () => 0,
-      persist: PersistState(
+      persist: () => PersistState(
         key: 'counter',
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
@@ -215,7 +215,7 @@ void main() async {
   testWidgets('throttle the persistance', (tester) async {
     counter = RM.inject(
       () => 0,
-      persist: PersistState(
+      persist: () => PersistState(
         key: 'counter',
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',

@@ -105,7 +105,9 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
   ///
   ///You can await for it when the [ConnectionState] is awaiting
   Future<T> get stateAsync {
-    return _completer?.future?.catchError((dynamic e) => throw (e)) ??
+    return _completer?.future?.catchError((dynamic e) {
+          throw (e);
+        }) ??
         Future.value(_state);
   }
 
@@ -223,6 +225,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
       _listenToRM(
         fn,
         listenToOnDataOnly: listenToOnDataOnly,
+        debugListener: 'User defined',
       );
 
   //Called internally
@@ -232,6 +235,7 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     //isWidget and isInjectedModel are used in toString override
     bool isWidget = false,
     bool isInjectedModel = false,
+    String debugListener,
   }) {
     final listener = _ListenToRM(
       fn,
@@ -239,15 +243,16 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
       listenToOnDataOnly: listenToOnDataOnly,
       isWidget: isWidget,
       isInjectedModel: isInjectedModel,
+      debugListener: debugListener,
     );
 
     _listenToRMSet.add(listener);
 
     return () {
       _listenToRMSet.remove(listener);
-      if (_listenToRMSet.isEmpty && !hasObservers) {
-        statesRebuilderCleaner(this);
-      }
+      // if (_listenToRMSet.isEmpty && !hasObservers) {
+      //   statesRebuilderCleaner(this, false);
+      // }
     };
   }
 
@@ -304,28 +309,37 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     return rm;
   }
 
-  ///Rest the async connection state to [hasData]
+  ///Rest the async connection state to [isIdle]
   void resetToIdle([T state]) {
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.complete();
+    }
     snapshot =
         AsyncSnapshot.withData(ConnectionState.none, state ?? this.state);
   }
 
   ///Rest the async connection state to [hasData]
   void resetToHasData([T state]) {
-    subscription?.cancel();
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.complete(state ?? this.state);
+    }
     snapshot =
         AsyncSnapshot.withData(ConnectionState.done, state ?? this.state);
   }
 
   ///Rest the async connection state to [isWaiting]
   void resetToIsWaiting([T state]) {
+    _completer = Completer();
     snapshot =
         AsyncSnapshot.withData(ConnectionState.waiting, state ?? this.state);
   }
 
   ///Rest the async connection state to [hasError]
-  void resetToHasError(dynamic e) {
-    subscription?.cancel();
+  void resetToHasError(dynamic e, [StackTrace s]) {
+    if (_completer != null && !_completer.isCompleted) {
+      _completer.future.catchError((dynamic d) => null);
+      _completer.completeError(e, s);
+    }
     snapshot = AsyncSnapshot.withError(ConnectionState.done, e);
   }
 
@@ -466,9 +480,8 @@ abstract class ReactiveModel<T> with StatesRebuilder<T> {
     int debounceDelay,
   }) {
     final s = inject.getReactive().state;
-
     final rm = Inject<F>.future(
-      () => future(s, stateAsync),
+      () => future(s, _completer?.future ?? Future.value(_state)),
       initialValue: initialValue ?? (T == F ? (s as F) : null),
     ).getReactive();
 
@@ -721,14 +734,16 @@ class _ListenToRM<T> {
   final bool listenToOnDataOnly;
   final bool isWidget;
   final bool isInjectedModel;
+  final String debugListener;
   _ListenToRM(
     this.fn, {
     this.rm,
     this.listenToOnDataOnly,
     this.isWidget,
     this.isInjectedModel,
+    this.debugListener,
   });
-  void call() {
+  FutureOr<void> call() {
     if (listenToOnDataOnly) {
       if (rm.hasData) {
         fn(rm);
@@ -737,4 +752,8 @@ class _ListenToRM<T> {
       fn(rm);
     }
   }
+
+  @override
+  String toString() =>
+      '$debugListener :_ListenToRM<$T>(isWidget: $isWidget, isInjectedModel: $isInjectedModel)';
 }

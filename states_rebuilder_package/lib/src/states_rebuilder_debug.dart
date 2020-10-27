@@ -16,13 +16,18 @@ class StatesRebuilerLogger {
     String errorMessage;
     try {
       errorMessage = e?.message as String;
-    } catch (e) {
+    } catch (_) {
       errorMessage = '$e';
     }
     errorMessage ??= '';
 
     message = '[states_rebuilder]: $m: $errorMessage';
-    if (!isTestMode) print(message);
+    if (!isTestMode) {
+      print(message);
+      if (s != null) {
+        print(s);
+      }
+    }
   }
 }
 

@@ -182,7 +182,6 @@ void main() {
   });
   group('delete from detailed screen', () {
     testWidgets('delete item from the detailed screen', (tester) async {
-      StatesRebuilderDebug.printInjectedModel();
       await tester.pumpWidget(App());
 
       await tester.pumpAndSettle();

@@ -23,8 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  states_rebuilder:
-    path: ../../states_rebuilder_package
+  states_rebuilder: 
+    path: ../../states_rebuilder_package/
   todos_app_core:
     path: ../todos_app_core/
   # todos_repository_core:

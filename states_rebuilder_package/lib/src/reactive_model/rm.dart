@@ -44,7 +44,7 @@ abstract class RM {
     void Function(dynamic e, StackTrace s) onError,
     bool autoDisposeWhenNotUsed = true,
     int undoStackLength,
-    PersistState<T> persist,
+    PersistState<T> Function() persist,
     String debugPrintWhenNotifiedPreMessage,
   }) {
     return InjectedImp<T>(
@@ -89,7 +89,7 @@ abstract class RM {
     void Function(dynamic e, StackTrace s) onError,
     bool autoDisposeWhenNotUsed = true,
     int undoStackLength,
-    PersistState<T> persist,
+    PersistState<T> Function() persist,
     T initialValue,
     bool isLazy = true,
     String debugPrintWhenNotifiedPreMessage,
@@ -481,22 +481,55 @@ abstract class RM {
 
   static void Function(dynamic e, StackTrace s) errorLog;
 
-  static Future<void> localStorageInitializer(IPersistStore store) {
-    if (persistState != null) {
+  ///Initialize the default persistance provider to be used
+  ///
+  ///This is considered as the default storage provider. It can be overridden
+  ///with [PersistState.persistStateProvider]
+  ///
+  ///For test use [RM.storageInitializerMock].
+  static Future<void> storageInitializer(IPersistStore store) {
+    if (persistStateGlobal != null) {
       return null;
     }
-    persistState = store;
-    return persistState.init();
+    persistStateGlobal = store;
+    return persistStateGlobal.init();
   }
 
-  static Future<Map<dynamic, dynamic>> localStorageInitializerMock() async {
-    persistState = PersistStoreMock();
-    await persistState.init();
-    return (persistState as PersistStoreMock).store;
+  ///Initialize a mock persistance provider.
+  ///
+  ///Used for tests.
+  ///
+  ///It is wise to clear the store in setUp method, to ensure a fresh store for each test
+  ///```dart
+  /// setUp(() {
+  ///  storage.clear();
+  /// });
+  ///```
+  static Future<PersistStoreMock> storageInitializerMock() async {
+    persistStateGlobalTest = PersistStoreMock();
+    await persistStateGlobalTest.init();
+    return (persistStateGlobalTest as PersistStoreMock);
+  }
+
+  @Deprecated('use storageInitializerMock instead')
+  static Future<PersistStoreMock> localStorageInitializerMock() async {
+    persistStateGlobalTest = PersistStoreMock();
+    await persistStateGlobalTest.init();
+    return (persistStateGlobalTest as PersistStoreMock);
+  }
+
+  @Deprecated('use storageInitializer instead')
+  static Future<void> localStorageInitializer(IPersistStore store) {
+    if (persistStateGlobal != null) {
+      return null;
+    }
+    persistStateGlobal = store;
+    return persistStateGlobal.init();
   }
 }
 
-IPersistStore persistState;
+IPersistStore persistStateGlobal;
+IPersistStore persistStateGlobalTest;
 
 final _navigate = _Navigate();
 final _scaffold = _Scaffold();

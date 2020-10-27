@@ -31,7 +31,7 @@ class I18n {
 //
 //Here we simulate that we get the stored locale.
 //When the stored locale is null, the default system locale will be used
-Locale _storedLocale = null;
+Locale _storedLocale;
 Locale _localeFromTheApp;
 
 final currentLocale = RM.inject<Locale>(
@@ -84,6 +84,7 @@ class LocalizationsApp extends StatelessWidget {
           );
         }
         return MaterialApp(
+          key: Key('${currentLocale.state}'),
           locale: currentLocale.state,
           // List all of the app's supported locales here
           supportedLocales: [

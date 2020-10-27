@@ -27,7 +27,7 @@ class ReactiveModelFuture<T> extends ReactiveModelInternal<T> {
       silent: true,
       filterTags: (inject as InjectFuture).filterTags,
     );
-    return stateAsync;
+    return stateAsync.catchError((_) {});
   }
 
   @override

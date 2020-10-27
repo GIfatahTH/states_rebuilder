@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:github_search_app/domain/entities/github_user.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class GitHubUserSearchResultTile extends StatelessWidget {
   const GitHubUserSearchResultTile(
@@ -22,9 +23,11 @@ class GitHubUserSearchResultTile extends StatelessWidget {
               ),
             ),
             child: Container(
-              child: Image.network(
-                user.avatarUrl,
-              ),
+              child: StatesRebuilerLogger.isTestMode
+                  ? Container()
+                  : Image.network(
+                      user.avatarUrl,
+                    ),
             ),
           ),
           SizedBox(height: 8.0),

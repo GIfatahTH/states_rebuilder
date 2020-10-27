@@ -51,19 +51,11 @@ class InjectedStream<T> extends Injected<T> {
         name: _name,
         initialValue: _initialValue,
         watch: _watch,
-        isLazy: false,
       );
 
   @override
   Future<T> refresh() async {
     state = _initialValue;
     return super.refresh();
-  }
-
-  @override
-  T get state {
-    super.state;
-    _state = getRM.state;
-    return _state;
   }
 }

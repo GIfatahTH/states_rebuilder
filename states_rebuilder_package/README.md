@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 <p align="center">
-    <image src="../assets/Logo-Black.png" width="500" alt=''/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="600" alt=''/>
 </p>
 
 A Flutter state management combined with a dependency injection solution to get the best experience with state management. 
@@ -28,6 +28,7 @@ A Flutter state management combined with a dependency injection solution to get 
   - Easily Undo / Redo
   - Navigate, show dialogs without `BuildContext`
   - Easily persist the state and retrieve it back
+  - Override the state for a particular widget tree branch (widget-wise state)
 
 - Maintainable
   - Easy to test, mock the dependencies
@@ -128,7 +129,7 @@ class MyModel(){
   ```dart
   final model = RM.inject<MyModel>(
       ()=>MyModel(),
-    persist: PersistState(
+    persist:() => PersistState(
       key: 'modelKey',
       toJson: (MyModel s) => s.toJson(),
       fromJson: (String json) => MyModel.fromJson(json),
@@ -142,6 +143,35 @@ class MyModel(){
   model.persistState();
   model.deletePersistState();
   ```
+* Widget-wise state (overriding the state):
+```dart
+final items = [1,2,3];
+
+final item = RM.inject(()=>null);
+
+class App extends StatelessWidget{
+  build (context){
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, int index) {
+        return item.inherited(
+          stateOverride: () => items[index],
+          builder: () {
+
+            return const ItemWidget();
+            //Inside ItemWidget you can use the buildContext to get 
+            //the right state for each widget branch using:
+            item.of(context); //the Element owner of context is registered to item model.
+            //or
+            item(context) //the Element owner of context is notregistered to item model.
+          }
+        );
+      },
+    );
+  }
+}
+
+```
 And many more features.
 
 
@@ -149,7 +179,11 @@ And many more features.
 > 🚀 To see how to navigate and show dialogs, menus, bottom sheets, and snackBars without BuildContext, please refer to this document [**Navigate and show dialogs, menus, bottom sheets, and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
 > 🚀 To see how to how to persist the state and retrieve it on app restart, please refer to this document [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/17-persisting_the_state)
 
-## An Example of widget-wise injection using Injector.
+Here are the two most important examples that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
+1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
+2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
+
+## An Example of widget-wise injection using Injector (Older approach).
 
 Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
 

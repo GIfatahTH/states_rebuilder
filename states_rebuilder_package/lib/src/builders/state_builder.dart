@@ -221,7 +221,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>>
     _observersResolver = widget.observeMany == null
         ? _ObserversResolverOne(widget.observe)
         : _ObserversResolverMany(widget.observe, widget.observeMany);
-    _observersResolver._resolveModels(this);
+    _observersResolver._resolveModels(this, false);
     _initState(this);
 
     if (widget.initState != null) {
@@ -472,7 +472,7 @@ abstract class _IObserversResolver<T> {
   ReactiveModel<T> _exposedModelFromNotification;
   List<ReactiveModel<dynamic>> _activeRM;
 
-  void _resolveModels(StateBuilderState<T> state, [bool refresh = false]);
+  void _resolveModels(StateBuilderState<T> state, bool refresh);
   void dispose(StateBuilderState<T> state) {
     _exposedModelFromGenericType?.inject
         ?.removeFromReactiveNewInstanceList(_exposedModelFromGenericType);
@@ -509,7 +509,7 @@ class _ObserversResolverOne<T> extends _IObserversResolver<T> {
   ReactiveModel<T> get _exposedModel => _exposedModelFromGenericType;
 
   @override
-  void _resolveModels(StateBuilderState<T> state, [bool refresh = false]) {
+  void _resolveModels(StateBuilderState<T> state, bool refresh) {
     if (observe == null) {
       _models.clear();
       //No observer is provided

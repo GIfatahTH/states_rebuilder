@@ -11,7 +11,7 @@ class InjectedImp<T> extends Injected<T> {
     void Function() onWaiting,
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
-    PersistState<T> persist,
+    PersistState<T> Function() persist,
     int undoStackLength,
     String debugPrintWhenNotifiedPreMessage,
   }) : super(
@@ -38,22 +38,35 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   Inject<T> _getInject() {
-    _initialStoredState = _persist?.read();
+    if (_persistCallback != null) {
+      _persist ??= _persistCallback();
+      final value = _persist.read();
+      if (value is Future) {
+        return Inject<T>.future(
+          () async {
+            var result = await value;
+
+            if (result is Function) {
+              result = await result();
+            }
+            if (result is Function) {
+              result = await result();
+            }
+
+            if (result != null) {
+              return _initialStoredState = result;
+            }
+
+            return _creationFunction() as T;
+          },
+          name: _name,
+        );
+      }
+      _initialStoredState = value;
+    }
     return Inject<T>(
       () => _creationFunction() as T,
       name: _name,
-      isLazy: false,
     );
-  }
-
-  @override
-  T get state {
-    super.state;
-    if (_inject == null) {
-      _resolveInject();
-      _onInitialized?.call(_inject.getSingleton());
-    }
-    _state = _inject.getSingleton();
-    return _state;
   }
 }

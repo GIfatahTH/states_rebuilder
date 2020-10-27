@@ -38,10 +38,6 @@ class InjectedComputed<T> extends Injected<T> {
               computeAsync != null && asyncDependsOn != null,
           'When using `computeAsync` you have to define `asyncDependsOn``',
         ),
-        // assert(
-        //   asyncDependsOn != null,
-        //   'asyncDependsOn can not be null',
-        // ),
         super(
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           onData: onData,
@@ -74,65 +70,95 @@ class InjectedComputed<T> extends Injected<T> {
     }
   }
 
-  bool _isRegistered = false;
+  bool _isRegisteredComputed = false;
   @override
   ReactiveModel<T> get _stateRM {
     final rm = super._stateRM;
-    if (_isRegistered) {
+    if (_isRegisteredComputed) {
       return rm;
     }
-    _isRegistered = true;
-    if (_asyncDependsOn != null || _dependsOn.isNotEmpty) {
-      for (var depend in _asyncDependsOn ?? _dependsOn) {
-        final reactiveModel = depend._stateRM;
-        //Initial status for the computed
-        if (rm.hasData || rm.isIdle) {
-          if (reactiveModel.isWaiting) {
-            rm.resetToIsWaiting();
-          } else if (reactiveModel.hasError) {
-            rm.resetToHasError(reactiveModel.error);
-          }
-        }
-        Disposer disposer;
-        disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
-          (_) {
-            final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-            if (injected == null) {
-              disposer();
-              return;
-            }
-            ReactiveModel errorRM;
-            for (var depend in injected._dependsOn) {
-              final r = depend._stateRM;
-              r.whenConnectionState(
-                onIdle: null,
-                onWaiting: null,
-                onData: null,
-                onError: (dynamic e) => errorRM = r,
-                catchError: r.hasError,
-              );
-              if (r.isWaiting) {
-                rm
-                  ..resetToIsWaiting()
-                  ..notify();
-                return;
-              }
-            }
+    _isRegisteredComputed = true;
+    _resolveDependencies(rm, (inj) => inj._stateRM);
+    return rm;
+  }
 
-            if (errorRM != null) {
-              rm
-                ..resetToHasError(errorRM.error)
+  @override
+  T get state {
+    final s = super.state;
+    if (_isRegisteredComputed) {
+      return s;
+    }
+    _isRegisteredComputed = true;
+    _resolveDependencies(_rm);
+    return s;
+  }
+
+  void _resolveDependencies(ReactiveModel computedRM,
+      [ReactiveModel Function(Injected) getRM]) {
+    if (_asyncDependsOn == null && _dependsOn.isEmpty) {
+      return;
+    }
+
+    for (var depend in _asyncDependsOn ?? _dependsOn) {
+      final reactiveModel = getRM?.call(depend) ?? depend._rm;
+      //Initial status for the computed
+      if (computedRM.hasData || computedRM.isIdle) {
+        if (reactiveModel.isWaiting) {
+          computedRM.resetToIsWaiting();
+        } else if (reactiveModel.hasError) {
+          computedRM.resetToHasError(reactiveModel.error);
+        }
+      }
+      Disposer disposer;
+      disposer = (reactiveModel as ReactiveModelInternal).listenToRMInternal(
+        (_) {
+          // final Injected<T> injected =
+          //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+
+          // final injected = computedRM;
+          if (computedRM == null) {
+            disposer();
+            return;
+          }
+          ReactiveModel errorRM;
+          for (var depend in _dependsOn) {
+            final r = depend._stateRM;
+            r.whenConnectionState(
+              onIdle: null,
+              onWaiting: null,
+              onData: null,
+              onError: (dynamic e) => errorRM = r,
+              catchError: r.hasError,
+            );
+            if (r.isWaiting) {
+              computedRM
+                ..resetToIsWaiting()
                 ..notify();
               return;
             }
-            rm.refresh();
-          },
-          listenToOnDataOnly: false,
-          isInjectedModel: true,
-        );
-        rm.cleaner(disposer);
-      }
+          }
+
+          if (errorRM != null) {
+            computedRM
+              ..resetToHasError(errorRM.error)
+              ..notify();
+            return;
+          }
+          if (computedRM is ReactiveModelImp) {
+            computedRM.setState(
+              (s) => (computedRM.inject as InjectImp)?.creationFunction(),
+              silent: true,
+            );
+          } else {
+            computedRM.refresh();
+          }
+        },
+        listenToOnDataOnly: false,
+        isInjectedModel: true,
+        debugListener: 'COMPUTED',
+      );
+      reactiveModel.cleaner(disposer);
+      computedRM.cleaner(disposer);
     }
 
     _clearDependence ??= (_asyncDependsOn ?? _dependsOn).isEmpty
@@ -146,17 +172,6 @@ class InjectedComputed<T> extends Injected<T> {
               }
             }
           };
-
-    return rm;
-  }
-
-  @override
-  T get state {
-    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
-      _numberODependence++;
-    }
-    //override to force calling _stateRM getter
-    return _stateRM.state;
   }
 
   @override
@@ -194,12 +209,10 @@ class InjectedComputed<T> extends Injected<T> {
       ? Inject<T>(
           _creationFunction as T Function(),
           name: _name,
-          isLazy: false,
         )
       : Inject<T>.stream(
           _creationFunction as Stream<T> Function(),
           name: _name,
-          isLazy: false,
           initialValue: _initialState,
         );
 
@@ -207,13 +220,13 @@ class InjectedComputed<T> extends Injected<T> {
   void _dispose() {
     super._dispose();
     _dependsOn.clear();
-    _isRegistered = false;
+    _isRegisteredComputed = false;
   }
 
   @override
   void _cloneTo(Injected<T> to) {
     super._cloneTo(to);
-    (to as InjectedComputed)._isRegistered = _isRegistered;
+    (to as InjectedComputed)._isRegisteredComputed = _isRegisteredComputed;
   }
 
   @override

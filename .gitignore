@@ -40,8 +40,9 @@ build/
 lib/generated_plugin_registrant.dart
 
 android/
-iOS/
+ios/
 web/
+linux/
 
 *.jks
 
@@ -51,6 +52,3 @@ coverage/
 
 analysis_options.yaml
 pubspec.lock
- states_rebuilder_package/example/android/
- states_rebuilder_package/example/ios/
- states_rebuilder_package/example/web/

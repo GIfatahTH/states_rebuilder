@@ -1,4 +1,4 @@
-class GitHubAPIError extends Error {
+class GitHubAPIError implements Exception {
   final String message;
 
   GitHubAPIError.parseError() : message = 'Error reading data from the API';

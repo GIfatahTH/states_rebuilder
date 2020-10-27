@@ -1,11 +1,11 @@
-class SignInException extends Error {
+class SignInException implements Exception {
   final title;
   final String code;
   final String message;
   SignInException({this.title, this.code, this.message});
 }
 
-class SignOutException extends Error {
+class SignOutException implements Exception {
   final title;
   final String code;
   final String message;

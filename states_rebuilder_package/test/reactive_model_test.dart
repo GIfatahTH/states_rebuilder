@@ -4,6 +4,7 @@ import 'package:states_rebuilder/src/inject.dart';
 import 'package:states_rebuilder/src/injector.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/src/builders.dart';
+import 'package:states_rebuilder/src/states_rebuilder_config.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -71,6 +72,44 @@ void main() {
     expect(rm.hasError, isTrue);
     expect(ctx, isNotNull);
     expect(error, isA<Exception>());
+  });
+
+  testWidgets(
+      'Errors are not caught unless StatesRebuild.shouldCatchError is true',
+      (tester) async {
+    BuildContext ctx;
+    var error;
+    final rm = RM.create(0)
+      ..onError((context, e) {
+        ctx = context;
+        error = e;
+      });
+    await tester.pumpWidget(StateBuilder(
+        observe: () => RM.create(0), builder: (_, __) => Container()));
+    StatesRebuilerLogger.isTestMode = true;
+    expect(
+        () => rm.setState(
+              (_) {
+                throw StateError('bad State');
+              },
+              silent: true,
+              catchError: true,
+            ),
+        throwsStateError);
+    StatesRebuilderConfig.shouldCatchError = true;
+
+    rm.setState(
+      (_) {
+        throw StateError('bad State');
+      },
+      silent: true,
+      catchError: true,
+    );
+    expect(rm.hasError, isTrue);
+    expect(ctx, isNotNull);
+    expect(error, isA<Error>());
+    StatesRebuilderConfig.shouldCatchError = false;
+    StatesRebuilerLogger.isTestMode = false;
   });
 
   testWidgets(
@@ -1923,7 +1962,7 @@ void main() {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
               onWaiting: () => _widgetBuilder('onWaiting'),
-              onData: (data) => _widgetBuilder('${data}'),
+              onData: (data) => _widgetBuilder('$data'),
               onError: (error) => _widgetBuilder('${error.message}'),
             );
           },
@@ -2021,7 +2060,7 @@ void main() {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
               onWaiting: () => _widgetBuilder('onWaiting'),
-              onData: (data) => _widgetBuilder('${data}'),
+              onData: (data) => _widgetBuilder('$data'),
               onError: (error) => _widgetBuilder('${error.message}'),
             );
           },
@@ -2907,7 +2946,7 @@ void main() {
     expect(rm.canRedoState, false);
   });
   testWidgets(
-      'onData of immutable is not called when state not changed after waiting',
+      'onData of immutable is  called when state not changed after waiting',
       (tester) async {
     int numberOfRebuild = 0;
     int numberOfOnData = 0;
@@ -2930,23 +2969,23 @@ void main() {
     expect(numberOfOnData, 0);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 3);
-    expect(numberOfOnData, 0);
+    expect(numberOfOnData, 1);
     //
     counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
     await tester.pump();
     expect(numberOfRebuild, 4);
-    expect(numberOfOnData, 0);
+    expect(numberOfOnData, 1);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 5);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 2);
     //
     counter.setState((s) => Future.delayed(Duration(seconds: 1), () => 1));
     await tester.pump();
     expect(numberOfRebuild, 6);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 2);
     await tester.pump(Duration(seconds: 1));
     expect(numberOfRebuild, 7);
-    expect(numberOfOnData, 1);
+    expect(numberOfOnData, 3);
   });
 }
 

@@ -1,4 +1,4 @@
-class ValidationException extends Error {
+class ValidationException implements Exception {
   ValidationException(this.message);
   final String message;
 }

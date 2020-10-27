@@ -42,7 +42,6 @@ class InjectedInterface<T> extends Injected<T> {
       return Inject<T>(
         _creationFunction as T Function(),
         name: _name,
-        isLazy: false,
       );
     }
 
@@ -50,7 +49,6 @@ class InjectedInterface<T> extends Injected<T> {
       return Inject<T>.future(
         _creationFunction as Future<T> Function(),
         name: _name,
-        isLazy: false,
       );
     }
 
@@ -59,13 +57,6 @@ class InjectedInterface<T> extends Injected<T> {
       name: _name,
       initialValue: _initialValue,
     );
-  }
-
-  @override
-  T get state {
-    super.state;
-    _state = getRM.state;
-    return _state;
   }
 
   @override

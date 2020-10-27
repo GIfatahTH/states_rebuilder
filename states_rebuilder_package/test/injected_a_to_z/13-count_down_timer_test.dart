@@ -88,8 +88,14 @@ void main() {
 
   testWidgets('Start timer', (tester) async {
     await tester.pumpWidget(TimerApp());
-    _resume();
     await tester.pump();
+    // print(timerStatus.state);
+    await tester.pump();
+    _resume();
+
+    print(timerStatus.state);
+    await tester.pump();
+
     expect(timerStatus.state, TimerStatus.running);
 
     await tester.pump(Duration(seconds: 1));

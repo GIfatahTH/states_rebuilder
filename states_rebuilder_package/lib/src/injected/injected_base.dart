@@ -1,22 +1,21 @@
 part of '../injected.dart';
 
 ///Basic class for injected models
-abstract class Injected<T> {
+abstract class Injected<T> extends InjectedBaseCommon<T> {
   Function() _creationFunction;
   final bool _autoDisposeWhenNotUsed;
   final void Function(T s) _onData;
   final void Function(dynamic e, StackTrace s) _onError;
   final void Function() _onWaiting;
-  final bool _hasSideEffect;
+
   final void Function(T s) _onInitialized;
   final void Function(T s) _onDisposed;
+
   final int _undoStackLength;
   final String _debugPrintWhenNotifiedPreMessage;
-  String _name;
-  Inject<T> _inject;
-  dynamic Function() _cashedMockCreationFunction;
-  PersistState<T> _persist;
-  T _initialStoredState;
+
+  final bool _hasSideEffect;
+  final PersistState<T> Function() _persistCallback;
 
   ///Basic class for injected models
   Injected({
@@ -27,7 +26,7 @@ abstract class Injected<T> {
     void Function(T s) onInitialized,
     void Function(T s) onDisposed,
     int undoStackLength,
-    PersistState<T> persist,
+    PersistState<T> Function() persist,
     String debugPrintWhenNotifiedPreMessage,
   })  : _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed,
         _onData = onData,
@@ -37,131 +36,73 @@ abstract class Injected<T> {
         _onInitialized = onInitialized,
         _onDisposed = onDisposed,
         _undoStackLength = undoStackLength,
-        _persist = persist,
+        _persistCallback = persist,
         _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
-  final Set<Injected> _dependsOn = {};
-
-  ReactiveModel<T> _rm;
 
   ///Get the [ReactiveModel] associated with the injected model
   ReactiveModel<T> get getRM => _stateRM;
 
   ///Get the [ReactiveModel] associated with this model.
   ReactiveModel<T> get _stateRM {
-    if (_rm != null) {
+    if (_isRegistered) {
       return _rm;
     }
 
     _resolveInject();
-    _inject.isGlobal = true;
+    _addToFunctionalInjectedModels(_name, this);
 
-    _rm = _inject.getReactive();
+    _isRegistered = _rm != null;
+
     if (_undoStackLength != null) {
       _rm.undoStackLength = _undoStackLength;
     }
-    _onInitialized?.call(_inject.getSingleton());
+
     if (_autoDisposeWhenNotUsed ?? true) {
       _rm.cleaner(dispose);
     }
 
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        (_rm as ReactiveModelInternal).listenToRMInternal(
+        final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
           (rm) {
-            final Injected<T> injected =
-                _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+            // final Injected<T> injected =
+            //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
             StatesRebuilerLogger.log(
               '$_debugPrintWhenNotifiedPreMessage'
               '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-              '$injected',
+              '$this',
             );
           },
           listenToOnDataOnly: false,
+          debugListener: 'DEBUG_PRINT_STATE',
         );
+        if (_autoDisposeWhenNotUsed ?? true) {
+          _rm.cleaner(disposer);
+        }
       }
       return true;
     }());
-
-    if (_hasSideEffect) {
-      (_rm as ReactiveModelInternal).listenToRMInternal(
-        (rm) {
-          final Injected<T> injected =
-              _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
-          rm.whenConnectionState<void>(
-            onIdle: () => null,
-            onWaiting: () => injected._onWaiting?.call(),
-            onData: (dynamic s) {
-              if (!(rm as ReactiveModelInternal)
-                  .setStateHasOnErrorCallback[0]) {
-                injected._onData?.call(s as T);
-              }
-            },
-            onError: (dynamic e) {
-              //if setState has error override this _onError
-              if (!(rm as ReactiveModelInternal)
-                  .setStateHasOnErrorCallback[1]) {
-                injected._onError
-                    ?.call(e, (rm as ReactiveModelInternal).stackTrace);
-              }
-            },
-            catchError: injected._onError != null,
-          );
-        },
-        listenToOnDataOnly: false,
-      );
-    }
-
-    if (_persist != null) {
-      if (_initialStoredState != null) {
-        _rm.resetToHasData(_initialStoredState);
-      }
-      if (_persist.persistOn == null) {
-        (_rm as ReactiveModelInternal<T>).listenToRMInternal((rm) {
-          _persist.write(rm.state);
-        });
-      }
-    }
 
     //
-    assert(() {
-      if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
-        StatesRebuilerLogger.log(
-          '$_debugPrintWhenNotifiedPreMessage'
-          '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
-          '(initialized) $this',
-        );
-      }
-      return true;
-    }());
-
     return _rm;
   }
 
-  //used internally so not to call state and _resolveInject (as in toString)
-  T _state;
-
   ///The state of the model.
   T get state {
-    if (Injected._activeInjected?._dependsOn?.add(this) == true) {
-      assert(
-        !_dependsOn.contains(Injected._activeInjected),
-        '$runtimeType depends on ${Injected._activeInjected.runtimeType} and '
-        '${Injected._activeInjected.runtimeType} depends on $runtimeType',
-      );
-      _numberODependence++;
-    }
-    return null;
+    _resolveInject(true);
+    _setAndGetModelState();
+    return _state;
   }
 
   set state(T s) {
-    final r = _hasSideEffect ? getRM : _rm;
-    r?.state = s;
+    _oldState = state;
+    _rm.state = s;
   }
 
   ///Get the async state of the model.
   Future<T> get stateAsync {
     state;
-    return _stateRM.stateAsync;
+    return _rm.stateAsync;
   }
 
   ///The latest error object received by the asynchronous computation.
@@ -178,39 +119,104 @@ abstract class Injected<T> {
 
   Inject<T> _getInject();
   static Injected _activeInjected;
-  void _resolveInject() {
+
+  void _resolveInject([bool fromState = false]) {
     if (_inject != null) {
+      final cashedInjected = Injected._activeInjected;
+      if (cashedInjected != null) {
+        _addToDependsOn(cashedInjected);
+      }
       return;
     }
-    _functionalInjectedModels[_name] = this;
-    _dependsOn.clear();
+
+    if (fromState) {
+      _addToNonInjectedModels(_name, this);
+    }
 
     final cashedInjected = Injected._activeInjected;
+    if (cashedInjected != null) {
+      _addToDependsOn(cashedInjected);
+    }
+
     Injected._activeInjected = this;
     try {
-      final inj = _getInject();
+      final inj = _getInject()
+        ..isGlobal = true
+        ..getReactive();
       Injected._activeInjected = cashedInjected;
-      _clearDependence = _dependsOn.isEmpty
-          ? null
-          : () {
-              for (var depend in _dependsOn) {
-                depend._numberODependence--;
-                if (depend._rm?.hasObservers != true &&
-                    depend._numberODependence < 1) {
-                  depend.dispose();
-                }
-              }
-            };
-      _inject = inj;
+      _setClearDependence();
+      _setAndGetInject(inj);
+      _registerSideEffects();
+      _onInitialized?.call(_setAndGetModelState());
+      assert(() {
+        if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
+          StatesRebuilerLogger.log(
+            '$_debugPrintWhenNotifiedPreMessage'
+            '${_debugPrintWhenNotifiedPreMessage.isEmpty ? "" : ": "}'
+            '(initialized) $this',
+          );
+        }
+        return true;
+      }());
     } catch (e) {
       Injected._activeInjected = cashedInjected;
       rethrow;
     }
   }
 
-  int _numberODependence = 0;
-  //clean models that depend on this
-  void Function() _clearDependence;
+  void _registerSideEffects() {
+    if (_hasSideEffect) {
+      final disposer = (_rm as ReactiveModelInternal).listenToRMInternal(
+        (rm) {
+          rm.whenConnectionState<void>(
+            onIdle: () => null,
+            onWaiting: () => _onWaiting?.call(),
+            onData: (dynamic s) {
+              if (!(rm as ReactiveModelInternal)
+                  .setStateHasOnErrorCallback[0]) {
+                _onData?.call(s as T);
+              }
+            },
+            onError: (dynamic e) {
+              //if setState has error override this _onError
+              if (!(rm as ReactiveModelInternal)
+                  .setStateHasOnErrorCallback[1]) {
+                _onError?.call(e, (rm as ReactiveModelInternal).stackTrace);
+              }
+            },
+            catchError: _onError != null,
+          );
+        },
+        listenToOnDataOnly: false,
+        debugListener: 'SIDE_EFFECT',
+      );
+      if (_autoDisposeWhenNotUsed ?? true) {
+        _rm.cleaner(disposer);
+      }
+    }
+
+    if (_persistCallback != null) {
+      _persist ??= _persistCallback();
+      if (_initialStoredState != null) {
+        _rm.resetToHasData(_initialStoredState);
+      }
+      if (_persist.persistOn == null) {
+        final disposer = (_rm as ReactiveModelInternal<T>).listenToRMInternal(
+          (rm) async {
+            if (_initialStoredState != rm.state) {
+              await persistState(rm);
+            }
+            _initialStoredState = null;
+          },
+          debugListener: 'PERSISTANCE',
+        );
+        if (_autoDisposeWhenNotUsed ?? true) {
+          _rm.cleaner(disposer);
+        }
+      }
+    }
+  }
+
   void _dispose() {
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage?.isNotEmpty != null) {
@@ -223,12 +229,11 @@ abstract class Injected<T> {
       return true;
     }());
     if (_persist != null && _persist.persistOn == PersistOn.disposed) {
-      _persist.write(_rm.state);
+      persistState();
     }
     _onDisposed?.call(_state);
     _clearDependence?.call();
-    _rm = null;
-    _inject = null;
+    _resetInjected();
     if (_cashedMockCreationFunction != null) {
       _creationFunction = _cashedMockCreationFunction;
     }
@@ -237,22 +242,20 @@ abstract class Injected<T> {
   //used in didUpdateWidget of rebuilder
   void _cloneTo(Injected<T> to) {
     to._rm = _rm;
-    to._inject = _inject;
+    to._setAndGetInject(_inject);
     to._creationFunction = _creationFunction;
-    to._clearDependence = _clearDependence;
-    to._dependsOn.addAll(_dependsOn ?? {});
+    to._setClearDependence(_clearDependence);
+    to._setAndGetDependsOn(_dependsOn);
     to._numberODependence = _numberODependence;
     to._cashedMockCreationFunction = _cashedMockCreationFunction;
     to._name = _name;
     _functionalInjectedModels[_name] = to;
-    _rm = null;
-    _inject = null;
-    _dependsOn.clear();
+    _resetInjected();
   }
 
   ///Manually dispose the model(unregister it).
   void dispose() {
-    _unregisterFunctionalInjectedModel(_name);
+    _unregisterFunctionalInjectedModel(this);
   }
 
   ///Inject a fake implementation of this injected model.
@@ -338,9 +341,9 @@ abstract class Injected<T> {
     List<dynamic> seeds,
     BuildContext context,
   }) {
-    final r = _hasSideEffect ? getRM : _rm;
-
-    return r?.setState(
+    _oldState = state;
+    assert(silent || _rm != null);
+    return _rm?.setState(
       fn,
       onData: onData,
       onError: onError,
@@ -369,6 +372,23 @@ abstract class Injected<T> {
   Future<T> refresh() async {
     _onDisposed?.call(_state);
     _initialStoredState = null;
+
+    if ((_rm as ReactiveModelInternal)?.inheritedInjected?.isNotEmpty == true) {
+      //case globe inherited injected
+      for (var inj in (_rm as ReactiveModelInternal).inheritedInjected) {
+        inj.refresh();
+      }
+      //This is the global for inherited. Do not refresh
+      return null;
+    }
+    if (_rm is ReactiveModelImp && _persist != null) {
+      await _rm?.refresh(
+        onInitRefresh: () => _onInitialized?.call(state),
+      );
+      persistState();
+      return _rm.state;
+    }
+
     return _rm?.refresh(
       onInitRefresh: () => _onInitialized?.call(state),
     );
@@ -399,7 +419,40 @@ abstract class Injected<T> {
   void clearUndoStack() => _rm?.clearUndoStack();
 
   ///Save the current state to localStorage.
-  void persistState() => _persist?.write(state);
+  Future<void> persistState([ReactiveModel reactiveModel]) async {
+    final rm = reactiveModel ?? _rm;
+    if (_rm == null) {
+      return;
+    }
+    // Injected<T> injected =
+    //     _functionalInjectedModels[rm.inject.getName()] as Injected<T>;
+    Injected<T> injected = this; //TODO
+    final oldState = _oldState;
+    try {
+      if (!injected._persistHasError) {
+        await injected._persist.write(rm.state);
+      }
+    } catch (e, s) {
+      if (e is Error) {
+        rethrow;
+      }
+      injected._persistHasError = true;
+
+      //SetState to oldState and set all completed
+      rm.setState(
+        (s) => oldState,
+        //Set to has error
+        onData: (_, __) => rm.setState(
+          (s) => throw e,
+          catchError: _onError != null,
+        ),
+      );
+      if (injected._persist.debugPrintOperations) {
+        StatesRebuilerLogger.log('PersistState Write ERROR', e, s);
+      }
+      injected._persistHasError = false;
+    }
+  }
 
   ///Delete the saved instance of this state form localStorage.
   void deletePersistState() => _persist?.delete();
@@ -459,10 +512,119 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, __) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, rm) => builder(),
+    );
+  }
+
+  ///**Experimental Feature**
+  ///
+  ///Listen to this Injected model and register:
+  ///* Side effects to be invoked before rebuilding the widget ([onSetState]
+  ///parameter).
+  ///* builder to be called to rebuild some part of the widget tree ([rebuild]
+  ///parameter).
+  ///* Side effects to be invoked after rebuilding ([onRebuildState] parameter).
+  ///
+  ///[onSetState], [rebuild] and [onRebuildState] parameters receives a [When]
+  ///object.
+  ///
+  /// * Required parameters:
+  ///     * [rebuild]: of type When<Widget>. defines the widget to render when
+  /// this injected model emits a notification.
+  /// * Optional parameters:
+  ///     * [onSetState] :  of type When<dynamic>. Defines callbacks to be
+  /// executed when this injected model emits a notification before rebuilding
+  /// the widget.
+  ///     * [onRebuildStateState] :  of type When<dynamic>. Defines callbacks
+  /// to be executed when this injected model emits a notification after
+  /// rebuilding the widget.
+  ///     * [initState] : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * [dispose] : callback to be executed when the widget is removed from
+  /// the widget tree.
+  ///     * [shouldRebuild] : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
+  ///     * [watch] : callback to be executed before notifying listeners.
+  /// It the returned value is the same as the last one, the rebuild process
+  /// is interrupted.
+  Widget listen({
+    @required When<Widget> rebuild,
+    When<dynamic> onSetState,
+    When<dynamic> onRebuildState,
+    void Function() initState,
+    void Function() dispose,
+    Object Function() watch,
+    bool Function() shouldRebuild,
+    Key key,
+  }) {
+    return StateBuilder<T>(
+      key: key,
+      initState: initState == null ? null : (_, rm) => initState(),
+      dispose: dispose == null ? null : (_, rm) => dispose(),
+      shouldRebuild: (_) {
+        if (shouldRebuild != null) {
+          return shouldRebuild();
+        }
+        if (rebuild._whenType == _WhenType.onData) {
+          return _stateRM.hasData || _stateRM.isIdle;
+        }
+        if (rebuild._whenType == _WhenType.onWaiting) {
+          return _stateRM.isWaiting || _stateRM.isIdle;
+        }
+        if (rebuild._whenType == _WhenType.onError) {
+          return _stateRM.hasError || _stateRM.isIdle;
+        }
+        return true;
+      },
+      watch: watch == null ? null : (_) => watch(),
+      observe: () => _stateRM,
+      didUpdateWidget: (_, rm, __) {
+        if (_rm?.hasObservers != true) {
+          final injected = _functionalInjectedModels[rm.inject.getName()];
+          injected?._cloneTo(this);
+        }
+      },
+      onSetState: (context, rm) {
+        if (onSetState == null) {
+          return;
+        }
+
+        _stateRM.whenConnectionState(
+          onIdle: () => onSetState.onIdle?.call(),
+          onWaiting: () => onSetState.onWaiting?.call(),
+          onError: (err) => onSetState.onError?.call(err),
+          onData: (_) => onSetState.onData?.call(),
+          catchError: onSetState.onError != null,
+        );
+      },
+      onRebuildState: (context, rm) {
+        if (onRebuildState == null) {
+          return;
+        }
+        _stateRM.whenConnectionState(
+          onIdle: () => onRebuildState.onIdle?.call(),
+          onWaiting: () => onRebuildState.onWaiting?.call(),
+          onError: (err) => onRebuildState.onError?.call(err),
+          onData: (_) => onRebuildState.onData?.call(),
+          catchError: onRebuildState.onError != null,
+        );
+      },
+      builder: (context, rm) {
+        return _stateRM.whenConnectionState(
+          onIdle: () =>
+              rebuild.onIdle?.call() ??
+              rebuild.onData?.call() ??
+              rebuild.onWaiting?.call() ??
+              rebuild.onError?.call(_stateRM.error),
+          onWaiting: () => rebuild.onWaiting?.call(),
+          onError: (err) => rebuild.onError?.call(err),
+          onData: (_) => rebuild.onData?.call(),
+          catchError: rebuild.onError != null,
+        );
+      },
     );
   }
 
@@ -519,7 +681,7 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, __) {
@@ -608,7 +770,7 @@ abstract class Injected<T> {
       didUpdateWidget: (_, rm, old) {
         if (_rm?.hasObservers != true) {
           final injected = _functionalInjectedModels[rm.inject.getName()];
-          injected._cloneTo(this);
+          injected?._cloneTo(this);
         }
       },
       builder: (context, __) {
@@ -635,11 +797,13 @@ abstract class Injected<T> {
   ///rebuilds this widget.
   ///
   /// * Required parameters:
-  ///     * [future] : Callback that takes the current state and async state of the injected model.
   ///     * [onWaiting] : callback to be executed when the future is in the waiting state.
   ///     * [onError] : callback to be executed when the future ends with error.
   ///     * [onData] : callback to be executed when the future ends data.
   ///  * Optional parameters:
+  ///     * [future] : Callback that takes the current state and async state of the injected model.
+  /// If not defined and if the injected model is of type (InjectedFuture), the async state is used by
+  /// default
   ///     * [dispose] : called when the widget is removed from the widget tree.
   ///
   ///If [onWaiting] or [onError] is set to null, the onData callback will be execute instead.
@@ -659,7 +823,7 @@ abstract class Injected<T> {
   ///**Performance:** When this [futureBuilder] is removed from the widget tree, the
   ///future is canceled if not resolved yet.
   Widget futureBuilder<F>({
-    @required Future<F> Function(T data, Future<T> asyncState) future,
+    Future<F> Function(T data, Future<T> asyncState) future,
     @required Widget Function() onWaiting,
     @required Widget Function(dynamic) onError,
     @required Widget Function(F data) onData,
@@ -670,7 +834,7 @@ abstract class Injected<T> {
       key: key,
       observe: () {
         return _stateRM.future((s, stateAsync) {
-          return future(s, stateAsync);
+          return future == null ? stateAsync : future(s, stateAsync);
         });
       },
       initState: (_, __) =>
@@ -687,7 +851,7 @@ abstract class Injected<T> {
           if (rm.state is T) {
             _onData?.call(state);
           }
-        } else if (rm.hasError) {
+        } else if (rm.hasError && rm.error != _stateRM.error) {
           _onError?.call(rm.error, (rm as ReactiveModelInternal).stackTrace);
         }
       },
@@ -793,11 +957,171 @@ abstract class Injected<T> {
     );
   }
 
+  Widget reInherited({
+    Key key,
+    @required BuildContext context,
+    @required Widget Function(BuildContext) builder,
+    bool connectWithGlobal = true,
+    String debugPrintWhenNotifiedPreMessage,
+  }) {
+    final globalInject = (context
+            .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
+            ?.widget as _InheritedInjected<T>)
+        ?.globalInjected;
+    return _InheritedState(
+      key: key,
+      builder: (context) => builder(context),
+      globalInjected: globalInject,
+      reInheritedInjected: globalInject(context),
+      connectWithGlobal: connectWithGlobal,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+  }
+
+  ///Provide the injected model using an [InheritedWidget] that wraps its state.
+  ///
+  ///By default the [InheritedWidget] holds the state of the injected model, but this can be
+  ///overridden using the [stateOverride] parameter.
+  ///
+  ///Child widgets can obtain the wrapped state using `.of(context)` or `.call(context)` methods.
+  ///
+  ///* `myModel.of(context)` looks up in the widget tree to find the state of `myModel` and register
+  ///the `BuildContext` to rebuild when `myModel` is notified.
+  ///
+  ///* `myModel.call(context) or myModel(context)` looks up in the widget tree to find the injected
+  /// model `myModel` without registering the `BuildContext`.
+  ///
+  ///ex:
+  ///
+  ///```dart
+  ///final counter1 = RM.inject<int>(()=> 0);
+  ///final counter2 = RM.inject<int>(()=> 0);
+  ///
+  ///class MyApp extends StatelessWidget{
+  ///
+  /// Widget build(context){
+  ///  counter1.inherited(
+  ///   builder: (context):{
+  ///     return counter2.inherited(
+  ///       builder: (context){
+  ///         //Getting the counters state using `of` will
+  ///         //resister this BuildContext
+  ///         final int counter1State = counter1.of(context);
+  ///         //Although both counters are of the same type we get
+  ///         //the right state
+  ///         final int counter2State = counter2.of(context);
+  ///
+  ///
+  ///         //Getting the counters using the `call` method will
+  ///         //not register this BuildContext
+  ///          final Injected<int> counter1 = counter1(context);
+  ///          final Injected<int> counter2 = counter2(context);
+  ///       }
+  ///     )
+  ///   }
+  ///  )
+  /// }
+  ///}
+  ///```
+  ///
+  /// * Required parameters:
+  ///     * [builder]: Callback to be rendered. It exposed the [BuildContext].
+  /// * Optional parameters:
+  ///     * [stateOverride]: CallBack to override the exposed state.
+  ///     * [connectWithGlobal]: If state is overridden, whether to mutate the global
+  ///     * [debugPrintWhenNotifiedPreMessage]: if not null, print an informative
+  /// message when this model is notified in the debug mode.The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model is primitive to distinguish
+  Widget inherited({
+    Key key,
+    T Function() stateOverride,
+    @required Widget Function(BuildContext) builder,
+    bool connectWithGlobal,
+    String debugPrintWhenNotifiedPreMessage,
+  }) {
+    return _InheritedState(
+      key: key,
+      builder: (context) => builder(context),
+      globalInjected: this,
+      reInheritedInjected: stateOverride == null ? this : null,
+      state: stateOverride,
+      connectWithGlobal:
+          stateOverride == null ? false : connectWithGlobal ?? true,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+  }
+
+  ///Obtain the state from the nearest [InheritedWidget] inserted using [inherited].
+  ///
+  ///The [BuildContext] used, will be registered so that when this Injected model emits
+  ///a notification, the [Element] related the the [BuildContext] will rebuild.
+  ///
+  ///If you want to obtain the state without registering use the [call] method.
+  ///
+  ///```dart
+  ///myModel.of(context); // Will return the state and register the BuildContext.
+  ///myModel(context); // Will return the Injected model and do not register the BuildContext.
+  ///```
+  ///
+  T of(BuildContext context, {bool defaultToGlobal = false}) {
+    final _InheritedInjected<T> _inheritedInjected =
+        context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
+
+    if (_inheritedInjected != null) {
+      if (_inheritedInjected.globalInjected == this) {
+        return _inheritedInjected.injected.state;
+      } else {
+        return of(
+          _inheritedInjected.context,
+          defaultToGlobal: defaultToGlobal,
+        );
+      }
+    }
+    if (defaultToGlobal) {
+      return state;
+    }
+    return null;
+  }
+
+  ///Obtain the Injected model from the nearest [InheritedWidget] inserted using [inherited].
+  ///
+  ///The [BuildContext] used, will not be registered.
+  ///
+  ///If you want to obtain the state and  register it use the [of] method.
+  ///
+  ///```dart
+  ///myModel.of(context); // Will return the state and register the BuildContext.
+  ///myModel(context); // Will return the Injected model and do not register the BuildContext.
+  ///```
+  ///
+  Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
+    final _InheritedInjected<T> _inheritedInjected = context
+        .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
+        ?.widget;
+
+    if (_inheritedInjected != null) {
+      if (_inheritedInjected.globalInjected == this) {
+        return _inheritedInjected.injected;
+      } else {
+        return call(
+          _inheritedInjected.context,
+          defaultToGlobal: defaultToGlobal,
+        );
+      }
+    }
+    if (defaultToGlobal) {
+      return this;
+    }
+    return null;
+  }
+
   @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _cachedHash;
   final int _cachedHash = _nextHashCode = (_nextHashCode + 1) % 0xffffff;
   static int _nextHashCode = 1;
+
+  @override
+  bool operator ==(o) => o.hashCode == hashCode;
 
   @override
   String toString() {
@@ -807,35 +1131,114 @@ abstract class Injected<T> {
   }
 }
 
-final Map<String, Injected<dynamic>> _functionalInjectedModels =
-    <String, Injected<dynamic>>{};
+///Callbacks to be invoked depending on the state status of an [Injected] model
+class When<T> {
+  ///Callback to be called when first the model is initialized.
+  final T Function() onIdle;
 
-///
-Map<String, Injected<dynamic>> get functionalInjectedModels =>
-    _functionalInjectedModels;
+  ///Callback to be called when first the model is waiting for and async task.
+  final T Function() onWaiting;
 
-///Dispose and clean all injected model
-void cleanInjector() {
-  Map<String, Injected<dynamic>>.from(_functionalInjectedModels).forEach(
-    (key, injected) {
-      _unregisterFunctionalInjectedModel(injected._name);
-    },
-  );
-  assert(_functionalInjectedModels.isEmpty);
-}
+  ///Callback to be called when first the model has an error.
+  final T Function(dynamic err) onError;
 
-void _unregisterFunctionalInjectedModel(String name) {
-  if (name == null) {
-    return;
+  ///Callback to be called when first the model has data.
+  final T Function() onData;
+  _WhenType _whenType;
+  When._({
+    @required this.onIdle,
+    @required this.onWaiting,
+    @required this.onError,
+    @required this.onData,
+  });
+
+  ///The callback is always invoked when the [Injected] model emits a
+  ///notification.
+  factory When.always(
+    T Function() builder,
+  ) {
+    return When._(
+      onIdle: builder,
+      onWaiting: builder,
+      onError: (_) => builder(),
+      onData: builder,
+    ).._whenType = _WhenType.when;
   }
 
-  Injected<dynamic> injected = _functionalInjectedModels.remove(name);
-  if (injected?._inject == null) {
-    return;
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with onData status.
+  factory When.data(T Function() fn) {
+    return When._(
+      onIdle: null,
+      onWaiting: null,
+      onError: null,
+      onData: fn,
+    ).._whenType = _WhenType.onData;
   }
-  injected._rm?.unsubscribe();
-  injected._inject
-    ..removeAllReactiveNewInstance()
-    ..cleanInject();
-  injected._dispose();
+
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with waiting status.
+  factory When.waiting(T Function() fn) {
+    return When._(
+      onIdle: null,
+      onWaiting: fn,
+      onError: null,
+      onData: null,
+    ).._whenType = _WhenType.onWaiting;
+  }
+
+  ///The callback is invoked only when the [Injected] model emits a
+  ///notification with error status.
+  factory When.error(T Function(dynamic err) fn) {
+    return When._(
+      onIdle: null,
+      onWaiting: null,
+      onError: fn,
+      onData: null,
+    ).._whenType = _WhenType.onError;
+  }
+
+  ///Set of callbacks to be invoked  when the [Injected] model emits a
+  ///notification with the corresponding state status.
+  ///
+  ///[onIdle], [onWaiting], [onError] and [onData] are optional. Non defined ones
+  /// default to the [or] callback.
+  ///
+  ///To be forced to define all state status use [When.all].
+  factory When.or({
+    T Function() onIdle,
+    T Function() onWaiting,
+    T Function(dynamic err) onError,
+    T Function() onData,
+    @required T Function() or,
+  }) {
+    return When._(
+      onIdle: onIdle ?? or,
+      onWaiting: onWaiting ?? or,
+      onError: onError ?? (_) => or(),
+      onData: onData ?? or,
+    ).._whenType = _WhenType.when;
+  }
+
+  ///Set of callbacks to be invoked  when the [Injected] model emits a
+  ///notification with the corresponding state status.
+  ///
+  ///[onIdle], [onWaiting], [onError] and [onData] are required.
+  ///
+  ///For optional callbacks use [When.or].
+  factory When.all({
+    @required T Function() onIdle,
+    @required T Function() onWaiting,
+    @required T Function(dynamic err) onError,
+    @required T Function() onData,
+  }) {
+    return When._(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      onData: onData,
+    ).._whenType = _WhenType.when;
+  }
 }
+
+enum _WhenType { onData, onWaiting, onError, when }
