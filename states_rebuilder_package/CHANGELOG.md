@@ -1,4 +1,4 @@
-## 3.2.0 (2020-10-03)
+## 3.2.0 (2020-10-27)
 * `Injected.persist` is a function instead of a simple object
 * add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
 * Persist read works with async
