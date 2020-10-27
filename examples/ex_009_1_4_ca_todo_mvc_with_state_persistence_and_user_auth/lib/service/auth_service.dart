@@ -1,4 +1,4 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/interfaces/i_auth_repository.dart';
+import 'interfaces/i_auth_repository.dart';
 import 'package:flutter/foundation.dart';
 
 import '../domain/entities/user.dart';

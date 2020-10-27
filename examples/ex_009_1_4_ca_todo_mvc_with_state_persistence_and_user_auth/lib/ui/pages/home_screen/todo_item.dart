@@ -1,9 +1,8 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/todo.dart';
-import '../../../injected.dart';
-import '../../../service/todos_state.dart';
 import '../../../ui/pages/detail_screen/detail_screen.dart';
 import '../../common/localization/localization.dart';
 

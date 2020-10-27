@@ -1,9 +1,9 @@
+import '../../injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/value_object/email.dart';
 import '../../../domain/value_object/password.dart';
-import '../../../injected.dart';
 import '../../../ui/exceptions/error_handler.dart';
 
 class AuthPage extends StatelessWidget {
@@ -96,12 +96,12 @@ class AuthFormWidget extends StatelessWidget {
                       user.setState(
                         (_) {
                           if (_isRegister.state) {
-                            return authService.state.signUp(
+                            return user.state.signUp(
                               _email.state,
                               _password.state,
                             );
                           } else {
-                            return authService.state.login(
+                            return user.state.login(
                               _email.state,
                               _password.state,
                             );

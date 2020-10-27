@@ -7,6 +7,7 @@ The example consists of the [Todo MVC app](https://github.com/brianegan/flutter_
 * Handle dynamic dark/light theme and app internationalization.
 * Users can sign up / sign in and see their proper todos.
 * Sign in is done with a token that when expired the signed user automatically logs out.
+* User information is persisted so user will be auto-logged when app started if token is not expired.
 
 The app state will be stored using SharedPreferences, Hive, and sqflite for demonstration purposes.
 
@@ -15,7 +16,15 @@ We will use Firebase as a dummy web server, knowledge here applies to any web se
 1. Create a firebase project. 
 2. create a real-time database and start in test mode.
 3. notice the generated URL which we will use. If your project name is YOUR_PROJECT_NAME the generated URL is https://YOUR_PROJECT_NAME.firebaseio.com/. This will be your `baseUrl` const.
-5. change the security rule to read and write `auth != null` so that only authenticated users can read and write. (see here)[https://firebase.google.com/docs/database/security]
+5. change the security rule to read and write `auth != null` so that only authenticated users can read and write. (see here)[https://firebase.google.com/docs/database/security].
+```json
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+  }
+}
+```
 6. under authentication tap unlock email and password sign in. (see here)[https://firebase.google.com/docs/reference/rest/auth/#section-sign-in-email-password]
 7. Go to https://console.firebase.google.com/project/YOUR_PROJECT_NAME/settings/general and get `webApiKey`. This will be your `webApiKey` const.
 
@@ -83,39 +92,29 @@ class FireBaseAuth implements IAuthRepository {
   }
 }
 ```
-Next, we set the `UserService` class: 
 
-[Refer to AuthService class](lib/service/auth_service.dart)
-```dart
-class AuthService {
-  final IAuthRepository authRepository;
-
-  AuthService({@required this.authRepository});
-
-  Future<User> signUp(String email, String password) async {
-    return await authRepository.signUp(email, password);
-  }
-
-  Future<User> login(String email, String password) async {
-    return await authRepository.login(email, password);
-  }
-
-  User logout() {
-    authRepository.logout();
-    return UnsignedUser();//Default unsigned user class
-  }
-}
-```
-
-Now, all we need is to inject the `IAuthRepository`, `AuthService` and `User` :
+Now, all we need is to inject the `IAuthRepository`, and `User` :
 
 ```dart
 
 final authRepository = RM.inject<IAuthRepository>(() => FireBaseAuth());
 
-final authService = RM.inject(
-  () => AuthService(authRepository: authRepository.state),
-);
+//add an extension to user to handle sign up / in and logout
+//We can use simple class
+extension UserX on User {
+  Future<User> signUp(String email, String password) async {
+    return await authRepository.state.signUp(email, password);
+  }
+
+  Future<User> login(String email, String password) async {
+    return await authRepository.state.login(email, password);
+  }
+
+  User logout() {
+    authRepository.state.logout();
+    return UnsignedUser();
+  }
+}
 
 final user = RM.inject<User>(
   () => UnsignedUser(),
@@ -175,7 +174,7 @@ void _setExpirationTimer(Token token) {
   _authTimer = Timer(
     Duration(seconds: timeToExpiry),
     () {
-      user.state = authService.state.logout();
+      user.state = user.state.logout();
     },
   );
 }

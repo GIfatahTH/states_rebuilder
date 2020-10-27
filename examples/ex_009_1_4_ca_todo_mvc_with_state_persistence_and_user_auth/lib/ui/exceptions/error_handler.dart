@@ -1,4 +1,4 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/auth_exception.dart';
+import '../../service/exceptions/auth_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

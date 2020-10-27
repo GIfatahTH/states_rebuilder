@@ -2,10 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../../injected.dart';
 import '../../../service/common/enums.dart';
 import '../../common/enums.dart';
 import '../../common/localization/localization.dart';

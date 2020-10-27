@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/auth_exception.dart';
+import '../domain/common/extensions.dart';
+import '../domain/value_object/token.dart';
+import '../service/exceptions/auth_exception.dart';
 import 'package:http/http.dart' as http;
 
 import 'my_project_data.dart' as myProjectData; //TODO Delete this.

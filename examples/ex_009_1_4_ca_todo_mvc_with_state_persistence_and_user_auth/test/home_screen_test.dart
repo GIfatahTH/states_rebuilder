@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/injected.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

@@ -1,9 +1,9 @@
+import 'ui/injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'hive.dart';
-import 'injected.dart';
 import 'ui/common/localization/languages/language_base.dart';
 import 'ui/common/localization/localization.dart';
 import 'ui/common/theme/theme.dart';
