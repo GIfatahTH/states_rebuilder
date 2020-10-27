@@ -296,7 +296,7 @@ void main() {
 //
 
 class SharedPreferences {
-  static SharedPreferences getInstance() {
+  static Future<SharedPreferences> getInstance() async {
     return SharedPreferences();
   }
 

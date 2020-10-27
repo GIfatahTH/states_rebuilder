@@ -320,7 +320,7 @@ await RM.localStorageInitializerMock();
         _valueForThrottle = null;
         if (debugPrintOperations) {
           StatesRebuilerLogger.log(
-            'PersistState: write(${key}, $_valueForThrottle)',
+            'PersistState: write($key, $_valueForThrottle)',
           );
         }
         return r;
@@ -331,7 +331,7 @@ await RM.localStorageInitializerMock();
     final r = await persistState.write<String>(key, json);
     if (debugPrintOperations) {
       StatesRebuilerLogger.log(
-        'PersistState: write(${key}, $json)',
+        'PersistState: write($key, $json)',
       );
     }
     return r;
@@ -359,7 +359,7 @@ await RM.localStorageInitializerMock();
     final persistState = _persistState;
     try {
       final r = await persistState.delete(key);
-      StatesRebuilerLogger.log('PersistState: delete(${key})');
+      StatesRebuilerLogger.log('PersistState: delete($key)');
       return r;
     } catch (e, s) {
       if (catchPersistError) {

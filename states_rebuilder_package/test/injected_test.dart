@@ -260,10 +260,10 @@ void main() {
       onError: null,
       onWaiting: () => Text('waiting ...'),
       onData: (state) {
-        return Text('${state}');
+        return Text('$state');
       },
       onDone: (state) {
-        return Text('done ${state}');
+        return Text('done $state');
       },
       dispose: () {},
     );
@@ -291,7 +291,7 @@ void main() {
       onWaiting: null,
       onError: (e) => Text('${e.message}'),
       onData: (state) {
-        return Text('${state}');
+        return Text('$state');
       },
     );
 

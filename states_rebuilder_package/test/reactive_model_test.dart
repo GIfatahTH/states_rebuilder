@@ -1962,7 +1962,7 @@ void main() {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
               onWaiting: () => _widgetBuilder('onWaiting'),
-              onData: (data) => _widgetBuilder('${data}'),
+              onData: (data) => _widgetBuilder('$data'),
               onError: (error) => _widgetBuilder('${error.message}'),
             );
           },
@@ -2060,7 +2060,7 @@ void main() {
             return modelRM.whenConnectionState(
               onIdle: () => _widgetBuilder('onIdle'),
               onWaiting: () => _widgetBuilder('onWaiting'),
-              onData: (data) => _widgetBuilder('${data}'),
+              onData: (data) => _widgetBuilder('$data'),
               onError: (error) => _widgetBuilder('${error.message}'),
             );
           },

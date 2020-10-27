@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 extension PrintConsoleX on Object {
   T printConsole<T>([String pre = '', String post = '']) {
     pre = pre.isNotEmpty ? '[$pre] ' : '';

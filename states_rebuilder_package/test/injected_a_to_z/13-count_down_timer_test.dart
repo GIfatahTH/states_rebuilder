@@ -108,95 +108,95 @@ void main() {
     expect(find.text('57'), findsOneWidget);
   });
 
-  // testWidgets('Pause timer', (tester) async {
-  //   await tester.pumpWidget(TimerApp());
-  //   _resume();
+  testWidgets('Pause timer', (tester) async {
+    await tester.pumpWidget(TimerApp());
+    _resume();
 
-  //   await tester.pump(Duration(seconds: 3));
-  //   expect(find.text('57'), findsOneWidget);
+    await tester.pump(Duration(seconds: 3));
+    expect(find.text('57'), findsOneWidget);
 
-  //   //
-  //   _pause();
-  //   await tester.pump();
-  //   expect(timerStatus.state, TimerStatus.paused);
+    //
+    _pause();
+    await tester.pump();
+    expect(timerStatus.state, TimerStatus.paused);
 
-  //   await tester.pump(Duration(seconds: 3));
-  //   expect(find.text('57'), findsOneWidget);
-  // });
+    await tester.pump(Duration(seconds: 3));
+    expect(find.text('57'), findsOneWidget);
+  });
 
-  // testWidgets('Pause and resume timer', (tester) async {
-  //   await tester.pumpWidget(TimerApp());
-  //   _resume();
-  //   await tester.pump(Duration(seconds: 3));
-  //   //
-  //   _pause();
-  //   await tester.pump();
-  //   expect(timerStatus.state, TimerStatus.paused);
-  //   expect(find.text('57'), findsOneWidget);
+  testWidgets('Pause and resume timer', (tester) async {
+    await tester.pumpWidget(TimerApp());
+    _resume();
+    await tester.pump(Duration(seconds: 3));
+    //
+    _pause();
+    await tester.pump();
+    expect(timerStatus.state, TimerStatus.paused);
+    expect(find.text('57'), findsOneWidget);
 
-  //   //
-  //   _resume();
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('56'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('55'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('54'), findsOneWidget);
-  // });
+    //
+    _resume();
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('56'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('55'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('54'), findsOneWidget);
+  });
 
-  // testWidgets('Restart timer while running', (tester) async {
-  //   await tester.pumpWidget(TimerApp());
-  //   _resume();
-  //   await tester.pump(Duration(seconds: 3));
-  //   expect(find.text('57'), findsOneWidget);
+  testWidgets('Restart timer while running', (tester) async {
+    await tester.pumpWidget(TimerApp());
+    _resume();
+    await tester.pump(Duration(seconds: 3));
+    expect(find.text('57'), findsOneWidget);
 
-  //   //
-  //   _restart();
-  //   await tester.pump();
-  //   await tester.pump();
-  //   expect(find.text('60'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('59'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('58'), findsOneWidget);
-  // });
+    //
+    _restart();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('60'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('59'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('58'), findsOneWidget);
+  });
 
-  // testWidgets('Reset timer while stopped', (tester) async {
-  //   await tester.pumpWidget(TimerApp());
-  //   _resume();
-  //   await tester.pump(Duration(seconds: 3));
-  //   expect(find.text('57'), findsOneWidget);
-  //   _pause();
-  //   await tester.pump();
+  testWidgets('Reset timer while stopped', (tester) async {
+    await tester.pumpWidget(TimerApp());
+    _resume();
+    await tester.pump(Duration(seconds: 3));
+    expect(find.text('57'), findsOneWidget);
+    _pause();
+    await tester.pump();
 
-  //   //
-  //   _reset();
-  //   await tester.pump();
-  //   await tester.pump();
-  //   expect(find.text('60'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('60'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('60'), findsOneWidget);
-  // });
+    //
+    _reset();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('60'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('60'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('60'), findsOneWidget);
+  });
 
-  // testWidgets('Auto reset timer after done', (tester) async {
-  //   await tester.pumpWidget(TimerApp());
-  //   _resume();
-  //   await tester.pump();
-  //   expect(find.text('60'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('59'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('58'), findsOneWidget);
-  //   //
-  //   await tester.pump(Duration(seconds: 56));
-  //   expect(find.text('2'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('1'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('60'), findsOneWidget);
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(find.text('60'), findsOneWidget);
-  // });
+  testWidgets('Auto reset timer after done', (tester) async {
+    await tester.pumpWidget(TimerApp());
+    _resume();
+    await tester.pump();
+    expect(find.text('60'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('59'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('58'), findsOneWidget);
+    //
+    await tester.pump(Duration(seconds: 56));
+    expect(find.text('2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('60'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('60'), findsOneWidget);
+  });
 }
