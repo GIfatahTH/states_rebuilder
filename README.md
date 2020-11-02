@@ -63,10 +63,10 @@ class Model {
 
 // 🤔Business Logic
 class ServiceState {
-  ServiceSatate(this.model);
+  ServiceState(this.model);
   final Model model;  
 
-  void incrementMutable() { model.counter++ };
+  void incrementMutable() { model.counter++; }  
 }
 
 // 🚀Global Functional Injection 
