@@ -2,7 +2,7 @@
 * `Injected.persist` is a function instead of a simple object
 * add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
 * Persist read works with async
-```dart
+
   ```dart
   final model = RM.inject<Model>(
     () => 0,
@@ -24,7 +24,7 @@
   );
 ```
 
-* Since [errors](https://api.flutter.dev/flutter/dart-core/Error-class.html) are not created to be caught, states_rebuilder will not catch errors unless the parameter [StatesRebuilderConfig.shouldCatchError] is true. Instead, [Exceptions](https://api.flutter.dev/flutter/dart-core/Exception-class.html) are intended to be caught. Your costume error/exception classes must implement `Exception` not `Error`. 
+* Since [errors](https://api.flutter.dev/flutter/dart-core/Error-class.html) are not created to be caught, states_rebuilder will not catch errors unless the parameter [StatesRebuilderConfig.shouldCatchError] is true. Instead, [Exceptions](https://api.flutter.dev/flutter/dart-core/Exception-class.html) are intended to be caught. Your custom error/exception classes must implement `Exception` not `Error`. 
 As this may leads the app to break, to fix just search for all `extends Error {` and replace with `implements Exception {`
 
 * Introduction of `Injected.inherit` and `Inject.reInherit` methods for widget-wise injection. Similar to `InheritedWidget`.
