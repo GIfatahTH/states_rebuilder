@@ -55,9 +55,9 @@ class DetailScreen extends StatelessWidget {
                         todo.state = newTodo;
                         todosService.setState(
                           (s) => s.updateTodo(newTodo),
-                          onError: (context, error) {
+                          onError: (error) {
                             todo.state = oldTodo;
-                            ErrorHandler.showErrorSnackBar(context, error);
+                            ErrorHandler.showErrorSnackBar(error);
                           },
                         );
                       },

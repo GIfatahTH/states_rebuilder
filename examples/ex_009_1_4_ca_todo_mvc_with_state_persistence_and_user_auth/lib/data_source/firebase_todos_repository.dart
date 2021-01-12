@@ -1,3 +1,4 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/persistance_exception.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -21,19 +22,37 @@ class FireBaseTodosRepository implements IPersistStore {
 
   @override
   Object read(String key) async {
-    final response = await http.get('$baseUrl/$key.json?auth=$authToken');
-    if (response.statusCode > 400) {
-      throw Exception();
+    try {
+      // await Future.delayed(Duration(seconds: 5));
+
+      final response = await http.get('$baseUrl/$key.json?auth=$authToken');
+      if (response.statusCode > 400) {
+        throw PersistanceException('Read failure');
+      }
+      return response.body;
+    } catch (e) {
+      if (e is PersistanceException) {
+        rethrow;
+      }
+      throw PersistanceException('NetWork Failure');
     }
-    return response.body;
   }
 
   @override
   Future<void> write<T>(String key, T value) async {
-    final response =
-        await http.put('$baseUrl/$key.json?auth=$authToken', body: value);
-    if (response.statusCode >= 400) {
-      throw Exception();
+    try {
+      // await Future.delayed(Duration(seconds: 0));
+      // throw PersistanceException('Write failure');
+      final response =
+          await http.put('$baseUrl/$key.json?auth=$authToken', body: value);
+      if (response.statusCode >= 400) {
+        throw PersistanceException('Write failure');
+      }
+    } catch (e) {
+      if (e is PersistanceException) {
+        rethrow;
+      }
+      throw PersistanceException('NetWork Failure');
     }
   }
 

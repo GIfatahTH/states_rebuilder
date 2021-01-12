@@ -49,7 +49,7 @@ class MyHomePage extends StatelessWidget {
               //onSetState callback is invoked after counterRM emits a notification and before rebuild
               //context to be used to shw snackBar
 
-              onSetState: (context) {
+              onSetState: () {
                 //show snackBar
                 //any current snackBar is hidden.
 
@@ -62,7 +62,7 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               //onRebuildState is called after rebuilding the observer widget
-              onRebuildState: (context) {
+              onRebuildState: () {
                 //
               },
             );

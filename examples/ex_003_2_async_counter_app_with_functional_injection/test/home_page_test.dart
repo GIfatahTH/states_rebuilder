@@ -7,12 +7,14 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() {
   //Here we override the flavor to be FakeCounterStore.
   counterStore.injectMock(() => FakeCounterStore(0));
-
+  setUp(() => RM.disposeAll());
   testWidgets('async counter without error (IncrByOne flavor)', (tester) async {
-    await tester.pumpWidget(MyApp());
     //
     //We choose the flavor
-    Injector.env = Flavor.IncrByOne;
+    RM.env = Flavor.IncrByOne;
+
+    await tester.pumpWidget(MyApp());
+
     //As our navigation is BuildContext free, from here we navigate to MyHomePage
     RM.navigate.to(MyHomePage());
     await tester.pumpAndSettle();
@@ -48,7 +50,7 @@ void main() {
 
     await tester.pumpWidget(MyApp());
     //
-    Injector.env = Flavor.IncrByOne;
+    RM.env = Flavor.IncrByOne;
     RM.navigate.to(MyHomePage());
     await tester.pumpAndSettle();
     //on Idle state
@@ -76,7 +78,7 @@ void main() {
     await tester.pumpWidget(MyApp());
     //
     //Here we choose IncrByTwo flavor
-    Injector.env = Flavor.IncrByTwo;
+    RM.env = Flavor.IncrByTwo;
     RM.navigate.to(MyHomePage());
     await tester.pumpAndSettle();
     //

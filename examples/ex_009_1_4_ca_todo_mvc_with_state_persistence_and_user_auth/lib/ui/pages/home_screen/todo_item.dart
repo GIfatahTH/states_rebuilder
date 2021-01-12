@@ -30,7 +30,7 @@ class TodoItem extends StatelessWidget {
                 ),
               );
               if (shouldDelete == true) {
-                RM.scaffoldShow.context = context;
+                RM.scaffold.context = context;
                 removeTodo(todo.state);
               }
             },
@@ -63,7 +63,7 @@ class TodoItem extends StatelessWidget {
   void removeTodo(Todo todo) {
     todos.setState((s) => s.deleteTodo(todo));
 
-    RM.scaffoldShow.snackBar(
+    RM.scaffold.snackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
         content: Text(

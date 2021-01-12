@@ -30,21 +30,27 @@ final authState = RM.inject<AuthState>(
   () => InitAuthState(authRepository.state),
 );
 
-final todosRepository = RM.injectComputed<ITodosRepository>(
-  compute: (_) => TodosRepository(
-    user: authState.state.user,
-  ),
+final todosRepository = RM.inject<ITodosRepository>(
+  () {
+    return TodosRepository(
+      user: authState.state.user,
+    );
+  },
+  dependsOn: DependsOn({authState}),
 );
 
-final todosState = RM.injectComputed<TodosState>(
-  compute: (s) => s.copyWith(
-    todoRepository: todosRepository.state,
-  ),
+final Injected<TodosState> todosState = RM.inject<TodosState>(
+  () {
+    return todosState.state.copyWith(
+      todoRepository: todosRepository.state,
+    );
+  },
   initialState: TodosState(
     todos: [],
     activeFilter: VisibilityFilter.all,
     todoRepository: todosRepository.state,
   ),
+  dependsOn: DependsOn({todosRepository}),
 );
 
 final activeTab = RM.inject(() => AppTab.todos);

@@ -37,7 +37,7 @@ class Api implements IApi {
   }
 
   Future<List<Post>> getPostsForUser(int userId) async {
-    var posts = List<Post>();
+    var posts = <Post>[];
     var response;
     try {
       response = await client.get('$endpoint/posts?userId=$userId');
@@ -62,7 +62,7 @@ class Api implements IApi {
   }
 
   Future<List<Comment>> getCommentsForPost(int postId) async {
-    var comments = List<Comment>();
+    var comments = <Comment>[];
 
     var response;
     try {

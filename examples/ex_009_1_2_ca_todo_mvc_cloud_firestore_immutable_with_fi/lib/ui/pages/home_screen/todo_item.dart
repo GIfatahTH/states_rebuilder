@@ -4,6 +4,7 @@
 
 import 'package:clean_architecture_todo_mvc_cloud_firestore_immutable_state/injected.dart';
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todos_app_core/todos_app_core.dart';
 
 import '../../../domain/entities/todo.dart';
@@ -28,13 +29,7 @@ class TodoItem extends StatelessWidget {
       },
       child: ListTile(
         onTap: () async {
-          final shouldDelete = await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) {
-                return DetailScreen(todo);
-              },
-            ),
-          );
+          final shouldDelete = await RM.navigate.to(DetailScreen(todo));
           if (shouldDelete == true) {
             removeTodo(context, todo);
           }
@@ -74,8 +69,7 @@ class TodoItem extends StatelessWidget {
       (t) => TodosState.deleteTodo(t, todo),
       onError: ErrorHandler.showErrorSnackBar,
     );
-
-    Scaffold.of(context).showSnackBar(
+    RM.scaffold.snackBar(
       SnackBar(
         key: ArchSampleKeys.snackbar,
         duration: Duration(seconds: 2),

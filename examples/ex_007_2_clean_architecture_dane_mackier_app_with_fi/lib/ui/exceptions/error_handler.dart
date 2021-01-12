@@ -41,7 +41,7 @@ class ErrorHandler {
   }
 
   //Display an AlertDialog with the error message
-  static void showErrorDialog(BuildContext context, dynamic error) {
+  static void showErrorDialog(dynamic error) {
     if (error == null) {
       return;
     }
@@ -63,11 +63,11 @@ class ErrorHandler {
   }
 
   //Display an snackBar with the error message
-  static void showSnackBar(BuildContext context, dynamic error) {
+  static void showSnackBar(dynamic error) {
     if (error == null) {
       return;
     }
-    Scaffold.of(context).showSnackBar(
+    RM.scaffold.snackBar(
       SnackBar(
         content: Text('${errorMessage(error)}'),
       ),

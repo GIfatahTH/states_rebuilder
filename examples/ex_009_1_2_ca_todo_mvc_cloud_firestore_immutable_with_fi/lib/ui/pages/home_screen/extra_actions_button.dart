@@ -16,7 +16,7 @@ class ExtraActionsButton extends StatelessWidget {
     return StateBuilder<ExtraAction>(
         key: Key('StateBuilder ExtraAction'),
         //Create a reactiveModel of type  ExtraAction and set its initialValue to ExtraAction.clearCompleted)
-        observe: () => RM.create(ExtraAction.clearCompleted),
+        observe: () => RM.inject(() => ExtraAction.clearCompleted),
         builder: (context, extraActionRM) {
           return PopupMenuButton<ExtraAction>(
             key: ArchSampleKeys.extraActionsButton,

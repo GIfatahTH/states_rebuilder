@@ -56,7 +56,7 @@ class _Button extends StatelessWidget {
         key: Key('StateBuilder VisibilityFilter'),
 
         //Create and subscribe to a ReactiveModel of type VisibilityFilter
-        observe: () => RM.create(VisibilityFilter.all),
+        observe: () => RM.inject(() => VisibilityFilter.all),
         builder: (context, activeFilterRM) {
           return PopupMenuButton<VisibilityFilter>(
             key: ArchSampleKeys.filterButton,

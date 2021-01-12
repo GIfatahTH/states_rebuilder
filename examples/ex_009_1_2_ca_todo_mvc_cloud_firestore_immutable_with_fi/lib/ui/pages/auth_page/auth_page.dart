@@ -89,10 +89,10 @@ class AuthFormWidget extends StatelessWidget {
         StateBuilder<AuthState>(
           key: Key('Sign in/up Button'),
           observeMany: [
-            () => _email.getRM,
-            () => _password.getRM,
-            () => _isRegister.getRM,
-            () => authState.getRM,
+            () => _email,
+            () => _password,
+            () => _isRegister,
+            () => authState,
           ],
           builder: (_, authStateRM) {
             if (authStateRM.isWaiting) {

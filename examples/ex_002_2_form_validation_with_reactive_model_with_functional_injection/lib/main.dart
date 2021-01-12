@@ -121,7 +121,7 @@ class MyHomePage extends StatelessWidget {
             ),
             WhenRebuilderOr(
               //subscribe to both email and password ReactiveModel keys
-              observeMany: [() => email.getRM, () => password.getRM],
+              observeMany: [() => email, () => password],
               builder: (_, exposedModel) {
                 //this builder is called each time email or password emit a notification
                 return Column(

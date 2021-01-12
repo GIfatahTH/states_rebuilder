@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../injected.dart';
 import '../../common/app_colors.dart';
@@ -39,8 +40,8 @@ class _LoginBody extends StatelessWidget {
                 authenticationService.setState(
                   (s) => s.login(controller.text),
                   onError: ErrorHandler.showSnackBar,
-                  onData: (context, authServiceRM) {
-                    Navigator.pushNamed(context, '/');
+                  onData: (_) {
+                    RM.navigate.toNamed(('/'));
                   },
                 );
               },

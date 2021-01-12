@@ -48,26 +48,31 @@ extension ListTodoX on List<Todo> {
   }
 }
 
-final Injected<List<Todo>> todos = RM.inject(() => [],
-    persist: () => PersistState(
-          key: '__Todos__/${user.state.userId}',
-          toJson: (todos) => todos.toJson(),
-          fromJson: (json) => ListTodoX.fromJson(json),
-          persistStateProvider: FireBaseTodosRepository(
-            authToken: user.state.token.token,
-          ),
-          // debugPrintOperations: true,
-        ),
-    onError: (e, s) {
-      ErrorHandler.showErrorSnackBar(e);
-    }
-    // debugPrintWhenNotifiedPreMessage: 'todos',
-    );
+final Injected<List<Todo>> todos = RM.inject(
+  () => [],
+  persist: () => PersistState(
+    key: '__Todos__/${user.state.userId}',
+    toJson: (todos) => todos.toJson(),
+    fromJson: (json) => ListTodoX.fromJson(json),
+    persistStateProvider: FireBaseTodosRepository(
+      authToken: user.state.token.token,
+    ),
+    // debugPrintOperations: true,
+  ),
+  onError: (e, s) {
+    todoItem.refresh();
+    ErrorHandler.showErrorSnackBar(e);
+  },
+  onData: (_) {
+    // todoItem.refresh();
+  },
+  debugPrintWhenNotifiedPreMessage: 'todos',
+);
 
 final activeFilter = RM.inject(() => VisibilityFilter.all);
 
-final Injected<List<Todo>> todosFiltered = RM.injectComputed(
-  compute: (_) {
+final Injected<List<Todo>> todosFiltered = RM.inject(
+  () {
     if (activeFilter.state == VisibilityFilter.active) {
       return todos.state.where((t) => !t.complete).toList();
     }
@@ -76,16 +81,17 @@ final Injected<List<Todo>> todosFiltered = RM.injectComputed(
     }
     return todos.state;
   },
-  // debugPrintWhenNotifiedPreMessage: 'TodosFilter',
+  dependsOn: DependsOn({activeFilter, todos}),
+  debugPrintWhenNotifiedPreMessage: 'TodosFilter',
 );
 
-final Injected<TodosStats> todosStats = RM.injectComputed(
-  compute: (_) {
-    return TodosStats(
-      numCompleted: todos.state.where((t) => t.complete).length,
-      numActive: todos.state.where((t) => !t.complete).length,
-    );
-  },
+final Injected<TodosStats> todosStats = RM.inject(
+  () => TodosStats(
+    numCompleted: todos.state.where((t) => t.complete).length,
+    numActive: todos.state.where((t) => !t.complete).length,
+  ),
+  dependsOn: DependsOn({todos}),
+
   // debugPrintWhenNotifiedPreMessage: '',
 );
 
@@ -95,7 +101,9 @@ final Injected<Todo> todoItem = RM.inject(
   () => null,
   onData: (t) {
     todos.setState(
-      (s) => s.updateTodo(t),
+      (s) {
+        return s.updateTodo(t);
+      },
     );
   },
 );

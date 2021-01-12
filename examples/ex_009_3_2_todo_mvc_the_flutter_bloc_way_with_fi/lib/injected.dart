@@ -5,31 +5,34 @@ import 'blocs/todos/todos_state.dart';
 
 Injected<TodosState> todosState;
 
-final filteredTodosState = RM.injectComputed<FilteredTodosState>(
-  initialState: FilteredTodosLoading(),
-  compute: (state) {
-    if (todosState.state is TodosLoaded) {
-      return FilteredTodosLoaded.updateTodos(
-        state,
-        (todosState.state as TodosLoaded).todos,
-      );
-    }
-    return state;
-  },
-  // onDispose: (_) => todosState.dispose(),
-);
+final filteredTodosState = RM.inject<FilteredTodosState>(() {
+  if (todosState.state is TodosLoaded) {
+    return FilteredTodosLoaded.updateTodos(
+      filteredTodosState.state,
+      (todosState.state as TodosLoaded).todos,
+    );
+  }
+  return filteredTodosState.state;
+},
+    initialState: FilteredTodosLoading(),
+    dependsOn: DependsOn(
+      {todosState},
+    )
+    // onDispose: (_) => todosState.dispose(),
+    );
 
-final statsState = RM.injectComputed<StatsState>(
-  initialState: StatsLoading(),
-  compute: (state) {
+final statsState = RM.inject<StatsState>(
+  () {
     if (todosState.state is TodosLoaded) {
       return StatsLoaded.updateStats(
-        state,
+        statsState.state,
         (todosState.state as TodosLoaded).todos,
       );
     }
-    return state;
+    return statsState.state;
   },
+  initialState: StatsLoading(),
+  dependsOn: DependsOn({todosState}),
 );
 
 final appTabState = RM.inject(() => AppTabState());
