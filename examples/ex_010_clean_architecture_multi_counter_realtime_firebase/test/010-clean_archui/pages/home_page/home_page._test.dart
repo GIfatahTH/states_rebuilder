@@ -1,36 +1,22 @@
 import 'package:clean_architecture_multi_counter_realtime_firebase/data_source/counter_fake_repository.dart';
-import 'package:clean_architecture_multi_counter_realtime_firebase/service/counters_service.dart';
+import 'package:clean_architecture_multi_counter_realtime_firebase/injected.dart';
+import 'package:clean_architecture_multi_counter_realtime_firebase/my_app.dart';
 import 'package:clean_architecture_multi_counter_realtime_firebase/ui/common/config.dart';
 import 'package:clean_architecture_multi_counter_realtime_firebase/ui/pages/home_page/counter_list_tile.dart';
-import 'package:clean_architecture_multi_counter_realtime_firebase/ui/pages/home_page/home_page.dart';
 import 'package:clean_architecture_multi_counter_realtime_firebase/ui/widgets/counter_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  Widget homePage;
-
   setUp(() {
-    //First HomePage isolation from its dependencies:
-    //HomePage depends on CountersService, stream of List<Counter>, and IConfig
-    //We will use fake classes defined in the production code
-    homePage = Injector(
-      inject: [
-        Inject(() => CountersService(CounterFakeRepository())),
-        Inject<IConfig>(() => DevConfig()),
-        Inject.stream(() => Injector.get<CountersService>().countersStream()),
-      ],
-      builder: (_) {
-        return MaterialApp(home: HomePage());
-      },
-    );
+    config.injectMock(() => DevConfig());
+    counterRepository.injectMock(() => CounterFakeRepository());
   });
 
   testWidgets(
       'Display one counter at startup and remove it on drag and create new one',
       (tester) async {
-    await tester.pumpWidget(homePage);
+    await tester.pumpWidget(MyApp());
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
     //expect to find one counter in the list
@@ -60,7 +46,7 @@ void main() {
   });
 
   testWidgets('Increment and decrement counter', (tester) async {
-    await tester.pumpWidget(homePage);
+    await tester.pumpWidget(MyApp());
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
     //expect to find one counter in the list

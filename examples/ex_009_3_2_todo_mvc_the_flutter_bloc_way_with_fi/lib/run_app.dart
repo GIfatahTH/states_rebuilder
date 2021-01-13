@@ -3,22 +3,15 @@
 // in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:todo_mvc_the_flutter_bloc_way/blocs/blocs.dart';
 import 'package:todo_mvc_the_flutter_bloc_way/blocs/todos/todos_state.dart';
 import 'package:todo_mvc_the_flutter_bloc_way/localization.dart';
 import 'package:todos_app_core/todos_app_core.dart';
-import 'package:todos_repository_core/todos_repository_core.dart';
 
 import 'injected.dart';
 import 'models/todo.dart';
 import 'screens/add_edit_screen.dart';
 import 'screens/home_screen.dart';
-
-void runBlocLibraryApp(TodosRepository repository) {
-  todosState = RM.injectFuture(() => TodosLoading(repository).loadTodos());
-  runApp(TodosApp());
-}
 
 class TodosApp extends StatelessWidget {
   @override

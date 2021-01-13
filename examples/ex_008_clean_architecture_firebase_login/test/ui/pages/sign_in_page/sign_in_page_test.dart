@@ -1,4 +1,4 @@
-import 'package:clean_architecture_firebase_login/service/apple_sign_in_checker_service.dart';
+import 'package:clean_architecture_firebase_login/injected.dart';
 import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
 import 'package:clean_architecture_firebase_login/service/user_service.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_page/sign_in_page.dart';
@@ -12,27 +12,18 @@ import '../../../infrastructure/fake_apple_sign_in_available.dart';
 
 void main() {
   Widget singInPage;
-  bool canSignInWithApple = true;
+  userService.injectMock(() => FakeUserService());
+  appleSignInCheckerService.injectMock(
+      () => FakeAppSignInCheckerService(null)..canSignInWithApple = true);
+
   setUp(
     () {
       //As always with test, we have to think on how to isolate SignInPage from its dependencies:
-      singInPage = Injector(
-        //SignInPage depends on AppSignInCheckerService and UserService
-        //these dependencies can be faked using Injector by injecting there fake equivalent
-        inject: [
-          Inject<AppSignInCheckerService>(() =>
-              FakeAppSignInCheckerService(null)
-                ..canSignInWithApple = canSignInWithApple),
-          Inject<UserService>(() => FakeUserService())
-        ],
-        //SignInPage has another subtile dependencies.
-        //The rebuild of SignInPage is controlled from the MyApp widget (lines 43-50).
-        //This subtile dependencies is faked using StateBuilder
-        builder: (_) => MaterialApp(
-          home: StateBuilder(
-            observe: () => ReactiveModel<UserService>(),
-            builder: (context, userServiceRM) {
-              return userServiceRM.state.user == null
+      singInPage = MaterialApp(
+        home: userService.listen(
+          child: On(
+            () {
+              return userService.state.user == null
                   ? SignInPage()
                   : Text('My home page');
             },
@@ -69,7 +60,9 @@ void main() {
   });
 
   testWidgets('Can not sign in With Apple', (tester) async {
-    canSignInWithApple = false;
+    appleSignInCheckerService.injectMock(
+        () => FakeAppSignInCheckerService(null)..canSignInWithApple = false);
+
     await tester.pumpWidget(singInPage);
 
     //check we are in the signInPage
@@ -154,7 +147,7 @@ void main() {
     await tester.pumpWidget(singInPage);
 
     //set to throw a SignInException error
-    (Injector.get<UserService>() as FakeUserService).error = SignInException(
+    (userService.state as FakeUserService).error = SignInException(
       title: 'Sign in anonymously Alert',
       code: 'e.code',
       message: 'error message',

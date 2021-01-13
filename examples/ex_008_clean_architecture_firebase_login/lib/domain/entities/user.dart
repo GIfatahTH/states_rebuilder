@@ -10,4 +10,11 @@ class User {
     this.displayName,
     this.photoUrl,
   });
+
+  @override
+  String toString() {
+    return 'User(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl)';
+  }
 }
+
+class UnLoggedUser extends User {}

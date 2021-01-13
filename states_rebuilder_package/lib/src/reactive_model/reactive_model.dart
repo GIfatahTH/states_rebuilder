@@ -379,6 +379,10 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     _notifyListeners();
   }
 
+  R stateAs<R>() {
+    return state as R;
+  }
+
   @override
   int get hashCode => _cachedHash;
   int _cachedHash = _nextHashCode = (_nextHashCode + 1) % 0xffffff;

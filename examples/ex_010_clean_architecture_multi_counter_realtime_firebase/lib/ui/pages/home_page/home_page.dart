@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/counter.dart';
-import '../../../service/counters_service.dart';
-import '../../common/config.dart';
+import '../../../injected.dart';
 import 'counter_list_tile.dart';
 
 class HomePage extends StatelessWidget {
@@ -12,7 +10,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         //get the appTitle for the config file
-        title: Text(Injector.get<IConfig>().appTitle),
+        title: Text(config.state.appTitle),
         elevation: 1.0,
       ),
       body: _buildContent(),
@@ -20,7 +18,7 @@ class HomePage extends StatelessWidget {
         child: Icon(Icons.add),
         onPressed: () {
           //getting the registered CountersService instance and call createCounter method
-          Injector.get<CountersService>().createCounter();
+          counterService.state.createCounter();
         },
       ),
     );
@@ -28,14 +26,11 @@ class HomePage extends StatelessWidget {
 
   Widget _buildContent() {
     //Use WhenRebuilderOr to subscribe to the stream and display onWaiting, onError and default builder widgets
-    return WhenRebuilderOr<List<Counter>>(
-      //Created and subscribe to new local ReactiveModel from the stream emitted
-      //from countersStream of the registered instance of CountersService
-      observe: () => RM.stream(IN.get<CountersService>().countersStream()),
+    return counterService.streamBuilder<List<Counter>>(
+      stream: (s, subscription) => s.countersStream(),
       onWaiting: () => Center(child: CircularProgressIndicator()),
       onError: (error) => Center(child: Text(error.toString())),
-      builder: (_, countersStream) {
-        final counters = countersStream.snapshot.data;
+      onData: (counters) {
         if (counters.length > 0) {
           return ListView.builder(
             itemCount: counters.length,

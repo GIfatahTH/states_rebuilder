@@ -12,4 +12,9 @@ export 'src/reactive_model.dart'
         InjectedX,
         ReactiveModelX,
         StateWithMixinBuilder,
-        IPersistStore;
+        IPersistStore,
+        IntX,
+        StringX,
+        doubleX,
+        boolX,
+        ObjectX;

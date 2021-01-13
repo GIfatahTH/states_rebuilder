@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:github_search_app/domain/entities/github_user.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../injected.dart';
+
 class GitHubUserSearchResultTile extends StatelessWidget {
   const GitHubUserSearchResultTile(
       {@required this.user, @required this.onSelected});
@@ -23,7 +25,7 @@ class GitHubUserSearchResultTile extends StatelessWidget {
               ),
             ),
             child: Container(
-              child: StatesRebuilerLogger.isTestMode
+              child: isTestMode
                   ? Container()
                   : Image.network(
                       user.avatarUrl,
