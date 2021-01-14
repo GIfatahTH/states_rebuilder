@@ -166,6 +166,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         return ReactiveModelImp<T>.future(
           () => (this as ReactiveModel<T>).stateAsync,
           isLazy: false,
+          initialState: (this as ReactiveModel<T>)._state,
         ) as ReactiveModel<F>;
       },
       shouldRebuild: (_) => true,
@@ -362,7 +363,9 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       dispose: dispose != null ? () => dispose() : null,
       shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
       watch: watch,
-      child: On.data(() => builder()),
+      child: On.data(() => Center(
+            child: builder(),
+          )),
     );
   }
 

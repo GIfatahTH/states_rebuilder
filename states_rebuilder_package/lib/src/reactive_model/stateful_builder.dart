@@ -84,6 +84,30 @@ class _StateBuilderState extends State<_StateBuilder> {
     }
     return widget.builder(context);
   }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(
+        StringProperty('state', widget.rm.first.toString(), showName: true));
+    // if (textSpan != null) {
+    //   properties.add(textSpan!.toDiagnosticsNode(name: 'textSpan', style: DiagnosticsTreeStyle.transition));
+    // }
+    // style?.debugFillProperties(properties);
+    // properties.add(EnumProperty<TextAlign>('textAlign', textAlign, defaultValue: null));
+    // properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));
+    properties.add(DiagnosticsProperty<ReactiveModel>('rm', widget.rm.first,
+        defaultValue: null));
+    // properties.add(FlagProperty('softWrap', value: softWrap, ifTrue: 'wrapping at box width', ifFalse: 'no wrapping except at line break characters', showName: true));
+    // properties.add(EnumProperty<TextOverflow>('overflow', overflow, defaultValue: null));
+    // properties.add(DoubleProperty('textScaleFactor', textScaleFactor, defaultValue: null));
+    // properties.add(IntProperty('maxLines', maxLines, defaultValue: null));
+    // properties.add(EnumProperty<TextWidthBasis>('textWidthBasis', textWidthBasis, defaultValue: null));
+    // properties.add(DiagnosticsProperty<ui.TextHeightBehavior>('textHeightBehavior', textHeightBehavior, defaultValue: null));
+    // if (semanticsLabel != null) {
+    //   properties.add(StringProperty('semanticsLabel', semanticsLabel));
+    // }
+  }
 }
 
 class _StateBuilderWithoutWatchState extends _StateBuilderState {
