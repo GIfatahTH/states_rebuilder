@@ -149,7 +149,7 @@ class Foo { //Do not extend any other library specific class
 </p> -->
 
 <p align="center">
-    <image src="assets/01-states_rebuilder__singletons.png" width="600" alt=''/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons.png" width="600" alt='555'/>
 </p>
 
 To make the `Foo` object reactive, we simple inject it using global functional injection:
