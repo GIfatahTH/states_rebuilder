@@ -15,6 +15,6 @@ export 'src/reactive_model.dart'
         IPersistStore,
         IntX,
         StringX,
-        doubleX,
-        boolX,
+        DoubleX,
+        BoolX,
         ObjectX;

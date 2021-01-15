@@ -354,3 +354,5 @@ Row(
 Note the the state the are add to the undoStack are those that have valid data, that is `hasData` is true. State with error or waiting are ignored.
 
 #Persisting the state.
+
+To persist the state you have first to implement the `IPersistState` interface using a local storage provider of your choice (hive or sharedPreferences).

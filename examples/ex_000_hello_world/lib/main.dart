@@ -36,10 +36,10 @@ final helloName = RM.inject<String>(
   // ex: if name is waiting => helloName is waiting,
   //     if name has error => helloName has error,
   //     if name has data => helloName state will be recalculated
-  //
+
   dependsOn: DependsOn(
     {name},
-    // Do not recalculate until 400 ms has been passed without any
+    // Do not recalculate until 400 ms has passed without any
     // further notification from name injected model.
     debounceDelay: 400,
   ),

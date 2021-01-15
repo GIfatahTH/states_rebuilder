@@ -4,7 +4,7 @@ part of '../reactive_model.dart';
 ///state can be mutable or immutable.
 ///
 ///Injected model can be instantiated globally or as a member of classes. They
-///can be instantiated inside the build method without losing the state of
+///can be instantiated inside the build method without losing the state after
 ///rebuilds.
 ///
 ///
@@ -429,8 +429,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
     }
     return null;
   }
-
-  /** ################################## Mock ####################### */
 
   //
   dynamic Function(ReactiveModel<T> rm)? _cachedMockCreator;

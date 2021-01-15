@@ -14,7 +14,7 @@ void main() {
       } catch (e) {
         err = e;
       }
-      expect(err, isA<TypeError>());
+      expect(err, isA<ArgumentError>());
 
       //Will not circle because the default null state is defined
       expect(arrayWithNullState.state, []);

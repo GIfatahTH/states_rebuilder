@@ -35,81 +35,293 @@ A Flutter state management combined with a dependency injection solution to get 
   - Built-in debugging print function
   - Capable for complex apps
 
-## A Quick Tour of global functional injection (Newer Approach)
+# Table of Contents <!-- omit in toc --> 
+- [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
+- [Breaking Changes](#breaking-changes)
+- [A Quick Tour of states_rebuilder API](#A-Quick-Tour-of-states_rebuilder-API)
+  - [Business logic](#business-logic)
+  - [UI logic](#ui-logic)
+- [Examples:](#examples)
+  - [Basics:](#basics)
+  - [Advanced:](#advanced)
+    - [Firebase Series:](#firebase-series)
+    - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
 
-Start by your business logic. Use plain old vanilla dart class only.
+# Getting Started with States_rebuilder
+1. Add the latest version to your package's pubspec.yaml file.
 
+2. Import it in any Dart code:
 ```dart
-class MyModel(){
-  //Can return any type, futures and streams included
-  someMethod(){ ... }
+import 'package:states_rebuilder/states_rebuilder.dart';
+```
+3. Basic use case:
+```dart
+// 🗄️Plain Data Class
+class Model {
+  int counter;
+
+  Model(this.counter);
+}  
+
+// 🤔Business Logic
+class ServiceState {
+  ServiceSatate(this.model);
+  final Model model;  
+
+  void incrementMutable() { model.counter++ };
+}
+
+// 🚀Global Functional Injection 
+// `serviceState` is auto-cleaned when no longer used, testable and mockable.
+final serviceState = RM.inject(() => ServiceState(Model(0)));
+
+// 👀UI  
+class CounterApp extends StatelessWidget {
+  final _model = serviceState.state.model;
+  @override
+  Widget build(BuildContext context) {
+    return Column (
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+            RaisedButton(
+                child: const Text('🏎️ Counter ++'),
+                onPressed: () => serviceState.setState(
+                    (s) => s.incrementMutable(),
+                ),
+            ),
+            RaisedButton(
+                child: const Text('⏱️ Undo'),
+                onPressed: () => serviceState.undoState(),
+            ),
+            serviceState.listen(
+              child: On(
+                () => Text('🏁Result: ${_model.counter}'),
+                ),
+              )
+        ],
+    );
+  }  
+}
+```
+# Breaking Changes 
+
+### Since 4.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-4.0.0.md) <!-- omit in toc --> 
+
+### Since 3.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-3.0.0.md) <!-- omit in toc --> 
+
+### Since 2.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-2.0.0.md) <!-- omit in toc --> 
+
+
+# A Quick Tour of states_rebuilder API
+
+## Business logic
+
+>The business logic classes are independent from any external library. They are independent even from `states_rebuilder` itself.
+
+
+The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point that you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
+
+>With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
+
+This a typical of simple business logic class:
+```dart
+class Foo { //Do not extend any other library specific class
+  int mutableState =0; // the state can be mutable
+  //Or
+  final int immutableState; // Or it can be immutable (no difference)
+  Foo(this.immutableState);
+
+  Future<int> fetchSomeThing async(){
+    //No need of any kind of async state tracking variables
+    return repository.fetchSomeThing();
+    //No need of any kind of notification
+  }
+
+  Stream<int> streamSomeThing async*(){
+    //Methods can return stream, future, or simple sync objects,
+    //states_rebuilder treats them equally
+  }
 }
 ```
 
-* To inject it following functional injection approach:
-  ```dart
-  //Can be defined globally, as a class field or even inside the build method.
-  final model = RM.inject<MyModel>(
-      ()=>MyModel(),
-      //After initialized, it preserves the state it refers to until it is disposed
-      onInitialized : (MyModel state) => print('Initialized'),
-      //Default callbacks for side effects.
-      onWaiting : () => print('Is waiting'),
-      hasData : (MyModel data) => print('Has data'),
-      hasError : (error, stack) => print('Has error'),
-      //It is disposed when no longer needed
-      onDisposed: (MyModel state) => print('Disposed'),
-  );
-  ```
+<p align="center">
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons.png" width="600" alt=''/>
+</p>
 
-* To mock it in test:
-  ```dart
-  model.injectMock(()=> MyMockModel());
-  //You can even mock the mocked implementation
-  ```
-  Similar to `RM.inject` there are:
-  ```dart
-  RM.injectFuture//For Future, 
-  RM.injectStream,//For Stream,
-  RM.injectComputed//depends on other injected Models and watches them.
-  RM.injectFlavor// For flavor and development environment
-  ```
+To make the `Foo` object reactive, we simple inject it using global functional injection:
 
-* To listen to an injected model from the User Interface:
+```dart
+final Injected<Foo> foo = RM.inject<Foo>(
+  ()=> Foo(),
+  onInitialized : (Foo state) => print('Initialized'),
+  // Default callbacks for side effects.
+  onSetState: On.all(
+    onIdle: () => print('Is idle'),
+    onWaiting: () => print('Is waiting'),
+    onError: (error) => print('Has error'),
+    onData: (Foo data) => print('Has data'),
+  ),
+  // It is disposed when no longer needed
+  onDisposed: (Foo state) => print('Disposed'),
+  // To persist the state
+  persist:() => PersistState(
+      key: '__FooKey__',
+      toJson: (Foo s) => s.toJson(),
+      fromJson: (String json) => Foo.fromJson(json),
+      //Optionally, throttle the state persistance
+      throttleDelay: 1000,
+  ),
+);
+//For simple injection you can use `inj()` extension:
+final foo = Foo().inj<Foo>();
+final isBool = false.inj();
+final string = 'str'.inj();
+final count = 0.inj();
+```
+
+`Injected` interface is a wrapper class that encloses the state we want to inject. The state can be mutable or immutable.
+
+Injected state can be instantiated globally or as a member of classes. They can be instantiated inside the build method without losing the state after rebuilds.
+
+>To inject a state, you use `RM.inject`, `RM.injectFuture`, `RM.injectStream` or `RM.injectFlavor`.
+
+**The injected state even if it is injected globally it has a lifecycle**. It is created when first used and destroyed when no longer used. Between the creation and the destruction of the state, it can be listened to and mutated to notify its registered listeners.
+
+**The state of an injected model is null safe**, that is it can not be null. For this reason the initial state will be inferred by the library, and in case it is not, it must be defined explicitly. The initial state of primitives is inferred as follows: (**int: 0, double, 0.0, String:'', and bool: false**). For other non-primitive objects the initial state will be the first created instance.
+
+**When the state is disposed of, its list of listeners is cleared**, and if the state is waiting for a Future or subscribed to a Stream, it will cancel them to free resources.
+
+**Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
+
+To mutate the state and notify listener:
+```dart
+//Inside any callback: 
+foo.state= newFoo;
+//Or for more options
+
+foo.setState(
+  (s) => s.fetchSomeThing(),
+  onSetState: On.waiting(()=> showSnackBar() ),
+  debounceDelay : 400,
+)
+```
+
+
+<p align="center">
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder_state_wheel.png" width="400" alt=''/>
+</p>
+
+The state when mutated, emits a notification to its registered listener. The emitted notification has a boolean flag to describe is status :
+  - `isIdle` : the state is first created and no notification is emitted yet.
+  - `isWaiting`: the state is waiting for an async task to end.
+  - `hasError`: the state mutation has ended with error.
+  - `hasData`: the state mutation has ended with valid data.
+
+states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
+```dart
+// Called when notified regardless of state status of the notification
+On(()=> print('on'));
+// Called when notified with data status
+On.data(()=> print('data'));
+// Called when notified with waiting status
+On.waiting(()=> print('waiting'));
+// Called when notified with error status
+On.error(()=> print('error'));
+// Exhaustively handle all four status
+On.all(
+  onIdle: ()=> print('Idle'), // If is Idle
+  onWaiting: ()=> print('Waiting'), // If is waiting
+  onError: (err)=> print('Error'), // If has error 
+  onData:  ()=> print('Data'), // If has Data
+)
+// Optionally handle the four status
+On.or(
+  onWaiting: ()=> print('Waiting'),
+  onError: (err)=> print('Error'),
+  onData:  ()=> print('Data'),
+  or: () =>  print('or')
+)
+```
+
+You can notify listeners without changing the state using :
+```dart
+foo.notify();
+```
+You can also refresh the state to its initial state and reinvoke the creation function then notify listeners using:
+
+```dart
+foo.refresh();
+```
+
+## UI logic
+
+* To listen to an injected state from the User Interface:
+  - For general use and full options use:
+    ````dart
+    foo.listen(
+      //called once the widget is inserted
+      initState: ()=> print('initState'),
+      //called once the widget is removed
+      dispose: ()=> print('dispose'),
+      //called after notification and before rebuild
+      onSetState: On.error((err) => print('error')),
+      //called after notification and rebuild
+      onAfterBuild: On(()=> print('After build')),
+      child: On.all(
+        onIdle: ()=> Text('Idle'),
+        onWaiting: ()=> Text('Waiting'),
+        onError: (err)=> Text('Error'),
+        onData:  ()=> Text('Data'),
+      ),
+    )
+    ```
   - Rebuild when model has data only:
     ```dart
-    model.rebuilder(()=> Text('${model.state}')); 
+    // Equivalent to On.data
+    foo.rebuilder(()=> Text('${model.state}')); 
     ```
-  -Handle all possible async status:
+  - Handle all possible async status:
     ```dart
-    model.whenRebuilder(
+    // Equivalent to On.all
+    foo.whenRebuilder(
         isIdle: ()=> Text('Idle'),
         isWaiting: ()=> Text('Waiting'),
         hasError: ()=> Text('Error'),
         hasData: ()=> Text('Data'),
     )
     ```
+  - Listen to a future from `foo` and notify this widget only.
+    ```dart
+      foo.futureBuilder<T>(
+        future: (state, stateAsync)=> state.fetchSomeThing(),
+        onWaiting: ()=> Text('Waiting..'),
+        onError: (err) => Text('Error'),
+        onData: (T data) => Text(data),
+      )
+    ```
+  - Listen to a stream from `foo` and notify this widget only.
+    ```dart
+      foo.streamBuilder<T>(
+        stream: (state, subscription)=> state.streamSomeThing(),
+        onWaiting: ()=> Text('Waiting..'),
+        onError: (err) => Text('Error'),
+        onData: (T data) => Text(data),
+        onDone: ()=> Text('Done'),
+      )
+    ```
 
 * To listen to many injected models and exposes and merged state:
   ```dart
-    [model1, model1 ..., modelN].whenRebuilder(
+    [model1, model1 ..., modelN].listen(
+     child: On.all(
         isWaiting: ()=> Text('Waiting'),//If any is waiting
-        hasError: ()=> Text('Error'),//If any has error
+        hasError: (err)=> Text('Error'),//If any has error
         isIdle: ()=> Text('Idle'),//If any is Idle
         hasData: ()=> Text('Data'),//All have Data
+      ),
     )
   ```
 
-* To mutate the state and notify listener:
-  ```dart
-  //Direct mutation
-  model.state= newState;
-  //or for more options
-  model.setState(
-    (s)=> s.someMethod()//can be sync or async
-    debounceDelay=500,
-  );
-  ```
 * To undo and redo immutable state:
   ```dart
   model.undoState();
@@ -170,483 +382,78 @@ class App extends StatelessWidget{
     );
   }
 }
-
 ```
+
+* To mock it in test:
+  ```dart
+    // You can even mock the mocked implementation
+    model.injectMock(()=> MyMockModel());
+  ```
+  Similar to `RM.inject` there are:
+  ```dart
+  RM.injectFuture  // For Future, 
+  RM.injectStream, // For Stream,
+  RM.injectFlavor  // For flavor and development environment
+  ```
+
 And many more features.
 
+# Examples:
 
-> 🚀 To see global functional injection in action and feel how easy and efficient it is, please refer to this tutorial [Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
-> 🚀 To see how to navigate and show dialogs, menus, bottom sheets, and snackBars without BuildContext, please refer to this document [**Navigate and show dialogs, menus, bottom sheets, and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
-> 🚀 To see how to how to persist the state and retrieve it on app restart, please refer to this document [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/17-persisting_the_state)
+* [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)
 
-Here are the two most important examples that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
-1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
-2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
+* Here are three **must-read examples** that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
 
-## An Example of widget-wise injection using Injector (Older approach).
+  1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world). Hello world app. It gives you the most important feature simply by say hello world.
+  2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
+  3. [Example 3](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
 
-Here is a typical class, that encapsulated, all the type of method mutation one expects to find in real-life situations.
+## Basics:
+Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
 
-```dart
-class Model {
-  int counter;
+* [**Hello world app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world): Hello world app. It gives you the most important feature simply by say hello world. You will understand the concept of global function injection and how to make a pure dart class reactive. You will see how an injected state can depends on other injected state to be refreshed when the other injected state emits notification.
 
-  Model(this.counter);
+* [**The simplest counter app**](examples/ex_001_2_flutter_default_counter_app_with_functional_injection): Default flutter counter app refactored using `states_rebuilder`. 
 
-  //1- Synchronous mutation
-  void incrementMutable() {
-    counter++;
-  }
+* [**Login form validation**](examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection): Simple form login validation. The basic `Injected` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
 
-  Model incrementImmutable() {
-    //fields should be final,
-    //immutable returns a new instance based on the current state
-    return Model(counter + 1);
-  }
+* [**Counter app with flavors**](examples/ex_003_2_async_counter_app_with_functional_injection): states_rebuilder as dependency injection is used, and a counter app with two flavors is built.
 
-  //2- Async mutation Future
-  Future<void> futureIncrementMutable() async {
-    //Pessimistic 😢: wait until future completes without error to increment
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('ERROR 😠');
-    }
-    counter++;
-  }
-
-  Future<Model> futureIncrementImmutable() async {
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('ERROR 😠');
-    }
-    return Model(counter + 1);
-  }
-
-  //3- Async Stream
-  Stream<void> streamIncrementMutable() async* {
-    //Optimistic 😄: start incrementing and if the future completes with error
-    //go back the the initial state
-    final oldState = counter;
-    yield counter++;
-
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      yield counter = oldState;
-      throw Exception('ERROR 😠');
-    }
-  }
-
-  Stream<Model> streamIncrementImmutable() async* {
-    yield Model(counter + 1);
-
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      yield this;
-      throw Exception('ERROR 😠');
-    }
-  }
-}
-```
-
-The Model class is a pure dart class without any reference to any external library (even Flutter).
-In the Model class we have :
-* Sync mutation of state (mutable and immutable);
-* Async future mutation of the state (mutable and immutable);
-* Async stream mutation of the state (mutable and immutable);
-
-Async mutation is whether :
-* Pessimistic so that we must await it to complete and display an awaiting screen.
-* Optimistic so that we just display what we expect from it, and execute it in the background. It is until it fails that we go back to the old state and display an error message.
-
-states_rebuilder manage all that with the same easiness.
-
-The next step is to inject the Model class into the widget tree.
-
-```dart
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    
-    return Injector(
-      //Inject Model instance into the widget tree.
-      inject: [Inject(() => Model(0))],
-      builder: (context) {
-        return MaterialApp(
-          home: MyHome(),
-        );
-      },
-    );
-  }
-}
-```
-[Get more information on Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Injector).
-
-To get the injected model at any level of the widget tree, we use:
-```dart
-//get the injected instance
-final Model model = IN.get<Model>(); 
-//get the injected instance decorated with a ReactiveModel
-final ReactiveModel<Model> modelRM =  RM.get<Model>();
-```
-
-The next step is to subscribe to the injected ReactiveModel and mutate the state and notify observers.
-
-* subscription is done using one of the four observer widgets : `StateBuilder`, `WhenRebuilder`, `WhenRebuilderOr`, `OnSetStateListener`.
-* notification is done mainly with `setState` method.
-
-## setState can do all:
-```dart
-  @override
-  Widget build(BuildContext context) {
-    //StateBuilder is one of four observer widgets
-    return StateBuilder<Model>(
-      //get the ReactiveModel of the injected Model instance,
-      //and subscribe this StateBuilder to it.
-      observe: () => RM.get<Model>(),
-      builder: (context, modelRM) {
-        //The builder exposes the BuildContext and the Model ReactiveModel
-        return Row(
-          children: [
-            //get the state of the model
-            Text('${modelRM.state.counter}'),
-            RaisedButton(
-              child: Text('Increment (SetStateCanDoAll)'),
-              onPressed: () async {
-                //setState treats mutable and immutable objects equally
-                modelRM.setState(
-                  //mutable state mutation
-                  (currentState) => currentState.incrementMutable(),
-                );
-                modelRM.setState(
-                  //immutable state mutation
-                  (currentState) => currentState.incrementImmutable(),
-                );
-
-                //await until the future completes
-                await modelRM.setState(
-                  //await for the future to complete and notify observer with
-                  //the corresponding connectionState and data
-                  //future will be canceled if all observer widgets are removed from
-                  //the widget tree.
-                  (currentState) => currentState.futureIncrementMutable(),
-                );
-                //
-                await modelRM.setState(
-                  (currentState) => currentState.futureIncrementImmutable(),
-                );
-
-                //await until the stream is done
-                await modelRM.setState(
-                  //subscribe to the stream and notify observers.
-                  //stream subscription are canceled if all observer widget are removed
-                  //from the widget tree.
-                  (currentState) => currentState.streamIncrementMutable(),
-                );
-                //
-                await modelRM.setState(
-                  (currentState) => currentState.streamIncrementImmutable(),
-                );
-                //setState can do all; mutable, immutable, sync, async, futures or streams.
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
-    );
-  }
-```
-
-No matter you deal with mutable or immutable objects, your method is sync or async, you use future or stream, setState can handle each case to mutate the state and notify listeners.
-
-[Get more information on `setState` method](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)   
-[Get more information on `StateBuilder` method](https://github.com/GIfatahTH/states_rebuilder/wiki/StateBuilder)
+* [**CountDown timer**](examples/ex_004_2_countdown_timer_with_functional_injection). This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted.
 
 
-## Pessimistic future
+</br>
 
-One common use case is to fetch some data from a server. In this case we may want to display a CircularProgressIndicator while awaiting for the future to complete.
+## Advanced:
+Here, you will take your programming skills up a notch, deep dive in Architecture 🧐:
 
-```dart
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        //WhenRebuilder is the second of the four observer widgets
-        WhenRebuilder<Model>(
-          //subscribe to the global ReactiveModel
-          observe: () => RM.get<Model>(),
-          onSetState: (context, modelRM) {
-            //side effects here
-            modelRM.whenConnectionState(
-              onIdle: () => print('Idle'),
-              onWaiting: () => print('onWaiting'),
-              onData: (data) => print('onData'),
-              onError: (error) => print('onError'),
-            );
-          },
-          onIdle: () => Text('The state is not mutated at all'),
-          onWaiting: () => Text('Future is executing, we are waiting ....'),
-          onError: (error) => Text('Future completes with error $error'),
-          onData: (Model data) => Text('${data.counter}'),
-        ),
-        RaisedButton(
-          child: Text('Increment'),
-          onPressed: () {
-            //All other widget subscribe to the global ReactiveModel will be notified to rebuild
-            RM.get<Model>().setState(
-                  (currentState) => currentState.futureIncrementImmutable(),
-                  //will await the current future if its pending
-                  //before calling futureIncrementImmutable
-                  shouldAwait: true,
-                );
-          },
-        )
-      ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-```
-The futureIncrementImmutable (or futureIncrementMutable) is trigger in response to a button click. We can trigger the async method automatically once the widget is inserted into the widget tree:
+* [**User posts and comments**](examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi):  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
-```dart
-  @override
-  Widget build(BuildContext context) {
-    return StateBuilder(
-      //Create a local ReactiveModel model that decorate the false value
-      observe: () => RM.create<bool>(false),
-      builder: (context, switchRM) {
-        //builder expose the BuildContext and the locally created ReactiveModel.
-        return Row(
-          children: [
-            if (switchRM.state)
-              WhenRebuilder<Model>(
-                //get the global ReactiveModel and call setState
-                //All other widget subscribed to this global ReactiveModel will be notified
-                observe: () => RM.get<Model>()
-                  ..setState(
-                    (currentState) {
-                      return currentState.futureIncrementImmutable();
-                    },
-                  ),
-                onSetState: (context, modelRM) {
-                  //side effects
-                  if (modelRM.hasError) {
-                    //show a SnackBar on error
-                    Scaffold.of(context).hideCurrentSnackBar();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${modelRM.error}'),
-                      ),
-                    );
-                  }
-                },
-                onIdle: () => Text('The state is not mutated at all'),
-                onWaiting: () =>
-                    Text('Future is executing, we are waiting ....'),
-                onError: (error) => Text('Future completes with error $error'),
-                onData: (Model data) => Text('${data.counter}'),
-              )
-            else
-              Container(),
-            RaisedButton(
-              child: Text(
-                  '${switchRM.state ? "Dispose" : "Insert"}'),
-              onPressed: () {
-                //mutate the state of the local ReactiveModel directly
-                //without using setState although we can.
-                //setState gives us more features that we do not need here
-                switchRM.state = !switchRM.state;
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
-    );
-  }
-```
-In the example above, we first created a local `ReactiveModel` of type bool and initialize it with false.
+* [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds.
 
-In states_rebuilder there are Global ReactiveModel (injected using Injector) and local ReactiveModel (created locally).
+### Firebase Series:
 
-[Get more information on global and local `ReactiveModel` method](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-and-Global-ReactiveModel)
-[Get more information on `WhenRebuilder`](https://github.com/GIfatahTH/states_rebuilder/wiki/WhenRebuilder-and-WhenRebuilderOr)
+* [**Firebase login** ](examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
 
-Once a global model emits a notification, all widget subscribed to it will be notified.
+* [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
 
-To limit the notification to one widget we can use the `future` method.
+### Firestore Series in Todo App:
 
-```dart
-  @override
-  Widget build(BuildContext context) {
-    return StateBuilder(
-        observe: () => RM.create(false),
-        builder: (context, switchRM) {
-          return Row(
-            children: [
-              if (switchRM.state)
-                WhenRebuilder<Model>(
-                  //Here use the future method to create new reactive model
-                  observe: () => RM.get<Model>().future(
-                    (currentState, stateAsync) {
-                      //future method exposed the current state and teh Async representation of the state
-                      return currentState.futureIncrementImmutable();
-                    },
-                  ),
-                  ////This is NOT equivalent to this :
-                  //// observe: () => RM.future(
-                  ////   IN.get<Model>().futureIncrementImmutable(),
-                  //// ),
+## <p align='center'>`Immutable State`</p> <!-- omit in toc --> 
 
-                  onIdle: () => Text('The state is not mutated at all'),
-                  onWaiting: () =>
-                      Text('Future is executing, we are waiting ....'),
-                  onError: (error) =>
-                      Text('Future completes with error $error'),
-                  onData: (Model data) => Text('${data.counter}'),
-                )
-              else
-                Text('This widget will not affect other widgets'),
-              RaisedButton(
-                child: Text(
-                    '${switchRM.state ? "Dispose" : "Insert"}'),
-                onPressed: () {
-                  switchRM.state = !switchRM.state;
-                },
-              )
-            ],
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          );
-        },
-    );
-  }
-```
-[Get more information on `future` method](https://github.com/GIfatahTH/states_rebuilder/wiki/future)
+* [**Todo MVC with immutable state and firebase cloud service**](examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
+## <p align='center'>`Mutable State`</p> <!-- omit in toc --> 
 
-## Optimistic update
-One might be able to predict the outcome of an async operation. If so, we can implement optimistic updates by displaying the expected data when starting the async action and execute the async task in the background and forget about it. It is only if the async task fails that we want to go back to the last state and notify the user of the error.
+* [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
 
-```dart
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        //WhenRebuilderOr is the third observer widget
-        WhenRebuilderOr<Model>(
-          observe: () => RM.get<Model>(),
-          onWaiting: () => Text('Future is executing, we are waiting ....'),
-          builder: (context, modelRM) => Text('${modelRM.state.counter}'),
-        ),
-        RaisedButton(
-          child: Text('Increment'),
-          onPressed: () {
-            RM.get<Model>().setState(
-              //stream is the choice for optimistic update
-              (currentState) => currentState.streamIncrementMutable(),
-              //debounce setState for 1 second
-              debounceDelay: 1000,
-              onError: (context, error) {
-                Scaffold.of(context).hideCurrentSnackBar();
-                Scaffold.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$error'),
-                  ),
-                );
-              },
-            );
-          },
-        )
-      ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-```
-[Get more information on `WhenRebuilderOr` method](https://github.com/GIfatahTH/states_rebuilder/wiki/WhenRebuilder-and-WhenRebuilderOr)
 
-If we want to automatically call the streamIncrementMutable once the widget is inserted into the widget tree:
+## <p align='center'>`Code in BLOC Style`</p> <!-- omit in toc --> 
 
-```dart
-  Widget build(BuildContext context) {
-    return StateBuilder(
-      observe: () => RM.create(false),
-      builder: (context, switchRM) {
-        return Row(
-          children: [
-            if (switchRM.state)
-              WhenRebuilderOr<Model>(
-                //Create a new ReactiveModel with the stream method.
+* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library.
 
-                observe: () => RM.get<Model>().stream((state, subscription) {
-                  //It exposes the current state and the current StreamSubscription.
-                  return state.streamIncrementImmutable();
-                }),
 
-                ////This is NOT equivalent to this : 
-                //// observe: () => RM.stream(
-                ////   IN.get<Model>().streamIncrementImmutable(),
-                //// ),
-                ///
-                onSetState: (context, modelRM) {
-                  if (modelRM.hasError) {
-                    Scaffold.of(context).hideCurrentSnackBar();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${modelRM.error}'),
-                      ),
-                    );
-                  }
-                },
-                builder: (context, modelRM) {
-                  return Text('${modelRM.state.counter}');
-                },
-              )
-            else
-              Text('This widget will not affect other widgets'),
-            RaisedButton(
-              child: Text(
-                  '${switchRM.state ? "Dispose" : "Insert"} (OptimisticAsyncOnInitState)'),
-              onPressed: () {
-                switchRM.state = !switchRM.state;
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
-    );
-  }
-```
+</br>
+Note that all of the above examples are tested. With `states_rebuilder`, testing your business logic is the simplest part of your coding time as it is made up of simple dart classes. On the other hand, testing widgets is no less easy, because with `states_rebuilder` you can isolate the widget under test and mock its dependencies.**
 
-[Get the full working example](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/example/README.md)
 
-For more information about how to use states_rebuilder see in the [wiki](https://github.com/GIfatahTH/states_rebuilder/wiki) :
-* [**states_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
-* [**Navigate and show dialogs, menus, bottom sheets and snackBars without `BuildContext`**](https://github.com/GIfatahTH/states_rebuilder/wiki/side_effects_without_buildContext)
-* [What is a `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/what-is-a-ReactiveModel)
-* [Local and Global `ReactiveModel`](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-and-Global-ReactiveModel)
-  * [Local ReactiveModels](https://github.com/GIfatahTH/states_rebuilder/wiki/Local-ReactiveModels)
-  * [Global ReactiveModel  (Injector)](https://github.com/GIfatahTH/states_rebuilder/wiki/Global-ReactiveModel-Injector)
-* [Mutable state management](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management)
-* [Immutable state management](https://github.com/GIfatahTH/states_rebuilder/wiki/immutable-state-management)
-* [New ReactiveModel](https://github.com/GIfatahTH/states_rebuilder/wiki/new-reactivemodel)
-* [ReactiveModel key](https://github.com/GIfatahTH/states_rebuilder/wiki/reactivemodel_key)
-* [`states_rebuilder` API](https://github.com/GIfatahTH/states_rebuilder/wiki/states_rebuilder-API)
-  * [StateBuilder](https://github.com/GIfatahTH/states_rebuilder/wiki/StateBuilder)
-  * [WhenRebuilder and WhenRebuilderOr](https://github.com/GIfatahTH/states_rebuilder/wiki/WhenRebuilder-and-WhenRebuilderOr)
-  * [OnSetStateListener](https://github.com/GIfatahTH/states_rebuilder/wiki/OnSetStateListener)
-  * [Note on the exposedModel](https://github.com/GIfatahTH/states_rebuilder/wiki/Note-on-the-exposedModel)
-  * [Injector](https://github.com/GIfatahTH/states_rebuilder/wiki/Injector)
-  * [setState](https://github.com/GIfatahTH/states_rebuilder/wiki/setState)
-  * [future](https://github.com/GIfatahTH/states_rebuilder/wiki/future)
-  * [stream](https://github.com/GIfatahTH/states_rebuilder/wiki/stream)
-  * [refresh](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh)
-  * [listenToRM](https://github.com/GIfatahTH/states_rebuilder/wiki/listenToRM)
-  * [StateWithMixinBuilder](https://github.com/GIfatahTH/states_rebuilder/wiki/StateWithMixinBuilder)
-* [Dependency Injection](https://github.com/GIfatahTH/states_rebuilder/wiki/Dependency-Injection)
-  * [Asynchronous Dependency Injection](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection)
-  * [Development flavor](https://github.com/GIfatahTH/states_rebuilder/wiki/Development-flavor)
-* [Side effects without context](https://github.com/GIfatahTH/states_rebuilder/wiki/side-effects-without-context)
-* [Widget unit testing](https://github.com/GIfatahTH/states_rebuilder/wiki/Widget-unit-testing)
-* [Debugging print](https://github.com/GIfatahTH/states_rebuilder/wiki/Debugging-print)
-* [Update log](https://github.com/GIfatahTH/states_rebuilder/wiki/Update-log)
+

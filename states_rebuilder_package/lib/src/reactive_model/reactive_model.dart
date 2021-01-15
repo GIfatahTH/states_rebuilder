@@ -131,8 +131,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     return _snapState.hasData;
   }
 
-  String type() => '$T';
-
   //
   Disposer listenToRM(void Function(ReactiveModel<T> rm) fn) {
     _listeners.add(fn);
@@ -336,9 +334,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       _initialConnectionState = ConnectionState.none;
       _state = _nullState;
     }
-    //If the last state is waiting or has error, then notify
-    //without deep equality
-    // final bypassDeepEquality = _snapState.isWaiting || _snapState.hasError;
+
     _snapState = _snapState._copyWith(
       connectionState: ConnectionState.none,
       resetError: true,
@@ -390,6 +386,8 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   R stateAs<R>() {
     return state as R;
   }
+
+  String type() => '$T';
 
   @override
   int get hashCode => _cachedHash;
