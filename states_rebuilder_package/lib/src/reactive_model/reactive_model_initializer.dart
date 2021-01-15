@@ -45,6 +45,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       if (result != null) {
         _nullState ??= result;
         snapState = snapState._copyWith(data: result);
+        _coreRM.addToUndoQueue();
       }
       _onInitState();
       _notifyListeners();
@@ -88,6 +89,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       result,
       snapState.isImmutable,
     );
+    _coreRM.addToUndoQueue();
     if (_coreRM.persistanceProvider != null) {
       _coreRM.persistState();
     }

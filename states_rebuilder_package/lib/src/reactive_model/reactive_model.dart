@@ -346,7 +346,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     }
     if (!_isAsyncReactiveModel && _snapState != beforeRefreshState) {
       if (toHasData) {
-        _coreRM.addToUndoQueue();
         _coreRM._callOnData();
       }
       _notifyListeners();
