@@ -81,8 +81,8 @@ class ReactiveModelCore<T> {
         //the snap state is immutable and not changed.
         return;
       }
-      addToUndoQueue();
       snapState = snap;
+      addToUndoQueue();
     } else {
       snapState = SnapState<T>._withData(ConnectionState.done, _state!, false);
     }

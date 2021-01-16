@@ -7,7 +7,7 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
   bool get canRedoState => _redoQueue.isNotEmpty;
 
   ///Whether the state can be done
-  bool get canUndoState => _undoQueue.isNotEmpty;
+  bool get canUndoState => _undoQueue.length > 1;
 
   ///Clear undoStack;
   void clearUndoStack() {
@@ -20,8 +20,8 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
     if (!canRedoState) {
       return this as ReactiveModel<T>;
     }
-    _undoQueue.add(snapState);
-    snapState = _redoQueue.removeLast();
+    _undoQueue.add(_redoQueue.removeLast());
+    snapState = _undoQueue.last;
     _notifyListeners();
     return this as ReactiveModel<T>;
   }
@@ -31,9 +31,9 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
     if (!canUndoState) {
       return this as ReactiveModel<T>;
     }
-    _redoQueue.add(snapState);
+    _redoQueue.add(_undoQueue.removeLast());
     // final oldSnapShot = ;
-    snapState = _undoQueue.removeLast();
+    snapState = _undoQueue.last;
     _notifyListeners();
 
     return this as ReactiveModel<T>;
@@ -43,14 +43,8 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
     if (_undoStackLength < 1) {
       return;
     }
-
-    _undoQueue.add(
-      snapState._copyWith(
-        connectionState: ConnectionState.done,
-      ),
-    );
+    _undoQueue.add(snapState);
     _redoQueue.clear();
-
     if (_undoQueue.length > _undoStackLength) {
       _undoQueue.removeFirst();
     }
