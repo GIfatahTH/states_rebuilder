@@ -10,9 +10,12 @@ final Injected<int> counter = RM.inject<int>(
   () => throw Exception('Will be mocked'),
   // -- Optionally
   // For side effects
-  onData: (int? state) => print('data $state'),
-  onWaiting: () => print('waiting'),
-  onError: (e, s) => print('error : $e'),
+  onSetState: On.all(
+    onIdle: () => print('onIdle'),
+    onWaiting: () => print('waiting'),
+    onError: (e) => print('error : $e'),
+    onData: () => print('data ${counter.state}'),
+  ),
   onInitialized: (int state) => print('Initialized'),
 
   //For disposing resources

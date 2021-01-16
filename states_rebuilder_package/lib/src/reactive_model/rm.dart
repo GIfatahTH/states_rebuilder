@@ -218,7 +218,7 @@ abstract class RM {
 You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
     ''');
         assert(impl[env] != null, '''
-There is no implementation for ${env} of $T interface
+There is no implementation for $env of $T interface
     ''');
         _envMapLength ??= impl.length;
         assert(impl.length == _envMapLength, '''

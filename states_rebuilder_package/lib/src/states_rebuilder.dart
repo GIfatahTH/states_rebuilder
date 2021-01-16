@@ -94,8 +94,12 @@ abstract class StatesRebuilder<T> {
   }
 
   final _cleaner = <void Function()>[];
-  Disposer addToCleaner(void Function() fn) {
-    _cleaner.add(fn);
+  Disposer addToCleaner(void Function() fn, [bool insertAt0 = false]) {
+    if (insertAt0) {
+      _cleaner.insert(0, fn);
+    } else {
+      _cleaner.add(fn);
+    }
     return () => _cleaner.remove(fn);
   }
 

@@ -174,10 +174,13 @@ abstract class Injected<T> implements ReactiveModel<T> {
     }());
     final remove = _addToInjectedModels(this);
     if (_autoDisposeWhenNotUsed) {
-      addToCleaner(() {
-        remove();
-        _onDisposeState();
-      });
+      addToCleaner(
+        () {
+          remove();
+          _onDisposeState();
+        },
+        true,
+      );
     }
   }
 
@@ -193,7 +196,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
     if (!_isInitialized) {
       return;
     }
-    _onDisposed?.call(state);
+    _onDisposed?.call(_state!);
     if (_coreRM.persistanceProvider?.persistOn == PersistOn.disposed) {
       persistState();
     }
@@ -206,7 +209,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
   ///Clear localStorage
   void deleteAllPersistState() => _coreRM.persistanceProvider?.deleteAll();
 
-  /** ##################################Inherited####################### */
   Disposer _addToInheritedInjects(Injected inj) {
     _state = inj.state;
     _nullState = inj._nullState;
