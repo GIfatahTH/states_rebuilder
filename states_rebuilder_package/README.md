@@ -197,6 +197,9 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 **Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
 
+> [See more detailed information of the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
+
+
 To mutate the state and notify listener:
 ```dart
 //Inside any callback: 
@@ -246,6 +249,7 @@ On.or(
   or: () =>  print('or')
 )
 ```
+> [See more detailed information of the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
@@ -256,6 +260,12 @@ You can also refresh the state to its initial state and reinvoke the creation fu
 ```dart
 foo.refresh();
 ```
+
+`refresh` is useful to re-execute async data fetching to get the updated data from a server. A typical use is the refresh a ListView display.
+
+If the state is persisted, calling `refresh` will delete the persisted state and replace it with the newly created one.
+
+Calling `refresh` will cancel any pending async task form the state before refreshing.
 
 ## UI logic
 
@@ -314,14 +324,14 @@ foo.refresh();
       )
     ```
 
-* To listen to many injected models and exposes and merged state:
+* To listen to many injected models and expose a merged state:
   ```dart
     [model1, model1 ..., modelN].listen(
      child: On.all(
         isWaiting: ()=> Text('Waiting'),//If any is waiting
         hasError: (err)=> Text('Error'),//If any has error
         isIdle: ()=> Text('Idle'),//If any is Idle
-        hasData: ()=> Text('Data'),//All have Data
+        hasData: ()=> Text('Data'),//If all have Data
       ),
     )
   ```
@@ -379,7 +389,7 @@ class App extends StatelessWidget{
             //the right state for each widget branch using:
             item.of(context); //the Element owner of context is registered to item model.
             //or
-            item(context) //the Element owner of context is notregistered to item model.
+            item(context) //the Element owner of context is not registered to item model.
           }
         );
       },
