@@ -32,6 +32,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   final _inheritedInjects = <Injected>{};
   //
   late dynamic Function(ReactiveModel<T> rm) _creator;
+  bool _isStateInitiallyPersisted = false;
 
   void cloneToAndClean(ReactiveModel<T> to) {
     to._coreRM = _coreRM;

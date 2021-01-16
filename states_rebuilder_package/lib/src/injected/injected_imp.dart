@@ -42,10 +42,12 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
               if (innerResult is Function) {
                 innerResult = await innerResult();
               }
+              _isStateInitiallyPersisted = innerResult != null;
               return innerResult ?? creator(rm);
             };
           } else {
             c = (rm) {
+              _isStateInitiallyPersisted = result != null;
               var r = result;
               result = null;
               return r ?? creator(rm);
