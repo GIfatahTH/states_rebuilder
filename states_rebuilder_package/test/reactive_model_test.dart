@@ -591,30 +591,36 @@ void main() {
 //     },
 //   );
 
-  // testWidgets(
-  //   'ReactiveModel: onSetState and onRebuildState work',
-  //   (tester) async {
-  //     // WidgetsFlutterBinding.ensureInitialized();
-  //     int numberOfOnSetStateCall = 0;
-  //     int numberOfOnRebuildStateCall = 0;
+  testWidgets(
+    'ReactiveModel: onSetState and onRebuildState work',
+    (tester) async {
+      final modelRM = 0.inj();
 
-  //     //
-  //     modelRM?.setState(
-  //       (s) => s.increment(),
-  //       onSetState: () {
-  //         numberOfOnSetStateCall++;
-  //       },
-  //       onRebuildState: () {
-  //         numberOfOnRebuildStateCall++;
-  //       },
-  //     );
-  //     await tester.pump();
-  //     expect(numberOfOnSetStateCall, equals(1));
-  //     await tester.pump();
+      int numberOfOnSetStateCall = 0;
+      int numberOfOnRebuildStateCall = 0;
+      final widget = modelRM.listen(child: On(() {
+        return Container();
+      }));
 
-  //     expect(numberOfOnRebuildStateCall, equals(1));
-  //   },
-  // );
+      await tester.pumpWidget(widget);
+
+      //
+      modelRM.setState(
+        (s) => s + 1,
+        onSetState: On(() {
+          numberOfOnSetStateCall++;
+        }),
+        onRebuildState: () {
+          numberOfOnRebuildStateCall++;
+        },
+      );
+      await tester.pump();
+      expect(numberOfOnSetStateCall, equals(1));
+      await tester.pump();
+
+      expect(numberOfOnRebuildStateCall, equals(1));
+    },
+  );
 
   testWidgets(
     'ReactiveModel: onData work for sync call',
@@ -1963,49 +1969,41 @@ void main() {
 //       },
 //     );
 
-//     testWidgets(
-//       'onSetState and onRebuildState work',
-//       (tester) async {
-//         final ReactiveModel<int> modelRM =
-//             ReactiveModelImp<int>(Inject(() => 0));
+  testWidgets(
+    'onSetState and onRebuildState work',
+    (tester) async {
+      final modelRM = 0.inj();
 
-//         int numberOfOnSetStateCall = 0;
-//         int numberOfOnRebuildStateCall = 0;
-//         BuildContext contextFromOnSetState;
-//         BuildContext contextFromOnRebuildState;
-//         String lifeCycleTracker = '';
-//         final widget = StateBuilder(
-//           observeMany: [() => modelRM],
-//           builder: (_, __) {
-//             lifeCycleTracker += 'build, ';
-//             return Container();
-//           },
-//         );
-//         await tester.pumpWidget(widget);
-//         expect(numberOfOnSetStateCall, equals(0));
-//         //
-//         modelRM.setState(
-//           (_) => modelRM.state + 1,
-//           onSetState: (context) {
-//             numberOfOnSetStateCall++;
-//             contextFromOnSetState = context;
-//             lifeCycleTracker += 'onSetState, ';
-//           },
-//           onRebuildState: (context) {
-//             numberOfOnRebuildStateCall++;
-//             contextFromOnRebuildState = context;
-//             lifeCycleTracker += 'onRebuildState, ';
-//           },
-//         );
-//         await tester.pump();
-//         expect(numberOfOnSetStateCall, equals(1));
-//         expect(contextFromOnSetState, isNotNull);
-//         expect(numberOfOnRebuildStateCall, equals(1));
-//         expect(contextFromOnRebuildState, isNotNull);
-//         expect(lifeCycleTracker,
-//             equals('build, onSetState, build, onRebuildState, '));
-//       },
-//     );
+      int numberOfOnSetStateCall = 0;
+      int numberOfOnRebuildStateCall = 0;
+
+      String lifeCycleTracker = '';
+
+      final widget = modelRM.listen(child: On(() {
+        lifeCycleTracker += 'build, ';
+        return Container();
+      }));
+      await tester.pumpWidget(widget);
+      expect(numberOfOnSetStateCall, equals(0));
+      //
+      modelRM.setState(
+        (_) => modelRM.state + 1,
+        onSetState: On(() {
+          numberOfOnSetStateCall++;
+          lifeCycleTracker += 'onSetState, ';
+        }),
+        onRebuildState: () {
+          numberOfOnRebuildStateCall++;
+          lifeCycleTracker += 'onRebuildState, ';
+        },
+      );
+      await tester.pump();
+      expect(numberOfOnSetStateCall, equals(1));
+      expect(numberOfOnRebuildStateCall, equals(1));
+      expect(lifeCycleTracker,
+          equals('build, onSetState, build, onRebuildState, '));
+    },
+  );
 
 //     testWidgets(
 //       'sync methods with and without error work',

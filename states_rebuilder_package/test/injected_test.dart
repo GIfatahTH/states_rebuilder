@@ -1448,6 +1448,245 @@ void main() {
       expect(counter2.state, 0);
     },
   );
+
+  testWidgets(
+    'Injected onSetState work',
+    (tester) async {
+      int counter1OnSetState = 0;
+      String counter2OnSetState = '';
+      final counter1 = RM.inject(
+        () => 0,
+        onSetState: On(
+          () => counter1OnSetState++,
+        ),
+      );
+
+      final counter2 = RM.inject(
+        () => 0,
+        onSetState: On.all(
+          onIdle: () => counter2OnSetState += 'Idle ',
+          onWaiting: () => counter2OnSetState += 'Waiting ',
+          onError: (_) => counter2OnSetState += 'Error ',
+          onData: () => counter2OnSetState += 'Data ',
+        ),
+      );
+      expect(counter1OnSetState, 0);
+      expect(counter2OnSetState, '');
+      //
+      counter1.state++;
+      counter2.setState(
+          (s) => Future.delayed(Duration(seconds: 1), () => 'newState'));
+      await tester.pump();
+      expect(counter1OnSetState, 1);
+      expect(counter2OnSetState, 'Waiting ');
+      await tester.pump(Duration(seconds: 1));
+      expect(counter1OnSetState, 1);
+      expect(counter2OnSetState, 'Waiting Data ');
+      //
+      counter1.state++;
+      counter2.setState(
+          (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()));
+      await tester.pump();
+      expect(counter1OnSetState, 2);
+      expect(counter2OnSetState, 'Waiting Data Waiting ');
+      await tester.pump(Duration(seconds: 1));
+      expect(counter1OnSetState, 2);
+      expect(counter2OnSetState, 'Waiting Data Waiting Error ');
+    },
+  );
+
+  testWidgets(
+    'onSetState of setState override onSetState if inject if they have the '
+    'same status',
+    (tester) async {
+      int injectOnSetState = 0;
+      int setStateOnSetState = 0;
+      final counter = RM.inject(
+        () => 0,
+        onSetState: On(
+          () => injectOnSetState++,
+        ),
+      );
+
+      counter.setState(
+        (s) => s + 1,
+        onSetState: On.data(() => setStateOnSetState++),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 0);
+      expect(setStateOnSetState, 1);
+
+      counter.setState(
+        (s) => s + 1,
+        onSetState: On.or(or: () => setStateOnSetState++),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 0);
+      expect(setStateOnSetState, 2);
+    },
+  );
+
+  testWidgets(
+    'onSetState of setState does not override onSetState if inject if they have '
+    'different status, case On.onData is defined for setState',
+    (tester) async {
+      int injectOnSetState = 0;
+      int setStateOnSetState = 0;
+      final counter = RM.inject(
+        () => 0,
+        onSetState: On(
+          () => injectOnSetState++,
+        ),
+      );
+
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => 1),
+        onSetState: On.data(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 1);
+      expect(setStateOnSetState, 0);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 1);
+      expect(setStateOnSetState, 1);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On.data(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 2);
+      expect(setStateOnSetState, 1);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 1);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 2);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 3);
+    },
+  );
+
+  testWidgets(
+    'onSetState of setState does not override onSetState if inject if they have '
+    'different status, case On.error is defined for setState',
+    (tester) async {
+      int injectOnSetState = 0;
+      int setStateOnSetState = 0;
+      final counter = RM.inject(
+        () => 0,
+        onSetState: On(
+          () => injectOnSetState++,
+        ),
+      );
+
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => 1),
+        onSetState: On.error((err) {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 1);
+      expect(setStateOnSetState, 0);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 2);
+      expect(setStateOnSetState, 0);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On.error((err) {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 0);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 1);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 2);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 3);
+      expect(setStateOnSetState, 3);
+    },
+  );
+
+  testWidgets(
+    'onSetState of setState does not override onSetState if inject if they have '
+    'different status, case On.waiting is defined for setState',
+    (tester) async {
+      int injectOnSetState = 0;
+      int setStateOnSetState = 0;
+      final counter = RM.inject(
+        () => 0,
+        onSetState: On(
+          () => injectOnSetState++,
+        ),
+      );
+
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => 1),
+        onSetState: On.waiting(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 0);
+      expect(setStateOnSetState, 1);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 1);
+      expect(setStateOnSetState, 1);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On.waiting(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 1);
+      expect(setStateOnSetState, 2);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 2);
+      expect(setStateOnSetState, 2);
+      //
+      counter.setState(
+        (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
+        onSetState: On(() {
+          setStateOnSetState++;
+        }),
+      );
+      await tester.pump();
+      expect(injectOnSetState, 2);
+      expect(setStateOnSetState, 3);
+      await tester.pump(Duration(seconds: 1));
+      expect(injectOnSetState, 2);
+      expect(setStateOnSetState, 4);
+    },
+  );
 }
 
 class VanillaModel {

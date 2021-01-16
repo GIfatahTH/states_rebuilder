@@ -100,7 +100,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
 
   StreamSubscription<dynamic> _handleAsyncSubscription(
     Stream asyncResult, {
-    void Function()? onSetState,
+    On<void>? onSetState,
     void Function()? onRebuildState,
     void Function(dynamic? error)? onError,
     void Function(T data)? onData,
@@ -121,19 +121,19 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         _coreRM._setToHasData(
           data,
           onData: onData,
+          onSetState: onSetState,
           onRebuildState: onRebuildState,
           context: context,
         );
-        onSetState?.call();
       },
       onError: (e, s) {
         _coreRM._setToHasError(
           e,
           s,
+          onSetState: onSetState,
           onError: onError,
           context: context,
         );
-        onSetState?.call();
       },
       onDone: () {
         if (_completer?.isCompleted == false) {

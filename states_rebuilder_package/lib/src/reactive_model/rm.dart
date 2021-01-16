@@ -360,7 +360,18 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///[_Scaffold.scaffoldMessengerState]  getter.
   static _Scaffold scaffold = _scaffold;
 
-  ///Initialize the default persistance provider to be used
+  ///Initialize the default persistance provider to be used.
+  ///
+  ///Called in the main method:
+  ///```dart
+  ///void main()async{
+  /// WidgetsFlutterBinding.ensureInitialized();
+  ///
+  /// await RM.storageInitializer(IPersistStoreImp());
+  /// runApp(MyApp());
+  ///}
+  ///
+  ///```
   ///
   ///This is considered as the default storage provider. It can be overridden
   ///with [PersistState.persistStateProvider]

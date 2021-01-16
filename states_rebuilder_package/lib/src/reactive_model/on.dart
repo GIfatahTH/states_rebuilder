@@ -26,6 +26,10 @@ class On<T> {
   ///Callback to be called when first the model has data.
   final T Function()? onData;
   final _OnType _onType;
+
+  bool get _hasOnWaiting => onWaiting != null;
+  bool get _hasOnError => onError != null;
+  bool get _hasOnData => onData != null;
   On._({
     required this.onIdle,
     required this.onWaiting,

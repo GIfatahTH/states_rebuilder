@@ -54,7 +54,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       final m = _debugPrintWhenNotifiedPreMessage?.isNotEmpty == true
           ? _debugPrintWhenNotifiedPreMessage
           : '$T';
-      throw ArgumentError(
+      throw ArgumentError.notNull(
         '\nYou want to get the state of null value!\n'
         'The state of $m has no defined initialState and it '
         '${_snapState.isWaiting ? "is waiting for data" : "has an error"}. '
@@ -179,9 +179,9 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   /// if [onError] is defined then it will be true.
   ///  * **onSetState** and **onRebuildState**: for more general side effects to
   /// execute before and after rebuilding observers.
-  ///  * **debounceDelay**: time in seconds to debounce the execution of
+  ///  * **debounceDelay**: time in milliseconds to debounce the execution of
   /// [setState].
-  ///  * **throttleDelay**: time in seconds to throttle the execution of
+  ///  * **throttleDelay**: time in milliseconds to throttle the execution of
   /// [setState].
   ///  * **skipWaiting**: Wether to notify observers on the waiting state.
   ///  * **shouldAwait**: Wether to await of any existing async call.
@@ -194,7 +194,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     void Function(T data)? onData,
     void Function(dynamic? error)? onError,
     bool catchError = false,
-    void Function()? onSetState,
+    On<void>? onSetState,
     void Function()? onRebuildState,
     int debounceDelay = 0,
     int throttleDelay = 0,
@@ -222,9 +222,9 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           RM.context = context;
           _coreRM._setToIsWaiting(
             skipWaiting: skipWaiting,
+            onSetState: onSetState,
             context: context,
           );
-          onSetState?.call();
           isDone = false;
           _handleAsyncSubscription(
             asyncResult,
@@ -238,19 +238,20 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           _coreRM._setToHasData(
             result,
             onData: onData,
+            onSetState: onSetState,
             onRebuildState: onRebuildState,
             context: context,
           );
-          onSetState?.call();
         }
       } catch (e, s) {
         _coreRM._setToHasError(
           e,
           s,
+          onSetState: onSetState,
           onError: onError,
           context: context,
         );
-        onSetState?.call();
+
         final shouldCatchError = catchError ||
             _whenConnectionState ||
             _onHasErrorCallback ||

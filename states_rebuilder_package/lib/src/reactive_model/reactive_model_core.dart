@@ -37,22 +37,23 @@ class ReactiveModelCore<T> {
 
   Completer<dynamic>? _completer;
 
-  void _setToIsIdle() {
-    if (_completer?.isCompleted == false) {
-      _completer!.complete(_state);
-    }
-    if (_isInitialized) {
-      snapState = SnapState._withData(
-        ConnectionState.none,
-        _state!,
-        snapState.isImmutable,
-      );
-    }
-  }
+  // void _setToIsIdle() {
+  //   if (_completer?.isCompleted == false) {
+  //     _completer!.complete(_state);
+  //   }
+  //   if (_isInitialized) {
+  //     snapState = SnapState._withData(
+  //       ConnectionState.none,
+  //       _state!,
+  //       snapState.isImmutable,
+  //     );
+  //   }
+  // }
 
   void _setToIsWaiting({
     required bool skipWaiting,
     bool shouldNotify = true,
+    On<void>? onSetState,
     BuildContext? context,
   }) {
     if (skipWaiting) {
@@ -62,7 +63,7 @@ class ReactiveModelCore<T> {
     snapState = SnapState._waiting(_state);
     if (shouldNotify) {
       RM.context = context;
-      _callOnWaiting();
+      _callOnWaiting(onSetState);
       notifyListeners();
     }
   }
@@ -70,7 +71,8 @@ class ReactiveModelCore<T> {
   void _setToHasData(
     dynamic data, {
     Function(T data)? onData,
-    Function()? onRebuildState,
+    On<void>? onSetState,
+    void Function()? onRebuildState,
     BuildContext? context,
   }) {
     if (data is T) {
@@ -88,15 +90,16 @@ class ReactiveModelCore<T> {
     if (_completer?.isCompleted == false) {
       _completer!.complete(_state);
     }
+
+    RM.context = context;
+    //onData of setState override onData of injected
+    _callOnData(onSetState, onData);
+    notifyListeners();
     if (onRebuildState != null) {
       WidgetsBinding.instance?.addPostFrameCallback(
         (_) => onRebuildState(),
       );
     }
-    RM.context = context;
-    //onData of setState override onData of injected
-    _callOnData(onData);
-    notifyListeners();
     if (persistanceProvider != null && persistanceProvider!.persistOn == null) {
       persistState();
     }
@@ -105,6 +108,7 @@ class ReactiveModelCore<T> {
   void _setToHasError(
     dynamic e,
     StackTrace s, {
+    On<void>? onSetState,
     Function(dynamic? error)? onError,
     BuildContext? context,
   }) {
@@ -123,36 +127,58 @@ class ReactiveModelCore<T> {
         ..completeError(e, s);
     }
     RM.context = context;
-    _callOnError(e, s, onError);
+    _callOnError(e, s, onSetState, onError);
     notifyListeners();
   }
 
-  void _callOnData([dynamic Function(T)? onData]) {
+  void _callOnData([On<void>? onSetState, dynamic Function(T)? onData]) {
+    if (onSetState != null && onSetState._hasOnData) {
+      onSetState.call(isIdle: false, isWaiting: false);
+      return;
+    }
     if (onData != null) {
       onData.call(_state!);
-    } else if (on != null) {
+      return;
+    }
+    if (on != null && on!._hasOnData) {
       on!.call(isIdle: false, isWaiting: false);
-    } else {
-      this.onData?.call(_state!);
+      return;
     }
+    this.onData?.call(_state!);
   }
 
-  void _callOnWaiting() {
-    if (on != null) {
+  void _callOnWaiting(
+    On<void>? onSetState,
+  ) {
+    if (onSetState != null && onSetState._hasOnWaiting) {
+      onSetState.call(isIdle: false, isWaiting: true);
+      return;
+    }
+    if (on != null && on!._hasOnWaiting) {
       on!.call(isIdle: false, isWaiting: true);
-    } else {
-      onWaiting?.call();
+      return;
     }
+    onWaiting?.call();
   }
 
-  void _callOnError(dynamic e, StackTrace? s,
-      [void Function(dynamic)? onError]) {
+  void _callOnError(
+    dynamic e,
+    StackTrace? s, [
+    On<void>? onSetState,
+    void Function(dynamic)? onError,
+  ]) {
+    if (onSetState != null && onSetState._hasOnError) {
+      onSetState(isIdle: false, isWaiting: false, error: e);
+      return;
+    }
     if (onError != null) {
       onError.call(e);
-    } else if (on != null) {
-      on!.call(isIdle: false, isWaiting: false, error: e);
-    } else {
-      this.onError?.call(e, s);
+      return;
     }
+    if (on != null && on!._hasOnError) {
+      on!.call(isIdle: false, isWaiting: false, error: e);
+      return;
+    }
+    this.onError?.call(e, s);
   }
 }
