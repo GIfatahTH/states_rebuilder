@@ -174,8 +174,8 @@ void main() {
     final rm2 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
     final rm3 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
     final widget = [rm1, rm2, rm3].listen(
-      child: On.data(
-        () => Directionality(
+      child: OnCombined.data(
+        (_) => Directionality(
           textDirection: TextDirection.ltr,
           child: Text('${rm1.state}-${rm2.state}-${rm3.state}'),
         ),
@@ -207,11 +207,11 @@ void main() {
     final widget = Directionality(
       textDirection: TextDirection.ltr,
       child: [rm1, rm2, rm3].listen(
-        child: On.all(
+        child: OnCombined.all(
           onIdle: () => Text('Idle'),
           onWaiting: () => Text('Waiting'),
           onError: (e) => Text('${e.message}'),
-          onData: () => Text(
+          onData: (_) => Text(
             '${rm1.state.count}-${rm2.state.count}-${rm3.state.count}',
           ),
         ),

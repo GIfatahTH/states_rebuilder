@@ -171,8 +171,8 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
         });
       }
     }
-    _widget = _models.listen(
-      onSetState: On.any(() => widget.onSetState?.call(context, rm)),
+    _widget = _models.listen<T>(
+      onSetState: OnCombined.any((_) => widget.onSetState?.call(context, rm)),
       shouldRebuild: () {
         //if it is allowed to rebuild (true) then _isDirty is true
         return widget.shouldRebuild?.call(rm) ?? true;
@@ -180,12 +180,12 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
       watch: widget.watch != null ? () => widget.watch!(rm) : null,
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
-      child: On.or(
+      child: OnCombined.or(
         onIdle: widget.onIdle,
         onWaiting: widget.onWaiting,
         onError: widget.onError,
-        onData: widget.onData != null ? () => widget.onData!(rm.state) : null,
-        or: () => widget.builder(context, rm),
+        onData: widget.onData,
+        or: (_) => widget.builder(context, rm),
       ),
     );
   }

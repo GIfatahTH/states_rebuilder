@@ -8,6 +8,7 @@ export 'src/reactive_model.dart'
         PersistOn,
         Injected,
         On,
+        OnCombined,
         StateBuilder,
         InjectedX,
         ReactiveModelX,

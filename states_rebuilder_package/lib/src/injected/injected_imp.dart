@@ -30,6 +30,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
       late FutureOr<T> Function(ReactiveModel<T> rm) c;
       _creator = (rm) {
         if (!_isFirstInitialized) {
+          //_isFirstInitialized is set to false fro each unit test
           _coreRM.persistanceProvider = persist();
           var result = _coreRM.persistanceProvider!.read();
           if (result is Future) {
@@ -38,9 +39,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
               result = null;
               if (innerResult is Function) {
                 innerResult = await innerResult();
-              }
-              if (innerResult is Function) {
-                innerResult = await innerResult();
+                if (innerResult is Function) {
+                  innerResult = await innerResult();
+                }
               }
               _isStateInitiallyPersisted = innerResult != null;
               return innerResult ?? creator(rm);

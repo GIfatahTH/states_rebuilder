@@ -1,10 +1,10 @@
 part of '../reactive_model.dart';
 
 extension ReactiveModelX on List<ReactiveModel> {
-  Widget listen({
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
-    required On<Widget> child,
+  Widget listen<T>({
+    OnCombined<T, void>? onSetState,
+    OnCombined<T, void>? onAfterBuild,
+    required OnCombined<T, Widget> child,
     void Function()? initState,
     void Function()? dispose,
     void Function(_StateBuilder oldWidget)? didUpdateWidget,
@@ -17,49 +17,40 @@ extension ReactiveModelX on List<ReactiveModel> {
       initState: (_, setState) {
         initState?.call();
         final disposer = <Disposer>[];
+        ReactiveModel? _exposedRM;
+        if (T != dynamic && T != Object) {
+          _exposedRM = this.firstWhereOrNull((e) => e is ReactiveModel<T>);
+        }
         for (var rm in this) {
           rm._initialize();
-          if (onAfterBuild != null) {
-            WidgetsBinding.instance?.addPostFrameCallback(
-              (_) => onAfterBuild(
-                isWaiting: this.any((e) => e._snapState.isWaiting),
-                error: this.any((e) => e._snapState.hasError)
-                    ? this.firstWhere((e) => e._snapState.hasError).error
-                    : null,
-                isIdle: this.any((e) => e._snapState.isIdle),
-              ),
-            );
-          }
           disposer.add(
             rm._listenToRMForStateFulWidget((_, tag) {
               if (shouldRebuild?.call() == false) {
                 return;
               }
-              onSetState?.call(
-                isWaiting: this.any((e) => e._snapState.isWaiting),
-                error: this.any((e) => e._snapState.hasError)
-                    ? this.firstWhere((e) => e._snapState.hasError).error
-                    : null,
-                isIdle: this.any((e) => e._snapState.isIdle),
-              );
+              onSetState?.call(_getCombinedSnap(this), rm._state);
 
-              if (child._onType == _OnType.onData && !rm._snapState.hasData) {
+              if (child._hasOnDataOnly && !rm._snapState.hasData) {
                 return;
               }
 
               if (onAfterBuild != null) {
                 WidgetsBinding.instance?.addPostFrameCallback(
-                  (_) => onAfterBuild(
-                    isWaiting: this.any((e) => e._snapState.isWaiting),
-                    error: this.any((e) => e._snapState.hasError)
-                        ? this.firstWhere((e) => e._snapState.hasError).error
-                        : null,
-                    isIdle: this.any((e) => e._snapState.isIdle),
-                  ),
+                  (_) {
+                    onAfterBuild.call(_getCombinedSnap(this), rm._state);
+                  },
                 );
               }
-              setState();
+              setState(_exposedRM ?? rm);
             }),
+          );
+        }
+        if (onAfterBuild != null) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) {
+              onAfterBuild.call(
+                  _getCombinedSnap(this), (_exposedRM ?? this.first)._state);
+            },
           );
         }
         return () => disposer.forEach((e) => e());
@@ -78,16 +69,32 @@ extension ReactiveModelX on List<ReactiveModel> {
       },
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
-      builder: (_) {
-        return child.call(
-          isWaiting: this.any((e) => e._snapState.isWaiting),
-          error: this.any((e) => e._snapState.hasError)
-              ? this.firstWhere((e) => e._snapState.hasError).error
-              : null,
-          isIdle: this.any((e) => e._snapState.isIdle),
-        )!;
+      builder: (_, rm) {
+        return child.call(_getCombinedSnap(this), rm!._state)!;
       },
     );
+  }
+
+  SnapState _getCombinedSnap(List<ReactiveModel> rms) {
+    SnapState? snapWaiting;
+    SnapState? snapError;
+    SnapState? snapIdle;
+    for (var e in this) {
+      if (e._snapState.isWaiting) {
+        snapWaiting = e._snapState;
+        break;
+      }
+      if (e._snapState.hasError) {
+        snapError = e._snapState;
+      }
+      if (e._snapState.isIdle) {
+        snapIdle = e._snapState;
+      }
+    }
+    return snapWaiting ??
+        snapError ??
+        snapIdle ??
+        SnapState._withData(ConnectionState.done, 'data', true);
   }
 
   /// {@macro injected.rebuilder}
@@ -104,7 +111,7 @@ extension ReactiveModelX on List<ReactiveModel> {
       dispose: dispose != null ? () => dispose() : null,
       shouldRebuild: shouldRebuild != null ? () => shouldRebuild() : null,
       watch: watch,
-      child: On.data(() => builder()),
+      child: OnCombined.data((_) => builder()),
     );
   }
 
@@ -123,11 +130,11 @@ extension ReactiveModelX on List<ReactiveModel> {
       initState: initState != null ? () => initState() : null,
       dispose: dispose != null ? () => dispose() : null,
       shouldRebuild: shouldRebuild != null ? () => shouldRebuild() : null,
-      child: On.all(
+      child: OnCombined.all(
         onIdle: onIdle,
         onWaiting: onWaiting,
         onError: onError,
-        onData: onData,
+        onData: (_) => onData(),
       ),
     );
   }
@@ -150,12 +157,12 @@ extension ReactiveModelX on List<ReactiveModel> {
       dispose: dispose != null ? () => dispose() : null,
       shouldRebuild: shouldRebuild != null ? () => shouldRebuild() : null,
       watch: watch,
-      child: On.or(
+      child: OnCombined.or(
         onIdle: onIdle,
         onWaiting: onWaiting,
         onError: onError,
-        onData: onData,
-        or: builder,
+        onData: onData == null ? null : (_) => onData(),
+        or: (_) => builder(),
       ),
     );
   }

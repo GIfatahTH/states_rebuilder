@@ -21,6 +21,7 @@ part 'injected/injected_x.dart';
 part 'injected/injected_imp.dart';
 part 'logger.dart';
 part 'reactive_model/on.dart';
+part 'reactive_model/on_combined.dart';
 part 'reactive_model/reactive_model.dart';
 part 'reactive_model/reactive_model_builders.dart';
 part 'reactive_model/reactive_model_core.dart';

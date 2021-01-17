@@ -133,7 +133,7 @@ class ReactiveModelCore<T> {
 
   void _callOnData([On<void>? onSetState, dynamic Function(T)? onData]) {
     if (onSetState != null && onSetState._hasOnData) {
-      onSetState.call(isIdle: false, isWaiting: false);
+      onSetState.call(_snapState);
       return;
     }
     if (onData != null) {
@@ -141,7 +141,7 @@ class ReactiveModelCore<T> {
       return;
     }
     if (on != null && on!._hasOnData) {
-      on!.call(isIdle: false, isWaiting: false);
+      on!.call(_snapState);
       return;
     }
     this.onData?.call(_state!);
@@ -151,11 +151,11 @@ class ReactiveModelCore<T> {
     On<void>? onSetState,
   ) {
     if (onSetState != null && onSetState._hasOnWaiting) {
-      onSetState.call(isIdle: false, isWaiting: true);
+      onSetState.call(_snapState);
       return;
     }
     if (on != null && on!._hasOnWaiting) {
-      on!.call(isIdle: false, isWaiting: true);
+      on!.call(_snapState);
       return;
     }
     onWaiting?.call();
@@ -168,7 +168,7 @@ class ReactiveModelCore<T> {
     void Function(dynamic)? onError,
   ]) {
     if (onSetState != null && onSetState._hasOnError) {
-      onSetState(isIdle: false, isWaiting: false, error: e);
+      onSetState(_snapState);
       return;
     }
     if (onError != null) {
@@ -176,7 +176,7 @@ class ReactiveModelCore<T> {
       return;
     }
     if (on != null && on!._hasOnError) {
-      on!.call(isIdle: false, isWaiting: false, error: e);
+      on!.call(_snapState);
       return;
     }
     this.onError?.call(e, s);

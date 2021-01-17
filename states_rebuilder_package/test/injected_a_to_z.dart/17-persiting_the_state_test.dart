@@ -136,7 +136,7 @@ void main() async {
     counterFuture.refresh();
     await tester.pump();
     //The counterFuture store is removed
-    expect(store['counterFuture'], null);
+    expect(store['counterFuture'], '10');
     //It is waiting for the future
     expect(find.text('Waiting...'), findsOneWidget);
     //

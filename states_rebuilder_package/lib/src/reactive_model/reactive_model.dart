@@ -340,7 +340,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       connectionState: ConnectionState.none,
       resetError: true,
     );
-    _coreRM.persistanceProvider?.delete();
     _initialize();
     if (_toRefresh.isNotEmpty) {
       _refreshListeners();

@@ -267,6 +267,8 @@ If the state is persisted, calling `refresh` will delete the persisted state and
 
 Calling `refresh` will cancel any pending async task form the state before refreshing.
 
+> [See more detailed information of the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+
 ## UI logic
 
 * To listen to an injected state from the User Interface:
@@ -335,6 +337,7 @@ Calling `refresh` will cancel any pending async task form the state before refre
       ),
     )
   ```
+> [See more detailed information available widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
 
 * To undo and redo immutable state:
   ```dart

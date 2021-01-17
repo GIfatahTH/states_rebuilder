@@ -70,7 +70,7 @@ abstract class StatesRebuilder<T> {
             }
           }
 
-          if (setState()) {
+          if (setState(rm)) {
             onSetState?.call(context);
             if (onAfterBuild != null) {
               WidgetsBinding.instance?.addPostFrameCallback(
@@ -87,7 +87,7 @@ abstract class StatesRebuilder<T> {
       didChangeDependencies: (context) => didChangeDependencies?.call(context),
       didUpdateWidget: (context, oldWidget) =>
           didUpdateWidget?.call(context, oldWidget),
-      builder: (context) {
+      builder: (context, _) {
         return child.call(context);
       },
     );

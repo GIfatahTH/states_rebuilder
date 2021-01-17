@@ -257,9 +257,45 @@ class StreamNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return streamedHelloName.listen(
       child: On.or(
-        onError: (err) => Text(err.message, style: TextStyle(color: Colors.red),),
+        onError: (err) => Text(
+          err.message,
+          style: TextStyle(color: Colors.red),
+        ),
         //This will rebuild if the stream emits valid data only
         or: () => Text('${streamedHelloName.state}'),
+      ),
+    );
+  }
+}
+
+List<String> _products = [];
+Future<List<String>> _fetchProduct() async {
+  await Future.delayed(Duration(seconds: 1));
+  return _products..add('Product ${_products.length}');
+}
+
+final products = RM.injectFuture(() => _fetchProduct());
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: () => products.refresh(),
+      child: products.futureBuilder(
+        onWaiting: () => CircularProgressIndicator(),
+        onError: (err) => Text('error : $err'),
+        onData: (_) {
+          return products.listen(
+            child: On.data(
+              () => ListView.builder(
+                itemCount: products.state.length,
+                itemBuilder: (context, index) {
+                  return Text(products.state[index]);
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }

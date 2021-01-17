@@ -57,11 +57,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         // state;
         if (onAfterBuild != null) {
           WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onAfterBuild(
-              isIdle: snapState.isIdle,
-              isWaiting: snapState.isWaiting,
-              error: snapState.error,
-            ),
+            (_) => onAfterBuild(_snapState),
           );
         }
         return _listenToRMForStateFulWidget((rm, _) {
@@ -70,40 +66,28 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
             return;
           }
 
-          onSetState?.call(
-            isIdle: rm._snapState.isIdle,
-            isWaiting: rm._snapState.isWaiting,
-            error: rm.error,
-          );
-          _onHasErrorCallback = child._onType == _OnType.when;
+          onSetState?.call(rm._snapState);
+          _onHasErrorCallback = child._hasOnError;
 
-          if (child._onType == _OnType.onData &&
+          if (child._hasOnDataOnly &&
               (rm._snapState.hasError || rm._snapState.isWaiting)) {
             return;
           }
           if (onAfterBuild != null) {
             WidgetsBinding.instance?.addPostFrameCallback(
-              (_) => onAfterBuild(
-                isIdle: rm._snapState.isIdle,
-                isWaiting: rm._snapState.isWaiting,
-                error: rm.error,
-              ),
+              (_) => onAfterBuild.call(rm._snapState),
             );
           }
-          setState();
+          setState(rm);
         });
       },
       dispose: (context) {
         dispose?.call();
       },
       watch: watch,
-      builder: (_) {
-        _onHasErrorCallback = child._onType == _OnType.when;
-        return child.call(
-          isIdle: snapState.isIdle,
-          isWaiting: snapState.isWaiting,
-          error: snapState.error,
-        )!;
+      builder: (_, __) {
+        _onHasErrorCallback = child._hasOnError;
+        return child.call(_snapState)!;
       },
     );
   }
@@ -171,11 +155,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       },
       shouldRebuild: (_) => true,
       onSetState: (_, rm) {
-        onSetState?.call(
-          isIdle: rm!.isDone,
-          isWaiting: rm._snapState.isWaiting,
-          error: rm.error,
-        );
+        onSetState?.call(_snapState);
         if (rm!._snapState.hasData) {
           if (rm.state is T) {
             snapState = SnapState<T>._withData(
@@ -276,11 +256,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         dispose?.call();
       },
       onSetState: (_, rm) {
-        onSetState?.call(
-          isIdle: rm!.isDone,
-          isWaiting: rm._snapState.isWaiting,
-          error: rm._snapState.error,
-        );
+        onSetState?.call(rm!._snapState);
         if (rm!._snapState.hasData) {
           if (rm.state is T) {
             snapState = SnapState<T>._withData(

@@ -692,6 +692,34 @@ void main() {
     },
   );
 
+  testWidgets(
+    'On.waiting for listen.child parameter is for waiting and data',
+    (tester) async {
+      final model = 0.inj();
+
+      int numberOfRebuild = 0;
+      final widget = model.listen(
+        child: On.waiting(
+          () {
+            numberOfRebuild++;
+            return Container();
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(numberOfRebuild, 1);
+      //
+      // model.setState(
+      //   (s) => Future.delayed(Duration(seconds: 1), () => 1),
+      // );
+      // await tester.pump();
+      // expect(numberOfRebuild, 2);
+      // await tester.pump(Duration(seconds: 1));
+      // expect(numberOfRebuild, 3);
+    },
+  );
+
 //   testWidgets(
 //     'ReactiveModel : reactive singleton and reactive instances works independently',
 //     (tester) async {

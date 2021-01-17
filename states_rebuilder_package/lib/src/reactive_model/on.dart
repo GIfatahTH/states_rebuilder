@@ -25,18 +25,20 @@ class On<T> {
 
   ///Callback to be called when first the model has data.
   final T Function()? onData;
-  final _OnType _onType;
+  // final _OnType _onType;
 
   bool get _hasOnWaiting => onWaiting != null;
   bool get _hasOnError => onError != null;
+  bool get _hasOnIdle => onIdle != null;
   bool get _hasOnData => onData != null;
+  bool _hasOnDataOnly = false;
   On._({
     required this.onIdle,
     required this.onWaiting,
     required this.onError,
     required this.onData,
-    required _OnType onType,
-  }) : _onType = onType;
+    // required _OnType onType,
+  });
 
   ///The callback is always invoked when the [Injected] model emits a
   ///notification.
@@ -44,11 +46,11 @@ class On<T> {
     T Function() builder,
   ) {
     return On._(
-      onIdle: builder,
-      onWaiting: builder,
-      onError: (_) => builder(),
+      onIdle: null,
+      onWaiting: null,
+      onError: null,
       onData: builder,
-      onType: _OnType.when,
+      // onType: _OnType.when,
     );
   }
 
@@ -57,11 +59,11 @@ class On<T> {
     T Function() builder,
   ) {
     return On._(
-      onIdle: builder,
-      onWaiting: builder,
-      onError: (_) => builder(),
+      onIdle: null,
+      onWaiting: null,
+      onError: null,
       onData: builder,
-      onType: _OnType.when,
+      // onType: _OnType.when,
     );
   }
 
@@ -73,8 +75,8 @@ class On<T> {
       onWaiting: null,
       onError: null,
       onData: fn,
-      onType: _OnType.onData,
-    );
+      // onType: _OnType.onData,
+    ).._hasOnDataOnly = true;
   }
 
   ///The callback is invoked only when the [Injected] model emits a
@@ -85,7 +87,7 @@ class On<T> {
       onWaiting: fn,
       onError: null,
       onData: null,
-      onType: _OnType.onWaiting,
+      // onType: _OnType.onWaiting,
     );
   }
 
@@ -97,7 +99,7 @@ class On<T> {
       onWaiting: null,
       onError: fn,
       onData: null,
-      onType: _OnType.onError,
+      // onType: _OnType.onError,
     );
   }
 
@@ -116,11 +118,11 @@ class On<T> {
     required T Function() or,
   }) {
     return On._(
-      onIdle: onIdle ?? or,
-      onWaiting: onWaiting ?? or,
-      onError: onError ?? (_) => or(),
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
       onData: onData ?? or,
-      onType: _OnType.when,
+      // onType: _OnType.when,
     );
   }
 
@@ -141,26 +143,36 @@ class On<T> {
       onWaiting: onWaiting,
       onError: onError,
       onData: onData,
-      onType: _OnType.when,
+      // onType: _OnType.when,
     );
   }
 
-  T? call<M>({
-    required bool isIdle,
-    required bool isWaiting,
-    dynamic? error,
-  }) {
-    if (isWaiting) {
-      if (_onType == _OnType.when || _onType == _OnType.onWaiting) {
+  T? call<M>(SnapState snapState) {
+    if (snapState.isWaiting) {
+      if (_hasOnWaiting) {
         return onWaiting?.call();
       }
-    } else if (error != null) {
-      if (_onType == _OnType.when || _onType == _OnType.onError) {
-        return onError?.call(error);
+      return onData?.call();
+    }
+    if (snapState.hasError) {
+      if (_hasOnError) {
+        return onError?.call(snapState.error);
       }
-    } else if (isIdle) {
-      if (_onType == _OnType.when) {
+      return onData?.call();
+    }
+
+    if (snapState.isIdle) {
+      if (_hasOnIdle) {
         return onIdle?.call();
+      }
+      if (_hasOnData) {
+        return onData?.call();
+      }
+      if (_hasOnWaiting) {
+        return onWaiting?.call();
+      }
+      if (_hasOnError) {
+        return onError?.call(snapState.error);
       }
     }
 
@@ -168,4 +180,4 @@ class On<T> {
   }
 }
 
-enum _OnType { onData, onWaiting, onError, when }
+// enum _OnType { onData, onWaiting, onError, when }
