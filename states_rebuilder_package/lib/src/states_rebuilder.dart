@@ -44,7 +44,7 @@ abstract class StatesRebuilder<T> {
   }) {
     return _StateBuilder(
       key: key,
-      initState: (context, setState) {
+      initState: (context, setState, _) {
         initState?.call(context);
         if (onAfterInitialBuild != null) {
           WidgetsBinding.instance?.addPostFrameCallback(

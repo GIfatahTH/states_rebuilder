@@ -1,6 +1,6 @@
 part of '../reactive_model.dart';
 
-extension ReactiveModelX on List<ReactiveModel> {
+extension ReactiveModelX on List<ReactiveModel<dynamic>> {
   Widget listen<T>({
     OnCombined<T, void>? onSetState,
     OnCombined<T, void>? onAfterBuild,
@@ -12,15 +12,12 @@ extension ReactiveModelX on List<ReactiveModel> {
     Object? Function()? watch,
     Key? key,
   }) {
-    return _StateBuilder(
+    return _StateBuilder<T>(
       rm: this,
-      initState: (_, setState) {
+      initState: (_, setState, exposedRM) {
         initState?.call();
         final disposer = <Disposer>[];
-        ReactiveModel? _exposedRM;
-        if (T != dynamic && T != Object) {
-          _exposedRM = this.firstWhereOrNull((e) => e is ReactiveModel<T>);
-        }
+
         for (var rm in this) {
           rm._initialize();
           disposer.add(
@@ -28,7 +25,8 @@ extension ReactiveModelX on List<ReactiveModel> {
               if (shouldRebuild?.call() == false) {
                 return;
               }
-              onSetState?.call(_getCombinedSnap(this), rm._state);
+              onSetState?.call(
+                  _getCombinedSnap(this), (exposedRM ?? rm)._state);
 
               if (child._hasOnDataOnly && !rm._snapState.hasData) {
                 return;
@@ -37,11 +35,12 @@ extension ReactiveModelX on List<ReactiveModel> {
               if (onAfterBuild != null) {
                 WidgetsBinding.instance?.addPostFrameCallback(
                   (_) {
-                    onAfterBuild.call(_getCombinedSnap(this), rm._state);
+                    onAfterBuild.call(
+                        _getCombinedSnap(this), (exposedRM ?? rm)._state);
                   },
                 );
               }
-              setState(_exposedRM ?? rm);
+              setState(rm);
             }),
           );
         }
@@ -49,7 +48,9 @@ extension ReactiveModelX on List<ReactiveModel> {
           WidgetsBinding.instance?.addPostFrameCallback(
             (_) {
               onAfterBuild.call(
-                  _getCombinedSnap(this), (_exposedRM ?? this.first)._state);
+                _getCombinedSnap(this),
+                (exposedRM ?? this.first)._state,
+              );
             },
           );
         }

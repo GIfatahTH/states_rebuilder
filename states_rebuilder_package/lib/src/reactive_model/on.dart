@@ -46,9 +46,9 @@ class On<T> {
     T Function() builder,
   ) {
     return On._(
-      onIdle: null,
-      onWaiting: null,
-      onError: null,
+      onIdle: builder,
+      onWaiting: builder,
+      onError: (_) => builder(),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -59,9 +59,9 @@ class On<T> {
     T Function() builder,
   ) {
     return On._(
-      onIdle: null,
-      onWaiting: null,
-      onError: null,
+      onIdle: builder,
+      onWaiting: builder,
+      onError: (_) => builder(),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -118,9 +118,9 @@ class On<T> {
     required T Function() or,
   }) {
     return On._(
-      onIdle: onIdle,
-      onWaiting: onWaiting,
-      onError: onError,
+      onIdle: onIdle ?? or,
+      onWaiting: onWaiting ?? or,
+      onError: onError ?? (_) => or(),
       onData: onData ?? or,
       // onType: _OnType.when,
     );

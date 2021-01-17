@@ -12,7 +12,7 @@ class _StateBuilder<T> extends StatefulWidget {
     this.watch,
     this.didChangeDependencies,
     this.didUpdateWidget,
-    this.rm = const [],
+    this.rm,
   }) : super(key: key);
 
   /// Called to obtain the child widget.
@@ -23,24 +23,23 @@ class _StateBuilder<T> extends StatefulWidget {
   /// a new tree of widgets and so a new Builder child will not be [identical]
   /// to the corresponding old one.
   final Widget Function(BuildContext context, ReactiveModel? rm) builder;
-  final Disposer Function(
-          BuildContext context, bool Function(ReactiveModel? rm) setState)
-      initState;
+  final Disposer Function(BuildContext context,
+      bool Function(ReactiveModel? rm) setState, ReactiveModel? rm) initState;
   final void Function(BuildContext context)? dispose;
   final void Function(BuildContext context)? didChangeDependencies;
-  final void Function(BuildContext context, _StateBuilder oldWidget)?
+  final void Function(BuildContext context, _StateBuilder<T> oldWidget)?
       didUpdateWidget;
   final Object? Function()? watch;
-  final List<ReactiveModel<T>?> rm;
+  final List<ReactiveModel<dynamic>>? rm;
   @override
   _StateBuilderState createState() => watch == null
-      ? _StateBuilderWithoutWatchState()
-      : _StateBuilderWithWatchState();
+      ? _StateBuilderWithoutWatchState<T>()
+      : _StateBuilderWithWatchState<T>();
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(IterableProperty<ReactiveModel<T>?>(
+    properties.add(IterableProperty<ReactiveModel<dynamic>?>(
       'Injected',
       rm,
       defaultValue: null,
@@ -49,13 +48,25 @@ class _StateBuilder<T> extends StatefulWidget {
   }
 }
 
-class _StateBuilderState extends State<_StateBuilder> {
+class _StateBuilderState<T> extends State<_StateBuilder<T>> {
   late Disposer _disposer;
   late Disposer _removeContext;
   bool _isDirty = true;
   bool _isDeactivate = true;
   Object? _cachedWatch;
-  ReactiveModel? rm;
+  ReactiveModel<T>? rm;
+  ReactiveModel? rmNotified;
+
+  @override
+  void initState() {
+    super.initState();
+    bool isA<D>() => T == D;
+
+    if (!isA<Object?>() && T != dynamic && T != Object) {
+      rm = widget.rm?.firstWhereOrNull((e) => e is ReactiveModel<T>)
+          as ReactiveModel<T>?;
+    }
+  }
 
   @override
   void deactivate() {
@@ -67,6 +78,7 @@ class _StateBuilderState extends State<_StateBuilder> {
   void dispose() {
     widget.dispose?.call(context);
     Future.microtask(() => _disposer());
+    rm = null;
     super.dispose();
   }
 
@@ -77,10 +89,13 @@ class _StateBuilderState extends State<_StateBuilder> {
   }
 
   @override
-  void didUpdateWidget(covariant _StateBuilder oldWidget) {
-    for (var i = 0; i < widget.rm.length; i++) {
-      if (oldWidget.rm[i] != widget.rm[i]) {
-        oldWidget.rm[i]!.cloneToAndClean(widget.rm[i]!);
+  void didUpdateWidget(covariant _StateBuilder<T> oldWidget) {
+    if (widget.rm == null) {
+      return;
+    }
+    for (var i = 0; i < widget.rm!.length; i++) {
+      if (oldWidget.rm![i] != widget.rm![i]) {
+        oldWidget.rm![i].cloneToAndClean(widget.rm![i]);
       }
     }
 
@@ -95,11 +110,11 @@ class _StateBuilderState extends State<_StateBuilder> {
       _removeContext = RM._addToContextSet(context);
       _isDeactivate = false;
     }
-    return widget.builder(context, rm);
+    return widget.builder(context, rm ?? rmNotified ?? widget.rm?.first);
   }
 }
 
-class _StateBuilderWithoutWatchState extends _StateBuilderState {
+class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
   @override
   void initState() {
     super.initState();
@@ -108,17 +123,18 @@ class _StateBuilderWithoutWatchState extends _StateBuilderState {
       (rm) {
         if (!_isDirty) {
           _isDirty = true;
-          this.rm = rm;
+          rmNotified = rm;
           setState(() {});
           return true;
         }
         return false;
       },
+      rm ?? rmNotified,
     );
   }
 }
 
-class _StateBuilderWithWatchState extends _StateBuilderState {
+class _StateBuilderWithWatchState<T> extends _StateBuilderState<T> {
   @override
   void initState() {
     super.initState();
@@ -135,12 +151,13 @@ class _StateBuilderWithWatchState extends _StateBuilderState {
 
         if (!_isDirty) {
           _isDirty = true;
-          this.rm = rm;
+          rmNotified = rm;
           setState(() {});
           return true;
         }
         return false;
       },
+      rm ?? rmNotified,
     );
   }
 }

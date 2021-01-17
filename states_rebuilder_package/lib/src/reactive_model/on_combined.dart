@@ -15,13 +15,13 @@ part of '../reactive_model.dart';
 ///{@endtemplate}
 class OnCombined<T, R> {
   ///Callback to be called when first the model is initialized.
-  final R Function()? onIdle;
+  final R Function(T data)? onIdle;
 
   ///Callback to be called when first the model is waiting for and async task.
-  final R Function()? onWaiting;
+  final R Function(T data)? onWaiting;
 
   ///Callback to be called when first the model has an error.
-  final R Function(dynamic error)? onError;
+  final R Function(T data, dynamic error)? onError;
 
   ///Callback to be called when first the model has data.
   final R Function(T data)? onData;
@@ -85,7 +85,7 @@ class OnCombined<T, R> {
   factory OnCombined.waiting(R Function() fn) {
     return OnCombined._(
       onIdle: null,
-      onWaiting: fn,
+      onWaiting: (_) => fn(),
       onError: null,
       onData: null,
       // onType: _OnType.onWaiting,
@@ -98,7 +98,7 @@ class OnCombined<T, R> {
     return OnCombined._(
       onIdle: null,
       onWaiting: null,
-      onError: fn,
+      onError: (_, err) => fn(err),
       onData: null,
       // onType: _OnType.onError,
     );
@@ -119,9 +119,9 @@ class OnCombined<T, R> {
     required R Function(T state) or,
   }) {
     return OnCombined._(
-      onIdle: onIdle,
-      onWaiting: onWaiting,
-      onError: onError,
+      onIdle: onIdle != null ? (_) => onIdle() : or,
+      onWaiting: onWaiting != null ? (_) => onWaiting() : or,
+      onError: onError != null ? (_, err) => onError(err) : (s, err) => or(s),
       onData: onData ?? or,
       // onType: _OnType.when,
     );
@@ -140,9 +140,9 @@ class OnCombined<T, R> {
     required R Function(T state) onData,
   }) {
     return OnCombined._(
-      onIdle: onIdle,
-      onWaiting: onWaiting,
-      onError: onError,
+      onIdle: (_) => onIdle(),
+      onWaiting: (_) => onWaiting(),
+      onError: (_, err) => onError(err),
       onData: onData,
       // onType: _OnType.when,
     );
@@ -151,29 +151,29 @@ class OnCombined<T, R> {
   R? call(SnapState snapState, T state) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
-        return onWaiting?.call();
+        return onWaiting?.call(state);
       }
       return onData?.call(state);
     }
     if (snapState.hasError) {
       if (_hasOnError) {
-        return onError?.call(snapState.error);
+        return onError?.call(state, snapState.error);
       }
       return onData?.call(state);
     }
 
     if (snapState.isIdle) {
       if (_hasOnIdle) {
-        return onIdle?.call();
+        return onIdle?.call(state);
       }
       if (_hasOnData) {
         return onData?.call(state);
       }
       if (_hasOnWaiting) {
-        return onWaiting?.call();
+        return onWaiting?.call(state);
       }
       if (_hasOnError) {
-        return onError?.call(snapState.error);
+        return onError?.call(state, snapState.error);
       }
     }
 

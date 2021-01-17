@@ -50,7 +50,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     return _StateBuilder<T>(
       key: key,
       rm: [this as ReactiveModel<T>],
-      initState: (_, setState) {
+      initState: (_, setState, exposedRM) {
         _initialize();
 
         initState?.call();
