@@ -58,8 +58,8 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
         '\nYou want to get the state of null value!\n'
         'The state of $m has no defined initialState and it '
         '${_snapState.isWaiting ? "is waiting for data" : "has an error"}. '
-        'You have to define and initialState '
-        'or handle ${_snapState.isWaiting ? "onWaiting" : "onError"} widget',
+        'You have to define an initialState '
+        'or handle ${_snapState.isWaiting ? "onWaiting" : "onError"} widget\n',
       );
     }
     return _state ??= nullState;

@@ -1,29 +1,32 @@
 part of '../reactive_model.dart';
 
-///{@template on}
-///Callbacks to be invoked depending on the state status of an [Injected] model
+///{@template OnCombined}
+///Callbacks to be invoked depending on the combined state status of a
+///list of [Injected] models
 ///
 ///For more control on when to invoke the callbacks use:
-///* **[OnCombined.data]**: The callback is invoked only when the [Injected] model emits a
-///notification with onData status.
-///* **[OnCombined.waiting]**: The callback is invoked only when the [Injected] model emits
-///a notification with waiting status.
-///* **[OnCombined.error]**: The callback is invoked only when the [Injected] model emits a
-///notification with error status.
+///* **[OnCombined.data]**: The callback is invoked only  if all the [Injected] models
+///have data.
+///* **[OnCombined.waiting]**: The callback is invoked if any of the injected models
+///is waiting.
+///* **[OnCombined.error]**: The callback is invoked if all the injected models are not
+///waiting and at least one of them has error.
 ///
 ///See also:  **[OnCombined.all]**, **[OnCombined.or]**.
 ///{@endtemplate}
 class OnCombined<T, R> {
-  ///Callback to be called when first the model is initialized.
+  ///Callback to be called if all injected models are neither waiting nor have error
+  ///and at least one of them is on idle state status.
   final R Function(T data)? onIdle;
 
-  ///Callback to be called when first the model is waiting for and async task.
+  ///Callback to be called when any of the the model is waiting for and async task.
   final R Function(T data)? onWaiting;
 
-  ///Callback to be called when first the model has an error.
+  ///Callback to be called when all models are not waiting and at least one of
+  ///them has an error.
   final R Function(T data, dynamic error)? onError;
 
-  ///Callback to be called when first the model has data.
+  ///Callback to be called if all injected models have data
   final R Function(T data)? onData;
   // final _OnType _onType;
 
@@ -41,7 +44,7 @@ class OnCombined<T, R> {
     // required _OnType onType,
   });
 
-  ///The callback is always invoked when the [Injected] model emits a
+  ///The callback is always invoked when any of the [Injected] models emits a
   ///notification.
   factory OnCombined.any(
     R Function(T state) builder,
@@ -55,7 +58,7 @@ class OnCombined<T, R> {
     );
   }
 
-  ///{@macro on}
+  ///{@macro OnCombined}
   factory OnCombined(
     R Function(T state) builder,
   ) {
@@ -68,8 +71,8 @@ class OnCombined<T, R> {
     );
   }
 
-  ///The callback is invoked only when the [Injected] model emits a
-  ///notification with onData status.
+  ///The callback is invoked only when all the [Injected] models are in the
+  ///onData status.
   factory OnCombined.data(R Function(T state) fn) {
     return OnCombined._(
       onIdle: null,
@@ -80,7 +83,7 @@ class OnCombined<T, R> {
     ).._hasOnDataOnly = true;
   }
 
-  ///The callback is invoked only when the [Injected] model emits a
+  ///The callback is invoked only when one of the [Injected] models emits a
   ///notification with waiting status.
   factory OnCombined.waiting(R Function() fn) {
     return OnCombined._(
@@ -92,8 +95,8 @@ class OnCombined<T, R> {
     );
   }
 
-  ///The callback is invoked only when the [Injected] model emits a
-  ///notification with error status.
+  ///The callback is invoked only when any of the [Injected] models emits a
+  ///notification with error status and with no other model is waiting.
   factory OnCombined.error(R Function(dynamic error) fn) {
     return OnCombined._(
       onIdle: null,
@@ -104,8 +107,8 @@ class OnCombined<T, R> {
     );
   }
 
-  ///Set of callbacks to be invoked  when the [Injected] model emits a
-  ///notification with the corresponding state status.
+  ///Set of callbacks to be invoked  when the [Injected] models emit
+  ///notifications with the corresponding state status.
   ///
   ///[onIdle], [onWaiting], [onError] and [onData] are optional. Non defined ones
   /// default to the [or] callback.
@@ -127,8 +130,8 @@ class OnCombined<T, R> {
     );
   }
 
-  ///Set of callbacks to be invoked  when the [Injected] model emits a
-  ///notification with the corresponding state status.
+  ///Set of callbacks to be invoked  when the [Injected] models emit
+  ///notifications with the corresponding state status.
   ///
   ///[onIdle], [onWaiting], [onError] and [onData] are required.
   ///

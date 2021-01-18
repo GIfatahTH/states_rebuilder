@@ -17,13 +17,13 @@ class On<T> {
   ///Callback to be called when first the model is initialized.
   final T Function()? onIdle;
 
-  ///Callback to be called when first the model is waiting for and async task.
+  ///Callback to be called when the model is waiting for and async task.
   final T Function()? onWaiting;
 
-  ///Callback to be called when first the model has an error.
+  ///Callback to be called when the model has an error.
   final T Function(dynamic err)? onError;
 
-  ///Callback to be called when first the model has data.
+  ///Callback to be called when the model has data.
   final T Function()? onData;
   // final _OnType _onType;
 

@@ -10,13 +10,14 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
   }
 
   ///Listen to this [Injected] model and register:
+  ///
+  ///{@template listen}
   ///* builder to be called to rebuild some part of the widget tree (**child**
   ///parameter).
   ///* Side effects to be invoked before rebuilding the widget (**onSetState**
   ///parameter).
   ///* Side effects to be invoked after rebuilding (**onAfterBuild** parameter).
   ///
-  ///onSetState, child and onAfterBuild parameters receives a [On] object.
   ///
   /// * **Required parameters**:
   ///     * **child**: of type `On<Widget>`. defines the widget to render when
@@ -35,14 +36,20 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
   ///     * **shouldRebuild** : Callback to determine whether this StateBuilder
   /// will rebuild or not.
   ///     * **watch** : callback to be executed before notifying listeners.
+  ///     * **didUpdateWidget** : callback to be executed whenever the widget
+  /// configuration changes.
   /// It the returned value is the same as the last one, the rebuild process
   /// is interrupted.
+  /// {@endtemplate}
+  ///
+  ///onSetState, child and onAfterBuild parameters receives a [On] object.
   Widget listen({
     required On<Widget> child,
     On<void>? onSetState,
     On<void>? onAfterBuild,
     void Function()? initState,
     void Function()? dispose,
+    void Function(_StateBuilder<T>)? didUpdateWidget,
     bool Function(SnapState<T>? previousState)? shouldRebuild,
     Object? Function()? watch,
     Key? key,
@@ -85,6 +92,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         dispose?.call();
       },
       watch: watch,
+      didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, __) {
         _onHasErrorCallback = child._hasOnError;
         return child.call(_snapState)!;
@@ -145,6 +153,13 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
           return ReactiveModelImp<F>.future(
             () => f!,
             isLazy: false,
+          );
+        }
+        if (!_isAsyncReactiveModel) {
+          throw ArgumentError.notNull(
+            'The future parameter is null.\n'
+            'The state must be injected using RM.injectFuture or the future'
+            'parameter must be defined',
           );
         }
         return ReactiveModelImp<T>.future(

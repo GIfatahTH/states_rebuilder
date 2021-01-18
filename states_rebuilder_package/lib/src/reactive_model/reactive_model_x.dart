@@ -1,13 +1,18 @@
 part of '../reactive_model.dart';
 
 extension ReactiveModelX on List<ReactiveModel<dynamic>> {
+  ///Listen to a list [Injected] states and register:
+  ///{@macro listen}
+  ///
+  ///onSetState, child and onAfterBuild parameters receives a
+  ///[OnCombined] object.
   Widget listen<T>({
     OnCombined<T, void>? onSetState,
     OnCombined<T, void>? onAfterBuild,
     required OnCombined<T, Widget> child,
     void Function()? initState,
     void Function()? dispose,
-    void Function(_StateBuilder oldWidget)? didUpdateWidget,
+    void Function(_StateBuilder<T> oldWidget)? didUpdateWidget,
     bool Function()? shouldRebuild,
     Object? Function()? watch,
     Key? key,
