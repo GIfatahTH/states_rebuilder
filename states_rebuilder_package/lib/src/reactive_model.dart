@@ -19,6 +19,7 @@ part 'injected/injected_persistance/injected_persistance.dart';
 part 'injected/injected_persistance/persist_state_mock.dart';
 part 'injected/injected_x.dart';
 part 'injected/injected_imp.dart';
+part 'injected/injected_crud/i_crud.dart';
 part 'logger.dart';
 part 'reactive_model/on.dart';
 part 'reactive_model/on_combined.dart';

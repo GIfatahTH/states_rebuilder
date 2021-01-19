@@ -60,7 +60,7 @@ abstract class RM {
       'Type can not be inferred, please declare it explicitly',
     );
 
-    return InjectedImp<T>(
+    return InjectedImp<T, void>(
       creator: (_) => creator(),
       nullState: initialState,
       onInitialized: onInitialized,
@@ -108,7 +108,7 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    return InjectedImp<T>(
+    return InjectedImp<T, void>(
       creator: (_) => creator(),
       initialValue: initialState,
       onInitialized: onInitialized,
@@ -160,8 +160,8 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    InjectedImp<T>? inj;
-    inj = InjectedImp<T>(
+    InjectedImp<T, void>? inj;
+    inj = InjectedImp<T, void>(
       creator: (_) => creator(),
       initialValue: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
@@ -212,7 +212,7 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    return InjectedImp<T>(
+    return InjectedImp<T, void>(
       creator: (_) {
         assert(RM.env != null, '''
 You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
@@ -241,6 +241,51 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       isLazy: isLazy,
+    );
+  }
+
+  static InjectedCURD<List<T>, T> injectCRUD<T>(
+    ICRUD<T> Function() repository, {
+    void Function(List<T> s)? onInitialized,
+    void Function(List<T> s)? onDisposed,
+    void Function()? onWaiting,
+    void Function(List<T> s)? onData,
+    On<void>? onSetState,
+    void Function(dynamic e, StackTrace? s)? onError,
+    //
+    DependsOn<List<T>>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<List<T>> Function()? persist,
+    //
+    bool autoDisposeWhenNotUsed = true,
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    assert(
+      T != dynamic && T != Object,
+      'Type can not be inferred, please declare it explicitly',
+    );
+    final repo = repository();
+    return InjectedImp<List<T>, T>(
+      creator: (_) async {
+        return repo.read();
+      },
+      nullState: <T>[],
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      onWaiting: onWaiting,
+      onData: onData,
+      onError: onError,
+      on: onSetState,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      repo: repo,
     );
   }
 

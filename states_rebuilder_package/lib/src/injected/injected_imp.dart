@@ -1,6 +1,7 @@
 part of '../reactive_model.dart';
 
-class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
+class InjectedImp<T, ITEM> extends ReactiveModelImp<T>
+    with Injected<T>, InjectedCURD<T, ITEM> {
   // final PersistState<T> Function() _persistCallback;
 
   InjectedImp({
@@ -20,6 +21,8 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
     bool isLazy = true,
+    //
+    ICRUD<ITEM>? repo,
   }) : super._(
           nullState: nullState,
           initialState: initialValue,
@@ -82,6 +85,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
 
     if (!isLazy) {
       _initialize();
+    }
+    if (repo != null) {
+      _crud = _CRUDService(repo, this as Injected<List<ITEM>>);
     }
   }
   bool _persistHasError = false;
