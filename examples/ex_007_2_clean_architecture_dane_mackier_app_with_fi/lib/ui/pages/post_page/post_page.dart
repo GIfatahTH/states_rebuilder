@@ -11,7 +11,7 @@ import 'like_button.dart';
 class PostPage extends StatelessWidget {
   PostPage({this.post});
   final Post post;
-  final user = authenticationService.state.user;
+  final user = userInj.state.first;
 
   @override
   Widget build(BuildContext context) {

@@ -208,6 +208,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     RM.context = context;
 
     Future<T?> call() async {
+      Completer<T>? completer;
       try {
         final result = fn?.call(state);
         _previousSnapState = _snapState;
@@ -219,6 +220,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           asyncResult = result;
         }
         if (asyncResult != null) {
+          completer = Completer<T>();
           RM.context = context;
           _coreRM._setToIsWaiting(
             skipWaiting: skipWaiting,
@@ -233,6 +235,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
             onError: onError,
             onRebuildState: onRebuildState,
             context: context,
+            onDane: () => completer?.complete(_state),
           );
         } else {
           _coreRM._setToHasData(
@@ -264,6 +267,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           rethrow;
         }
       }
+      return completer?.future ?? Future.value(_state);
     }
 
     if (debounceDelay > 0) {
@@ -276,10 +280,10 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           _debounceTimer = null;
         },
       );
-      return null;
+      return Future.value(_state);
     } else if (throttleDelay > 0) {
       if (_debounceTimer != null) {
-        return null;
+        return Future.value(_state);
       }
       _debounceTimer = Timer(
         Duration(milliseconds: throttleDelay),

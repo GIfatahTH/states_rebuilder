@@ -60,7 +60,7 @@ abstract class RM {
       'Type can not be inferred, please declare it explicitly',
     );
 
-    return InjectedImp<T, void>(
+    return InjectedImp<T>(
       creator: (_) => creator(),
       nullState: initialState,
       onInitialized: onInitialized,
@@ -108,7 +108,7 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    return InjectedImp<T, void>(
+    return InjectedImp<T>(
       creator: (_) => creator(),
       initialValue: initialState,
       onInitialized: onInitialized,
@@ -160,8 +160,8 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    InjectedImp<T, void>? inj;
-    inj = InjectedImp<T, void>(
+    InjectedImp<T>? inj;
+    inj = InjectedImp<T>(
       creator: (_) => creator(),
       initialValue: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
@@ -212,7 +212,7 @@ abstract class RM {
       T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    return InjectedImp<T, void>(
+    return InjectedImp<T>(
       creator: (_) {
         assert(RM.env != null, '''
 You are using [Inject.interface] constructor. You have to define the [Inject.env] before the [runApp] method
@@ -244,8 +244,10 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     );
   }
 
-  static InjectedCURD<List<T>, T> injectCRUD<T>(
-    ICRUD<T> Function() repository, {
+  static InjectedCRUD<T, P> injectCRUD<T, P>(
+    ICRUD<T, P> Function() repository, {
+    required Object Function(T item) id,
+    bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
     void Function()? onWaiting,
@@ -266,17 +268,25 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       'Type can not be inferred, please declare it explicitly',
     );
     final repo = repository();
-    return InjectedImp<List<T>, T>(
-      creator: (_) async {
-        return repo.read();
+    late InjectedCRUD<T, P> inj;
+    inj = InjectedCRUD<T, P>(
+      creator: () {
+        if (!inj._isFirstInitialized && !readOnInitialization) {
+          return <T>[];
+        } else {
+          return () async {
+            final l = await repo.read();
+            return [...l];
+          }();
+        }
       },
-      nullState: <T>[],
+      initialState: <T>[],
       onInitialized: onInitialized,
       onDisposed: onDisposed,
       onWaiting: onWaiting,
       onData: onData,
       onError: onError,
-      on: onSetState,
+      onSetState: onSetState,
       //
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
@@ -286,7 +296,10 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       repo: repo,
+      identifier: id,
     );
+    inj._crud = _CRUDService(repo, id, inj);
+    return inj;
   }
 
   ///Static variable the holds the chosen working environment or flavour.

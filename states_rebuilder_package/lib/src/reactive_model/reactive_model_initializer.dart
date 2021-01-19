@@ -114,6 +114,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
     //a future or stream
     void Function(T data)? onInitData,
     BuildContext? context,
+    void Function()? onDane,
   }) {
     _subscription?.cancel();
     _subscription = null;
@@ -146,6 +147,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
           _completer?.complete(_state);
         }
         isDone = true;
+        onDane?.call();
       },
       cancelOnError: false,
     );

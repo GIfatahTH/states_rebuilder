@@ -67,7 +67,7 @@ class ErrorHandler {
     if (error == null) {
       return;
     }
-    RM.scaffold.snackBar(
+    RM.scaffold.showSnackBar(
       SnackBar(
         content: Text('${errorMessage(error)}'),
       ),

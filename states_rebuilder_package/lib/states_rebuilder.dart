@@ -18,4 +18,6 @@ export 'src/reactive_model.dart'
         StringX,
         DoubleX,
         BoolX,
-        ObjectX;
+        ObjectX,
+        ICRUD,
+        InjectedCRUD;

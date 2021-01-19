@@ -1,3 +1,4 @@
+import 'package:clean_architecture_dane_mackier_app/service/common/input_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -26,27 +27,29 @@ class _LoginBody extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         LoginHeader(controller: controller),
-        authenticationService.whenRebuilderOr(
-          onWaiting: () => CircularProgressIndicator(),
-          dispose: () => controller.dispose(),
-          builder: () {
-            return FlatButton(
+        userInj.listen(
+          child: On.or(
+            onWaiting: () => CircularProgressIndicator(),
+            or: () => FlatButton(
               color: Colors.white,
               child: Text(
                 'Login',
                 style: TextStyle(color: Colors.black),
               ),
               onPressed: () {
-                authenticationService.setState(
-                  (s) => s.login(controller.text),
-                  onError: ErrorHandler.showSnackBar,
+                userInj.setState(
+                  (s) async {
+                    final userId = InputParser.parse(controller.text);
+                    return userInj.crud.read(userId);
+                  },
                   onData: (_) {
                     RM.navigate.toNamed(('/'));
                   },
                 );
               },
-            );
-          },
+            ),
+          ),
+          dispose: () => controller.dispose(),
         ),
       ],
     );

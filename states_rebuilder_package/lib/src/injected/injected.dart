@@ -80,11 +80,6 @@ part of '../reactive_model.dart';
 ///or [Injected.injectStreamMock].
 ///
 ///
-abstract class InjectedCURD<T, ITEM> implements Injected<T> {
-  _CRUDService<ITEM> get crud => _crud;
-  late _CRUDService<ITEM> _crud;
-}
-
 abstract class Injected<T> implements ReactiveModel<T> {
   bool _autoDisposeWhenNotUsed = true;
   DependsOn<T>? _dependsOn;

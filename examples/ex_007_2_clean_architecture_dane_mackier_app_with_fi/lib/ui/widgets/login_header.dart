@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../injected.dart';
 import '../common/text_styles.dart';
@@ -18,12 +19,14 @@ class LoginHeader extends StatelessWidget {
         UIHelper.verticalSpaceMedium(),
         Text('Enter a number between 1 - 10', style: subHeaderStyle),
         LoginTextField(controller),
-        authenticationService.whenRebuilderOr(
-          onError: (error) => Text(
-            ErrorHandler.errorMessage(error),
-            style: TextStyle(color: Colors.red),
+        userInj.listen(
+          child: On.or(
+            onError: (error) => Text(
+              ErrorHandler.errorMessage(error),
+              style: TextStyle(color: Colors.red),
+            ),
+            or: () => Container(),
           ),
-          builder: () => Container(),
         ),
       ],
     );
