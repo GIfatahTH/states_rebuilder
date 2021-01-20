@@ -1,3 +1,4 @@
+import 'package:clean_architecture_dane_mackier_app/ui/exceptions/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -13,10 +14,14 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return commentsInj.listen(
+      initState: () => commentsInj.param.state = postId,
+      onSetState: On.error((err) => ErrorHandler.showErrorDialog(err)),
       child: On.all(
         onIdle: () => Container(),
         onWaiting: () => Center(child: CircularProgressIndicator()),
-        onError: (_) => Container(),
+        onError: (err) => Center(
+          child: Text('${err.message}'),
+        ),
         onData: () {
           return Expanded(
             child: ListView(

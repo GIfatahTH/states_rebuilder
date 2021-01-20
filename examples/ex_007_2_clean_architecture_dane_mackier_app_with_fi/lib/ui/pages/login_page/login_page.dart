@@ -37,14 +37,14 @@ class _LoginBody extends StatelessWidget {
                 style: TextStyle(color: Colors.black),
               ),
               onPressed: () {
-                userInj.setState(
-                  (s) async {
-                    final userId = InputParser.parse(controller.text);
-                    return userInj.crud.read(userId);
-                  },
-                  onData: (_) {
-                    RM.navigate.toNamed(('/'));
-                  },
+                //use setState to handle the error
+                userInj.param.setState(
+                  (s) => InputParser.parse(controller.text),
+                  //We can handle the error here
+                  //But as the userInj depends on userParam
+                  //and when userParam has an error it will forward it to
+                  //userInj we defer error handling to userInj
+                  catchError: true,
                 );
               },
             ),

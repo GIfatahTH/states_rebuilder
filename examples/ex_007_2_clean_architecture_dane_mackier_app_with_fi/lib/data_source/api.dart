@@ -12,6 +12,7 @@ const _endpoint = 'https://jsonplaceholder.typicode.com';
 final _client = new http.Client();
 
 class UserRepository implements ICRUD<User, int> {
+  UserRepository();
   @override
   Future<List<User>> read([int userId]) async {
     var response;
