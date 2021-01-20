@@ -247,6 +247,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   static InjectedCRUD<T, P> injectCRUD<T, P>(
     ICRUD<T, P> Function() repository, {
     required Object Function(T item) id,
+    P? param,
     bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
@@ -267,20 +268,28 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       T != dynamic && T != Object,
       'Type can not be inferred, please declare it explicitly',
     );
-    final repo = repository();
+
+    final p = param != null
+        ? RM.inject(
+            () => param,
+          )
+        : null;
     late InjectedCRUD<T, P> inj;
     inj = InjectedCRUD<T, P>(
       creator: () {
         if (!inj._isFirstInitialized && !readOnInitialization) {
           return <T>[];
         } else {
+          final repo = repository();
+          inj._crud = _CRUDService(repo, id, inj);
           return () async {
-            final l = await repo.read();
+            final l = await repo.read(p?.state);
             return [...l];
           }();
         }
       },
       initialState: <T>[],
+      param: p,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
       onWaiting: onWaiting,
@@ -295,10 +304,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      repo: repo,
       identifier: id,
     );
-    inj._crud = _CRUDService(repo, id, inj);
+    inj._readOnInitialization = readOnInitialization;
     return inj;
   }
 

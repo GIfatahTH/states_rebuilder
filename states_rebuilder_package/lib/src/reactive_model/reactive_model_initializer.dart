@@ -72,9 +72,10 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       if (!_isFirstInitialized) {
         _onInitState();
       }
-      _snapState = SnapState._waiting(_state);
-      _completer = Completer<dynamic>();
-      _notifyListeners();
+      _coreRM._setToIsWaiting(
+        skipWaiting: false,
+      );
+
       _handleAsyncSubscription(
         asyncResult as Stream<T>,
         onInitData: (s) => _nullState ??= s,
