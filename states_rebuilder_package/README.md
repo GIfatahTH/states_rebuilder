@@ -123,18 +123,18 @@ The specificity of `states_rebuilder` is that it has practically no boilerplate.
 
 >With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
 
-This a typical of simple business logic class:
+This is a typical simple business logic class:
 ```dart
-class Foo { //Do not extend any other library specific class
+class Foo { //don't extend any other library specific class
   int mutableState =0; // the state can be mutable
   //Or
   final int immutableState; // Or it can be immutable (no difference)
   Foo(this.immutableState);
 
   Future<int> fetchSomeThing async(){
-    //No need of any kind of async state tracking variables
+    //No need for any kind of async state tracking variables
     return repository.fetchSomeThing();
-    //No need of any kind of notification
+    //No need for any kind of notification
   }
 
   Stream<int> streamSomeThing async*(){
@@ -152,7 +152,7 @@ class Foo { //Do not extend any other library specific class
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons.png" width="600" alt='555'/>
 </p>
 
-To make the `Foo` object reactive, we simple inject it using global functional injection:
+To make the `Foo` object reactive, we simply inject it using global functional injection:
 
 ```dart
 final Injected<Foo> foo = RM.inject<Foo>(
@@ -191,13 +191,13 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 **The injected state even if it is injected globally it has a lifecycle**. It is created when first used and destroyed when no longer used. Between the creation and the destruction of the state, it can be listened to and mutated to notify its registered listeners.
 
-**The state of an injected model is null safe**, that is it can not be null. For this reason the initial state will be inferred by the library, and in case it is not, it must be defined explicitly. The initial state of primitives is inferred as follows: (**int: 0, double, 0.0, String:'', and bool: false**). For other non-primitive objects the initial state will be the first created instance.
+**The state of an injected model is null safe**, that is it can not be null. For this reason, the initial state will be inferred by the library, and in case it is not, it must be defined explicitly. The initial state of primitives is inferred as follows: (**int: 0, double, 0.0, String:'', and bool: false**). For other non-primitive objects, the initial state will be the first created instance.
 
 **When the state is disposed of, its list of listeners is cleared**, and if the state is waiting for a Future or subscribed to a Stream, it will cancel them to free resources.
 
 **Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
 
-> [See more detailed information of the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
+> [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
 
 
 To mutate the state and notify listener:
@@ -218,10 +218,10 @@ foo.setState(
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder_state_wheel.png" width="400" alt=''/>
 </p>
 
-The state when mutated, emits a notification to its registered listener. The emitted notification has a boolean flag to describe is status :
+The state when mutated emits a notification to its registered listener. The emitted notification has a boolean flag to describe is status :
   - `isIdle` : the state is first created and no notification is emitted yet.
   - `isWaiting`: the state is waiting for an async task to end.
-  - `hasError`: the state mutation has ended with error.
+  - `hasError`: the state mutation has ended with an error.
   - `hasData`: the state mutation has ended with valid data.
 
 states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
@@ -249,7 +249,7 @@ On.or(
   or: () =>  print('or')
 )
 ```
-> [See more detailed information of the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+> [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
@@ -261,13 +261,13 @@ You can also refresh the state to its initial state and reinvoke the creation fu
 foo.refresh();
 ```
 
-`refresh` is useful to re-execute async data fetching to get the updated data from a server. A typical use is the refresh a ListView display.
+`refresh` is useful to re-execute async data fetching to get the updated data from a server. Typical use is the refresh a ListView display.
 
 If the state is persisted, calling `refresh` will delete the persisted state and replace it with the newly created one.
 
-Calling `refresh` will cancel any pending async task form the state before refreshing.
+Calling `refresh` will cancel any pending async task from the state before refreshing.
 
-> [See more detailed information of the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+> [See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
 
 ## UI logic
 
@@ -337,13 +337,15 @@ Calling `refresh` will cancel any pending async task form the state before refre
       ),
     )
   ```
-> [See more detailed information available widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
+> [See more detailed information about the widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
 
 * To undo and redo immutable state:
   ```dart
   model.undoState();
   model.redoState();
   ```
+> [See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
+
 
 * To navigate, show dialogs and snackBars without `BuildContext`:
   ```dart
@@ -353,6 +355,7 @@ Calling `refresh` will cancel any pending async task form the state before refre
 
   RM.scaffoldShow.snackbar(SnackBar( ... ));
   ```
+> [See more detailed information about side effects without `BuildContext`](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
 * To Persist the state and retrieve it when the app restarts,
   ```dart
@@ -372,6 +375,8 @@ Calling `refresh` will cancel any pending async task form the state before refre
   model.persistState();
   model.deletePersistState();
   ```
+> [See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+
 * Widget-wise state (overriding the state):
 ```dart
 final items = [1,2,3];
