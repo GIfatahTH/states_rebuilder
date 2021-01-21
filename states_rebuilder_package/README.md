@@ -388,7 +388,7 @@ class App extends StatelessWidget{
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        return item.inherited(
+        return item.inherited( //inherited uses the InheritedWidget concept
           stateOverride: () => items[index],
           builder: () {
 
@@ -405,6 +405,7 @@ class App extends StatelessWidget{
   }
 }
 ```
+> [See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api).
 
 * To mock it in test:
   ```dart

@@ -1,30 +1,30 @@
 part of '../../reactive_model.dart';
 
 abstract class ICRUD<T, P> {
-  Future<T> create(T item);
-  Future<List<T>> read([P? param]);
-  Future<bool> update(T item);
-  Future<bool> delete(T item);
+  Future<List<T>> read(P? param);
+  Future<T> create(T item, P? param);
+  Future<bool> update(T item, P? param);
+  Future<bool> delete(T item, P? param);
 }
 
 class _CRUDService<T, P> {
   final ICRUD<T, P> repo;
   final Injected<List<T>> injected;
-  final Object Function(T item) identifier;
+  final Object? Function(T item) identifier;
   _CRUDService(this.repo, this.identifier, this.injected);
   //
-  Future<List<T>> read([P? param]) async {
+  Future<List<T>> read({P? param}) async {
     late List<T> items;
-    // await injected.setState(
-    //   (s) async => items =,
-    // );
-    items = await repo.read(param);
+    await injected.setState(
+      (s) async => items = await repo.read(param),
+    );
+    // items = await repo.read(param);
     print(items);
     return items;
   }
 
   //return null means an error
-  Future<T?> create(T item, {bool isOptimistic = true}) async {
+  Future<T?> create(T item, {P? param, bool isOptimistic = true}) async {
     T? addedItem;
     await injected.setState(
       (s) async* {
@@ -33,7 +33,7 @@ class _CRUDService<T, P> {
           yield item;
         }
         try {
-          addedItem = await repo.create(item);
+          addedItem = await repo.create(item, param);
         } catch (e) {
           if (isOptimistic) {
             s.remove(item);
@@ -50,7 +50,7 @@ class _CRUDService<T, P> {
     return addedItem;
   }
 
-  Future<bool> update(T item, {bool isOptimistic = true}) async {
+  Future<bool> update(T item, {P? param, bool isOptimistic = true}) async {
     bool isUpdated = false;
     await injected.setState((s) async* {
       final index = s.indexWhere((e) => identifier(e) == identifier(item));
@@ -63,7 +63,7 @@ class _CRUDService<T, P> {
         yield true;
       }
       try {
-        isUpdated = await repo.update(item);
+        isUpdated = await repo.update(item, param);
       } catch (e) {
         if (isOptimistic) {
           s[index] = oldItem;
@@ -78,7 +78,7 @@ class _CRUDService<T, P> {
     return isUpdated;
   }
 
-  Future<bool> delete(T item, {bool isOptimistic = true}) async {
+  Future<bool> delete(T item, {P? param, bool isOptimistic = true}) async {
     bool isDeleted = false;
     await injected.setState((s) async* {
       final index = s.indexWhere((e) => identifier(e) == identifier(item));
@@ -91,7 +91,7 @@ class _CRUDService<T, P> {
         yield true;
       }
       try {
-        isDeleted = await repo.delete(item);
+        isDeleted = await repo.delete(item, param);
       } catch (e) {
         if (isOptimistic) {
           s.insert(index, oldItem);

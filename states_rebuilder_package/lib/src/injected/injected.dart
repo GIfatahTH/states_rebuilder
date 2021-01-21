@@ -173,6 +173,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
       }
       return true;
     }());
+    RM.printInjected?.call(_snapState);
     final remove = _addToInjectedModels(this);
     if (_autoDisposeWhenNotUsed) {
       addToCleaner(
@@ -194,6 +195,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
       }
       return true;
     }());
+    RM.printInjected?.call(_snapState);
     if (!_isInitialized) {
       return;
     }

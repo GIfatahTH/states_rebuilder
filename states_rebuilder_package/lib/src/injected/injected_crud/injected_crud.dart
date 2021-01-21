@@ -20,7 +20,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     //
-    Object Function(T item)? identifier,
+    Object? Function(T item)? identifier,
   })  : _param = param,
         super(
           creator: (_) => creator(),

@@ -246,8 +246,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   static InjectedCRUD<T, P> injectCRUD<T, P>(
     ICRUD<T, P> Function() repository, {
-    required Object Function(T item) id,
-    P? param,
+    required Object? Function(T item) id,
+    P Function()? param,
     bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
@@ -271,7 +271,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
     final p = param != null
         ? RM.inject(
-            () => param,
+            () => param.call(),
           )
         : null;
     late InjectedCRUD<T, P> inj;
@@ -478,6 +478,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   }
 
   static var debugPrintActiveRM;
+  static void Function(SnapState)? printInjected;
 }
 
 IPersistStore? _persistStateGlobal;

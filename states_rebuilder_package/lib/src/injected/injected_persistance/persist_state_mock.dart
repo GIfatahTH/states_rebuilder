@@ -90,7 +90,7 @@ class _PersistStoreMock extends IPersistStore {
         : Future.delayed(Duration(milliseconds: timeToWait!));
   }
 
-  ///Clear the store, Typically used indide setUp method of tests
+  ///Clear the store, Typically used inside setUp method of tests
   void clear() {
     store?.clear();
     isAsyncRead = false;

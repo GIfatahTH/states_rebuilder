@@ -7,6 +7,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
   void _notifyListeners([List? tags]) {
     super._notifyListeners(tags);
     _listeners.forEach((fn) => fn(this as ReactiveModel<T>));
+    RM.printInjected?.call(_snapState);
   }
 
   ///Listen to this [Injected] model and register:
@@ -155,13 +156,13 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
             isLazy: false,
           );
         }
-        if (!_isAsyncReactiveModel) {
-          throw ArgumentError.notNull(
-            'The future parameter is null.\n'
-            'The state must be injected using RM.injectFuture or the future'
-            'parameter must be defined',
-          );
-        }
+        // if (!_isAsyncReactiveModel) {
+        //   throw ArgumentError.notNull(
+        //     'The future parameter is null.\n'
+        //     'The state must be injected using RM.injectFuture or the future'
+        //     'parameter must be defined',
+        //   );
+        // }
         return ReactiveModelImp<T>.future(
           () => (this as ReactiveModel<T>).stateAsync,
           isLazy: false,

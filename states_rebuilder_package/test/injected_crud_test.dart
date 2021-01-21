@@ -24,7 +24,7 @@ class Repository implements ICRUD<Product, Object> {
   List<Product> _products = [];
   dynamic error;
   @override
-  Future<Product> create(Product item) async {
+  Future<Product> create(Product item, Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
@@ -34,7 +34,7 @@ class Repository implements ICRUD<Product, Object> {
   }
 
   @override
-  Future<List<Product>> read([Object? param]) async {
+  Future<List<Product>> read(Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
@@ -43,7 +43,7 @@ class Repository implements ICRUD<Product, Object> {
   }
 
   @override
-  Future<bool> update(Product item) async {
+  Future<bool> update(Product item, Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
@@ -54,7 +54,7 @@ class Repository implements ICRUD<Product, Object> {
   }
 
   @override
-  Future<bool> delete(Product item) async {
+  Future<bool> delete(Product item, Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
