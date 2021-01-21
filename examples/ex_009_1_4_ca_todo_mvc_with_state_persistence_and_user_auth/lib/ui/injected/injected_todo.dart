@@ -10,6 +10,26 @@ import '../common/enums.dart';
 import '../exceptions/error_handler.dart';
 import 'injected_user.dart';
 
+final todos = RM.injectCRUD<List<Todo>, String>(
+  () => FireBaseTodosRepository(
+    authToken: user.state.token.token,
+  ),
+  id: (_) => null,
+  param: () => '__Todos__/${user.state.userId}',
+  readOnInitialization: true,
+  onSetState: On.or(
+    onError: (e) {
+      todoItem.refresh();
+      ErrorHandler.showErrorSnackBar(e);
+    },
+    onData: () {
+      // todoItem.refresh();
+    },
+    or: () {},
+  ),
+  debugPrintWhenNotifiedPreMessage: 'todos',
+);
+
 extension ListTodoX on List<Todo> {
   List<Todo> addTodo(Todo todo) {
     return List<Todo>.from(this)..add(todo);
@@ -37,49 +57,48 @@ extension ListTodoX on List<Todo> {
       );
   }
 
-  ///Parsing the state
-  String toJson() => convert.json.encode(this);
-  static List<Todo> fromJson(json) {
-    final result = convert.json.decode(json ?? '[]') as List<dynamic>;
-    if (result == null) {
-      return [];
-    }
-    return result.map((m) => Todo.fromJson(m)).toList();
-  }
+  // ///Parsing the state
+  // String toJson() => convert.json.encode(this);
+  // static List<Todo> fromJson(json) {
+  //   final result = convert.json.decode(json ?? '[]') as List<dynamic>;
+  //   if (result == null) {
+  //     return [];
+  //   }
+  //   return result.map((m) => Todo.fromJson(m)).toList();
+  // }
 }
-
-final Injected<List<Todo>> todos = RM.inject(
-  () => [],
-  persist: () => PersistState(
-    key: '__Todos__/${user.state.userId}',
-    toJson: (todos) => todos.toJson(),
-    fromJson: (json) => ListTodoX.fromJson(json),
-    persistStateProvider: FireBaseTodosRepository(
-      authToken: user.state.token.token,
-    ),
-    // debugPrintOperations: true,
-  ),
-  onError: (e, s) {
-    todoItem.refresh();
-    ErrorHandler.showErrorSnackBar(e);
-  },
-  onData: (_) {
-    // todoItem.refresh();
-  },
-  debugPrintWhenNotifiedPreMessage: 'todos',
-);
+// final Injected<List<Todo>> todos = RM.inject(
+//   () => [],
+//   persist: () => PersistState(
+//     key: '__Todos__/${user.state.userId}',
+//     toJson: (todos) => todos.toJson(),
+//     fromJson: (json) => ListTodoX.fromJson(json),
+//     persistStateProvider: FireBaseTodosRepository(
+//       authToken: user.state.token.token,
+//     ),
+//     // debugPrintOperations: true,
+//   ),
+//   onError: (e, s) {
+//     todoItem.refresh();
+//     ErrorHandler.showErrorSnackBar(e);
+//   },
+//   onData: (_) {
+//     // todoItem.refresh();
+//   },
+//   debugPrintWhenNotifiedPreMessage: 'todos',
+// );
 
 final activeFilter = RM.inject(() => VisibilityFilter.all);
 
 final Injected<List<Todo>> todosFiltered = RM.inject(
   () {
     if (activeFilter.state == VisibilityFilter.active) {
-      return todos.state.where((t) => !t.complete).toList();
+      return todos.state.first.where((t) => !t.complete).toList();
     }
     if (activeFilter.state == VisibilityFilter.completed) {
-      return todos.state.where((t) => t.complete).toList();
+      return todos.state.first.where((t) => t.complete).toList();
     }
-    return todos.state;
+    return todos.state.first;
   },
   dependsOn: DependsOn({activeFilter, todos}),
   debugPrintWhenNotifiedPreMessage: 'TodosFilter',
@@ -87,8 +106,8 @@ final Injected<List<Todo>> todosFiltered = RM.inject(
 
 final Injected<TodosStats> todosStats = RM.inject(
   () => TodosStats(
-    numCompleted: todos.state.where((t) => t.complete).length,
-    numActive: todos.state.where((t) => !t.complete).length,
+    numCompleted: todos.state.first.where((t) => t.complete).length,
+    numActive: todos.state.first.where((t) => !t.complete).length,
   ),
   dependsOn: DependsOn({todos}),
 
@@ -102,7 +121,7 @@ final Injected<Todo> todoItem = RM.inject(
   onData: (t) {
     todos.setState(
       (s) {
-        return s.updateTodo(t);
+        return s.first.updateTodo(t);
       },
     );
   },

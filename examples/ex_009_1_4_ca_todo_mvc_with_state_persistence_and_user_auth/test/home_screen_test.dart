@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,27 +17,39 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/c
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
+
+import 'fake_todos_repository.dart';
+
 void main() async {
   final storage = await RM.storageInitializerMock();
+  todos.injectCRUDMock(() => FakeTodosRepository([]));
+
   setUp(() {
+    DateTimeX.customNow = DateTime(2020);
     storage.clear();
     //auto log with _user;
     storage.store.addAll({
       '__UserToken__': _user,
     });
   });
-  // testWidgets('Start with zero todo', (tester) async {
-  //   await tester.pumpWidget(App());
-  //   expect(find.byType(TodoItem), findsNothing);
-  // });
+  testWidgets('Start with zero todo', (tester) async {
+    await tester.pumpWidget(App());
+    expect(find.byType(TodoItem), findsNothing);
+  });
 
-  // testWidgets('Start with some stored todos', (tester) async {
-  //   //pre populate the store with tree todos
-  //   storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
-  //   await tester.pumpWidget(App());
-  //   await tester.pumpAndSettle();
-  //   expect(find.byType(TodoItem), findsNWidgets(3));
-  // });
+  testWidgets('Start with some stored todos', (tester) async {
+    //pre populate the store with tree todos
+    todos.injectCRUDMock(() => FakeTodosRepository(todos3));
+    await tester.pumpWidget(App());
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(Duration(seconds: 1));
+
+    expect(find.byType(ListView), findsNWidgets(1));
+    expect(find.byType(Builder), findsNWidgets(3));
+    expect(find.byType(TodoItem), findsNWidgets(3));
+  });
 
   // testWidgets('add todo', (tester) async {
   //   await tester.pumpWidget(App());
@@ -317,159 +328,75 @@ void main() async {
   //   },
   // );
 
-  testWidgets(
-    'toggle all completed / uncompleted',
-    (tester) async {
-      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
-      await tester.pumpWidget(App());
-      await tester.pumpAndSettle();
-      //
-      final checkedCheckBox = find.byWidgetPredicate(
-        (widget) => widget is Checkbox && widget.value == true,
-      );
-      final unCheckedCheckBox = find.byWidgetPredicate(
-        (widget) => widget is Checkbox && widget.value == false,
-      );
+  // testWidgets(
+  //   'toggle all completed / uncompleted',
+  //   (tester) async {
+  //     storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
+  //     await tester.pumpWidget(App());
+  //     await tester.pumpAndSettle();
+  //     //
+  //     final checkedCheckBox = find.byWidgetPredicate(
+  //       (widget) => widget is Checkbox && widget.value == true,
+  //     );
+  //     final unCheckedCheckBox = find.byWidgetPredicate(
+  //       (widget) => widget is Checkbox && widget.value == false,
+  //     );
 
-      expect(checkedCheckBox, findsNWidgets(1));
-      expect(unCheckedCheckBox, findsNWidgets(2));
+  //     expect(checkedCheckBox, findsNWidgets(1));
+  //     expect(unCheckedCheckBox, findsNWidgets(2));
 
-      //Top to toggle all to completed
-      await tester.tap(find.byType(ExtraActionsButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('__toggleAll__')));
-      await tester.pumpAndSettle();
+  //     //Top to toggle all to completed
+  //     await tester.tap(find.byType(ExtraActionsButton));
+  //     await tester.pumpAndSettle();
+  //     await tester.tap(find.byKey(Key('__toggleAll__')));
+  //     await tester.pumpAndSettle();
 
-      //
-      expect(checkedCheckBox, findsNWidgets(3));
-      expect(unCheckedCheckBox, findsNWidgets(0));
-      //
-      //Toggle all to uncompleted
-      await tester.tap(find.byType(ExtraActionsButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('__toggleAll__')));
-      await tester.pumpAndSettle();
+  //     //
+  //     expect(checkedCheckBox, findsNWidgets(3));
+  //     expect(unCheckedCheckBox, findsNWidgets(0));
+  //     //
+  //     //Toggle all to uncompleted
+  //     await tester.tap(find.byType(ExtraActionsButton));
+  //     await tester.pumpAndSettle();
+  //     await tester.tap(find.byKey(Key('__toggleAll__')));
+  //     await tester.pumpAndSettle();
 
-      //Only active todos are displayed
-      expect(checkedCheckBox, findsNWidgets(0));
-      expect(unCheckedCheckBox, findsNWidgets(3));
-    },
-  );
+  //     //Only active todos are displayed
+  //     expect(checkedCheckBox, findsNWidgets(0));
+  //     expect(unCheckedCheckBox, findsNWidgets(3));
+  //   },
+  // );
 
-  testWidgets(
-    ' clear completed',
-    (tester) async {
-      storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
-      await tester.pumpWidget(App());
-      await tester.pumpAndSettle();
+  // testWidgets(
+  //   ' clear completed',
+  //   (tester) async {
+  //     storage.store.addAll({'__Todos__/${user.state.userId}': todos3});
+  //     await tester.pumpWidget(App());
+  //     await tester.pumpAndSettle();
 
-      //
-      final checkedCheckBox = find.byWidgetPredicate(
-        (widget) => widget is Checkbox && widget.value == true,
-      );
-      final unCheckedCheckBox = find.byWidgetPredicate(
-        (widget) => widget is Checkbox && widget.value == false,
-      );
+  //     //
+  //     final checkedCheckBox = find.byWidgetPredicate(
+  //       (widget) => widget is Checkbox && widget.value == true,
+  //     );
+  //     final unCheckedCheckBox = find.byWidgetPredicate(
+  //       (widget) => widget is Checkbox && widget.value == false,
+  //     );
 
-      expect(checkedCheckBox, findsNWidgets(1));
-      expect(unCheckedCheckBox, findsNWidgets(2));
+  //     expect(checkedCheckBox, findsNWidgets(1));
+  //     expect(unCheckedCheckBox, findsNWidgets(2));
 
-      //Top to clear completed
-      await tester.tap(find.byType(ExtraActionsButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
-      await tester.pumpAndSettle();
+  //     //Top to clear completed
+  //     await tester.tap(find.byType(ExtraActionsButton));
+  //     await tester.pumpAndSettle();
+  //     await tester.tap(find.byKey(Key('__toggleClearCompleted__')));
+  //     await tester.pumpAndSettle();
 
-      //one completed todo is removed
-      expect(checkedCheckBox, findsNWidgets(0));
-      expect(unCheckedCheckBox, findsNWidgets(2));
-    },
-  );
+  //     //one completed todo is removed
+  //     expect(checkedCheckBox, findsNWidgets(0));
+  //     expect(unCheckedCheckBox, findsNWidgets(2));
+  //   },
+  // );
 }
-/*
-
-states_rebuilder:: 0 Injected<User>(__DISPOSED__)
-states_rebuilder:: todo 0 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: todo 1 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: 0 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: todo 2 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: 0 Injected<I18N>(__DISPOSED__)
-states_rebuilder:: TodosFilter Injected<List<Todo>>(__DISPOSED__)
-states_rebuilder:: 0 Injected<ExtraAction>(__DISPOSED__)
-states_rebuilder:: 0 Injected<AppTab>(__DISPOSED__)
-states_rebuilder:: 0 Injected<bool>(__DISPOSED__)
-states_rebuilder:: 0 Injected<Locale>(__DISPOSED__)
-states_rebuilder:: 0 Injected<VisibilityFilter>(__DISPOSED__)
-✓ toggle all completed / uncompleted
-states_rebuilder::  Injected<User>(__INITIALIZED__)
-states_rebuilder::  Injected<bool>(__INITIALIZED__)
-states_rebuilder::  Injected<Locale>(__INITIALIZED__)
-states_rebuilder::  Injected<I18N>(__INITIALIZED__)
-states_rebuilder::  Injected<AppTab>(__INITIALIZED__)
-states_rebuilder::  Injected<VisibilityFilter>(__INITIALIZED__)
-states_rebuilder:: TodosFilter Injected<List<Todo>>(__INITIALIZED__)
-
-
-
-states_rebuilder:: 0 Injected<User>(__DISPOSED__)
-states_rebuilder:: todo 0 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: todo 1 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: 0 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: todo 2 Injected<Todo>(__DISPOSED__)
-states_rebuilder:: 0 Injected<I18N>(__DISPOSED__)
-states_rebuilder:: TodosFilter Injected<List<Todo>>(__DISPOSED__)
-states_rebuilder:: 0 Injected<ExtraAction>(__DISPOSED__)
-states_rebuilder:: 0 Injected<AppTab>(__DISPOSED__)
-states_rebuilder:: 0 Injected<bool>(__DISPOSED__)
-states_rebuilder:: 0 Injected<Locale>(__DISPOSED__)
-states_rebuilder:: 0 Injected<VisibilityFilter>(__DISPOSED__)
-✓ toggle all completed / uncompleted
-states_rebuilder:: 0 Injected<User>(__DISPOSED__)
-states_rebuilder::  Injected<User>(__INITIALIZED__)
-states_rebuilder:: todos Injected<List<Todo>>(__DISPOSED__)
-states_rebuilder:: 0 Injected<TodosStats>(__DISPOSED__)
-states_rebuilder::  Injected<bool>(__INITIALIZED__)
-states_rebuilder::  Injected<Locale>(__INITIALIZED__)
-states_rebuilder::  Injected<I18N>(__INITIALIZED__)
-states_rebuilder:: todos Injected<List<Todo>>(__INITIALIZED__)
-states_rebuilder::  Injected<AppTab>(__INITIALIZED__)
-states_rebuilder::  Injected<VisibilityFilter>(__INITIALIZED__)
-states_rebuilder::  Injected<ExtraAction>(__INITIALIZED__)
-states_rebuilder:: TodosFilter Injected<List<Todo>>(__INITIALIZED__)
-
-*/
-
-final todos1 = json.encode(
-  [
-    Todo(
-      'Task1',
-      id: 'user1-1',
-      note: 'Note1',
-    ),
-  ],
-);
-
-final todos3 = json.encode(
-  [
-    Todo(
-      'Task1',
-      id: 'user1-1',
-      note: 'Note1',
-    ),
-    Todo(
-      'Task2',
-      id: 'user1-2',
-      note: 'Note2',
-      complete: false,
-    ),
-    Todo(
-      'Task3',
-      id: 'user1-3',
-      note: 'Note3',
-      complete: true,
-    ),
-  ],
-);
 
 final _user = User(
   userId: 'user1',

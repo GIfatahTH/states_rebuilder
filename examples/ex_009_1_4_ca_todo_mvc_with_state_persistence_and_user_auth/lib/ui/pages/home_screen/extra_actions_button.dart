@@ -33,10 +33,10 @@ class ExtraActionsButton extends StatelessWidget {
           }
 
           if (action == ExtraAction.toggleAllComplete) {
-            todos.setState((s) => s.toggleAll());
+            todos.setState((s) => s.first.toggleAll());
             todoItem.refresh();
           } else {
-            todos.setState((s) => s.clearCompleted());
+            todos.setState((s) => s.first.clearCompleted());
           }
         },
         itemBuilder: (BuildContext context) {

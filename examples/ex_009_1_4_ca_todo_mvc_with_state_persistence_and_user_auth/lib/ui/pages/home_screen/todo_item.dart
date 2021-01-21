@@ -16,6 +16,7 @@ class TodoItem extends StatelessWidget {
     final todo = todoItem(context);
     return todo.rebuilder(
       () {
+        print('rebuilder of  key');
         return Dismissible(
           key: Key('__${todo.state.id}__'),
           onDismissed: (direction) {
@@ -61,9 +62,9 @@ class TodoItem extends StatelessWidget {
   }
 
   void removeTodo(Todo todo) {
-    todos.setState((s) => s.deleteTodo(todo));
+    todos.setState((s) => s.first.deleteTodo(todo));
 
-    RM.scaffold.snackBar(
+    RM.scaffold.showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
         content: Text(
@@ -74,7 +75,7 @@ class TodoItem extends StatelessWidget {
         action: SnackBarAction(
           label: i18n.of(RM.context).undo,
           onPressed: () {
-            todos.setState((s) => s.addTodo(todo));
+            todos.setState((s) => s.first.addTodo(todo));
           },
         ),
       ),
