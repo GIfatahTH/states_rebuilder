@@ -27,6 +27,9 @@ void main() async {
         }
       },
       builder: (_, __) => App(),
+      // dispose: (_, __) {
+      //   user.dispose();
+      // }
     ),
   );
 }
@@ -55,7 +58,7 @@ class App extends StatelessWidget {
             //First await for the user to auto authenticate
             home: user.futureBuilder(
               //Display a splashScreen while authenticating
-              onWaiting: () => SplashScreen(),
+              onWaiting: null,
               //On Error display the authPage and a Snackbar with the error as defined
               //in onError callback of the user injected model.
               onError: (_) => AuthPage(),
@@ -67,7 +70,9 @@ class App extends StatelessWidget {
               //       ? const AuthPage()
               //       : const HomeScreen(),
               // ),
-              onData: (_) => Container(),
+              onData: (_) {
+                return SplashScreen();
+              },
             ),
             routes: {
               HomeScreen.routeName: (context) => const HomeScreen(),

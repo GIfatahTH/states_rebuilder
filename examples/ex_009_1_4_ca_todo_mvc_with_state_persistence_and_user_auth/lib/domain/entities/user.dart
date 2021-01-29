@@ -90,3 +90,12 @@ class User {
 }
 
 class UnsignedUser extends User {}
+
+class UserParam {
+  final String email;
+  final String password;
+  UserParam({
+    this.email,
+    this.password,
+  });
+}

@@ -7,8 +7,6 @@ import 'ui/exceptions/error_handler.dart';
 
 final userInj = RM.injectCRUD<User, int>(
   () => UserRepository(),
-  id: (user) => user.id,
-  param: 0,
   onSetState: On.or(
     onError: (err) => ErrorHandler.showSnackBar(err),
     onData: () => RM.navigate.toNamed(('/')),
@@ -19,8 +17,7 @@ final userInj = RM.injectCRUD<User, int>(
 
 final postsInj = RM.injectCRUD(
   () => PostRepository(),
-  id: (post) => post.id,
-  param: userInj.param.state,
+  param: () => userInj.state.first.id,
   readOnInitialization: true,
   onSetState: On.error(
     (err) => ErrorHandler.showErrorDialog(err),
@@ -39,7 +36,5 @@ extension PostsX on List<Post> {
 
 final commentsInj = RM.injectCRUD(
   () => CommentRepository(),
-  id: (comment) => comment.id,
-  param: 0,
   // debugPrintWhenNotifiedPreMessage: '',
 );

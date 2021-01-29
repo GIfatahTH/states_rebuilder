@@ -1,3 +1,4 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,10 +12,13 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/c
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'fake_auth_repository.dart';
+import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
-  authRepository.injectMock(() => FakeAuthRepository());
+  user.injectAuthMock(() => FakeAuthRepository());
+  todos.injectCRUDMock(() => FakeTodosRepository());
+
   setUp(() {
     storage.clear();
     //auto log with _user;

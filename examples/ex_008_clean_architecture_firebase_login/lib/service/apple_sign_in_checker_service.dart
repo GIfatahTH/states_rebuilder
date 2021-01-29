@@ -6,6 +6,7 @@ import 'interfaces/i_apple_sign_in_available.dart';
 
 final appleSignInCheckerService = RM.inject(
   () => AppSignInCheckerService(FakeAppleSignInChecker()),
+  autoDisposeWhenNotUsed: false,
 );
 
 class AppSignInCheckerService {

@@ -147,7 +147,7 @@ class On<T> {
     );
   }
 
-  T? call<M>(SnapState snapState) {
+  T? _call<M>(SnapState snapState) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return onWaiting?.call();
@@ -181,3 +181,113 @@ class On<T> {
 }
 
 // enum _OnType { onData, onWaiting, onError, when }
+
+extension OnX on On<Widget> {
+  ///Listen to this [Injected] model and register:
+  ///
+  ///{@template listen}
+  ///* builder to be called to rebuild some part of the widget tree (**child**
+  ///parameter).
+  ///* Side effects to be invoked before rebuilding the widget (**onSetState**
+  ///parameter).
+  ///* Side effects to be invoked after rebuilding (**onAfterBuild** parameter).
+  ///
+  ///
+  /// * **Required parameters**:
+  ///     * **child**: of type `On<Widget>`. defines the widget to render when
+  /// this injected model emits a notification.
+  /// * **Optional parameters:**
+  ///     * **onSetState** :  of type `On<void>`. Defines callbacks to be
+  /// executed when this injected model emits a notification before rebuilding
+  /// the widget.
+  ///     * **onAfterBuild** :  of type `On<void>`. Defines callbacks
+  /// to be executed when this injected model emits a notification after
+  /// rebuilding the widget.
+  ///     * **initState** : callback to be executed when the widget is first
+  /// inserted into the widget tree.
+  ///     * **dispose** : callback to be executed when the widget is removed from
+  /// the widget tree.
+  ///     * **shouldRebuild** : Callback to determine whether this StateBuilder
+  /// will rebuild or not.
+  ///     * **watch** : callback to be executed before notifying listeners.
+  ///     * **didUpdateWidget** : callback to be executed whenever the widget
+  /// configuration changes.
+  /// It the returned value is the same as the last one, the rebuild process
+  /// is interrupted.
+  /// {@endtemplate}
+  ///
+  ///onSetState, child and onAfterBuild parameters receives a [On] object.
+  Widget listenTo<T>(
+    ReactiveModel<T> rm, {
+    On<void>? onSetState,
+    On<void>? onAfterBuild,
+    void Function()? initState,
+    void Function()? dispose,
+    void Function(_StateBuilder<T>)? didUpdateWidget,
+    bool Function(SnapState<T>? previousState)? shouldRebuild,
+    Object? Function()? watch,
+    Key? key,
+  }) {
+    return _StateBuilder<T>(
+      key: key,
+      rm: [rm],
+      initState: (_, setState, exposedRM) {
+        rm._initialize();
+
+        initState?.call();
+        // state;
+        if (onAfterBuild != null) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onAfterBuild._call(rm._snapState),
+          );
+        }
+        return rm._listenToRMForStateFulWidget((rm, _) {
+          rm!;
+          if (shouldRebuild?.call(rm._coreRM._previousSnapState) == false) {
+            return;
+          }
+
+          onSetState?._call(rm._snapState);
+          rm._onHasErrorCallback = this._hasOnError;
+
+          if (this._hasOnDataOnly &&
+              (rm._snapState.hasError || rm._snapState.isWaiting)) {
+            return;
+          }
+          if (onAfterBuild != null) {
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onAfterBuild._call(rm._snapState),
+            );
+          }
+          setState(rm);
+        });
+      },
+      dispose: (context) {
+        dispose?.call();
+      },
+      watch: watch,
+      didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
+      builder: (_, __) {
+        rm._onHasErrorCallback = this._hasOnError;
+        return this._call(rm._snapState)!;
+      },
+    );
+  }
+
+  // Widget listenTo<T>(
+  //   ReactiveModel<T> rm, {
+  //   On<void>? onSetState,
+  //   On<void>? onAfterBuild,
+  //   void Function()? initState,
+  //   void Function()? dispose,
+  //   void Function(_StateBuilder<T>)? didUpdateWidget,
+  //   bool Function(SnapState<T>)? shouldRebuild,
+  //   Object Function()? watch,
+  //   Key? key,
+  // }) =>
+  //     rm.listenToSB(
+  //       child: (_) => _call(rm._snapState) as Widget,
+  //       onSetState: (_) => onSetState?._call(rm._snapState),
+  //       initState: (_) => initState?.call(),
+  // );
+}

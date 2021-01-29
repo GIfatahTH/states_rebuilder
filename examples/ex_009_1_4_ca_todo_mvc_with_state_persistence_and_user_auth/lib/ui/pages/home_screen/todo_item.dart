@@ -6,6 +6,7 @@ import '../../../domain/entities/todo.dart';
 import '../../../ui/pages/detail_screen/detail_screen.dart';
 import '../../common/localization/localization.dart';
 
+///
 class TodoItem extends StatelessWidget {
   const TodoItem({
     Key key,
@@ -62,7 +63,7 @@ class TodoItem extends StatelessWidget {
   }
 
   void removeTodo(Todo todo) {
-    todos.setState((s) => s.first.deleteTodo(todo));
+    todos.crud.delete(where: (t) => todo.id == t.id);
 
     RM.scaffold.showSnackBar(
       SnackBar(
@@ -75,7 +76,7 @@ class TodoItem extends StatelessWidget {
         action: SnackBarAction(
           label: i18n.of(RM.context).undo,
           onPressed: () {
-            todos.setState((s) => s.first.addTodo(todo));
+            todos.crud.create(todo);
           },
         ),
       ),

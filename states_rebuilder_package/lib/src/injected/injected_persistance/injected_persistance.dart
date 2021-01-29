@@ -37,7 +37,7 @@ class PersistState<T> {
   ///disposed.
   ///- PersistOn.manualPersist: The state is persisted manually using
   ///[Injected.persistState] method.
-  final PersistOn? persistOn;
+  PersistOn? persistOn;
 
   ///The throttle delay in milliseconds. The state is persisted once at the
   ///end of the given delay.
@@ -85,13 +85,13 @@ method.
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await RM.localStorageInitializer(YouImplementation());
+  await RM.storageInitializer(YouImplementation());
   runApp(_MyApp());
 }
 
 If you are testing the app use:
 
-await RM.localStorageInitializerMock();
+await RM.storageInitializerMock();\n\n
 
 
 ''');

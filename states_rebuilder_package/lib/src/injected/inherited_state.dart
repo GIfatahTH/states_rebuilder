@@ -58,10 +58,10 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
 
   @override
   void dispose() {
-    removeListeners?.call();
+    Future.microtask(() => removeListeners?.call());
     if (widget.reInheritedInjected == null) {
       removeInheritedInjectFromGlobal?.call();
-      inheritedInjected.dispose();
+      // inheritedInjected.dispose();
     }
     super.dispose();
   }

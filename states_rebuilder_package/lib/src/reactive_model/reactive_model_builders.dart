@@ -65,7 +65,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         // state;
         if (onAfterBuild != null) {
           WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onAfterBuild(_snapState),
+            (_) => onAfterBuild._call(_snapState),
           );
         }
         return _listenToRMForStateFulWidget((rm, _) {
@@ -74,7 +74,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
             return;
           }
 
-          onSetState?.call(rm._snapState);
+          onSetState?._call(rm._snapState);
           _onHasErrorCallback = child._hasOnError;
 
           if (child._hasOnDataOnly &&
@@ -83,7 +83,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
           }
           if (onAfterBuild != null) {
             WidgetsBinding.instance?.addPostFrameCallback(
-              (_) => onAfterBuild.call(rm._snapState),
+              (_) => onAfterBuild._call(rm._snapState),
             );
           }
           setState(rm);
@@ -96,7 +96,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, __) {
         _onHasErrorCallback = child._hasOnError;
-        return child.call(_snapState)!;
+        return child._call(_snapState)!;
       },
     );
   }
@@ -171,7 +171,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       },
       shouldRebuild: (_) => true,
       onSetState: (_, rm) {
-        onSetState?.call(_snapState);
+        onSetState?._call(_snapState);
         if (rm!._snapState.hasData) {
           if (rm.state is T) {
             snapState = SnapState<T>._withData(
@@ -192,7 +192,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       },
       dispose: (_, __) {
         if (!hasObservers) {
-          _clean();
+          Future.microtask(() => _clean());
         }
         dispose?.call();
       },
@@ -272,7 +272,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         dispose?.call();
       },
       onSetState: (_, rm) {
-        onSetState?.call(rm!._snapState);
+        onSetState?._call(rm!._snapState);
         if (rm!._snapState.hasData) {
           if (rm.state is T) {
             snapState = SnapState<T>._withData(
@@ -355,9 +355,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       dispose: dispose != null ? () => dispose() : null,
       shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
       watch: watch,
-      child: On.data(() => Center(
-            child: builder(),
-          )),
+      child: On.data(builder),
     );
   }
 

@@ -29,6 +29,7 @@ void main() async {
   StatesRebuilerLogger.isTestMode = true;
 
   final store = await RM.storageInitializerMock();
+  counter.injectMock(() => 0);
   setUp(() {
     store.clear();
   });

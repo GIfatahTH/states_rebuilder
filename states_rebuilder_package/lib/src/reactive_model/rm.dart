@@ -246,7 +246,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   static InjectedCRUD<T, P> injectCRUD<T, P>(
     ICRUD<T, P> Function() repository, {
-    required Object? Function(T item) id,
     P Function()? param,
     bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
@@ -269,27 +268,21 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       'Type can not be inferred, please declare it explicitly',
     );
 
-    final p = param != null
-        ? RM.inject(
-            () => param.call(),
-          )
-        : null;
     late InjectedCRUD<T, P> inj;
     inj = InjectedCRUD<T, P>(
-      creator: () {
-        if (!inj._isFirstInitialized && !readOnInitialization) {
+      creator: () async {
+        final repo = repository().init();
+        inj._crud = _CRUDService(repo, inj);
+        if (!inj._isFirstInitialized && !(readOnInitialization)) {
           return <T>[];
         } else {
-          final repo = repository();
-          inj._crud = _CRUDService(repo, id, inj);
-          return () async {
-            final l = await repo.read(p?.state);
-            return [...l];
-          }();
+          final _repo = await repo;
+          final l = await _repo.read(param?.call());
+          return [...l];
         }
       },
       initialState: <T>[],
-      param: p,
+      param: param,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
       onWaiting: onWaiting,
@@ -304,9 +297,83 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      identifier: id,
     );
-    inj._readOnInitialization = readOnInitialization;
+    inj.._readOnInitialization = readOnInitialization;
+    return inj;
+  }
+
+  static InjectedAuth<T, P> injectAuth<T, P>(
+    IAuth<T, P> Function() repository, {
+    required T unsignedUser,
+    Duration Function(T auth)? autoSignOut,
+    P Function()? param,
+    // bool autoLoginOnInitialization = false,
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    void Function(T s)? onSigned,
+    void Function()? onUnsigned,
+    On<void>? onSetState,
+    //
+    DependsOn<T>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
+    bool autoDisposeWhenNotUsed = false,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    assert(
+      T != dynamic && T != Object,
+      'Type can not be inferred, please declare it explicitly',
+    );
+
+    late InjectedAuth<T, P> inj;
+    inj = InjectedAuth<T, P>(
+      creator: () async {
+        final repo = repository().init();
+        inj._auth = _AuthService(repo, inj);
+        if (!inj._isFirstInitialized && !inj._isStateInitiallyPersisted) {
+          return unsignedUser;
+        } else {
+          final _repo = await inj.auth._repository;
+          return await _repo.signIn(param?.call());
+        }
+      },
+      initialState: unsignedUser,
+      autoSignOut: autoSignOut,
+      param: param,
+      onInitialized: (s) {
+        inj._auth ??= _AuthService(repository().init(), inj);
+        if (inj.state != inj._initialState) {
+          if (autoSignOut != null) {
+            inj._auth!._autoSignOut();
+            // inj._auth!.autoSignOut(autoSignOut(inj._state!));
+          }
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onSigned?.call(inj._state!),
+          );
+        } else {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onUnsigned?.call(),
+          );
+        }
+        onInitialized?.call(s);
+      },
+      onDisposed: (s) {
+        inj._auth!._cancelTimer();
+        onDisposed?.call(s);
+      },
+      onSetState: onSetState,
+      onAuthenticated: onSigned,
+      onSignOut: onUnsigned,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+
     return inj;
   }
 
@@ -323,7 +390,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return () {
       _contextSet.remove(context);
       if (_contextSet.isEmpty) {
-        disposeAll();
+        Future.microtask(
+          () => disposeAll(false),
+        );
       }
     };
   }
@@ -470,11 +539,17 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///Manually dispose all [Injected] models.
   ///
   ///
-  static void disposeAll() {
-    final inj = {..._injectedModels};
-    print(inj.length);
-    inj.forEach((e) => e.dispose());
-    _injectedModels.clear();
+  static void disposeAll([bool forceDispose = true]) {
+    Future.microtask(
+      () => {..._injectedModels}.forEach(
+        (e) {
+          if (forceDispose || e._autoDisposeWhenNotUsed) {
+            e.dispose();
+            _injectedModels.remove(e);
+          }
+        },
+      ),
+    );
   }
 
   static var debugPrintActiveRM;

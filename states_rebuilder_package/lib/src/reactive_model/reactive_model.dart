@@ -82,8 +82,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     return _state!;
   }
 
-  void Function(T s)? _onDisposed;
-
   ///Current state of connection to the asynchronous computation.
   ///
   ///The initial state is [ConnectionState.none].

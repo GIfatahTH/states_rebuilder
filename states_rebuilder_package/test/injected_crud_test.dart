@@ -18,6 +18,16 @@ class Product {
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
+
+  Product copyWith({
+    int? id,
+    String? name,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      name: name ?? this.name,
+    );
+  }
 }
 
 class Repository implements ICRUD<Product, Object> {
@@ -43,31 +53,37 @@ class Repository implements ICRUD<Product, Object> {
   }
 
   @override
-  Future<bool> update(Product item, Object? param) async {
+  Future<void> update(List<Product> items, Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
     }
-    final index = _products.indexWhere((e) => e.id == item.id);
-    _products[index] = item;
-    return true;
+    for (var item in items) {
+      final index = _products.indexWhere((e) => e.id == item.id);
+      _products[index] = item;
+    }
   }
 
   @override
-  Future<bool> delete(Product item, Object? param) async {
+  Future<void> delete(List<Product> items, Object? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (error != null) {
       throw error;
     }
-    _products.remove(item);
-    return true;
+    _products.removeWhere((item) => items.contains(item));
+  }
+
+  void dispose() {}
+
+  @override
+  Future<ICRUD<Product, Object>> init() async {
+    return this;
   }
 }
 
 final _repo = Repository();
 final products = RM.injectCRUD<Product, Object>(
   () => _repo,
-  id: (prod) => prod.id,
   readOnInitialization: true,
 );
 
@@ -93,7 +109,8 @@ void main() {
     expect(_repo._products.length, 2);
     //
     products.crud.update(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
+      set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
@@ -103,7 +120,7 @@ void main() {
     expect(_repo._products[1], Product(id: 2, name: 'product 2_new'));
     //
     products.crud.delete(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
@@ -133,7 +150,8 @@ void main() {
     expect(_repo._products.length, 1);
     //
     products.crud.update(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
+      set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
@@ -143,7 +161,7 @@ void main() {
     expect(_repo._products.length, 1);
     //
     products.crud.delete(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
@@ -172,7 +190,8 @@ void main() {
 
     //
     products.crud.update(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
+      set: (product) => product.copyWith(name: 'product 2_new'),
     );
     await tester.pump();
     expect(products.hasData, true);
@@ -183,7 +202,7 @@ void main() {
 
     //
     products.crud.delete(
-      Product(id: 2, name: 'product 2_new'),
+      where: (product) => product.id == 2,
     );
     await tester.pump();
     expect(products.hasData, true);
@@ -216,7 +235,8 @@ void main() {
 
     //
     products.crud.update(
-      Product(id: 1, name: 'product 1_new'),
+      where: (product) => product.id == 1,
+      set: (product) => product.copyWith(name: 'product 1_new'),
     );
     await tester.pump();
     expect(products.hasData, true);
@@ -228,7 +248,7 @@ void main() {
     expect(_repo._products[0], Product(id: 1, name: 'product 1'));
     //
     products.crud.delete(
-      Product(id: 1, name: 'product 1'),
+      where: (product) => product.id == 1,
     );
     await tester.pump();
     expect(products.hasData, true);

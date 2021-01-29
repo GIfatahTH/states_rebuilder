@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
+import '../../injected/injected_todo.dart';
 import 'package:flutter/material.dart';
 
 import 'todo_item.dart';
@@ -15,6 +15,7 @@ class TodoList extends StatelessWidget {
       () {
         print('rebuilder of  todos');
         final todos = todosFiltered.state;
+
         return ListView.builder(
           itemCount: todos.length,
           itemBuilder: (BuildContext context, int index) {

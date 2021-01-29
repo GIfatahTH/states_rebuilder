@@ -17,11 +17,8 @@ import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
-  authRepository.injectMock(() => FakeAuthRepository());
-  todos.injectCRUDMock(() => FakeTodosRepository([]));
-  RM.printInjected = (snap) {
-    print(snap);
-  };
+  user.injectAuthMock(() => FakeAuthRepository());
+  todos.injectCRUDMock(() => FakeTodosRepository());
   setUp(() {
     DateTimeX.customNow = DateTime(2020);
     storage.clear();
@@ -124,14 +121,7 @@ void main() async {
     //The default is the sign in mode
     expect(find.text('Sign in'), findsOneWidget);
     //Check that the signed user is removed from storage
-    expect(
-      storage.store['__UserToken__'].contains('"email":"user1@mail.com"'),
-      isFalse,
-    );
-    expect(
-        storage.store['__UserToken__']
-            .contains('"token":"token_user1@mail.com"'),
-        isFalse);
+    expect(storage.store['__UserToken__'], isNull);
   });
 
   testWidgets('Should login  and log out after token expire', (tester) async {
@@ -178,14 +168,7 @@ void main() async {
     //The default is the sign in mode
     expect(find.text('Sign in'), findsOneWidget);
     //Check that the signed user is removed from storage
-    expect(
-      storage.store['__UserToken__'].contains('"email":"user1@mail.com"'),
-      isFalse,
-    );
-    expect(
-        storage.store['__UserToken__']
-            .contains('"token":"token_user1@mail.com""'),
-        isFalse);
+    expect(storage.store['__UserToken__'], isNull);
   });
 
   testWidgets('Should auto log if user has already logged with valid token',

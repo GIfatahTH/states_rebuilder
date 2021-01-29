@@ -29,6 +29,7 @@ A Flutter state management combined with a dependency injection solution to get 
   - Navigate, show dialogs without `BuildContext`
   - Easily persist the state and retrieve it back
   - Override the state for a particular widget tree branch (widget-wise state)
+  - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
 
 - Maintainable
   - Easy to test, mock the dependencies
@@ -376,6 +377,32 @@ Calling `refresh` will cancel any pending async task from the state before refre
   model.deletePersistState();
   ```
 > [See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+
+* To Create, Read, Update and Delete (CRUD) from restful API or DataBase,
+  ```dart
+  final products = RM.injectCRUD<Product, Param>(
+      ()=> MyProductRepository(),//Implements ICRUD<Product, Param>
+      readOnInitialization = true,// Optional (Default is false)
+  );
+  ```
+
+  ```dart
+  //READ
+  products.read(param: ()=> NewParam());
+  //CREATE
+  products.create(NewProduct());
+  //UPDATE
+  products.update(
+    where: (product) => product.id == 1,
+    set: (product)=> product.copyWith(...),
+  );
+  //DELETE
+  products.update(
+    where: (product) => product.id == 1,
+    isOptimistic: false, // Optional (Default is true)
+  );
+  ```
+> [See more detailed information about injectCRUD](https://github.com/GIfatahTH/states_rebuilder/wiki/inject_CRUD_api).
 
 * Widget-wise state (overriding the state):
 ```dart

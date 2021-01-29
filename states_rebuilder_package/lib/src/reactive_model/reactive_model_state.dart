@@ -20,6 +20,8 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   bool get _isInitialized => _coreRM._isInitialized;
   set _isInitialized(bool isInit) => _coreRM._isInitialized = isInit;
   bool _isFirstInitialized = false;
+  bool _stateIsPersisted = false;
+  // bool _isDisposed = false;
   //
   final Queue<SnapState<T>> _undoQueue = ListQueue();
   final Queue<SnapState<T>> _redoQueue = ListQueue();
@@ -71,6 +73,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     //
     _isInitialized = false;
     _isFirstInitialized = false;
+    // _isDisposed = false;
     //
     _undoQueue.clear();
     _redoQueue.clear();
@@ -87,7 +90,11 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     _inheritedInjects.clear();
     //
     if (creator != null) {
-      _creator = creator;
+      if (!_stateIsPersisted) {
+        _creator = creator;
+      } else {
+        (this as InjectedImp<T>).creator = creator;
+      }
     }
     if (this is Injected) {
       (this as Injected)._dependenciesAreSet = false;

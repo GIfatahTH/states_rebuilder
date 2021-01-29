@@ -21,17 +21,24 @@ class FakeUserRepository implements UserRepository {
   }
 
   @override
-  Future<User> create(User item) {
+  Future<User> create(User item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(User item) {
+  Future<bool> delete(List<User> item, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(User item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future<bool> update(List<User> item, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }
@@ -75,17 +82,24 @@ class FakePostRepository implements PostRepository {
   }
 
   @override
-  Future<Post> create(Post item) {
+  Future<Post> create(Post item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(Post item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future delete(List<Post> items, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(Post item) {
+  Future update(List<Post> items, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }
@@ -125,17 +139,24 @@ class FakeCommentRepository implements CommentRepository {
   }
 
   @override
-  Future<Comment> create(Comment item) {
+  Future<Comment> create(Comment item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(Comment item) {
+  Future delete(List<Comment> items, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(Comment item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future update(List<Comment> items, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }

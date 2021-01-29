@@ -36,17 +36,24 @@ class UserRepository implements ICRUD<User, int> {
   }
 
   @override
-  Future<User> create(item) {
+  Future<User> create(item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(item) {
+  Future delete(List<User> items, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future update(List<User> items, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }
@@ -79,17 +86,24 @@ class PostRepository implements ICRUD<Post, int> {
   }
 
   @override
-  Future<Post> create(Post item) {
+  Future<Post> create(Post item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(Post item) {
+  Future delete(List<Post> items, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(Post item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future update(List<Post> items, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }
@@ -123,17 +137,24 @@ class CommentRepository implements ICRUD<Comment, int> {
   }
 
   @override
-  Future<Comment> create(Comment item) {
+  Future<Comment> create(Comment item, param) {
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(Comment item) {
+  Future delete(List<Comment> items, int param) {
+    // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> update(Comment item) {
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  @override
+  Future update(List<Comment> items, int param) {
+    // TODO: implement update
     throw UnimplementedError();
   }
 }

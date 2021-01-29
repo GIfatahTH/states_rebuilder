@@ -6,7 +6,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
+part 'builders/child.dart';
 part 'builders/state_builder.dart';
 part 'builders/state_with_mixin_builder.dart';
 part 'builders/when_rebuilder.dart';
@@ -15,6 +17,8 @@ part 'injected/inherited_state.dart';
 part 'injected/injected.dart';
 part 'injected/injected_crud/i_crud.dart';
 part 'injected/injected_crud/injected_crud.dart';
+part 'injected/injected_auth/i_auth.dart';
+part 'injected/injected_auth/injected_auth.dart';
 part 'injected/injected_imp.dart';
 part 'injected/injected_persistance/i_persistStore.dart';
 part 'injected/injected_persistance/injected_persistance.dart';

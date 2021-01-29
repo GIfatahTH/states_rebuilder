@@ -8,6 +8,7 @@ export 'src/reactive_model.dart'
         PersistOn,
         Injected,
         On,
+        OnX,
         OnCombined,
         StateBuilder,
         InjectedX,
@@ -20,4 +21,7 @@ export 'src/reactive_model.dart'
         BoolX,
         ObjectX,
         ICRUD,
-        InjectedCRUD;
+        InjectedCRUD,
+        IAuth,
+        InjectedAuth,
+        Child;

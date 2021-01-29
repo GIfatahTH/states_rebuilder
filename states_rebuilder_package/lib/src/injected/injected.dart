@@ -81,10 +81,10 @@ part of '../reactive_model.dart';
 ///
 ///
 abstract class Injected<T> implements ReactiveModel<T> {
-  bool _autoDisposeWhenNotUsed = true;
   DependsOn<T>? _dependsOn;
   bool _dependenciesAreSet = false;
   Timer? _dependentDebounceTimer;
+  void Function(T s)? _onDisposed;
 
   void _setDependence() {
     if (_dependsOn == null || _dependenciesAreSet) {
@@ -156,15 +156,23 @@ abstract class Injected<T> implements ReactiveModel<T> {
     // if (!_autoDisposeWhenNotUsed && !shouldForceDispose) {
     //   return;
     // }
-    if (!_autoDisposeWhenNotUsed) {
-      _onDisposeState();
-    }
+    // if (_autoDisposeWhenNotUsed) {
+    // _onDisposeState();
+    // }
+
     if (_cleaner.isNotEmpty) {
-      _clean();
+      _clean(true);
     }
   }
 
   void _onInitState() {
+    _isDisposed = false;
+    if (_debugPrintWhenNotifiedPreMessage != null) {
+      listenToRM((rm) {
+        final post = rm._snapState.isIdle ? '- Refreshed' : '';
+        print('states_rebuilder:: $rm $post');
+      });
+    }
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage != null ||
           RM._printAllInitDispose) {
@@ -175,17 +183,18 @@ abstract class Injected<T> implements ReactiveModel<T> {
     }());
     RM.printInjected?.call(_snapState);
     final remove = _addToInjectedModels(this);
-    if (_autoDisposeWhenNotUsed) {
-      addToCleaner(
-        () {
-          remove();
-          _onDisposeState();
-        },
-        true,
-      );
-    }
+    // if (_autoDisposeWhenNotUsed) {
+    addToCleaner(
+      () {
+        remove();
+        _onDisposeState();
+      },
+      true,
+    );
+    // }
   }
 
+  bool _isDisposed = false;
   void _onDisposeState() {
     assert(() {
       if (_debugPrintWhenNotifiedPreMessage != null ||
@@ -195,6 +204,9 @@ abstract class Injected<T> implements ReactiveModel<T> {
       }
       return true;
     }());
+    print(hashCode);
+    assert(!_isDisposed);
+    _isDisposed = true;
     RM.printInjected?.call(_snapState);
     if (!_isInitialized) {
       return;

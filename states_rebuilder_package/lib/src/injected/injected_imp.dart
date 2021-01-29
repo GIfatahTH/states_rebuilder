@@ -2,9 +2,9 @@ part of '../reactive_model.dart';
 
 class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
   // final PersistState<T> Function() _persistCallback;
-
+  dynamic Function(ReactiveModel<T> rm) creator;
   InjectedImp({
-    required dynamic Function(ReactiveModel<T> rm) creator,
+    required this.creator,
     T? nullState,
     T? initialValue,
     bool autoDisposeWhenNotUsed = true,
@@ -27,11 +27,15 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     if (persist == null) {
       _creator = creator;
     } else {
+      _stateIsPersisted = true;
       late FutureOr<T> Function(ReactiveModel<T> rm) c;
       _creator = (rm) {
         if (!_isFirstInitialized) {
           //_isFirstInitialized is set to false fro each unit test
           _coreRM.persistanceProvider = persist();
+          if (this is InjectedAuth) {
+            _coreRM.persistanceProvider!.persistOn = PersistOn.manualPersist;
+          }
           var result = _coreRM.persistanceProvider!.read();
           if (result is Future) {
             c = (rm) async {
@@ -73,17 +77,11 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
       ..onData = onData
       ..on = on;
 
-    if (_debugPrintWhenNotifiedPreMessage != null) {
-      listenToRM((rm) {
-        final post = rm._snapState.isIdle ? '- Refreshed' : '';
-        print('states_rebuilder:: $rm $post');
-      });
-    }
-
     if (!isLazy) {
       _initialize();
     }
   }
+
   bool _persistHasError = false;
 
   ///Save the current state to localStorage.

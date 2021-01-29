@@ -9,31 +9,31 @@ import 'ui/pages/sign_in_page/sign_in_page.dart';
 import 'ui/widgets/splash_screen.dart';
 
 main() {
-  runApp(
-    MaterialApp(
-      home: MyApp(),
-    ),
-  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return user.futureBuilder(
-      future: (s, asyncS) async {
-        await appleSignInCheckerService.state.check();
-        return s.currentUser();
-      },
-      onWaiting: () => SplashScreen(),
-      onError: (error) => Text(error.toString()),
-      onData: (_) {
-        return user.listen(
-          child: On.data(
-            () => user.state is UnLoggedUser ? SignInPage() : HomePage(),
-          ),
-          watch: () => user.state,
-        );
-      },
+    return MaterialApp(
+      home: user.futureBuilder(
+        future: (s, _) async {
+          appleSignInCheckerService.state.check();
+          return user.auth.signIn(
+            () => UserParam(signIn: SignIn.currentUser),
+          );
+        },
+        onWaiting: () => SplashScreen(),
+        onError: (error) => Text(error.toString()),
+        onData: (_) => Container(),
+      ),
+      navigatorKey: RM.navigate.navigatorKey,
     );
+
+    // return user.listen(
+    //   child: On.data(
+    //     () => user.state is UnLoggedUser ? SignInPage() : HomePage(),
+    //   ),
+    // ),);
   }
 }

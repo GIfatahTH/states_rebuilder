@@ -9,14 +9,15 @@ class StatesRebuilerLogger {
   static String message = '';
 
   ///Console log the error
-  static void log(String m, [dynamic? e, StackTrace? s]) {
+  static void log(String m, [dynamic e, StackTrace? s]) {
     String? errorMessage;
     try {
       errorMessage = e?.message as String?;
+      errorMessage ??= '$e';
     } catch (_) {
       errorMessage = '$e';
     }
-    errorMessage ??= '';
+    // errorMessage ??= '';
 
     message = '[states_rebuilder]: $m: $errorMessage';
     if (!isTestMode) {

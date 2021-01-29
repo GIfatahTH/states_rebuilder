@@ -66,6 +66,8 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
       rm = widget.rm?.firstWhereOrNull((e) => e is ReactiveModel<T>)
           as ReactiveModel<T>?;
     }
+
+    // _removeContext = RM._addToContextSet(context);
   }
 
   @override
@@ -78,6 +80,9 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
   void dispose() {
     widget.dispose?.call(context);
     Future.microtask(() => _disposer());
+    // _disposer();
+    // _removeContext();
+
     rm = null;
     super.dispose();
   }
@@ -124,7 +129,10 @@ class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
         if (!_isDirty) {
           _isDirty = true;
           rmNotified = rm;
-          setState(() {});
+          print(SchedulerBinding.instance?.schedulerPhase);
+          SchedulerBinding.instance?.scheduleFrameCallback(
+            (_) => setState(() {}),
+          );
           return true;
         }
         return false;
@@ -152,7 +160,9 @@ class _StateBuilderWithWatchState<T> extends _StateBuilderState<T> {
         if (!_isDirty) {
           _isDirty = true;
           rmNotified = rm;
-          setState(() {});
+          SchedulerBinding.instance?.scheduleFrameCallback(
+            (_) => setState(() {}),
+          );
           return true;
         }
         return false;

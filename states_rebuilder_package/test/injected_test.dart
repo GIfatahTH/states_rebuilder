@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:states_rebuilder/src/reactive_model.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
@@ -1437,11 +1438,11 @@ void main() {
           ));
       await tester.pumpWidget(widget);
       counter1.state++;
-      // counter2.state++;
+      counter2.state++;
       // counter2.getRM.resetToHasData(1);
 
       expect(counter1.state, 1);
-      expect(counter2.state, 0);
+      expect(counter2.state, 1);
       switcher.state = !switcher.state;
       await tester.pump();
       expect(counter1.state, 0);

@@ -1,3 +1,4 @@
+import 'package:clean_architecture_firebase_login/domain/entities/user.dart';
 import 'package:clean_architecture_firebase_login/service/user_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -24,7 +25,7 @@ class FormWidget extends StatelessWidget {
   //NOTE1: Creating a  ReactiveModel key for password with empty initial value
   final _password = ''.inj();
   //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
-  final _isRegister = true.inj<bool>();
+  final _isRegister = true.inj();
   //NOTE1: bool getter to check if the form is valid
   bool get _isFormValid => _email.hasData && _password.hasData;
 
@@ -91,8 +92,8 @@ class FormWidget extends StatelessWidget {
           ),
         ),
         [_email, _password, _isRegister, user].listen(
-          child: On(
-            ()
+          child: OnCombined(
+            (_)
 
             // StateBuilder<UserService>(
             //     //NOTE6: subscribe to all the ReactiveModels
@@ -117,29 +118,24 @@ class FormWidget extends StatelessWidget {
                   //NOTE8: activate/deactivate the button if the form is valid/non valid
                   onPressed: _isFormValid
                       ? () {
-                          user.setState(
-                            (s) async {
-                              //NOTE9: If _isRegisterRM.state is true call createUserWithEmailAndPassword,
-                              if (_isRegister.state) {
-                                return s.createUserWithEmailAndPassword(
-                                  _email.state,
-                                  _password.state,
-                                );
-                              } else {
-                                //NOTE9: If _isRegisterRM.state is true call signInWithEmailAndPassword,
-                                return s.signInWithEmailAndPassword(
-                                  _email.state,
-                                  _password.state,
-                                );
-                              }
-                            },
-                            // //we want to notify the local new ReactiveModel created bellow
-                            // notifyAllReactiveInstances: true,
-                            onData: (_) {
-                              Navigator.pop(context);
-                            },
-                            catchError: true,
-                          );
+                          if (_isRegister.state) {
+                            user.auth.signUp(
+                              () => UserParam(
+                                signUp: SignUp.withEmailAndPassword,
+                                email: _email.state,
+                                password: _password.state,
+                              ),
+                            );
+                          } else {
+                            user.auth.signIn(
+                              () => UserParam(
+                                signIn: SignIn.withEmailAndPassword,
+                                email: _email.state,
+                                password: _password.state,
+                              ),
+                            );
+                          }
+                          Navigator.pop(context);
                         }
                       : null);
             },

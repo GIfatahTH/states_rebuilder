@@ -14,7 +14,7 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return commentsInj.listen(
-      initState: () => commentsInj.param.state = postId,
+      initState: () => commentsInj.crud.read(param: () => postId),
       onSetState: On.error((err) => ErrorHandler.showErrorDialog(err)),
       child: On.all(
         onIdle: () => Container(),

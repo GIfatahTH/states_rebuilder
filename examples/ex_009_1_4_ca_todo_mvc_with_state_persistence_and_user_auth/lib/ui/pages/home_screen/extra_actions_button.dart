@@ -28,15 +28,15 @@ class ExtraActionsButton extends StatelessWidget {
           }
 
           if (action == ExtraAction.logout) {
-            user.state = user.state.logout();
+            user.auth.signOut();
             return;
           }
 
           if (action == ExtraAction.toggleAllComplete) {
-            todos.setState((s) => s.first.toggleAll());
+            todos.setState((s) => s.toggleAll());
             todoItem.refresh();
           } else {
-            todos.setState((s) => s.first.clearCompleted());
+            todos.setState((s) => s.clearCompleted());
           }
         },
         itemBuilder: (BuildContext context) {

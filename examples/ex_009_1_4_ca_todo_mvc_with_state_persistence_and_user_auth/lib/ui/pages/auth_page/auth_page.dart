@@ -1,3 +1,5 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
+
 import '../../injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -93,21 +95,21 @@ class AuthFormWidget extends StatelessWidget {
               child: _isRegister.state ? Text('Register') : Text('Sign in'),
               onPressed: _isFormValid
                   ? () {
-                      user.setState(
-                        (_) {
-                          if (_isRegister.state) {
-                            return user.state.signUp(
-                              _email.state,
-                              _password.state,
-                            );
-                          } else {
-                            return user.state.login(
-                              _email.state,
-                              _password.state,
-                            );
-                          }
-                        },
-                      );
+                      if (_isRegister.state) {
+                        return user.auth.signUp(
+                          () => UserParam(
+                            email: _email.state,
+                            password: _password.state,
+                          ),
+                        );
+                      } else {
+                        return user.auth.signIn(
+                          () => UserParam(
+                            email: _email.state,
+                            password: _password.state,
+                          ),
+                        );
+                      }
                     }
                   : null,
             );

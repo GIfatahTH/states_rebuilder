@@ -3,7 +3,7 @@ part of '../../reactive_model.dart';
 class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
   InjectedCRUD({
     required dynamic Function() creator,
-    Injected<P>? param,
+    P Function()? param,
     List<T>? initialState,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
@@ -20,11 +20,10 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     //
-    Object? Function(T item)? identifier,
   })  : _param = param,
         super(
           creator: (_) => creator(),
-          nullState: initialState,
+          initialValue: initialState,
           onInitialized: onInitialized,
           onDisposed: onDisposed,
           onWaiting: onWaiting,
@@ -39,20 +38,16 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-        ) {
-    if (_param != null) {
-      if (_dependsOn != null) {
-        _dependsOn!.injected.add(_param!);
-      } else {
-        _dependsOn = DependsOn({_param!});
-      }
-    }
-  }
-  Injected<P>? _param;
-  Injected<P>? get param => _param;
+        );
+  P Function()? _param;
   bool _readOnInitialization = false;
   _CRUDService<T, P> get crud => _crud;
   late _CRUDService<T, P> _crud;
+  Future<R> getRepoAs<R>() async {
+    assert(R != dynamic && R != Object);
+    _initialize();
+    return (await crud.repo) as R;
+  }
 
   ///Inject a fake implementation of this injected model.
   ///
@@ -67,12 +62,14 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
       _nullState = initialState;
     }
     final creator = () {
+      final repo = fakeRepository().init();
+      _crud = _CRUDService(repo, this);
       if (!_isFirstInitialized && !_readOnInitialization) {
         return initialState ?? <T>[];
       } else {
-        final repo = fakeRepository();
         return () async {
-          final l = await repo.read(param?.state);
+          final _repo = await repo;
+          final l = await _repo.read(_param?.call());
           return [...l];
         }();
       }

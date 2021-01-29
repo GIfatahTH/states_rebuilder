@@ -1,6 +1,8 @@
 part of 'reactive_model.dart';
 
 abstract class StatesRebuilder<T> {
+  bool _autoDisposeWhenNotUsed = true;
+
   final _listenersOfStateFulWidget =
       <void Function(ReactiveModel<T>? rm, List? tags)>[];
   Disposer _listenToRMForStateFulWidget(
@@ -103,11 +105,13 @@ abstract class StatesRebuilder<T> {
     return () => _cleaner.remove(fn);
   }
 
-  void _clean() {
-    Future.microtask(
-      () => _cleaner
-        ..forEach((e) => e())
-        ..clear(),
-    );
+  @mustCallSuper
+  void _clean([bool force = false]) {
+    if (!force && !_autoDisposeWhenNotUsed) {
+      return;
+    }
+    _cleaner
+      ..forEach((e) => e())
+      ..clear();
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert' as convert;
 
+import 'package:flutter/foundation.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../data_source/firebase_todos_repository.dart';
@@ -10,11 +11,10 @@ import '../common/enums.dart';
 import '../exceptions/error_handler.dart';
 import 'injected_user.dart';
 
-final todos = RM.injectCRUD<List<Todo>, String>(
+final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   () => FireBaseTodosRepository(
     authToken: user.state.token.token,
   ),
-  id: (_) => null,
   param: () => '__Todos__/${user.state.userId}',
   readOnInitialization: true,
   onSetState: On.or(
@@ -23,6 +23,13 @@ final todos = RM.injectCRUD<List<Todo>, String>(
       ErrorHandler.showErrorSnackBar(e);
     },
     onData: () {
+      // todos.crud.update(
+      //   Todo(''),
+      //   param: TodosQuery(
+      //     userId: '__Todos__/${user.state.userId}',
+      //     todos: todos.state,
+      //   ),
+      // );
       // todoItem.refresh();
     },
     or: () {},
@@ -93,12 +100,12 @@ final activeFilter = RM.inject(() => VisibilityFilter.all);
 final Injected<List<Todo>> todosFiltered = RM.inject(
   () {
     if (activeFilter.state == VisibilityFilter.active) {
-      return todos.state.first.where((t) => !t.complete).toList();
+      return todos.state.where((t) => !t.complete).toList();
     }
     if (activeFilter.state == VisibilityFilter.completed) {
-      return todos.state.first.where((t) => t.complete).toList();
+      return todos.state.where((t) => t.complete).toList();
     }
-    return todos.state.first;
+    return [...todos.state];
   },
   dependsOn: DependsOn({activeFilter, todos}),
   debugPrintWhenNotifiedPreMessage: 'TodosFilter',
@@ -106,8 +113,8 @@ final Injected<List<Todo>> todosFiltered = RM.inject(
 
 final Injected<TodosStats> todosStats = RM.inject(
   () => TodosStats(
-    numCompleted: todos.state.first.where((t) => t.complete).length,
-    numActive: todos.state.first.where((t) => !t.complete).length,
+    numCompleted: todos.state.where((t) => t.complete).length,
+    numActive: todos.state.where((t) => !t.complete).length,
   ),
   dependsOn: DependsOn({todos}),
 
@@ -119,10 +126,14 @@ final activeTab = RM.inject(() => AppTab.todos);
 final Injected<Todo> todoItem = RM.inject(
   () => null,
   onData: (t) {
-    todos.setState(
-      (s) {
-        return s.first.updateTodo(t);
-      },
+    todos.crud.update(
+      where: (todo) => todo.id == t.id,
+      set: (_) => t,
     );
+    // todos.setState(
+    //   (s) {
+    //     return s.updateTodo(t);
+    //   },
+    // );
   },
 );

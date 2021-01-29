@@ -88,8 +88,9 @@ class _AddEditPageState extends State<AddEditPage> {
               );
               todo.state = newTodo;
             } else {
-              todos.setState(
-                (s) => s.first.addTodo(Todo(_task, note: _note)),
+              todos.crud.create(
+                Todo(_task, note: _note),
+                isOptimistic: false,
               );
             }
             RM.navigate.back();

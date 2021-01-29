@@ -1,3 +1,4 @@
+import 'package:clean_architecture_firebase_login/domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -41,8 +42,8 @@ class SignInPage extends StatelessWidget {
                       child: Text('Sign in With Apple Account'),
                       onPressed: isLoading
                           ? null
-                          : () => user.setState(
-                                (s) => s.signInWithApple(),
+                          : () => user.auth.signIn(
+                                () => UserParam(signIn: SignIn.withApple),
                               ),
                     ),
                     SizedBox(height: 8),
@@ -51,8 +52,8 @@ class SignInPage extends StatelessWidget {
                     child: Text('Sign in With Google Account'),
                     onPressed: isLoading
                         ? null
-                        : () => user.setState(
-                              (s) => s.signInWithGoogle(),
+                        : () => user.auth.signIn(
+                              () => UserParam(signIn: SignIn.withGoogle),
                             ),
                   ),
                   SizedBox(height: 8),
@@ -77,8 +78,8 @@ class SignInPage extends StatelessWidget {
                     child: Text('Sign in anonymously'),
                     onPressed: isLoading
                         ? null
-                        : () => user.setState(
-                              (s) => s.signInAnonymously(),
+                        : () => user.auth.signIn(
+                              () => UserParam(signIn: SignIn.anonymously),
                             ),
                   ),
                   SizedBox(height: 8),

@@ -114,6 +114,7 @@ class ReactiveModelCore<T> {
   }) {
     if (e is Error) {
       StatesRebuilerLogger.log('', e, s);
+      throw e;
     }
     snapState = SnapState<T>._withError(
       ConnectionState.done,
@@ -133,7 +134,7 @@ class ReactiveModelCore<T> {
 
   void _callOnData([On<void>? onSetState, dynamic Function(T)? onData]) {
     if (onSetState != null && onSetState._hasOnData) {
-      onSetState.call(_snapState);
+      onSetState._call(_snapState);
       return;
     }
     if (onData != null) {
@@ -141,7 +142,7 @@ class ReactiveModelCore<T> {
       return;
     }
     if (on != null && on!._hasOnData) {
-      on!.call(_snapState);
+      on!._call(_snapState);
       return;
     }
     this.onData?.call(_state!);
@@ -151,11 +152,11 @@ class ReactiveModelCore<T> {
     On<void>? onSetState,
   ) {
     if (onSetState != null && onSetState._hasOnWaiting) {
-      onSetState.call(_snapState);
+      onSetState._call(_snapState);
       return;
     }
     if (on != null && on!._hasOnWaiting) {
-      on!.call(_snapState);
+      on!._call(_snapState);
       return;
     }
     onWaiting?.call();
@@ -168,7 +169,7 @@ class ReactiveModelCore<T> {
     void Function(dynamic)? onError,
   ]) {
     if (onSetState != null && onSetState._hasOnError) {
-      onSetState(_snapState);
+      onSetState._call(_snapState);
       return;
     }
     if (onError != null) {
@@ -176,7 +177,7 @@ class ReactiveModelCore<T> {
       return;
     }
     if (on != null && on!._hasOnError) {
-      on!.call(_snapState);
+      on!._call(_snapState);
       return;
     }
     this.onError?.call(e, s);

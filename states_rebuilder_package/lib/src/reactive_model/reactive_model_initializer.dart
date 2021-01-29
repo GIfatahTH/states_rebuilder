@@ -100,7 +100,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
     }
     if (!_isFirstInitialized) {
       _onInitState();
-      _onInitialized?.call(state);
+      _onInitialized?.call(_state!);
       _isFirstInitialized = true;
     }
   }
