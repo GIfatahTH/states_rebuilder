@@ -8,6 +8,7 @@ var counter = RM.inject<int>(
   persist: () => PersistState(
     key: 'counter',
     catchPersistError: true,
+    debugPrintOperations: true,
   ),
   onError: (e, s) => print('error'),
   onInitialized: (_) => print('onInitialized'),
@@ -56,63 +57,44 @@ class PersistStoreMockImp extends IPersistStore {
 
 void main() async {
   StatesRebuilerLogger.isTestMode = true;
-  // testWidgets('throw if not localStorage provider is given', (tester) async {
-  //   await tester.pumpWidget(App());
-  //   expect(tester.takeException(), isAssertionError);
-  // });
-  group('', () {
-    testWidgets('Test try catch of PersistState', (tester) async {
-      await RM.storageInitializer(PersistStoreMockImp());
+  await RM.storageInitializer(PersistStoreMockImp());
+  testWidgets('Test try catch of PersistState', (tester) async {
+    await tester.pumpWidget(App());
 
-      await tester.pumpWidget(App());
-      // persistState.read();
-      expect(StatesRebuilerLogger.message.contains('Read Error'), isTrue);
+    counter.state++;
+    await tester.pump();
 
-      // expect(() => counter.state++, throwsException);
-      counter.state++;
-      await tester.pump();
-      // expect(tester.takeException(), isException);
-      // // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
-      // // //
-      // expect(() => counter.persistState(), throwsException);
+    //
+    counter.deletePersistState();
+    await tester.pump();
+    expect(StatesRebuilerLogger.message.contains('Delete Error'), isTrue);
+    //
+    counter.deleteAllPersistState();
+    await tester.pump();
+    expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
+  });
+  testWidgets('persistStateProvider, catchPersistError and onError',
+      (tester) async {
+    counter = RM.injectFuture<int>(
+        () => Future.delayed(Duration(seconds: 1), () => 10),
+        persist: () => PersistState(
+              key: 'Future_counter',
+              persistStateProvider: PersistStoreMockImp(),
+              catchPersistError: true,
+            ),
+        onError: (e, s) {
+          StatesRebuilerLogger.log('', e);
+        });
+    expect(counter.state, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter.state, 10);
+    counter.state++;
+    await tester.pump(Duration(seconds: 1));
+    expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+    await tester.pump(Duration(seconds: 1));
 
-      // await tester.pump();
-      // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
-
-      //
-      counter.deletePersistState();
-      await tester.pump();
-      expect(StatesRebuilerLogger.message.contains('Delete Error'), isTrue);
-      //
-      counter.deleteAllPersistState();
-      await tester.pump();
-      expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
-    });
-
-    testWidgets('persistStateProvider, catchPersistError and onError',
-        (tester) async {
-      await RM.storageInitializer(PersistStoreMockImp());
-
-      counter = RM.injectFuture<int>(
-          () => Future.delayed(Duration(seconds: 1), () => 10),
-          persist: () => PersistState(
-                key: 'Future_counter',
-                persistStateProvider: PersistStoreMockImp(),
-                catchPersistError: true,
-              ),
-          onError: (e, s) {
-            StatesRebuilerLogger.log('', e);
-          });
-      expect(counter.state, 0);
-      await tester.pump(Duration(seconds: 1));
-      expect(counter.state, 10);
-      counter.state++;
-      await tester.pump(Duration(seconds: 1));
-      expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
-      await tester.pump(Duration(seconds: 1));
-
-      await tester.pump(Duration(seconds: 1));
-      counter.dispose();
-    });
+    await tester.pumpAndSettle(Duration(seconds: 1));
+    counter.dispose();
+    await tester.pump(Duration(seconds: 10));
   });
 }

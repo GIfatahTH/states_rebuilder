@@ -137,13 +137,10 @@ final productService = RM.inject(
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return authService.listen(
-      child: On.or(
-        onWaiting: () => Text('Waiting for authentication'),
-        or: () =>
-            authService.state.user is NullUser ? AuthPage() : ProductPage(),
-      ),
-    );
+    return On.or(
+      onWaiting: () => Text('Waiting for authentication'),
+      or: () => authService.state.user is NullUser ? AuthPage() : ProductPage(),
+    ).listenTo(authService);
   }
 }
 
@@ -157,18 +154,17 @@ class AuthPage extends StatelessWidget {
 class ProductPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return productService.listen(
+    return On.all(
+      onIdle: () => Text('onIDel'),
+      onWaiting: () => Text('Waiting for products'),
+      onError: (e) => Text('error : $e'),
+      onData: () => Column(
+        children: productService.state.products.map((p) => Text(p.id)).toList(),
+      ),
+    ).listenTo(
+      productService,
       //fetch for products once the ProductPage is initialized
       initState: () => productService.setState((s) => s.getProducts()),
-      child: On.all(
-        onIdle: () => Text('onIDel'),
-        onWaiting: () => Text('Waiting for products'),
-        onError: (e) => Text('error : $e'),
-        onData: () => Column(
-          children:
-              productService.state.products.map((p) => Text(p.id)).toList(),
-        ),
-      ),
     );
   }
 }

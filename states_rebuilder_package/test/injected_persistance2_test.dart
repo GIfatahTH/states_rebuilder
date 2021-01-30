@@ -188,6 +188,7 @@ void main() async {
   });
 
   testWidgets('Test try catch of PersistState', (tester) async {
+    String error = '';
     counter = RM.inject(() => 0,
         persist: () => PersistState(
               key: 'counter',
@@ -196,7 +197,7 @@ void main() async {
               catchPersistError: true,
             ),
         onError: (e, s) {
-          StatesRebuilerLogger.log('', e);
+          error = e.message;
         });
 
     store.exception = Exception('Read Error');
@@ -207,7 +208,7 @@ void main() async {
     counter.state++;
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
-    expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+    expect(error.contains('Write Error'), isTrue);
 
     //
     store.exception = Exception('Delete Error');
@@ -220,6 +221,30 @@ void main() async {
     counter.deleteAllPersistState();
     await tester.pump(Duration(seconds: 0));
     expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
+  });
+
+  testWidgets('Return to previous state and notify listeners when throw error',
+      (tester) async {
+    counter = RM.inject(() => 0,
+        persist: () => PersistState(
+              key: 'counter',
+              fromJson: (json) => int.parse(json),
+              toJson: (s) => '$s',
+              // catchPersistError: true,
+            ),
+        onError: (e, s) {});
+
+    await tester.pumpWidget(App());
+
+    store.exception = Exception('Write Error');
+    store.timeToThrow = 1000;
+    counter.state++;
+    await tester.pump();
+    expect(counter.state, 1);
+    expect(counter.hasData, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter.hasError, true);
+    expect(counter.state, 0);
   });
 
   testWidgets('infer fromJson and toJson of int', (tester) async {

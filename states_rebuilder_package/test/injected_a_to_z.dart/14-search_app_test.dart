@@ -50,25 +50,20 @@ class UserSearcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: query.listen(
-        child: On.data(
-          () {
-            return query.state.isEmpty
-                ? Text('Please enter a user name!')
-                : fetchedUsers.listen(
-                    child: On.or(
-                      onWaiting: () => CircularProgressIndicator(),
-                      or: () {
-                        return Column(
-                          children:
-                              fetchedUsers.state.map((e) => Text(e)).toList(),
-                        );
-                      },
-                    ),
-                  );
-          },
-        ),
-      ),
+      child: On.data(
+        () {
+          return query.state.isEmpty
+              ? Text('Please enter a user name!')
+              : On.or(
+                  onWaiting: () => CircularProgressIndicator(),
+                  or: () {
+                    return Column(
+                      children: fetchedUsers.state.map((e) => Text(e)).toList(),
+                    );
+                  },
+                ).listenTo(fetchedUsers);
+        },
+      ).listenTo(query),
     );
   }
 }

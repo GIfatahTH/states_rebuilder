@@ -52,11 +52,9 @@ class CounterItem extends StatelessWidget {
         RaisedButton(
           //Key use in tests
           key: Key('button-$index'),
-          child: counter.listen(
-            child: On.data(
-              () => Text('${counter.state}'),
-            ),
-          ),
+          child: On.data(
+            () => Text('${counter.state}'),
+          ).listenTo(counter),
           onPressed: () => counter.state++,
         )
       ],

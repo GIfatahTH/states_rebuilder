@@ -36,22 +36,22 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: counter.listen(
-        child: On.data(
-          () => Text('${counter.state.count}'),
-        ),
-      ),
+      child: On.data(
+        () => Text('${counter.state.count}'),
+      ).listenTo(counter),
     );
   }
 }
 
 //To test the app we have to use a fake counter
 class FakeCounter extends Counter {
+  @override
   final int _incrementBy;
 
   final bool shouldThrow;
   FakeCounter({int incrementBy = 1, this.shouldThrow = false})
       : _incrementBy = incrementBy;
+  @override
   int _count = 0;
   @override
   int get count => _count * _incrementBy;

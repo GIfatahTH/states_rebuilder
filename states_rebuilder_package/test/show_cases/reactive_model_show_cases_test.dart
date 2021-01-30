@@ -6,15 +6,13 @@ import '../../lib/src/reactive_model.dart';
 
 void main() {
   testWidgets('simple counter app', (tester) async {
-    final rm = ReactiveModelImp(creator: (_) => 0, nullState: 0);
-    final widget = rm.listen(
-      child: On.data(
-        () => Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text('${rm.state}'),
-        ),
+    final rm = RM.inject(() => 0);
+    final widget = On.data(
+      () => Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text('${rm.state}'),
       ),
-    );
+    ).listenTo(rm);
     await tester.pumpWidget(widget);
     expect(find.text('0'), findsOneWidget);
     rm.state++;
@@ -23,24 +21,24 @@ void main() {
   });
 
   testWidgets('simple Future counter  app1', (tester) async {
-    final rm = ReactiveModelImp.future(
+    final rm = RM.injectFuture(
       () => Future.delayed(Duration(seconds: 1), () => 1),
-      nullState: 0,
     );
+
     final widget = MaterialApp(
       home: Scaffold(
         body: Builder(
-          builder: (context) => rm.listen(
+          builder: (context) => On.or(
+            onWaiting: () => CircularProgressIndicator(),
+            or: () => Text('${rm.state}'),
+          ).listenTo(
+            rm,
             onAfterBuild: On.waiting(
               () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Container(),
                 ),
               ),
-            ),
-            child: On.or(
-              onWaiting: () => CircularProgressIndicator(),
-              or: () => Text('${rm.state}'),
             ),
           ),
         ),
@@ -56,12 +54,17 @@ void main() {
   });
 
   testWidgets('async counter without / with error', (tester) async {
-    final rm =
-        ReactiveModelImp(creator: (_) => _Model(0), nullState: _Model(0));
+    final rm = RM.inject(() => _Model(0));
     final widget = MaterialApp(
       home: Scaffold(
         body: Builder(
-          builder: (context) => rm.listen(
+          builder: (context) => On.all(
+            onIdle: () => Text('Idle'),
+            onWaiting: () => CircularProgressIndicator(),
+            onError: (err) => Text('${err.message}'),
+            onData: () => Text('${rm.state.count}'),
+          ).listenTo(
+            rm,
             onSetState: On.or(
               onWaiting: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -82,12 +85,6 @@ void main() {
                 );
               },
               or: () {},
-            ),
-            child: On.all(
-              onIdle: () => Text('Idle'),
-              onWaiting: () => CircularProgressIndicator(),
-              onError: (err) => Text('${err.message}'),
-              onData: () => Text('${rm.state.count}'),
             ),
           ),
         ),
@@ -173,14 +170,12 @@ void main() {
     final rm1 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
     final rm2 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
     final rm3 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
-    final widget = [rm1, rm2, rm3].listen(
-      child: OnCombined.data(
-        (_) => Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text('${rm1.state}-${rm2.state}-${rm3.state}'),
-        ),
+    final widget = OnCombined.data(
+      (_) => Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text('${rm1.state}-${rm2.state}-${rm3.state}'),
       ),
-    );
+    ).listenTo([rm1, rm2, rm3]);
     await tester.pumpWidget(widget);
     expect(find.text('0-0-0'), findsOneWidget);
     //
@@ -206,16 +201,14 @@ void main() {
         ReactiveModelImp(creator: (_) => _Model(0), nullState: _Model(0));
     final widget = Directionality(
       textDirection: TextDirection.ltr,
-      child: [rm1, rm2, rm3].listen(
-        child: OnCombined.all(
-          onIdle: () => Text('Idle'),
-          onWaiting: () => Text('Waiting'),
-          onError: (e) => Text('${e.message}'),
-          onData: (_) => Text(
-            '${rm1.state.count}-${rm2.state.count}-${rm3.state.count}',
-          ),
+      child: OnCombined.all(
+        onIdle: () => Text('Idle'),
+        onWaiting: () => Text('Waiting'),
+        onError: (e) => Text('${e.message}'),
+        onData: (_) => Text(
+          '${rm1.state.count}-${rm2.state.count}-${rm3.state.count}',
         ),
-      ),
+      ).listenTo([rm1, rm2, rm3]),
     );
     await tester.pumpWidget(widget);
     expect(find.text('Idle'), findsOneWidget);

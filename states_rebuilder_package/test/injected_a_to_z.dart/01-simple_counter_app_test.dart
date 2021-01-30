@@ -29,9 +29,9 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: counter.listen(
-        child: On(() => Text('${counter.state}')),
-      ),
+      child: On(
+        () => Text('${counter.state}'),
+      ).listenTo(counter),
     );
   }
 }

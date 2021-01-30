@@ -52,12 +52,13 @@ class CounterApp extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          counter1.listen(
-            child: On.data(() {
+          On.data(
+            () {
               numberOfCounter1Rebuild++;
               return Text('counter1 : ${counter1.state}');
-            }),
-          ),
+            },
+          ).listenTo(counter1),
+
           //you can use this
           // counter2.rebuilder(() {
           //   numberOfCounter2Rebuild++;
@@ -73,12 +74,10 @@ class CounterApp extends StatelessWidget {
             },
           ),
 
-          computedCounter.listen(
-            child: On.data(() {
-              numberOfComputedRebuild++;
-              return Text('computedCounter : ${computedCounter.state}');
-            }),
-          ),
+          On.data(() {
+            numberOfComputedRebuild++;
+            return Text('computedCounter : ${computedCounter.state}');
+          }).listenTo(computedCounter),
         ],
       ),
     );

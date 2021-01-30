@@ -19,25 +19,23 @@ class App extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       //whenRebuilder listens to both plugin and exposes a merged state
-      child: [plugin1, plugin2].listen(
-        child: OnCombined.all(
-          onIdle: () => Text('Idle'),
-          //called if at least on plugin is waiting.
-          onWaiting: () => Text('Waiting'),
-          //called if no plugin is waiting and at least on of them has error
-          onError: (error) => Text('error'),
-          //called if both plugins have been initialized successfully
-          onData: (_) {
-            //Here it is safe to use our plugins
-            return Column(
-              children: [
-                Text(plugin1.state),
-                Text(plugin2.state),
-              ],
-            );
-          },
-        ),
-      ),
+      child: OnCombined.all(
+        onIdle: () => Text('Idle'),
+        //called if at least on plugin is waiting.
+        onWaiting: () => Text('Waiting'),
+        //called if no plugin is waiting and at least on of them has error
+        onError: (error) => Text('error'),
+        //called if both plugins have been initialized successfully
+        onData: (_) {
+          //Here it is safe to use our plugins
+          return Column(
+            children: [
+              Text(plugin1.state),
+              Text(plugin2.state),
+            ],
+          );
+        },
+      ).listenTo([plugin1, plugin2]),
     );
   }
 }

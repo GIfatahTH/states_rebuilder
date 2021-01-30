@@ -115,15 +115,13 @@ class LocalizationsApp extends StatelessWidget {
               return Column(
                 children: [
                   Text(i18n.state.counter_app),
-                  counter.listen(
-                    child: On.data(
-                      () => Text(
-                        i18n.state.you_have_pushed_the_button_$num_times(
-                          counter.state,
-                        ),
+                  On.data(
+                    () => Text(
+                      i18n.state.you_have_pushed_the_button_$num_times(
+                        counter.state,
                       ),
                     ),
-                  ),
+                  ).listenTo(counter),
                 ],
               );
             },

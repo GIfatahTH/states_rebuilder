@@ -32,11 +32,9 @@ class _MyAppState extends State<MyApp> {
       child: Column(
         children: [
           if (!_isHidden)
-            injectedStream.listen(
-              child: On.data(
-                () => Text('${injectedStream.state}'),
-              ),
-            )
+            On.data(
+              () => Text('${injectedStream.state}'),
+            ).listenTo(injectedStream)
           else
             Text('Injected stream is disposed'),
           RaisedButton(

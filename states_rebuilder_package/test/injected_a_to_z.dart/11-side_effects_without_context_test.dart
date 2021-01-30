@@ -128,13 +128,11 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: model.listen(
-            child: On.data(
-              () => Text(
-                model.state.toString(),
-              ),
+          body: On.data(
+            () => Text(
+              model.state.toString(),
             ),
-          ),
+          ).listenTo(model),
         ),
       );
 

@@ -58,11 +58,9 @@ class TimerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: duration.listen(
-        child: On.any(
-          () => Text('${duration.state}'),
-        ),
-      ),
+      child: On(
+        () => Text('${duration.state}'),
+      ).listenTo(duration),
     );
   }
 }

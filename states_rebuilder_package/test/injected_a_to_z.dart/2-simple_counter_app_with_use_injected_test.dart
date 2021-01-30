@@ -18,21 +18,19 @@ final Injected<int> counter = RM.inject<int>(
 class CounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return RM.inject(() => '').listen(
+    return On.data(
+      () {
+        return MaterialApp(
+          home: On.data(
+            () => Text('${counter.state}'),
+          ).listenTo(counter),
+        );
+      },
+    ).listenTo(
+      RM.inject(() => ''),
       dispose: () {
         RM.disposeAll();
       },
-      child: On.data(
-        () {
-          return MaterialApp(
-            home: counter.listen(
-              child: On.data(
-                () => Text('${counter.state}'),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

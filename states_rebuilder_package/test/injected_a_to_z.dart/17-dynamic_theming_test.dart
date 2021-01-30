@@ -14,19 +14,17 @@ Brightness? testBrightness;
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return themeData.listen(
-      child: On.data(
-        () => MaterialApp(
-          theme: themeData.state,
-          home: Builder(
-            builder: (context) {
-              testBrightness = Theme.of(context).brightness;
-              return Container();
-            },
-          ),
+    return On.data(
+      () => MaterialApp(
+        theme: themeData.state,
+        home: Builder(
+          builder: (context) {
+            testBrightness = Theme.of(context).brightness;
+            return Container();
+          },
         ),
       ),
-    );
+    ).listenTo(themeData);
   }
 }
 

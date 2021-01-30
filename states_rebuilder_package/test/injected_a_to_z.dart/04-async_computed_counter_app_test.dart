@@ -58,38 +58,30 @@ class CounterApp extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          counter1.listen(
-            child: On.data(() {
-              counter1NbrOfRebuilds++;
-              return Text('counter1 :${counter1.state.count}');
-            }),
-          ),
-          counter2.listen(
-            child: On.all(
-                onIdle: () => Text('Idle'),
-                onWaiting: () => Text('Waiting...'),
-                onError: (e) => Text(e.message),
-                onData: () {
-                  counter2NbrOfRebuilds++;
-                  return Text('counter2 :${counter2.state.count}');
-                }),
-          ),
-          computedCounter.listen(
-            child: On.or(
-                onWaiting: () => Text('Waiting...'),
-                onError: (e) {
-                  return Text(e.message);
-                },
-                or: () {
-                  computedCounterNbrOfRebuilds++;
-                  return Text('computedCounter :${computedCounter.state}');
-                }),
-          ),
-          computedCounter.listen(
-            child: On.data(
-              () => Text('rebuilder :${computedCounter.state}'),
-            ),
-          ),
+          On.data(() {
+            counter1NbrOfRebuilds++;
+            return Text('counter1 :${counter1.state.count}');
+          }).listenTo(counter1),
+          On.all(
+              onIdle: () => Text('Idle'),
+              onWaiting: () => Text('Waiting...'),
+              onError: (e) => Text(e.message),
+              onData: () {
+                counter2NbrOfRebuilds++;
+                return Text('counter2 :${counter2.state.count}');
+              }).listenTo(counter2),
+          On.or(
+              onWaiting: () => Text('Waiting...'),
+              onError: (e) {
+                return Text(e.message);
+              },
+              or: () {
+                computedCounterNbrOfRebuilds++;
+                return Text('computedCounter :${computedCounter.state}');
+              }).listenTo(computedCounter),
+          On.data(
+            () => Text('rebuilder :${computedCounter.state}'),
+          ).listenTo(computedCounter),
         ],
       ),
     );
@@ -104,15 +96,14 @@ class CounterApp1 extends StatelessWidget {
       child: Column(
         children: [
           //this is an example fo a computed counter the depends on another computed counter
-          anOtherComputedCounter.listen(
-            child: On.or(
-                onWaiting: () => Text('Waiting...'),
-                onError: (e) => Text(e.message),
-                or: () {
-                  computedCounterNbrOfRebuilds++;
-                  return Text('${anOtherComputedCounter.state}');
-                }),
-          ),
+          On.or(
+            onWaiting: () => Text('Waiting...'),
+            onError: (e) => Text(e.message),
+            or: () {
+              computedCounterNbrOfRebuilds++;
+              return Text('${anOtherComputedCounter.state}');
+            },
+          ).listenTo(anOtherComputedCounter),
         ],
       ),
     );

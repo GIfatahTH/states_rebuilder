@@ -30,12 +30,10 @@ void main() {
       );
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: counter1Computed.listen(
-          child: On.or(
-            onWaiting: () => Text('Waiting'),
-            or: () => Text('${counter1Computed.state}'),
-          ),
-        ),
+        child: On.or(
+          onWaiting: () => Text('Waiting'),
+          or: () => Text('${counter1Computed.state}'),
+        ).listenTo(counter1Computed),
       );
       //
       await tester.pumpWidget(widget);
@@ -65,12 +63,10 @@ void main() {
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: counter2Future.listen(
-          child: On.or(
-            onWaiting: () => Text('Waiting'),
-            or: () => Text('${counter2Future.state}'),
-          ),
-        ),
+        child: On.or(
+          onWaiting: () => Text('Waiting'),
+          or: () => Text('${counter2Future.state}'),
+        ).listenTo(counter2Future),
       );
       //
       await tester.pumpWidget(widget);
@@ -103,14 +99,12 @@ void main() {
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: counter2Future.listen(
-          child: On.or(
-            onWaiting: () => Text('Waiting'),
-            or: () {
-              return Text('${counter2Future.state}');
-            },
-          ),
-        ),
+        child: On.or(
+          onWaiting: () => Text('Waiting'),
+          or: () {
+            return Text('${counter2Future.state}');
+          },
+        ).listenTo(counter2Future),
       );
       //
       await tester.pumpWidget(widget);
@@ -149,14 +143,12 @@ void main() {
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: counter2Stream.listen(
-          child: On.or(
-            onWaiting: () => Text('Waiting'),
-            or: () {
-              return Text('${counter2Stream.state}');
-            },
-          ),
-        ),
+        child: On.or(
+          onWaiting: () => Text('Waiting'),
+          or: () {
+            return Text('${counter2Stream.state}');
+          },
+        ).listenTo(counter2Stream),
       );
       //
       await tester.pumpWidget(widget);
@@ -465,21 +457,17 @@ void main() {
 
   testWidgets('description', (tester) async {
     final counter = 0.inj();
-    final widget2 = counter.listen(
-      child: On(
-        () => Text('widget2'),
-      ),
-    );
-    final widget1 = counter.listen(
-      child: On(
-        () => RaisedButton(
-          child: Text(
-            counter.state.toString(),
-          ),
-          onPressed: () => RM.navigate.to(widget2),
+    final widget2 = On(
+      () => Text('widget2'),
+    ).listenTo(counter);
+    final widget1 = On(
+      () => RaisedButton(
+        child: Text(
+          counter.state.toString(),
         ),
+        onPressed: () => RM.navigate.to(widget2),
       ),
-    );
+    ).listenTo(counter);
     await tester.pumpWidget(MaterialApp(home: widget1));
     //
     expect(find.byType(RaisedButton), findsOneWidget);
@@ -521,9 +509,7 @@ void main() {
           context = context;
           inheritedCounter1 = counter(context)!;
           inheritedCounter2 = counter.of(context);
-          return inheritedCounter1.listen(
-            child: On(() => Container()),
-          );
+          return On(() => Container()).listenTo(inheritedCounter1);
         },
       ),
     );
@@ -638,14 +624,12 @@ void main() {
 
     dynamic exposedState;
 
-    final widget = [intInj, stringInj, boolInj].listen<String>(
-      child: OnCombined(
-        (s) {
-          exposedState = s;
-          return Container();
-        },
-      ),
-    );
+    final widget = OnCombined(
+      (s) {
+        exposedState = s;
+        return Container();
+      },
+    ).listenTo<String>([intInj, stringInj, boolInj]);
     await tester.pumpWidget(widget);
 
     expect(exposedState, '');
@@ -665,14 +649,12 @@ void main() {
 
     dynamic exposedState;
 
-    final widget = [intInj, stringInj, boolInj].listen(
-      child: OnCombined(
-        (s) {
-          exposedState = s;
-          return Container();
-        },
-      ),
-    );
+    final widget = OnCombined(
+      (s) {
+        exposedState = s;
+        return Container();
+      },
+    ).listenTo([intInj, stringInj, boolInj]);
     await tester.pumpWidget(widget);
 
     expect(exposedState, 0);

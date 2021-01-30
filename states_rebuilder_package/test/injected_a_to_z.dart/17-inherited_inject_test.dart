@@ -99,16 +99,14 @@ class CounterItem extends StatelessWidget {
     final counter = injectedCounter(context)!;
     return Row(
       children: [
-        counter.listen(
-          child: On.data(
-            () {
-              //count the number of rebuild
-              numberOfRebuild[counter.state.id] =
-                  numberOfRebuild[counter.state.id]! + 1;
-              return Text('${counter.state.id}: ${counter.state.value}');
-            },
-          ),
-        ),
+        On.data(
+          () {
+            //count the number of rebuild
+            numberOfRebuild[counter.state.id] =
+                numberOfRebuild[counter.state.id]! + 1;
+            return Text('${counter.state.id}: ${counter.state.value}');
+          },
+        ).listenTo(counter),
         RaisedButton(
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),

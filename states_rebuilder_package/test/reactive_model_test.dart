@@ -598,9 +598,9 @@ void main() {
 
       int numberOfOnSetStateCall = 0;
       int numberOfOnRebuildStateCall = 0;
-      final widget = modelRM.listen(child: On(() {
+      final widget = On(() {
         return Container();
-      }));
+      }).listenTo(modelRM);
 
       await tester.pumpWidget(widget);
 
@@ -698,14 +698,12 @@ void main() {
       final model = 0.inj();
 
       int numberOfRebuild = 0;
-      final widget = model.listen(
-        child: On.waiting(
-          () {
-            numberOfRebuild++;
-            return Container();
-          },
-        ),
-      );
+      final widget = On.waiting(
+        () {
+          numberOfRebuild++;
+          return Container();
+        },
+      ).listenTo(model);
 
       await tester.pumpWidget(widget);
       expect(numberOfRebuild, 1);
@@ -2007,10 +2005,10 @@ void main() {
 
       String lifeCycleTracker = '';
 
-      final widget = modelRM.listen(child: On(() {
+      final widget = On(() {
         lifeCycleTracker += 'build, ';
         return Container();
-      }));
+      }).listenTo(modelRM);
       await tester.pumpWidget(widget);
       expect(numberOfOnSetStateCall, equals(0));
       //

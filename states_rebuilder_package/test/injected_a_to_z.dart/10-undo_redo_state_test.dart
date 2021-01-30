@@ -13,11 +13,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: counter.listen(
-        child: On.data(() {
-          return Text('${counter.state}');
-        }),
-      ),
+      child: On.data(() {
+        return Text('${counter.state}');
+      }).listenTo(counter),
     );
   }
 }

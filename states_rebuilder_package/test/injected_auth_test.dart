@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
+String disposeMessage = '';
+
 class FakeAuthRepo implements IAuth<String, String> {
   dynamic error;
   @override
-  Future<IAuth<String, String>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 
   @override
   Future<String> signUp(String? param) async {
@@ -47,7 +47,9 @@ class FakeAuthRepo implements IAuth<String, String> {
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    disposeMessage = 'isDisposed';
+  }
 }
 
 int onUnSigned = 0;
@@ -66,7 +68,7 @@ InjectedAuth<String, String> persistedUser = RM.injectAuth<String, String>(
     fromJson: (json) => json == 'expiredTokenUser' ? 'user0' : json,
   ),
   onSigned: (user) => RM.navigate.to(HomePage(user: user)),
-  onUnsigned: () => RM.navigate.to(AuthPage()),
+  onUnsigned: () => RM.navigate.to(AuthPage(persistedUser)),
   onSetState: On.error(
     (err) => RM.navigate.to(
       AlertDialog(
@@ -81,8 +83,9 @@ InjectedAuth<String, String> persistedUserWithAutoDispose =
   () => FakeAuthRepo(),
   unsignedUser: 'user0',
   persist: () => PersistState(key: '__user__'),
-  onSigned: (user) => RM.navigate.to(HomePage(user: user)),
-  onUnsigned: () => RM.navigate.to(AuthPage()),
+  onSigned: (user) => RM.navigate.toReplacement(HomePage(user: user)),
+  onUnsigned: () =>
+      RM.navigate.toReplacement(AuthPage(persistedUserWithAutoDispose)),
   autoSignOut: (_) => Duration(seconds: 5),
 );
 
@@ -90,6 +93,10 @@ late Widget widget;
 late Widget widgetWithAutoDispose;
 
 class AuthPage extends StatelessWidget {
+  final InjectedAuth<String, String> persistedUser;
+
+  const AuthPage(this.persistedUser);
+
   @override
   Widget build(BuildContext context) {
     return On.or(
@@ -116,6 +123,7 @@ void main() async {
     store.clear();
     onUnSigned = 0;
     onSigned = 0;
+    disposeMessage = '';
     widget = MaterialApp(
       home: persistedUser.futureBuilder(
         onWaiting: null,
@@ -142,7 +150,7 @@ void main() async {
     expect(onUnSigned, 1);
     expect(onSigned, 0);
     //
-    user.auth.signIn(() => '3');
+    user.auth.signIn((_) => '3');
     expect(user.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(user.hasData, true);
@@ -150,6 +158,11 @@ void main() async {
     //
     expect(onUnSigned, 2);
     expect(onSigned, 0);
+
+    expect(disposeMessage, '');
+    user.dispose();
+    await tester.pump();
+    expect(disposeMessage, 'isDisposed');
   });
   testWidgets('Sign with signed user', (tester) async {
     await tester.pumpWidget(widget);
@@ -157,7 +170,7 @@ void main() async {
     await tester.pump();
     expect(onUnSigned, 1);
     expect(onSigned, 0);
-    user.auth.signIn(() => '1');
+    user.auth.signIn((_) => '1');
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user1');
     expect(onUnSigned, 1);
@@ -170,11 +183,15 @@ void main() async {
     await tester.pump();
     expect(onUnSigned, 1);
     expect(onSigned, 0);
-    user.auth.signUp(() => '2');
+    user.auth.signUp((_) => '2');
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user2');
     expect(onUnSigned, 1);
     expect(onSigned, 1);
+    expect(disposeMessage, '');
+    user.dispose();
+    await tester.pump();
+    expect(disposeMessage, 'isDisposed');
   });
 
   testWidgets(
@@ -195,7 +212,7 @@ void main() async {
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('AuthPage'), findsOneWidget);
-      persistedUser.auth.signUp(() => '1');
+      persistedUser.auth.signUp((_) => '1');
       await tester.pump();
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 1));
@@ -246,7 +263,7 @@ void main() async {
       expect(find.text('AuthPage'), findsOneWidget);
       final repo = await persistedUser.getRepoAs<FakeAuthRepo>();
       repo.error = Exception('Sign in exception');
-      persistedUser.auth.signIn(() => '1');
+      persistedUser.auth.signIn((_) => '1');
       await tester.pump();
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 1));
@@ -263,7 +280,7 @@ void main() async {
       repo.error = Exception('Sign in exception');
       String error = '';
       persistedUser.auth.signIn(
-        () => '1',
+        (_) => '1',
         onError: (err) => error = err.message,
       );
       await tester.pump();
@@ -274,7 +291,7 @@ void main() async {
       expect(find.byType(AlertDialog), findsNothing);
       error = '';
       persistedUser.auth.signUp(
-        () => '1',
+        (_) => '1',
         onError: (err) => error = err.message,
       );
       await tester.pump();
@@ -294,7 +311,7 @@ void main() async {
       expect(find.text('AuthPage'), findsOneWidget);
       String onAuthenticated = '';
       persistedUser.auth.signUp(
-        () => '1',
+        (_) => '1',
         onAuthenticated: () {
           onAuthenticated = 'isCalled';
         },
@@ -306,7 +323,7 @@ void main() async {
       expect(onAuthenticated, 'isCalled');
       onAuthenticated = '';
       persistedUser.auth.signIn(
-        () => '1',
+        (_) => '1',
         onAuthenticated: () {
           onAuthenticated = 'isCalled';
         },
@@ -323,13 +340,15 @@ void main() async {
     'auto logout when timer (token) expired, case state is persisted',
     (tester) async {
       store.store = {
-        '__user__': 'Persisted user',
+        '__user__': 'Persisted user with auto signOut',
       };
       await tester.pumpWidget(widgetWithAutoDispose);
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pumpAndSettle();
-      expect(find.text('HomePage: Persisted user'), findsOneWidget);
+      expect(find.text('HomePage: Persisted user with auto signOut'),
+          findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 5));
+      await tester.pumpAndSettle();
       expect(find.text('AuthPage'), findsOneWidget);
     },
   );
@@ -339,7 +358,7 @@ void main() async {
     (tester) async {
       await tester.pumpWidget(widgetWithAutoDispose);
       await tester.pumpAndSettle();
-      persistedUserWithAutoDispose.auth.signIn(() => '2');
+      persistedUserWithAutoDispose.auth.signIn((_) => '2');
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(find.text('HomePage: user2'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 5));
@@ -352,7 +371,7 @@ void main() async {
     (tester) async {
       await tester.pumpWidget(widgetWithAutoDispose);
       await tester.pumpAndSettle();
-      persistedUserWithAutoDispose.auth.signUp(() => '2');
+      persistedUserWithAutoDispose.auth.signUp((_) => '2');
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(find.text('HomePage: user2'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 5));
@@ -365,7 +384,7 @@ void main() async {
     (tester) async {
       await tester.pumpWidget(widgetWithAutoDispose);
       await tester.pumpAndSettle();
-      persistedUserWithAutoDispose.auth.signIn(() => '2');
+      persistedUserWithAutoDispose.auth.signIn((_) => '2');
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(find.text('HomePage: user2'), findsOneWidget);
       persistedUserWithAutoDispose.dispose();

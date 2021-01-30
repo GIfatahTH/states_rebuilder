@@ -75,8 +75,9 @@ class Repository implements ICRUD<Product, Object> {
     _products.removeWhere((item) => items.contains(item));
   }
 
+  @override
   void dispose() {
-    disposeMessage = "isDisposed";
+    disposeMessage = 'isDisposed';
   }
 
   @override
@@ -85,11 +86,12 @@ class Repository implements ICRUD<Product, Object> {
 
 final _repo = Repository();
 final products = RM.injectCRUD<Product, Object>(
-  () => _repo,
+  () => throw UnimplementedError(),
   readOnInitialization: true,
 );
 
 void main() {
+  products.injectCRUDMock(() => _repo);
   setUp(() {
     _repo._products = [Product(id: 1, name: 'product 1')];
     _repo.error = null;
@@ -133,13 +135,15 @@ void main() {
     expect(_repo._products.length, 1);
 
     await tester.pumpWidget(On(() => Container()).listenTo(products));
+    expect(disposeMessage, '');
     products.dispose();
     await tester.pump();
     expect(disposeMessage, 'isDisposed');
   });
 
   testWidgets('CRUD pessimistic with error', (tester) async {
-    _repo.error = Exception('CRUD error');
+    products.injectCRUDMock(() => _repo..error = Exception('CRUD error'));
+
     expect(products.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(products.hasError, true);
@@ -176,10 +180,6 @@ void main() {
     expect(products.state.length, 0);
     expect(_repo._products.length, 1);
     await tester.pumpWidget(On(() => Container()).listenTo(products));
-    expect(disposeMessage, '');
-    products.dispose();
-    await tester.pump();
-    expect(disposeMessage, 'isDisposed');
   });
 
   testWidgets('CRUD optimistic without error', (tester) async {
@@ -221,6 +221,10 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(_repo._products.length, 1);
     await tester.pumpWidget(On(() => Container()).listenTo(products));
+    expect(disposeMessage, '');
+    products.dispose();
+    await tester.pump();
+    expect(disposeMessage, 'isDisposed');
   });
 
   testWidgets('CRUD optimistic with error', (tester) async {

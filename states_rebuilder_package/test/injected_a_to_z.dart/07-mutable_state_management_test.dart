@@ -57,36 +57,33 @@ class MyApp extends StatelessWidget {
       child: Column(
         children: [
           //rebuilder will rebuild only if counter has data
-          counter.listen(
-            child: On.data(
-              () {
-                rebuilderCount++;
-                return Text('rebuilder: ${counter.state.counter}');
-              },
-            ),
-          ),
+          On.data(
+            () {
+              rebuilderCount++;
+              return Text('rebuilder: ${counter.state.counter}');
+            },
+          ).listenTo(counter),
+
           //whenRebuilder will rebuild each time the counter change its state,
           //and call the corresponding callback.
-          counter.listen(
-            child: On.all(
-              onIdle: () {
-                whenRebuilderCount++;
-                return Text('whenRebuilder: Idle');
-              },
-              onWaiting: () {
-                whenRebuilderCount++;
-                return Text('whenRebuilder: Waiting');
-              },
-              onError: (e) {
-                whenRebuilderCount++;
-                return Text('whenRebuilder: ${e.message}');
-              },
-              onData: () {
-                whenRebuilderCount++;
-                return Text('whenRebuilder: ${counter.state.counter}');
-              },
-            ),
-          ),
+          On.all(
+            onIdle: () {
+              whenRebuilderCount++;
+              return Text('whenRebuilder: Idle');
+            },
+            onWaiting: () {
+              whenRebuilderCount++;
+              return Text('whenRebuilder: Waiting');
+            },
+            onError: (e) {
+              whenRebuilderCount++;
+              return Text('whenRebuilder: ${e.message}');
+            },
+            onData: () {
+              whenRebuilderCount++;
+              return Text('whenRebuilder: ${counter.state.counter}');
+            },
+          ).listenTo(counter),
         ],
       ),
     );

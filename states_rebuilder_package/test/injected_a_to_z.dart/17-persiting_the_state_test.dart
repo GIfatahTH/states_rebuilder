@@ -34,23 +34,17 @@ class App extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          switcher.listen(
-            child: On.data(
-              () => switcher.state
-                  ? counter.listen(
-                      child: On.data(
-                        () => Text('counter: ${counter.state}'),
-                      ),
-                    )
-                  : Container(),
-            ),
-          ),
-          counterFuture.listen(
-            child: On.or(
-              onWaiting: () => Text('Waiting...'),
-              or: () => Text('counterFuture: ${counterFuture.state}'),
-            ),
-          ),
+          On.data(
+            () => switcher.state
+                ? On.data(
+                    () => Text('counter: ${counter.state}'),
+                  ).listenTo(counter)
+                : Container(),
+          ).listenTo(switcher),
+          On.or(
+            onWaiting: () => Text('Waiting...'),
+            or: () => Text('counterFuture: ${counterFuture.state}'),
+          ).listenTo(counterFuture),
         ],
       ),
     );
