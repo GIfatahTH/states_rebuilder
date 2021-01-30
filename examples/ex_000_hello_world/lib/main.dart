@@ -121,41 +121,35 @@ class MyApp extends StatelessWidget {
             Spacer(),
             Row(
               children: [
-                helloName.listen(
-                  child: On.data(
-                    () => IconButton(
-                      icon: Icon(Icons.arrow_left_rounded, size: 40),
-                      onPressed: helloName.canUndoState
-                          ? () => helloName.undoState()
-                          : null,
-                    ),
+                On.data(
+                  () => IconButton(
+                    icon: Icon(Icons.arrow_left_rounded, size: 40),
+                    onPressed: helloName.canUndoState
+                        ? () => helloName.undoState()
+                        : null,
                   ),
-                ),
+                ).listenTo(helloName),
                 Spacer(),
                 Center(
-                  child: helloName.listen(
-                    child: On.all(
-                      // This part will be re-rendered each time the helloName
-                      // emits notification of any kind of status (idle, waiting,
-                      // error, data).
-                      onIdle: () => Text('Enter your name'),
-                      onWaiting: () => CircularProgressIndicator(),
-                      onError: (err) => Text('${err.message}'),
-                      onData: () => Text(helloName.state),
-                    ),
-                  ),
+                  child: On.all(
+                    // This part will be re-rendered each time the helloName
+                    // emits notification of any kind of status (idle, waiting,
+                    // error, data).
+                    onIdle: () => Text('Enter your name'),
+                    onWaiting: () => CircularProgressIndicator(),
+                    onError: (err) => Text('${err.message}'),
+                    onData: () => Text(helloName.state),
+                  ).listenTo(helloName),
                 ),
                 Spacer(),
-                helloName.listen(
-                  child: On.data(
-                    () => IconButton(
-                      icon: Icon(Icons.arrow_right_rounded, size: 40),
-                      onPressed: helloName.canRedoState
-                          ? () => helloName.redoState()
-                          : null,
-                    ),
+                On.data(
+                  () => IconButton(
+                    icon: Icon(Icons.arrow_right_rounded, size: 40),
+                    onPressed: helloName.canRedoState
+                        ? () => helloName.redoState()
+                        : null,
                   ),
-                ),
+                ).listenTo(helloName),
               ],
             ),
             Spacer(),
@@ -168,12 +162,10 @@ class MyApp extends StatelessWidget {
               },
             ),
             SizedBox(height: 20),
-            streamedHelloName.listen(
-              child: On.data(
-                //This will rebuild if the stream emits valid data only
-                () => Text('${streamedHelloName.state}'),
-              ),
-            ),
+            On.data(
+              //This will rebuild if the stream emits valid data only
+              () => Text('${streamedHelloName.state}'),
+            ).listenTo(streamedHelloName),
             Spacer(),
           ],
         ),

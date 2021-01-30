@@ -61,7 +61,7 @@ Here `helloName` is registered to listen to a set of injected model (here only o
 >NB: Injected models emits a notification to their listeners when their state changes. The state is emitted with a flog describing its status (idle, waiting, error, data).
 
 
-Widgets can listen to an injected model using the listen method.
+Widgets can listen to an injected model using the `listenTo` method.
 ```dart
 class MyApp extends StatelessWidget {
   @override
@@ -81,14 +81,12 @@ class MyApp extends StatelessWidget {
             ),
             Center(
               // listen to helloName injected model
-              child: helloName.listen(
-                child: On(
+              child: On(
                   // This part will be re-rendered each time the helloName
                   // emits notification of any kind of status (idle, waiting,
                   // error, data).
                   () => Text(helloName.state),
-                ),
-              ),
+                ).listenTo(helloName),
             ),
           ],
         ),
@@ -219,8 +217,7 @@ class MyApp extends StatelessWidget {
             ),
             Spacer(),
             Center(
-              child: helloName.listen(
-                child: On.all(
+              child: On.all(
                   // This part will be re-rendered each time the helloName
                   // emits notification of any kind of status (idle, waiting,
                   // error, data).
@@ -228,8 +225,7 @@ class MyApp extends StatelessWidget {
                   onWaiting: () => CircularProgressIndicator(),
                   onError: (err) => Text('${err.message}'),
                   onData: () => Text(helloName.state),
-                ),
-              ),
+                )listenTo(helloName),
             ),
             Spacer(),
           ],
@@ -284,12 +280,10 @@ in the UI, we add the following code:
     },
   ),
   SizedBox(height: 20),
-  streamedHelloName.listen(
-    child: On.data(
+  On.data(
       //This will rebuild if the stream emits valid data only
       () => Text('${streamedHelloName.state}'),
-    ),
-  ),
+    )listenTo(streamedHelloName),
 ```
 ## undo and redo state:
 
@@ -312,8 +306,7 @@ In the UI:
 ```dart
 Row(
   children: [
-    helloName.listen(
-      child: On.data(
+    On.data(
         () => IconButton(
           icon: Icon(Icons.arrow_left_rounded,
           //check if we can undo the state to enable the 
@@ -322,22 +315,18 @@ Row(
               ? () => helloName.undoState()//undo the state
               : null,
         ),
-      ),
-    ),
+      ).listenTo(helloName),
     Spacer(),
     Center(
-      child: helloName.listen(
-        child: On.all(
+      child: On.all(
           onIdle: () => Text('Enter your name'),
           onWaiting: () => CircularProgressIndicator(),
           onError: (err) => Text('${err.message}'),
           onData: () => Text(helloName.state),
-        ),
-      ),
+        ).listenTo(helloName),
     ),
     Spacer(),
-    helloName.listen(
-      child: On.data(
+    On.data(
         () => IconButton(
           icon: Icon(Icons.arrow_right_rounded),
           //check if we can undo the state to enable the 
@@ -346,8 +335,7 @@ Row(
               ? () => helloName.redoState()//redo the state
               : null,
         ),
-      ),
-    ),
+    ).listenTo(helloName),
   ],
 ),
 ```
