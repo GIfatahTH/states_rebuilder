@@ -1,6 +1,5 @@
 import 'package:clean_architecture_firebase_login/injected.dart';
 import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
-import 'package:clean_architecture_firebase_login/service/user_service.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_page/sign_in_page.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';

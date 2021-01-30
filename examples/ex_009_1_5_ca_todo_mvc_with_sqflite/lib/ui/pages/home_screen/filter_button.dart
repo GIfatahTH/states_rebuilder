@@ -56,7 +56,7 @@ class _Button extends StatelessWidget {
         return PopupMenuButton<VisibilityFilter>(
           tooltip: i18n.of(context).filterTodos,
           onSelected: (filter) {
-            todos.param.state = Query(filter: filter);
+            todos.crud.read(param: (param) => TodoParam(filter: filter));
           },
           itemBuilder: (BuildContext context) =>
               <PopupMenuItem<VisibilityFilter>>[

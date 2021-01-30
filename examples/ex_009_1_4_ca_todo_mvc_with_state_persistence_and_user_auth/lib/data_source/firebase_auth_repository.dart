@@ -16,9 +16,7 @@ const webApiKey = myProjectData.webApiKey; //TODO Use yours
 
 class FireBaseAuth implements IAuth<User, UserParam> {
   @override
-  Future<IAuth<User, UserParam>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 
   @override
   Future<User> signIn(UserParam param) {

@@ -1,6 +1,6 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/main.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/extra_actions_button.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence/ui/pages/home_screen/stats_counter.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_sqflite/main.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_sqflite/ui/pages/home_screen/extra_actions_button.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_sqflite/ui/pages/home_screen/stats_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

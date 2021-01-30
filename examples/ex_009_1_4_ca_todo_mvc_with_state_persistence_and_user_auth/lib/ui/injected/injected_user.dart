@@ -33,9 +33,9 @@ final user = RM.injectAuth<User, UserParam>(
         .inSeconds;
     return Duration(seconds: timeToExpiry);
   },
-  onSetState: On.error(ErrorHandler.showErrorSnackBar),
   onSigned: (_) => RM.navigate.toNamedAndRemoveUntil(HomeScreen.routeName),
   onUnsigned: () => RM.navigate.toNamedAndRemoveUntil(AuthPage.routeName),
+  onSetState: On.error(ErrorHandler.showErrorSnackBar),
   debugPrintWhenNotifiedPreMessage: '',
 );
 

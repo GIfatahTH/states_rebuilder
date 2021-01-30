@@ -97,14 +97,14 @@ class AuthFormWidget extends StatelessWidget {
                   ? () {
                       if (_isRegister.state) {
                         return user.auth.signUp(
-                          () => UserParam(
+                          (_) => UserParam(
                             email: _email.state,
                             password: _password.state,
                           ),
                         );
                       } else {
                         return user.auth.signIn(
-                          () => UserParam(
+                          (_) => UserParam(
                             email: _email.state,
                             password: _password.state,
                           ),

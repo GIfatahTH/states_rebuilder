@@ -68,7 +68,7 @@ class TodoItem extends StatelessWidget {
   }
 
   void removeTodo(Todo todo) {
-    todos.crud.delete(todo);
+    todos.crud.delete(where: (t) => t.id == todo.id);
 
     RM.scaffold.showSnackBar(
       SnackBar(

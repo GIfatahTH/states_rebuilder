@@ -27,18 +27,16 @@ class HomeScreen extends StatelessWidget {
           const Languages(),
         ],
       ),
-      body: todos.whenRebuilderOr(
+      body: todos.futureBuilder(
         onWaiting: () => const Center(
           child: const CircularProgressIndicator(),
         ),
-
-        //subscribe to activeTab and depending on its state render the wanted widge
-
-        builder: () => activeTab.rebuilder(
+        onError: null,
+        onData: (_) => On.data(
           () => activeTab.state == AppTab.todos
               ? const TodoList()
               : const StatsCounter(),
-        ),
+        ).listenTo(activeTab),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

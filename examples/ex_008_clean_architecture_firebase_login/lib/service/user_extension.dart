@@ -8,29 +8,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'exceptions/exception_handler.dart';
 
-// final userRepository = RM.inject(() => FakeUserRepository());
-
-// final user = RM.inject<User>(
-//   () => UnLoggedUser(),
-//   onSetState: On.error(
-//     (err) => AlertDialog(
-//       title: Text(ExceptionsHandler.errorMessage(err).title),
-//       content: Text(ExceptionsHandler.errorMessage(err).message),
-//     ),
-//   ),
-//   debugPrintWhenNotifiedPreMessage: '',
-// );
-
 final user = RM.injectAuth(
   () => FakeUserRepository(),
-  unLoggedUser: UnLoggedUser(),
+  unsignedUser: UnLoggedUser(),
+  onSigned: (_) => RM.navigate.toReplacement(HomePage()),
+  onUnsigned: () => RM.navigate.toReplacement(SignInPage()),
   onSetState: On.error(
     (err) => AlertDialog(
       title: Text(ExceptionsHandler.errorMessage(err).title),
       content: Text(ExceptionsHandler.errorMessage(err).message),
     ),
   ),
-  onAuthenticated: (_) => RM.navigate.toReplacement(HomePage()),
-  onSignOut: () => RM.navigate.toReplacement(SignInPage()),
-  debugPrintWhenNotifiedPreMessage: '',
 );

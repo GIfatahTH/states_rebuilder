@@ -35,8 +35,7 @@ class FormWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _email.listen(
-            child: On(
+        On(
           () => TextField(
             decoration: InputDecoration(
               icon: Icon(Icons.email),
@@ -54,114 +53,85 @@ class FormWidget extends StatelessWidget {
               );
             },
           ),
-        )),
-        _password.listen(
-          child: On(
-            () => TextField(
-              decoration: InputDecoration(
-                icon: Icon(Icons.lock),
-                labelText: 'Password',
-                errorText:
-                    ExceptionsHandler.errorMessage(_password.error).message,
-              ),
-              obscureText: true,
-              autocorrect: false,
-              onChanged: (password) {
-                _password.setState(
-                  (_) => Password(password).value,
-                  catchError: true,
-                );
-              },
+        ).listenTo(_email),
+        On(
+          () => TextField(
+            decoration: InputDecoration(
+              icon: Icon(Icons.lock),
+              labelText: 'Password',
+              errorText:
+                  ExceptionsHandler.errorMessage(_password.error).message,
             ),
+            obscureText: true,
+            autocorrect: false,
+            onChanged: (password) {
+              _password.setState(
+                (_) => Password(password).value,
+                catchError: true,
+              );
+            },
           ),
-        ),
+        ).listenTo(_password),
         SizedBox(height: 10),
-        _isRegister.listen(
-          child: On(
-            () => Row(
-              children: <Widget>[
-                Checkbox(
-                  value: _isRegister.state,
-                  onChanged: (value) {
-                    _isRegister.setState((_) => value);
-                  },
-                ),
-                Text(' I do not have an account')
-              ],
-            ),
+        On(
+          () => Row(
+            children: <Widget>[
+              Checkbox(
+                value: _isRegister.state,
+                onChanged: (value) {
+                  _isRegister.setState((_) => value);
+                },
+              ),
+              Text(' I do not have an account')
+            ],
           ),
-        ),
-        [_email, _password, _isRegister, user].listen(
-          child: OnCombined(
-            (_)
-
-            // StateBuilder<UserService>(
-            //     //NOTE6: subscribe to all the ReactiveModels
-            //     //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
-            //     //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
-            //     //userServiceRM: To show CircularProgressIndicator is the state is waiting
-            //     observeMany: [
-            //       () => _emailRM,
-            //       () => _passwordRM,
-            //       () => _isRegisterRM,
-            //       () => RM.get<UserService>().asNew('signInRegisterForm'),
-            //     ],
-            // shouldRebuild: (_) => true,
-            //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
-            {
-              if (user.isWaiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-              return RaisedButton(
-                  //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
-                  child: _isRegister.state ? Text('Register') : Text('Sign in'),
-                  //NOTE8: activate/deactivate the button if the form is valid/non valid
-                  onPressed: _isFormValid
-                      ? () {
-                          if (_isRegister.state) {
-                            user.auth.signUp(
-                              () => UserParam(
-                                signUp: SignUp.withEmailAndPassword,
-                                email: _email.state,
-                                password: _password.state,
-                              ),
-                            );
-                          } else {
-                            user.auth.signIn(
-                              () => UserParam(
-                                signIn: SignIn.withEmailAndPassword,
-                                email: _email.state,
-                                password: _password.state,
-                              ),
-                            );
-                          }
-                          Navigator.pop(context);
+        ).listenTo(_isRegister),
+        OnCombined(
+          (_) {
+            if (user.isWaiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return RaisedButton(
+                //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
+                child: _isRegister.state ? Text('Register') : Text('Sign in'),
+                //NOTE8: activate/deactivate the button if the form is valid/non valid
+                onPressed: _isFormValid
+                    ? () async {
+                        if (_isRegister.state) {
+                          await user.auth.signUp(
+                            (_) => UserParam(
+                              signUp: SignUp.withEmailAndPassword,
+                              email: _email.state,
+                              password: _password.state,
+                            ),
+                          );
+                        } else {
+                          await user.auth.signIn(
+                            (_) => UserParam(
+                              signIn: SignIn.withEmailAndPassword,
+                              email: _email.state,
+                              password: _password.state,
+                            ),
+                          );
                         }
-                      : null);
-            },
-          ),
-        ),
-        // StateBuilder<UserService>(
-        //   //we created a local new ReactiveModel form the global registered ReactiveModel
-        //   observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
-        //   builder: (_, userServiceRM) {
-
-        user.listen(
-          child: On(
-            () {
-              //NOTE10: Display an error message telling the user what goes wrong.
-              if (user.hasError) {
-                return Center(
-                  child: Text(
-                    ExceptionsHandler.errorMessage(user.error).message,
-                    style: TextStyle(color: Colors.red),
-                  ),
-                );
-              }
-              return Text('');
-            },
-          ),
-        ),
+                      }
+                    : null);
+          },
+        ).listenTo([_email, _password, _isRegister, user]),
+        On(
+          () {
+            //NOTE10: Display an error message telling the user what goes wrong.
+            if (user.hasError) {
+              return Center(
+                child: Text(
+                  ExceptionsHandler.errorMessage(user.error).message,
+                  style: TextStyle(color: Colors.red),
+                ),
+              );
+            }
+            return Text('');
+          },
+        ).listenTo(user),
       ],
     );
   }

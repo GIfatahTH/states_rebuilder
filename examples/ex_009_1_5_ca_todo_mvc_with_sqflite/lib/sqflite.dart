@@ -7,41 +7,40 @@ import 'domain/entities/todo.dart';
 import 'service/common/enums.dart';
 import 'service/exceptions/persistance_exception.dart';
 
-class Query {
+class TodoParam {
   final VisibilityFilter filter;
-  Query({this.filter});
+  TodoParam({this.filter});
 }
 
-class SqfliteRepository implements ICRUD<Todo, Query> {
+class SqfliteRepository implements ICRUD<Todo, TodoParam> {
   Database _db;
   final _tableName = 'todos';
 
-  Future<SqfliteRepository> init() async {
+  Future<void> init() async {
     final databasesPath =
         await path_provider.getApplicationDocumentsDirectory();
     _db = await openDatabase(
       join(databasesPath.path, 'todo_db.db'),
       version: 1,
-      onCreate: (db, _) async {
+      onCreate: (db, ver) async {
         await db.execute(
           'CREATE TABLE $_tableName (id TEXT PRIMARY KEY, task TEXT, note TEXT, complete INTEGER)',
         );
       },
     );
-    return this;
   }
 
   @override
-  Future<List<Todo>> read(Query query) async {
+  Future<List<Todo>> read(TodoParam param) async {
     try {
       var result;
-      if (query.filter == VisibilityFilter.all) {
+      if (param.filter == VisibilityFilter.all) {
         result = await _db.query(_tableName);
       } else {
         result = await _db.query(
           _tableName,
           where: 'complete = ?',
-          whereArgs: [query.filter == VisibilityFilter.active ? '0' : '1'],
+          whereArgs: [param.filter == VisibilityFilter.active ? '0' : '1'],
         );
       }
 
@@ -55,7 +54,7 @@ class SqfliteRepository implements ICRUD<Todo, Query> {
   }
 
   @override
-  Future<Todo> create(Todo item, Query param) async {
+  Future<Todo> create(Todo item, TodoParam param) async {
     try {
       // await Future.delayed(Duration(seconds: 3));
       // throw Exception('Error');
@@ -68,33 +67,33 @@ class SqfliteRepository implements ICRUD<Todo, Query> {
   }
 
   @override
-  Future<bool> delete(Todo item, Query param) async {
+  Future<dynamic> delete(List<Todo> item, TodoParam param) async {
     await _db.delete(
       _tableName,
       where: 'id = ?',
-      whereArgs: [item.id],
+      whereArgs: [item.first.id],
     );
     return true;
   }
 
   @override
-  Future<bool> update(Todo item, Query param) async {
+  Future<dynamic> update(List<Todo> items, TodoParam param) async {
     await _db.update(
       _tableName,
-      item.toMap(),
+      items.first.toMap(),
       where: 'id = ?',
-      whereArgs: [item.id],
+      whereArgs: [items.first.id],
     );
     return true;
   }
 
-  Future<int> count(Query query) async {
+  Future<int> count(TodoParam param) async {
     try {
       var result;
 
       result = await _db.rawQuery(
         'SELECT COUNT(*) FROM $_tableName'
-        'WHERE complete = ${query.filter == VisibilityFilter.active ? '0' : '1'}',
+        'WHERE complete = ${param.filter == VisibilityFilter.active ? '0' : '1'}',
       );
 
       if (result.isNotEmpty) {

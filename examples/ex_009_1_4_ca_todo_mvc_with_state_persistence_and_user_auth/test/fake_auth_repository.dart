@@ -2,16 +2,12 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_sou
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/interfaces/i_auth_repository.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
 
 class FakeAuthRepository implements FireBaseAuth {
   dynamic exception;
 
   @override
-  Future<IAuth<User, UserParam>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 
   @override
   Future<User> signUp(UserParam param) async {
