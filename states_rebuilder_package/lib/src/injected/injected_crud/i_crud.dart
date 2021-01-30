@@ -11,7 +11,7 @@ part of '../../reactive_model.dart';
 abstract class ICRUD<T, P> {
   ///Initialize any plugging and return the
   ///initialized instance.
-  Future<ICRUD<T, P>> init();
+  Future<void> init();
 
   ///Read from rest API or a database and get a list
   ///of items
@@ -63,12 +63,12 @@ abstract class ICRUD<T, P> {
 class _CRUDService<T, P> {
   ///The repository implantation associated with this
   ///service class
-  final FutureOr<ICRUD<T, P>> repo;
+  final FutureOr<ICRUD<T, P>> _repository;
 
   ///The injected model associated with this service
   ///class
   final InjectedCRUD<T, P> injected;
-  _CRUDService(this.repo, this.injected);
+  _CRUDService(this._repository, this.injected);
 
   ///Read form a rest API or a database, notify listeners,
   ///and return a list of
@@ -80,12 +80,12 @@ class _CRUDService<T, P> {
   ///
   ///[param] can be also used to distinguish between many
   ///delete queries
-  Future<List<T>> read({P Function()? param}) async {
+  Future<List<T>> read({P Function(P? param)? param}) async {
     await injected.setState(
       (s) async {
-        final _repo = await repo;
+        final _repo = await _repository;
         return _repo.read(
-          param?.call() ?? injected._param?.call(),
+          param?.call(injected._param?.call()) ?? injected._param?.call(),
         );
       },
     );
@@ -95,7 +95,7 @@ class _CRUDService<T, P> {
   //return null means an error
   Future<T?> create(
     T item, {
-    P Function()? param,
+    P Function(P? param)? param,
     void Function()? onStateMutation,
     void Function(dynamic result)? onCRUD,
     void Function(dynamic error)? onError,
@@ -104,31 +104,32 @@ class _CRUDService<T, P> {
     T? addedItem;
     await injected.setState(
       (s) async* {
-        final _repo = await repo;
+        final _repo = await _repository;
         if (isOptimistic) {
           s.add(item);
           yield item;
+          onStateMutation?.call();
         }
         try {
           addedItem = await _repo.create(
             item,
-            param?.call() ?? injected._param?.call(),
+            param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
           onCRUD?.call(addedItem);
         } catch (e) {
           if (isOptimistic) {
             s.remove(item);
+            onStateMutation?.call();
           }
-          yield item;
-          onError?.call(e);
           rethrow;
         }
         if (!isOptimistic) {
           s.add(addedItem!);
           yield item;
+          onStateMutation?.call();
         }
       },
-      onSetState: onStateMutation != null ? On.data(onStateMutation) : null,
+      onSetState: onError != null ? On.error(onError) : null,
       skipWaiting: isOptimistic,
     );
     return addedItem;
@@ -155,7 +156,7 @@ class _CRUDService<T, P> {
   Future<void> update({
     required bool Function(T item) where,
     required T Function(T item) set,
-    P Function()? param,
+    P Function(P? param)? param,
     void Function()? onStateMutation,
     void Function(dynamic result)? onCRUD,
     void Function(dynamic error)? onError,
@@ -163,10 +164,10 @@ class _CRUDService<T, P> {
   }) async {
     await injected.setState(
       (s) async* {
-        final _repo = await repo;
-        final List<T> oldState = [];
-        final List<T> updated = [];
-        final List<T> newState = [];
+        final _repo = await _repository;
+        final oldState = <T>[];
+        final updated = <T>[];
+        final newState = <T>[];
         s.forEachIndexed((i, e) {
           oldState.add(e);
           if (where(e)) {
@@ -180,31 +181,33 @@ class _CRUDService<T, P> {
 
         if (isOptimistic) {
           yield newState;
+          onStateMutation?.call();
         }
         try {
-          final r = await _repo.update(
+          final dynamic r = await _repo.update(
             updated,
-            param?.call() ?? injected._param?.call(),
+            param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
           onCRUD?.call(r);
         } catch (e) {
           if (isOptimistic) {
-            yield oldState;
+            injected.snapState = injected.snapState._copyWith(data: oldState);
+            onStateMutation?.call();
           }
-          onError?.call(e);
           rethrow;
         }
         if (!isOptimistic) {
           yield newState;
+          onStateMutation?.call();
         }
       },
-      onSetState: onStateMutation != null ? On.data(onStateMutation) : null,
+      onSetState: onError != null ? On.error(onError) : null,
     );
   }
 
   Future<void> delete({
     required bool Function(T item) where,
-    P Function()? param,
+    P Function(P? param)? param,
     void Function()? onStateMutation,
     void Function(dynamic result)? onCRUD,
     void Function(dynamic error)? onError,
@@ -212,10 +215,10 @@ class _CRUDService<T, P> {
   }) async {
     await injected.setState(
       (s) async* {
-        final _repo = await repo;
-        final List<T> oldState = [];
-        final List<T> removed = [];
-        final List<T> newState = [];
+        final _repo = await _repository;
+        final oldState = <T>[];
+        final removed = <T>[];
+        final newState = <T>[];
 
         s.forEachIndexed((i, e) {
           oldState.add(e);
@@ -228,77 +231,32 @@ class _CRUDService<T, P> {
 
         if (isOptimistic) {
           yield newState;
+          onStateMutation?.call();
         }
         try {
-          final r = await _repo.delete(
+          final dynamic r = await _repo.delete(
             removed,
-            param?.call() ?? injected._param?.call(),
+            param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
           onCRUD?.call(r);
         } catch (e) {
           if (isOptimistic) {
-            yield oldState;
+            injected.snapState = injected.snapState._copyWith(data: oldState);
+            onStateMutation?.call();
           }
-          onError?.call(e);
           rethrow;
         }
         if (!isOptimistic) {
           yield newState;
+          onStateMutation?.call();
         }
       },
-      onSetState: onStateMutation != null ? On.data(onStateMutation) : null,
+      onSetState: onError != null ? On.error(onError) : null,
     );
   }
+
+  void _dispose() async {
+    final _repo = await _repository;
+    _repo.dispose();
+  }
 }
-
-// ///Data class
-// class Item {
-//   //
-// }
-
-// ///Param class
-// class Param {
-//   final String usrId;
-//   final String userToken;
-//   final String queryType;
-//   //Constructor
-//   Parm(...);
-// }
-
-// class MyItemsRepository implements ICRUD<Item, Param> {
-//   @override
-//   Future<List<Item>> read(Param? param) async {
-//     final items = await http.get('uri/${param.user.id}');
-//     //After parsing
-//     return items;
-
-//     //OR
-//     // if(param.queryType=='GetCompletedItems'){
-//     //    final items = await http.get('uri/${param.user.id}/completed');
-//     //    return items;
-//     // }else if(param.queryType == 'GetActiveItems'){
-//     //   final items = await http.get('uri/${param.user.id}/active');
-//     //    return items;
-//     // }
-//   }
-//   @override
-//   Future<Item> create(Item item, Param? param) async {
-//     final result = await http.post('uri/${param.user.id}/items');
-//     return item.copyWith(id: result['id']);
-//   }
-
-//   @override
-//   Future<dynamic> update(List<Item> items, Param? param) async {
-//     //Update items
-//     return numberOfUpdatedRows;
-//   }
-//   @override
-//   Future<dynamic> delete(List<Item> items, Param? param) async {
-//     //Delete items
-//   }
-
-//   @override
-//   void dispose() {
-//     //Cleaning resources
-//   }
-// }

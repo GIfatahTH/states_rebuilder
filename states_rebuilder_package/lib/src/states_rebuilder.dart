@@ -56,7 +56,7 @@ abstract class StatesRebuilder<T> {
         List<String> _tags = [];
         if (tag != null) {
           if (tag is List) {
-            _tags.addAll(tag.map((e) => '$e'));
+            _tags.addAll(tag.map((dynamic e) => '$e'));
           } else {
             _tags.add('$tag');
           }
@@ -67,7 +67,7 @@ abstract class StatesRebuilder<T> {
             return;
           }
           if (tags != null) {
-            if (tag == null || !tags.any((e) => _tags.contains('$e'))) {
+            if (tag == null || !tags.any((dynamic e) => _tags.contains('$e'))) {
               return;
             }
           }

@@ -15,7 +15,7 @@ extension InjectedX on List<Injected> {
 
     Widget? widget;
     for (var i = length - 2; i >= 0; i--) {
-      Widget temp = widget ?? lastWidget;
+      var temp = widget ?? lastWidget;
       widget = this[i].inherited(builder: (ctx) => temp);
     }
     return widget!;

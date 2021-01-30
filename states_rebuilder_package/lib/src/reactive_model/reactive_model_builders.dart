@@ -10,96 +10,96 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     RM.printInjected?.call(_snapState);
   }
 
-  ///Listen to this [Injected] model and register:
-  ///
-  ///{@template listen}
-  ///* builder to be called to rebuild some part of the widget tree (**child**
-  ///parameter).
-  ///* Side effects to be invoked before rebuilding the widget (**onSetState**
-  ///parameter).
-  ///* Side effects to be invoked after rebuilding (**onAfterBuild** parameter).
-  ///
-  ///
-  /// * **Required parameters**:
-  ///     * **child**: of type `On<Widget>`. defines the widget to render when
-  /// this injected model emits a notification.
-  /// * **Optional parameters:**
-  ///     * **onSetState** :  of type `On<void>`. Defines callbacks to be
-  /// executed when this injected model emits a notification before rebuilding
-  /// the widget.
-  ///     * **onAfterBuild** :  of type `On<void>`. Defines callbacks
-  /// to be executed when this injected model emits a notification after
-  /// rebuilding the widget.
-  ///     * **initState** : callback to be executed when the widget is first
-  /// inserted into the widget tree.
-  ///     * **dispose** : callback to be executed when the widget is removed from
-  /// the widget tree.
-  ///     * **shouldRebuild** : Callback to determine whether this StateBuilder
-  /// will rebuild or not.
-  ///     * **watch** : callback to be executed before notifying listeners.
-  ///     * **didUpdateWidget** : callback to be executed whenever the widget
-  /// configuration changes.
-  /// It the returned value is the same as the last one, the rebuild process
-  /// is interrupted.
-  /// {@endtemplate}
-  ///
-  ///onSetState, child and onAfterBuild parameters receives a [On] object.
-  Widget listen({
-    required On<Widget> child,
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
-    void Function()? initState,
-    void Function()? dispose,
-    void Function(_StateBuilder<T>)? didUpdateWidget,
-    bool Function(SnapState<T>? previousState)? shouldRebuild,
-    Object? Function()? watch,
-    Key? key,
-  }) {
-    return _StateBuilder<T>(
-      key: key,
-      rm: [this as ReactiveModel<T>],
-      initState: (_, setState, exposedRM) {
-        _initialize();
+  // ///Listen to this [Injected] model and register:
+  // ///
+  // ///{@template listen}
+  // ///* builder to be called to rebuild some part of the widget tree (**child**
+  // ///parameter).
+  // ///* Side effects to be invoked before rebuilding the widget (**onSetState**
+  // ///parameter).
+  // ///* Side effects to be invoked after rebuilding (**onAfterBuild** parameter).
+  // ///
+  // ///
+  // /// * **Required parameters**:
+  // ///     * **child**: of type `On<Widget>`. defines the widget to render when
+  // /// this injected model emits a notification.
+  // /// * **Optional parameters:**
+  // ///     * **onSetState** :  of type `On<void>`. Defines callbacks to be
+  // /// executed when this injected model emits a notification before rebuilding
+  // /// the widget.
+  // ///     * **onAfterBuild** :  of type `On<void>`. Defines callbacks
+  // /// to be executed when this injected model emits a notification after
+  // /// rebuilding the widget.
+  // ///     * **initState** : callback to be executed when the widget is first
+  // /// inserted into the widget tree.
+  // ///     * **dispose** : callback to be executed when the widget is removed from
+  // /// the widget tree.
+  // ///     * **shouldRebuild** : Callback to determine whether this StateBuilder
+  // /// will rebuild or not.
+  // ///     * **watch** : callback to be executed before notifying listeners.
+  // ///     * **didUpdateWidget** : callback to be executed whenever the widget
+  // /// configuration changes.
+  // /// It the returned value is the same as the last one, the rebuild process
+  // /// is interrupted.
+  // /// {@endtemplate}
+  // ///
+  // ///onSetState, child and onAfterBuild parameters receives a [On] object.
+  // Widget listen({
+  //   required On<Widget> child,
+  //   On<void>? onSetState,
+  //   On<void>? onAfterBuild,
+  //   void Function()? initState,
+  //   void Function()? dispose,
+  //   void Function(_StateBuilder<T>)? didUpdateWidget,
+  //   bool Function(SnapState<T>? previousState)? shouldRebuild,
+  //   Object? Function()? watch,
+  //   Key? key,
+  // }) {
+  //   return _StateBuilder<T>(
+  //     key: key,
+  //     rm: [this as ReactiveModel<T>],
+  //     initState: (_, setState, exposedRM) {
+  //       _initialize();
 
-        initState?.call();
-        // state;
-        if (onAfterBuild != null) {
-          WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onAfterBuild._call(_snapState),
-          );
-        }
-        return _listenToRMForStateFulWidget((rm, _) {
-          rm!;
-          if (shouldRebuild?.call(_coreRM._previousSnapState) == false) {
-            return;
-          }
+  //       initState?.call();
+  //       // state;
+  //       if (onAfterBuild != null) {
+  //         WidgetsBinding.instance?.addPostFrameCallback(
+  //           (_) => onAfterBuild._call(_snapState),
+  //         );
+  //       }
+  //       return _listenToRMForStateFulWidget((rm, _) {
+  //         rm!;
+  //         if (shouldRebuild?.call(_coreRM._previousSnapState) == false) {
+  //           return;
+  //         }
 
-          onSetState?._call(rm._snapState);
-          _onHasErrorCallback = child._hasOnError;
+  //         onSetState?._call(rm._snapState);
+  //         _onHasErrorCallback = child._hasOnError;
 
-          if (child._hasOnDataOnly &&
-              (rm._snapState.hasError || rm._snapState.isWaiting)) {
-            return;
-          }
-          if (onAfterBuild != null) {
-            WidgetsBinding.instance?.addPostFrameCallback(
-              (_) => onAfterBuild._call(rm._snapState),
-            );
-          }
-          setState(rm);
-        });
-      },
-      dispose: (context) {
-        dispose?.call();
-      },
-      watch: watch,
-      didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
-      builder: (_, __) {
-        _onHasErrorCallback = child._hasOnError;
-        return child._call(_snapState)!;
-      },
-    );
-  }
+  //         if (child._hasOnDataOnly &&
+  //             (rm._snapState.hasError || rm._snapState.isWaiting)) {
+  //           return;
+  //         }
+  //         if (onAfterBuild != null) {
+  //           WidgetsBinding.instance?.addPostFrameCallback(
+  //             (_) => onAfterBuild._call(rm._snapState),
+  //           );
+  //         }
+  //         setState(rm);
+  //       });
+  //     },
+  //     dispose: (context) {
+  //       dispose?.call();
+  //     },
+  //     watch: watch,
+  //     didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
+  //     builder: (_, __) {
+  //       _onHasErrorCallback = child._hasOnError;
+  //       return child._call(_snapState)!;
+  //     },
+  //   );
+  // }
 
   ///Listen to a future from the injected model and rebuild this widget when it
   ///resolves.
@@ -145,67 +145,65 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     On<void>? onSetState,
     Key? key,
   }) {
-    return StateBuilder<F>(
-      observe: () {
+    return _StateFulWidget<Injected<F>>(
+      iniState: () {
         _initialize();
         if (future != null) {
           final f = future(_state, (this as ReactiveModel<T>).stateAsync);
           assert(f != null);
-          return ReactiveModelImp<F>.future(
-            () => f!,
+          return InjectedImp(
+            creator: (_) => f!,
             isLazy: false,
           );
-        }
-        // if (!_isAsyncReactiveModel) {
-        //   throw ArgumentError.notNull(
-        //     'The future parameter is null.\n'
-        //     'The state must be injected using RM.injectFuture or the future'
-        //     'parameter must be defined',
-        //   );
-        // }
-        return ReactiveModelImp<T>.future(
-          () => (this as ReactiveModel<T>).stateAsync,
-          isLazy: false,
-          initialState: (this as ReactiveModel<T>)._state,
-        ) as ReactiveModel<F>;
-      },
-      shouldRebuild: (_) => true,
-      onSetState: (_, rm) {
-        onSetState?._call(_snapState);
-        if (rm!._snapState.hasData) {
-          if (rm.state is T) {
-            snapState = SnapState<T>._withData(
-              ConnectionState.done,
-              rm.state as T,
-              true,
-            );
-            if (onSetState?.onData == null) {
-              _coreRM.onData?.call(state);
-            }
-          }
-        } else if (rm._snapState.hasError &&
-            rm.error != _coreRM.snapState.error) {
-          if (onSetState?.onError == null) {
-            _coreRM.onError?.call(rm.error, rm.stackTrace);
-          }
+        } else {
+          return InjectedImp<F>(
+            creator: (_) => (this as ReactiveModel<T>).stateAsync,
+            isLazy: false,
+            initialValue: (this as ReactiveModel<T>)._state as F,
+          );
         }
       },
-      dispose: (_, __) {
+      dispose: () {
         if (!hasObservers) {
           Future.microtask(() => _clean());
         }
         dispose?.call();
       },
-      builder: (_, rm) {
-        final _rm = rm!;
-        if (rm._snapState.isWaiting) {
-          return onWaiting?.call() ?? onData(_rm.state);
-        }
-
-        if (rm._snapState.hasError) {
-          return onError?.call(rm.error) ?? onData(_rm.state);
-        }
-        return onData(_rm.state);
+      builder: (inj) {
+        final _inj = inj!;
+        return On(() {
+          if (_inj._snapState.isWaiting) {
+            return onWaiting?.call() ?? onData(_inj.state);
+          }
+          if (_inj._snapState.hasError) {
+            return onError?.call(_inj.error) ?? onData(_inj.state);
+          }
+          return onData(_inj.state);
+        }).listenTo<F>(
+          _inj,
+          onSetState: On(
+            () {
+              onSetState?._call(_inj._snapState);
+              if (_inj._snapState.hasData) {
+                if (_inj.state is T) {
+                  snapState = SnapState<T>._withData(
+                    ConnectionState.done,
+                    _inj.state as T,
+                    true,
+                  );
+                  if (onSetState?.onData == null) {
+                    _coreRM.onData?.call(state);
+                  }
+                }
+              } else if (_inj._snapState.hasError &&
+                  _inj.error != _coreRM.snapState.error) {
+                if (onSetState?.onError == null) {
+                  _coreRM.onError?.call(_inj.error, _inj.stackTrace);
+                }
+              }
+            },
+          ),
+        );
       },
     );
   }
@@ -253,60 +251,66 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     void Function()? dispose,
     On<void>? onSetState,
     Key? key,
-  }) {
-    return StateBuilder<S>(
-      observe: () {
-        _initialize();
-        final s = stream(state, (this as ReactiveModel<T>).subscription);
-        assert(s != null);
-        return ReactiveModelImp<S>.stream(
-          (_) => s!,
-          isLazy: false,
-        );
-      },
-      shouldRebuild: (_) => true,
-      dispose: (_, __) {
-        if (!hasObservers) {
-          _clean();
-        }
-        dispose?.call();
-      },
-      onSetState: (_, rm) {
-        onSetState?._call(rm!._snapState);
-        if (rm!._snapState.hasData) {
-          if (rm.state is T) {
-            snapState = SnapState<T>._withData(
-              ConnectionState.done,
-              rm.state as T,
-              true,
-            );
-            if (onSetState?.onData == null) {
-              _coreRM.onData?.call(state);
-            }
+  }) =>
+      _StateFulWidget<Injected<S>>(
+        iniState: () {
+          _initialize();
+          final s = stream(state, (this as ReactiveModel<T>).subscription);
+          assert(s != null);
+          return InjectedImp<S>(
+            creator: (_) => s!,
+            isLazy: false,
+          );
+        },
+        dispose: () {
+          if (!hasObservers) {
+            Future.microtask(() => _clean());
           }
-        } else if (rm._snapState.hasError &&
-            rm.error != _coreRM.snapState.error) {
-          if (onSetState?.onError == null) {
-            _coreRM.onError?.call(rm.error, rm.stackTrace);
-          }
-        }
-      },
-      builder: (_, rm) {
-        final _rm = rm!;
-        if (rm._snapState.isWaiting) {
-          return onWaiting?.call() ?? onData(_rm.state);
-        }
+          dispose?.call();
+        },
+        builder: (inj) {
+          final _inj = inj!;
+          return On(
+            () {
+              if (_inj._snapState.isWaiting) {
+                return onWaiting?.call() ?? onData(_inj.state);
+              }
 
-        if (rm._snapState.hasError) {
-          return onError?.call(rm.error) ?? onData(_rm.state);
-        }
-        if (rm.isDone) {
-          return onDone?.call(_rm.state) ?? onData(_rm.state);
-        }
-        return onData(_rm.state);
-      },
-    );
-  }
+              if (_inj._snapState.hasError) {
+                return onError?.call(_inj.error) ?? onData(_inj.state);
+              }
+              if (_inj.isDone) {
+                return onDone?.call(_inj.state) ?? onData(_inj.state);
+              }
+              return onData(_inj.state);
+            },
+          ).listenTo<S>(
+            _inj,
+            onSetState: On(
+              () {
+                onSetState?._call(_inj._snapState);
+                if (_inj._snapState.hasData) {
+                  if (_inj.state is T) {
+                    snapState = SnapState<T>._withData(
+                      ConnectionState.done,
+                      _inj.state as T,
+                      true,
+                    );
+                    if (onSetState?.onData == null) {
+                      _coreRM.onData?.call(state);
+                    }
+                  }
+                } else if (_inj._snapState.hasError &&
+                    _inj.error != _coreRM.snapState.error) {
+                  if (onSetState?.onError == null) {
+                    _coreRM.onError?.call(_inj.error, _inj.stackTrace);
+                  }
+                }
+              },
+            ),
+          );
+        },
+      );
 
   /// {@template injected.rebuilder}
   ///Listen to the injected Model and ***rebuild only when the model emits a
@@ -349,15 +353,14 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     Object Function()? watch,
     bool Function()? shouldRebuild,
     Key? key,
-  }) {
-    return listen(
-      initState: initState != null ? () => initState() : null,
-      dispose: dispose != null ? () => dispose() : null,
-      shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-      watch: watch,
-      child: On.data(builder),
-    );
-  }
+  }) =>
+      On.data(builder).listenTo<T>(
+        this as Injected<T>,
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+        watch: watch,
+      );
 
   /// {@template injected.whenRebuilder}
   ///Listen to the injected Model and rebuild when it emits a notification.
@@ -403,19 +406,18 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     void Function()? dispose,
     bool Function()? shouldRebuild,
     Key? key,
-  }) {
-    return listen(
-      initState: initState != null ? () => initState() : null,
-      dispose: dispose != null ? () => dispose() : null,
-      shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-      child: On.all(
+  }) =>
+      On.all(
         onIdle: onIdle,
         onWaiting: onWaiting,
         onError: onError,
         onData: onData,
-      ),
-    );
-  }
+      ).listenTo<T>(
+        this as Injected<T>,
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+      );
 
   /// {@template injected.whenRebuilderOr}
   ///Listen to the injected Model and rebuild when it emits a notification.
@@ -471,19 +473,51 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
     Object Function()? watch,
     bool Function()? shouldRebuild,
     Key? key,
-  }) {
-    return listen(
-      initState: initState != null ? () => initState() : null,
-      dispose: dispose != null ? () => dispose() : null,
-      shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-      watch: watch,
-      child: On.or(
+  }) =>
+      On.or(
         onIdle: onIdle,
         onWaiting: onWaiting,
         onError: onError,
         onData: onData,
         or: builder,
-      ),
-    );
+      ).listenTo<T>(
+        this as Injected<T>,
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+        watch: watch,
+      );
+}
+
+class _StateFulWidget<T> extends StatefulWidget {
+  final void Function()? dispose;
+  final T Function()? iniState;
+  final Widget Function(T? data) builder;
+
+  const _StateFulWidget(
+      {Key? key, this.dispose, this.iniState, required this.builder})
+      : super(key: key);
+
+  @override
+  _StateFulWidgetState<T> createState() => _StateFulWidgetState<T>();
+}
+
+class _StateFulWidgetState<T> extends State<_StateFulWidget<T>> {
+  T? data;
+  @override
+  void initState() {
+    super.initState();
+    data = widget.iniState?.call();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.dispose?.call();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(data);
   }
 }

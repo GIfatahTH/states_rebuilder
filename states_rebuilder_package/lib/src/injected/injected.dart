@@ -165,6 +165,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
     }
   }
 
+  @override
   void _onInitState() {
     _isDisposed = false;
     if (_debugPrintWhenNotifiedPreMessage != null) {
@@ -183,7 +184,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
     }());
     RM.printInjected?.call(_snapState);
     final remove = _addToInjectedModels(this);
-    // if (_autoDisposeWhenNotUsed) {
     addToCleaner(
       () {
         remove();
@@ -191,7 +191,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
       },
       true,
     );
-    // }
   }
 
   bool _isDisposed = false;
@@ -204,7 +203,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
       }
       return true;
     }());
-    print(hashCode);
     assert(!_isDisposed);
     _isDisposed = true;
     RM.printInjected?.call(_snapState);
@@ -218,13 +216,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
     _cleanUpState();
   }
 
-  ///Delete the saved instance of this state form localStorage.
-  void deletePersistState() => _coreRM.persistanceProvider?.delete();
-
-  ///Clear localStorage
-  void deleteAllPersistState() => _coreRM.persistanceProvider?.deleteAll();
-
-  Disposer _addToInheritedInjects(Injected inj) {
+  Disposer _addToInheritedInjects(Injected<T> inj) {
     _state = inj.state;
     _nullState = inj._nullState;
     _inheritedInjects.add(inj);
@@ -396,7 +388,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
   ///```
   ///
   T? of(BuildContext context, {bool defaultToGlobal = false}) {
-    final _InheritedInjected<T>? _inheritedInjected =
+    final _inheritedInjected =
         context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
 
     if (_inheritedInjected != null) {
@@ -427,7 +419,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
   ///```
   ///
   Injected<T>? call(BuildContext context, {bool defaultToGlobal = false}) {
-    final _InheritedInjected<T>? _inheritedInjected = context
+    final _inheritedInjected = context
         .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
         ?.widget as _InheritedInjected<T>?;
 

@@ -94,11 +94,9 @@ class CounterApp extends StatelessWidget {
                 child: const Text('⏱️ Undo'),
                 onPressed: () => serviceState.undoState(),
             ),
-            serviceState.listen(
-              child: On(
+            On(
                 () => Text('🏁Result: ${_model.counter}'),
-                ),
-              )
+            ).listenTo(serviceState),
         ],
     );
   }  
@@ -275,7 +273,13 @@ Calling `refresh` will cancel any pending async task from the state before refre
 * To listen to an injected state from the User Interface:
   - For general use and full options use:
     ````dart
-    foo.listen(
+    On.all(
+        onIdle: ()=> Text('Idle'),
+        onWaiting: ()=> Text('Waiting'),
+        onError: (err)=> Text('Error'),
+        onData:  ()=> Text('Data'),
+    ).listenTo(
+      foo, //Listen to foo state
       //called once the widget is inserted
       initState: ()=> print('initState'),
       //called once the widget is removed
@@ -284,12 +288,6 @@ Calling `refresh` will cancel any pending async task from the state before refre
       onSetState: On.error((err) => print('error')),
       //called after notification and rebuild
       onAfterBuild: On(()=> print('After build')),
-      child: On.all(
-        onIdle: ()=> Text('Idle'),
-        onWaiting: ()=> Text('Waiting'),
-        onError: (err)=> Text('Error'),
-        onData:  ()=> Text('Data'),
-      ),
     )
     ```
   - Rebuild when model has data only:
@@ -329,14 +327,12 @@ Calling `refresh` will cancel any pending async task from the state before refre
 
 * To listen to many injected models and expose a merged state:
   ```dart
-    [model1, model1 ..., modelN].listen(
-     child: On.all(
+    OnCombined.all(
         isWaiting: ()=> Text('Waiting'),//If any is waiting
         hasError: (err)=> Text('Error'),//If any has error
         isIdle: ()=> Text('Idle'),//If any is Idle
-        hasData: ()=> Text('Data'),//If all have Data
-      ),
-    )
+        hasData: (data)=> Text('Data'),//If all have Data
+    ).listenTo([model1, model1 ..., modelN]);
   ```
 > [See more detailed information about the widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
 
@@ -378,31 +374,55 @@ Calling `refresh` will cancel any pending async task from the state before refre
   ```
 > [See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
 
-* To Create, Read, Update and Delete (CRUD) from restful API or DataBase,
+* To Create, Read, Update and Delete (CRUD) from backend or DataBase,
   ```dart
   final products = RM.injectCRUD<Product, Param>(
       ()=> MyProductRepository(),//Implements ICRUD<Product, Param>
-      readOnInitialization = true,// Optional (Default is false)
+      readOnInitialization: true,// Optional (Default is false)
   );
   ```
 
   ```dart
   //READ
-  products.read(param: ()=> NewParam());
+  products.crud.read(param: (param)=> NewParam());
   //CREATE
-  products.create(NewProduct());
+  products.crud.create(NewProduct());
   //UPDATE
-  products.update(
+  products.crud.update(
     where: (product) => product.id == 1,
     set: (product)=> product.copyWith(...),
   );
   //DELETE
-  products.update(
+  products.crud.update(
     where: (product) => product.id == 1,
     isOptimistic: false, // Optional (Default is true)
   );
   ```
-> [See more detailed information about injectCRUD](https://github.com/GIfatahTH/states_rebuilder/wiki/inject_CRUD_api).
+
+> [See more detailed information about injectCRUD](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+
+* To authenticate and authorize users,
+  ```dart
+  final user = RM.injectAuth<User, Param>(
+      ()=> MyAuthRepository(),//Implements IAuth<User, Param>
+      unSignedUser: UnsignedUser(),
+      onSigned: (user)=> //Navigate to home page,
+      onUnsigned: ()=> //navigate to Auth Page,
+      autoSignOut: (user)=> Duration(seconds: user.tokenExpiryDate)
+  );
+  ```
+
+  ```dart
+  //Sign up
+  user.auth.signUp((param)=> Param());
+  //Sign in
+  user.auth.signIn(()=> Param());
+  //Sign out
+  user.auth.signOut();
+  ```
+
+> [See more detailed information about injectAuth](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
+
 
 * Widget-wise state (overriding the state):
 ```dart

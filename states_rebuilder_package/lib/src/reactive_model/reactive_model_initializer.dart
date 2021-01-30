@@ -6,8 +6,6 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
   T get state => (this as ReactiveModel<T>).state;
   SnapState<T> get snapState => _coreRM.snapState;
   set snapState(SnapState<T> snap) => _coreRM.snapState = snap;
-  Object? Function(T? s)? _watch;
-  Object? _cachedWatch;
   bool isDone = false;
 
   void _initialize() {
@@ -27,15 +25,15 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       //Here is reached by dependent Injected models, that one of there
       //dependencies is waiting or has error while initialization.
       assert(!_isFirstInitialized);
-      var result;
+      dynamic result;
       try {
         result = _creator(this as ReactiveModel<T>);
         if (result is Future) {
-          result.asStream().listen((_) {}).cancel();
+          result.asStream().listen((dynamic _) {}).cancel();
           //Skip Future ;
           throw Error();
         } else if (result is Stream) {
-          result.listen((_) {}).cancel();
+          result.listen((dynamic _) {}).cancel();
           //Skip  Stream;
           throw Error();
         }
@@ -43,8 +41,8 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         result = null;
       }
       if (result != null) {
-        _nullState ??= result;
-        snapState = snapState._copyWith(data: result);
+        _nullState ??= result as T;
+        snapState = snapState._copyWith(data: result as T);
         _coreRM.addToUndoQueue();
         // if (_coreRM.persistanceProvider != null &&
         //     !_isStateInitiallyPersisted) {
@@ -57,50 +55,55 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       _isFirstInitialized = true;
       return;
     }
+    try {
+      final dynamic result = _creator(this as ReactiveModel<T>);
 
-    final result = _creator(this as ReactiveModel<T>);
-
-    Stream<T>? asyncResult;
-    if (result is Future<T>) {
-      asyncResult = result.asStream();
-    } else if (result is Stream<T>) {
-      _cachedWatch = _watch?.call(_state);
-      asyncResult = result;
-    }
-    _isAsyncReactiveModel = asyncResult != null;
-    if (_isAsyncReactiveModel) {
-      if (!_isFirstInitialized) {
-        _onInitState();
+      Stream<T>? asyncResult;
+      if (result is Future<T>) {
+        asyncResult = result.asStream();
+      } else if (result is Stream<T>) {
+        _coreRM._cachedWatch = _coreRM._watch?.call(_state);
+        asyncResult = result;
       }
-      _coreRM._setToIsWaiting(
-        skipWaiting: false,
-      );
+      _isAsyncReactiveModel = asyncResult != null;
+      if (_isAsyncReactiveModel) {
+        if (!_isFirstInitialized) {
+          _onInitState();
+        }
+        _coreRM._setToIsWaiting(
+          skipWaiting: false,
+        );
 
-      _handleAsyncSubscription(
-        asyncResult as Stream<T>,
-        onInitData: (s) => _nullState ??= s,
-      );
+        _handleAsyncSubscription(
+          asyncResult as Stream<T>,
+          onInitData: (s) => _nullState ??= s,
+        );
 
-      if (!_isFirstInitialized) {
-        _onInitialized?.call(state);
-        _isFirstInitialized = true;
+        if (!_isFirstInitialized) {
+          _onInitialized?.call(state);
+          _isFirstInitialized = true;
+        }
+        return;
       }
-      return;
-    }
-    // Injected._activeInjected = cached;
-    _nullState ??= result;
-    snapState = SnapState<T>._withData(
-      _initialConnectionState,
-      result,
-      snapState.isImmutable,
-    );
-    _coreRM.addToUndoQueue();
-    if (_coreRM.persistanceProvider != null && !_isStateInitiallyPersisted) {
-      _coreRM.persistState();
+      // Injected._activeInjected = cached;
+      _nullState ??= result as T;
+      snapState = SnapState<T>._withData(
+        _initialConnectionState,
+        result as T,
+        snapState.isImmutable,
+      );
+      _coreRM.addToUndoQueue();
+      if (_shouldPersistStateOnInit) {
+        _coreRM.persistState();
+      }
+    } catch (e, s) {
+      _coreRM._setToHasError(e, s);
     }
     if (!_isFirstInitialized) {
       _onInitState();
-      _onInitialized?.call(_state!);
+      if (_state != null) {
+        _onInitialized?.call(_state!);
+      }
       _isFirstInitialized = true;
     }
   }
@@ -120,12 +123,12 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
     _subscription?.cancel();
     _subscription = null;
     return _subscription = asyncResult.listen(
-      (data) {
-        if (_watch != null &&
-            deepEquality.equals(_cachedWatch, _cachedWatch = _watch!(data))) {
-          return;
+      (dynamic data) {
+        if (data is T) {
+          onInitData?.call(data);
+        } else {
+          onInitData?.call(_state!);
         }
-        onInitData?.call(data);
         _coreRM._setToHasData(
           data,
           onData: onData,
@@ -134,7 +137,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
           context: context,
         );
       },
-      onError: (e, s) {
+      onError: (dynamic e, StackTrace s) {
         _coreRM._setToHasError(
           e,
           s,

@@ -120,24 +120,22 @@ class HomeWidget extends StatelessWidget {
       appBar: AppBar(
         title: Text(i18n.of(context).helloWorldExample),
         actions: [
-          currentLocale.listen(
-            child: On(
-              () => DropdownButton<Locale>(
-                value: currentLocale.state,
-                onChanged: (Locale locale) {
-                  currentLocale.state = locale;
-                },
-                items: I18n.supportedLocal.keys
-                    .map(
-                      (locale) => DropdownMenuItem<Locale>(
-                        child: Text(I18n.supportedLocal[locale].languageName),
-                        value: locale,
-                      ),
-                    )
-                    .toList(),
-              ),
+          On(
+            () => DropdownButton<Locale>(
+              value: currentLocale.state,
+              onChanged: (Locale locale) {
+                currentLocale.state = locale;
+              },
+              items: I18n.supportedLocal.keys
+                  .map(
+                    (locale) => DropdownMenuItem<Locale>(
+                      child: Text(I18n.supportedLocal[locale].languageName),
+                      value: locale,
+                    ),
+                  )
+                  .toList(),
             ),
-          ),
+          ).listenTo(currentLocale),
         ],
       ),
       body: Column(
@@ -185,39 +183,33 @@ class HelloNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        helloName.listen(
-          child: On.data(
-            () => IconButton(
-              icon: Icon(Icons.arrow_left_rounded, size: 40),
-              onPressed:
-                  helloName.canUndoState ? () => helloName.undoState() : null,
-            ),
+        On.data(
+          () => IconButton(
+            icon: Icon(Icons.arrow_left_rounded, size: 40),
+            onPressed:
+                helloName.canUndoState ? () => helloName.undoState() : null,
           ),
-        ),
+        ).listenTo(helloName),
         Spacer(),
         Center(
-          child: helloName.listen(
-            child: On.all(
-              // This part will be re-rendered each time the helloName
-              // emits notification of any kind of status (idle, waiting,
-              // error, data).
-              onIdle: () => Text(i18n.of(context).enterYourName),
-              onWaiting: () => CircularProgressIndicator(),
-              onError: (err) => Text('${err.message}'),
-              onData: () => Text(helloName.state),
-            ),
-          ),
+          child: On.all(
+            // This part will be re-rendered each time the helloName
+            // emits notification of any kind of status (idle, waiting,
+            // error, data).
+            onIdle: () => Text(i18n.of(context).enterYourName),
+            onWaiting: () => CircularProgressIndicator(),
+            onError: (err) => Text('${err.message}'),
+            onData: () => Text(helloName.state),
+          ).listenTo(helloName),
         ),
         Spacer(),
-        helloName.listen(
-          child: On.data(
-            () => IconButton(
-              icon: Icon(Icons.arrow_right_rounded, size: 40),
-              onPressed:
-                  helloName.canRedoState ? () => helloName.redoState() : null,
-            ),
+        On.data(
+          () => IconButton(
+            icon: Icon(Icons.arrow_right_rounded, size: 40),
+            onPressed:
+                helloName.canRedoState ? () => helloName.redoState() : null,
           ),
-        ),
+        ).listenTo(helloName)
       ],
     );
   }
@@ -255,16 +247,14 @@ class StreamNameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return streamedHelloName.listen(
-      child: On.or(
-        onError: (err) => Text(
-          err.message,
-          style: TextStyle(color: Colors.red),
-        ),
-        //This will rebuild if the stream emits valid data only
-        or: () => Text('${streamedHelloName.state}'),
+    return On.or(
+      onError: (err) => Text(
+        err.message,
+        style: TextStyle(color: Colors.red),
       ),
-    );
+      //This will rebuild if the stream emits valid data only
+      or: () => Text('${streamedHelloName.state}'),
+    ).listenTo(streamedHelloName);
   }
 }
 
@@ -285,16 +275,14 @@ class App extends StatelessWidget {
         onWaiting: () => CircularProgressIndicator(),
         onError: (err) => Text('error : $err'),
         onData: (_) {
-          return products.listen(
-            child: On.data(
-              () => ListView.builder(
-                itemCount: products.state.length,
-                itemBuilder: (context, index) {
-                  return Text(products.state[index]);
-                },
-              ),
+          return On.data(
+            () => ListView.builder(
+              itemCount: products.state.length,
+              itemBuilder: (context, index) {
+                return Text(products.state[index]);
+              },
             ),
-          );
+          ).listenTo(products);
         },
       ),
     );

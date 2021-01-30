@@ -250,10 +250,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(List<T> s)? onData,
     On<void>? onSetState,
-    void Function(dynamic e, StackTrace? s)? onError,
     //
     DependsOn<List<T>>? dependsOn,
     int undoStackLength = 0,
@@ -270,24 +267,27 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
     late InjectedCRUD<T, P> inj;
     inj = InjectedCRUD<T, P>(
-      creator: () async {
-        final repo = repository().init();
-        inj._crud = _CRUDService(repo, inj);
+      creator: () {
+        final fn = () async {
+          final repo = repository();
+          await repo.init();
+          return repo;
+        };
+        inj._crud = _CRUDService(fn(), inj);
         if (!inj._isFirstInitialized && !(readOnInitialization)) {
           return <T>[];
         } else {
-          final _repo = await repo;
-          final l = await _repo.read(param?.call());
-          return [...l];
+          return () async {
+            final _repo = await inj._crud._repository;
+            final l = await _repo.read(param?.call());
+            return [...l];
+          }();
         }
       },
       initialState: <T>[],
       param: param,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
-      onWaiting: onWaiting,
-      onData: onData,
-      onError: onError,
       onSetState: onSetState,
       //
       dependsOn: dependsOn,
@@ -328,33 +328,51 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
     late InjectedAuth<T, P> inj;
     inj = InjectedAuth<T, P>(
-      creator: () async {
-        final repo = repository().init();
-        inj._auth = _AuthService(repo, inj);
-        if (!inj._isFirstInitialized && !inj._isStateInitiallyPersisted) {
+      creator: () {
+        final fn = () async {
+          final repo = repository();
+          await repo.init();
+          return repo;
+        };
+
+        inj._auth = _AuthService(fn(), inj);
+        if (!inj._isFirstInitialized) {
           return unsignedUser;
         } else {
-          final _repo = await inj.auth._repository;
-          return await _repo.signIn(param?.call());
+          return () async {
+            final _repo = await inj.auth._repository;
+            return await _repo.signIn(param?.call());
+          }();
         }
       },
       initialState: unsignedUser,
       autoSignOut: autoSignOut,
       param: param,
       onInitialized: (s) {
-        inj._auth ??= _AuthService(repository().init(), inj);
-        if (inj.state != inj._initialState) {
-          if (autoSignOut != null) {
-            inj._auth!._autoSignOut();
-            // inj._auth!.autoSignOut(autoSignOut(inj._state!));
+        print(s);
+        print(inj);
+        inj._auth ??= _AuthService(
+          () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          }(),
+          inj,
+        );
+        if (inj.isIdle) {
+          if (inj.state != inj._initialState) {
+            if (autoSignOut != null) {
+              inj._auth!._autoSignOut();
+              // inj._auth!.autoSignOut(autoSignOut(inj._state!));
+            }
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onSigned?.call(inj._state!),
+            );
+          } else {
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onUnsigned?.call(),
+            );
           }
-          WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onSigned?.call(inj._state!),
-          );
-        } else {
-          WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onUnsigned?.call(),
-          );
         }
         onInitialized?.call(s);
       },
@@ -381,6 +399,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   static dynamic env;
   static int? _envMapLength;
   //
+  // ignore: prefer_final_fields
   static bool _printAllInitDispose = false;
 
   static BuildContext? _context;
@@ -552,7 +571,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     );
   }
 
-  static var debugPrintActiveRM;
+  static bool? debugPrintActiveRM;
   static void Function(SnapState)? printInjected;
 }
 

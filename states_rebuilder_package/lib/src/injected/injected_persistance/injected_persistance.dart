@@ -114,10 +114,13 @@ await RM.storageInitializerMock();\n\n
         return null;
       }
       if (r is Future) {
-        return r.then((value) => () => _fromJsonHandler(key, value));
+        return r.then((dynamic value) => () => _fromJsonHandler(
+              key,
+              value as String,
+            ));
       }
 
-      return _fromJsonHandler(key, r);
+      return _fromJsonHandler(key, r as String);
     } catch (e, s) {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Read form localStorage error', e, s);

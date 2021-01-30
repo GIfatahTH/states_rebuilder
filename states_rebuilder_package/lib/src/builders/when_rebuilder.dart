@@ -40,7 +40,6 @@ class WhenRebuilder<T> extends StatefulWidget {
   ///```
   ///
   ///For the sake of performance consider using [observe] or [observeMany] instead.
-  // final List<ReactiveModel> models;TOOD
 
   ///an observable class to which you want [WhenRebuilder] to subscribe.
   ///```dart
@@ -178,17 +177,17 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       }
     }
 
-    _widget = _models.listen<T>(
+    _widget = OnCombined.all(
+      onIdle: widget.onIdle,
+      onWaiting: widget.onWaiting,
+      onError: widget.onError,
+      onData: widget.onData,
+    ).listenTo<T>(
+      _models,
       onSetState: OnCombined((_) => widget.onSetState?.call(context, rm)),
       shouldRebuild: () => widget.shouldRebuild?.call(rm) ?? true,
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
-      child: OnCombined.all(
-        onIdle: widget.onIdle,
-        onWaiting: widget.onWaiting,
-        onError: widget.onError,
-        onData: widget.onData,
-      ),
     );
   }
 

@@ -24,7 +24,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       _state = _nullState!;
     }
 
-    RM._printAllInitDispose = true;
+    // RM._printAllInitDispose = true;
   }
   factory ReactiveModel.create(T m) {
     return ReactiveModelImp(creator: (_) => m);
@@ -32,9 +32,12 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
 
   String? _debugPrintWhenNotifiedPreMessage;
 
+  @override
   SnapState<T> get snapState => _coreRM.snapState;
+  @override
   set snapState(SnapState<T> snap) {
     _coreRM.snapState = snap;
+    _state = snap.data;
   }
 
   ///Get the current state.
@@ -47,6 +50,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   ///throw an Argument Error. So, make sure to define an initial state, or
   ///to wait until the Future or Stream has data.
   ///
+  @override
   T get state {
     _initialize();
 
@@ -208,7 +212,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     Future<T?> call() async {
       Completer<T>? completer;
       try {
-        final result = fn?.call(state);
+        final dynamic result = fn?.call(state);
         _previousSnapState = _snapState;
         Stream<dynamic>? asyncResult;
 
@@ -368,6 +372,9 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   void _refreshListeners() => _toRefresh.forEach((e) => e());
 
   void persistState() {}
+
+  void deletePersistState() {}
+  void deleteAllPersistState() {}
 
   ///If the state is bool, toggle it and notify listeners
   ///

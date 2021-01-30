@@ -101,7 +101,7 @@ class OnCombined<T, R> {
     return OnCombined._(
       onIdle: null,
       onWaiting: null,
-      onError: (_, err) => fn(err),
+      onError: (_, dynamic err) => fn(err),
       onData: null,
       // onType: _OnType.onError,
     );
@@ -124,7 +124,9 @@ class OnCombined<T, R> {
     return OnCombined._(
       onIdle: onIdle != null ? (_) => onIdle() : or,
       onWaiting: onWaiting != null ? (_) => onWaiting() : or,
-      onError: onError != null ? (_, err) => onError(err) : (s, err) => or(s),
+      onError: onError != null
+          ? (_, dynamic err) => onError(err)
+          : (s, dynamic err) => or(s),
       onData: onData ?? or,
       // onType: _OnType.when,
     );
@@ -145,7 +147,7 @@ class OnCombined<T, R> {
     return OnCombined._(
       onIdle: (_) => onIdle(),
       onWaiting: (_) => onWaiting(),
-      onError: (_, err) => onError(err),
+      onError: (_, dynamic err) => onError(err),
       onData: onData,
       // onType: _OnType.when,
     );
@@ -184,4 +186,106 @@ class OnCombined<T, R> {
   }
 }
 
-// enum _OnType { onData, onWaiting, onError, when }
+extension OnCombinedX on OnCombined<dynamic, Widget> {
+  ///Listen to a list [Injected] states and register:
+  ///{@macro listen}
+  ///
+  ///onSetState, child and onAfterBuild parameters receives a
+  ///[OnCombined] object.
+  Widget listenTo<T>(
+    List<ReactiveModel<dynamic>> rms, {
+    OnCombined<T, void>? onSetState,
+    OnCombined<T, void>? onAfterBuild,
+    void Function()? initState,
+    void Function()? dispose,
+    void Function(_StateBuilder<T> oldWidget)? didUpdateWidget,
+    bool Function()? shouldRebuild,
+    Object? Function()? watch,
+    Key? key,
+  }) {
+    return _StateBuilder<T>(
+      rm: rms,
+      initState: (_, setState, exposedRM) {
+        initState?.call();
+        final disposer = <Disposer>[];
+
+        for (var rm in rms) {
+          rm._initialize();
+          disposer.add(
+            rm._listenToRMForStateFulWidget((_, tag) {
+              if (shouldRebuild?.call() == false) {
+                return;
+              }
+              onSetState?.call(
+                  _getCombinedSnap(rms), (exposedRM ?? rm)._state as T);
+
+              if (_hasOnDataOnly && !rm._snapState.hasData) {
+                return;
+              }
+
+              if (onAfterBuild != null) {
+                WidgetsBinding.instance?.addPostFrameCallback(
+                  (_) {
+                    onAfterBuild.call(
+                        _getCombinedSnap(rms), (exposedRM ?? rm)._state as T);
+                  },
+                );
+              }
+              setState(rm);
+            }),
+          );
+        }
+        if (onAfterBuild != null) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) {
+              onAfterBuild.call(
+                _getCombinedSnap(rms),
+                (exposedRM ?? rms.first)._state as T,
+              );
+            },
+          );
+        }
+        return () => disposer.forEach((e) => e());
+      },
+      dispose: (context) {
+        dispose?.call();
+        Future.microtask(
+          () => rms.forEach(
+            (e) {
+              if (!e.hasObservers) {
+                e._clean();
+              }
+            },
+          ),
+        );
+      },
+      watch: watch,
+      didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
+      builder: (_, rm) {
+        return call(_getCombinedSnap(rms), rm!._state as T)!;
+      },
+    );
+  }
+
+  SnapState _getCombinedSnap(List<ReactiveModel> rms) {
+    SnapState? snapWaiting;
+    SnapState? snapError;
+    SnapState? snapIdle;
+    for (var e in rms) {
+      if (e._snapState.isWaiting) {
+        snapWaiting = e._snapState;
+        break;
+      }
+      if (e._snapState.hasError) {
+        snapError = e._snapState;
+      }
+      if (e._snapState.isIdle) {
+        snapIdle = e._snapState;
+      }
+    }
+    return snapWaiting ??
+        snapError ??
+        snapIdle ??
+        SnapState<dynamic>._withData(ConnectionState.done, 'data', true);
+  }
+}

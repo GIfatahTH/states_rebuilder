@@ -34,7 +34,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   final _inheritedInjects = <Injected>{};
   //
   late dynamic Function(ReactiveModel<T> rm) _creator;
-  bool _isStateInitiallyPersisted = false;
+  bool _shouldPersistStateOnInit = false;
 
   void cloneToAndClean(ReactiveModel<T> to) {
     to._coreRM = _coreRM;
@@ -70,11 +70,10 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     _snapState = SnapState<T>._nothing();
     _previousSnapState = null;
     _initialConnectionState = ConnectionState.none;
-    //
+
     _isInitialized = false;
     _isFirstInitialized = false;
-    // _isDisposed = false;
-    //
+
     _undoQueue.clear();
     _redoQueue.clear();
     if (_completer?.isCompleted == false) {

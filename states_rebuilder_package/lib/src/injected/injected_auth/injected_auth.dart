@@ -42,8 +42,8 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         );
-  P Function()? _param;
-  Duration Function(T s)? _autoSignOut;
+  final P Function()? _param;
+  final Duration Function(T s)? _autoSignOut;
   _AuthService<T, P> get auth {
     _initialize();
     return _auth!;
@@ -55,22 +55,33 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     return (await auth._repository) as R;
   }
 
-  void Function(T s)? _onAuthenticated;
-  void Function()? _onSignOut;
+  final void Function(T s)? _onAuthenticated;
+  final void Function()? _onSignOut;
+  @override
+  void _onDisposeState() {
+    _auth?._dispose();
+    super._onDisposeState();
+  }
 
   ///Inject a fake implementation of this injected model.
   ///
   ///* Required parameters:
   ///   * [creationFunction] (positional parameter): the fake creation function
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
-    final creator = () async {
-      final repo = fakeRepository().init();
-      _auth = _AuthService(repo, this);
-      if (!_isFirstInitialized && !_isStateInitiallyPersisted) {
+    final creator = () {
+      final fn = () async {
+        final repo = fakeRepository();
+        await repo.init();
+        return repo;
+      };
+      _auth = _AuthService(fn(), this);
+      if (!_isFirstInitialized) {
         return _initialState;
       } else {
-        final _repo = await repo;
-        return await _repo.signIn(_param?.call());
+        return () async {
+          final _repo = await _auth!._repository;
+          return await _repo.signIn(_param?.call());
+        }();
       }
     };
     _cachedMockCreator ??= (_) => creator();

@@ -32,7 +32,7 @@ class SnapState<T> {
   const SnapState._withError(
     ConnectionState state,
     T? data,
-    Object error, [
+    dynamic error, [
     StackTrace stackTrace = StackTrace.empty,
   ]) : this._(state, data, error, stackTrace);
 
@@ -76,7 +76,7 @@ class SnapState<T> {
     bool resetError = false,
   }) =>
       SnapState<T>._(
-        connectionState ?? this._connectionState,
+        connectionState ?? _connectionState,
         data ?? this.data,
         resetError ? null : error ?? this.error,
         resetError ? null : stackTrace ?? this.stackTrace,
@@ -103,7 +103,7 @@ class SnapState<T> {
 
   @override
   String toString() {
-    String status = '';
+    var status = '';
     if (isIdle) {
       status = 'isIdle: $data';
     } else if (isWaiting) {

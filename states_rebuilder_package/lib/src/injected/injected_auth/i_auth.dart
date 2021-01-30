@@ -1,9 +1,25 @@
 part of '../../reactive_model.dart';
 
+///Interface to implement for authentication and authorization
+///
+///
+///The first generic type is the user.
+///
+///the second generic type is for the query parameter
 abstract class IAuth<T, P> {
-  Future<IAuth<T, P>> init();
+  ///It is called and awaited to finish when
+  ///the state is first created
+  ///
+  ///Here is the right place to initialize plugins
+  Future<void> init();
+
+  ///Sign in
   Future<T> signIn(P? param);
+
+  ///Sign up
   Future<T> signUp(P? param);
+
+  ///Sign out
   Future<void> signOut(P? param);
 
   ///It is called when the injected model is disposed
@@ -20,15 +36,20 @@ class _AuthService<T, P> {
   final InjectedAuth<T, P> injected;
   _AuthService(this._repository, this.injected);
 
+  ///Sign in
+  ///[param] is used to parametrize the query (ex: user
+  ///id, token).
   Future<T> signIn(
-    P Function()? param, {
+    P Function(P? param)? param, {
     void Function()? onAuthenticated,
     void Function(dynamic error)? onError,
   }) async {
     await injected.setState(
       (s) async {
         final _repo = await _repository;
-        return _repo.signIn(param?.call() ?? injected._param?.call());
+        return _repo.signIn(
+          param?.call(injected._param?.call()) ?? injected._param?.call(),
+        );
       },
       onSetState: onError != null ? On.error(onError) : null,
     );
@@ -39,14 +60,16 @@ class _AuthService<T, P> {
   }
 
   Future<T> signUp(
-    P Function()? param, {
+    P Function(P? param)? param, {
     void Function()? onAuthenticated,
     void Function(dynamic error)? onError,
   }) async {
     await injected.setState(
       (s) async {
         final _repo = await _repository;
-        return _repo.signUp(param?.call() ?? injected._param?.call());
+        return _repo.signUp(
+          param?.call(injected._param?.call()) ?? injected._param?.call(),
+        );
       },
       onSetState: onError != null ? On.error(onError) : null,
     );
@@ -71,18 +94,6 @@ class _AuthService<T, P> {
     }
   }
 
-  // On<void> _on(
-  //   void Function()? onAuthenticated,
-  //   void Function(dynamic error)? onError,
-  // ) {
-  //   final
-  //   return On.or(
-  //     onError: onError,
-  //     onData: onData,
-  //     or: () {},
-  //   );
-  // }
-
   void _persist() {
     if (injected._stateIsPersisted) {
       injected.persistState();
@@ -96,7 +107,7 @@ class _AuthService<T, P> {
   }
 
   Future<void> signOut({
-    P Function()? param,
+    P Function(P? param)? param,
     void Function()? onSignOut,
     void Function(dynamic error)? onError,
   }) async {
@@ -106,7 +117,8 @@ class _AuthService<T, P> {
       (s) async* {
         yield injected._initialState;
         final _repo = await _repository;
-        await _repo.signOut(param?.call() ?? injected._param?.call());
+        await _repo.signOut(
+            param?.call(injected._param?.call()) ?? injected._param?.call());
       },
       onSetState: On.or(
         onError: onError,
@@ -116,7 +128,7 @@ class _AuthService<T, P> {
     );
     if (injected.hasData) {
       if (injected._stateIsPersisted) {
-        injected._coreRM.persistanceProvider!.delete();
+        await injected._coreRM.persistanceProvider!.delete();
       }
     }
   }
@@ -129,11 +141,16 @@ class _AuthService<T, P> {
     }
   }
 
-  Future<void> autoSignOut(Duration time, {P Function()? param}) async {
+  Future<void> autoSignOut(Duration time, {P Function(P? param)? param}) async {
     _cancelTimer();
     _authTimer = Timer(
       time,
       () => signOut(param: param),
     );
+  }
+
+  Future<void> _dispose() async {
+    final _repo = await _repository;
+    _repo.dispose();
   }
 }

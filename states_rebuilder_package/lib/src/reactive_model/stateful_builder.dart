@@ -77,6 +77,7 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
     _removeContext();
   }
 
+  @override
   void dispose() {
     widget.dispose?.call(context);
     Future.microtask(() => _disposer());

@@ -48,7 +48,7 @@ class On<T> {
     return On._(
       onIdle: builder,
       onWaiting: builder,
-      onError: (_) => builder(),
+      onError: (dynamic _) => builder(),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -61,7 +61,7 @@ class On<T> {
     return On._(
       onIdle: builder,
       onWaiting: builder,
-      onError: (_) => builder(),
+      onError: (dynamic _) => builder(),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -120,7 +120,7 @@ class On<T> {
     return On._(
       onIdle: onIdle ?? or,
       onWaiting: onWaiting ?? or,
-      onError: onError ?? (_) => or(),
+      onError: onError ?? (dynamic _) => or(),
       onData: onData ?? or,
       // onType: _OnType.when,
     );
@@ -147,7 +147,7 @@ class On<T> {
     );
   }
 
-  T? _call<M>(SnapState snapState) {
+  T? _call(SnapState snapState) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return onWaiting?.call();
@@ -218,7 +218,7 @@ extension OnX on On<Widget> {
   ///
   ///onSetState, child and onAfterBuild parameters receives a [On] object.
   Widget listenTo<T>(
-    ReactiveModel<T> rm, {
+    Injected<T> rm, {
     On<void>? onSetState,
     On<void>? onAfterBuild,
     void Function()? initState,
@@ -248,9 +248,9 @@ extension OnX on On<Widget> {
           }
 
           onSetState?._call(rm._snapState);
-          rm._onHasErrorCallback = this._hasOnError;
+          rm._onHasErrorCallback = _hasOnError;
 
-          if (this._hasOnDataOnly &&
+          if (_hasOnDataOnly &&
               (rm._snapState.hasError || rm._snapState.isWaiting)) {
             return;
           }
@@ -268,26 +268,59 @@ extension OnX on On<Widget> {
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, __) {
-        rm._onHasErrorCallback = this._hasOnError;
-        return this._call(rm._snapState)!;
+        rm._onHasErrorCallback = _hasOnError;
+        return _call(rm._snapState)!;
       },
     );
   }
 
-  // Widget listenTo<T>(
-  //   ReactiveModel<T> rm, {
+  // Widget future<F>(
+  //   Future<F> Function() future, {
   //   On<void>? onSetState,
   //   On<void>? onAfterBuild,
   //   void Function()? initState,
   //   void Function()? dispose,
-  //   void Function(_StateBuilder<T>)? didUpdateWidget,
-  //   bool Function(SnapState<T>)? shouldRebuild,
-  //   Object Function()? watch,
+  //   void Function(_StateBuilder<F>)? didUpdateWidget,
+  //   bool Function(SnapState<F>? previousState)? shouldRebuild,
+  //   Object? Function()? watch,
   //   Key? key,
-  // }) =>
-  //     rm.listenToSB(
-  //       child: (_) => _call(rm._snapState) as Widget,
-  //       onSetState: (_) => onSetState?._call(rm._snapState),
-  //       initState: (_) => initState?.call(),
-  // );
+  // }) {
+  //   return _StateFulWidget<Future<F>, F>(
+  //     iniState: () {
+  //       return future();
+  //     },
+  //     builder: (rm) {
+  //       return this.listenTo<F>(
+  //         rm!,
+  //         onSetState: On(() {
+  //           onSetState?._call(rm._snapState);
+  //           if (rm._snapState.hasData) {
+  //             if (rm.state is T) {
+  //               snapState = SnapState<T>._withData(
+  //                 ConnectionState.done,
+  //                 rm.state as T,
+  //                 true,
+  //               );
+  //               if (onSetState?.onData == null) {
+  //                 _coreRM.onData?.call(state);
+  //               }
+  //             }
+  //           } else if (rm._snapState.hasError &&
+  //               rm.error != _coreRM.snapState.error) {
+  //             if (onSetState?.onError == null) {
+  //               _coreRM.onError?.call(rm.error, rm.stackTrace);
+  //             }
+  //           }
+  //         }),
+  //         onAfterBuild: onAfterBuild,
+  //         initState: initState,
+  //         dispose: dispose,
+  //         didUpdateWidget: didUpdateWidget,
+  //         shouldRebuild: shouldRebuild,
+  //         watch: watch,
+  //         key: key,
+  //       );
+  //     },
+  //   );
+  // }
 }

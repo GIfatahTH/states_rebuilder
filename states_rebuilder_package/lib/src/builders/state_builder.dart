@@ -290,4 +290,4 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
   }
 }
 
-class _Model extends StatesRebuilder {}
+class _Model extends StatesRebuilder<dynamic> {}

@@ -7,6 +7,9 @@ class ReactiveModelCore<T> {
   void Function()? onWaiting;
   void Function(T s)? onData;
   On<void>? on;
+  Object? Function(T? s)? _watch;
+  Object? _cachedWatch;
+
   void Function(dynamic e, StackTrace? s)? onError;
   PersistState<T>? persistanceProvider;
 
@@ -81,6 +84,10 @@ class ReactiveModelCore<T> {
         //the snap state is immutable and not changed.
         return;
       }
+      if (_watch != null &&
+          deepEquality.equals(_cachedWatch, _cachedWatch = _watch!(data))) {
+        return;
+      }
       snapState = snap;
       addToUndoQueue();
     } else {
@@ -124,8 +131,8 @@ class ReactiveModelCore<T> {
     );
     if (_completer?.isCompleted == false) {
       _completer!
-        ..future.catchError((dynamic _) => {})
-        ..completeError(e, s);
+        ..future.catchError((Object _) {})
+        ..completeError(e as Object, s);
     }
     RM.context = context;
     _callOnError(e, s, onSetState, onError);

@@ -10,6 +10,7 @@ export 'src/reactive_model.dart'
         On,
         OnX,
         OnCombined,
+        OnCombinedX,
         StateBuilder,
         InjectedX,
         ReactiveModelX,

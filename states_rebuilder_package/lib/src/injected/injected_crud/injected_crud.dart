@@ -39,14 +39,23 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         );
-  P Function()? _param;
+  final P Function()? _param;
   bool _readOnInitialization = false;
-  _CRUDService<T, P> get crud => _crud;
+  _CRUDService<T, P> get crud {
+    _initialize();
+    return _crud;
+  }
+
   late _CRUDService<T, P> _crud;
   Future<R> getRepoAs<R>() async {
     assert(R != dynamic && R != Object);
-    _initialize();
-    return (await crud.repo) as R;
+    return (await crud._repository) as R;
+  }
+
+  @override
+  void _onDisposeState() {
+    _crud._dispose();
+    super._onDisposeState();
   }
 
   ///Inject a fake implementation of this injected model.
@@ -62,13 +71,17 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
       _nullState = initialState;
     }
     final creator = () {
-      final repo = fakeRepository().init();
-      _crud = _CRUDService(repo, this);
+      final fn = () async {
+        final repo = fakeRepository();
+        await repo.init();
+        return repo;
+      };
+      _crud = _CRUDService(fn(), this);
       if (!_isFirstInitialized && !_readOnInitialization) {
         return initialState ?? <T>[];
       } else {
         return () async {
-          final _repo = await repo;
+          final _repo = await _crud._repository;
           final l = await _repo.read(_param?.call());
           return [...l];
         }();

@@ -39,7 +39,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
           var result = _coreRM.persistanceProvider!.read();
           if (result is Future) {
             c = (rm) async {
-              var innerResult = await (result as Future?);
+              dynamic innerResult = await (result as Future?);
               result = null;
               if (innerResult is Function) {
                 innerResult = await innerResult();
@@ -47,15 +47,17 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
                   innerResult = await innerResult();
                 }
               }
-              _isStateInitiallyPersisted = innerResult != null;
-              return innerResult ?? creator(rm);
+              _shouldPersistStateOnInit =
+                  innerResult == null && innerResult != initialValue;
+              return (innerResult ?? creator(rm)) as FutureOr<T>;
             };
           } else {
             c = (rm) {
-              _isStateInitiallyPersisted = result != null;
+              _shouldPersistStateOnInit =
+                  result == null && this is! InjectedAuth;
               var r = result;
               result = null;
-              return r ?? creator(rm);
+              return (r ?? creator(rm)) as FutureOr<T>;
             };
           }
         }
@@ -66,7 +68,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed;
     _onInitialized = onInitialized;
     _onDisposed = onDisposed;
-    _watch = watch;
+    _coreRM._watch = watch;
     _undoStackLength = undoStackLength;
     _dependsOn = dependsOn != null ? dependsOn as DependsOn<T> : null;
     _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
@@ -92,28 +94,27 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
         await _coreRM.persistanceProvider?.write(state);
       }
     } catch (e) {
-      if (e is Error) {
-        rethrow;
-      }
-      _persistHasError = true;
-
-      //SetState to oldState and set all completed
-      if (_coreRM._previousSnapState?.data != null) {
-        setState(
-          (s) => _coreRM._previousSnapState?.data,
-          //Set to has error
-          onRebuildState: () => setState(
-            (s) => throw e,
-            catchError: _coreRM.onError != null,
-          ),
-        );
-      }
-      if (_coreRM.persistanceProvider?.debugPrintOperations ?? false) {
-        StatesRebuilerLogger.log('PersistState Write ERROR', e, stackTrace);
-      }
-      _persistHasError = false;
+      final _previousSnapState = _coreRM._previousSnapState;
+      setState(
+        (s) async* {
+          _persistHasError = true;
+          if (_previousSnapState != null) {
+            snapState = _previousSnapState;
+          }
+          _persistHasError = false;
+          throw e;
+        },
+      );
     }
   }
+
+  ///Delete the saved instance of this state form localStorage.
+  @override
+  void deletePersistState() => _coreRM.persistanceProvider?.delete();
+
+  ///Clear localStorage
+  @override
+  void deleteAllPersistState() => _coreRM.persistanceProvider?.deleteAll();
 
   @override
   String toString() {
