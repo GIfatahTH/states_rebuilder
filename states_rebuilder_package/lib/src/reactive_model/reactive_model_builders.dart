@@ -156,11 +156,11 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
             isLazy: false,
           );
         } else {
-          return InjectedImp<F>(
+          return InjectedImp<T>(
             creator: (_) => (this as ReactiveModel<T>).stateAsync,
             isLazy: false,
-            initialValue: (this as ReactiveModel<T>)._state as F,
-          );
+            initialValue: (this as ReactiveModel<T>)._state,
+          ) as Injected<F>;
         }
       },
       dispose: () {

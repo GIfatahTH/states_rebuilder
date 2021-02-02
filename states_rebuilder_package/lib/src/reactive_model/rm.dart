@@ -278,7 +278,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
           return <T>[];
         } else {
           return () async {
-            final _repo = await inj._crud._repository;
+            final _repo = await inj._crud!._repository;
             final l = await _repo.read(param?.call());
             return [...l];
           }();
@@ -351,6 +351,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       onInitialized: (s) {
         print(s);
         print(inj);
+
         inj._auth ??= _AuthService(
           () async {
             final repo = repository();
@@ -359,7 +360,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
           }(),
           inj,
         );
-        if (inj.isIdle) {
+        //If it is mocked using injectMock,
+        //Do not invoke onSigned and onUnSigned
+        if (inj.isIdle && !inj._isInjectMock) {
           if (inj.state != inj._initialState) {
             if (autoSignOut != null) {
               inj._auth!._autoSignOut();
@@ -392,6 +395,138 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
 
+    return inj;
+  }
+
+  static InjectedTheme<Key> injectTheme<Key>({
+    required Map<Key, ThemeData> lightThemes,
+    Map<Key, ThemeData>? darkThemes,
+    ThemeMode themeMode = ThemeMode.system,
+    String? persistKey,
+    //
+    void Function(Key s)? onInitialized,
+    void Function(Key s)? onDisposed,
+    On<void>? onSetState,
+    //
+    DependsOn<Key>? dependsOn,
+    int undoStackLength = 0,
+    //
+    bool autoDisposeWhenNotUsed = true,
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    PersistState<Key> Function()? persist;
+    late InjectedTheme<Key> inj;
+    if (persistKey != null) {
+      persist = () => PersistState(
+            key: persistKey,
+            fromJson: (json) {
+              ///json is of the form key#|#1
+              final s = json.split('#|#');
+              assert(s.length <= 2);
+              final Key key = lightThemes.keys.firstWhere(
+                (k) => s.first == '$k',
+                orElse: () => lightThemes.keys.first,
+              );
+              if (s.last == '0') {
+                inj._themeMode = ThemeMode.light;
+              } else if (s.last == '1') {
+                inj._themeMode = ThemeMode.dark;
+              } else {
+                inj._themeMode = ThemeMode.system;
+              }
+              return key;
+            },
+            toJson: (key) {
+              String th = '';
+              if (inj._themeMode == ThemeMode.light) {
+                th = '0';
+              } else if (inj._themeMode == ThemeMode.dark) {
+                th = '1';
+              }
+
+              ///json is of the form key#|#1
+              return '$key#|#$th';
+            },
+            debugPrintOperations: true,
+          );
+    }
+    inj = InjectedTheme<Key>(
+      themes: lightThemes,
+      darkThemes: darkThemes,
+      themeMode: themeMode,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      onSetState: onSetState,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+    return inj;
+  }
+
+  static InjectedI18N<I18N> injectI18N<I18N>(
+    Map<Locale, I18N> i18n, {
+    String? persistKey,
+    //
+    void Function(I18N s)? onInitialized,
+    void Function(I18N s)? onDisposed,
+    On<void>? onSetState,
+    //
+    DependsOn<I18N>? dependsOn,
+    int undoStackLength = 0,
+    //
+    bool autoDisposeWhenNotUsed = true,
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    PersistState<I18N> Function()? persist;
+    late InjectedI18N<I18N> inj;
+    if (persistKey != null) {
+      persist = () => PersistState(
+            key: persistKey,
+            fromJson: (json) {
+              final s = json.split('#|#');
+              assert(s.length <= 2);
+              if (s.first.isEmpty) {
+                return inj._getLanguage(SystemLocale());
+              }
+              final l = Locale(s.first, s.last);
+              return inj._getLanguage(l);
+            },
+            toJson: (key) {
+              String l = '';
+              if (inj._locale is SystemLocale) {
+                l = '#|#';
+              } else {
+                l = '${inj.locale.languageCode}#|#'
+                    '${inj.locale.countryCode}';
+              }
+              return l;
+            },
+            debugPrintOperations: true,
+          );
+    }
+    inj = InjectedI18N<I18N>(
+      i18n: i18n,
+      //
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      onSetState: onSetState,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
     return inj;
   }
 

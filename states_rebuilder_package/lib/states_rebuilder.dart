@@ -25,4 +25,6 @@ export 'src/reactive_model.dart'
         InjectedCRUD,
         IAuth,
         InjectedAuth,
-        Child;
+        Child,
+        TopWidget,
+        SystemLocale;

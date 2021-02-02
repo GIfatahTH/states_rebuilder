@@ -68,6 +68,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
   ///* Required parameters:
   ///   * [creationFunction] (positional parameter): the fake creation function
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
+    _isInjectMock = false;
     final creator = () {
       final fn = () async {
         final repo = fakeRepository();

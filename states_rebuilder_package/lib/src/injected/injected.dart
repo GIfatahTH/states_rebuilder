@@ -442,14 +442,22 @@ abstract class Injected<T> implements ReactiveModel<T> {
   //
   dynamic Function(ReactiveModel<T> rm)? _cachedMockCreator;
 
+  ///Use to prevent invoking onSigned and onUnSigned when
+  ///injectAuth is mocked using injectMock
+  bool _isInjectMock = false;
+
   ///Inject a fake implementation of this injected model.
   ///
   ///* Required parameters:
   ///   * [creationFunction] (positional parameter): the fake creation function
   void injectMock(T Function() creationFunction) {
+    _isInjectMock = true;
     _cachedMockCreator ??= (_) => creationFunction();
     _cleanUpState((_) => creationFunction());
-    addToCleaner(() => _cleanUpState(_cachedMockCreator));
+
+    addToCleaner(() {
+      _cleanUpState(_cachedMockCreator);
+    });
   }
 
   ///Inject a fake stream implementation of this injected model.

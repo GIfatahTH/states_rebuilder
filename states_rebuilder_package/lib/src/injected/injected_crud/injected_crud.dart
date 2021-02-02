@@ -7,10 +7,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     List<T>? initialState,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(List<T> s)? onData,
     On<void>? onSetState,
-    void Function(dynamic e, StackTrace? s)? onError,
     //
     DependsOn<List<T>>? dependsOn,
     int undoStackLength = 0,
@@ -26,9 +23,6 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           initialValue: initialState,
           onInitialized: onInitialized,
           onDisposed: onDisposed,
-          onWaiting: onWaiting,
-          onData: onData,
-          onError: onError,
           on: onSetState,
           //
           dependsOn: dependsOn,
@@ -43,10 +37,10 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
   bool _readOnInitialization = false;
   _CRUDService<T, P> get crud {
     _initialize();
-    return _crud;
+    return _crud!;
   }
 
-  late _CRUDService<T, P> _crud;
+  _CRUDService<T, P>? _crud;
   Future<R> getRepoAs<R>() async {
     assert(R != dynamic && R != Object);
     return (await crud._repository) as R;
@@ -54,7 +48,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
 
   @override
   void _onDisposeState() {
-    _crud._dispose();
+    _crud?._dispose();
     super._onDisposeState();
   }
 
@@ -62,14 +56,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
   ///
   ///* Required parameters:
   ///   * [creationFunction] (positional parameter): the fake creation function
-  void injectCRUDMock(
-    ICRUD<T, P> Function() fakeRepository, {
-    List<T>? initialState,
-  }) {
-    if (initialState != null) {
-      _initialState = initialState;
-      _nullState = initialState;
-    }
+  void injectCRUDMock(ICRUD<T, P> Function() fakeRepository) {
     final creator = () {
       final fn = () async {
         final repo = fakeRepository();
@@ -78,10 +65,10 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
       };
       _crud = _CRUDService(fn(), this);
       if (!_isFirstInitialized && !_readOnInitialization) {
-        return initialState ?? <T>[];
+        return <T>[];
       } else {
         return () async {
-          final _repo = await _crud._repository;
+          final _repo = await _crud!._repository;
           final l = await _repo.read(_param?.call());
           return [...l];
         }();
