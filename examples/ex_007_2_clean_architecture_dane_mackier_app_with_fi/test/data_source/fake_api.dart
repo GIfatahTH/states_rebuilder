@@ -3,6 +3,7 @@ import 'package:clean_architecture_dane_mackier_app/domain/entities/comment.dart
 import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/value_objects/email.dart';
+import 'package:clean_architecture_dane_mackier_app/service/exceptions/input_exception.dart';
 
 class FakeUserRepository implements UserRepository {
   final dynamic error;
@@ -10,37 +11,36 @@ class FakeUserRepository implements UserRepository {
   FakeUserRepository({this.error});
 
   @override
-  Future<List<User>> read([int userId]) async {
+  Future<void> init() async {}
+
+  @override
+  Future<User> signIn(int? userId) async {
+    if (userId == null) {
+      throw NullNumberException();
+    }
     await Future.delayed(Duration(seconds: 1));
 
     if (error != null) {
       throw error;
     }
 
-    return [User(id: userId, name: 'fakeName', username: 'fakeUserName')];
+    return User(id: userId, name: 'fakeName', username: 'fakeUserName');
   }
 
   @override
-  Future<User> create(User item, param) {
+  Future<User> signUp(int? userId) {
+    // TODO: implement signIn
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> delete(List<User> item, int param) {
-    // TODO: implement delete
+  Future<void> signOut(int? param) {
+    // TODO: implement signOut
     throw UnimplementedError();
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
-
-  @override
-  Future<bool> update(List<User> item, int param) {
-    // TODO: implement update
-    throw UnimplementedError();
-  }
+  void dispose() {}
 }
 
 class FakePostRepository implements PostRepository {
@@ -49,7 +49,10 @@ class FakePostRepository implements PostRepository {
   FakePostRepository({this.error});
 
   @override
-  Future<List<Post>> read([int userId]) async {
+  Future<List<Post>> read([int? userId]) async {
+    if (userId == null) {
+      throw NullNumberException();
+    }
     await Future.delayed(Duration(seconds: 1));
 
     if (error != null) {
@@ -59,21 +62,18 @@ class FakePostRepository implements PostRepository {
     return [
       Post(
         id: 1,
-        likes: 0,
         title: 'Post1 title',
         body: 'Post1 body',
         userId: userId,
       ),
       Post(
         id: 2,
-        likes: 0,
         title: 'Post2 title',
         body: 'Post2 body',
         userId: userId,
       ),
       Post(
         id: 3,
-        likes: 0,
         title: 'Post3 title',
         body: 'Post3 body',
         userId: userId,
@@ -82,26 +82,26 @@ class FakePostRepository implements PostRepository {
   }
 
   @override
-  Future<Post> create(Post item, param) {
+  Future<Post> create(Post item, int? param) {
     throw UnimplementedError();
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
-
-  @override
-  Future delete(List<Post> items, int param) {
+  Future delete(List<Post> items, int? param) {
     // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  Future update(List<Post> items, int param) {
+  Future update(List<Post> items, int? param) {
     // TODO: implement update
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> init() async {}
+  @override
+  void dispose() {}
 }
 
 class FakeCommentRepository implements CommentRepository {
@@ -110,7 +110,10 @@ class FakeCommentRepository implements CommentRepository {
   FakeCommentRepository({this.error});
 
   @override
-  Future<List<Comment>> read([int postId]) async {
+  Future<List<Comment>> read([int? postId]) async {
+    if (postId == null) {
+      throw NullNumberException();
+    }
     await Future.delayed(Duration(seconds: 1));
 
     if (error != null) {
@@ -144,19 +147,19 @@ class FakeCommentRepository implements CommentRepository {
   }
 
   @override
-  Future delete(List<Comment> items, int param) {
+  Future delete(List<Comment> items, int? param) {
     // TODO: implement delete
     throw UnimplementedError();
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
-
-  @override
-  Future update(List<Comment> items, int param) {
+  Future update(List<Comment> items, int? param) {
     // TODO: implement update
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> init() async {}
+  @override
+  void dispose() {}
 }

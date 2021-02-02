@@ -5,11 +5,11 @@ import '../../domain/exceptions/validation_exception.dart';
 import '../../service/exceptions/fetch_exception.dart';
 import '../../service/exceptions/input_exception.dart';
 
-class ErrorHandler {
+class ExceptionHandler {
   //go through all custom errors and return the corresponding error message
   static String errorMessage(dynamic error) {
     if (error == null) {
-      return null;
+      return '';
     }
     if (error is ValidationException) {
       return error.message;

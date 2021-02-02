@@ -9,7 +9,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 final Injected<int> counter = RM.inject<int>(() => 0);
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -26,12 +26,12 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //subscribe to counter injected model
-            counter.rebuilder(
+            On(
               () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ),
+            ).listenTo(counter),
           ],
         ),
       ),
@@ -45,22 +45,25 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            onError: (dynamic error) {
-              RM.navigate.toDialog(
-                AlertDialog(
-                  content: Text('${error.message}'),
-                ),
-              );
-            },
-            onData: (int data) {
-              //show snackBar
-              //any current snackBar is hidden.
-              RM.scaffoldShow.snackBar(
-                SnackBar(
-                  content: Text('$data'),
-                ),
-              );
-            },
+            onSetState: On.or(
+              onError: (dynamic error) {
+                RM.navigate.toDialog(
+                  AlertDialog(
+                    content: Text('${error.message}'),
+                  ),
+                );
+              },
+              onData: () {
+                //show snackBar
+                //any current snackBar is hidden.
+                RM.scaffold.showSnackBar(
+                  SnackBar(
+                    content: Text('${counter.state}'),
+                  ),
+                );
+              },
+              or: () {},
+            ),
           );
         },
         tooltip: 'Increment',

@@ -1,5 +1,5 @@
-import 'package:clean_architecture_firebase_login/domain/entities/user.dart';
-import 'package:clean_architecture_firebase_login/service/user_extension.dart';
+import '../../../domain/entities/user.dart';
+import '../../../service/user_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

@@ -1,34 +1,68 @@
+import 'dart:convert';
+
 import '../exceptions/validation_exception.dart';
 
 class User {
-  int id;
-  String name;
-  String username;
+  final int id;
+  final String name;
+  final String username;
+  User({
+    required this.id,
+    required this.name,
+    required this.username,
+  });
 
-  //Typically called form service layer to create a new user
-  User({this.id, this.name, this.username});
-
-  //Typically called from data_source layer after getting data from external source.
-  User.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    username = json['username'];
+  User copyWith({
+    int? id,
+    String? name,
+    String? username,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      username: username ?? this.username,
+    );
   }
 
-  //Typically called from service or data_source layer just before persisting data.
-  //It is important to check data validity before persistance.
-  Map<String, dynamic> toJson() {
-    _validation();
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['username'] = this.username;
-    return data;
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'username': username,
+    };
   }
 
-  _validation() {
-    if (name == null) {
-      throw ValidationException('You can not persist null name');
-    }
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'],
+      name: map['name'],
+      username: map['username'],
+    );
   }
+
+  String toJson() => json.encode(toMap());
+
+  factory User.fromJson(String source) => User.fromMap(json.decode(source));
+
+  @override
+  String toString() => 'User(id: $id, name: $name, username: $username)';
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+
+    return o is User && o.id == id && o.name == name && o.username == username;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ username.hashCode;
+}
+
+class UnSignedUser extends User {
+  UnSignedUser()
+      : super(
+          id: 0,
+          name: '',
+          username: '',
+        );
 }

@@ -3,11 +3,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 //counter is a global variable but the state of the counter is not.
 //It can be easily mocked and tested.
-//With functional injection we do not need to use RMKey.
 final Injected<int> counter = RM.inject<int>(() => 0);
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -24,20 +23,12 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //subscribe to counter injected model
-            counter.rebuilder(
+            On(
               () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ),
-            //We can use StateBuilder instead
-            // StateBuilder(
-            //   observe: () => counter.getRM,
-            //   builder: (context, counterRM) => Text(
-            //     '${counter.state}',
-            //     style: Theme.of(context).textTheme.headline5,
-            //   ),
-            // )
+            ).listenTo(counter),
           ],
         ),
       ),
@@ -49,18 +40,18 @@ class MyHomePage extends StatelessWidget {
               //onSetState callback is invoked after counterRM emits a notification and before rebuild
               //context to be used to shw snackBar
 
-              onSetState: () {
+              onSetState: On(() {
                 //show snackBar
                 //any current snackBar is hidden.
 
                 //This call of snackBar is independent of BuildContext
                 //Can be called any where
-                RM.scaffoldShow.snackBar(
+                RM.scaffold.showSnackBar(
                   SnackBar(
                     content: Text('${counter.state}'),
                   ),
                 );
-              },
+              }),
               //onRebuildState is called after rebuilding the observer widget
               onRebuildState: () {
                 //

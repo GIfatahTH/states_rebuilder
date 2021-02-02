@@ -3,16 +3,7 @@ import 'dart:ui';
 import 'ar.dart';
 import 'en_us.dart';
 
-abstract class I18N {
-  static Map<Locale, I18N> _supportedLanguage = {
-    Locale.fromSubtags(languageCode: 'en'): EN(),
-    Locale.fromSubtags(languageCode: 'ar'): AR(),
-  };
-
-  static List<Locale> get supportedLocale => _supportedLanguage.keys.toList();
-
-  static I18N getLanguages(Locale locale) => _supportedLanguage[locale] ?? EN();
-
+class EN {
   String appTitle = 'States_rebuilder Example';
   String todos = 'Todos';
 

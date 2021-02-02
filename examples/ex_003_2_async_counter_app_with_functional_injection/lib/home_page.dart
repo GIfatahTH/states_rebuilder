@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'main.dart';
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class MyHomePage extends StatelessWidget {
                 'You have pushed the button this many times:',
               ),
               //Subscribing to the counterRM using StateBuilder
-              counterStore.whenRebuilder(
+              On.all(
                 onIdle: () => Text('Tap on the FAB to increment the counter'),
                 onWaiting: () => CircularProgressIndicator(),
                 onError: (error) => Text(counterStore.error.message),
@@ -29,7 +30,7 @@ class MyHomePage extends StatelessWidget {
                   '${counterStore.state.count}',
                   style: Theme.of(context).textTheme.headline5,
                 ),
-              ),
+              ).listenTo(counterStore),
             ],
           ),
         ),

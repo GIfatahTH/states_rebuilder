@@ -1,15 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+part of 'login_page.dart';
 
-import '../../injected.dart';
-import '../common/text_styles.dart';
-import '../common/ui_helpers.dart';
-import '../exceptions/error_handler.dart';
-
-class LoginHeader extends StatelessWidget {
+class _LoginHeader extends StatelessWidget {
   final TextEditingController controller;
 
-  LoginHeader({@required this.controller});
+  _LoginHeader({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -19,15 +13,13 @@ class LoginHeader extends StatelessWidget {
         UIHelper.verticalSpaceMedium(),
         Text('Enter a number between 1 - 10', style: subHeaderStyle),
         LoginTextField(controller),
-        userInj.listen(
-          child: On.or(
-            onError: (error) => Text(
-              ErrorHandler.errorMessage(error),
-              style: TextStyle(color: Colors.red),
-            ),
-            or: () => Container(),
+        On.or(
+          onError: (error) => Text(
+            ExceptionHandler.errorMessage(error),
+            style: TextStyle(color: Colors.red),
           ),
-        ),
+          or: () => Container(),
+        ).listenTo(userInj),
       ],
     );
   }

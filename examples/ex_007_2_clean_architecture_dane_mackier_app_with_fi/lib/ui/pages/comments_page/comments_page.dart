@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../data_source/api.dart';
+import '../../../domain/entities/comment.dart';
 import '../../../domain/entities/post.dart';
-import '../../../injected.dart';
 import '../../common/app_colors.dart';
 import '../../common/text_styles.dart';
 import '../../common/ui_helpers.dart';
-import 'comments.dart';
-import 'like_button.dart';
+import '../../exceptions/exception_handler.dart';
+import '../login_page/login_page.dart';
+import '../posts_page/posts_page.dart';
 
-class PostPage extends StatelessWidget {
-  PostPage({this.post});
+//All sub page widgets are part of this top page widget
+part 'comment_item.dart';
+part 'comments.dart';
+part 'comments_injected.dart';
+part 'like_button.dart';
+
+class CommentsPage extends StatelessWidget {
+  CommentsPage({required this.post});
   final Post post;
-  final user = userInj.state.first;
+  final user = userInj.state;
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +40,10 @@ class PostPage extends StatelessWidget {
             ),
             UIHelper.verticalSpaceMedium(),
             Text(post.body),
-            LikeButton(
+            _LikeButton(
               postId: post.id,
             ),
-            Comments(post.id)
+            _Comments(post.id)
           ],
         ),
       ),

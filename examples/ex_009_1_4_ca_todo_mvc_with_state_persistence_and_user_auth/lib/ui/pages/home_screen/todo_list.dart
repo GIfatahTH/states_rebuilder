@@ -13,7 +13,6 @@ class TodoList extends StatelessWidget {
   Widget build(BuildContext context) {
     return todosFiltered.rebuilder(
       () {
-        print('rebuilder of  todos');
         final todos = todosFiltered.state;
 
         return ListView.builder(

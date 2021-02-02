@@ -1,16 +1,15 @@
-import 'package:flutter/material.dart';
+part of 'posts_page.dart';
 
-import '../../../domain/entities/post.dart';
-
-class PostListItem extends StatelessWidget {
+class _PostListItem extends StatelessWidget {
   final Post post;
-  final Function onTap;
-  const PostListItem({this.post, this.onTap});
+  const _PostListItem({required this.post});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        RM.navigate.toNamed('/comments', arguments: post);
+      },
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
         padding: EdgeInsets.all(10.0),
@@ -19,9 +18,10 @@ class PostListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(5.0),
             boxShadow: [
               BoxShadow(
-                  blurRadius: 3.0,
-                  offset: Offset(0.0, 2.0),
-                  color: Color.fromARGB(80, 0, 0, 0))
+                blurRadius: 3.0,
+                offset: Offset(0.0, 2.0),
+                color: Color.fromARGB(80, 0, 0, 0),
+              )
             ]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +31,11 @@ class PostListItem extends StatelessWidget {
               maxLines: 2,
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0),
             ),
-            Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis)
+            Text(
+              post.body,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )
           ],
         ),
       ),

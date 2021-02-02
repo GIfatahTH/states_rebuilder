@@ -15,28 +15,30 @@ final Injected<int> counter = RM.inject<int>(
   //of setState.
   //
   //If both are defined, the onData of setState override this global onData here
-  onData: (int data) {
-    //show snackBar
-    //any current snackBar is hidden.
-    RM.scaffoldShow.snackBar(
-      SnackBar(
-        content: Text('$data'),
-      ),
-    );
-  },
-  onWaiting: () {
-    //show snackBar
-    //any current snackBar is hidden.
-    RM.scaffoldShow.snackBar(
-      SnackBar(
-        content: Text('Waiting ...'),
-      ),
-    );
-  },
+  onSetState: On.or(
+      onData: () {
+        //show snackBar
+        //any current snackBar is hidden.
+        RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Text('${counter.state}'),
+          ),
+        );
+      },
+      onWaiting: () {
+        //show snackBar
+        //any current snackBar is hidden.
+        RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Text('Waiting ...'),
+          ),
+        );
+      },
+      or: () {}),
 );
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -52,8 +54,8 @@ class MyHomePage extends StatelessWidget {
             Text(
               'You have pushed the button this many times:',
             ),
-            //Subscribing to the counterRM using StateBuilder
-            counter.whenRebuilder(
+            //Subscribing to the counterRM using On.all
+            On.all(
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
               onError: (error) => Text(counter.error.message),
@@ -61,7 +63,7 @@ class MyHomePage extends StatelessWidget {
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ),
+            ).listenTo(counter),
           ],
         ),
       ),
@@ -77,13 +79,16 @@ class MyHomePage extends StatelessWidget {
               return counter + 1;
             },
             //This onData if defined will override the global onData
-            onData: (_) {
-              RM.scaffoldShow.hideCurrentSnackBar();
-              print('OnData from setState');
-            },
-            onError: (_) {
-              RM.scaffoldShow.hideCurrentSnackBar();
-            },
+            onSetState: On.or(
+              onData: () {
+                RM.scaffold.hideCurrentSnackBar();
+                print('OnData from setState');
+              },
+              onError: (_) {
+                RM.scaffold.hideCurrentSnackBar();
+              },
+              or: () {},
+            ),
           );
         },
         tooltip: 'Increment',

@@ -1,6 +1,6 @@
 import 'language_base.dart';
 
-class AR extends I18N {
+class AR extends EN {
   String appTitle = 'States_rebuilder مثال';
   String todos = 'واجبات';
 

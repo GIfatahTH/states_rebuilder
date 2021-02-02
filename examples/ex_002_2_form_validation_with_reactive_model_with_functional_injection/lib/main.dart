@@ -79,30 +79,27 @@ class MyHomePage extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: ListView(
           children: <Widget>[
-            //use whenRebuilderOr to subscribe to the injected email
-            //'email.rebuilder' do not work here, because it rebuild when model
+            //use On to subscribe to the injected email
+            //'On.data' do not work here, because it rebuild when model
             //has data only, whereas in our cas we want it rebuild onError also.
-            email.whenRebuilderOr(
-              //the builder is called whenever the email is in the idle, error or has data state.
-              builder: () {
-                return TextField(
-                  onChanged: (String value) {
-                    email.setState(
-                      (_) => Email(value)..validate(),
-                      catchError: true,
-                    );
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "your@email.com. It should contain '@'",
-                    labelText: "Email Address",
-                    errorText: email.error?.message,
-                  ),
-                );
-              },
-            ),
-            password.whenRebuilderOr(
-              builder: () {
+            On(
+              () => TextField(
+                onChanged: (String value) {
+                  email.setState(
+                    (_) => Email(value)..validate(),
+                    catchError: true,
+                  );
+                },
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: "your@email.com. It should contain '@'",
+                  labelText: "Email Address",
+                  errorText: email.error?.message,
+                ),
+              ),
+            ).listenTo(email),
+            On(
+              () {
                 return TextField(
                   onChanged: (String value) {
                     //set the value of passwordRM after validation
@@ -118,12 +115,11 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-            ),
-            WhenRebuilderOr(
-              //subscribe to both email and password ReactiveModel keys
-              observeMany: [() => email, () => password],
-              builder: (_, exposedModel) {
-                //this builder is called each time email or password emit a notification
+            ).listenTo(password),
+            OnCombined(
+              //See documentation to understand more about the exposed model
+              //(in the wiki / widget listeners / The exposed state)
+              (exposedModel) {
                 return Column(
                   children: <Widget>[
                     RaisedButton(
@@ -136,21 +132,23 @@ class MyHomePage extends StatelessWidget {
                           : null,
                     ),
                     Text('exposedModel is :'),
-                    Builder(builder: (_) {
-                      if (exposedModel.state is Email) {
-                        return Text('Email : '
-                            '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.email}');
-                      }
-                      if (exposedModel.state is Password) {
-                        return Text('password : '
-                            '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.password}');
-                      }
-                      return Container();
-                    })
+                    Builder(
+                      builder: (_) {
+                        if (exposedModel is Email) {
+                          return Text('Email : '
+                              '${email.hasError ? email.error.message : email.state.email}');
+                        }
+                        if (exposedModel is Password) {
+                          return Text('password : '
+                              '${password.hasError ? password.error.message : password.state.password}');
+                        }
+                        return Container();
+                      },
+                    )
                   ],
                 );
               },
-            ),
+            ).listenTo([email, password]),
           ],
         ),
       ),

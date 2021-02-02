@@ -1,4 +1,3 @@
-import 'package:clean_architecture_dane_mackier_app/injected.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/input_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
@@ -9,18 +8,20 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../data_source/fake_api.dart';
 
 void main() {
-  userInj.injectCRUDMock(() => FakeUserRepository());
+  userInj.injectAuthMock(() => FakeUserRepository());
 
   Finder loginBtn = find.byType(FlatButton);
   Finder loginTextField = find.byType(TextField);
 
-  final Widget loginPage = MaterialApp(
-    initialRoute: 'login',
-    routes: {
-      '/': (_) => Text('This is the HomePage'),
-      'login': (_) => LoginPage(),
-    },
-    navigatorKey: RM.navigate.navigatorKey,
+  final Widget loginPage = TopWidget(
+    builder: (_) => MaterialApp(
+      initialRoute: 'login',
+      routes: {
+        '/posts': (_) => Text('This is the HomePage'),
+        '/': (_) => LoginPage(),
+      },
+      navigatorKey: RM.navigate.navigatorKey,
+    ),
   );
   testWidgets('display "The entered value is not a number" message',
       (tester) async {
@@ -73,7 +74,7 @@ void main() {
   testWidgets(
       'display "A NetWork problem" after showing CircularProgressBarIndictor',
       (tester) async {
-    userInj.injectCRUDMock(
+    userInj.injectAuthMock(
       () => FakeUserRepository(
         error: NetworkErrorException(),
       ),
@@ -100,7 +101,7 @@ void main() {
   testWidgets(
       'display "No user find with this number" after showing CircularProgressBarIndictor',
       (tester) async {
-    userInj.injectCRUDMock(
+    userInj.injectAuthMock(
       () => FakeUserRepository(
         error: UserNotFoundException(1),
       ),
@@ -137,7 +138,7 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
     expect(userInj.hasData, isTrue);
-    expect(userInj.state.first.id, equals(1));
+    expect(userInj.state.id, equals(1));
 
     //await page animation to finish
     await tester.pumpAndSettle();
@@ -154,7 +155,7 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
     expect(userInj.hasData, isTrue);
-    expect(userInj.state.first.id, equals(2));
+    expect(userInj.state.id, equals(2));
 
     //await page animation to finish
     await tester.pumpAndSettle();

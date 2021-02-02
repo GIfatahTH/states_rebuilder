@@ -32,7 +32,7 @@ class CountDownTimer {
   );
 
   //Inject the timer status
-  Injected<TimerStatus> _timerStatus;
+  Injected<TimerStatus>? _timerStatus;
   Injected<TimerStatus> get timerStatus =>
       _timerStatus ??= RM.inject<TimerStatus>(
         () => TimerStatus.ready,
@@ -41,15 +41,15 @@ class CountDownTimer {
           switch (timerStatus) {
             case TimerStatus.running:
               //if the new state is running, we resume the stream subscription
-              _timer.subscription.resume();
+              _timer.subscription?.resume();
               break;
             case TimerStatus.ready:
             case TimerStatus.paused:
             //for both ready and paused we pause the subscription
             default:
-              if (!_timer.subscription.isPaused) {
+              if (_timer.subscription?.isPaused == false) {
                 //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
-                _timer.subscription.pause();
+                _timer.subscription?.pause();
               }
               break;
           }
@@ -58,7 +58,7 @@ class CountDownTimer {
 
   //timer stream emits data from 0,1,2 and so one without stopping.
   //Here we compute the duration 60,59,58, ... and stop at 0.
-  Injected<int> _duration;
+  Injected<int>? _duration;
   Injected<int> get duration => _duration ??= RM.inject<int>(
         () {
           int d = initialTimer - _timer.state;
@@ -77,7 +77,7 @@ class CountDownTimer {
         //as we want to refresh the timer when duration is 0, and await until
         //the stream is canceled and new stream is created, we use asyncDependsOn
         dependsOn: DependsOn({_timer}),
-        nullState: initialTimer,
+        initialState: initialTimer,
         debugPrintWhenNotifiedPreMessage: 'duration',
       );
   void start() {
@@ -121,13 +121,11 @@ class TimerView extends StatelessWidget {
           Expanded(
             //subscription to duration, each time a new duration is yield,
             //this rebuilder will rebuild.
-            child: timer.duration.listen(
-              onBuild: On(
-                () => TimerDigit(
-                  timer.duration.state ?? timer.initialTimer,
-                ),
+            child: On(
+              () => TimerDigit(
+                timer.duration.state,
               ),
-            ),
+            ).listenTo(timer.duration),
           ),
           Expanded(
             //subscription to timerStatus

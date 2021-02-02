@@ -11,6 +11,7 @@ import '../../common/theme/theme.dart';
 final _extraAction = RM.inject(
   () => ExtraAction.clearCompleted,
 );
+bool _switcher = false;
 
 class ExtraActionsButton extends StatelessWidget {
   const ExtraActionsButton({Key key}) : super(key: key);
@@ -23,7 +24,8 @@ class ExtraActionsButton extends StatelessWidget {
           _extraAction.state = action;
 
           if (action == ExtraAction.toggleDarkMode) {
-            isDarkMode.state = !isDarkMode.state;
+            // isDarkMode.state = !isDarkMode.state;
+            isDark.toggle();
             return;
           }
 
@@ -33,10 +35,17 @@ class ExtraActionsButton extends StatelessWidget {
           }
 
           if (action == ExtraAction.toggleAllComplete) {
-            todos.setState((s) => s.toggleAll());
-            todoItem.refresh();
+            _switcher = !_switcher;
+            if (_switcher) {
+              isDark.state = 'super';
+            } else {
+              isDark.state = 'default';
+            }
+            // todos.setState((s) => s.toggleAll());
+            // todoItem.refresh();
           } else {
-            todos.setState((s) => s.clearCompleted());
+            isDark.themeMode = ThemeMode.system;
+            // todos.setState((s) => s.clearCompleted());
           }
         },
         itemBuilder: (BuildContext context) {
@@ -57,7 +66,7 @@ class ExtraActionsButton extends StatelessWidget {
               key: Key('__toggleDarkMode__'),
               value: ExtraAction.toggleDarkMode,
               child: Text(
-                isDarkMode.state
+                isDark.isDarkTheme
                     ? i18n.of(context).switchToLightMode
                     : i18n.of(context).switchToDarkMode,
               ),

@@ -1,4 +1,4 @@
-import 'package:clean_architecture_firebase_login/service/user_extension.dart';
+import '../../../service/user_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

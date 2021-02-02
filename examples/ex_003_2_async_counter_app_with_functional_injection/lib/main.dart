@@ -31,7 +31,7 @@ class IncrByTwoConfig implements IConfig {
 }
 
 abstract class ICounterStore {
-  int count;
+  late int count;
   void increment();
 }
 

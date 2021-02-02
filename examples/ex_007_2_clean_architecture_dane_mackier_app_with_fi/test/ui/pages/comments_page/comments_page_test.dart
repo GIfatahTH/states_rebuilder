@@ -1,38 +1,36 @@
 import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
-import 'package:clean_architecture_dane_mackier_app/ui/pages/post_page/post_page.dart';
+import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
+import 'package:clean_architecture_dane_mackier_app/ui/pages/posts_page/posts_page.dart';
+import 'package:clean_architecture_dane_mackier_app/ui/pages/comments_page/comments_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:clean_architecture_dane_mackier_app/injected.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../data_source/fake_api.dart';
 
 void main() {
-  userInj.injectCRUDMock(
-    () => FakeUserRepository(),
-    initialState: [User(id: 1, name: 'FakeUserName', username: 'FakeUserName')],
+  userInj.injectMock(
+    () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
   );
-  postsInj.injectCRUDMock(
-    () => FakePostRepository(),
-    initialState: [
-      Post(
-          id: 1, likes: 0, title: 'Post1 title', body: 'Post1 body', userId: 1),
-      Post(
-          id: 2, likes: 0, title: 'Post2 title', body: 'Post2 body', userId: 1),
-      Post(
-          id: 3, likes: 0, title: 'Post3 title', body: 'Post3 body', userId: 1),
+  postsInj.injectMock(
+    () => [
+      Post(id: 1, title: 'Post1 title', body: 'Post1 body', userId: 1),
+      Post(id: 2, title: 'Post2 title', body: 'Post2 body', userId: 1),
+      Post(id: 3, title: 'Post3 title', body: 'Post3 body', userId: 1),
     ],
   );
   commentsInj.injectCRUDMock(() => FakeCommentRepository());
 
-  Post postFromHomePage;
-  Widget postPage = MaterialApp(
-    home: PostPage(
-      post: postFromHomePage = postsInj.state[0],
+  late Post postFromHomePage;
+  Widget postPage = TopWidget(
+    builder: (_) => MaterialApp(
+      home: CommentsPage(
+        post: postFromHomePage = postsInj.state[0],
+      ),
+      navigatorKey: RM.navigate.navigatorKey,
     ),
-    navigatorKey: RM.navigate.navigatorKey,
   );
 
   testWidgets('display post and user info at start up', (tester) async {
@@ -41,7 +39,7 @@ void main() {
     expect(find.text(postFromHomePage.title), findsOneWidget);
     expect(find.text(postFromHomePage.body), findsOneWidget);
     // Expect to see the user name
-    expect(find.text('by FakeUserName'), findsOneWidget);
+    expect(find.text('by fakeName'), findsOneWidget);
     // Expect to see likes number
     expect(find.text('Likes 0'), findsOneWidget);
     //Expect to see CircularProgressIndicator

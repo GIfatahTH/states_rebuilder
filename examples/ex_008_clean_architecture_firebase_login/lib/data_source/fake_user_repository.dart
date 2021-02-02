@@ -1,6 +1,6 @@
-import 'package:clean_architecture_firebase_login/data_source/user_repository.dart';
-import 'package:clean_architecture_firebase_login/domain/entities/user.dart';
-import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
+import 'user_repository.dart';
+import '../domain/entities/user.dart';
+import '../service/exceptions/sign_in_out_exception.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class FakeUserRepository implements UserRepository {

@@ -1,23 +1,30 @@
+import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../data_source/api.dart';
 import '../../../domain/entities/post.dart';
-import '../../../injected.dart';
 import '../../common/app_colors.dart';
 import '../../common/text_styles.dart';
 import '../../common/ui_helpers.dart';
-import 'postlist_item.dart';
+import '../../exceptions/exception_handler.dart';
+import '../login_page/login_page.dart';
 
-class HomePage extends StatelessWidget {
-  final user = userInj.state.first;
+part 'posts_injected.dart';
+part 'postlist_item.dart';
+
+class PostsPage extends StatelessWidget {
+  final user = userInj.state;
   @override
   Widget build(BuildContext context) {
+    print(context);
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: postsInj.listen(
-        child: On.or(
-          onWaiting: () => Center(child: CircularProgressIndicator()),
-          or: () => Column(
+      body: On.or(
+        onWaiting: () => Center(child: CircularProgressIndicator()),
+        or: () {
+          print(user);
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               UIHelper.verticalSpaceLarge(),
@@ -35,19 +42,16 @@ class HomePage extends StatelessWidget {
               UIHelper.verticalSpaceSmall(),
               Expanded(child: getPostsUi(postsInj.state)),
             ],
-          ),
-        ),
-      ),
+          );
+        },
+      ).listenTo(postsInj),
     );
   }
 
   Widget getPostsUi(List<Post> posts) => ListView.builder(
         itemCount: posts.length,
-        itemBuilder: (context, index) => PostListItem(
+        itemBuilder: (context, index) => _PostListItem(
           post: posts[index],
-          onTap: () {
-            Navigator.pushNamed(context, 'post', arguments: posts[index]);
-          },
         ),
       );
 }
