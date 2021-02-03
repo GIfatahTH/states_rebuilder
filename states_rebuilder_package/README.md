@@ -36,7 +36,7 @@ A Flutter state management combined with a dependency injection solution to get 
   - Capable for complex apps
 
 <p align="center" >
-    <image src="../assets/Poster-Simple.png" max-width="80%" alt=''/>
+    <image src="../assets/Poster-Simple.png" width="1280"  alt=''/>
 </p>
 
 # Table of Contents <!-- omit in toc --> 
