@@ -70,7 +70,7 @@ class Model {
 
 // 🤔Business Logic - Service Layer
 extension ModelX on Model {
-  void increment() => this.counter++;  
+  increment() => this.counter++;  
 }
 
 // 🚀Global Functional Injection 
