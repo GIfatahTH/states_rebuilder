@@ -45,19 +45,18 @@ class _Button extends StatelessWidget {
 
   final TextStyle activeStyle;
   final TextStyle defaultStyle;
-
   @override
   Widget build(BuildContext context) {
-    return StateBuilder<VisibilityFilter>(
-        key: Key('FilterButton 2'),
-        //Create and subscribe to a local ReactiveModel of type VisibilityFilter
-        observe: () => RM.create(VisibilityFilter.all),
-        builder: (context, activeFilterRM) {
+    final activeFilter = RM.inject(() => VisibilityFilter.all);
+    return activeFilter.listen(
+      key: Key('FilterButton 2'),
+      child: On.data(
+        () {
           return PopupMenuButton<VisibilityFilter>(
             key: ArchSampleKeys.filterButton,
             tooltip: ArchSampleLocalizations.of(context).filterTodos,
             onSelected: (filter) {
-              activeFilterRM.state = filter;
+              activeFilter.state = filter;
               todosService.setState((s) => s.activeFilter = filter);
             },
             itemBuilder: (BuildContext context) =>
@@ -67,7 +66,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.all,
                 child: Text(
                   ArchSampleLocalizations.of(context).showAll,
-                  style: activeFilterRM.state == VisibilityFilter.all
+                  style: activeFilter.state == VisibilityFilter.all
                       ? activeStyle
                       : defaultStyle,
                 ),
@@ -77,7 +76,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.active,
                 child: Text(
                   ArchSampleLocalizations.of(context).showActive,
-                  style: activeFilterRM.state == VisibilityFilter.active
+                  style: activeFilter.state == VisibilityFilter.active
                       ? activeStyle
                       : defaultStyle,
                 ),
@@ -87,7 +86,7 @@ class _Button extends StatelessWidget {
                 value: VisibilityFilter.completed,
                 child: Text(
                   ArchSampleLocalizations.of(context).showCompleted,
-                  style: activeFilterRM.state == VisibilityFilter.completed
+                  style: activeFilter.state == VisibilityFilter.completed
                       ? activeStyle
                       : defaultStyle,
                 ),
@@ -95,6 +94,8 @@ class _Button extends StatelessWidget {
             ],
             icon: Icon(Icons.filter_list),
           );
-        });
+        },
+      ),
+    );
   }
 }

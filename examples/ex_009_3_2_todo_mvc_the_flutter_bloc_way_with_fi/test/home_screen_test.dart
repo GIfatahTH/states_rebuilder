@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:todo_mvc_the_flutter_bloc_way/blocs/blocs.dart';
 
 import 'package:todo_mvc_the_flutter_bloc_way/injected.dart';
 import 'package:todo_mvc_the_flutter_bloc_way/run_app.dart';
@@ -11,8 +10,7 @@ import 'fake_repository.dart';
 
 /// Demonstrates how to test Widgets
 void main() {
-  todosState =
-      RM.injectFuture(() => TodosLoading(FakeRepository()).loadTodos());
+  todosRepository = RM.inject(() => FakeRepository());
 
   group('HomeScreen', () {
     final todoListFinder = find.byKey(ArchSampleKeys.todoList);

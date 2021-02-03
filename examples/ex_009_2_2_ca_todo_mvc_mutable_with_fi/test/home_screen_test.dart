@@ -20,7 +20,6 @@ void main() {
     todosRepository.injectFutureMock(() async => FakeRepository());
 
     testWidgets('should render loading indicator at first', (tester) async {
-      RM.debugErrorWithStackTrace = true;
       await tester.pumpWidget(StatesRebuilderApp());
       await tester.pump(Duration.zero);
       expect(find.byKey(ArchSampleKeys.todosLoading), findsOneWidget);

@@ -1,72 +1,126 @@
-part of '../injected.dart';
+part of '../reactive_model.dart';
 
-///implementation of [Injected]
-class InjectedImp<T> extends Injected<T> {
-  ///implementation of [Injected]
-  InjectedImp(
-    T Function() creationFunction, {
+class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
+  // final PersistState<T> Function() _persistCallback;
+
+  InjectedImp({
+    required dynamic Function(ReactiveModel<T> rm) creator,
+    T? nullState,
+    T? initialValue,
     bool autoDisposeWhenNotUsed = true,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    PersistState<T> Function() persist,
-    int undoStackLength,
-    String debugPrintWhenNotifiedPreMessage,
-  }) : super(
-          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-          onData: onData,
-          onError: onError,
-          onWaiting: onWaiting,
-          onInitialized: onInitialized,
-          onDisposed: onDisposed,
-          undoStackLength: undoStackLength,
-          persist: persist,
-          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    void Function(T s)? onData,
+    void Function(dynamic e, StackTrace? s)? onError,
+    void Function()? onWaiting,
+    On<void>? on,
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    Object? Function(T? s)? watch,
+    DependsOn? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    String? debugPrintWhenNotifiedPreMessage,
+    bool isLazy = true,
+  }) : super._(
+          nullState: nullState,
+          initialState: initialValue,
         ) {
-    _creationFunction = creationFunction;
-    _name = '___Injected${hashCode}Imp___';
+    if (persist == null) {
+      _creator = creator;
+    } else {
+      late FutureOr<T> Function(ReactiveModel<T> rm) c;
+      _creator = (rm) {
+        if (!_isFirstInitialized) {
+          //_isFirstInitialized is set to false fro each unit test
+          _coreRM.persistanceProvider = persist();
+          var result = _coreRM.persistanceProvider!.read();
+          if (result is Future) {
+            c = (rm) async {
+              var innerResult = await (result as Future?);
+              result = null;
+              if (innerResult is Function) {
+                innerResult = await innerResult();
+                if (innerResult is Function) {
+                  innerResult = await innerResult();
+                }
+              }
+              _isStateInitiallyPersisted = innerResult != null;
+              return innerResult ?? creator(rm);
+            };
+          } else {
+            c = (rm) {
+              _isStateInitiallyPersisted = result != null;
+              var r = result;
+              result = null;
+              return r ?? creator(rm);
+            };
+          }
+        }
+        return c(rm);
+      };
+    }
+
+    _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed;
+    _onInitialized = onInitialized;
+    _onDisposed = onDisposed;
+    _watch = watch;
+    _undoStackLength = undoStackLength;
+    _dependsOn = dependsOn != null ? dependsOn as DependsOn<T> : null;
+    _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
+    //
+    _coreRM
+      ..onWaiting = onWaiting
+      ..onError = onError
+      ..onData = onData
+      ..on = on;
+
+    if (_debugPrintWhenNotifiedPreMessage != null) {
+      listenToRM((rm) {
+        final post = rm._snapState.isIdle ? '- Refreshed' : '';
+        print('states_rebuilder:: $rm $post');
+      });
+    }
+
+    if (!isLazy) {
+      _initialize();
+    }
   }
+  bool _persistHasError = false;
 
+  ///Save the current state to localStorage.
   @override
-  void injectMock(T Function() creationFunction) {
-    super.injectMock(creationFunction);
-    _creationFunction = creationFunction;
-    _cashedMockCreationFunction ??= _creationFunction;
-  }
+  Future<void> persistState() async {
+    try {
+      if (!_persistHasError) {
+        await _coreRM.persistanceProvider?.write(state);
+      }
+    } catch (e) {
+      if (e is Error) {
+        rethrow;
+      }
+      _persistHasError = true;
 
-  @override
-  Inject<T> _getInject() {
-    if (_persistCallback != null) {
-      _persist ??= _persistCallback();
-      final value = _persist.read();
-      if (value is Future) {
-        return Inject<T>.future(
-          () async {
-            var result = await value;
-
-            if (result is Function) {
-              result = await result();
-            }
-            if (result is Function) {
-              result = await result();
-            }
-
-            if (result != null) {
-              return _initialStoredState = result;
-            }
-
-            return _creationFunction() as T;
-          },
-          name: _name,
+      //SetState to oldState and set all completed
+      if (_coreRM._previousSnapState?.data != null) {
+        setState(
+          (s) => _coreRM._previousSnapState?.data,
+          //Set to has error
+          onRebuildState: () => setState(
+            (s) => throw e,
+            catchError: _coreRM.onError != null,
+          ),
         );
       }
-      _initialStoredState = value;
+      if (_coreRM.persistanceProvider?.debugPrintOperations ?? false) {
+        StatesRebuilerLogger.log('PersistState Write ERROR', e, stackTrace);
+      }
+      _persistHasError = false;
     }
-    return Inject<T>(
-      () => _creationFunction() as T,
-      name: _name,
-    );
+  }
+
+  @override
+  String toString() {
+    final pre = _debugPrintWhenNotifiedPreMessage ?? '';
+    final status = '$snapState';
+    return '$pre Injected<$T>(${status.isEmpty ? _state : status})';
   }
 }

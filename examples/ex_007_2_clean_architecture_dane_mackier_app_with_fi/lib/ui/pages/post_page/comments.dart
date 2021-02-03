@@ -1,10 +1,11 @@
+import 'package:clean_architecture_dane_mackier_app/ui/exceptions/error_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/comment.dart';
 import '../../../injected.dart';
 import '../../common/app_colors.dart';
 import '../../common/ui_helpers.dart';
-import '../../exceptions/error_handler.dart';
 
 class Comments extends StatelessWidget {
   final int postId;
@@ -12,24 +13,25 @@ class Comments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return commentsService.whenRebuilder(
-      initState: () => commentsService.setState(
-        (state) => state.fetchComments(postId),
-        onError: ErrorHandler.showErrorDialog,
+    return commentsInj.listen(
+      initState: () => commentsInj.param.state = postId,
+      onSetState: On.error((err) => ErrorHandler.showErrorDialog(err)),
+      child: On.all(
+        onIdle: () => Container(),
+        onWaiting: () => Center(child: CircularProgressIndicator()),
+        onError: (err) => Center(
+          child: Text('${err.message}'),
+        ),
+        onData: () {
+          return Expanded(
+            child: ListView(
+              children: commentsInj.state
+                  .map((comment) => CommentItem(comment))
+                  .toList(),
+            ),
+          );
+        },
       ),
-      //If using WhenRebuilderOR and do not define error callback the app will break on error
-      onIdle: () => Container(),
-      onWaiting: () => Center(child: CircularProgressIndicator()),
-      onError: (_) => Container(),
-      onData: () {
-        return Expanded(
-          child: ListView(
-            children: commentsService.state.comments
-                .map((comment) => CommentItem(comment))
-                .toList(),
-          ),
-        );
-      },
     );
   }
 }

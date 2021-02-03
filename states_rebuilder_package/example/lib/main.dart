@@ -1,410 +1,302 @@
-import 'dart:math';
-
+import 'package:example/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'name_repository.dart';
 
+// Inject the repository, so it can be mocked in test.
+//
+// As the behavior of the repository is not predicted because it depends on a
+// random number.
+// In test we define a fake implementation of NameRepository, and injected it
+// using : repository.injectMock(()=> FakeNameRepository()); and voila, just
+// pump the widget and test it predictably. (See test folder)
+final repository = RM.inject(() => NameRepository());
+
+// create a name state and inject it.
+final name = RM.inject(() => '');
+
+final helloName = RM.inject<String>(
+  () => 'Hello, ${name.state}',
+  // helloName depends on the name injected model.
+  // Whenever the name state changes the helloName will recalculate its
+  // creation function and notify its listeners.
+  //
+  // helloName state status is a combination of its own state and the state
+  // of the injected models that it depends on.
+  // ex: if name is waiting => helloName is waiting,
+  //     if name has error => helloName has error,
+  //     if name has data => helloName state will be recalculated
+
+  dependsOn: DependsOn(
+    {name},
+    // Do not recalculate until 400 ms has passed without any
+    // further notification from name injected model.
+    debounceDelay: 400,
+  ),
+  // Execute side effects while notify the state
+  //
+  // It take on On objects, it has many named constructor: On.data, On.error,
+  // On.waiting, On.all and On.or
+  onSetState: On.or(
+    onWaiting: () => RM.scaffold.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Text('Waiting ...'),
+            Spacer(),
+            CircularProgressIndicator(),
+          ],
+        ),
+      ),
+    ),
+    onError: (err) => RM.scaffold.showSnackBar(
+      SnackBar(content: Text('${err.message}')),
+    ),
+    // the default case. hide the snackbar
+    or: () => RM.scaffold.hideCurrentSnackBar(),
+  ),
+  //Set the undoStackLength to 5. This will automatically
+  // enable doing and undoing of the  state
+  undoStackLength: 5,
+);
+//Stream that emits the entered name letter by letter
+final streamedHelloName = RM.injectStream<String>(
+  () async* {
+    if (name.state.isEmpty) {
+      throw Exception(i18n.state.enterYourName);
+    }
+    final letters = name.state.trim().split('');
+    var n = '';
+    for (var letter in letters) {
+      await Future.delayed(Duration(milliseconds: 50));
+      // yield the name letter by letter
+      yield n += letter;
+    }
+  },
+  onInitialized: (state, subscription) {
+    // As the stream will start automatically on creation,
+    // we use the onInitialized hook to pause it.
+    subscription.pause();
+  },
+);
+//
+//
 void main() {
-  runApp(App());
+  runApp(MyApp());
 }
 
-class Model {
-  int counter;
-
-  Model(this.counter);
-  //1- Synchronous
-
-  void incrementMutable() {
-    counter++;
-  }
-
-  Model incrementImmutable() {
-    //immutable returns a new instance
-    return Model(counter + 1);
-  }
-
-  //2- Async Future
-  Future<void> futureIncrementMutable() async {
-    //Pessimistic 😢: wait until future completes without error to increment
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('ERROR 😠');
-    }
-    counter++;
-  }
-
-  Future<Model> futureIncrementImmutable() async {
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('ERROR 😠');
-    }
-    return Model(counter + 1);
-  }
-
-  //3- Async Stream
-  Stream<void> streamIncrementMutable() async* {
-    //Optimistic 😄: start incrementing and if the future completes with error
-    //go back the the initial state
-    final oldCounter = counter;
-    print(oldCounter);
-    yield counter++;
-
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      yield counter = oldCounter;
-      throw Exception('ERROR 😠');
-    }
-  }
-
-  Stream<Model> streamIncrementImmutable() async* {
-    yield Model(counter + 1);
-
-    await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      yield this;
-      throw Exception('ERROR 😠');
-    }
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return i18n.inherited(
+      builder: (context) {
+        print('rebuild');
+        return MaterialApp(
+          // To navigate and show snackBars without the BuildContext, we define
+          // the navigator key
+          navigatorKey: RM.navigate.navigatorKey,
+          supportedLocales: I18n.supportedLocal.keys,
+          locale: currentLocale.state,
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          home: const HomeWidget(),
+        );
+      },
+    );
   }
 }
+
+class HomeWidget extends StatelessWidget {
+  const HomeWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(i18n.of(context).helloWorldExample),
+        actions: [
+          currentLocale.listen(
+            child: On(
+              () => DropdownButton<Locale>(
+                value: currentLocale.state,
+                onChanged: (Locale locale) {
+                  currentLocale.state = locale;
+                },
+                items: I18n.supportedLocal.keys
+                    .map(
+                      (locale) => DropdownMenuItem<Locale>(
+                        child: Text(I18n.supportedLocal[locale].languageName),
+                        value: locale,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          //For demo purpose, App is fractured to smaller widget.
+          //Notes that widget are const,
+          const TextFieldWidget(),
+          const Spacer(),
+          const HelloNameWidget(),
+          const Spacer(),
+          const RaisedButtonWidget(),
+          const SizedBox(height: 20),
+          const StreamNameWidget(),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class RaisedButtonWidget extends StatelessWidget {
+  const RaisedButtonWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return RaisedButton(
+      child: Text(i18n.of(context).startStreaming),
+      onPressed: () {
+        // Calling refresh on any injected will re-execute its creation
+        // Function and notify its listeners
+        streamedHelloName.refresh();
+      },
+    );
+  }
+}
+
+class HelloNameWidget extends StatelessWidget {
+  const HelloNameWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        helloName.listen(
+          child: On.data(
+            () => IconButton(
+              icon: Icon(Icons.arrow_left_rounded, size: 40),
+              onPressed:
+                  helloName.canUndoState ? () => helloName.undoState() : null,
+            ),
+          ),
+        ),
+        Spacer(),
+        Center(
+          child: helloName.listen(
+            child: On.all(
+              // This part will be re-rendered each time the helloName
+              // emits notification of any kind of status (idle, waiting,
+              // error, data).
+              onIdle: () => Text(i18n.of(context).enterYourName),
+              onWaiting: () => CircularProgressIndicator(),
+              onError: (err) => Text('${err.message}'),
+              onData: () => Text(helloName.state),
+            ),
+          ),
+        ),
+        Spacer(),
+        helloName.listen(
+          child: On.data(
+            () => IconButton(
+              icon: Icon(Icons.arrow_right_rounded, size: 40),
+              onPressed:
+                  helloName.canRedoState ? () => helloName.redoState() : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class TextFieldWidget extends StatelessWidget {
+  const TextFieldWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      onChanged: (String value) {
+        // state mutation
+        name.setState(
+          (s) => repository.state.getNameInfo(value),
+          // You can debounce from here so that the getNameInfo method
+          // will not be invoked unless 400ms has passed without and other
+          // setState call.
+
+          // debounceDelay: 400,
+        );
+        // After state mutation, notify helloName to recalculate
+        // and rebuild
+      },
+    );
+  }
+}
+
+class StreamNameWidget extends StatelessWidget {
+  const StreamNameWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return streamedHelloName.listen(
+      child: On.or(
+        onError: (err) => Text(
+          err.message,
+          style: TextStyle(color: Colors.red),
+        ),
+        //This will rebuild if the stream emits valid data only
+        or: () => Text('${streamedHelloName.state}'),
+      ),
+    );
+  }
+}
+
+List<String> _products = [];
+Future<List<String>> _fetchProduct() async {
+  await Future.delayed(Duration(seconds: 1));
+  return _products..add('Product ${_products.length}');
+}
+
+final products = RM.injectFuture(() => _fetchProduct());
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Injector(
-      inject: [Inject(() => Model(0))],
-      builder: (context) {
-        return MaterialApp(
-          home: MyHome(),
-        );
-      },
-    );
-  }
-}
-
-class MyHome extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('states_rebuilder'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
-            children: [
-              SetStateCanDoAll(),
-              Divider(),
-              PessimisticAsync(),
-              Divider(),
-              PessimisticAsyncOnInitState1(),
-              Divider(),
-              PessimisticAsyncOnInitState2(),
-              Divider(),
-              OptimisticAsync(),
-              Divider(),
-              OptimisticAsyncOnInitState(),
-            ],
-          ),
-        ));
-  }
-}
-
-class SetStateCanDoAll extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    //StateBuilder is one of four observer widgets
-    return StateBuilder<Model>(
-      //get the ReactiveModel of the injected Model instance,
-      //and subscribe this StateBuilder to it.
-      observe: () => RM.get<Model>(),
-      builder: (context, modelRM) {
-        //The builder exposes the BuildContext and the Model ReactiveModel
-        return Column(
-          children: [
-            //get the state of the model
-            Text('${modelRM.state.counter}'),
-            RaisedButton(
-              child: Text('Increment (SetStateCanDoAll)'),
-              onPressed: () async {
-                //setState treats mutable and immutable objects equally
-                modelRM.setState(
-                  //mutable state mutation
-                  (currentState) => currentState.incrementMutable(),
-                );
-                modelRM.setState(
-                  //immutable state mutation
-                  (currentState) => currentState.incrementImmutable(),
-                );
-
-                //await until the future completes
-                await modelRM.setState(
-                  //await for the future to complete and notify observer with
-                  //the corresponding connectionState and data
-                  //future will be canceled if all observer widgets are removed from
-                  //the widget tree.
-                  (currentState) => currentState.futureIncrementMutable(),
-                );
-                //
-                await modelRM.setState(
-                  (currentState) => currentState.futureIncrementImmutable(),
-                );
-
-                //await until the stream is done
-                await modelRM.setState(
-                  //subscribe to the stream and notify observers.
-                  //stream subscription are canceled if all observer widget are removed
-                  //from the widget tree.
-                  (currentState) => currentState.streamIncrementMutable(),
-                );
-                //
-                await modelRM.setState(
-                  (currentState) => currentState.streamIncrementImmutable(),
-                );
-                //setState can do all; mutable, immutable, sync, async, futures or streams.
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
-    );
-  }
-}
-
-class PessimisticAsync extends StatelessWidget {
-  //pessimistic means we will execute an async method and wait it result.
-  //While waiting, we will display a waiting screen.
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        //WhenRebuilder is the second of the four observer widgets
-        WhenRebuilder<Model>(
-          //subscribe to the global ReactiveModel
-          observe: () => RM.get<Model>(),
-          onSetState: (context, modelRM) {
-            //side effects here
-            modelRM.whenConnectionState(
-              onIdle: () => print('Idle'),
-              onWaiting: () => print('onWaiting'),
-              onData: (data) => print('onData'),
-              onError: (error) => print('onError'),
-            );
-          },
-          onIdle: () => Text('The state is idle'),
-          onWaiting: () => Text('Future is executing, we are waiting ....'),
-          onError: (error) => Text('Future completes with error $error'),
-          onData: (Model data) => Text('${data.counter}'),
-        ),
-        RaisedButton(
-          child: Text('Increment (PessimisticAsync - shouldAwait)'),
-          onPressed: () {
-            //All other widget subscribe to the global ReactiveModel will be notified to rebuild
-            RM.get<Model>().setState(
-                  (currentState) => currentState.futureIncrementImmutable(),
-                  //will await the current future if its pending
-                  //before calling futureIncrementImmutable
-                  shouldAwait: true,
-                );
-          },
-        )
-      ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-}
-
-class PessimisticAsyncOnInitState1 extends StatelessWidget {
-  //The async method will be call when this widget is inserted in the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return StateBuilder(
-      //Create a local ReactiveModel model that decorate the false value
-      observe: () => RM.create<bool>(false),
-      builder: (context, switchRM) {
-        //builder expose the BuildContext and the locally created ReactiveModel.
-        return Column(
-          children: [
-            if (switchRM.state)
-              WhenRebuilder<Model>(
-                //get the global ReactiveModel and call setState
-                //All other widget subscribed to this global ReactiveModel will be notified
-                observe: () => RM.get<Model>()
-                  ..setState(
-                    (currentState) {
-                      return currentState.futureIncrementImmutable();
-                    },
-                  ),
-                onSetState: (context, modelRM) {
-                  //side effects
-                  if (modelRM.hasError) {
-                    //show a SnackBar on error
-                    Scaffold.of(context).hideCurrentSnackBar();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${modelRM.error}'),
-                      ),
-                    );
-                  }
+    return RefreshIndicator(
+      onRefresh: () => products.refresh(),
+      child: products.futureBuilder(
+        onWaiting: () => CircularProgressIndicator(),
+        onError: (err) => Text('error : $err'),
+        onData: (_) {
+          return products.listen(
+            child: On.data(
+              () => ListView.builder(
+                itemCount: products.state.length,
+                itemBuilder: (context, index) {
+                  return Text(products.state[index]);
                 },
-                onIdle: () => Text('The state is not mutated at all'),
-                onWaiting: () =>
-                    Text('Future is executing, we are waiting ....'),
-                onError: (error) => Text('Future completes with error $error'),
-                onData: (Model data) => Text('${data.counter}'),
-              )
-            else
-              Container(),
-            RaisedButton(
-              child: Text(
-                  '${switchRM.state ? "Dispose" : "Insert"} (PessimisticAsyncOnInitState1)'),
-              onPressed: () {
-                //mutate the state of the local ReactiveModel directly
-                //without using setState although we can.
-                //setState gives us more features that we do not need here
-                switchRM.state = !switchRM.state;
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
-    );
-  }
-}
-
-class PessimisticAsyncOnInitState2 extends StatelessWidget {
-  //The same as in PessimisticAsyncOnInitState but here the rebuild is locally.
-  //only this widget will rebuild.
-  @override
-  Widget build(BuildContext context) {
-    return StateBuilder(
-        observe: () => RM.create(false),
-        builder: (context, switchRM) {
-          return Column(
-            children: [
-              if (switchRM.state)
-                WhenRebuilder<Model>(
-                  //Here use the future method to create new reactive model
-                  observe: () => RM.get<Model>().future(
-                    (currentState, stateAsync) {
-                      //future method exposed the current state and teh Async representation of the state
-                      return currentState.futureIncrementImmutable();
-                    },
-                  ),
-                  ////This is NOT equivalent to this : (uncomment to try)
-                  //// observe: () => RM.future(
-                  ////   IN.get<Model>().futureIncrementImmutable(),
-                  //// ),
-
-                  onIdle: () => Text('The state is not mutated at all'),
-                  onWaiting: () =>
-                      Text('Future is executing, we are waiting ....'),
-                  onError: (error) =>
-                      Text('Future completes with error $error'),
-                  onData: (Model data) => Text('${data.counter}'),
-                )
-              else
-                Text('This widget will not affect other widgets'),
-              RaisedButton(
-                child: Text(
-                    '${switchRM.state ? "Dispose" : "Insert"} (PessimisticAsyncOnInitState2)'),
-                onPressed: () {
-                  switchRM.state = !switchRM.state;
-                },
-              )
-            ],
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+            ),
           );
-        });
-  }
-}
-
-class OptimisticAsync extends StatelessWidget {
-  //Optimistic means, we will execute an async method and instantly display its expected result.
-  //When the async method fails we will  undo the change and display an error message.
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        //WhenRebuilderOr is the third observer widget
-        WhenRebuilderOr<Model>(
-          observe: () => RM.get<Model>(),
-          onWaiting: () => Text('Future is executing, we are waiting ....'),
-          builder: (context, modelRM) => Text('${modelRM.state.counter}'),
-        ),
-        RaisedButton(
-          child: Text('Increment (OptimisticAsync - debounceDelay)'),
-          onPressed: () {
-            RM.get<Model>().setState(
-              (currentState) => currentState.streamIncrementMutable(),
-              //debounce setState for 1 second
-              debounceDelay: 1000,
-              onError: (context, error) {
-                Scaffold.of(context).hideCurrentSnackBar();
-                Scaffold.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$error'),
-                  ),
-                );
-              },
-            );
-          },
-        )
-      ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-}
-
-class OptimisticAsyncOnInitState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StateBuilder(
-      observe: () => RM.create(false),
-      builder: (context, switchRM) {
-        return Column(
-          children: [
-            if (switchRM.state)
-              WhenRebuilderOr<Model>(
-                //Create a new ReactiveModel with the stream method.
-
-                observe: () => RM.get<Model>().stream((state, subscription) {
-                  //It exposes the current state and the current StreamSubscription.
-                  return state.streamIncrementImmutable();
-                }),
-
-                ////This is NOT equivalent to this : (uncomment to try)
-                //// observe: () => RM.stream(
-                ////   IN.get<Model>().streamIncrementImmutable(),
-                //// ),
-                ///
-                onSetState: (context, modelRM) {
-                  if (modelRM.hasError) {
-                    Scaffold.of(context).hideCurrentSnackBar();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${modelRM.error}'),
-                      ),
-                    );
-                  }
-                },
-                builder: (context, modelRM) {
-                  return Text('${modelRM.state.counter}');
-                },
-              )
-            else
-              Text('This widget will not affect other widgets'),
-            RaisedButton(
-              child: Text(
-                  '${switchRM.state ? "Dispose" : "Insert"} (OptimisticAsyncOnInitState)'),
-              onPressed: () {
-                switchRM.state = !switchRM.state;
-              },
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        );
-      },
+        },
+      ),
     );
   }
 }

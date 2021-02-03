@@ -7,9 +7,7 @@ import 'languages/language_base.dart';
 
 final locale = RM.inject<Locale>(
   () => Locale.fromSubtags(languageCode: 'en'),
-  onData: (_) {
-    return i18n.refresh();
-  },
+
   persist: () => PersistState(
     key: '__localization__',
     fromJson: (String json) => Locale.fromSubtags(languageCode: json),
@@ -24,4 +22,5 @@ final Injected<I18N> i18n = RM.inject(
   () {
     return I18N.getLanguages(locale.state);
   },
+  dependsOn: DependsOn({locale}),
 );

@@ -5,6 +5,7 @@ import 'domain/entities/github_user.dart';
 import 'service/github_search_service.dart';
 import 'service/interfaces/i_github_search_repository.dart';
 
+bool isTestMode = false;
 //Inject the repository throw the interface IGitHubSearchRepository so
 //It can be mocked
 final gitHubSearchRepository = RM.inject<IGitHubSearchRepository>(

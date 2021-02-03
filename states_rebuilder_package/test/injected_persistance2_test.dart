@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/injected.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 var counter = RM.inject(
@@ -32,25 +32,30 @@ void main() async {
   setUp(() {
     store.clear();
   });
-  testWidgets('Persist before calling getRM', (tester) async {
-    store.store.addAll({'counter': '10'});
+  testWidgets('Persist before calling', (tester) async {
+    store.store?.addAll({'counter': '10'});
     expect(counter.state, 10);
     counter.state++;
     expect(store.store, {'counter': '11'});
-    counter.getRM;
+    // counter.state;
     //
     counter.dispose();
   });
 
   testWidgets('persist with async read', (tester) async {
     store.isAsyncRead = true;
-    store.store.addAll({'counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 0);
     await tester.pump();
     expect(counter.state, 10);
     counter.state++;
     expect(store.store, {'counter': '11'});
-    counter.getRM;
+    //
+    store.store?['counter'] = '20';
+    counter.refresh();
+    await tester.pump();
+    expect(counter.state, 0);
+    expect(store.store, {'counter': '0'});
   });
 
   testWidgets('persist with async fromJson', (tester) async {
@@ -68,8 +73,8 @@ void main() async {
       onDisposed: (_) => print('onDisposed'),
     );
 
-    store.store.addAll({'counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
     counter.state++;
@@ -93,8 +98,8 @@ void main() async {
     );
 
     store.isAsyncRead = true;
-    store.store.addAll({'counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
     counter.state++;
@@ -104,7 +109,7 @@ void main() async {
 
   testWidgets('Persist before calling getRM1 (check run all test) ',
       (tester) async {
-    store.store.addAll({'counter': '10'});
+    store.store?.addAll({'counter': '10'});
     counter = RM.inject(
       () => 0,
       persist: () => PersistState(
@@ -118,7 +123,6 @@ void main() async {
     expect(counter.state, 10);
     counter.state++;
     expect(store.store, {'counter': '11'});
-    counter.getRM;
     //
     counter.dispose();
   });
@@ -133,13 +137,12 @@ void main() async {
       ),
     );
     store.isAsyncRead = true;
-    store.store.addAll({'counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 0);
     await tester.pump();
     expect(counter.state, 10);
     counter.state++;
     expect(store.store, {'counter': '11'});
-    counter.getRM;
   });
 
   testWidgets('persist with async read and async fromJson using InjectFuture',
@@ -157,8 +160,8 @@ void main() async {
     );
 
     store.isAsyncRead = true;
-    store.store.addAll({'counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
     counter.state++;
@@ -175,8 +178,8 @@ void main() async {
         persistStateProvider: PersistStoreMockImp(),
       ),
     );
-    store.store.addAll({'Future_counter': '10'});
-    expect(counter.state, null);
+    store.store?.addAll({'Future_counter': '10'});
+    expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
     counter.state++;
@@ -217,10 +220,57 @@ void main() async {
     await tester.pump(Duration(seconds: 0));
     expect(StatesRebuilerLogger.message.contains('Delete All Error'), isTrue);
   });
+
+  testWidgets('infer fromJson and toJson of int', (tester) async {
+    counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(key: 'counter'),
+    );
+    store.store?.addAll({'counter': '10'});
+    expect(counter.state, 10);
+    counter.state++;
+    expect(store.store, {'counter': '11'});
+    counter.dispose();
+  });
+  testWidgets('infer fromJson and toJson of double', (tester) async {
+    final counter = RM.inject<double>(
+      () => 0.0,
+      persist: () => PersistState(key: 'counter'),
+    );
+    store.store?.addAll({'counter': '10.0'});
+    expect(counter.state, 10.0);
+    counter.state++;
+    expect(store.store, {'counter': '11.0'});
+    counter.dispose();
+  });
+  testWidgets('infer fromJson and toJson of String', (tester) async {
+    final counter = RM.inject<String>(
+      () => 'str0',
+      persist: () => PersistState(key: 'counter'),
+    );
+    store.store?.addAll({'counter': 'str1'});
+    expect(counter.state, 'str1');
+    counter.state = 'str2';
+    expect(store.store, {'counter': 'str2'});
+    counter.dispose();
+  });
+  testWidgets('infer fromJson and toJson of bool', (tester) async {
+    final counter = RM.inject<bool>(
+      () => false,
+      persist: () => PersistState(key: 'counter'),
+    );
+    store.store?.addAll({'counter': '1'});
+    expect(counter.state, true);
+    counter.toggle();
+    await tester.pump();
+    expect(counter.state, false);
+    expect(store.store, {'counter': '0'});
+    counter.dispose();
+  });
 }
 
 class PersistStoreMockImp extends IPersistStore {
-  Map<dynamic, dynamic> store;
+  late Map<dynamic, dynamic> store;
   @override
   Future<void> init() {
     store = {};

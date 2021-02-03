@@ -31,11 +31,13 @@ class HomeScreen extends StatelessWidget {
         onWaiting: () => const Center(
           child: const CircularProgressIndicator(),
         ),
-        builder: () => activeTab.rebuilder(
-          () => activeTab.state == AppTab.todos
-              ? const TodoList()
-              : const StatsCounter(),
-        ),
+        builder: () {
+          return activeTab.rebuilder(
+            () => activeTab.state == AppTab.todos
+                ? const TodoList()
+                : const StatsCounter(),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

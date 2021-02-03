@@ -35,7 +35,10 @@ class HomeScreen extends StatelessWidget {
         ),
         onError: null,
         future: (s, asyncS) {
-          return asyncS.then((s) => TodosState.loadTodos(s));
+          return asyncS.then((s) async {
+            final f = await TodosState.loadTodos(s);
+            return f;
+          });
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -62,11 +65,9 @@ class HomeScreen extends StatelessWidget {
                       ? ArchSampleKeys.statsTab
                       : ArchSampleKeys.todoTab,
                 ),
-                title: Text(
-                  tab == AppTab.stats
-                      ? ArchSampleLocalizations.of(context).stats
-                      : ArchSampleLocalizations.of(context).todos,
-                ),
+                label: tab == AppTab.stats
+                    ? ArchSampleLocalizations.of(context).stats
+                    : ArchSampleLocalizations.of(context).todos,
               );
             },
           ).toList(),

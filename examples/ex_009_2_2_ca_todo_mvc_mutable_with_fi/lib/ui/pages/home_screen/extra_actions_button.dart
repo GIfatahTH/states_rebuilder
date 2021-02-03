@@ -8,18 +8,16 @@ import '../../exceptions/error_handler.dart';
 
 class ExtraActionsButton extends StatelessWidget {
   ExtraActionsButton({Key key}) : super(key: key);
-
+  final extraAction = RM.inject(() => ExtraAction.clearCompleted);
   @override
   Widget build(BuildContext context) {
-    return StateBuilder<ExtraAction>(
-        key: Key('ExtraActionsButton'),
-        //create and register to a local ReactionModel to handle PopupMenuButton
-        observe: () => RM.create(ExtraAction.clearCompleted),
-        builder: (context, extraActionRM) {
+    return extraAction.listen(
+      child: On.data(
+        () {
           return PopupMenuButton<ExtraAction>(
             key: ArchSampleKeys.extraActionsButton,
             onSelected: (action) {
-              extraActionRM.state = action;
+              extraAction.state = action;
               todosService.setState(
                 (s) async {
                   if (action == ExtraAction.toggleAllComplete) {
@@ -49,6 +47,8 @@ class ExtraActionsButton extends StatelessWidget {
               ];
             },
           );
-        });
+        },
+      ),
+    );
   }
 }

@@ -28,10 +28,13 @@ void main() {
       ),
     ),
   );
-  todosRepository.injectComputedMock(
-    compute: (_) => FakeTodosRepository(user: authState.state.user),
+  todosRepository.injectMock(
+    () => FakeTodosRepository(user: authState.state.user),
   );
 
+  setUp(() {
+    RM.disposeAll();
+  });
   group('HomeScreen', () {
     testWidgets(
         'should render loading indicator at first then render HomeScreen',
@@ -97,9 +100,8 @@ void main() {
     testWidgets(
         'should remove todos using a dismissible and insert back the removed element if throws',
         (tester) async {
-      todosRepository.injectComputedMock(
-        compute: (_) =>
-            FakeTodosRepository(user: authState.state.user, throwError: true),
+      todosRepository.injectMock(
+        () => FakeTodosRepository(user: authState.state.user, throwError: true),
       );
 
       await tester.pumpWidget(App());
@@ -148,9 +150,8 @@ void main() {
 
     testWidgets('should toggle a todo and toggle back if throws',
         (tester) async {
-      todosRepository.injectComputedMock(
-        compute: (_) =>
-            FakeTodosRepository(user: authState.state.user, throwError: true),
+      todosRepository.injectMock(
+        () => FakeTodosRepository(user: authState.state.user, throwError: true),
       );
 
       final handle = tester.ensureSemantics();
@@ -219,11 +220,11 @@ void main() {
 
     testWidgets('delete item from the detailed screen and reinsert it on error',
         (tester) async {
-      todosRepository.injectComputedMock(
-        compute: (_) => FakeTodosRepository(
+      todosRepository.injectMock(
+        () => FakeTodosRepository(
           user: authState.state.user,
           throwError: true,
-          delay: 500,
+          delay: 1000,
         ),
       );
 
@@ -235,22 +236,26 @@ void main() {
       await tester.tap(todoItem1Finder);
       await tester.pumpAndSettle();
 
+      //expect we are in the detailed screen
+      expect(find.byKey(ArchSampleKeys.todoDetailsScreen), findsOneWidget);
+
       //
+      // //
       await tester.tap(find.byKey(ArchSampleKeys.deleteTodoButton));
       await tester.pump();
-      expect(find.byKey(Key('todo_StateBuilder')), findsOneWidget);
 
       //expect we are back in the home screen
       expect(find.byKey(ArchSampleKeys.todoList), findsOneWidget);
 
+      await tester.pump(Duration(milliseconds: 500));
+
       //expect to see two Todo items
       expect(find.byType(TodoItem), findsNWidgets(2));
+      //expect to see a SnackBar to reinsert the deleted todo
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Undo'), findsOneWidget);
 
-      //
-      await tester.pumpAndSettle();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Duration(milliseconds: 500));
 
       expect(find.byType(TodoItem), findsNWidgets(3));
       expect(find.byType(SnackBar), findsOneWidget);

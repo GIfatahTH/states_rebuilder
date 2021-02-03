@@ -25,7 +25,7 @@ class ErrorHandler {
   }
 
   static void showErrorSnackBar(dynamic error) {
-    RM.scaffoldShow.snackBar(
+    RM.scaffold.showSnackBar(
       SnackBar(
         content: Row(
           children: <Widget>[

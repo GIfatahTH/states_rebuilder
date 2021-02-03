@@ -11,12 +11,19 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/v
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'fake_auth_repository.dart';
+import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
   authRepository.injectMock(() => FakeAuthRepository());
+  todos.injectCRUDMock(() => FakeTodosRepository([]));
+  RM.printInjected = (snap) {
+    print(snap);
+  };
   setUp(() {
+    DateTimeX.customNow = DateTime(2020);
     storage.clear();
   });
 

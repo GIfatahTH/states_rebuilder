@@ -1,22 +1,45 @@
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'data_source/api.dart';
-import 'service/authentication_service.dart';
-import 'service/comments_service.dart';
-import 'service/posts_service.dart';
+import 'domain/entities/post.dart';
+import 'domain/entities/user.dart';
+import 'ui/exceptions/error_handler.dart';
 
-final _api = RM.inject(
-  () => Api(),
+final userInj = RM.injectCRUD<User, int>(
+  () => UserRepository(),
+  id: (user) => user.id,
+  param: 0,
+  onSetState: On.or(
+    onError: (err) => ErrorHandler.showSnackBar(err),
+    onData: () => RM.navigate.toNamed(('/')),
+    or: () {},
+  ),
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
-final authenticationService = RM.inject(
-  () => AuthenticationService(api: _api.state),
+final postsInj = RM.injectCRUD(
+  () => PostRepository(),
+  id: (post) => post.id,
+  param: userInj.param.state,
+  readOnInitialization: true,
+  onSetState: On.error(
+    (err) => ErrorHandler.showErrorDialog(err),
+  ),
 );
 
-final postsService = RM.inject(
-  () => PostsService(api: _api.state),
-);
+extension PostsX on List<Post> {
+  int getPostLikes(postId) {
+    return firstWhere((post) => post.id == postId).likes;
+  }
 
-final commentsService = RM.inject(
-  () => CommentsService(api: _api.state),
+  void incrementLikes(int postId) {
+    firstWhere((post) => post.id == postId).incrementLikes();
+  }
+}
+
+final commentsInj = RM.injectCRUD(
+  () => CommentRepository(),
+  id: (comment) => comment.id,
+  param: 0,
+  // debugPrintWhenNotifiedPreMessage: '',
 );

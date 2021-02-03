@@ -1,11 +1,9 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=C:\Flutter SDK\flutter
-FLUTTER_APPLICATION_PATH=E:\flutter\_libraries\_states_rebuilder\states_rebuilder\states_rebuilder_package\example
-FLUTTER_TARGET=lib\main.dart
+FLUTTER_ROOT=/mnt/A270A07970A055B7/flutter
+FLUTTER_APPLICATION_PATH=/mnt/A270A07970A055B7/Repositories/states_rebuilder/states_rebuilder_package/example
+FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
-SYMROOT=${SOURCE_ROOT}/../build\ios
-OTHER_LDFLAGS=$(inherited) -framework Flutter
-FLUTTER_FRAMEWORK_DIR=C:\Flutter SDK\flutter\bin\cache\artifacts\engine\ios
+SYMROOT=${SOURCE_ROOT}/../build/ios
 FLUTTER_BUILD_NAME=1.0.0
 FLUTTER_BUILD_NUMBER=1
 DART_OBFUSCATION=false

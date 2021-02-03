@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'data_source/todo_repository.dart';
+import 'domain/entities/todo.dart';
 import 'service/interfaces/i_todo_repository.dart';
 import 'service/todos_service.dart';
 import 'ui/common/enums.dart';
@@ -44,8 +45,9 @@ final todosService = RM.injectFuture<TodosService>(
 
 //This will optimized the rebuild so that the filteredTodos will
 //be recalculated only when the list of todos changes.
-final filteredTodos = RM.injectComputed(
-  compute: (_) => todosService.state.todos,
+final filteredTodos = RM.inject<List<Todo>>(
+  () => todosService.state.todos,
+  dependsOn: DependsOn({todosService}),
 );
 
 final appTab = RM.inject(() => AppTab.todos);

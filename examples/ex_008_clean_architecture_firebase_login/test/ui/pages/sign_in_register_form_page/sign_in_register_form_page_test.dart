@@ -1,3 +1,4 @@
+import 'package:clean_architecture_firebase_login/injected.dart';
 import 'package:clean_architecture_firebase_login/service/user_service.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../data_source/fake_user_repository.dart';
 
 void main() {
+  userService.injectMock(() => FakeUserService());
+
   Widget signInRegisterFormPage;
 
   Finder emailTextFiled = find.byWidgetPredicate((widget) {
@@ -26,39 +29,33 @@ void main() {
     return widget is Checkbox && widget.value;
   });
 
-  setUp(() {
-    //The first thing to do is to isolate SignInRegisterFormPage by faking its dependencies
-    //There is one dependency that should be faked (UserService)
-    signInRegisterFormPage = Injector(
-      inject: [Inject<UserService>(() => FakeUserService())],
-      builder: (_) {
-        //the SignInRegisterFormPage widget has to pop back after successful log in.
-        // (line 130  onData: (_, __) => Navigator.pop(context),)
-
-        //Ta test this behavior, we add a RaisedButton to push to SignInRegisterFormPage so we can check that popping works.
-
-        //In this example we can simple use SignInPage and from there we can route to SignInRegisterFormPage.
-        //But in more complex situation, we have to fake all the dependencies of SignInPage which may not be needed for aur test.
-        //For this reason I use simple RaisedButton,
-        return MaterialApp(
-          //From SignInRegisterFormPage we have to notify StateBuilder in main.dart page (line 50)
-          //I wrapped the RaisedButton with StateBuilder and subscribe it to the UserService ReactiveModel.
-          home: StateBuilder(
-              observe: () => RM.get<UserService>(),
-              builder: (context, _) {
-                return RaisedButton(
-                    child: Text('Log in with email and password'),
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return SignInRegisterFormPage();
-                      }));
-                    });
-              }),
-        );
-      },
-    );
-  });
+  setUp(
+    () {
+      //The first thing to do is to isolate SignInRegisterFormPage by faking its dependencies
+      //There is one dependency that should be faked (UserService)
+      signInRegisterFormPage = MaterialApp(
+        //From SignInRegisterFormPage we have to notify StateBuilder in main.dart page (line 50)
+        //I wrapped the RaisedButton with StateBuilder and subscribe it to the UserService ReactiveModel.
+        home: userService.listen(
+          child: On(
+            () => RaisedButton(
+              child: Text('Log in with email and password'),
+              onPressed: () {
+                Navigator.push(
+                  RM.context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return SignInRegisterFormPage();
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
   testWidgets('Email validation', (tester) async {
     await tester.pumpWidget(signInRegisterFormPage);

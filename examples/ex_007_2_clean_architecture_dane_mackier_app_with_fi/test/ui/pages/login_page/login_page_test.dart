@@ -1,31 +1,27 @@
-import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
-import 'package:clean_architecture_dane_mackier_app/service/authentication_service.dart';
-import 'package:clean_architecture_dane_mackier_app/service/common/input_parser.dart';
+import 'package:clean_architecture_dane_mackier_app/injected.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/input_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
-import 'package:clean_architecture_dane_mackier_app/injected.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../data_source/fake_api.dart';
+
 void main() {
-  Widget loginPage;
+  userInj.injectCRUDMock(() => FakeUserRepository());
+
   Finder loginBtn = find.byType(FlatButton);
   Finder loginTextField = find.byType(TextField);
 
-  setUp(() {
-    authenticationService.injectMock(() => FakeAuthenticationService());
-    loginPage = MaterialApp(
-      initialRoute: 'login',
-      routes: {
-        '/': (_) => Text('This is the HomePage'),
-        'login': (_) => LoginPage(),
-      },
-      navigatorKey: RM.navigate.navigatorKey,
-    );
-  });
-
+  final Widget loginPage = MaterialApp(
+    initialRoute: 'login',
+    routes: {
+      '/': (_) => Text('This is the HomePage'),
+      'login': (_) => LoginPage(),
+    },
+    navigatorKey: RM.navigate.navigatorKey,
+  );
   testWidgets('display "The entered value is not a number" message',
       (tester) async {
     await tester.pumpWidget(loginPage);
@@ -77,6 +73,12 @@ void main() {
   testWidgets(
       'display "A NetWork problem" after showing CircularProgressBarIndictor',
       (tester) async {
+    userInj.injectCRUDMock(
+      () => FakeUserRepository(
+        error: NetworkErrorException(),
+      ),
+    );
+
     await tester.pumpWidget(loginPage);
     final String networkErrorException = NetworkErrorException().message;
     // before tap, no error message
@@ -84,10 +86,6 @@ void main() {
 
     //enter 1,
     await tester.enterText(loginTextField, '1');
-
-    //set fake to throw networkErrorException error
-    (authenticationService.state as FakeAuthenticationService).error =
-        NetworkErrorException();
 
     await tester.tap(loginBtn);
     await tester.pump();
@@ -102,6 +100,11 @@ void main() {
   testWidgets(
       'display "No user find with this number" after showing CircularProgressBarIndictor',
       (tester) async {
+    userInj.injectCRUDMock(
+      () => FakeUserRepository(
+        error: UserNotFoundException(1),
+      ),
+    );
     await tester.pumpWidget(loginPage);
     final String userNotFoundException = UserNotFoundException(1).message;
     // before tap, no error message
@@ -109,10 +112,6 @@ void main() {
 
     //enter 1,
     await tester.enterText(loginTextField, '1');
-
-    //set fake to throw userNotFoundException error
-    (authenticationService.state as FakeAuthenticationService).error =
-        UserNotFoundException(1);
 
     await tester.tap(loginBtn);
     await tester.pump();
@@ -137,33 +136,28 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pump(Duration(seconds: 1));
-    expect(authenticationService.hasData, isTrue);
-    expect(authenticationService.state.user.id, equals(1));
+    expect(userInj.hasData, isTrue);
+    expect(userInj.state.first.id, equals(1));
 
     //await page animation to finish
+    await tester.pumpAndSettle();
+    expect(find.text('This is the HomePage'), findsOneWidget);
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+
+    //enter 2,
+    await tester.enterText(loginTextField, '2');
+
+    await tester.tap(loginBtn);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
     await tester.pump(Duration(seconds: 1));
+    expect(userInj.hasData, isTrue);
+    expect(userInj.state.first.id, equals(2));
+
+    //await page animation to finish
+    await tester.pumpAndSettle();
     expect(find.text('This is the HomePage'), findsOneWidget);
   });
-}
-
-class FakeAuthenticationService extends AuthenticationService {
-  dynamic error;
-
-  User _fetchedUser;
-
-  @override
-  User get user => _fetchedUser;
-
-  @override
-  Future<void> login(String userIdText) async {
-    var userId = InputParser.parse(userIdText);
-
-    await Future.delayed(Duration(seconds: 1));
-
-    if (error != null) {
-      throw error;
-    }
-
-    _fetchedUser = User(id: userId, name: 'fakeName', username: 'fakeUserName');
-  }
 }

@@ -45,14 +45,14 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            onError: (context, dynamic error) {
+            onError: (dynamic error) {
               RM.navigate.toDialog(
                 AlertDialog(
                   content: Text('${error.message}'),
                 ),
               );
             },
-            onData: (context, int data) {
+            onData: (int data) {
               //show snackBar
               //any current snackBar is hidden.
               RM.scaffoldShow.snackBar(

@@ -34,7 +34,7 @@ class TodosService {
   bool get allComplete => _activeTodos.isEmpty;
 
   //methods for CRUD
-  Future<void> loadTodos() async {
+  Future<List<Todo>> loadTodos() async {
     // await Future.delayed(Duration(seconds: 5));
     // throw PersistanceException('net work error');
     return _todos = await _todoRepository.loadTodos();

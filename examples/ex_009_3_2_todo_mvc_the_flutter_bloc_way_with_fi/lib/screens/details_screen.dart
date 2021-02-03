@@ -21,10 +21,10 @@ class DetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return todosState.rebuilder(
       () {
-        final state = todosState.state;
-        final todo = (state as TodosLoaded)
-            .todos
-            .firstWhere((todo) => todo.id == id, orElse: () => null);
+        final todo = todosState.stateAs<TodosLoaded>().todos.firstWhere(
+              (todo) => todo.id == id,
+              orElse: () => null,
+            );
         final localizations = ArchSampleLocalizations.of(context);
         return Scaffold(
           appBar: AppBar(

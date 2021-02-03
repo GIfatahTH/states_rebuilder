@@ -3,12 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:github_search_app/injected.dart';
 import 'package:github_search_app/main.dart';
 import 'package:github_search_app/ui/pages/home/github_search_result_tile.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_github_search_repository.dart';
 
 void main() {
-  StatesRebuilerLogger.isTestMode = true;
+  isTestMode = true;
   gitHubSearchRepository.injectMock(
     () => FakeGitHubSearchRepository(),
   );

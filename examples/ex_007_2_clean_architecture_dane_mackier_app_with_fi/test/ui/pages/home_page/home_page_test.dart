@@ -1,43 +1,47 @@
-import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
-import 'package:clean_architecture_dane_mackier_app/service/authentication_service.dart';
 import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
-import 'package:clean_architecture_dane_mackier_app/service/posts_service.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/home_page/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clean_architecture_dane_mackier_app/injected.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-void main() {
-  Widget homePage;
-  BuildContext postsPageContext;
+import '../../../data_source/fake_api.dart';
 
-  authenticationService.injectMock(() => FakeAuthenticationService());
-  postsService.injectMock(() => FakePostsService());
-  setUp(() {
-    homePage = MaterialApp(
-      routes: {
-        '/': (_) => HomePage(),
-        'post': (context) {
-          postsPageContext = context;
-          return Scaffold(body: Text('This is post detail page is displayed'));
-        },
+void main() {
+  BuildContext postsPageContext;
+  final Widget homePage = MaterialApp(
+    routes: {
+      '/': (_) => HomePage(),
+      'post': (context) {
+        postsPageContext = context;
+        return Scaffold(body: Text('This is post detail page is displayed'));
       },
-      navigatorKey: RM.navigate.navigatorKey,
-    );
-  });
+    },
+    navigatorKey: RM.navigate.navigatorKey,
+  );
+  userInj.injectCRUDMock(
+    () => FakeUserRepository(),
+    initialState: [User(id: 1, name: 'FakeName', username: 'FakeUserName')],
+  );
+  postsInj.injectCRUDMock(
+    () => FakePostRepository(),
+  );
 
   testWidgets(
       'display CircularProgressIndicator at startup and show error dialog on NetworkErrorException',
       (tester) async {
+    postsInj.injectCRUDMock(
+      () => FakePostRepository(
+        error: NetworkErrorException(),
+      ),
+    );
+
     await tester.pumpWidget(homePage);
 
     //Expect to see a CircularProgressIndicator
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    //set PostsService to throw NetworkErrorException
-    (postsService.state as FakePostsService).error = NetworkErrorException();
     final String errorMessage = NetworkErrorException().message;
 
     await tester.pump(Duration(seconds: 1));
@@ -52,13 +56,15 @@ void main() {
   testWidgets(
       'display CircularProgressIndicator at startup and show error dialog on PostNotFoundException',
       (tester) async {
+    postsInj.injectCRUDMock(() => FakePostRepository(
+          error: PostNotFoundException(1),
+        ));
+
     await tester.pumpWidget(homePage);
 
     //Expect to see a CircularProgressIndicator
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    //Set PostsService to throw NetworkErrorException
-    (postsService.state as FakePostsService).error = PostNotFoundException(1);
     final String errorMessage = PostNotFoundException(1).message;
 
     await tester.pump(Duration(seconds: 1));
@@ -115,7 +121,7 @@ void main() {
 
     //Simulate we are tapping on like button
     //This is the logic inside the onPressed of the like button
-    postsService.setState((s) => s.incrementLikes(1));
+    postsInj.setState((s) => s.incrementLikes(1));
 
     //Go back to homePage
     Navigator.pop(postsPageContext);
@@ -126,57 +132,4 @@ void main() {
     //Expect that the like number has increased by one.
     expect(find.text('Post1 title - 1'), findsOneWidget);
   });
-}
-
-class FakeAuthenticationService extends AuthenticationService {
-  @override
-  User get user => User(id: 1, name: 'FakeName', username: 'FakeUserName');
-}
-
-class FakePostsService extends PostsService {
-  List<Post> _posts = [];
-  @override
-  List<Post> get posts => _posts;
-
-  var error;
-
-  @override
-  Future<void> getPostsForUser(int userId) async {
-    await Future.delayed(Duration(seconds: 1));
-
-    if (error != null) {
-      throw error;
-    }
-
-    _posts = [
-      Post(
-          id: 1,
-          likes: 0,
-          title: 'Post1 title',
-          body: 'Post1 body',
-          userId: userId),
-      Post(
-          id: 2,
-          likes: 0,
-          title: 'Post2 title',
-          body: 'Post2 body',
-          userId: userId),
-      Post(
-          id: 3,
-          likes: 0,
-          title: 'Post3 title',
-          body: 'Post3 body',
-          userId: userId),
-    ];
-  }
-
-  @override
-  int getPostLikes(postId) {
-    return _posts.firstWhere((post) => post.id == postId).likes;
-  }
-
-  @override
-  void incrementLikes(int postId) {
-    _posts.firstWhere((post) => post.id == postId).incrementLikes();
-  }
 }

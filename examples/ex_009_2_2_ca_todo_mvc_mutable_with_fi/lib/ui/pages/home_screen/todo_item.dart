@@ -43,10 +43,10 @@ class TodoItem extends StatelessWidget {
             );
             todosService.setState(
               (s) => s.updateTodo(newTodo),
-              onError: (context, error) {
+              onError: (error) {
                 //define onError callback
                 //This overrides all error side effects callback that are defined globally.
-                ErrorHandler.showErrorSnackBar(context, error);
+                ErrorHandler.showErrorSnackBar(error);
               },
             );
           },
@@ -78,7 +78,7 @@ class TodoItem extends StatelessWidget {
       onError: ErrorHandler.showErrorSnackBar,
     );
 
-    Scaffold.of(context).showSnackBar(
+    RM.scaffold.snackBar(
       SnackBar(
         key: ArchSampleKeys.snackbar,
         duration: Duration(seconds: 2),

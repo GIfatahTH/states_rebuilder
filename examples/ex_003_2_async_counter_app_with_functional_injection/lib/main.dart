@@ -107,7 +107,7 @@ class MyApp extends StatelessWidget {
                   child: Text('Increment by one flavor'),
                   onPressed: () {
                     //set the env static variable to be Flavor.IncrByOne
-                    Injector.env = Flavor.IncrByOne;
+                    RM.env = Flavor.IncrByOne;
                     //Navigating to the same MyHomePage()
                     RM.navigate.to(MyHomePage());
                   },
@@ -116,7 +116,7 @@ class MyApp extends StatelessWidget {
                   child: Text('Increment by Two flavor'),
                   onPressed: () {
                     //set the env static variable to be Flavor.IncrByOne
-                    Injector.env = Flavor.IncrByTwo;
+                    RM.env = Flavor.IncrByTwo;
                     RM.navigate.to(MyHomePage());
                   },
                 )

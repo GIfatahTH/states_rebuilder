@@ -5,7 +5,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 //counter is a global variable but the state of the counter is not.
 //It can be easily mocked and tested.
-//With functional injection we do not need to use RMKey.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
   //Here we defined a global onData handling
@@ -78,7 +77,13 @@ class MyHomePage extends StatelessWidget {
               return counter + 1;
             },
             //This onData if defined will override the global onData
-            onData: (_, __) => print('OnData from setState'),
+            onData: (_) {
+              RM.scaffoldShow.hideCurrentSnackBar();
+              print('OnData from setState');
+            },
+            onError: (_) {
+              RM.scaffoldShow.hideCurrentSnackBar();
+            },
           );
         },
         tooltip: 'Increment',

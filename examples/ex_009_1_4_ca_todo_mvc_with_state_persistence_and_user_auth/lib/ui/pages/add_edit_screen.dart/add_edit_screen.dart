@@ -89,7 +89,7 @@ class _AddEditPageState extends State<AddEditPage> {
               todo.state = newTodo;
             } else {
               todos.setState(
-                (s) => s.addTodo(Todo(_task, note: _note)),
+                (s) => s.first.addTodo(Todo(_task, note: _note)),
               );
             }
             RM.navigate.back();

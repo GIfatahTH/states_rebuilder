@@ -1,44 +1,59 @@
-// import 'package:flutter/foundation.dart';
-// import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
-// class FireBaseTodosRepository implements PersistStoreMock {
-//   final String userId;
-//   final String authToken;
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/todo.dart';
 
-//   FireBaseTodosRepository({
-//     @required this.userId,
-//     @required this.authToken,
-//   });
+class FakeTodosRepository implements ICRUD<List<Todo>, String> {
+  final List<Todo> todos;
 
-//   @override
-//   Future<void> init() async {}
+  FakeTodosRepository(this.todos);
 
-//   @override
-//   Object read(String key) async {
-//     final response =
-//         await http.get('$baseUrl/$key/$userId.json?auth=$authToken');
-//     if (response.statusCode > 400) {
-//       throw Exception();
-//     }
-//     return response.body;
-//   }
+  @override
+  Future<List<List<Todo>>> read(String userId) async {
+    await Future.delayed(Duration(seconds: 1));
 
-//   @override
-//   Future<void> write<T>(String key, T value) async {
-//     final response = await http
-//         .put('$baseUrl/$key/$userId.json?auth=$authToken', body: value);
-//     if (response.statusCode >= 400) {
-//       throw Exception();
-//     }/
-//   }
+    return [todos];
+  }
 
-// @override/
-//   Future<void> delete(String key) {
-//     throw UnimplementedError();
-//   }
+  @override
+  Future<bool> update(List<Todo> item, String userId) {
+    throw UnimplementedError();
+  }
 
-//   @override
-//   Future<void> deleteAll() {
-//     throw UnimplementedError();
-//   }
-// }
+  @override
+  Future<List<Todo>> create(List<Todo> item, String userId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> delete(List<Todo> item, String userId) {
+    throw UnimplementedError();
+  }
+}
+
+final todos1 = [
+  Todo(
+    'Task1',
+    id: 'user1-1',
+    note: 'Note1',
+  ),
+];
+
+final todos3 = [
+  Todo(
+    'Task1',
+    id: 'user1-1',
+    note: 'Note1',
+  ),
+  Todo(
+    'Task2',
+    id: 'user1-2',
+    note: 'Note2',
+    complete: false,
+  ),
+  Todo(
+    'Task3',
+    id: 'user1-3',
+    note: 'Note3',
+    complete: true,
+  ),
+];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../domain/exceptions/Validation_exception.dart';
 import '../../service/exceptions/sign_in_out_exception.dart';
@@ -18,9 +19,9 @@ class ExceptionsHandler {
     throw error;
   }
 
-  static void showErrorDialog(BuildContext context, dynamic error) {
+  static void showErrorDialog(dynamic error) {
     showDialog(
-      context: context,
+      context: RM.context,
       builder: (context) {
         return AlertDialog(
           title: Text(errorMessage(error).title),
