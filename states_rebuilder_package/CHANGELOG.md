@@ -1,3 +1,99 @@
+## 4.0.0 (2020-10-27)
+* Remove Injector, Inject, RMKey classes
+* Change Injector.en to RM.env
+## 3.2.0 (2020-10-27)
+* `Injected.persist` is a function instead of a simple object
+* add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
+* Persist read works with async
+```dart
+  ```dart
+  final model = RM.inject<Model>(
+    () => 0,
+    persist:()=> PersistState(
+      key: '__model_Key__',
+      toJson: (state) => json.encode(state),
+      fromJson: (json) => json.decode(json),
+      onError: (err, stack){
+        //If the persistance fails, the error is captured here, and the state is undone to the
+        //last valid state
+      }
+      //For this state the default persistance provider is overridden.
+      persistStateProvider: MyAnOtherPersistanceProvider()
+      //Print an informative message on the Read, Write, Delete operations
+      debugPrintOperations: true,
+      //Catch read, delete Exceptions
+      catchPersistError: true,
+    ),
+  );
+```
+
+* Since [errors](https://api.flutter.dev/flutter/dart-core/Error-class.html) are not created to be caught, states_rebuilder will not catch errors unless the parameter [StatesRebuilderConfig.shouldCatchError] is true. Instead, [Exceptions](https://api.flutter.dev/flutter/dart-core/Exception-class.html) are intended to be caught. Your costume error/exception classes must implement `Exception` not `Error`. 
+As this may leads the app to break, to fix just search for all `extends Error {` and replace with `implements Exception {`
+
+* Introduction of `Injected.inherit` and `Inject.reInherit` methods for widget-wise injection. Similar to `InheritedWidget`.
+
+* Experimental with `Injected.listen` as possible substitution of `Injected.rebuilder`, `Injected.whenRebuilder` and `Injected.whenRebuilderOr`.
+
+## 3.1.0 (2020-09-07)
+* Add `RM.navigate` for simple navigation.
+Now, we use:
+```dart
+MaterialApp(
+  navigatorKey : RM.navigate.navigatorKey,
+  //
+)
+
+//to  navigate:
+* RM.navigator.to(Page1());
+* RM.navigator.toNamed('/page1');
+* RM.navigator.toReplacement(Page1());
+* RM.navigator.toReplacementNamed('/page1');
+* RM.navigator.toAndRemoveUntil(Page1(), '/page2');
+* RM.navigator.pushNamedAndRemoveUntil('/page1', '/page2');
+* RM.navigator.back();
+* RM.navigator.backUntil('/page2');
+* RM.navigator.backAndToNamed('/page2');
+//To show dialogs, menu and bottom sheets
+* RM.navigator.toDialog => showDialog
+* RM.navigator.toCupertinoDialog => showCupertinoDialog
+* RM.navigator.toBottomSheet => showModalBottomSheet
+* RM.navigator.toCupertinoModalPopup => showCupertinoModalPopup
+//To show Scaffold related snackBars, bottom sheets and drawers
+* RM.scaffoldShow.bottomSheet => Scaffold.of(context).showBottomSheet,
+* RM.scaffoldShow.snackBar => Scaffold.of(context).showSnackBar,
+* RM.scaffoldShow.openDrawer => Scaffold.of(context).openDrawer,
+* RM.scaffoldShow.openEndDrawer => Scaffold.of(context).openEndDrawer,
+```
+
+* Deprecate `RM.navigator`, `RM.Scaffold` and `RM.show`.
+* Add state persistance feature.
+* Refactor internal logic to improve performance.
+
+## 3.0.0 (2020-09-04)
+### Non breaking change :
+* Refactor internal logic.
+### New features :
+* Add global functional injection feature.
+* Add undo / redo state feature.
+### Breaking change :
+* Add `shouldRebuild` parameter to `StateBuilder` and other widgets.
+    Now `StateBuilder` will build only if the exposed model hasData (For performance reason).
+    This make cause some unexpected behavior.
+    To all the widget to rebuild on other state (onWaiting, onError), you can:
+    - Use `WhenRebuilderOr` widget. Or,
+    - return true in `shouldRebuild` parameter
+    ```dart
+    StateBuilder(
+      observe: ()=>MyReactiveModel(),
+      shouldRebuild: (rm)=> true,
+      builder: (context, rm){
+        //--
+      }
+    )
+  ```
+* The API of `StateWithMixinBuilder` has changed and named constructors have been added.
+
+
 ## 2.3.1 (2020-07-19)
 * Refactor internal logic.
 

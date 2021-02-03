@@ -1,4 +1,4 @@
-# `states_rebuilder`
+# `States_rebuilder` <!-- omit in toc --> 
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
 [![CircleCI](https://circleci.com/gh/GIfatahTH/states_rebuilder.svg?style=svg)](https://circleci.com/gh/GIfatahTH/states_rebuilder)
@@ -23,12 +23,13 @@ States Rebuilder is a easy flutter state management solution that allows for cle
 > Version 2.0: [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md)
 
 
-## Business logic
+* [Achieve injected dependencies](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) asynchronously (no Provider needed). &nbsp; 
 
->The business logic classes are independent of any external library. They are independent even from `states_rebuilder` itself.
+* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, SnackBars, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
 
+* [Persist state](https://github.com/GIfatahTH/states_rebuilder/issues/134) to localStorage and restore it when the application is restarted.
 
-Another advantage of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point that you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
+* [Override the state](https://github.com/GIfatahTH/states_rebuilder/wiki/17-inherited_inject) for a particular widget tree branch (Widget-aware state).
 
 >With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
 

@@ -1,0 +1,126 @@
+// Copyright 2018 The Flutter Architecture Sample Authors. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found
+// in the LICENSE file.
+
+import 'package:flutter/material.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:todos_app_core/todos_app_core.dart';
+
+import '../../../domain/entities/todo.dart';
+import '../../../injected.dart';
+import '../../../service/todos_state.dart';
+import '../../../ui/exceptions/error_handler.dart';
+import '../../../ui/pages/add_edit_screen.dart/add_edit_screen.dart';
+
+class DetailScreen extends StatelessWidget {
+  DetailScreen(Todo todo)
+      : todo = RM.inject(() => todo),
+        super(key: ArchSampleKeys.todoDetailsScreen);
+  final Injected<Todo> todo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(ArchSampleLocalizations.of(context).todoDetails),
+        actions: [
+          IconButton(
+            key: ArchSampleKeys.deleteTodoButton,
+            tooltip: ArchSampleLocalizations.of(context).deleteTodo,
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+          )
+        ],
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            todo.rebuilder(
+              () => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: Checkbox(
+                        key: ArchSampleKeys.detailsTodoItemCheckbox,
+                        value: todo.state.complete,
+                        onChanged: (value) {
+                          final newTodo = todo.state.copyWith(
+                            complete: value,
+                          );
+                          _updateTodo(context, newTodo);
+                        },
+                      )),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: 8.0,
+                            bottom: 16.0,
+                          ),
+                          child: Text(
+                            todo.state.task,
+                            key: ArchSampleKeys.detailsTodoItemTask,
+                            style: Theme.of(context).textTheme.headline5,
+                          ),
+                        ),
+                        Text(
+                          todo.state.note,
+                          key: ArchSampleKeys.detailsTodoItemNote,
+                          style: Theme.of(context).textTheme.subtitle1,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              key: Key('todo_StateBuilder'),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: Builder(
+        builder: (context) {
+          return FloatingActionButton(
+            tooltip: ArchSampleLocalizations.of(context).editTodo,
+            child: Icon(Icons.edit),
+            key: ArchSampleKeys.editTodoFab,
+            onPressed: () async {
+              final newTodo = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return AddEditPage(
+                      key: ArchSampleKeys.editTodoScreen,
+                      todo: todo.state,
+                    );
+                  },
+                ),
+              );
+              if (newTodo == null) {
+                return;
+              }
+              _updateTodo(context, newTodo);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _updateTodo(BuildContext context, Todo newTodo) {
+    final oldTodo = todo.state;
+    todo.state = newTodo;
+    todosState.setState(
+      (t) => TodosState.updateTodo(t, newTodo),
+      onError: (error) {
+        todo.state = oldTodo;
+        ErrorHandler.showErrorSnackBar(error);
+      },
+    );
+  }
+}
