@@ -35,6 +35,10 @@ A Flutter state management combined with a dependency injection solution to get 
   - Built-in debugging print function
   - Capable for complex apps
 
+<p align="center" >
+    <image src="../assets/Poster-Simple.png" max-width="80%" alt=''/>
+</p>
+
 # Table of Contents <!-- omit in toc --> 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
@@ -54,6 +58,7 @@ A Flutter state management combined with a dependency injection solution to get 
 ```dart
 import 'package:states_rebuilder/states_rebuilder.dart';
 ```
+
 3. Basic use case:
 ```dart
 // 🗄️Plain Data Class
@@ -63,46 +68,41 @@ class Model {
   Model(this.counter);
 }  
 
-// 🤔Business Logic
-class ServiceState {
-  ServiceSatate(this.model);
-  final Model model;  
-
-  void incrementMutable() { model.counter++ };
+// 🤔Business Logic - Service Layer
+extension ModelX on Model {
+  void increment() => this.counter++;  
 }
 
 // 🚀Global Functional Injection 
-// `serviceState` is auto-cleaned when no longer used, testable and mockable.
-final serviceState = RM.inject(() => ServiceState(Model(0)));
+// This state will be auto-disposed when no longer used, and also testable and mockable.
+final modelX = RM.inject<Model>(() => Model(0), ndoStackLength: 8);
 
 // 👀UI  
 class CounterApp extends StatelessWidget {
-  final _model = serviceState.state.model;
+  const CounterApp();
+
   @override
   Widget build(BuildContext context) {
     return Column (
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-            RaisedButton(
+            ElevatedButton(
                 child: const Text('🏎️ Counter ++'),
-                onPressed: () => serviceState.setState(
-                    (s) => s.incrementMutable(),
+                onPressed: () => modelX.setState(
+                    (s) => s.increment(),
                 ),
             ),
             RaisedButton(
                 child: const Text('⏱️ Undo'),
-                onPressed: () => serviceState.undoState(),
+                onPressed: () => modelX.undoState(),
             ),
-            serviceState.listen(
-              child: On(
-                () => Text('🏁Result: ${_model.counter}'),
-                ),
-              )
+            serviceState.rebuilder(() => Text('🏁Result: ${modelX.state.counter}')),
         ],
     );
   }  
 }
 ```
+
 # Breaking Changes 
 
 ### Since 4.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-4.0.0.md) <!-- omit in toc --> 
