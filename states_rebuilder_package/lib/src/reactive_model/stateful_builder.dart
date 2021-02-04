@@ -130,7 +130,7 @@ class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
         if (!_isDirty) {
           _isDirty = true;
           rmNotified = rm;
-          print(SchedulerBinding.instance?.schedulerPhase);
+          // print(SchedulerBinding.instance?.schedulerPhase);
           SchedulerBinding.instance?.scheduleFrameCallback(
             (_) => setState(() {}),
           );

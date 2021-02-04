@@ -54,7 +54,6 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
     inheritedInjected._initialize();
     removeListeners =
         inheritedInjected._listenToRMForStateFulWidget((rm, tags) {
-      print(widget.globalInjected);
       if (!_isDirty) {
         _isDirty = true;
         setState(() {});

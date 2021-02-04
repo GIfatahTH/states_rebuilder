@@ -407,9 +407,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       autoSignOut: autoSignOut,
       param: param,
       onInitialized: (s) {
-        print(s);
-        print(inj);
-
         inj._auth ??= _AuthService(
           () async {
             final repo = repository();

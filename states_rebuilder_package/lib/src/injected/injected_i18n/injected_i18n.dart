@@ -81,10 +81,7 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
       _locale = locale;
     }
 
-    final lan = _i18n[_resolvedLocale]?.call();
-    print(_i18n.keys);
-    print(lan);
-    return lan!;
+    return _i18n[_resolvedLocale]!.call();
   }
 
   Locale _localeResolution(Locale locale) {
