@@ -19,7 +19,8 @@ jobs:
         with:
           channel: "dev"
       - run: |
+          flutter doctor
           flutter pub get
-          flutter analyze
-          flutter test
+          flutter test --coverage
+          bash <(curl -s https://codecov.io/bash)
         working-directory: ./states_rebuilder_package
