@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - master
+      - null_safety
 
 jobs:
   flutter_test:
