@@ -29,6 +29,8 @@ A Flutter state management combined with a dependency injection solution to get 
   - Navigate, show dialogs without `BuildContext`
   - Easily persist the state and retrieve it back
   - Override the state for a particular widget tree branch (widget-wise state)
+
+- Production-time-saving
   - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
   - Easy user authentication and authorization.
   - Easily switch themes.
@@ -203,7 +205,7 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 **Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
 
-> [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
+  [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
 
 
 To mutate the state and notify listener:
@@ -220,11 +222,11 @@ foo.setState(
 ```
 
 
-<p align="center">
+<!-- <p align="center">
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder_state_wheel.png" width="400" alt=''/>
-</p>
+</p> -->
 
-The state when mutated emits a notification to its registered listener. The emitted notification has a boolean flag to describe is status :
+The state when mutated emits a notification to its registered listeners. The emitted notification has a boolean flag to describe is status :
   - `isIdle` : the state is first created and no notification is emitted yet.
   - `isWaiting`: the state is waiting for an async task to end.
   - `hasError`: the state mutation has ended with an error.
@@ -255,7 +257,7 @@ On.or(
   or: () =>  print('or')
 )
 ```
-> [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+>  [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
