@@ -108,7 +108,7 @@ void main() {
     'ReactiveModel: whenConnectionState should work',
     (tester) async {
       dynamic message;
-      modelRM?.listenToRM((rm) {
+      modelRM?.subscribeToRM((rm) {
         message = modelRM?.whenConnectionState(
           onIdle: () => 'onIdle',
           onWaiting: () => 'onWaiting',
@@ -2638,7 +2638,7 @@ void main() {
   testWidgets('debounce positive should work', (tester) async {
     final rm = ReactiveModelImp(creator: (_) => 0, nullState: 0);
 
-    rm.listenToRM((rm) {});
+    rm.subscribeToRM((rm) {});
 
     rm.setState(
       (s) => s + 1,
@@ -2681,7 +2681,7 @@ void main() {
   testWidgets('throttleDelay should work', (tester) async {
     final rm = ReactiveModelImp(creator: (_) => 0, nullState: 0);
 
-    rm.listenToRM((rm) {});
+    rm.subscribeToRM((rm) {});
 
     rm.setState(
       (s) => s + 1,
@@ -2895,7 +2895,7 @@ void main() {
 
   testWidgets('skip waiting works', (tester) async {
     String? result;
-    modelRM?.listenToRM((rm) {
+    modelRM?.subscribeToRM((rm) {
       result = rm.whenConnectionState(
         onIdle: () => 'idle',
         onWaiting: () => 'waiting',

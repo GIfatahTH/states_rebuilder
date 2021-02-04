@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../lib/src/reactive_model.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 
 void main() {
   testWidgets('simple counter app', (tester) async {

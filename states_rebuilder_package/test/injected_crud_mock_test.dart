@@ -158,26 +158,28 @@ void main() {
     expect(products.hasError, true);
     expect(products.state.length, 0);
     expect(_repo._products.length, 1);
+    products.state = [..._repo._products];
+
     //
     products.crud.update(
-      where: (product) => product.id == 2,
+      where: (product) => product.id == 1,
       set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(products.hasError, true);
-    expect(products.state.length, 0);
+    expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     //
     products.crud.delete(
-      where: (product) => product.id == 2,
+      where: (product) => product.id == 1,
       isOptimistic: false,
     );
     expect(products.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(products.hasError, true);
-    expect(products.state.length, 0);
+    expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     await tester.pumpWidget(On(() => Container()).listenTo(products));
   });

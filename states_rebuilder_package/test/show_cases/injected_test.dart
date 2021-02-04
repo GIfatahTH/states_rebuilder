@@ -280,7 +280,7 @@ void main() {
         debugPrintWhenNotifiedPreMessage: 'dependentCounter2',
       );
       int numberOfNotification = 0;
-      dependentCounter2.listenToRM((rm) {
+      dependentCounter2.subscribeToRM((rm) {
         numberOfNotification++;
       });
 
@@ -403,7 +403,7 @@ void main() {
     //
     int numberOfNotification = 0;
     final injectedList = [1].inj();
-    injectedList.listenToRM((rm) {
+    injectedList.subscribeToRM((rm) {
       numberOfNotification++;
     });
     expect(injectedList.state, [1]);
@@ -417,7 +417,7 @@ void main() {
     //
     numberOfNotification = 0;
     final injectedSet = {_Model(1)}.inj();
-    injectedSet.listenToRM((rm) {
+    injectedSet.subscribeToRM((rm) {
       numberOfNotification++;
     });
     expect(injectedSet.state, {_Model(1)});
@@ -432,7 +432,7 @@ void main() {
     //
     numberOfNotification = 0;
     final injectedMap = {'1': _Model(1)}.inj();
-    injectedMap.listenToRM((rm) {
+    injectedMap.subscribeToRM((rm) {
       numberOfNotification++;
     });
     expect(injectedMap.state, {'1': _Model(1)});
@@ -446,7 +446,7 @@ void main() {
     //
     numberOfNotification = 0;
     final injectModel = _Model(5).inj<_Model>();
-    injectModel.listenToRM((rm) {
+    injectModel.subscribeToRM((rm) {
       numberOfNotification++;
     });
     expect(injectModel.state.count, 5);

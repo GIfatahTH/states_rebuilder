@@ -13,7 +13,7 @@ void main() {
   testWidgets('listenToSB works', (tester) async {
     final widget = Directionality(
       textDirection: TextDirection.ltr,
-      child: model.listenToSB(
+      child: model.statesRebuilderSubscription(
         child: (context) {
           return Text('${model.count}');
         },
@@ -31,19 +31,19 @@ void main() {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          model.listenToSB(
+          model.statesRebuilderSubscription(
             tag: 'tag1',
             child: (context) {
               return Text('${model.count}');
             },
           ),
-          model.listenToSB(
+          model.statesRebuilderSubscription(
             tag: 'tag2',
             child: (context) {
               return Text('${model.count}');
             },
           ),
-          model.listenToSB(
+          model.statesRebuilderSubscription(
             tag: ['tag2', 'tag3'],
             child: (context) {
               return Text('${model.count}');
