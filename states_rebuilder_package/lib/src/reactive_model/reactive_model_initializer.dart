@@ -89,7 +89,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       _nullState ??= result as T;
       snapState = SnapState<T>._withData(
         _initialConnectionState,
-        result as T,
+        result ?? _nullState,
         snapState.isImmutable,
       );
       _coreRM.addToUndoQueue();

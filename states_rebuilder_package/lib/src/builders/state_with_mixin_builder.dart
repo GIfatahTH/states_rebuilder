@@ -494,7 +494,7 @@ class _State<T, R> extends State<StateWithMixinBuilder<T, R>> {
       }
     }
     _widget = observe != null
-        ? observe!.listenToSB(
+        ? observe!.statesRebuilderSubscription(
             tag: widget.tag,
             onAfterBuild: widget.afterRebuild != null
                 ? (context) => widget.afterRebuild!(context, rm)

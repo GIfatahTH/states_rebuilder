@@ -20,14 +20,12 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     _initialState = initialState;
     _nullState = nullState ?? _getPrimitiveNullState<T>();
     _nullState ??= _initialState;
-    if (_nullState != null) {
-      _state = _nullState!;
-    }
+    _state = _initialState ?? _nullState;
 
     // RM._printAllInitDispose = true;
   }
   factory ReactiveModel.create(T m) {
-    return ReactiveModelImp(creator: (_) => m);
+    return ReactiveModelImp(creator: (_) => m, nullState: m);
   }
 
   String? _debugPrintWhenNotifiedPreMessage;
@@ -81,6 +79,9 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
 
   Future<T> get stateAsync async {
     _initialize();
+    if (_completer == null) {
+      return _state!;
+    }
 
     await _completer?.future;
     return _state!;
@@ -134,7 +135,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   }
 
   //
-  Disposer listenToRM(void Function(ReactiveModel<T> rm) fn) {
+  Disposer subscribeToRM(void Function(ReactiveModel<T> rm) fn) {
     _listeners.add(fn);
     return () => () => _listeners.remove(fn);
   }
@@ -334,7 +335,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     if (_completer?.isCompleted == false) {
       _completer!.complete(_state);
     }
-    // _subscription?.cancel();
+
     if (toHasData) {
       _initialConnectionState = ConnectionState.done;
     } else {

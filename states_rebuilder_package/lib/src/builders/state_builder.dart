@@ -200,7 +200,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
     super.initState();
     resolveObservers();
 
-    _widget = observe!.listenToSB(
+    _widget = observe!.statesRebuilderSubscription(
       tag: widget.tag,
       initState: widget.initState != null
           ? (_) => widget.initState!.call(context, rm)

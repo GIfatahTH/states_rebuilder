@@ -46,6 +46,12 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     return (await crud._repository) as R;
   }
 
+  _Item<T, P>? _item;
+  _Item<T, P> get item => _item ??= _Item<T, P>(this)
+    ..injected.addToCleaner(
+      () => _item = null,
+    );
+
   @override
   void _onDisposeState() {
     _crud?._dispose();
@@ -78,4 +84,61 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     _cleanUpState((_) => creator());
     addToCleaner(() => _cleanUpState(_cachedMockCreator));
   }
+}
+
+class _Item<T, P> {
+  final InjectedCRUD<T, P> injectedList;
+  late Injected<T> injected;
+  bool _isUpdating = false;
+  _Item(this.injectedList) {
+    injected = RM.inject(
+      () => injectedList.state.first,
+      onSetState: On.data(
+        () async {
+          _isUpdating = true;
+          await injectedList.crud.update(
+            where: (t) => t == injected._previousSnapState?.data,
+            set: (t) => injected.state,
+          );
+          _isUpdating = false;
+        },
+      ),
+    );
+  }
+  void refresh() {
+    if (_isUpdating) {
+      return;
+    }
+    injected.refresh();
+  }
+
+  Widget inherited({
+    required Key key,
+    required T Function()? item,
+    required Widget Function(BuildContext) builder,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    return injected.inherited(
+      key: key,
+      stateOverride: item,
+      builder: builder,
+    );
+  }
+
+  Widget reInherited({
+    Key? key,
+    required BuildContext context,
+    required Widget Function(BuildContext) builder,
+    String? debugPrintWhenNotifiedPreMessage,
+  }) {
+    return injected.reInherited(
+      key: key,
+      context: context,
+      builder: builder,
+      // connectWithGlobal: true,
+    );
+  }
+
+  T? of(BuildContext context) => injected.of(context);
+  Injected<T>? call(BuildContext context) => injected(context);
 }

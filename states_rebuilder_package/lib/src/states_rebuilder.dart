@@ -29,7 +29,7 @@ abstract class StatesRebuilder<T> {
     _notifyListeners(tags);
   }
 
-  Widget listenToSB({
+  Widget statesRebuilderSubscription({
     void Function(BuildContext context)? onSetState,
     void Function(BuildContext context)? onAfterInitialBuild,
     void Function(BuildContext context)? onAfterBuild,

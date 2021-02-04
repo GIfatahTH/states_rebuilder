@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-
+import 'legacy/injector.dart';
 part 'builders/child.dart';
 part 'builders/state_builder.dart';
 part 'builders/state_with_mixin_builder.dart';

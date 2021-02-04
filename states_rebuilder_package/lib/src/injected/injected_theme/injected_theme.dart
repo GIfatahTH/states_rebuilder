@@ -1,5 +1,6 @@
 part of '../../reactive_model.dart';
 
+///Injected state that handle the app theme switching.
 class InjectedTheme<Key> extends InjectedImp<Key> {
   InjectedTheme({
     required Map<Key, ThemeData> themes,
@@ -38,12 +39,15 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
         );
 
   Map<Key, ThemeData> _themes;
+
+  ///Get supported light themes
   Map<Key, ThemeData> get supportedLightThemes {
     return {..._themes};
   }
 
   Map<Key, ThemeData>? _darkThemes;
 
+  ///Get supported dark themes
   Map<Key, ThemeData>? get supportedDarkThemes {
     if (_darkThemes != null) {
       return {..._darkThemes!};
@@ -53,10 +57,18 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
 
   ThemeMode _themeMode;
 
-  ThemeData get lightTheme => _themes[state]!;
-  ThemeData? get darkTheme => _darkThemes?[state] ?? lightTheme;
+  ///Get the current light theme.
+  ThemeData get lightTheme => (_themes[state] ?? _darkThemes?[state])!;
+
+  ///Get the current dark theme.
+  ThemeData? get darkTheme => _darkThemes?[state] ?? _themes[state];
+
+  ///The current [ThemeMode]
   ThemeMode get themeMode => _themeMode;
   set themeMode(ThemeMode mode) {
+    if (_themeMode == mode) {
+      return;
+    }
     _themeMode = mode;
     if (_coreRM.persistanceProvider != null) {
       persistState();
@@ -64,18 +76,32 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     notify();
   }
 
+  bool _isDarkTheme = false;
+
+  ///Wether the current mode is dark.
+  ///
+  ///If the current [ThemeMode] is system, the darkness is calculated from the
+  ///brightness of the system ([MediaQuery.platformBrightnessOf]).
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
       if (RM.context != null) {
         final brightness = MediaQuery.platformBrightnessOf(RM.context!);
-        return brightness == Brightness.dark;
+        _isDarkTheme = brightness == Brightness.dark;
+      } else {
+        _isDarkTheme = false;
       }
-      return false;
+    } else {
+      _isDarkTheme = _themeMode == ThemeMode.dark;
     }
-    return _themeMode == ThemeMode.dark;
+    return _isDarkTheme;
   }
 
   @override
+
+  ///Toggle the current theme between dark and light
+  ///
+  ///If the current theme has only light (or dark) implementation, the
+  ///toggle method will have no effect
   void toggle() {
     if (isDarkTheme) {
       themeMode = ThemeMode.light;

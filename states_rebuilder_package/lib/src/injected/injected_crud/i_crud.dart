@@ -118,7 +118,7 @@ class _CRUDService<T, P> {
           onCRUD?.call(addedItem);
         } catch (e) {
           if (isOptimistic) {
-            s.remove(item);
+            yield s.remove(item);
             onStateMutation?.call();
           }
           rethrow;
@@ -162,26 +162,32 @@ class _CRUDService<T, P> {
     void Function(dynamic error)? onError,
     bool isOptimistic = true,
   }) async {
+    final oldState = <T>[];
+    final updated = <T>[];
+    final newState = <T>[];
+    injected.state.forEachIndexed((i, e) {
+      oldState.add(e);
+      if (where(e)) {
+        final newItem = set(e);
+        updated.add(newItem);
+        newState.add(newItem);
+      } else {
+        newState.add(e);
+      }
+    });
+    if (updated.isEmpty) {
+      return;
+    }
     await injected.setState(
       (s) async* {
         final _repo = await _repository;
-        final oldState = <T>[];
-        final updated = <T>[];
-        final newState = <T>[];
-        s.forEachIndexed((i, e) {
-          oldState.add(e);
-          if (where(e)) {
-            final newItem = set(e);
-            updated.add(newItem);
-            newState.add(newItem);
-          } else {
-            newState.add(e);
-          }
-        });
 
         if (isOptimistic) {
           yield newState;
           onStateMutation?.call();
+          if (injected._item != null) {
+            injected._item!.refresh();
+          }
         }
         try {
           final dynamic r = await _repo.update(
@@ -191,8 +197,11 @@ class _CRUDService<T, P> {
           onCRUD?.call(r);
         } catch (e) {
           if (isOptimistic) {
-            injected.snapState = injected.snapState._copyWith(data: oldState);
+            yield oldState;
             onStateMutation?.call();
+            if (injected._item != null) {
+              injected._item!.injected.refresh();
+            }
           }
           rethrow;
         }
@@ -213,21 +222,24 @@ class _CRUDService<T, P> {
     void Function(dynamic error)? onError,
     bool isOptimistic = true,
   }) async {
+    final oldState = <T>[];
+    final removed = <T>[];
+    final newState = <T>[];
+
+    injected.state.forEachIndexed((i, e) {
+      oldState.add(e);
+      if (where(e)) {
+        removed.add(e);
+      } else {
+        newState.add(e);
+      }
+    });
+    if (removed.isEmpty) {
+      return;
+    }
     await injected.setState(
       (s) async* {
         final _repo = await _repository;
-        final oldState = <T>[];
-        final removed = <T>[];
-        final newState = <T>[];
-
-        s.forEachIndexed((i, e) {
-          oldState.add(e);
-          if (where(e)) {
-            removed.add(e);
-          } else {
-            newState.add(e);
-          }
-        });
 
         if (isOptimistic) {
           yield newState;
@@ -241,7 +253,7 @@ class _CRUDService<T, P> {
           onCRUD?.call(r);
         } catch (e) {
           if (isOptimistic) {
-            injected.snapState = injected.snapState._copyWith(data: oldState);
+            yield oldState;
             onStateMutation?.call();
           }
           rethrow;

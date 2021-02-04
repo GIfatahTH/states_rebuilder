@@ -29,12 +29,18 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
   bool _isDirty = true;
   @override
   void initState() {
+    //  widget.globalInjected._isInitialized = true;
+    // widget.globalInjected._isFirstInitialized = true;
     globalInjected = widget.globalInjected;
     if (widget.reInheritedInjected == null) {
       inheritedInjected = RM.inject(
         widget.state!,
         debugPrintWhenNotifiedPreMessage:
             widget.debugPrintWhenNotifiedPreMessage,
+        onSetState: On.data(
+          () => globalInjected._previousSnapState =
+              inheritedInjected._previousSnapState,
+        ),
       );
 
       if (widget.connectWithGlobal) {
@@ -48,6 +54,7 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
     inheritedInjected._initialize();
     removeListeners =
         inheritedInjected._listenToRMForStateFulWidget((rm, tags) {
+      print(widget.globalInjected);
       if (!_isDirty) {
         _isDirty = true;
         setState(() {});

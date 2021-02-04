@@ -169,7 +169,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
   void _onInitState() {
     _isDisposed = false;
     if (_debugPrintWhenNotifiedPreMessage != null) {
-      listenToRM((rm) {
+      subscribeToRM((rm) {
         final post = rm._snapState.isIdle ? '- Refreshed' : '';
         print('states_rebuilder:: $rm $post');
       });
@@ -221,7 +221,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
     _nullState = inj._nullState;
     _inheritedInjects.add(inj);
 
-    inj.listenToRM((rm) {
+    inj.subscribeToRM((rm) {
       if (_inheritedInjects.any((e) => e._snapState.isWaiting)) {
         if (_isRefreshing) {
           //while refreshing from global do change state

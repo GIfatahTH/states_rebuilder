@@ -164,7 +164,7 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
         //3- take the first model of observeMany
         rm = _models.first as ReactiveModel<T>;
         _models.forEach((m) {
-          m.listenToRM((r) {
+          m.subscribeToRM((r) {
             //4- the model is that is emitting a notification
             rm = r as ReactiveModel<T>;
           });
