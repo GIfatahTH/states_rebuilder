@@ -1,10 +1,10 @@
 import '../../../service/user_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    print('Welcome ${user.state.email ?? user.state.uid}!');
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),

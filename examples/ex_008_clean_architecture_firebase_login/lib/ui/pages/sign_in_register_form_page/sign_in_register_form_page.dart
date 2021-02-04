@@ -25,7 +25,7 @@ class FormWidget extends StatelessWidget {
   //NOTE1: Creating a  ReactiveModel key for password with empty initial value
   final _password = ''.inj();
   //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
-  final _isRegister = true.inj();
+  final _isRegister = false.inj();
   //NOTE1: bool getter to check if the form is valid
   bool get _isFormValid => _email.hasData && _password.hasData;
 
@@ -79,7 +79,7 @@ class FormWidget extends StatelessWidget {
               Checkbox(
                 value: _isRegister.state,
                 onChanged: (value) {
-                  _isRegister.setState((_) => value);
+                  _isRegister.state = value;
                 },
               ),
               Text(' I do not have an account')

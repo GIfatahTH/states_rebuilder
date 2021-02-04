@@ -1,15 +1,25 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../data_source/firebase_todos_repository.dart';
+import '../../../domain/entities/todo.dart';
+import '../../../domain/value_object/todos_stats.dart';
+import '../../../service/common/enums.dart';
 import '../../common/enums.dart';
 import '../../common/localization/localization.dart';
+import '../../common/theme/theme.dart';
+import '../../exceptions/error_handler.dart';
 import '../../pages/add_edit_screen.dart/add_edit_screen.dart';
-import 'extra_actions_button.dart';
-import 'filter_button.dart';
-import 'languages.dart';
-import 'stats_counter.dart';
-import 'todo_list.dart';
+import '../auth_page/auth_page.dart';
+import '../detail_screen/detail_screen.dart';
+
+part 'extra_actions_button.dart';
+part 'filter_button.dart';
+part 'injected_todo.dart';
+part 'languages.dart';
+part 'stats_counter.dart';
+part 'todo_item.dart';
+part 'todo_list.dart';
 
 class HomeScreen extends StatelessWidget {
   static String routeName = '/HomeScreen';
@@ -27,18 +37,18 @@ class HomeScreen extends StatelessWidget {
           const Languages(),
         ],
       ),
-      body: todos.whenRebuilderOr(
+      body: On.or(
         onWaiting: () => const Center(
           child: const CircularProgressIndicator(),
         ),
-        builder: () {
-          return activeTab.rebuilder(
+        or: () {
+          return On.data(
             () => activeTab.state == AppTab.todos
                 ? const TodoList()
                 : const StatsCounter(),
-          );
+          ).listenTo(activeTab);
         },
-      ),
+      ).listenTo(todos),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           RM.navigate.toNamed(AddEditPage.routeName);
@@ -46,7 +56,7 @@ class HomeScreen extends StatelessWidget {
         child: const Icon(Icons.add),
         tooltip: i18n.of(context).addTodo,
       ),
-      bottomNavigationBar: activeTab.rebuilder(
+      bottomNavigationBar: On.data(
         () => BottomNavigationBar(
           currentIndex: AppTab.values.indexOf(activeTab.state),
           onTap: (index) {
@@ -63,7 +73,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      ).listenTo(activeTab),
     );
   }
 }

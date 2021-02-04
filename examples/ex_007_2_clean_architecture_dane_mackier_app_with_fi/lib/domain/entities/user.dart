@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import '../exceptions/validation_exception.dart';
-
 class User {
   final int id;
   final String name;

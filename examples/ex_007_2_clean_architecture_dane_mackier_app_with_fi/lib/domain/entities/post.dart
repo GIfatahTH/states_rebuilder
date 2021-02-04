@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import '../exceptions/validation_exception.dart';
-
 class Post {
   final int id;
   final int userId;

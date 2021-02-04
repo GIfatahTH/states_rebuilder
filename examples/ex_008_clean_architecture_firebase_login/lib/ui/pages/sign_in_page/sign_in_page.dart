@@ -36,7 +36,7 @@ class SignInPage extends StatelessWidget {
                 ),
                 SizedBox(height: 32),
                 //NOTE2: IF can log with apple
-                if (appleSignInCheckerService.state.canSignInWithApple) ...[
+                if (canSignInWithApple.state) ...[
                   RaisedButton(
                     child: Text('Sign in With Apple Account'),
                     onPressed: isLoading

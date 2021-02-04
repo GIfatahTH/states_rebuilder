@@ -7,7 +7,7 @@ final postsInj = RM.injectCRUD(
   onSetState: On.error(
     (err) => ExceptionHandler.showErrorDialog(err),
   ),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 extension PostsX on List<Post> {

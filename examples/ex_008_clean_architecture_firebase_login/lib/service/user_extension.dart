@@ -14,9 +14,12 @@ final user = RM.injectAuth(
   onSigned: (_) => RM.navigate.toReplacement(HomePage()),
   onUnsigned: () => RM.navigate.toReplacement(SignInPage()),
   onSetState: On.error(
-    (err) => AlertDialog(
-      title: Text(ExceptionsHandler.errorMessage(err).title),
-      content: Text(ExceptionsHandler.errorMessage(err).message),
+    (err) => RM.navigate.to(
+      AlertDialog(
+        title: Text(ExceptionsHandler.errorMessage(err).title),
+        content: Text(ExceptionsHandler.errorMessage(err).message),
+      ),
     ),
   ),
+  // debugPrintWhenNotifiedPreMessage: '',
 );

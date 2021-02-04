@@ -1,53 +1,70 @@
+
+// import 'package:clean_architecture_firebase_login/data_source/user_repository.dart';
 // import 'package:clean_architecture_firebase_login/domain/entities/user.dart';
-// import 'package:clean_architecture_firebase_login/service/user_service.dart';
+// import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
+// import 'package:states_rebuilder/states_rebuilder.dart';
 
-// class FakeUserService extends UserService {
+// class FakeUserRepository implements UserRepository {
+//   final dynamic error;
 //   User fakeUser;
-
-//   var error;
+//   FakeUserRepository({this.error});
 
 //   @override
-//   Future<User> currentUser() async {
-//     await Future.delayed(Duration(seconds: 2));
-//     return user = fakeUser;
+//   Future<IAuth<User, UserParam>> init() async {
+//     return this;
 //   }
 
 //   @override
-//   void signOut() async {
-//     await Future.delayed(Duration(seconds: 1));
-//     user = null;
-//   }
-
-//   @override
-//   void signInWithApple() async {
-//     await Future.delayed(Duration(seconds: 1));
-//     user = _user;
-//   }
-
-//   @override
-//   void signInWithGoogle() async {
-//     await Future.delayed(Duration(seconds: 1));
-//     user = _user;
-//   }
-
-//   @override
-//   void signInAnonymously() async {
-//     await Future.delayed(Duration(seconds: 1));
-//     if (error != null) {
-//       throw error;
+//   Future<User> signUp(UserParam param) async {
+//     switch (param.signUp) {
+//       case SignUp.withEmailAndPassword:
+//         await Future.delayed(Duration(seconds: 1));
+//         if (error != null) {
+//           throw error;
+//         }
+//         return User(uid: '1', email: param.email);
+//       default:
+//         throw UnimplementedError();
 //     }
-//     user = _user;
 //   }
 
-//   void createUserWithEmailAndPassword(String email, String password) async {
-//     await Future.delayed(Duration(seconds: 1));
-//     user = User(uid: '1', email: email);
+//   @override
+//   Future<User> signIn(UserParam param) async {
+//     switch (param.signIn) {
+//       case SignIn.withEmailAndPassword:
+//         await Future.delayed(Duration(seconds: 1));
+//         if (error != null) {
+//           throw error;
+//         }
+//         throw SignInException(
+//           title: 'Sign in with email and password',
+//         );
+//         return User(uid: '1', email: param.email);
+//       case SignIn.anonymously:
+//       case SignIn.withApple:
+//       case SignIn.withGoogle:
+//         await Future.delayed(Duration(seconds: 1));
+//         if (error != null) {
+//           throw error;
+//         }
+//         return _user;
+//       case SignIn.currentUser:
+//         await Future.delayed(Duration(seconds: 2));
+//         return fakeUser ?? UnLoggedUser();
+
+//       default:
+//         throw UnimplementedError();
+//     }
 //   }
 
-//   void signInWithEmailAndPassword(String email, String password) async {
+//   @override
+//   Future<void> signOut(UserParam param) async {
 //     await Future.delayed(Duration(seconds: 1));
-//     user = User(uid: '1', email: email);
+//     return null;
 //   }
+
+//   @override
+//   void dispose() {}
 
 //   User _user = User(
 //     uid: '1',
@@ -55,3 +72,64 @@
 //     email: 'fake@email.com',
 //   );
 // }
+
+// // class FakeUserRepository implements IUserRepository {
+// //   final dynamic error;
+
+// //   FakeUserRepository({this.error});
+
+// //   @override
+// //   Future<User> currentUser() async {
+// //     await Future.delayed(Duration(seconds: 2));
+// //     return UnLoggedUser();
+// //   }
+
+// //   @override
+// //   Future<void> signOut() async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     return null;
+// //   }
+
+// //   @override
+// //   Future<User> signInWithApple() async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     return _user;
+// //   }
+
+// //   @override
+// //   Future<User> signInWithGoogle() async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     return _user;
+// //   }
+
+// //   @override
+// //   Future<User> signInAnonymously() async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     if (error != null) {
+// //       throw error;
+// //     }
+// //     return _user;
+// //   }
+
+// //   @override
+// //   Future<User> createUserWithEmailAndPassword(
+// //       String email, String password) async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     return User(uid: '1', email: email);
+// //   }
+
+// //   @override
+// //   Future<User> signInWithEmailAndPassword(String email, String password) async {
+// //     await Future.delayed(Duration(seconds: 1));
+// //     throw SignInException(
+// //       title: 'Sign in with email and password',
+// //     );
+// //     return User(uid: '1', email: email);
+// //   }
+
+// //   User _user = User(
+// //     uid: '1',
+// //     displayName: "FakeUserDisplayName",
+// //     email: 'fake@email.com',
+// //   );
+// // }

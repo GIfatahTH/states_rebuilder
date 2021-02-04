@@ -23,6 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter 
   states_rebuilder:
     path: ../../states_rebuilder_package
   states_rebuilder_storage:

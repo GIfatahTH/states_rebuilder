@@ -3,11 +3,11 @@
 > Don't forget to run `flutter create .` in the terminal in the project directory to create platform-specific files.
 
 
-The architecture consists of something like onion layers, the innermost one is the domain layer, the middle layer is the service layer and the outer layer consists of three parts: the user interface  UI, data_source and infrastructure. Each of the parts of the architecture is implemented using folders.
+The architecture consists of something like onion layers, the innermost one is the domain layer, the middle layer is the service layer and the outer layer consists of three parts: the user interface  UI, data_source, and infrastructure. Each of the parts of the architecture is implemented using folders.
 
 ![Clean Architecture](https://github.com/GIfatahTH/repo_images/blob/master/008-Clean-Architecture.png).
 
-Code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the inner circle. In particular data_source and infrastructure must implement interfaces defined in the service layer.
+Code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the inner circle. In particular, data_source and infrastructure must implement interfaces defined in the service layer.
 
 ```
 **lib -**  
@@ -59,14 +59,14 @@ Code dependencies can only point inwards. Nothing in an inner circle can know an
 For more detail on the implemented clean architecture read [this article](https://medium.com/flutter-community/clean-architecture-with-states-rebuilder-has-never-been-cleaner-6c9b91c3b9b6#a588)
 
 
->For this kind of architectures, you have to start codding from the domain because it is totally independent from other layers. Then, go up and code the service layer and the data_source and the infrastructure. The UI layer is the last layer to code.
+>For this kind of architecture, you have to start codding from the domain because it is totally independent of other layers. Then, go up and code the service layer and the data_source, and the infrastructure. The UI layer is the last layer to code.
 
->Even if you want to understand an app scaffold around this kind of architecture, start understanding the domain then the service, that the data_source and infrastructure and end by understanding the UI part.
+>Even if you want to understand an app scaffold around this kind of architecture, start understanding the domain then the service, that the data_source and infrastructure, and end by understanding the UI part.
 
 
 # Domain
 ## Entities
-> Entities are immutable or mutable objects with unique IDs. They are the in-memory representation of the data that was retrieved from the persistence store (data_source). They must contain all the logic it controls. They should be validate just before persistance. 
+> Entities are immutable or mutable objects with unique IDs. They are the in-memory representation of the data that was retrieved from the persistence store (data_source). They must contain all the logic it controls. They should be validated just before persistence. 
 
 > Tip: use the dart data class generation extension to generate the data class.
 
@@ -74,11 +74,11 @@ For more detail on the implemented clean architecture read [this article](https:
 # service
 Typically, for each entity, there is a corresponding service class with the responsibility to instantiate and keep the entity by delegating to an external service and processing the entity so that it is suitable for use cases.
 
-Here as we will use `RM.injectAuth` for authenticating a user and `RM.injectCRUD` for posts and comments. The service layer is almost empty. It contains comment methods and thrown exceptions objects.
+Here as we will use `RM.injectAuth` for authenticating a user and `RM.injectCRUD` for posts and comments. The service layer is almost empty. It contains comment methods and thrown exception objects.
 
 # data_source
 
-In the data source, we will implement interfaces defined in the service layer or one of predefined states_rebuilder interfaces. There are three!
+In the data source, we will implement interfaces defined in the service layer or one of the predefined states_rebuilder interfaces. There are three!
   - `IAuth` when using `RM.injectAth`;
   - `ICRUD` when using `RM.injectCRUD`
   - `IPersistStore` when locally persisting the state.
@@ -104,7 +104,7 @@ class App extends StatelessWidget {
 }
 ```
 
-As `userInj` is not autodisposed, you have to dispose it manually. One of the methods to auto Dispose all non disposed state is to wrap the `MaterialApp` widget with `TopWidget`.
+As `userInj` is not auto disposed, you have to dispose of it manually. One of the methods to auto Dispose of all non-disposed states is to wrap the `MaterialApp` widget with `TopWidget`.
 
 TopWidget is used also to listen to `InjectedTheme` for dynamic themes and `InjectedI18N` for internationalization. 
 
@@ -134,9 +134,9 @@ class App extends StatelessWidget {
 }
 ```
 ## pages
-I suggest dedicating a folder for each page. The folder will contain a file with the same name as an entry point to the page. It is more convenient to use (part - part of) to split widgets in different file.
+I suggest dedicating a folder for each page. The folder will contain a file with the same name as an entry point to the page. It is more convenient to use (part - part of) to split widgets in a different file.
 
-The folder may contain a file dedicated for injecting state initiate in the page.
+The folder may contain a file dedicated to injecting state initiate in the page.
 
 
 The first page is the login page. 
@@ -537,4 +537,4 @@ void main() {
 }
 ```
 
-see test folder fro all other tests
+see the test folder for all other tests

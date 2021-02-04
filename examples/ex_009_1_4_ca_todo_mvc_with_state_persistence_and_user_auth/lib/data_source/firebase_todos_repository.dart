@@ -67,16 +67,19 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
   }
 
   @override
-  Future<dynamic> update(List<Todo> item, String userId) async {
+  Future<dynamic> update(List<Todo> items, String userId) async {
     try {
+      assert(items.isNotEmpty);
       // await Future.delayed(Duration(seconds: 0));
       // throw PersistanceException('Write failure');
-      final response = await http.put(
-        '$baseUrl/$userId/${item.first.id}.json?auth=$authToken',
-        body: convert.json.encode(item.first.toJson()),
-      );
-      if (response.statusCode >= 400) {
-        throw PersistanceException('Write failure');
+      for (var item in items) {
+        final response = await http.put(
+          '$baseUrl/$userId/${item.id}.json?auth=$authToken',
+          body: convert.json.encode(item.toJson()),
+        );
+        if (response.statusCode >= 400) {
+          throw PersistanceException('Write failure');
+        }
       }
       return true;
     } catch (e) {

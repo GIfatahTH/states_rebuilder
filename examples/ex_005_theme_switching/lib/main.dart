@@ -1,4 +1,6 @@
+import 'i18n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:states_rebuilder_storage/states_rebuilder_storage.dart';
 import 'home_page.dart';
@@ -16,13 +18,38 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return TopWidget(
       injectedTheme: theme,
+      injectedI18N: i18n,
+      onWaiting: () => MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
       builder: (context) {
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           theme: theme.lightTheme,
           darkTheme: theme.darkTheme,
           themeMode: theme.themeMode,
-          title: 'Flutter Demo',
-          home: HomePage(),
+          //Defining locale and localeResolutionCallback is enough to
+          //handle the app localization
+          locale: i18n.locale,
+          localeResolutionCallback: i18n.localeResolutionCallback,
+          //For more elaborate locale resolution algorithm use supportedLocales and
+          //localeListResolutionCallback.
+          // supportedLocales: i18n.supportedLocales,
+          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
+          //   //your algorithm
+          //   } ,
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          title: i18n.of(context).flutterDemo,
+          home: const HomePage(),
+          navigatorKey: RM.navigate.navigatorKey,
         );
       },
     );

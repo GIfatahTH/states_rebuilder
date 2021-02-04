@@ -7,5 +7,5 @@ final userInj = RM.injectAuth<User, int>(
     RM.navigate.toNamed(('/posts'));
   },
   onSetState: On.error(ExceptionHandler.showSnackBar),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );

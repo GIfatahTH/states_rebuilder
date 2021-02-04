@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-import '../../common/localization/languages/language_base.dart';
-import '../../common/localization/localization.dart';
+part of 'home_screen.dart';
 
 class Languages extends StatelessWidget {
   const Languages();

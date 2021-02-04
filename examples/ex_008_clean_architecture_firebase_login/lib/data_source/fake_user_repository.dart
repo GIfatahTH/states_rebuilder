@@ -35,9 +35,6 @@ class FakeUserRepository implements UserRepository {
         if (error != null) {
           throw error;
         }
-        throw SignInException(
-          title: 'Sign in with email and password',
-        );
         return User(uid: '1', email: param.email);
       case SignIn.anonymously:
       case SignIn.withApple:

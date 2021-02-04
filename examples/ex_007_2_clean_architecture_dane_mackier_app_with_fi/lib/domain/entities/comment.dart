@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import '../exceptions/validation_exception.dart';
 import '../value_objects/email.dart';
 
 class Comment {

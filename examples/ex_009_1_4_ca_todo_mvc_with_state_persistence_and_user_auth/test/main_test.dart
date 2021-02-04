@@ -1,16 +1,14 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_user.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/extra_actions_button.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/languages.dart';
 
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/auth_page/auth_page.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
 import 'fake_auth_repository.dart';
 import 'fake_todos_repository.dart';
 
@@ -28,6 +26,7 @@ void main() async {
   });
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
     //App start with dart model
     expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
@@ -39,8 +38,6 @@ void main() async {
     await tester.tap(find.byKey(Key('__toggleDarkMode__')));
     await tester.pumpAndSettle();
     //
-    //Expect the themeData is persisted
-    expect(storage.store['__themeData__'], '0');
     //And theme is light
     expect(Theme.of(RM.context).brightness == Brightness.light, isTrue);
     //
@@ -50,8 +47,6 @@ void main() async {
     await tester.tap(find.byKey(Key('__toggleDarkMode__')));
     await tester.pumpAndSettle();
     //
-    //The storage.stored themeData is updated
-    expect(storage.store['__themeData__'], '1');
     //And theme is dark
     expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
   });
@@ -68,8 +63,7 @@ void main() async {
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
-    //ar is persisted
-    expect(storage.store['__localization__'], 'ar');
+
     //App is in arabic
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'تنبيه');
     //
@@ -80,8 +74,7 @@ void main() async {
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
     await tester.pumpAndSettle();
-    //und for systemLanguage is persisted
-    expect(storage.store['__localization__'], 'und');
+
     //App is back to system language (english).
     expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
   });

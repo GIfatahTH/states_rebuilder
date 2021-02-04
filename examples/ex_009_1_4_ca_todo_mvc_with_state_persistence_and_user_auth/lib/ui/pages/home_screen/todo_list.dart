@@ -1,35 +1,25 @@
-// Copyright 2018 The Flutter Architecture Sample Authors. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found
-// in the LICENSE file.
-
-import '../../injected/injected_todo.dart';
-import 'package:flutter/material.dart';
-
-import 'todo_item.dart';
+part of 'home_screen.dart';
 
 class TodoList extends StatelessWidget {
   const TodoList();
   @override
   Widget build(BuildContext context) {
-    return todosFiltered.rebuilder(
+    return On.data(
       () {
-        final todos = todosFiltered.state;
-
         return ListView.builder(
-          itemCount: todos.length,
+          itemCount: todosFiltered.state.length,
           itemBuilder: (BuildContext context, int index) {
-            return todoItem.inherited(
-              key: Key('${todos[index].id}'),
-              stateOverride: () {
+            return todos.item.inherited(
+              key: Key('${todosFiltered.state[index].id}'),
+              item: () {
                 return todosFiltered.state[index];
               },
-              builder: (_) => const TodoItem(),
+              builder: (_) => TodoItem(),
               debugPrintWhenNotifiedPreMessage: 'todo $index',
             );
           },
         );
       },
-      shouldRebuild: () => todosFiltered.hasData || todosFiltered.hasError,
-    );
+    ).listenTo(todosFiltered);
   }
 }

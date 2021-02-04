@@ -3,13 +3,9 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/e
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/persistance_exception.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/detail_screen/detail_screen.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/extra_actions_button.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/filter_button.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/todo_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -346,6 +342,7 @@ void main() async {
       //Only active todos are displayed
       expect(checkedCheckBox, findsNWidgets(0));
       expect(unCheckedCheckBox, findsNWidgets(3));
+      await tester.pump(Duration(seconds: 1));
     },
   );
 

@@ -1,39 +1,21 @@
-import 'package:clean_architecture_firebase_login/injected.dart';
+import 'package:clean_architecture_firebase_login/data_source/fake_user_repository.dart';
+import 'package:clean_architecture_firebase_login/main.dart';
+import 'package:clean_architecture_firebase_login/service/apple_sign_in_checker_service.dart';
 import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
-import 'package:clean_architecture_firebase_login/ui/pages/sign_in_page/sign_in_page.dart';
+import 'package:clean_architecture_firebase_login/service/user_extension.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-import '../../../data_source/fake_user_repository.dart';
-import '../../../infrastructure/fake_apple_sign_in_available.dart';
 
 void main() {
-  Widget singInPage;
-  userService.injectMock(() => FakeUserService());
-  appleSignInCheckerService.injectMock(
-      () => FakeAppSignInCheckerService(null)..canSignInWithApple = true);
-
-  setUp(
-    () {
-      //As always with test, we have to think on how to isolate SignInPage from its dependencies:
-      singInPage = MaterialApp(
-        home: userService.listen(
-          child: On(
-            () {
-              return userService.state.user == null
-                  ? SignInPage()
-                  : Text('My home page');
-            },
-          ),
-        ),
-      );
-    },
+  user.injectAuthMock(() => FakeUserRepository());
+  canSignInWithApple.injectFutureMock(
+    () => Future.delayed(Duration(seconds: 1), () => true),
   );
 
   testWidgets('Sign in With Apple', (tester) async {
-    await tester.pumpWidget(singInPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
 
     //check we are in the signInPage
     expect(find.text('Log in'), findsOneWidget);
@@ -53,16 +35,16 @@ void main() {
     //Expect the sign in with apple button to be inactive
     expect(signInBtn, findsNothing);
 
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle(Duration(seconds: 1));
     //Expect to go to homepage after successfully signing in.
-    expect(find.text('My home page'), findsOneWidget);
+    expect(find.text('Welcome fake@email.com!'), findsOneWidget);
   });
 
   testWidgets('Can not sign in With Apple', (tester) async {
-    appleSignInCheckerService.injectMock(
-        () => FakeAppSignInCheckerService(null)..canSignInWithApple = false);
+    canSignInWithApple.injectMock(() => false);
 
-    await tester.pumpWidget(singInPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 3));
 
     //check we are in the signInPage
     expect(find.text('Log in'), findsOneWidget);
@@ -70,7 +52,8 @@ void main() {
   });
 
   testWidgets('Sign in With Google', (tester) async {
-    await tester.pumpWidget(singInPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
 
     //check we are in the signInPage
     expect(find.text('Log in'), findsOneWidget);
@@ -90,13 +73,14 @@ void main() {
     //Expect the sign in with apple button to be inactive
     expect(signInBtn, findsNothing);
 
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle(Duration(seconds: 1));
     //Expect to go to homepage after successfully signing in.
-    expect(find.text('My home page'), findsOneWidget);
+    expect(find.text('Welcome fake@email.com!'), findsOneWidget);
   });
 
   testWidgets('Sign in With anonymously', (tester) async {
-    await tester.pumpWidget(singInPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
 
     //check we are in the signInPage
     expect(find.text('Log in'), findsOneWidget);
@@ -116,13 +100,14 @@ void main() {
     //Expect the sign in with apple button to be inactive
     expect(signInBtn, findsNothing);
 
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle(Duration(seconds: 1));
     //Expect to go to homepage after successfully signing in.
-    expect(find.text('My home page'), findsOneWidget);
+    expect(find.text('Welcome fake@email.com!'), findsOneWidget);
   });
 
   testWidgets('Sign in With Email and password', (tester) async {
-    await tester.pumpWidget(singInPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
 
     //check we are in the signInPage
     expect(find.text('Log in'), findsOneWidget);
@@ -143,14 +128,17 @@ void main() {
   });
 
   testWidgets('display alertDialog on SignInException', (tester) async {
-    await tester.pumpWidget(singInPage);
-
-    //set to throw a SignInException error
-    (userService.state as FakeUserService).error = SignInException(
-      title: 'Sign in anonymously Alert',
-      code: 'e.code',
-      message: 'error message',
+    user.injectAuthMock(
+      () => FakeUserRepository(
+        error: SignInException(
+          title: 'Sign in anonymously Alert',
+          code: 'e.code',
+          message: 'error message',
+        ),
+      ),
     );
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
       return widget is RaisedButton &&

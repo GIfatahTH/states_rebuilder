@@ -1,10 +1,4 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-import '../../../domain/entities/todo.dart';
-import '../../../ui/pages/detail_screen/detail_screen.dart';
-import '../../common/localization/localization.dart';
+part of 'home_screen.dart';
 
 ///
 class TodoItem extends StatelessWidget {
@@ -14,17 +8,18 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = todoItem(context);
-    return todo.rebuilder(
+    final todo = todos.item(context);
+    return On.data(
       () => Dismissible(
         key: Key('__${todo.state.id}__'),
         onDismissed: (direction) {
+          print('onDismistted $Key');
           removeTodo(todo.state);
         },
         child: ListTile(
           onTap: () async {
             final shouldDelete = await RM.navigate.to(
-              todoItem.reInherited(
+              todos.item.reInherited(
                 context: context,
                 builder: (context) => DetailScreen(),
               ),
@@ -56,11 +51,13 @@ class TodoItem extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).listenTo(todo);
   }
 
   void removeTodo(Todo todo) {
-    todos.crud.delete(where: (t) => todo.id == t.id);
+    todos.crud.delete(
+      where: (t) => todo.id == t.id,
+    );
 
     RM.scaffold.showSnackBar(
       SnackBar(
