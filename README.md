@@ -26,6 +26,9 @@ States Rebuilder is an easy flutter state management solution that allows for cl
 
 * [Override the state](https://github.com/GIfatahTH/states_rebuilder/wiki/17-inherited_inject) for a particular widget tree branch (Widget-aware state).
 
+<p align="center" >
+    <image src="./assets/Poster-Simple.png"  width="1280" alt=''/>
+</p>
 
 # Documentation
 * [**Official Documentation**](states_rebuilder_package)
