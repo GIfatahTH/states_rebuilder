@@ -30,6 +30,9 @@ A Flutter state management combined with a dependency injection solution to get 
   - Easily persist the state and retrieve it back
   - Override the state for a particular widget tree branch (widget-wise state)
   - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
+  - Easy user authentication and authorization.
+  - Easily switch themes.
+  - Simple internalization and localization.
 
 - Maintainable
   - Easy to test, mock the dependencies
@@ -399,7 +402,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   );
   ```
 
-> [See more detailed information about injectCRUD](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+> [See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
 
 * To authenticate and authorize users,
   ```dart
@@ -421,7 +424,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   user.auth.signOut();
   ```
 
-> [See more detailed information about injectAuth](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
+> [See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
 
 * Widget-wise state (overriding the state):
@@ -453,6 +456,65 @@ class App extends StatelessWidget{
 }
 ```
 > [See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api).
+
+* To dynamically switch themes,
+  ```dart
+  final theme = RM.injectTheme<String>(
+      lightThemes : {
+        'simple': ThemeData.light( ... ),
+        'solarized': ThemeData.light( ...),
+      },
+      darkThemes: {
+        'simple': ThemeData.dark( ... ),
+        'solarized': ThemeData.dark( ...),
+      };
+      themeMode: ThemeMode.system;
+      persistKey: '__theme__',
+  );
+  ```
+
+  ```dart
+  //choose the theme
+  theme.state = 'solarized'
+  //toggle between dark and light mode of the chosen them
+  theme.toggle();
+  ```
+
+> [See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
+
+* To internationalize and localize your app:
+  ```dart
+  //US english
+  class EnUS {
+    final helloWorld = 'Hello world';
+  }
+  //Spanish
+  class EsEs implements EnUs{
+    final helloWorld = 'Hola Mondo';
+  }
+  ```
+  ```dart
+  final i18n = RM.injectI18N<EnUS>(
+      {
+        Local('en', 'US'): ()=> EnUS();//can be async
+        Local('es', 'ES'): ()=> EsES();
+      };
+      persistKey: '__lang__', //local persistance of language 
+  );
+  ```
+  In the UI:
+  ```dart
+  Text(i18n.of(context).helloWorld);
+  ```
+
+  ```dart
+  //choose the language
+  i18n.locale = Local('es', 'Es');
+  //Or choose the system language
+  i18n.locale = SystemLocale();
+  ```
+
+> [See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
 
 * To mock it in test:
   ```dart

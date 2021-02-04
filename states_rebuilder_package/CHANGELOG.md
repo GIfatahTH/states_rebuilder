@@ -1,6 +1,10 @@
-## 4.0.0 (2020-10-27)
-* Remove Injector, Inject, RMKey classes
-* Change Injector.en to RM.env
+## 4.0.0 (2021-02-1)
+* Remove RMKey classes.
+* Change Injector.en to RM.env.
+* Add On and OnCombined.
+* Add RM.injectCRUD, RM.injectAuth, RM.injectTheme, andRM.injectI18N.
+* Refactor the internal logic.
+* Refactor to null safety.
 ## 3.2.0 (2020-10-27)
 * `Injected.persist` is a function instead of a simple object
 * add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
