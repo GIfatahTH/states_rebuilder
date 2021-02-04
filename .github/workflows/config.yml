@@ -18,6 +18,8 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: "dev"
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
+      - run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+        working-directory: ./states_rebuilder_package
