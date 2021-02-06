@@ -61,46 +61,72 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 3. Basic use case:
 ```dart
-// 🗄️Plain Data Class
 class Model {
-  int counter;
+  double speed;
 
-  Model(this.counter);
-}  
+  Model(this.speed);
+}
 
 // 🤔Business Logic - Service Layer
 extension ModelX on Model {
-  increment() => this.counter++;  
+  increment() {
+    Random r = new Random();
+    double falseProbability = .85;
+    bool noOil = r.nextDouble() > falseProbability;
+    if (noOil)
+      throw Exception('Time to refuel');
+    else
+      return this.speed != 0 ? this.speed *= 1.2 : this.speed++;
+  }
+
+  refuel() async => Future.delayed(Duration(seconds: 2));
 }
 
-// 🚀Global Functional Injection 
+// 🚀Global Functional Injection
 // This state will be auto-disposed when no longer used, and also testable and mockable.
-final modelX = RM.inject<Model>(() => Model(0), ndoStackLength: 8);
+final modelX = RM.inject<Model>(() => Model(0.0),
+    onError: (e, s) =>
+        RM.scaffoldShow.snackBar(SnackBar(content: Text(e.toString()))));  //SnackBar will be shown when has error
 
-// 👀UI  
+// 👀UI Layer
 class CounterApp extends StatelessWidget {
   const CounterApp();
 
   @override
   Widget build(BuildContext context) {
-    return Column (
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
             ElevatedButton(
-                child: const Text('🏎️ Counter ++'),
-                onPressed: () => modelX.setState(
-                    (s) => s.increment(),
+              child: const Text('🏎️ GO'),
+              onPressed: () => modelX.setState(
+                (s) => s.increment(),
+              ),
+            ),
+            modelX.listen(
+              child: On.error(      //Only Show up when got exceptions
+                (_) => ElevatedButton(
+                  child: Text('🤷 Refuel'),
+                  onPressed: () => modelX.setState((s) => s.refuel()),
                 ),
+              ),
             ),
             RaisedButton(
-                child: const Text('⏱️ Undo'),
-                onPressed: () => modelX.undoState(),
+              child: const Text('⏱️ Reset'),
+              onPressed: () => modelX.refresh(),
             ),
-            serviceState.rebuilder(() => Text('🏁Result: ${modelX.state.counter}')),
-        ],
+            
+            modelX.rebuilder(() =>  //Rebuilder only rebuilds when has data 
+                Text('🏁Result: ${modelX.state.speed.toStringAsFixed(2)}')), 
+          ],
+        ),
+      ),
     );
-  }  
+  }
 }
+
 ```
 
 # Breaking Changes 
@@ -126,7 +152,7 @@ The specificity of `states_rebuilder` is that it has practically no boilerplate.
 This is a typical simple business logic class:
 ```dart
 class Foo { //don't extend any other library specific class
-  int mutableState =0; // the state can be mutable
+  int mutableState = 0; // the state can be mutable
   //Or
   final int immutableState; // Or it can be immutable (no difference)
   Foo(this.immutableState);
