@@ -9,7 +9,7 @@ void main() {
       Locale('en'): () => 'hello',
       Locale('fr'): () => 'salut',
     });
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       injectedI18N: i18n,
       builder: (ctx) {
         return Directionality(
@@ -29,7 +29,7 @@ void main() {
     final i18n = RM.injectI18N({
       Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
     });
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       injectedI18N: i18n,
       onWaiting: () => Directionality(
         textDirection: TextDirection.ltr,
@@ -54,7 +54,7 @@ void main() {
     final i18n = RM.injectI18N({
       Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
     });
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       injectedI18N: i18n,
       builder: (ctx) {
         return Directionality(
@@ -69,7 +69,7 @@ void main() {
   });
 
   testWidgets('Top widget waits for provided futures', (tester) async {
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       waiteFor: () => [
         Future.delayed(Duration(seconds: 1)),
         Future.delayed(Duration(seconds: 2)),
@@ -98,10 +98,11 @@ void main() {
     final i18n = RM.injectI18N({
       Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
     });
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       injectedI18N: i18n,
       waiteFor: () => [
         Future.delayed(Duration(seconds: 2)),
+        i18n.stateAsync,
       ],
       onWaiting: () => Directionality(
         textDirection: TextDirection.ltr,
@@ -126,10 +127,11 @@ void main() {
     final i18n = RM.injectI18N({
       Locale('en'): () => Future.delayed(Duration(seconds: 2), () => 'hello'),
     });
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       injectedI18N: i18n,
       waiteFor: () => [
         Future.delayed(Duration(seconds: 1)),
+        i18n.stateAsync,
       ],
       onWaiting: () => Directionality(
         textDirection: TextDirection.ltr,
@@ -154,7 +156,7 @@ void main() {
     final BinaryMessenger defaultBinaryMessenger =
         ServicesBinding.instance!.defaultBinaryMessenger;
     AppLifecycleState? lifecycleState;
-    final widget = TopWidget(
+    final widget = TopAppWidget(
       didChangeAppLifecycleState: (state) {
         lifecycleState = state;
       },

@@ -8,11 +8,11 @@ var counter = RM.inject<int>(
   persist: () => PersistState(
     key: 'counter',
     catchPersistError: true,
-    debugPrintOperations: true,
+    // debugPrintOperations: true,
   ),
-  onError: (e, s) => print('error'),
-  onInitialized: (_) => print('onInitialized'),
-  onDisposed: (_) => print('onDisposed'),
+  // onError: (e, s) => print('error'),
+  // onInitialized: (_) => print('onInitialized'),
+  // onDisposed: (_) => print('onDisposed'),
 );
 
 class App extends StatelessWidget {

@@ -275,4 +275,9 @@ void main() {
     expect(_repo._products.length, 1);
     await tester.pumpWidget(On(() => Container()).listenTo(products));
   });
+  testWidgets('Start with empty list if not read on initialized',
+      (tester) async {
+    final crud = RM.injectCRUD(() => Repository());
+    expect(crud.state.isEmpty, true);
+  });
 }

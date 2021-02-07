@@ -97,4 +97,8 @@ class _PersistStoreMock extends IPersistStore {
     exception = null;
     timeToThrow = 0;
   }
+
+  String toString() {
+    return '$store';
+  }
 }

@@ -35,11 +35,9 @@ final injectedCounter = RM.inject<Counter>(
   () => throw UnimplementedError(),
   onWaiting: () {
     //Called if any of the counter item is waiting
-    print('onWaiting');
   },
   onError: (err, stack) {
     //Called if any of the counter item has error
-    print('onWaiting');
   },
   onData: (counter) {
     //Called if all items have data
@@ -55,7 +53,6 @@ final injectedCounter = RM.inject<Counter>(
     //update the _listOfCounters
     _listOfCounters[index] = counter;
   },
-  debugPrintWhenNotifiedPreMessage: 'global counter',
 );
 
 //Use in test to track the number of rebuild of counter item widgets
@@ -74,17 +71,14 @@ class _App extends StatelessWidget {
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[0],
               builder: (_) => const CounterItem(),
-              debugPrintWhenNotifiedPreMessage: 'counter1',
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[1],
               builder: (_) => const CounterItem(),
-              debugPrintWhenNotifiedPreMessage: 'counter2',
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[2],
               builder: (_) => const CounterItem(),
-              debugPrintWhenNotifiedPreMessage: 'counter3',
             ),
           ],
         ),

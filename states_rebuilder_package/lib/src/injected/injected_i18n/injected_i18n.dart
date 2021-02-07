@@ -2,7 +2,13 @@ part of '../../reactive_model.dart';
 
 ///Used to represent the locale of the system.
 class SystemLocale extends Locale {
-  const SystemLocale() : super('systemLocale');
+  final Locale? _locale;
+
+  const SystemLocale._(this._locale) : super('systemLocale');
+
+  factory SystemLocale() {
+    return const SystemLocale._(null);
+  }
   bool operator ==(Object o) {
     return o is SystemLocale;
   }
@@ -52,10 +58,14 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
   List<Locale> get supportedLocales => _i18n.keys.toList();
 
   ///The current locale
-  Locale get locale => _locale!;
+  Locale? get locale {
+    _initialize();
+    return _locale is SystemLocale ? _resolvedLocale : _locale;
+  }
+
   Locale? _locale;
-  set locale(Locale l) {
-    if (_locale == l) {
+  set locale(Locale? l) {
+    if (l == null || _locale == l) {
       return;
     }
     final lan = _getLanguage(l);
@@ -73,27 +83,40 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
   ///If that fails, then the first element of the supportedLocales list is used.
   FutureOr<I18N> _getLanguage(Locale locale) {
     if (locale is SystemLocale) {
-      final l = WidgetsBinding.instance!.window.locales.first;
+      var l = locale._locale != null ? locale._locale! : _getSystemLocale();
       _resolvedLocale = _localeResolution(l);
       _locale = SystemLocale();
     } else {
       _resolvedLocale = _localeResolution(locale);
-      _locale = locale;
+      _locale = _resolvedLocale;
     }
 
     return _i18n[_resolvedLocale]!.call();
   }
 
-  Locale _localeResolution(Locale locale) {
+  Locale _localeResolution(Locale locale, [bool tryWithSystemLocale = true]) {
     if (_i18n.keys.contains(locale)) {
       return locale;
     }
+    //If locale is not supported,
+    //check if it has the same language code as the system local
+    if (tryWithSystemLocale) {
+      final sys = _getSystemLocale();
+      if (locale.languageCode == sys.languageCode) {
+        return _localeResolution(sys, false);
+      }
+    }
+
     final l = _i18n.keys
         .firstWhereOrNull((l) => locale.languageCode == l.languageCode);
     if (l != null) {
       return l;
     }
     return _i18n.keys.first;
+  }
+
+  Locale _getSystemLocale() {
+    return WidgetsBinding.instance!.window.locales.first;
   }
 
   //_resolvedLocale vs _local :

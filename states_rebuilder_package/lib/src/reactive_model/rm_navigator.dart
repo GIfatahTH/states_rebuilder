@@ -50,7 +50,7 @@ MaterialApp(
   ///with the new one.
   ///
   ///Equivalent to: [NavigatorState.pushReplacement]
-  Future<T?> toReplacement<T extends Object, TO extends Object>(
+  Future<T?> toReplacement<T extends Object?, TO extends Object?>(
     Widget page, {
     TO? result,
   }) {
@@ -66,7 +66,7 @@ MaterialApp(
   ///route and replace it with the new one.
   ///
   ///Equivalent to: [NavigatorState.pushReplacementNamed]
-  Future<T?> toReplacementNamed<T extends Object, TO extends Object>(
+  Future<T?> toReplacementNamed<T extends Object?, TO extends Object?>(
       String routeName,
       {TO? result,
       Object? arguments}) {
@@ -84,7 +84,7 @@ MaterialApp(
   ///removed except the new page route.
   ///
   ///Equivalent to: [NavigatorState.pushAndRemoveUntil]
-  Future<T?> toAndRemoveUntil<T extends Object>(
+  Future<T?> toAndRemoveUntil<T extends Object?>(
     Widget page, {
     String? untilRouteName,
   }) {
@@ -106,7 +106,7 @@ MaterialApp(
   ///removed except the new page route.
   ///
   ///Equivalent to: [NavigatorState.pushNamedAndRemoveUntil]
-  Future<T?> toNamedAndRemoveUntil<T extends Object>(String newRouteName,
+  Future<T?> toNamedAndRemoveUntil<T extends Object?>(String newRouteName,
       {String? untilRouteName, Object? arguments}) {
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
@@ -138,7 +138,7 @@ MaterialApp(
   ///Navigate back than to the page with the given named route
   ///
   ///Equivalent to: [NavigatorState.popAndPushNamed]
-  Future<T?> backAndToNamed<T extends Object, TO extends Object>(
+  Future<T?> backAndToNamed<T extends Object?, TO extends Object?>(
     String routeName, {
     TO? result,
     Object? arguments,

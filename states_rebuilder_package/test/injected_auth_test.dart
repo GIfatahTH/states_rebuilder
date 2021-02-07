@@ -391,4 +391,34 @@ void main() async {
       //no timer is pending
     },
   );
+
+  // testWidgets(
+  //   'call refresh on persited signed user',
+  //   (tester) async {
+  //     store.store = {
+  //       '__user__': 'Persisted user',
+  //     };
+  //     await tester.pumpWidget(widget);
+  //     expect(find.text('Waiting...'), findsOneWidget);
+  //     await tester.pumpAndSettle();
+  //     expect(find.text('HomePage: Persisted user'), findsOneWidget);
+  //     user.refresh();
+  //     await tester.pump();
+  //   },
+  // );
+
+  // testWidgets('Refresh signed user', (tester) async {
+  //   await tester.pumpWidget(widget);
+  //   expect(user.state, 'user0');
+  //   await tester.pump();
+  //   expect(onUnSigned, 1);
+  //   expect(onSigned, 0);
+  //   user.auth.signIn((_) => '1');
+  //   await tester.pump(Duration(seconds: 1));
+  //   expect(user.state, 'user1');
+  //   expect(onUnSigned, 1);
+  //   expect(onSigned, 1);
+  //   user.refresh();
+  //   await tester.pump();
+  // });
 }

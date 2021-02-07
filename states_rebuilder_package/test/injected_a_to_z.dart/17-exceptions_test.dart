@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
+  StatesRebuilerLogger.isTestMode = true;
   testWidgets(
     'Circular dependence as the injected model depends on itself',
     (tester) async {

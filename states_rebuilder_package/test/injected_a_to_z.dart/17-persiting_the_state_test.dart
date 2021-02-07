@@ -10,7 +10,6 @@ final counterFuture = RM.injectFuture(
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
   ),
-  debugPrintWhenNotifiedPreMessage: 'counterFuture',
 );
 
 //We use var here to set counter for another options in test
@@ -21,7 +20,6 @@ var counter = RM.inject(
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
   ),
-  debugPrintWhenNotifiedPreMessage: 'counter',
 );
 
 //Used to dispose counter for test

@@ -142,7 +142,6 @@ void main() {
     await tester.pumpWidget(
       streamVanillaModel.rebuilder(
         () {
-          print(streamVanillaModel.state);
           numberOfRebuild++;
           return Container();
         },
@@ -253,6 +252,32 @@ void main() {
     interface.setState((s) => s.increment());
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('Injector.flavor assertions', (tester) async {
+    StatesRebuilerLogger.isTestMode = true;
+    final model = RM.injectFlavor({
+      '1': () => 1,
+      '2': () => 2,
+    });
+
+    expect(() => model.state, throwsAssertionError);
+    model.dispose();
+    //
+    final model2 = RM.injectFlavor({
+      '1': () => 1,
+      '2': () => 2,
+      '3': () => 3,
+    });
+    RM.env = '1';
+    expect(() => model2.state, throwsAssertionError);
+    //
+    RM.env = '3';
+    final model3 = RM.injectFlavor({
+      '1': () => 1,
+      '2': () => 2,
+    });
+    expect(() => model3.state, throwsAssertionError);
   });
 
   testWidgets('Injected.streamBuilder without error', (tester) async {
@@ -652,7 +677,7 @@ void main() {
       dependsOn: DependsOn({counter1, counter2}),
       initialState: 0,
       isLazy: false,
-      debugPrintWhenNotifiedPreMessage: 'counter3',
+      // debugPrintWhenNotifiedPreMessage: 'counter3',
     );
 
     expect(counter3.isWaiting, isTrue);
@@ -790,7 +815,7 @@ void main() {
         () {
           counter2 = RM.inject(
             () => 0,
-            debugPrintWhenNotifiedPreMessage: 'counter2',
+            // debugPrintWhenNotifiedPreMessage: 'counter2',
           );
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -943,7 +968,7 @@ void main() {
         () {
           counter2 = RM.inject(
             () => 0,
-            debugPrintWhenNotifiedPreMessage: 'counter2',
+            // debugPrintWhenNotifiedPreMessage: 'counter2',
           );
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -1019,7 +1044,6 @@ void main() {
         () {
           counter2 = RM.injectStream(
             () => Stream.periodic(Duration(seconds: 1), (num) {
-              print(num);
               return num + 1;
             }).take(3),
           );
@@ -1309,8 +1333,10 @@ void main() {
 
   testWidgets('whenRebuilder with many observers preserve state',
       (tester) async {
-    final counter1 = RM.inject(() => VanillaModel(0),
-        debugPrintWhenNotifiedPreMessage: 'counter1');
+    final counter1 = RM.inject(
+      () => VanillaModel(0),
+      // debugPrintWhenNotifiedPreMessage: 'counter1',
+    );
     late Injected<VanillaModel> counter2;
     final widget = counter1.rebuilder(
       () {
@@ -1362,8 +1388,10 @@ void main() {
 
   testWidgets('whenRebuilderOr with many observers preserve state',
       (tester) async {
-    final counter1 = RM.inject(() => VanillaModel(0),
-        debugPrintWhenNotifiedPreMessage: 'counter1');
+    final counter1 = RM.inject(
+      () => VanillaModel(0),
+      // debugPrintWhenNotifiedPreMessage: 'counter1',
+    );
     late Injected<VanillaModel> counter2;
     final widget = counter1.rebuilder(
       () {
@@ -1422,7 +1450,7 @@ void main() {
         onDisposed: (_) {
           // print('disposed');
         },
-        debugPrintWhenNotifiedPreMessage: 'counter1',
+        // debugPrintWhenNotifiedPreMessage: 'counter1',
       );
       final counter2 = RM.inject(() => 0);
 

@@ -214,13 +214,13 @@ abstract class RM {
     );
     return InjectedImp<T>(
       creator: (_) {
+        _envMapLength ??= impl.length;
         assert(RM.env != null, '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
         assert(impl[env] != null, '''
 There is no implementation for $env of $T interface
     ''');
-        _envMapLength ??= impl.length;
         assert(impl.length == _envMapLength, '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
@@ -359,6 +359,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   /// signed out. This is the right place to navigate to authentication page.
   ///   * **autoSignOut**: Callback that exposes the current signed user and
   /// returns a duration after which the user is automatically signed out.
+  ///   * **authenticateOnInit**: Whether to authenticate the
   /// {@macro customInjectOptionalParameter}
   static InjectedAuth<T, P> injectAuth<T, P>(
     IAuth<T, P> Function() repository, {
@@ -367,13 +368,14 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     void Function(T s)? onSigned,
     void Function()? onUnsigned,
     Duration Function(T auth)? autoSignOut,
+    bool authenticateOnInit = true,
     //
     void Function(T s)? onInitialized,
     void Function(T s)? onDisposed,
     On<void>? onSetState,
     //
-    DependsOn<T>? dependsOn,
-    int undoStackLength = 0,
+    //DependsOn<T>? dependsOn,
+    //int undoStackLength = 0,
     PersistState<T> Function()? persist,
     //
     bool autoDisposeWhenNotUsed = false,
@@ -394,14 +396,14 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
         };
 
         inj._auth = _AuthService(fn(), inj);
-        if (!inj._isFirstInitialized) {
-          return unsignedUser;
-        } else {
-          return () async {
-            final _repo = await inj.auth._repository;
-            return await _repo.signIn(param?.call());
-          }();
-        }
+        return unsignedUser;
+        //if (!inj._isFirstInitialized) {
+        //} else {
+        //  return () async {
+        //    final _repo = await inj.auth._repository;
+        //    return await _repo.signIn(param?.call());
+        //  }();
+        //}
       },
       initialState: unsignedUser,
       autoSignOut: autoSignOut,
@@ -417,8 +419,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
         );
         //If it is mocked using injectMock,
         //Do not invoke onSigned and onUnSigned
-
-        if (inj.isIdle && !inj._isInjectMock) {
+        if (authenticateOnInit && inj.isIdle && !inj._isInjectMock) {
           if (inj.state != inj._initialState) {
             if (autoSignOut != null) {
               inj._auth!._autoSignOut();
@@ -443,8 +444,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       onAuthenticated: onSigned,
       onSignOut: onUnsigned,
       //
-      dependsOn: dependsOn,
-      undoStackLength: undoStackLength,
+      //dependsOn: dependsOn,
+      //undoStackLength: undoStackLength,
       persist: persist,
       //
       // autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
@@ -500,6 +501,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
                 (k) => s.first == '$k',
                 orElse: () => lightThemes.keys.first,
               );
+              //
+
               if (s.last == '0') {
                 inj._themeMode = ThemeMode.light;
               } else if (s.last == '1') {
@@ -573,20 +576,28 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
             key: persistKey,
             fromJson: (json) {
               final s = json.split('#|#');
-              assert(s.length <= 2);
+              assert(s.length <= 3);
               if (s.first.isEmpty) {
                 return inj._getLanguage(SystemLocale());
               }
-              final l = Locale(s.first, s.last);
+              final l = Locale.fromSubtags(
+                languageCode: s.first,
+                scriptCode: s.length > 2 ? s[1] : null,
+                countryCode: s.last,
+              );
+
               return inj._getLanguage(l);
             },
-            toJson: (key) {
+            toJson: (_) {
               String l = '';
               if (inj._locale is SystemLocale) {
                 l = '#|#';
               } else {
-                l = '${inj.locale.languageCode}#|#'
-                    '${inj.locale.countryCode}';
+                l = '${inj._resolvedLocale.languageCode}#|#' +
+                    (inj._locale?.scriptCode != null
+                        ? '${inj._resolvedLocale.scriptCode}#|#'
+                        : '') +
+                    '${inj._resolvedLocale.countryCode}';
               }
               return l;
             },

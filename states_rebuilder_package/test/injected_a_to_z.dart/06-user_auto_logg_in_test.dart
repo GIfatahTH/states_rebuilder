@@ -119,7 +119,6 @@ final authService = RM.inject<AuthService>(
     authRepository: authRepository.state,
   ),
   dependsOn: DependsOn({localStorage}),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 /* -- The UI --*/

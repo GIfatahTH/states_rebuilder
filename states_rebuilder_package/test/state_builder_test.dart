@@ -27,9 +27,7 @@ void main() {
       expect(find.text('0'), findsOneWidget);
 
       //increment and notify all observer
-      print('ddd');
       model.increment();
-      print('dd');
       model.rebuildStates();
       await tester.pump();
       expect(find.text('1'), findsOneWidget);

@@ -48,11 +48,11 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
   Map<Key, ThemeData>? _darkThemes;
 
   ///Get supported dark themes
-  Map<Key, ThemeData>? get supportedDarkThemes {
+  Map<Key, ThemeData> get supportedDarkThemes {
     if (_darkThemes != null) {
       return {..._darkThemes!};
     }
-    return null;
+    return {};
   }
 
   ThemeMode _themeMode;
@@ -96,12 +96,11 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     return _isDarkTheme;
   }
 
-  @override
-
   ///Toggle the current theme between dark and light
   ///
   ///If the current theme has only light (or dark) implementation, the
   ///toggle method will have no effect
+  @override
   void toggle() {
     if (isDarkTheme) {
       themeMode = ThemeMode.light;

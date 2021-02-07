@@ -51,9 +51,18 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     return _auth!;
   }
 
+  ///Whether the a user is signed or not
+  bool get isSigned => _state != _initialState;
+
   _AuthService<T, P>? _auth;
   Future<R> getRepoAs<R>() async {
     assert(R != dynamic && R != Object);
+    // We get the repo, so we are supposed we want to sign.
+    //If the auth state is not initialized, and it will invoke
+    //OnUnSigned. This may lead to a bug.
+    //Set _initialConnectionState to done will prevent calling
+    //OnUnSinged on app initialization. (See RM.injectedAuth onInitialized)
+    // _initialConnectionState = ConnectionState.done;
     return (await auth._repository) as R;
   }
 

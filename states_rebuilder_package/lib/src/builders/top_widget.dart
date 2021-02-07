@@ -11,7 +11,7 @@ part of '../reactive_model.dart';
 ///
 ///It can also be used to display a splash screen while initialization plugins.
 /// {@endtemplate}
-class TopWidget extends StatefulWidget {
+class TopAppWidget extends StatefulWidget {
   ///```dart
   ///Called when the system puts the app in the background or returns the
   ///app to the foreground.
@@ -37,7 +37,7 @@ class TopWidget extends StatefulWidget {
   final List<Future> Function()? waiteFor;
 
   ///{@macro topWidget}
-  const TopWidget({
+  const TopAppWidget({
     Key? key,
     this.didChangeAppLifecycleState,
     this.injectedTheme,
@@ -55,16 +55,16 @@ class TopWidget extends StatefulWidget {
         super(key: key);
 
   @override
-  _TopWidgetState createState() {
+  _TopAppWidgetState createState() {
     if (didChangeAppLifecycleState != null || injectedI18N != null) {
       return _TopWidgetWidgetsBindingObserverState();
     } else {
-      return _TopWidgetState();
+      return _TopAppWidgetState();
     }
   }
 }
 
-class _TopWidgetState extends State<TopWidget> {
+class _TopAppWidgetState extends State<TopAppWidget> {
   Widget Function(Widget Function(BuildContext) builder)? _builderTheme;
   Widget Function(Widget Function(BuildContext) builder)? _builderI18N;
   late Widget child;
@@ -86,7 +86,6 @@ class _TopWidgetState extends State<TopWidget> {
       };
     }
     if (widget.injectedI18N != null) {
-      widget.injectedI18N!._initialize();
       _builderI18N = (builder) {
         return widget.injectedI18N!.inherited(
           builder: (context) {
@@ -152,14 +151,13 @@ class _TopWidgetState extends State<TopWidget> {
         _startWaiting();
       });
     }
-    if (widget.injectedAuth != null) {
-      widget.injectedAuth!._initialize();
-    }
+    widget.injectedAuth?._initialize();
+    widget.injectedI18N?._initialize();
     return child;
   }
 }
 
-class _TopWidgetWidgetsBindingObserverState extends _TopWidgetState
+class _TopWidgetWidgetsBindingObserverState extends _TopAppWidgetState
     with WidgetsBindingObserver {
   @override
   void initState() {
@@ -180,9 +178,10 @@ class _TopWidgetWidgetsBindingObserverState extends _TopWidgetState
 
   @override
   void didChangeLocales(List<Locale>? locales) {
+    super.didChangeLocales(locales);
     if (widget.injectedI18N?._locale is SystemLocale && locales != null) {
       widget.injectedI18N!._locale = locales.first;
-      widget.injectedI18N!.locale = SystemLocale();
+      widget.injectedI18N!.locale = SystemLocale._(locales.first);
     }
   }
 }

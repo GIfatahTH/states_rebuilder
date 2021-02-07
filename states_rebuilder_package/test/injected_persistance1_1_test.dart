@@ -4,6 +4,7 @@ import 'package:states_rebuilder/src/reactive_model.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() async {
+  StatesRebuilerLogger.isTestMode = true;
   testWidgets('throw if not localStorage provider is given', (tester) async {
     var counter = RM.inject<int>(
       () => 0,

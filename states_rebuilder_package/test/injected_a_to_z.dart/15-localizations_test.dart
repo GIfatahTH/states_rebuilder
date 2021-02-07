@@ -38,7 +38,6 @@ final currentLocale = RM.inject<Locale>(
   //Each time the currentLocale is changed, we refresh the i18n so it load the
   //right json file.
   // onData: (_) => i18n.refresh(),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final Injected<I18n> i18n = RM.injectFuture<I18n>(
@@ -62,7 +61,6 @@ final Injected<I18n> i18n = RM.injectFuture<I18n>(
     );
   },
   dependsOn: DependsOn({currentLocale}),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 //The UI

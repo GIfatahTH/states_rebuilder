@@ -10,8 +10,8 @@ var counter = RM.inject(
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
   ),
-  onInitialized: (_) => print('onInitialized'),
-  onDisposed: (_) => print('onDisposed'),
+  // onInitialized: (_) => print('onInitialized'),
+  // onDisposed: (_) => print('onDisposed'),
 );
 
 class App extends StatelessWidget {
@@ -70,8 +70,8 @@ void main() async {
         },
         toJson: (s) => '$s',
       ),
-      onInitialized: (_) => print('onInitialized'),
-      onDisposed: (_) => print('onDisposed'),
+      // onInitialized: (_) => print('onInitialized'),
+      // onDisposed: (_) => print('onDisposed'),
     );
 
     store.store?.addAll({'counter': '10'});
@@ -94,8 +94,8 @@ void main() async {
         },
         toJson: (s) => '$s',
       ),
-      onInitialized: (_) => print('onInitialized'),
-      onDisposed: (_) => print('onDisposed'),
+      // onInitialized: (_) => print('onInitialized'),
+      // onDisposed: (_) => print('onDisposed'),
     );
 
     store.isAsyncRead = true;
@@ -118,8 +118,8 @@ void main() async {
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
       ),
-      onInitialized: (_) => print('onInitialized'),
-      onDisposed: (_) => print('onDisposed'),
+      // onInitialized: (_) => print('onInitialized'),
+      // onDisposed: (_) => print('onDisposed'),
     );
     expect(counter.state, 10);
     counter.state++;

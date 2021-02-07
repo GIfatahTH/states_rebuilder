@@ -10,11 +10,9 @@ class Counter {
 
 final counter1 = RM.inject(
   () => 0,
-  debugPrintWhenNotifiedPreMessage: 'counter1',
 );
 final counter1Future = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => Counter(1)),
-  debugPrintWhenNotifiedPreMessage: 'counter1Future',
 );
 
 //
@@ -26,7 +24,6 @@ void main() {
       final counter1Computed = RM.inject<int>(
         () => counter1.state + counter1Future.state.count,
         dependsOn: DependsOn({counter1Future}),
-        debugPrintWhenNotifiedPreMessage: 'counter1Computed',
       );
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -58,7 +55,6 @@ void main() {
       final counter2Future = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
         dependsOn: DependsOn({counter1}),
-        debugPrintWhenNotifiedPreMessage: 'counter2Future',
       );
 
       final widget = Directionality(
@@ -87,14 +83,12 @@ void main() {
     (tester) async {
       final counter1Future = RM.injectFuture(
         () => Future.delayed(Duration(seconds: 2), () => [1]),
-        debugPrintWhenNotifiedPreMessage: 'counter1Future',
       );
       final counter2Future = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () {
           return counter1Future.state.first + 1;
         }),
         dependsOn: DependsOn({counter1Future}),
-        debugPrintWhenNotifiedPreMessage: 'counter2Future',
       );
 
       final widget = Directionality(
@@ -124,7 +118,6 @@ void main() {
       int count = 0;
       final counter1Future = RM.injectFuture(
         () => Future.delayed(Duration(seconds: 2), () => [1]),
-        debugPrintWhenNotifiedPreMessage: 'counter1Future',
       );
       final counter2Stream = RM.injectStream<int>(
         () {
@@ -132,13 +125,11 @@ void main() {
           return Stream.periodic(
             Duration(seconds: 1),
             (data) {
-              print('$data from stream $count');
               return counter1Future.state.first + data;
             },
           );
         },
         dependsOn: DependsOn({counter1Future}),
-        debugPrintWhenNotifiedPreMessage: 'counter2Future',
       );
 
       final widget = Directionality(
@@ -264,20 +255,14 @@ void main() {
           Duration(seconds: 1),
           () => shouldThrow ? throw Exception('An ERROR') : 1,
         ),
-        onError: (e, s) {
-          print('error');
-        },
-        debugPrintWhenNotifiedPreMessage: 'counter1Future',
       );
       final dependentCounter1 = RM.inject<int>(
         () => counter1.state + counter1Future.state,
         dependsOn: DependsOn({counter1, counter1Future}),
-        debugPrintWhenNotifiedPreMessage: 'dependentCounter1',
       );
       final dependentCounter2 = RM.inject<int>(
         () => dependentCounter1.state + 1,
         dependsOn: DependsOn({dependentCounter1}),
-        debugPrintWhenNotifiedPreMessage: 'dependentCounter2',
       );
       int numberOfNotification = 0;
       dependentCounter2.subscribeToRM((rm) {

@@ -4,7 +4,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter1 = RM.inject(
   () => 10,
-  debugPrintWhenNotifiedPreMessage: 'counter1',
+  // debugPrintWhenNotifiedPreMessage: 'counter1',
 );
 final counter2 = RM.inject(() => 10);
 
@@ -37,7 +37,7 @@ final computedCounter = RM.inject<String>(
   // onError: (e, s) => print('error : $e'),
   // onDispose: (int state) => print('disposed'),
 
-  debugPrintWhenNotifiedPreMessage: 'computedCounter',
+  // debugPrintWhenNotifiedPreMessage: 'computedCounter',
 );
 
 //Used to test the number of rebuild call
