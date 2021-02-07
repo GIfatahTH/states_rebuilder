@@ -134,7 +134,7 @@ The specificity of `states_rebuilder` is that it has practically no boilerplate.
 This is a typical simple business logic class:
 ```dart
 class Foo { //don't extend any other library specific class
-  int mutableState =0; // the state can be mutable
+  int mutableState = 0; // the state can be mutable
   //Or
   final int immutableState; // Or it can be immutable (no difference)
   Foo(this.immutableState);
