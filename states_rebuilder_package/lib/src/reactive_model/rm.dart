@@ -296,6 +296,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -334,6 +335,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
     inj.._readOnInitialization = readOnInitialization;
     return inj;
@@ -785,6 +787,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///
   ///
   static void disposeAll([bool forceDispose = true]) {
+    _scaffold._context = null;
+    _context = null;
     Future.microtask(
       () => {..._injectedModels}.forEach(
         (e) {

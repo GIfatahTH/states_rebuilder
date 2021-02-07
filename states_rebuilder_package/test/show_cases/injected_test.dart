@@ -600,59 +600,6 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
   });
-
-  testWidgets('exposed state of list of injected with defined generic type',
-      (tester) async {
-    final intInj = 0.inj();
-    final stringInj = ''.inj();
-    final boolInj = false.inj();
-
-    dynamic exposedState;
-
-    final widget = OnCombined(
-      (s) {
-        exposedState = s;
-        return Container();
-      },
-    ).listenTo<String>([intInj, stringInj, boolInj]);
-    await tester.pumpWidget(widget);
-
-    expect(exposedState, '');
-    boolInj.toggle();
-    await tester.pump();
-    expect(exposedState, '');
-    intInj.state++;
-    await tester.pump();
-    expect(exposedState, '');
-  });
-
-  testWidgets('exposed state of list of injected with non defined generic type',
-      (tester) async {
-    final intInj = 0.inj();
-    final stringInj = ''.inj();
-    final boolInj = false.inj();
-
-    dynamic exposedState;
-
-    final widget = OnCombined(
-      (s) {
-        exposedState = s;
-        return Container();
-      },
-    ).listenTo([intInj, stringInj, boolInj]);
-    await tester.pumpWidget(widget);
-
-    expect(exposedState, 0);
-    boolInj.toggle();
-    await tester.pump();
-    expect(exposedState, true);
-    intInj.state++;
-    await tester.pump();
-    expect(exposedState, 1);
-    stringInj.state = 'new';
-    await tester.pump();
-    expect(exposedState, 'new');
-  });
 }
 
 class _Model {

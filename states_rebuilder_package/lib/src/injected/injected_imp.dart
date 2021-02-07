@@ -19,6 +19,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     int undoStackLength = 0,
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
     bool isLazy = true,
   }) : super._(
           nullState: nullState,
@@ -72,11 +73,13 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     _undoStackLength = undoStackLength;
     _dependsOn = dependsOn != null ? dependsOn as DependsOn<T> : null;
     _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
+    ;
     //
     _coreRM
       ..onWaiting = onWaiting
       ..onError = onError
       ..onData = onData
+      .._debugError = debugError
       ..on = on;
 
     if (!isLazy) {

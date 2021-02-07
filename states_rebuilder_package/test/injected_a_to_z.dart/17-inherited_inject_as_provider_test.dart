@@ -10,20 +10,20 @@ final counter3 =
 class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return counter1.inherited(
-      builder: (context) => counter2.inherited(
-        builder: (context) => counter3.inherited(
-          builder: (context) => _MyHomePage(),
-          // debugPrintWhenNotifiedPreMessage: 'counter3',
-        ),
-        // debugPrintWhenNotifiedPreMessage: 'counter2',
-      ),
-      // debugPrintWhenNotifiedPreMessage: 'counter1',
-    );
-
-    // return [counter1, counter2, counter3].inherited(
-    //   builder: (context) => _MyHomePage(),
+    // return counter1.inherited(
+    //   builder: (context) => counter2.inherited(
+    //     builder: (context) => counter3.inherited(
+    //       builder: (context) => _MyHomePage(),
+    //       // debugPrintWhenNotifiedPreMessage: 'counter3',
+    //     ),
+    //     // debugPrintWhenNotifiedPreMessage: 'counter2',
+    //   ),
+    //   // debugPrintWhenNotifiedPreMessage: 'counter1',
     // );
+
+    return [counter1, counter2, counter3].inherited(
+      builder: (context) => _MyHomePage(),
+    );
   }
 }
 

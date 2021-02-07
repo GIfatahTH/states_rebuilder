@@ -305,6 +305,26 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     return call();
   }
 
+  Future<F?> Function() future<F>(Future<F> Function(T s) future) {
+    return () async {
+      late F data;
+      await future(state).then((d) {
+        if (d is T) {
+          snapState = SnapState<T>._withData(ConnectionState.done, d, true);
+          _coreRM.on?._call(snapState);
+          _coreRM.onData?.call(state);
+        }
+        data = d;
+      }).catchError((e, s) {
+        snapState = SnapState<T>._withError(ConnectionState.done, _state, e, s);
+        _coreRM.on?._call(snapState);
+        _coreRM.onError?.call(e, s);
+        throw e;
+      });
+      return data;
+    };
+  }
+
   ///used to prevent rebuild of global inherited,
   ///while refreshing. See in [Injected._addToInheritedInjects]
   bool _isRefreshing = false;

@@ -16,6 +16,8 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+
     //
   })  : _param = param,
         super(
@@ -32,6 +34,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+          debugError: debugError,
         );
   final P Function()? _param;
   bool _readOnInitialization = false;

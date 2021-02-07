@@ -147,6 +147,18 @@ class On<T> {
     );
   }
 
+  static _OnFuture<T> future<T>({
+    required Widget Function()? onWaiting,
+    required Widget Function(dynamic err)? onError,
+    required Widget Function(T data) onData,
+  }) {
+    return _OnFuture<T>(
+      onWaiting: onWaiting,
+      onError: onError,
+      onData: onData,
+    );
+  }
+
   T? _call(SnapState snapState) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
@@ -249,7 +261,6 @@ extension OnX on On<Widget> {
 
           onSetState?._call(rm._snapState);
           rm._onHasErrorCallback = _hasOnError;
-
           if (_hasOnDataOnly &&
               (rm._snapState.hasError || rm._snapState.isWaiting)) {
             return;
@@ -273,54 +284,73 @@ extension OnX on On<Widget> {
       },
     );
   }
+}
 
-  // Widget future<F>(
-  //   Future<F> Function() future, {
-  //   On<void>? onSetState,
-  //   On<void>? onAfterBuild,
-  //   void Function()? initState,
-  //   void Function()? dispose,
-  //   void Function(_StateBuilder<F>)? didUpdateWidget,
-  //   bool Function(SnapState<F>? previousState)? shouldRebuild,
-  //   Object? Function()? watch,
-  //   Key? key,
-  // }) {
-  //   return _StateFulWidget<Future<F>, F>(
-  //     iniState: () {
-  //       return future();
-  //     },
-  //     builder: (rm) {
-  //       return this.listenTo<F>(
-  //         rm!,
-  //         onSetState: On(() {
-  //           onSetState?._call(rm._snapState);
-  //           if (rm._snapState.hasData) {
-  //             if (rm.state is T) {
-  //               snapState = SnapState<T>._withData(
-  //                 ConnectionState.done,
-  //                 rm.state as T,
-  //                 true,
-  //               );
-  //               if (onSetState?.onData == null) {
-  //                 _coreRM.onData?.call(state);
-  //               }
-  //             }
-  //           } else if (rm._snapState.hasError &&
-  //               rm.error != _coreRM.snapState.error) {
-  //             if (onSetState?.onError == null) {
-  //               _coreRM.onError?.call(rm.error, rm.stackTrace);
-  //             }
-  //           }
-  //         }),
-  //         onAfterBuild: onAfterBuild,
-  //         initState: initState,
-  //         dispose: dispose,
-  //         didUpdateWidget: didUpdateWidget,
-  //         shouldRebuild: shouldRebuild,
-  //         watch: watch,
-  //         key: key,
-  //       );
-  //     },
-  //   );
-  // }
+class _OnFuture<F> {
+  final Widget Function()? onWaiting;
+  final Widget Function(dynamic err)? onError;
+  final Widget Function(F data) onData;
+  _OnFuture({
+    required this.onWaiting,
+    required this.onError,
+    required this.onData,
+  });
+
+  Injected? _injected;
+  Widget future(
+    Future<F> Function() future, {
+    void Function()? dispose,
+    On<void>? onSetState,
+    Key? key,
+  }) {
+    return _listenTo(
+      InjectedImp(
+        creator: (_) => future(),
+        isLazy: false,
+      ),
+      dispose: dispose,
+      onSetState: onSetState,
+      key: key,
+    );
+  }
+
+  Widget listenTo(
+    Injected<F> injected, {
+    void Function()? dispose,
+    On<void>? onSetState,
+    Key? key,
+  }) {
+    _injected = injected;
+    return _listenTo(
+      InjectedImp(
+        creator: (_) => injected.stateAsync,
+        isLazy: false,
+      ),
+      dispose: dispose,
+      onSetState: onSetState,
+      key: key,
+    );
+  }
+
+  Widget _listenTo(
+    Injected<F> injected, {
+    void Function()? dispose,
+    On<void>? onSetState,
+    Key? key,
+  }) {
+    return On.or(
+      onWaiting: onWaiting,
+      onError: onError,
+      or: () => _injected == null
+          ? onData(injected.state)
+          : On.data(
+              () => onData(injected.state),
+            ).listenTo(_injected!),
+    ).listenTo(
+      injected,
+      dispose: dispose,
+      onSetState: onSetState,
+      key: key,
+    );
+  }
 }

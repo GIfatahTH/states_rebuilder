@@ -12,6 +12,7 @@ class ReactiveModelCore<T> {
 
   void Function(dynamic e, StackTrace? s)? onError;
   PersistState<T>? persistanceProvider;
+  void Function(dynamic error, StackTrace stackTrace)? _debugError;
 
   ReactiveModelCore({
     required this.notifyListeners,
@@ -119,6 +120,7 @@ class ReactiveModelCore<T> {
     Function(dynamic? error)? onError,
     BuildContext? context,
   }) {
+    _debugError?.call(e, s);
     if (e is Error) {
       StatesRebuilerLogger.log('', e, s);
       throw e;

@@ -57,6 +57,7 @@ final user = RM.injectAuth(
 
 void main() async {
   final store = await RM.storageInitializerMock();
+  user.injectAuthMock(() => FakeAuthRepo());
   setUp(() {
     RM.disposeAll();
     store.clear();
@@ -73,6 +74,7 @@ void main() async {
     await tester.pump(Duration(seconds: 1));
     expect(user.hasData, true);
     expect(user.state, 'user0');
+    expect(user.isSigned, false);
     //
     expect(disposeMessage, '');
     user.dispose();
@@ -86,6 +88,7 @@ void main() async {
     user.auth.signIn((_) => '1');
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user1');
+    expect(user.isSigned, true);
   });
 
   testWidgets('Sign up a user', (tester) async {

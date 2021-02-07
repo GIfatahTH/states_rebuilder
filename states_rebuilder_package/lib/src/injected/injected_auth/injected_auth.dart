@@ -87,14 +87,14 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
         return repo;
       };
       _auth = _AuthService(fn(), this);
-      if (!_isFirstInitialized) {
-        return _initialState;
-      } else {
-        return () async {
-          final _repo = await _auth!._repository;
-          return await _repo.signIn(_param?.call());
-        }();
-      }
+      return _initialState;
+      // if (!_isFirstInitialized) {
+      // } else {
+      //   return () async {
+      //     final _repo = await _auth!._repository;
+      //     return await _repo.signIn(_param?.call());
+      //   }();
+      // }
     };
     _cachedMockCreator ??= (_) => creator();
     _cleanUpState((_) => creator());

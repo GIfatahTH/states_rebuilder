@@ -222,8 +222,6 @@ class Injector extends StatefulWidget {
   @Deprecated('user RM.env instead')
   static dynamic env;
 
-  static void cleanInjector() => cleanInjector();
-
   @override
   State<Injector> createState() {
     if (appLifeCycle == null) {

@@ -13,9 +13,9 @@ class _Scaffold {
 
   ///The closest [ScaffoldState]
   ScaffoldState get scaffoldState {
-    final ctx = _context ?? RM.context ?? RM.navigate.navigatorState.context;
+    final ctx = _context ?? RM.context;
     try {
-      return Scaffold.of(ctx);
+      return Scaffold.of(ctx!);
     } catch (e) {
       throw Exception(
         '''

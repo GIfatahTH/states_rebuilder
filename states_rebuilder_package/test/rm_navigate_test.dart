@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
@@ -129,6 +131,30 @@ void main() {
     // //expect(find.text('Route2'), findsOneWidget);
   });
 
+  testWidgets('navigate to remove all', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    //
+    RM.navigate.toAndRemoveUntil(
+      Route2('data'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    // print(find.text('Route2')); //TODO to verify in emulator
+    // print(find.text('Route1'));
+    // print(find.text('Home'));
+    // print(find.text('Route3'));
+    // //expect(find.text('Route2'), findsOneWidget);
+  });
+
   testWidgets('navigate to named remove  until', (tester) async {
     await tester.pumpWidget(widget_);
 
@@ -153,5 +179,121 @@ void main() {
     // print(find.text('Home'));
     // print(find.text('Route3'));
     // //expect(find.text('Route2'), findsOneWidget);
+  });
+
+  testWidgets('navigate to named remove  all', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
+    //
+    RM.navigate.toNamedAndRemoveUntil(
+      'Route3',
+      arguments: 'data',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    // print(find.text('Route2')); TODO to verify in emulator
+    // print(find.text('Route1'));
+    // print(find.text('Home'));
+    // print(find.text('Route3'));
+    // //expect(find.text('Route2'), findsOneWidget);
+  });
+
+  testWidgets('back unitll', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.backUntil('Route1');
+    await tester.pumpAndSettle();
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets('back and to named', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.backAndToNamed('Route1', arguments: 'data', result: '');
+    await tester.pumpAndSettle();
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Route2: data'), findsOneWidget);
+  });
+
+  testWidgets('to CupertinoDialog', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toCupertinoDialog(
+      Dialog(
+        child: Text(''),
+      ),
+      barrierDismissible: false,
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.byType(Dialog), findsOneWidget);
+  });
+
+  testWidgets('to BottomSheet', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toBottomSheet(
+      Text('bottom sheet'),
+      isDismissible: true,
+      backgroundColor: Colors.red,
+      barrierColor: Colors.black,
+      clipBehavior: Clip.antiAlias,
+      elevation: 2.0,
+      enableDrag: true,
+      isScrollControlled: true,
+      shape: BorderDirectional(),
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.text('bottom sheet'), findsOneWidget);
+  });
+
+  testWidgets('to CupertinoModalPopup', (tester) async {
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toCupertinoModalPopup(
+      Text('toCupertinoModalPopup'),
+      semanticsDismissible: true,
+      filter: ImageFilter.blur(),
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.text('toCupertinoModalPopup'), findsOneWidget);
   });
 }
