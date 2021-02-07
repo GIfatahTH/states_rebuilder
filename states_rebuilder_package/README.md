@@ -81,12 +81,12 @@ extension ModelX on Model {
 
 // 🚀Global Functional Injection 
 // This state will be auto-disposed when no longer used, and also testable and mockable.
-final modelX = RM.inject<Model>(() => Model(0), ndoStackLength: 8);
+final modelX = RM.inject<Model>(() => Model(0), undoStackLength: 8);
 
 // 👀UI  
 class CounterApp extends StatelessWidget {
   const CounterApp();
-
+  
   @override
   Widget build(BuildContext context) {
     return Column (
@@ -103,8 +103,8 @@ class CounterApp extends StatelessWidget {
                 onPressed: () => modelX.undoState(),
             ),
             On(
-                () => Text('🏁Result: ${_model.counter}'),
-            ).listenTo(serviceState),
+              () => Text('🏁Result: ${modelX.state.counter}'),
+            ).listenTo(modelX),
         ],
     );
   }  
