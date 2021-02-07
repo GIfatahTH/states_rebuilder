@@ -24,7 +24,7 @@ void main() {
   commentsInj.injectCRUDMock(() => FakeCommentRepository());
 
   late Post postFromHomePage;
-  Widget postPage = TopWidget(
+  Widget postPage = TopAppWidget(
     builder: (_) => MaterialApp(
       home: CommentsPage(
         post: postFromHomePage = postsInj.state[0],

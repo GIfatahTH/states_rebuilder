@@ -44,8 +44,8 @@ class UserRepository implements IAuth<User, UserParam> {
           param.email,
           param.password,
         );
-      case SignIn.currentUser:
-        return _currentUser();
+      // case SignIn.currentUser:
+      //   return _currentUser();
 
       default:
         throw UnimplementedError();
@@ -71,7 +71,7 @@ class UserRepository implements IAuth<User, UserParam> {
     );
   }
 
-  Future<User> _currentUser() async {
+  Future<User> currentUser() async {
     final FirebaseUser firebaseUser = await _firebaseAuth.currentUser();
     return _fromFireBaseUserToUser(firebaseUser);
   }

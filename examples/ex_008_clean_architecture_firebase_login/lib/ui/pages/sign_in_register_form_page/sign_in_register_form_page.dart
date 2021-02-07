@@ -1,10 +1,10 @@
 import '../../../domain/entities/user.dart';
-import '../../../service/user_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/value_objects/email.dart';
 import '../../../domain/value_objects/password.dart';
+import '../../../injected.dart';
 import '../../exceptions/exceptions_handler.dart';
 
 class SignInRegisterFormPage extends StatelessWidget {

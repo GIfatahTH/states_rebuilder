@@ -13,7 +13,7 @@ void main() {
   Finder loginBtn = find.byType(FlatButton);
   Finder loginTextField = find.byType(TextField);
 
-  final Widget loginPage = TopWidget(
+  final Widget loginPage = TopAppWidget(
     builder: (_) => MaterialApp(
       initialRoute: 'login',
       routes: {

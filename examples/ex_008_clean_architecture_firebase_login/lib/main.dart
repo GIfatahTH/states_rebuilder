@@ -1,10 +1,11 @@
-import 'domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'service/apple_sign_in_checker_service.dart';
-import 'service/user_extension.dart';
+import 'domain/entities/user.dart';
 
+import 'injected.dart';
+import 'ui/pages/home_page/home_page.dart';
+import 'ui/pages/sign_in_page/sign_in_page.dart';
 import 'ui/widgets/splash_screen.dart';
 
 main() async {
@@ -14,21 +15,24 @@ main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return TopWidget(
+    return TopAppWidget(
       waiteFor: () => [
         canSignInWithApple.stateAsync,
       ],
       onWaiting: () => MaterialApp(
         home: SplashScreen(),
       ),
+      injectedAuth: user,
       builder: (_) => MaterialApp(
         home: user.futureBuilder(
-          future: (_, __) => user.auth.signIn(
-            (_) => UserParam(signIn: SignIn.currentUser),
+          future: (s, _) => user.auth.signIn(
+            (param) => UserParam(signIn: SignIn.currentUser),
           ),
           onWaiting: () => SplashScreen(),
-          onError: (error) => Text(error.toString()),
-          onData: (_) => SplashScreen(),
+          onError: (_) => Text('Error'),
+          onData: (_) {
+            return user.isSigned ? HomePage() : SignInPage();
+          },
         ),
         navigatorKey: RM.navigate.navigatorKey,
       ),

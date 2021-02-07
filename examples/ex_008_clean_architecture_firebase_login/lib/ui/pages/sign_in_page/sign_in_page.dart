@@ -1,9 +1,8 @@
-import '../../../domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../service/apple_sign_in_checker_service.dart';
-import '../../../service/user_extension.dart';
+import '../../../domain/entities/user.dart';
+import '../../../injected.dart';
 import '../sign_in_register_form_page/sign_in_register_form_page.dart';
 
 class SignInPage extends StatelessWidget {

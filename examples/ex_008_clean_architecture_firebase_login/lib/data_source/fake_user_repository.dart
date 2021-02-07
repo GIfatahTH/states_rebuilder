@@ -1,7 +1,7 @@
-import 'user_repository.dart';
-import '../domain/entities/user.dart';
-import '../service/exceptions/sign_in_out_exception.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+
+import '../domain/entities/user.dart';
+import 'user_repository.dart';
 
 class FakeUserRepository implements UserRepository {
   final dynamic error;
@@ -59,14 +59,21 @@ class FakeUserRepository implements UserRepository {
     return null;
   }
 
+  //
   @override
   void dispose() {}
-
+  //
   User _user = User(
     uid: '1',
     displayName: "FakeUserDisplayName",
     email: 'fake@email.com',
   );
+  //
+  @override
+  Future<User> currentUser() async {
+    await Future.delayed(Duration(seconds: 2));
+    return fakeUser ?? UnLoggedUser();
+  }
 }
 
 // class FakeUserRepository implements IUserRepository {

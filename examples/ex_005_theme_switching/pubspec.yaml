@@ -28,7 +28,7 @@ dependencies:
   states_rebuilder:
     path: ../../states_rebuilder_package
   states_rebuilder_storage:
-    path: /mnt/A270A07970A055B7/Repositories/states_rebuilder_storage/
+    path: /run/media/mafatahnj/data/Repositories/states_rebuilder_storage/
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -40,6 +40,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,4 +1,4 @@
-import '../../../service/user_extension.dart';
+import '../../../injected.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {

@@ -9,7 +9,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../data_source/fake_api.dart';
 
 void main() {
-  final Widget postsPage = TopWidget(
+  final Widget postsPage = TopAppWidget(
     builder: (_) => MaterialApp(
       initialRoute: '/posts',
       routes: {
