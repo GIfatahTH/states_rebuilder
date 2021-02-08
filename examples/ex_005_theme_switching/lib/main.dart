@@ -1,14 +1,15 @@
+import 'package:ex_005_theme_switching/hive_storge.dart';
+
 import 'i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:states_rebuilder_storage/states_rebuilder_storage.dart';
 import 'home_page.dart';
 import 'themes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await RM.storageInitializer(HiveStore());
+  await RM.storageInitializer(HiveStorage());
   runApp(MyApp());
 }
 
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return TopWidget(
+    return TopAppWidget(
       injectedTheme: theme,
       injectedI18N: i18n,
       onWaiting: () => MaterialApp(

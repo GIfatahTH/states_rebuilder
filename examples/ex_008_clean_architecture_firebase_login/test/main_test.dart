@@ -7,7 +7,6 @@ import 'package:clean_architecture_firebase_login/ui/pages/sign_in_page/sign_in_
 import 'package:clean_architecture_firebase_login/ui/widgets/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   currentEnv = Env.dev;

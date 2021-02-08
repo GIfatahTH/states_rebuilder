@@ -5,7 +5,6 @@ import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   currentEnv = Env.dev;

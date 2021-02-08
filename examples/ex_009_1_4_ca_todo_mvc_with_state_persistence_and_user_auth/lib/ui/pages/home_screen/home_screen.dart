@@ -37,18 +37,28 @@ class HomeScreen extends StatelessWidget {
           const Languages(),
         ],
       ),
-      body: On.or(
+      body: On.future(
         onWaiting: () => const Center(
           child: const CircularProgressIndicator(),
         ),
-        or: () {
+        onError: (err, refresh) => Center(
+          child: Column(
+            children: [
+              Text('Error in Retrieving todos'),
+              IconButton(
+                icon: Icon(Icons.refresh),
+                onPressed: () => refresh(),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
+        ),
+        onData: (_) {
           return On.data(
-            () => activeTab.state == AppTab.todos
-                ? const TodoList()
-                : const StatsCounter(),
+            () => activeTab.state == AppTab.todos ? TodoList() : StatsCounter(),
           ).listenTo(activeTab);
         },
-      ).listenTo(todos),
+      ).listenTo(todosFiltered),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           RM.navigate.toNamed(AddEditPage.routeName);

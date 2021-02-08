@@ -23,21 +23,13 @@ class HomePage extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Column(
-          children: [
-            Text(
-              i18n.state.counterTimes(counter.state),
+        child: Container(
+          child: On(
+            () => Text(
+              i18n.of(context).counterTimes(counter.state),
               style: Theme.of(context).textTheme.display1,
             ),
-            Container(
-              child: On(
-                () => Text(
-                  i18n.of(context).counterTimes(counter.state),
-                  style: Theme.of(context).textTheme.display1,
-                ),
-              ).listenTo(counter),
-            ),
-          ],
+          ).listenTo(counter),
         ),
       ),
       floatingActionButton: FloatingActionButton(

@@ -1,5 +1,4 @@
-import 'package:states_rebuilder_storage/states_rebuilder_storage.dart';
-
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_source/hive_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -13,7 +12,7 @@ import 'ui/widgets/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await RM.storageInitializer(HiveStore());
+  await RM.storageInitializer(HiveStorage());
   runApp(App());
 }
 
@@ -22,7 +21,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print(context);
-    return TopWidget(
+    return TopAppWidget(
       waiteFor: () => [
         //   RM.storageInitializer(HiveStore()),
       ],
@@ -41,9 +40,11 @@ class App extends StatelessWidget {
         print(context);
         return MaterialApp(
           title: i18n.of(context).appTitle,
+          //theme
           theme: isDark.lightTheme,
           darkTheme: isDark.darkTheme,
           themeMode: isDark.themeMode,
+          //i18n
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
           localizationsDelegates: [

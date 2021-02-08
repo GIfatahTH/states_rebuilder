@@ -11,7 +11,7 @@ class Languages extends StatelessWidget {
       itemBuilder: (BuildContext context) => <PopupMenuItem<Locale>>[
         PopupMenuItem<Locale>(
           key: Key('__System_language__'),
-          value: const SystemLocale(),
+          value: SystemLocale(),
           child: Text(
             i18n.of(context).systemLanguage,
           ),

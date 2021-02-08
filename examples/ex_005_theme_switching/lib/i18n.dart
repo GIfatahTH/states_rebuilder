@@ -46,7 +46,7 @@ class EsES implements EnUS {
   //
   String counterTimes(int count) {
     if (count == 0) {
-      return 'Cero veces ';
+      return 'Cero veces';
     }
     if (count == 1) {
       return 'Una vez';
@@ -58,7 +58,7 @@ class EsES implements EnUS {
 class FrFR implements EnUS {
   final flutterDemo = 'flutter_demo';
   final preferences = 'Préférences';
-  final home = 'Page d\'accueil ';
+  final home = 'Page d\'accueil';
   final greenTheme = 'Thème vert';
   final blueTheme = 'Thème bleu';
   final toggleDarkMode = 'Basculer en mode sombre';

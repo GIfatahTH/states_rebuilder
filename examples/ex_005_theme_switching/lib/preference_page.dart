@@ -13,6 +13,7 @@ class PreferencePage extends StatelessWidget {
         title: Text(i18n.state.preferences),
         actions: [
           PopupMenuButton<Locale>(
+            key: Key('_ChangeLanguage_'),
             onSelected: (value) {
               i18n.locale = value;
             },
@@ -65,6 +66,7 @@ class PreferencePage extends StatelessWidget {
             Card(
               color: theme.supportedLightThemes[AppTheme.Blue].primaryColor,
               child: ListTile(
+                key: Key('BlueThemeListTile'),
                 title: Text(
                   i18n.of(context).blueTheme,
                   style: theme
