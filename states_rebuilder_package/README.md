@@ -81,12 +81,12 @@ extension ModelX on Model {
 
 // 🚀Global Functional Injection 
 // This state will be auto-disposed when no longer used, and also testable and mockable.
-final modelX = RM.inject<Model>(() => Model(0), ndoStackLength: 8);
+final modelX = RM.inject<Model>(() => Model(0), undoStackLength: 8);
 
 // 👀UI  
 class CounterApp extends StatelessWidget {
   const CounterApp();
-
+  
   @override
   Widget build(BuildContext context) {
     return Column (
@@ -103,8 +103,8 @@ class CounterApp extends StatelessWidget {
                 onPressed: () => modelX.undoState(),
             ),
             On(
-                () => Text('🏁Result: ${_model.counter}'),
-            ).listenTo(serviceState),
+              () => Text('🏁Result: ${modelX.state.counter}'),
+            ).listenTo(modelX),
         ],
     );
   }  
@@ -134,7 +134,7 @@ The specificity of `states_rebuilder` is that it has practically no boilerplate.
 This is a typical simple business logic class:
 ```dart
 class Foo { //don't extend any other library specific class
-  int mutableState =0; // the state can be mutable
+  int mutableState = 0; // the state can be mutable
   //Or
   final int immutableState; // Or it can be immutable (no difference)
   Foo(this.immutableState);
