@@ -534,6 +534,50 @@ void main() {
     expect(find.text('Container 3'), findsOneWidget);
   });
 
+  testWidgets('StateWithMixinBuilder didChangeLocales works',
+      (WidgetTester tester) async {
+    List<Locale>? locales;
+
+    final widget = StateWithMixinBuilder(
+      mixinWith: MixinWith.widgetsBindingObserver,
+      didChangeLocales: (context, ls) {
+        locales = ls;
+      },
+      builder: (_, __) => Container(),
+    );
+    await tester.pumpWidget(widget);
+    expect(locales, null);
+    await tester.binding.setLocale('en', 'BR');
+    expect(locales, [Locale('en', 'BR')]);
+  });
+
+  testWidgets(
+    'StateWithMixinBuilder should buildWithChild works',
+    (tester) async {
+      final widget = StateWithMixinBuilder(
+        mixinWith: MixinWith.singleTickerProviderStateMixin,
+        didUpdateWidget: (_, __, ___) {},
+        initState: (_, __, ___) {},
+        dispose: (_, __, ___) {},
+        builderWithChild: (ctx, rm, child) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: <Widget>[
+                Text('${model.counter}'),
+                child,
+              ],
+            ),
+          );
+        },
+        child: Text('${model.counter}'),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsNWidgets(2));
+    },
+  );
+
   testWidgets('StateWithMixinBuilder appLifeCycle works',
       (WidgetTester tester) async {
     final BinaryMessenger defaultBinaryMessenger =

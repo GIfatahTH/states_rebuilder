@@ -147,12 +147,12 @@ class On<T> {
     );
   }
 
-  static _OnFuture<T> future<T>({
+  static _OnFuture<F> future<F>({
     required Widget Function()? onWaiting,
-    required Widget Function(dynamic err)? onError,
-    required Widget Function(T data) onData,
+    required Widget Function(dynamic err, void Function() refresh)? onError,
+    required Widget Function(F data) onData,
   }) {
-    return _OnFuture<T>(
+    return _OnFuture<F>(
       onWaiting: onWaiting,
       onError: onError,
       onData: onData,
@@ -288,7 +288,7 @@ extension OnX on On<Widget> {
 
 class _OnFuture<F> {
   final Widget Function()? onWaiting;
-  final Widget Function(dynamic err)? onError;
+  final Widget Function(dynamic err, void Function() refresh)? onError;
   final Widget Function(F data) onData;
   _OnFuture({
     required this.onWaiting,
@@ -297,60 +297,147 @@ class _OnFuture<F> {
   });
 
   Injected? _injected;
-  Widget future(
-    Future<F> Function() future, {
+  Widget future<T>(
+    Future<T> Function() future, {
     void Function()? dispose,
     On<void>? onSetState,
     Key? key,
   }) {
-    return _listenTo(
-      InjectedImp(
-        creator: (_) => future(),
-        isLazy: false,
-      ),
+    assert(F == dynamic || '$F' == 'Object?' || T == F);
+    return _listenTo<T>(
+      future: future,
       dispose: dispose,
       onSetState: onSetState,
       key: key,
     );
   }
 
-  Widget listenTo(
-    Injected<F> injected, {
+  Widget listenTo<T>(
+    Injected<T> injected, {
     void Function()? dispose,
     On<void>? onSetState,
     Key? key,
   }) {
+    assert(F == dynamic || '$F' == 'Object?' || T == F);
+
     _injected = injected;
-    return _listenTo(
-      InjectedImp(
-        creator: (_) => injected.stateAsync,
-        isLazy: false,
-      ),
+    return _listenTo<T>(
+      injected: injected,
       dispose: dispose,
       onSetState: onSetState,
       key: key,
     );
   }
 
-  Widget _listenTo(
-    Injected<F> injected, {
+  Widget _listenTo<T>({
+    Injected<T>? injected,
+    Future<T> Function()? future,
     void Function()? dispose,
     On<void>? onSetState,
     Key? key,
   }) {
-    return On.or(
-      onWaiting: onWaiting,
-      onError: onError,
-      or: () => _injected == null
-          ? onData(injected.state)
-          : On.data(
-              () => onData(injected.state),
-            ).listenTo(_injected!),
-    ).listenTo(
-      injected,
-      dispose: dispose,
-      onSetState: onSetState,
-      key: key,
+    return _StateFulWidget<Injected<F>>(
+      iniState: () {
+        if (future != null) {
+          return InjectedImp<T>(
+            creator: (_) => future(),
+            isLazy: false,
+          ) as Injected<F>;
+        } else {
+          assert(injected != null);
+          return InjectedImp<T>(
+            creator: (_) => injected!.stateAsync,
+            isLazy: false,
+            initialValue: injected!._state,
+          ) as Injected<F>;
+        }
+      },
+      dispose: () {
+        if (injected != null) {
+          if (!injected.hasObservers) {
+            Future.microtask(() => injected._clean());
+          }
+        }
+        dispose?.call();
+      },
+      builder: (inj) {
+        final _inj = inj!;
+        return On(() {
+          if (_inj._snapState.isWaiting) {
+            return onWaiting?.call() ?? onData(_inj.state);
+          }
+          if (_inj._snapState.hasError) {
+            return onError?.call(
+                  _inj.error,
+                  () {
+                    injected?.refresh();
+
+                    _inj._snapState = _inj._snapState._copyWith(
+                      connectionState: ConnectionState.none,
+                      resetError: true,
+                    );
+                    _inj._isInitialized = false;
+                    _inj._initialize();
+                  },
+                ) ??
+                onData(_inj.state);
+          }
+          return injected != null
+              ? On.data(() => onData(_inj.state)).listenTo(injected)
+              : onData(_inj.state);
+        }).listenTo<F>(
+          _inj,
+          onSetState: onSetState,
+          dispose: dispose,
+          key: key,
+          // onSetState: On(
+          //   () {
+          //     onSetState?._call(_inj._snapState);
+          //     if (_inj._snapState.hasData) {
+          //       if (_inj.state is T) {
+          //         snapState = SnapState<T>._withData(
+          //           ConnectionState.done,
+          //           _inj.state as T,
+          //           true,
+          //         );
+          //         if (onSetState?.onData == null) {
+          //           _coreRM.onData?.call(state);
+          //         }
+          //       }
+          //     } else if (_inj._snapState.hasError &&
+          //         _inj.error != _coreRM.snapState.error) {
+          //       if (onSetState?.onError == null) {
+          //         _coreRM.onError?.call(_inj.error, _inj.stackTrace);
+          //       }
+          //     }
+          //   },
+          // ),
+        );
+      },
     );
+
+    // On<Widget>.or(
+    //   onWaiting: onWaiting,
+    //   onError: onError != null
+    //       ? (err) => onError!.call(err, () {
+    //             injected._snapState = injected._snapState._copyWith(
+    //               connectionState: ConnectionState.none,
+    //               resetError: true,
+    //             );
+    //             injected._isInitialized = false;
+    //             injected._initialize();
+    //           })
+    //       : null,
+    //   or: () => _injected == null
+    //       ? onData(injected.state)
+    //       : On.data(
+    //           () => onData(injected.state),
+    //         ).listenTo(_injected!),
+    // ).listenTo(
+    //   injected,
+    //   dispose: dispose,
+    //   onSetState: onSetState,
+    //   key: key,
+    // );
   }
 }

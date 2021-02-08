@@ -103,7 +103,7 @@ final widget = MaterialApp(
   home: Scaffold(
     body: On.future(
       onWaiting: () => CircularProgressIndicator(),
-      onError: (_) => Text('Error'),
+      onError: (_, __) => Text('Error'),
       onData: (_) => ListView.builder(
         itemCount: products.state.length,
         itemBuilder: (context, index) {

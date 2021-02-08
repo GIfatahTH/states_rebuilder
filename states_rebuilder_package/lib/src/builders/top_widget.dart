@@ -122,8 +122,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         _isWaiting = false;
       });
     } catch (e) {
-      setState(() {});
-      (() {
+      setState(() {
         _isWaiting = false;
         _hasError = true;
         error = e;
@@ -133,7 +132,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
 
   @override
   void dispose() {
-    RM.disposeAll();
+    Future.microtask(() => RM.disposeAll());
     super.dispose();
   }
 

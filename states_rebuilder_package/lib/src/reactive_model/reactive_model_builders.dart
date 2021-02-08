@@ -59,7 +59,6 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         _initialize();
         if (future != null) {
           final f = future(_state, (this as ReactiveModel<T>).stateAsync);
-          assert(f != null);
           return InjectedImp(
             creator: (_) => f!,
             isLazy: false,
@@ -165,7 +164,6 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
         iniState: () {
           _initialize();
           final s = stream(state, (this as ReactiveModel<T>).subscription);
-          assert(s != null);
           return InjectedImp<S>(
             creator: (_) => s!,
             isLazy: false,

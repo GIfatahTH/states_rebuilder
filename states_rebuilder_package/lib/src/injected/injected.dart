@@ -204,6 +204,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
       return true;
     }());
     assert(!_isDisposed);
+
     _isDisposed = true;
     RM.printInjected?.call(_snapState);
     if (!_isInitialized) {

@@ -32,26 +32,81 @@ void main() {
     expect(find.text('data'), findsOneWidget);
   });
 
-  testWidgets('On.futurewith error', (tester) async {
-    final widget = On.future(
+  testWidgets('On.futurewith error and refersh', (tester) async {
+    bool shouldThrow = true;
+    late void Function() refresh;
+    final widget = On.future<VanillaModel>(
       onWaiting: () => Text('waiting ...'),
-      onError: (e) => Text('${e.message}'),
-      onData: (rm) {
-        return Text('data');
+      onError: (e, refresher) {
+        refresh = refresher;
+        return Text('${e.message}');
+      },
+      onData: (data) {
+        return Text(data.counter.toString());
       },
     ).future(
-      () => vanillaModel.state.incrementError().then(
-            (_) => Future.delayed(
+      () => shouldThrow
+          ? vanillaModel.state.incrementError().then(
+                (_) => Future.delayed(
+                  Duration(seconds: 1),
+                  () => VanillaModel(5),
+                ),
+              )
+          : Future.delayed(
               Duration(seconds: 1),
               () => VanillaModel(5),
             ),
-          ),
     );
 
     await tester.pumpWidget(MaterialApp(home: widget));
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Error message'), findsOneWidget);
+    shouldThrow = false;
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('5'), findsOneWidget);
+  });
+
+  testWidgets('On.future with error and refersh cas listenTo is used',
+      (tester) async {
+    bool shouldThrow = true;
+    late void Function() refresh;
+
+    final injected = RM.injectFuture(
+      () => shouldThrow
+          ? Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error message'),
+            )
+          : Future.delayed(
+              Duration(seconds: 1),
+              () => VanillaModel(5),
+            ),
+    );
+    final widget = On.future<VanillaModel>(
+      onWaiting: () => Text('waiting ...'),
+      onError: (e, refresher) {
+        refresh = refresher;
+        return Text('${e.message}');
+      },
+      onData: (data) {
+        return Text(data.counter.toString());
+      },
+    ).listenTo(injected);
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+    shouldThrow = false;
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('5'), findsOneWidget);
   });
 
   testWidgets('On.future do not call global onData if types are different',
@@ -65,7 +120,7 @@ void main() {
     await tester.pumpWidget(
       On.future(
         onWaiting: () => Container(),
-        onError: (_) => Container(),
+        onError: (_, __) => Container(),
         onData: (_) => Container(),
       ).future(
         modelFuture.future(
@@ -90,7 +145,7 @@ void main() {
 
     await tester.pumpWidget(On.future(
       onWaiting: () => Container(),
-      onError: (_) => Container(),
+      onError: (_, __) => Container(),
       onData: (_) => Container(),
     ).future(
       modelFuture.future((s) => s.incrementAsyncImmutable()),
@@ -112,7 +167,7 @@ void main() {
 
     await tester.pumpWidget(On.future(
       onWaiting: () => Container(),
-      onError: (_) => Container(),
+      onError: (_, __) => Container(),
       onData: (_) => Container(),
     ).future(modelFuture.future((s) => s.incrementError())));
 
@@ -131,7 +186,7 @@ void main() {
       textDirection: TextDirection.ltr,
       child: On.future(
         onWaiting: () => Text('Waiting...'),
-        onError: (_) => Text('Error'),
+        onError: (_, __) => Text('Error'),
         onData: (_) => Text(counter.state.toString()),
       ).future(() => counter.stateAsync),
     ));
@@ -162,7 +217,7 @@ void main() {
       textDirection: TextDirection.ltr,
       child: On.future(
         onWaiting: () => Text('Waiting...'),
-        onError: (_) => Text('Error'),
+        onError: (_, __) => Text('Error'),
         onData: (_) => Text('${counter.state}-${++numberOfRebuild}'),
       ).listenTo(counter),
     ));
@@ -182,5 +237,23 @@ void main() {
     counter.setState((s) => throw Exception(), catchError: true);
     await tester.pump();
     expect(find.text('3-3'), findsOneWidget);
+  });
+
+  testWidgets('On.future assert ', (tester) async {
+    expect(
+      () => On.future<int>(
+        onWaiting: () => Text('Waiting...'),
+        onError: (_, __) => Text('Error'),
+        onData: (_) => Text('$_'),
+      ).future(() => Future.value(true)),
+      throwsAssertionError,
+    );
+
+    final on = On.future(
+      onWaiting: () => Text('Waiting...'),
+      onError: (_, __) => Text('Error'),
+      onData: (_) => Text('$_'),
+    ).future(() => Future.value(true));
+    print(on);
   });
 }

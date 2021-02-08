@@ -595,11 +595,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
               if (inj._locale is SystemLocale) {
                 l = '#|#';
               } else {
-                l = '${inj._resolvedLocale.languageCode}#|#' +
+                l = '${inj._resolvedLocale!.languageCode}#|#' +
                     (inj._locale?.scriptCode != null
-                        ? '${inj._resolvedLocale.scriptCode}#|#'
+                        ? '${inj._resolvedLocale!.scriptCode}#|#'
                         : '') +
-                    '${inj._resolvedLocale.countryCode}';
+                    '${inj._resolvedLocale!.countryCode}';
               }
               return l;
             },

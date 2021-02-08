@@ -54,6 +54,13 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
 
   Map<Locale, FutureOr<I18N> Function()> _i18n;
 
+  Locale? _locale;
+
+  //_resolvedLocale vs _local :
+  //_locale may be equal SystemLocale which is not a recognized locale
+  //_resolvedLocale is a valid locale from the supported locale list
+  Locale? _resolvedLocale;
+
   ///Get lists of supported locales
   List<Locale> get supportedLocales => _i18n.keys.toList();
 
@@ -63,19 +70,12 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
     return _locale is SystemLocale ? _resolvedLocale : _locale;
   }
 
-  Locale? _locale;
   set locale(Locale? l) {
     if (l == null || _locale == l) {
       return;
     }
     final lan = _getLanguage(l);
     setState((s) => lan);
-  }
-
-  @override
-  void _onDisposeState() {
-    super._onDisposeState();
-    _locale = null;
   }
 
   ///If an exact match for the device locale isn’t found,
@@ -119,11 +119,6 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
     return WidgetsBinding.instance!.window.locales.first;
   }
 
-  //_resolvedLocale vs _local :
-  //_locale may be equal SystemLocale which is not a recognized locale
-  //_resolvedLocale is a valid locale from the supported locale list
-  late Locale _resolvedLocale;
-
   ///Default locale resolution used by states_rebuilder.
   ///
   ///It first research for an exact match of the chosen locale in the list
@@ -135,6 +130,13 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
   ///and define your logic.
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback => (locale, __) {
-            return _resolvedLocale;
+            return _resolvedLocale!;
           };
+
+  @override
+  void _onDisposeState() {
+    super._onDisposeState();
+    _locale = null;
+    _resolvedLocale = null;
+  }
 }

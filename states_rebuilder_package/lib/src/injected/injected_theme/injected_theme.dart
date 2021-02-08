@@ -108,4 +108,11 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
       themeMode = ThemeMode.dark;
     }
   }
+
+  @override
+  void _onDisposeState() {
+    super._onDisposeState();
+    _isDarkTheme = false;
+    _themeMode = ThemeMode.system;
+  }
 }

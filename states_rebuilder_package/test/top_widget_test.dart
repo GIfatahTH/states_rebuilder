@@ -4,6 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
+  testWidgets(
+    'throw if waiteFore is defined without onWaiting',
+    (tester) async {
+      expect(
+          () => TopAppWidget(
+                waiteFor: () => [Future.value(0)],
+                builder: (_) {
+                  return Container();
+                },
+              ),
+          throwsAssertionError);
+    },
+  );
   testWidgets('provide i18n', (tester) async {
     final i18n = RM.injectI18N({
       Locale('en'): () => 'hello',
@@ -151,7 +164,45 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('hello'), findsOneWidget);
   });
+  testWidgets('TopAppWidget error', (tester) async {
+    bool shouldThrow = true;
+    void Function()? refresh;
+    final widget = TopAppWidget(
+      waiteFor: () => [
+        Future.delayed(Duration(seconds: 1),
+            () => shouldThrow ? throw Exception('Error') : 1),
+        Future.delayed(Duration(seconds: 2), () => 2),
+      ],
+      onWaiting: () => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Text('Waiting...'),
+      ),
+      onError: (err, refresher) {
+        refresh = refresher;
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Text('Error'),
+        );
+      },
+      builder: (context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Text('Data'),
+      ),
+    );
 
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error'), findsOneWidget);
+    shouldThrow = false;
+    refresh!();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Data'), findsOneWidget);
+  });
   testWidgets('appLifeCycle works', (WidgetTester tester) async {
     final BinaryMessenger defaultBinaryMessenger =
         ServicesBinding.instance!.defaultBinaryMessenger;

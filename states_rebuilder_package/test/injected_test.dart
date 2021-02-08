@@ -354,6 +354,7 @@ void main() {
       onWaiting: () => Text('waiting ...'),
       onError: (e) => Text('${e.message}'),
       dispose: () => null,
+      shouldRebuild: () => true,
       onData: () {
         return Text('data');
       },
