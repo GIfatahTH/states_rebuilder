@@ -100,18 +100,21 @@ abstract class Injected<T> implements ReactiveModel<T> {
 
   void _resolveDependencies<T>(Injected<T>? dependent) {
     if (dependent != null && dependent != this) {
-      _initialize();
-
       assert(
         _dependsOn?.injected.contains(dependent) != true,
-        '$runtimeType depends on ${_dependsOn.runtimeType} and '
-        '${_dependsOn.runtimeType} depends on $runtimeType',
+        // '$runtimeType depends on ${_dependsOn.runtimeType} and '
+        // '${_dependsOn.runtimeType} depends on $runtimeType',
       );
+      _initialize();
+
       final refreshDisposer = addToRefresh(() {
         dependent._state = dependent._nullState;
       });
       final disposer = _listenToRMForStateFulWidget(
-        (rm, tags) {
+        (rm, tags, isOnCrud) {
+          // if (isOnCrud) {
+          //   return;
+          // }
           if (dependent._dependsOn!.shouldNotify?.call(dependent._state) ==
               false) {
             return;
@@ -153,13 +156,6 @@ abstract class Injected<T> implements ReactiveModel<T> {
   }
 
   void dispose() {
-    // if (!_autoDisposeWhenNotUsed && !shouldForceDispose) {
-    //   return;
-    // }
-    // if (_autoDisposeWhenNotUsed) {
-    // _onDisposeState();
-    // }
-
     if (_cleaner.isNotEmpty) {
       _clean(true);
     }
@@ -225,7 +221,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
     inj.subscribeToRM((rm) {
       if (_inheritedInjects.any((e) => e._snapState.isWaiting)) {
         if (_isRefreshing) {
-          //while refreshing from global do change state
+          //while refreshing from global do change  the state
           //and do not rebuild
           _coreRM._snapState = _coreRM._snapState._copyWith(
             connectionState: ConnectionState.waiting,
@@ -338,11 +334,11 @@ abstract class Injected<T> implements ReactiveModel<T> {
   Widget inherited({
     required Widget Function(BuildContext) builder,
     Key? key,
-    T Function()? stateOverride,
+    FutureOr<T> Function()? stateOverride,
     bool? connectWithGlobal,
     String? debugPrintWhenNotifiedPreMessage,
   }) {
-    return _InheritedState(
+    return _InheritedState<T>(
       key: key,
       builder: (context) => builder(context),
       globalInjected: this,
@@ -366,7 +362,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
             ?.widget as _InheritedInjected<T>)
         .globalInjected;
-    return _InheritedState(
+    return _InheritedState<T>(
       key: key ?? Key('$context'),
       builder: (context) => builder(context),
       globalInjected: globalInject,

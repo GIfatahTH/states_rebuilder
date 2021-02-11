@@ -22,6 +22,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     // bool autoDisposeWhenNotUsed = false,
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
     //
   })  : _param = param,
         _autoSignOut = autoSignOut,
@@ -43,6 +44,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
           autoDisposeWhenNotUsed: false,
           isLazy: true,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+          debugError: debugError,
         );
   final P Function()? _param;
   final Duration Function(T s)? _autoSignOut;

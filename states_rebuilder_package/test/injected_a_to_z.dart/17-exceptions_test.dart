@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() {
   StatesRebuilerLogger.isTestMode = true;
   testWidgets(
-    'Circular dependence as the injected model depends on itself',
+    'No Circular dependence even if the injected model is used in its creator',
     (tester) async {
       //Will not circle because the default null state is inferred
       expect(x.state, 0);
@@ -23,12 +23,23 @@ void main() {
     },
   );
   testWidgets(
-    'Circular dependence as y depends on z and z depends on y',
+    'No Circular dependence even if y is called in the creator of z '
+    'and z  called in the creator of y',
     (tester) async {
       //will not throw
-      expect(y.state, 0);
+      expect(y1.state, 0);
+      expect(y2.state, 0);
     },
   );
+
+  // testWidgets(
+  //   'Circular dependence z1 depends on z2 and z2 depends on z1',
+  //   (tester) async {
+  //     //will not throw
+  //     expect(()=>z1, throws);
+  //     expect(z1.state, 0);
+  //   },
+  // );
 }
 
 final x = RM.inject<int>(() => x.state);
@@ -37,5 +48,16 @@ final arrayWithoutNullState =
 final arrayWithNullState =
     RM.inject<List>(() => arrayWithNullState.state, initialState: []);
 //
-final y = RM.inject<int>(() => z.state);
-final z = RM.inject<int>(() => y.state);
+final y1 = RM.inject<int>(() => y2.state);
+final y2 = RM.inject<int>(() => y1.state);
+
+//
+
+final z1 = RM.inject<int>(
+  () => z2.state,
+  dependsOn: DependsOn({z2}),
+);
+final z2 = RM.inject<int>(
+  () => z1.state,
+  dependsOn: DependsOn({z1}),
+);

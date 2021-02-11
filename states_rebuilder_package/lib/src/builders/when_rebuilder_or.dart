@@ -179,7 +179,7 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
       or: (_) => widget.builder(context, rm),
     ).listenTo<T>(
       _models,
-      onSetState: OnCombined.any((_) => widget.onSetState?.call(context, rm)),
+      onSetState: OnCombined((_) => widget.onSetState?.call(context, rm)),
       shouldRebuild: () {
         //if it is allowed to rebuild (true) then _isDirty is true
         return widget.shouldRebuild?.call(rm) ?? true;

@@ -155,12 +155,12 @@ await RM.storageInitializerMock();\n\n
         _throttleTimer = null;
         final r =
             await persistState.write<String>(key, toJson!(_valueForThrottle!));
-        _valueForThrottle = null;
         if (debugPrintOperations) {
           StatesRebuilerLogger.log(
             'PersistState: write($key, $_valueForThrottle)',
           );
         }
+        _valueForThrottle = null;
         return r;
       });
       return null;

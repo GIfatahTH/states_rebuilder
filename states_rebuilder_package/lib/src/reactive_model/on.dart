@@ -15,46 +15,49 @@ part of '../reactive_model.dart';
 ///{@endtemplate}
 class On<T> {
   ///Callback to be called when first the model is initialized.
-  final T Function()? onIdle;
+  final T Function()? _onIdle;
 
   ///Callback to be called when the model is waiting for and async task.
-  final T Function()? onWaiting;
+  final T Function()? _onWaiting;
 
   ///Callback to be called when the model has an error.
-  final T Function(dynamic err)? onError;
+  final T Function(dynamic err)? _onError;
 
   ///Callback to be called when the model has data.
-  final T Function()? onData;
+  final T Function()? _onData;
   // final _OnType _onType;
 
-  bool get _hasOnWaiting => onWaiting != null;
-  bool get _hasOnError => onError != null;
-  bool get _hasOnIdle => onIdle != null;
-  bool get _hasOnData => onData != null;
-  bool _hasOnDataOnly = false;
+  bool get _hasOnWaiting => _onWaiting != null;
+  bool get _hasOnError => _onError != null;
+  bool get _hasOnIdle => _onIdle != null;
+  bool get _hasOnData => _onData != null;
   On._({
-    required this.onIdle,
-    required this.onWaiting,
-    required this.onError,
-    required this.onData,
+    required T Function()? onIdle,
+    required T Function()? onWaiting,
+    required T Function(dynamic err)? onError,
+    required T Function()? onData,
     // required _OnType onType,
-  });
+  })   : _onIdle = onIdle,
+        _onWaiting = onWaiting,
+        _onError = onError,
+        _onData = onData;
 
   ///The callback is always invoked when the [Injected] model emits a
-  ///notification.
-  factory On.any(
-    T Function() builder,
-  ) {
-    return On._(
-      onIdle: builder,
-      onWaiting: builder,
-      onError: (dynamic _) => builder(),
-      onData: builder,
-      // onType: _OnType.when,
-    );
-  }
+  // ///notification.
+  // factory On.any(
+  //   T Function() builder,
+  // ) {
+  //   return On._(
+  //     onIdle: builder,
+  //     onWaiting: builder,
+  //     onError: (dynamic _) => builder(),
+  //     onData: builder,
+  //     // onType: _OnType.when,
+  //   );
+  // }
 
-  ///{@macro on}
+  ///The callback is always invoked when the [Injected] model emits a
+  // notification.
   factory On(
     T Function() builder,
   ) {
@@ -76,7 +79,7 @@ class On<T> {
       onError: null,
       onData: fn,
       // onType: _OnType.onData,
-    ).._hasOnDataOnly = true;
+    );
   }
 
   ///The callback is invoked only when the [Injected] model emits a
@@ -147,6 +150,11 @@ class On<T> {
     );
   }
 
+  ///Set of callbacks to be invoked  when a future or an [Injected] model that
+  ///is associated with the future, emits a notification with the corresponding
+  ///state status.
+  ///
+  ///See: [_OnFuture.future] and [_OnFuture.listenTo]
   static _OnFuture<F> future<F>({
     required Widget Function()? onWaiting,
     required Widget Function(dynamic err, void Function() refresh)? onError,
@@ -159,36 +167,67 @@ class On<T> {
     );
   }
 
+  static _OnCRUD<T> crud<T>({
+    required T Function()? onWaiting,
+    required T Function(dynamic err)? onError,
+    required T Function(dynamic data) onResult,
+  }) {
+    return _OnCRUD<T>(
+      onWaiting: onWaiting,
+      onError: onError,
+      onResult: onResult,
+    );
+  }
+
+  bool _canRebuild(ReactiveModel rm) {
+    if (rm.isWaiting) {
+      return _hasOnWaiting;
+    }
+    if (rm.hasError) {
+      return _hasOnError;
+    }
+    return true;
+  }
+
   T? _call(SnapState snapState) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
-        return onWaiting?.call();
+        return _onWaiting!.call();
       }
-      return onData?.call();
+      return _onData?.call();
     }
     if (snapState.hasError) {
       if (_hasOnError) {
-        return onError?.call(snapState.error);
+        return _onError!.call(snapState.error);
       }
-      return onData?.call();
+      return _onData?.call();
     }
 
     if (snapState.isIdle) {
       if (_hasOnIdle) {
-        return onIdle?.call();
+        return _onIdle?.call();
       }
       if (_hasOnData) {
-        return onData?.call();
+        return _onData?.call();
       }
       if (_hasOnWaiting) {
-        return onWaiting?.call();
+        return _onWaiting?.call();
       }
       if (_hasOnError) {
-        return onError?.call(snapState.error);
+        return _onError?.call(snapState.error);
       }
     }
 
-    return onData?.call();
+    if (_hasOnData) {
+      return _onData?.call();
+    }
+    if (_hasOnWaiting) {
+      return _onWaiting!.call();
+    }
+
+    if (_hasOnError) {
+      return _onError!.call(snapState.error);
+    }
   }
 }
 
@@ -253,7 +292,10 @@ extension OnX on On<Widget> {
             (_) => onAfterBuild._call(rm._snapState),
           );
         }
-        return rm._listenToRMForStateFulWidget((rm, _) {
+        return rm._listenToRMForStateFulWidget((rm, tags, isOnCrud) {
+          if (isOnCrud) {
+            return;
+          }
           rm!;
           if (shouldRebuild?.call(rm._coreRM._previousSnapState) == false) {
             return;
@@ -261,8 +303,8 @@ extension OnX on On<Widget> {
 
           onSetState?._call(rm._snapState);
           rm._onHasErrorCallback = _hasOnError;
-          if (_hasOnDataOnly &&
-              (rm._snapState.hasError || rm._snapState.isWaiting)) {
+
+          if (!_canRebuild(rm)) {
             return;
           }
           if (onAfterBuild != null) {
@@ -297,6 +339,15 @@ class _OnFuture<F> {
   });
 
   Injected? _injected;
+
+  ///Used to listen to any kind of future.
+  ///
+  /// * **Required parameters**:
+  ///     * **future**: Callback that return the future to listen to.
+  /// * **Optional parameters:**
+  ///     * **onSetState** :  of type `On<void>`. used for side effects
+  ///     * **dispose** :  called when the widget is removed from the
+  /// widget tree.
   Widget future<T>(
     Future<T> Function() future, {
     void Function()? dispose,
@@ -312,6 +363,21 @@ class _OnFuture<F> {
     );
   }
 
+  ///Used to listen to the `stateAsyc` of an injected state.
+  ///
+  ///This is a one-time subscription for `onWaiting` and `onError`. That is
+  ///after the `stateAsyc` future ends, this widget will not rebuild if the
+  ///injected state emits notification with `hasError` or `isWaiting` state status.
+  ///
+  ///Whereas, `onData` is an ongoing subscritpion. the widget keeps listening the
+  ///injected state when emits a notification with `hasData` status.
+  ///
+  /// * **Required parameters**:
+  ///     * **future**: Callback that return the future to listen to.
+  /// * **Optional parameters:**
+  ///     * **onSetState** :  of type `On<void>`. used for side effects
+  ///     * **dispose** :  called when the widget is removed from the
+  /// widget tree.
   Widget listenTo<T>(
     Injected<T> injected, {
     void Function()? dispose,
@@ -344,10 +410,9 @@ class _OnFuture<F> {
             isLazy: false,
           ) as Injected<F>;
         } else {
-          assert(injected != null);
           return InjectedImp<T>(
             creator: (_) => injected!.stateAsync,
-            isLazy: false,
+            isLazy: true,
             initialValue: injected!._state,
           ) as Injected<F>;
         }
@@ -370,7 +435,14 @@ class _OnFuture<F> {
             return onError?.call(
                   _inj.error,
                   () {
-                    injected?.refresh();
+                    if (injected != null) {
+                      injected._snapState = injected._snapState._copyWith(
+                        connectionState: ConnectionState.none,
+                        resetError: true,
+                      );
+                      injected._isInitialized = false;
+                      injected._initialize();
+                    }
 
                     _inj._snapState = _inj._snapState._copyWith(
                       connectionState: ConnectionState.none,
@@ -390,54 +462,96 @@ class _OnFuture<F> {
           onSetState: onSetState,
           dispose: dispose,
           key: key,
-          // onSetState: On(
-          //   () {
-          //     onSetState?._call(_inj._snapState);
-          //     if (_inj._snapState.hasData) {
-          //       if (_inj.state is T) {
-          //         snapState = SnapState<T>._withData(
-          //           ConnectionState.done,
-          //           _inj.state as T,
-          //           true,
-          //         );
-          //         if (onSetState?.onData == null) {
-          //           _coreRM.onData?.call(state);
-          //         }
-          //       }
-          //     } else if (_inj._snapState.hasError &&
-          //         _inj.error != _coreRM.snapState.error) {
-          //       if (onSetState?.onError == null) {
-          //         _coreRM.onError?.call(_inj.error, _inj.stackTrace);
-          //       }
-          //     }
-          //   },
-          // ),
         );
       },
     );
+  }
+}
 
-    // On<Widget>.or(
-    //   onWaiting: onWaiting,
-    //   onError: onError != null
-    //       ? (err) => onError!.call(err, () {
-    //             injected._snapState = injected._snapState._copyWith(
-    //               connectionState: ConnectionState.none,
-    //               resetError: true,
-    //             );
-    //             injected._isInitialized = false;
-    //             injected._initialize();
-    //           })
-    //       : null,
-    //   or: () => _injected == null
-    //       ? onData(injected.state)
-    //       : On.data(
-    //           () => onData(injected.state),
-    //         ).listenTo(_injected!),
-    // ).listenTo(
-    //   injected,
-    //   dispose: dispose,
-    //   onSetState: onSetState,
-    //   key: key,
-    // );
+///Used in tests
+T? onCall<T>(
+  On<T> on, {
+  bool isWaiting = false,
+  dynamic error,
+  T? data,
+}) {
+  final connectionState = isWaiting
+      ? ConnectionState.waiting
+      : (error != null || data != null)
+          ? ConnectionState.done
+          : ConnectionState.none;
+  return on._call(SnapState._(
+    connectionState,
+    data,
+    error,
+    null,
+  ));
+}
+
+class _OnCRUD<T> {
+  final T Function()? onWaiting;
+  final T Function(dynamic err)? onError;
+  final T Function(dynamic data) onResult;
+  _OnCRUD({
+    required this.onWaiting,
+    required this.onError,
+    required this.onResult,
+  });
+
+  // Widget listenTo(
+  //   InjectedCRUD injected, {
+  //   void Function()? dispose,
+  //   On<void>? onSetState,
+  //   Key? key,
+  // }){}
+
+  Widget listenTo(
+    InjectedCRUD injected, {
+    void Function()? dispose,
+    On<void>? onSetState,
+    Key? key,
+  }) {
+    return _StateBuilder(
+      initState: (context, setState, rm) {
+        final disposer = injected._listenToRMForStateFulWidget(
+          (rm, tags, _) {
+            // if (tags != null && tags.isNotEmpty && tags.first == 'curd') {
+            setState(injected);
+            // }
+          },
+        );
+        return disposer;
+      },
+      builder: (context, rm) {
+        if (injected.isOnCRUD) {
+          return (onWaiting?.call() ?? onResult(injected._result)) as Widget;
+        }
+        if (injected.hasError) {
+          return (onError?.call(injected.error) ?? onResult(injected._result))
+              as Widget;
+        }
+        return (onResult(injected._result)) as Widget;
+      },
+    );
+  }
+
+  ///Used in tests
+  T? onCall<T>(
+    On<T> on, {
+    bool isWaiting = false,
+    dynamic error,
+    T? data,
+  }) {
+    final connectionState = isWaiting
+        ? ConnectionState.waiting
+        : (error != null || data != null)
+            ? ConnectionState.done
+            : ConnectionState.none;
+    return on._call(SnapState._(
+      connectionState,
+      data,
+      error,
+      null,
+    ));
   }
 }

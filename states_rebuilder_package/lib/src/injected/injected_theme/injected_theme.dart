@@ -18,6 +18,8 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+
     //
   })  : _themes = themes,
         _darkThemes = darkThemes,
@@ -36,6 +38,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+          debugError: debugError,
         );
 
   Map<Key, ThemeData> _themes;

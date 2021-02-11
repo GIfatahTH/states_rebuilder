@@ -13,7 +13,7 @@ class _PersistStoreMock extends IPersistStore {
   int timeToThrow = 0;
 
   ///Milliseconds to await for async operation
-  int? timeToWait;
+  int timeToWait = 0;
   @override
   Future<void> init() {
     final oldStore = (_persistStateGlobalTest as _PersistStoreMock).store;
@@ -23,9 +23,9 @@ class _PersistStoreMock extends IPersistStore {
       store = <String, String>{};
     }
 
-    return timeToWait == null
+    return timeToWait == 0
         ? Future.value()
-        : Future.delayed(Duration(milliseconds: timeToWait!));
+        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   @override
@@ -36,10 +36,16 @@ class _PersistStoreMock extends IPersistStore {
         () => throw exception!,
       );
     }
-    store?.remove(key);
-    return timeToWait == null
-        ? Future.value()
-        : Future.delayed(Duration(milliseconds: timeToWait!));
+
+    if (timeToWait == 0) {
+      store?.remove(key);
+      return;
+    } else {
+      return Future.delayed(
+        Duration(milliseconds: timeToWait),
+        () => store?.remove(key),
+      );
+    }
   }
 
   @override
@@ -50,10 +56,15 @@ class _PersistStoreMock extends IPersistStore {
         () => throw exception!,
       );
     }
-    store?.clear();
-    return timeToWait == null
-        ? Future.value()
-        : Future.delayed(Duration(milliseconds: timeToWait!));
+    if (timeToWait == 0) {
+      store?.clear();
+      return;
+    } else {
+      return Future.delayed(
+        Duration(milliseconds: timeToWait),
+        () => store?.clear(),
+      );
+    }
   }
 
   @override
@@ -65,10 +76,10 @@ class _PersistStoreMock extends IPersistStore {
           () => throw exception!,
         );
       }
-      return timeToWait == null
+      return timeToWait == 0
           ? Future.value(store?[key])
           : Future.delayed(
-              Duration(milliseconds: timeToWait!), () => store?[key]);
+              Duration(milliseconds: timeToWait), () => store?[key]);
     }
     if (exception != null) {
       throw exception!;
@@ -84,10 +95,15 @@ class _PersistStoreMock extends IPersistStore {
         () => throw exception!,
       );
     }
-    store?[key] = '$value';
-    return timeToWait == null
-        ? Future.value()
-        : Future.delayed(Duration(milliseconds: timeToWait!));
+    if (timeToWait == 0) {
+      store?[key] = '$value';
+      return;
+    } else {
+      return Future.delayed(
+        Duration(milliseconds: timeToWait),
+        () => store?[key] = '$value',
+      );
+    }
   }
 
   ///Clear the store, Typically used inside setUp method of tests
@@ -96,6 +112,7 @@ class _PersistStoreMock extends IPersistStore {
     isAsyncRead = false;
     exception = null;
     timeToThrow = 0;
+    timeToWait = 0;
   }
 
   String toString() {

@@ -17,55 +17,57 @@ part of '../reactive_model.dart';
 class OnCombined<T, R> {
   ///Callback to be called if all injected models are neither waiting nor have error
   ///and at least one of them is on idle state status.
-  final R Function(T data)? onIdle;
+  final R Function(T data)? _onIdle;
 
   ///Callback to be called when any of the the model is waiting for and async task.
-  final R Function(T data)? onWaiting;
+  final R Function(T data)? _onWaiting;
 
   ///Callback to be called when all models are not waiting and at least one of
   ///them has an error.
-  final R Function(T data, dynamic error)? onError;
+  final R Function(T data, dynamic error)? _onError;
 
   ///Callback to be called if all injected models have data
-  final R Function(T data)? onData;
+  final R Function(T data)? _onData;
   // final _OnType _onType;
 
-  bool get _hasOnWaiting => onWaiting != null;
-  bool get _hasOnError => onError != null;
-  bool get _hasOnIdle => onIdle != null;
-  bool get _hasOnData => onData != null;
-  bool _hasOnDataOnly = false;
+  bool get _hasOnWaiting => _onWaiting != null;
+  bool get _hasOnError => _onError != null;
+  bool get _hasOnIdle => _onIdle != null;
+  bool get _hasOnData => _onData != null;
 
   OnCombined._({
-    required this.onIdle,
-    required this.onWaiting,
-    required this.onError,
-    required this.onData,
+    required R Function(T data)? onIdle,
+    required R Function(T data)? onWaiting,
+    required R Function(T data, dynamic error)? onError,
+    required R Function(T data)? onData,
     // required _OnType onType,
-  });
+  })   : _onIdle = onIdle,
+        _onWaiting = onWaiting,
+        _onError = onError,
+        _onData = onData;
 
   ///The callback is always invoked when any of the [Injected] models emits a
   ///notification.
-  factory OnCombined.any(
-    R Function(T state) builder,
-  ) {
-    return OnCombined._(
-      onIdle: null,
-      onWaiting: null,
-      onError: null,
-      onData: builder,
-      // onType: _OnType.when,
-    );
-  }
+  // factory OnCombined.any(
+  //   R Function(T state) builder,
+  // ) {
+  //   return OnCombined._(
+  //     onIdle: null,
+  //     onWaiting: null,
+  //     onError: null,
+  //     onData: builder,
+  //     // onType: _OnType.when,
+  //   );
+  // }
 
   ///{@macro OnCombined}
   factory OnCombined(
     R Function(T state) builder,
   ) {
     return OnCombined._(
-      onIdle: null,
-      onWaiting: null,
-      onError: null,
+      onIdle: builder,
+      onWaiting: builder,
+      onError: (T state, dynamic _) => builder(state),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -80,7 +82,7 @@ class OnCombined<T, R> {
       onError: null,
       onData: fn,
       // onType: _OnType.onData,
-    ).._hasOnDataOnly = true;
+    );
   }
 
   ///The callback is invoked only when one of the [Injected] models emits a
@@ -91,7 +93,6 @@ class OnCombined<T, R> {
       onWaiting: (_) => fn(),
       onError: null,
       onData: null,
-      // onType: _OnType.onWaiting,
     );
   }
 
@@ -103,7 +104,6 @@ class OnCombined<T, R> {
       onWaiting: null,
       onError: (_, dynamic err) => fn(err),
       onData: null,
-      // onType: _OnType.onError,
     );
   }
 
@@ -128,7 +128,6 @@ class OnCombined<T, R> {
           ? (_, dynamic err) => onError(err)
           : (s, dynamic err) => or(s),
       onData: onData ?? or,
-      // onType: _OnType.when,
     );
   }
 
@@ -149,40 +148,58 @@ class OnCombined<T, R> {
       onWaiting: (_) => onWaiting(),
       onError: (_, dynamic err) => onError(err),
       onData: onData,
-      // onType: _OnType.when,
     );
   }
 
-  R? call(SnapState snapState, T state) {
+  bool _canRebuild(ReactiveModel rm) {
+    if (rm.isWaiting) {
+      return _hasOnWaiting;
+    }
+    if (rm.hasError) {
+      return _hasOnError;
+    }
+    return true;
+  }
+
+  R? _call(SnapState snapState, T state) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
-        return onWaiting?.call(state);
+        return _onWaiting?.call(state);
       }
-      return onData?.call(state);
+      return _onData?.call(state);
     }
     if (snapState.hasError) {
       if (_hasOnError) {
-        return onError?.call(state, snapState.error);
+        return _onError?.call(state, snapState.error);
       }
-      return onData?.call(state);
+      return _onData?.call(state);
     }
 
     if (snapState.isIdle) {
       if (_hasOnIdle) {
-        return onIdle?.call(state);
+        return _onIdle?.call(state);
       }
       if (_hasOnData) {
-        return onData?.call(state);
+        return _onData?.call(state);
       }
       if (_hasOnWaiting) {
-        return onWaiting?.call(state);
+        return _onWaiting?.call(state);
       }
       if (_hasOnError) {
-        return onError?.call(state, snapState.error);
+        return _onError?.call(state, snapState.error);
       }
     }
 
-    return onData?.call(state);
+    if (_hasOnData) {
+      return _onData?.call(state);
+    }
+    if (_hasOnWaiting) {
+      return _onWaiting!.call(state);
+    }
+
+    if (_hasOnError) {
+      return _onError!.call(state, snapState.error);
+    }
   }
 }
 
@@ -212,21 +229,21 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
         for (var rm in rms) {
           rm._initialize();
           disposer.add(
-            rm._listenToRMForStateFulWidget((_, tag) {
+            rm._listenToRMForStateFulWidget((_, tag, __) {
               if (shouldRebuild?.call() == false) {
                 return;
               }
-              onSetState?.call(
+              onSetState?._call(
                   _getCombinedSnap(rms), (exposedRM ?? rm)._state as T);
 
-              if (_hasOnDataOnly && !rm._snapState.hasData) {
+              if (!_canRebuild(rm)) {
                 return;
               }
 
               if (onAfterBuild != null) {
                 WidgetsBinding.instance?.addPostFrameCallback(
                   (_) {
-                    onAfterBuild.call(
+                    onAfterBuild._call(
                         _getCombinedSnap(rms), (exposedRM ?? rm)._state as T);
                   },
                 );
@@ -238,7 +255,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
         if (onAfterBuild != null) {
           WidgetsBinding.instance?.addPostFrameCallback(
             (_) {
-              onAfterBuild.call(
+              onAfterBuild._call(
                 _getCombinedSnap(rms),
                 (exposedRM ?? rms.first)._state as T,
               );
@@ -262,7 +279,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, rm) {
-        return call(_getCombinedSnap(rms), rm!._state as T)!;
+        return _call(_getCombinedSnap(rms), rm!._state as T)!;
       },
     );
   }
@@ -288,4 +305,28 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
         snapIdle ??
         SnapState<dynamic>._withData(ConnectionState.done, 'data', true);
   }
+}
+
+///Used in tests
+R? onCombinedCall<T, R>(
+  OnCombined<T, R> on,
+  T state, {
+  bool isWaiting = false,
+  dynamic error,
+  T? data,
+}) {
+  final connectionState = isWaiting
+      ? ConnectionState.waiting
+      : (error != null || data != null)
+          ? ConnectionState.done
+          : ConnectionState.none;
+  return on._call(
+    SnapState._(
+      connectionState,
+      data,
+      error,
+      null,
+    ),
+    state,
+  );
 }

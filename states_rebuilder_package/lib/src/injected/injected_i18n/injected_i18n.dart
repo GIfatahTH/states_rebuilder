@@ -32,6 +32,7 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
     //
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
     //
   })  : _i18n = i18n,
         super(
@@ -50,6 +51,7 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
           autoDisposeWhenNotUsed: false,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+          debugError: debugError,
         );
 
   Map<Locale, FutureOr<I18N> Function()> _i18n;

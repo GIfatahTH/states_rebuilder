@@ -256,6 +256,23 @@ On.or(
   onData:  ()=> print('Data'),
   or: () =>  print('or')
 )
+
+//Used to listen to a future.
+On.future<F>(
+    onWaiting: ()=> Text('Waiting..'),
+    onError: (error, refresher) => Text('Error'),//Future can be reinvoked
+    onData: (data)=> MyWidget(),
+).future(()=> anyKindOfFuture);
+
+//This widget subscribes to the `stateAsync` of the injected model.
+//This is a one-time subscription of the `onWaiting` and `onError` and 
+//ongoing subscription of `onData`
+On.future<F>(
+    onWaiting: ()=> Text('Waiting..'),//One-time subscription
+    //On error, future can be reinvoked
+    onError: (error, refresher) => Text('Error'),//One-time subscription
+    onData: (data)=> MyWidget(),//Ongoing subscription
+).listenTo(model);
 ```
 >  [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 

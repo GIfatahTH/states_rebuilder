@@ -255,7 +255,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
         observe = _Model();
       }
       observeMany.forEach((m) {
-        final disposer = m._listenToRMForStateFulWidget((r, tags) {
+        final disposer = m._listenToRMForStateFulWidget((r, tags, _) {
           if (r != null && widget.observe == null) {
             rm = r as ReactiveModel<T>;
           }

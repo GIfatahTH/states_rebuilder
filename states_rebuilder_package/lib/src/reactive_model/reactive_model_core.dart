@@ -142,6 +142,8 @@ class ReactiveModelCore<T> {
   }
 
   void _callOnData([On<void>? onSetState, dynamic Function(T)? onData]) {
+    // SchedulerBinding.instance?.scheduleFrameCallback(
+    //   (_) {
     if (onSetState != null && onSetState._hasOnData) {
       onSetState._call(_snapState);
       return;
@@ -155,11 +157,15 @@ class ReactiveModelCore<T> {
       return;
     }
     this.onData?.call(_state!);
+    //   },
+    // );
   }
 
   void _callOnWaiting(
     On<void>? onSetState,
   ) {
+    // SchedulerBinding.instance?.scheduleFrameCallback(
+    //   (_) {
     if (onSetState != null && onSetState._hasOnWaiting) {
       onSetState._call(_snapState);
       return;
@@ -169,6 +175,8 @@ class ReactiveModelCore<T> {
       return;
     }
     onWaiting?.call();
+    //   },
+    // );
   }
 
   void _callOnError(
@@ -177,6 +185,8 @@ class ReactiveModelCore<T> {
     On<void>? onSetState,
     void Function(dynamic)? onError,
   ]) {
+    // SchedulerBinding.instance?.scheduleFrameCallback(
+    //   (_) {
     if (onSetState != null && onSetState._hasOnError) {
       onSetState._call(_snapState);
       return;
@@ -190,5 +200,7 @@ class ReactiveModelCore<T> {
       return;
     }
     this.onError?.call(e, s);
+    //   },
+    // );
   }
 }

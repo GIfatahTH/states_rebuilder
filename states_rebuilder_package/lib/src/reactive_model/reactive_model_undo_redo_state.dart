@@ -21,7 +21,7 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
       return this as ReactiveModel<T>;
     }
     _undoQueue.add(_redoQueue.removeLast());
-    snapState = _undoQueue.last;
+    _coreRM.snapState = _undoQueue.last;
     _notifyListeners();
     return this as ReactiveModel<T>;
   }
@@ -33,7 +33,7 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
     }
     _redoQueue.add(_undoQueue.removeLast());
     // final oldSnapShot = ;
-    snapState = _undoQueue.last;
+    _coreRM.snapState = _undoQueue.last;
     _notifyListeners();
 
     return this as ReactiveModel<T>;
@@ -43,7 +43,7 @@ abstract class ReactiveModelUndoRedoState<T> extends ReactiveModelBuilder<T> {
     if (_undoStackLength < 1) {
       return;
     }
-    _undoQueue.add(snapState);
+    _undoQueue.add(_coreRM.snapState);
     _redoQueue.clear();
     if (_undoQueue.length > _undoStackLength) {
       _undoQueue.removeFirst();

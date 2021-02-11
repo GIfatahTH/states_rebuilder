@@ -54,6 +54,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -77,6 +78,7 @@ abstract class RM {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
   }
 
@@ -103,6 +105,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -125,6 +128,7 @@ abstract class RM {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
   }
 
@@ -153,6 +157,8 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+
     //
     Object? Function(T? s)? watch,
   }) {
@@ -178,6 +184,7 @@ abstract class RM {
       undoStackLength: undoStackLength,
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
       isLazy: isLazy,
     );
     return inj;
@@ -207,6 +214,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -240,6 +248,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       undoStackLength: undoStackLength,
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
       isLazy: isLazy,
     );
   }
@@ -287,6 +296,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool readOnInitialization = false,
     void Function(List<T> s)? onInitialized,
     void Function(List<T> s)? onDisposed,
+    _OnCRUD<void>? onCRUD,
     On<void>? onSetState,
     //
     DependsOn<List<T>>? dependsOn,
@@ -326,6 +336,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       param: param,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
+      onCRUD: onCRUD,
       onSetState: onSetState,
       //
       dependsOn: dependsOn,
@@ -382,6 +393,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     //
     bool autoDisposeWhenNotUsed = false,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -452,6 +464,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       //
       // autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
 
     return inj;
@@ -489,6 +502,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     PersistState<Key> Function()? persist;
     late InjectedTheme<Key> inj;
@@ -543,6 +557,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
     return inj;
   }
@@ -570,6 +585,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     //
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
   }) {
     PersistState<I18N> Function()? persist;
     late InjectedI18N<I18N> inj;
@@ -619,6 +635,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       //
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
     );
     return inj;
   }

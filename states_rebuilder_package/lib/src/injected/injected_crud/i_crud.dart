@@ -80,7 +80,8 @@ class _CRUDService<T, P> {
   ///
   ///[param] can be also used to distinguish between many
   ///delete queries
-  Future<List<T>> read({P Function(P? param)? param}) async {
+  Future<List<T>> read({P Function(P? param)? param, On<void>? onCRUD}) async {
+    injected._result = null;
     await injected.setState(
       (s) async {
         final _repo = await _repository;
@@ -88,6 +89,7 @@ class _CRUDService<T, P> {
           param?.call(injected._param?.call()) ?? injected._param?.call(),
         );
       },
+      onSetState: onCRUD,
     );
     return injected.state;
   }
@@ -96,40 +98,43 @@ class _CRUDService<T, P> {
   Future<T?> create(
     T item, {
     P Function(P? param)? param,
-    void Function()? onStateMutation,
-    void Function(dynamic result)? onCRUD,
-    void Function(dynamic error)? onError,
+    void Function(dynamic result)? onResult,
+    On<void>? onSetState,
     bool isOptimistic = true,
   }) async {
     T? addedItem;
+    injected
+      .._result = null
+      .._isOnCRUD = false;
     await injected.setState(
       (s) async* {
         final _repo = await _repository;
         if (isOptimistic) {
           s.add(item);
+          injected._isOnCRUD = true;
           yield item;
-          onStateMutation?.call();
         }
         try {
           addedItem = await _repo.create(
             item,
             param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
-          onCRUD?.call(addedItem);
+          onResult?.call(addedItem);
         } catch (e) {
           if (isOptimistic) {
             yield s.remove(item);
-            onStateMutation?.call();
           }
           rethrow;
         }
         if (!isOptimistic) {
           s.add(addedItem!);
           yield item;
-          onStateMutation?.call();
+        } else {
+          injected._isOnCRUD = false;
+          injected._notifyListeners(null, true);
         }
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      onSetState: onSetState,
       skipWaiting: isOptimistic,
     );
     return addedItem;
@@ -157,14 +162,16 @@ class _CRUDService<T, P> {
     required bool Function(T item) where,
     required T Function(T item) set,
     P Function(P? param)? param,
-    void Function()? onStateMutation,
-    void Function(dynamic result)? onCRUD,
-    void Function(dynamic error)? onError,
+    On<void>? onSetState,
+    void Function(dynamic result)? onResult,
     bool isOptimistic = true,
   }) async {
     final oldState = <T>[];
     final updated = <T>[];
     final newState = <T>[];
+    injected
+      .._result = null
+      .._isOnCRUD = false;
     injected.state.forEachIndexed((i, e) {
       oldState.add(e);
       if (where(e)) {
@@ -183,8 +190,8 @@ class _CRUDService<T, P> {
         final _repo = await _repository;
 
         if (isOptimistic) {
+          injected._isOnCRUD = true;
           yield newState;
-          onStateMutation?.call();
           if (injected._item != null) {
             injected._item!.refresh();
           }
@@ -194,11 +201,12 @@ class _CRUDService<T, P> {
             updated,
             param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
-          onCRUD?.call(r);
+          injected._result = r;
+          onResult?.call(r);
         } catch (e) {
           if (isOptimistic) {
             yield oldState;
-            onStateMutation?.call();
+
             if (injected._item != null) {
               injected._item!.injected.refresh();
             }
@@ -207,25 +215,29 @@ class _CRUDService<T, P> {
         }
         if (!isOptimistic) {
           yield newState;
-          onStateMutation?.call();
+        } else {
+          injected._isOnCRUD = false;
+          injected._notifyListeners(null, true);
         }
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      onSetState: onSetState,
+      skipWaiting: isOptimistic,
     );
   }
 
   Future<void> delete({
     required bool Function(T item) where,
     P Function(P? param)? param,
-    void Function()? onStateMutation,
-    void Function(dynamic result)? onCRUD,
-    void Function(dynamic error)? onError,
+    On<void>? onSetState,
+    void Function(dynamic result)? onResult,
     bool isOptimistic = true,
   }) async {
     final oldState = <T>[];
     final removed = <T>[];
     final newState = <T>[];
-
+    injected
+      .._result = null
+      .._isOnCRUD = false;
     injected.state.forEachIndexed((i, e) {
       oldState.add(e);
       if (where(e)) {
@@ -242,28 +254,30 @@ class _CRUDService<T, P> {
         final _repo = await _repository;
 
         if (isOptimistic) {
+          injected._isOnCRUD = true;
           yield newState;
-          onStateMutation?.call();
         }
         try {
           final dynamic r = await _repo.delete(
             removed,
             param?.call(injected._param?.call()) ?? injected._param?.call(),
           );
-          onCRUD?.call(r);
+          injected._result = r;
+          onResult?.call(r);
         } catch (e) {
           if (isOptimistic) {
             yield oldState;
-            onStateMutation?.call();
           }
           rethrow;
         }
         if (!isOptimistic) {
           yield newState;
-          onStateMutation?.call();
+        } else {
+          injected._isOnCRUD = false;
+          injected._notifyListeners(null, true);
         }
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      onSetState: onSetState,
     );
   }
 

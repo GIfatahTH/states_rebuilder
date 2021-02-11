@@ -11,7 +11,7 @@ class _InheritedState<T> extends StatefulWidget {
     this.debugPrintWhenNotifiedPreMessage,
   }) : super(key: key);
   final Widget Function(BuildContext) builder;
-  final T Function()? state;
+  final FutureOr<T> Function()? state;
   final Injected<T> globalInjected;
   final Injected<T>? reInheritedInjected;
   final bool connectWithGlobal;
@@ -33,11 +33,11 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
     // widget.globalInjected._isFirstInitialized = true;
     globalInjected = widget.globalInjected;
     if (widget.reInheritedInjected == null) {
-      inheritedInjected = RM.inject(
-        widget.state!,
+      inheritedInjected = InjectedImp<T>(
+        creator: (_) => widget.state!(),
         debugPrintWhenNotifiedPreMessage:
             widget.debugPrintWhenNotifiedPreMessage,
-        onSetState: On.data(
+        on: On.data(
           () => globalInjected._previousSnapState =
               inheritedInjected._previousSnapState,
         ),
@@ -53,7 +53,7 @@ class __InheritedStateState<T> extends State<_InheritedState<T>> {
 
     inheritedInjected._initialize();
     removeListeners =
-        inheritedInjected._listenToRMForStateFulWidget((rm, tags) {
+        inheritedInjected._listenToRMForStateFulWidget((rm, tags, _) {
       if (!_isDirty) {
         _isDirty = true;
         setState(() {});

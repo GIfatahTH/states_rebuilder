@@ -600,6 +600,16 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
   });
+
+  testWidgets('depend on a state that is initialy on error', (tester) async {
+    final counter = RM.inject<int>(() => throw Exception('Error'));
+    final dependentCounter = RM.inject<int>(
+      () => counter.state + 1,
+      dependsOn: DependsOn({counter}),
+    );
+    expect(counter.hasError, true);
+    expect(dependentCounter.hasError, true);
+  });
 }
 
 class _Model {

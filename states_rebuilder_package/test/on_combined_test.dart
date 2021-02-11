@@ -176,6 +176,286 @@ void main() {
     await tester.pump();
     expect(message, 'onAfterBuild');
   });
+
+  testWidgets('OnCombined', (tester) async {
+    //
+    final onCombined = OnCombined((_) => _);
+    expect(onCombinedCall(onCombined, 'data'), 'data');
+    expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'data');
+    expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'data');
+    expect(onCombinedCall(onCombined, 'data', data: 'd'), 'data');
+  });
+
+  testWidgets('OnCombined in widget', (tester) async {
+    int onSetState = 0;
+    int onBuild = 0;
+    final counter = RM.inject(
+      () => 0,
+      onSetState: On(() => ++onSetState),
+    );
+
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnCombined((_) => Text('${++onBuild}')).listenTo([counter]),
+    );
+    await tester.pumpWidget(widget);
+    expect(onSetState, 0);
+    expect(find.text('1'), findsOneWidget);
+    //
+    counter.setState(
+        (s) => Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error'),
+            ),
+        catchError: true);
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+    expect(onSetState, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('3'), findsOneWidget);
+    expect(onSetState, 2);
+  });
+
+  testWidgets('OnCombined.data', (tester) async {
+    //
+    final onCombined = OnCombined.data((_) => _);
+    expect(onCombinedCall(onCombined, 'data'), 'data');
+    expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'data');
+    expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'data');
+    expect(onCombinedCall(onCombined, 'data', data: 'd'), 'data');
+  });
+
+  testWidgets('OnCombined.data in widget', (tester) async {
+    int onSetState = 0;
+    int onBuild = 0;
+    final counter = RM.inject(
+      () => 0,
+      onSetState: On.data(() => ++onSetState),
+    );
+
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnCombined.data((_) => Text('${++onBuild}')).listenTo([counter]),
+    );
+    await tester.pumpWidget(widget);
+    expect(onSetState, 0);
+    expect(find.text('1'), findsOneWidget);
+    //
+    counter.setState(
+        (s) => Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error'),
+            ),
+        catchError: true);
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(onSetState, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    expect(onSetState, 0);
+  });
+
+  testWidgets('OnCombined.waiting', (tester) async {
+    //
+    final onCombined = OnCombined.waiting(() => 'Waiting');
+    expect(onCombinedCall(onCombined, 'data'), 'Waiting');
+    expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'Waiting');
+    expect(onCombinedCall(onCombined, 'data', error: 'Error'), null);
+    expect(onCombinedCall(onCombined, 'data', data: 'd'), 'Waiting');
+  });
+
+  testWidgets('OnCombined.waiting in widget', (tester) async {
+    int onSetState = 0;
+    int onBuild = 0;
+    final counter = RM.inject(
+      () => 0,
+      onSetState: On.waiting(() => ++onSetState),
+    );
+
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnCombined.waiting(() => Text('${++onBuild}')).listenTo([counter]),
+    );
+    await tester.pumpWidget(widget);
+    expect(onSetState, 0);
+    expect(find.text('1'), findsOneWidget);
+    //
+    counter.setState(
+        (s) => Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error'),
+            ),
+        catchError: true);
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+    expect(onSetState, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+    expect(onSetState, 1);
+    //
+    counter.state++;
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+    expect(onSetState, 1);
+  });
+
+  testWidgets('OnCombined.error', (tester) async {
+    //
+    final onCombined = OnCombined.error((_) => _);
+    expect(onCombinedCall(onCombined, 'data'), null);
+    expect(onCombinedCall(onCombined, 'data', isWaiting: true), null);
+    expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'Error');
+    expect(onCombinedCall(onCombined, 'data', data: 'd'), null);
+  });
+
+  testWidgets('OnCombined.error in widget', (tester) async {
+    int onSetState = 0;
+    int onBuild = 0;
+    final counter = RM.inject(
+      () => 0,
+      onSetState: On.error((_) => ++onSetState),
+    );
+
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnCombined.error((_) => Text('${++onBuild}')).listenTo([counter]),
+    );
+    await tester.pumpWidget(widget);
+    expect(onSetState, 0);
+    expect(find.text('1'), findsOneWidget);
+    //
+    counter.setState(
+        (s) => Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error'),
+            ),
+        catchError: true);
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    expect(onSetState, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+    expect(onSetState, 1);
+    //
+    counter.state++;
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+    expect(onSetState, 1);
+  });
+
+  testWidgets('OnCombined.all', (tester) async {
+    //
+    final onCombined = OnCombined.all(
+      onIdle: () => 'Idle',
+      onWaiting: () => 'Waiting',
+      onError: (_) => _,
+      onData: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'data'), 'Idle');
+    expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'Waiting');
+    expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'Error');
+    expect(onCombinedCall(onCombined, 'data', data: 'd'), 'data');
+  });
+
+  testWidgets('OnCombined.or, only or', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onIdle', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onIdle: () => 'Idle',
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Idle');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onWaiting', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onWaiting: () => 'Waiting',
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onError', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onError: (_) => _,
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Error');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onData', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onData: (_) => _,
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onData and onWaiting', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onWaiting: () => 'Waiting',
+      onData: (_) => _,
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with onData and onError', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onError: (_) => _,
+      onData: (_) => _,
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Error');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.or, or with all', (tester) async {
+    //
+    final onCombined = OnCombined.or(
+      onIdle: () => 'Idle',
+      onWaiting: () => 'Waiting',
+      onError: (_) => _,
+      onData: (_) => _,
+      or: (_) => _,
+    );
+    expect(onCombinedCall(onCombined, 'Or'), 'Idle');
+    expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
+    expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Error');
+    expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
 }
 
 class _Model {

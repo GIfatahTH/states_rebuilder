@@ -4,9 +4,9 @@ abstract class StatesRebuilder<T> {
   bool _autoDisposeWhenNotUsed = true;
 
   final _listenersOfStateFulWidget =
-      <void Function(ReactiveModel<T>? rm, List? tags)>[];
+      <void Function(ReactiveModel<T>? rm, List? tags, bool isOnCRUD)>[];
   Disposer _listenToRMForStateFulWidget(
-      void Function(ReactiveModel<T>? rm, List? tags) fn) {
+      void Function(ReactiveModel<T>? rm, List? tags, bool isOnCRUD) fn) {
     _listenersOfStateFulWidget.add(fn);
     return () {
       _listenersOfStateFulWidget.remove(fn);
@@ -20,9 +20,11 @@ abstract class StatesRebuilder<T> {
   bool get hasObservers => _listenersOfStateFulWidget.isNotEmpty;
   int get observerLength => _listenersOfStateFulWidget.length;
 
-  void _notifyListeners([List? tags]) {
-    _listenersOfStateFulWidget.forEach((fn) =>
-        fn(this is ReactiveModel<T> ? this as ReactiveModel<T> : null, tags));
+  void _notifyListeners([List? tags, bool isOnCRUD = false]) {
+    _listenersOfStateFulWidget.forEach((fn) => fn(
+        this is ReactiveModel<T> ? this as ReactiveModel<T> : null,
+        tags,
+        isOnCRUD));
   }
 
   void rebuildStates([List? tags]) {
@@ -62,7 +64,7 @@ abstract class StatesRebuilder<T> {
           }
         }
         //
-        return _listenToRMForStateFulWidget((rm, tags) {
+        return _listenToRMForStateFulWidget((rm, tags, __) {
           if (!(shouldRebuild?.call(null) ?? true)) {
             return;
           }

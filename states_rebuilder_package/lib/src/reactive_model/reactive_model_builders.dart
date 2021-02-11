@@ -4,8 +4,8 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
   bool _onHasErrorCallback = false;
 
   @override
-  void _notifyListeners([List? tags]) {
-    super._notifyListeners(tags);
+  void _notifyListeners([List? tags, bool isOnCrud = false]) {
+    super._notifyListeners(tags, isOnCrud);
     _listeners.forEach((fn) => fn(this as ReactiveModel<T>));
     RM.printInjected?.call(_snapState);
   }
@@ -94,18 +94,18 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
               onSetState?._call(_inj._snapState);
               if (_inj._snapState.hasData) {
                 if (_inj.state is T) {
-                  snapState = SnapState<T>._withData(
+                  _coreRM.snapState = SnapState<T>._withData(
                     ConnectionState.done,
                     _inj.state as T,
                     true,
                   );
-                  if (onSetState?.onData == null) {
-                    _coreRM.onData?.call(state);
+                  if (onSetState?._onData == null) {
+                    _coreRM.onData?.call(_coreRM._state!);
                   }
                 }
               } else if (_inj._snapState.hasError &&
                   _inj.error != _coreRM.snapState.error) {
-                if (onSetState?.onError == null) {
+                if (onSetState?._onError == null) {
                   _coreRM.onError?.call(_inj.error, _inj.stackTrace);
                 }
               }
@@ -163,7 +163,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       _StateFulWidget<Injected<S>>(
         iniState: () {
           _initialize();
-          final s = stream(state, (this as ReactiveModel<T>).subscription);
+          final s = stream(_state, (this as ReactiveModel<T>).subscription);
           return InjectedImp<S>(
             creator: (_) => s!,
             isLazy: false,
@@ -198,18 +198,18 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
                 onSetState?._call(_inj._snapState);
                 if (_inj._snapState.hasData) {
                   if (_inj.state is T) {
-                    snapState = SnapState<T>._withData(
+                    _snapState = SnapState<T>._withData(
                       ConnectionState.done,
                       _inj.state as T,
                       true,
                     );
-                    if (onSetState?.onData == null) {
-                      _coreRM.onData?.call(state);
+                    if (onSetState?._onData == null) {
+                      _coreRM.onData?.call(_coreRM._state!);
                     }
                   }
                 } else if (_inj._snapState.hasError &&
                     _inj.error != _coreRM.snapState.error) {
-                  if (onSetState?.onError == null) {
+                  if (onSetState?._onError == null) {
                     _coreRM.onError?.call(_inj.error, _inj.stackTrace);
                   }
                 }

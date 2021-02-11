@@ -19,7 +19,8 @@ class StatesRebuilerLogger {
     }
     // errorMessage ??= '';
 
-    message = '[states_rebuilder]: $m: $errorMessage';
+    message = '[states_rebuilder]: $m' +
+        (errorMessage != 'null' ? ': $errorMessage' : '');
     if (!isTestMode) {
       print(message);
       if (s != null) {

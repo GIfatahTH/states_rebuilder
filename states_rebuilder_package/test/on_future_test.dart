@@ -101,6 +101,11 @@ void main() {
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Error message'), findsOneWidget);
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
     shouldThrow = false;
     refresh();
     await tester.pump();
@@ -239,7 +244,7 @@ void main() {
     expect(find.text('3-3'), findsOneWidget);
   });
 
-  testWidgets('On.future assert ', (tester) async {
+  testWidgets('On.future assert, type difference ', (tester) async {
     expect(
       () => On.future<int>(
         onWaiting: () => Text('Waiting...'),
@@ -249,11 +254,30 @@ void main() {
       throwsAssertionError,
     );
 
-    final on = On.future(
+    On.future(
       onWaiting: () => Text('Waiting...'),
       onError: (_, __) => Text('Error'),
       onData: (_) => Text('$_'),
     ).future(() => Future.value(true));
-    print(on);
+  });
+
+  testWidgets('onError is not defined', (tester) async {
+    final counter = RM.injectFuture<int>(() =>
+        Future.delayed(Duration(seconds: 1), () => throw Exception('Error')));
+
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: On.future<int>(
+        onWaiting: () => Text('Waiting...'),
+        onError: null,
+        onData: (_) => Text('$_'),
+      ).listenTo(counter),
+    );
+
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+    expect(counter.hasError, isTrue);
   });
 }
