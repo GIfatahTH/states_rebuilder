@@ -27,17 +27,26 @@ jobs:
       - run: |
           cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
         working-directory: ./examples
-
+      - run: |
+          cd ex_002_2_form_validation_with_reactive_model_with_functional_injection && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_004_2_countdown_timer_with_functional_injection && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_005_theme_switching && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_007_2_clean_architecture_dane_mackier_app_with_fi && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_008_clean_architecture_firebase_login && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth && flutter test
+        working-directory: ./examples
       # - run: cd examples/ex_000_hello_world && flutter test
-      # - run: cd examples/ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
-      # - run: cd examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection && flutter test
-      # - run: cd examples/ex_003_2_async_counter_app_with_functional_injection && flutter test
-      # - run: cd examples/ex_004_2_countdown_timer_with_functional_injection && flutter test
-      # - run: cd examples/ex_005_theme_switching && flutter test
-      # - run: cd examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi && flutter test
-      # - run: cd examples/ex_008_clean_architecture_firebase_login && flutter test
       # - run: cd examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi && flutter test
-      # - run: cd examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth && flutter test
       # - run: cd examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi && flutter test
       # - run: cd examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi && flutter test
       # # - run: cd examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi && flutter test
