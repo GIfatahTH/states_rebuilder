@@ -78,7 +78,7 @@ class CountDownTimer {
         //the stream is canceled and new stream is created, we use asyncDependsOn
         dependsOn: DependsOn({_timer}),
         initialState: initialTimer,
-        debugPrintWhenNotifiedPreMessage: 'duration',
+        // debugPrintWhenNotifiedPreMessage: 'duration',
       );
   void start() {
     timerStatus.state = TimerStatus.running;

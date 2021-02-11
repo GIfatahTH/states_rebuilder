@@ -197,6 +197,126 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   void dispose() {}
 }
 ```
+
+
+This is an example of a Todos app using Sqflite.
+<details>
+  <summary>Click to expand!</summary>
+
+
+
+```dart
+///Class used to parametrizes the query
+class TodoParam {
+  ///filter can be all, active or completed
+  final VisibilityFilter filter;
+  TodoParam({this.filter});
+}
+
+class SqfliteRepository implements ICRUD<Todo, TodoParam> {
+  Database _db;
+  final _tableName = 'todos';
+
+  Future<void> init() async {
+    //Initialize the data base
+    final databasesPath =
+        await path_provider.getApplicationDocumentsDirectory();
+    _db = await openDatabase(
+      join(databasesPath.path, 'todo_db.db'),
+      version: 1,
+      onCreate: (db, ver) async {
+        await db.execute(
+          'CREATE TABLE $_tableName (id TEXT PRIMARY KEY, task TEXT, note TEXT, complete INTEGER)',
+        );
+      },
+    );
+  }
+
+  @override
+  Future<List<Todo>> read(TodoParam param) async {
+    try {
+      var result;
+      if (param.filter == VisibilityFilter.all) {
+        result = await _db.query(_tableName);
+      } else {
+        result = await _db.query(
+          _tableName,
+          where: 'complete = ?',
+          whereArgs: [param.filter == VisibilityFilter.active ? '0' : '1'],
+        );
+      }
+
+      if (result.isNotEmpty) {
+        return result.first['value'];
+      }
+      return null;
+    } catch (e) {
+      //Just throw custom exception and they will be handle for you
+      throw PersistanceException('There is a problem in reading');
+    }
+  }
+
+  @override
+  Future<Todo> create(Todo item, TodoParam param) async {
+    try {
+      await _db.insert(_tableName, item.toMap());
+      return item;
+    } catch (e) {
+      throw PersistanceException('There is a problem in writing ');
+    }
+  }
+
+  @override
+  Future<dynamic> delete(List<Todo> items, TodoParam param) async {
+    await _db.delete(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [items.first.id],
+    );
+    return true;
+  }
+
+  @override
+  Future<dynamic> update(List<Todo> items, TodoParam param) async {
+    await _db.update(
+      _tableName,
+      items.first.toMap(),
+      where: 'id = ?',
+      whereArgs: [items.first.id],
+    );
+    return true;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+  }
+
+  //You are not limited to the six overridden methods.
+  //You can add your custom ones.
+  Future<int> count(TodoParam param) async {
+    try {
+      var result;
+
+      result = await _db.rawQuery(
+        'SELECT COUNT(*) FROM $_tableName'
+        'WHERE complete = ${param.filter == VisibilityFilter.active ? '0' : '1'}',
+      );
+
+      if (result.isNotEmpty) {
+        return result.first['value'];
+      }
+      return null;
+    } catch (e) {
+      throw PersistanceException('There is a problem in reading');
+    }
+  }
+}
+
+```
+</details>
+
+
 This is the hardest part of the journey; creation of a data and parameters class and implementation of the `ICRUD` repository.
 
 ### Injecting the repository:
