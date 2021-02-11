@@ -273,6 +273,13 @@ On.future<F>(
     onError: (error, refresher) => Text('Error'),//One-time subscription
     onData: (data)=> MyWidget(),//Ongoing subscription
 ).listenTo(model);
+
+///Used with injectedCRUD. It watches the state of the backend service
+On.crud(
+    onWaiting: ()=> Text('Waiting..'),//The querying is ongoing
+    onError: (error) => Text('Error'),// The querying fails
+    onResult: (result)=> MyWidget(),// The querying succeeds
+).listenTo(injectedCRUD);
 ```
 >  [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
