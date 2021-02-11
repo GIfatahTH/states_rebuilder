@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:states_rebuilder/src/reactive_model.dart';
 
+import 'injected_crud_item_test.dart';
+
 class Product {
   final int id;
   final String name;
@@ -83,7 +85,9 @@ class Repository implements ICRUD<Product, Object> {
   }
 
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    _products = [Product(id: 1, name: 'product 1')];
+  }
 }
 
 final _repo = Repository();
@@ -107,7 +111,6 @@ final products = RM.injectCRUD<Product, Object>(
 void main() {
   products.injectCRUDMock(() => _repo);
   setUp(() {
-    _repo._products = [Product(id: 1, name: 'product 1')];
     _repo.error = null;
     disposeMessage = '';
     onCRUDMessage = '';
@@ -590,5 +593,34 @@ void main() {
     expect(find.text('Result: 1 items deleted'), findsOneWidget);
     expect(find.text('onData'), findsOneWidget);
     expect(numberOfOnDataRebuild, 4);
+  });
+
+  testWidgets('refresh with error', (tester) async {
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(products.hasData, true);
+    expect(products.state, [Product(id: 1, name: 'product 1')]);
+    //
+    products.crud.create(
+      Product(id: 2, name: 'product 2'),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.pump(Duration(seconds: 1));
+    expect(_repo._products.length, 2);
+    //
+    _repo.error = Exception('CRUD error');
+    products.crud.read();
+    await tester.pump();
+
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(products.hasError, true);
+    _repo.error = null;
+    products.refresh();
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(_repo._products.length, 2);
   });
 }

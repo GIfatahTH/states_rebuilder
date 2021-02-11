@@ -316,12 +316,14 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     late InjectedCRUD<T, P> inj;
     inj = InjectedCRUD<T, P>(
       creator: () {
-        final fn = () async {
-          final repo = repository();
-          await repo.init();
-          return repo;
-        };
-        inj._crud = _CRUDService(fn(), inj);
+        if (!inj._isFirstInitialized) {
+          final fn = () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          };
+          inj._crud = _CRUDService(fn(), inj);
+        }
         if (!inj._isFirstInitialized && !(readOnInitialization)) {
           return <T>[];
         } else {

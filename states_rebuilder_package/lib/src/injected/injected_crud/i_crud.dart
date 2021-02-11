@@ -80,7 +80,9 @@ class _CRUDService<T, P> {
   ///
   ///[param] can be also used to distinguish between many
   ///delete queries
-  Future<List<T>> read({P Function(P? param)? param, On<void>? onCRUD}) async {
+  ///[onSetState] for side effects.
+  Future<List<T>> read(
+      {P Function(P? param)? param, On<void>? onSetState}) async {
     injected._result = null;
     await injected.setState(
       (s) async {
@@ -89,12 +91,30 @@ class _CRUDService<T, P> {
           param?.call(injected._param?.call()) ?? injected._param?.call(),
         );
       },
-      onSetState: onCRUD,
+      onSetState: onSetState,
     );
     return injected.state;
   }
 
-  //return null means an error
+  ///Create an item
+  ///
+  ///The optional [param] can be used to parametrize the query.
+  ///For example, it can hold the user id or user
+  ///token.
+  ///
+  ///[param] can be also used to distinguish between many
+  ///delete queries
+  ///
+  ///[onSetState] for side effects.
+  ///
+  ///[isOptimistic]: Whether the querying is done optimistically a
+  ///nd mutates the state before sending the query, or it is done p
+  ///essimistically and the state waits for the query to end and
+  ///mutate. The default value is true.
+  ///
+  ///[onResult]: Invoked after the query ends successfully and
+  ///exposed the return result.
+  ///
   Future<T?> create(
     T item, {
     P Function(P? param)? param,
@@ -154,8 +174,9 @@ class _CRUDService<T, P> {
   /// * Optional parameters:
   ///    * [param] : used to parametrizes the query. It can also be used to
   /// identify many update calls.
-  ///    * [onStateMutation] : Hook to be called whenever the state is mutated.
-  ///    * [onCRUD] : Hook to be called whenever the items are updated in the database
+  ///    * [onSetState] : user for side effects.
+  ///    * [onResult] : Hook to be called whenever the items are updated in t
+  /// he database. It expoeses the return result (for example number of update line)
   ///    * [isOptimistic] : If true the state is mutated .
   ///
   Future<void> update({
@@ -224,6 +245,23 @@ class _CRUDService<T, P> {
       skipWaiting: isOptimistic,
     );
   }
+
+  ///Delete items form the state, notify listeners
+  ///and send update query to the database.
+  ///
+  ///By default the delete is done optimistically. That is the state
+  ///is mutated and listeners are notified before querying the database.
+  ///If
+  /// * Required parameters:
+  ///     * [where] : Callback to filter items to be deleted. It takes
+  /// an item from the list and returns true if the item will be deleted.
+  /// * Optional parameters:
+  ///    * [param] : used to parametrizes the query. It can also be used to
+  /// identify many update calls.
+  ///    * [onSetState] : user for side effects.
+  ///    * [onResult] : Hook to be called whenever the items are deleted in
+  /// the database. It expoeses the return result (for example number of deleted line)
+  ///    * [isOptimistic] : If true the state is mutated .
 
   Future<void> delete({
     required bool Function(T item) where,

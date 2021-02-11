@@ -85,7 +85,11 @@ class Repository implements ICRUD<Product, Object> {
 
   @override
   Future<void> init() async {
-    print('in');
+    _products = [
+      Product(id: 1, name: 'prod1'),
+      Product(id: 2, name: 'prod2'),
+      Product(id: 3, name: 'prod3')
+    ];
   }
 }
 
@@ -177,11 +181,6 @@ class NewPage extends StatelessWidget {
 
 void main() {
   setUp(() {
-    _repo._products = [
-      Product(id: 1, name: 'prod1'),
-      Product(id: 2, name: 'prod2'),
-      Product(id: 3, name: 'prod3')
-    ];
     _repo.error = null;
   });
 
@@ -324,5 +323,33 @@ void main() {
     expect(find.text('prod1: 1'), findsOneWidget);
     expect(find.text('prod2: 1'), findsOneWidget);
     expect(find.text('prod3: 0'), findsOneWidget);
+  });
+
+  testWidgets('refresh with error', (tester) async {
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(products.hasData, true);
+    //
+    products.crud.create(
+      Product(id: 4, name: 'product 4'),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.pump(Duration(seconds: 1));
+    expect(_repo._products.length, 4);
+    //
+    _repo.error = Exception('CRUD error');
+    products.crud.read();
+    await tester.pump();
+
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(products.hasError, true);
+    _repo.error = null;
+    products.refresh();
+    expect(products.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(_repo._products.length, 4);
   });
 }

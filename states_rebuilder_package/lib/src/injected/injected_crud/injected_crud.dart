@@ -111,12 +111,14 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
   ///   * [creationFunction] (positional parameter): the fake creation function
   void injectCRUDMock(ICRUD<T, P> Function() fakeRepository) {
     final creator = (ReactiveModel<List<T>> rm) {
-      final fn = () async {
-        final repo = fakeRepository();
-        await repo.init();
-        return repo;
-      };
-      _crud = _CRUDService(fn(), this);
+      if (!_isFirstInitialized) {
+        final fn = () async {
+          final repo = fakeRepository();
+          await repo.init();
+          return repo;
+        };
+        _crud = _CRUDService(fn(), this);
+      }
       if (!_isFirstInitialized && !_readOnInitialization) {
         return <T>[];
       } else {
