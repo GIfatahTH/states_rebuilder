@@ -135,7 +135,7 @@ extension ReactiveModelX on List<ReactiveModel<dynamic>> {
     return OnCombined.all(
       onIdle: onIdle,
       onWaiting: onWaiting,
-      onError: onError,
+      onError: (err, _) => onError(err),
       onData: (_) => onData(),
     ).listenTo<dynamic>(
       this,
@@ -161,7 +161,7 @@ extension ReactiveModelX on List<ReactiveModel<dynamic>> {
     return OnCombined.or(
       onIdle: onIdle,
       onWaiting: onWaiting,
-      onError: onError,
+      onError: onError != null ? (err, _) => onError(err) : null,
       onData: onData == null ? null : (_) => onData(),
       or: (_) => builder(),
     ).listenTo<dynamic>(

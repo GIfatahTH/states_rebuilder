@@ -157,7 +157,7 @@ class ProductPage extends StatelessWidget {
     return On.all(
       onIdle: () => Text('onIDel'),
       onWaiting: () => Text('Waiting for products'),
-      onError: (e) => Text('error : $e'),
+      onError: (e, _) => Text('error : $e'),
       onData: () => Column(
         children: productService.state.products.map((p) => Text(p.id)).toList(),
       ),

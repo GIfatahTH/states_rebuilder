@@ -20,6 +20,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
     bool isLazy = true,
   }) : super._(
           nullState: nullState,
@@ -80,6 +81,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
       ..onError = onError
       ..onData = onData
       .._debugError = debugError
+      .._debugNotification = debugNotification
       ..on = on;
 
     if (!isLazy) {

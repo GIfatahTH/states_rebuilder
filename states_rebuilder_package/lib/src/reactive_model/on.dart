@@ -21,7 +21,7 @@ class On<T> {
   final T Function()? _onWaiting;
 
   ///Callback to be called when the model has an error.
-  final T Function(dynamic err)? _onError;
+  final T Function(dynamic err, void Function() refresh)? _onError;
 
   ///Callback to be called when the model has data.
   final T Function()? _onData;
@@ -34,7 +34,7 @@ class On<T> {
   On._({
     required T Function()? onIdle,
     required T Function()? onWaiting,
-    required T Function(dynamic err)? onError,
+    required T Function(dynamic err, void Function() refresh)? onError,
     required T Function()? onData,
     // required _OnType onType,
   })   : _onIdle = onIdle,
@@ -64,7 +64,7 @@ class On<T> {
     return On._(
       onIdle: builder,
       onWaiting: builder,
-      onError: (dynamic _) => builder(),
+      onError: (dynamic _, void Function() __) => builder(),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -96,7 +96,7 @@ class On<T> {
 
   ///The callback is invoked only when the [Injected] model emits a
   ///notification with error status.
-  factory On.error(T Function(dynamic err) fn) {
+  factory On.error(T Function(dynamic errn, void Function() refresh) fn) {
     return On._(
       onIdle: null,
       onWaiting: null,
@@ -116,14 +116,14 @@ class On<T> {
   factory On.or({
     T Function()? onIdle,
     T Function()? onWaiting,
-    T Function(dynamic err)? onError,
+    T Function(dynamic err, void Function() refreh)? onError,
     T Function()? onData,
     required T Function() or,
   }) {
     return On._(
       onIdle: onIdle ?? or,
       onWaiting: onWaiting ?? or,
-      onError: onError ?? (dynamic _) => or(),
+      onError: onError ?? (dynamic _, void Function() __) => or(),
       onData: onData ?? or,
       // onType: _OnType.when,
     );
@@ -138,7 +138,7 @@ class On<T> {
   factory On.all({
     required T Function() onIdle,
     required T Function() onWaiting,
-    required T Function(dynamic err) onError,
+    required T Function(dynamic err, void Function() refreh) onError,
     required T Function() onData,
   }) {
     return On._(
@@ -169,13 +169,28 @@ class On<T> {
 
   static _OnCRUD<T> crud<T>({
     required T Function()? onWaiting,
-    required T Function(dynamic err)? onError,
+    required T Function(dynamic err, void Function() refresher)? onError,
     required T Function(dynamic data) onResult,
   }) {
     return _OnCRUD<T>(
       onWaiting: onWaiting,
       onError: onError,
       onResult: onResult,
+    );
+  }
+
+  //
+  static _OnAuth<T> auth<T>({
+    T Function()? onInitialWaiting,
+    T Function()? onWaiting,
+    required T Function() onUnsigned,
+    required T Function() onSigned,
+  }) {
+    return _OnAuth<T>(
+      onInitialWaiting: onInitialWaiting,
+      onWaiting: onWaiting,
+      onUnsigned: onUnsigned,
+      onSigned: onSigned,
     );
   }
 
@@ -189,7 +204,7 @@ class On<T> {
     return true;
   }
 
-  T? _call(SnapState snapState) {
+  T? _call(SnapState snapState, [bool isSideEffect = true]) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return _onWaiting!.call();
@@ -198,7 +213,7 @@ class On<T> {
     }
     if (snapState.hasError) {
       if (_hasOnError) {
-        return _onError!.call(snapState.error);
+        return _onError!.call(snapState.error, snapState.onErrorRefresher!);
       }
       return _onData?.call();
     }
@@ -207,6 +222,10 @@ class On<T> {
       if (_hasOnIdle) {
         return _onIdle?.call();
       }
+
+      if (isSideEffect) {
+        return null;
+      }
       if (_hasOnData) {
         return _onData?.call();
       }
@@ -214,19 +233,22 @@ class On<T> {
         return _onWaiting?.call();
       }
       if (_hasOnError) {
-        return _onError?.call(snapState.error);
+        return _onError?.call(snapState.error, () {});
       }
     }
 
     if (_hasOnData) {
       return _onData?.call();
     }
+    if (isSideEffect) {
+      return null;
+    }
     if (_hasOnWaiting) {
       return _onWaiting!.call();
     }
 
     if (_hasOnError) {
-      return _onError!.call(snapState.error);
+      return _onError!.call(snapState.error, () {});
     }
   }
 }
@@ -269,7 +291,7 @@ extension OnX on On<Widget> {
   ///
   ///onSetState, child and onAfterBuild parameters receives a [On] object.
   Widget listenTo<T>(
-    Injected<T> rm, {
+    Injected<T> injected, {
     On<void>? onSetState,
     On<void>? onAfterBuild,
     void Function()? initState,
@@ -281,18 +303,18 @@ extension OnX on On<Widget> {
   }) {
     return _StateBuilder<T>(
       key: key,
-      rm: [rm],
+      rm: [injected],
       initState: (_, setState, exposedRM) {
-        rm._initialize();
+        injected._initialize();
 
         initState?.call();
         // state;
         if (onAfterBuild != null) {
           WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onAfterBuild._call(rm._snapState),
+            (_) => onAfterBuild._call(injected._snapState),
           );
         }
-        return rm._listenToRMForStateFulWidget((rm, tags, isOnCrud) {
+        return injected._listenToRMForStateFulWidget((rm, tags, isOnCrud) {
           if (isOnCrud) {
             return;
           }
@@ -321,24 +343,24 @@ extension OnX on On<Widget> {
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, __) {
-        rm._onHasErrorCallback = _hasOnError;
-        return _call(rm._snapState)!;
+        injected._onHasErrorCallback = _hasOnError;
+        return _call(injected._snapState, false)!;
       },
     );
   }
 }
 
 class _OnFuture<F> {
-  final Widget Function()? onWaiting;
-  final Widget Function(dynamic err, void Function() refresh)? onError;
-  final Widget Function(F data) onData;
+  final Widget Function()? _onWaiting;
+  final Widget Function(dynamic err, void Function() refresh)? _onError;
+  final Widget Function(F data) _onData;
   _OnFuture({
-    required this.onWaiting,
-    required this.onError,
-    required this.onData,
-  });
-
-  Injected? _injected;
+    required Widget Function()? onWaiting,
+    required Widget Function(dynamic err, void Function() refresh)? onError,
+    required Widget Function(F data) onData,
+  })   : _onWaiting = onWaiting,
+        _onError = onError,
+        _onData = onData;
 
   ///Used to listen to any kind of future.
   ///
@@ -386,7 +408,6 @@ class _OnFuture<F> {
   }) {
     assert(F == dynamic || '$F' == 'Object?' || T == F);
 
-    _injected = injected;
     return _listenTo<T>(
       injected: injected,
       dispose: dispose,
@@ -429,34 +450,31 @@ class _OnFuture<F> {
         final _inj = inj!;
         return On(() {
           if (_inj._snapState.isWaiting) {
-            return onWaiting?.call() ?? onData(_inj.state);
+            return _onWaiting?.call() ?? _onData(_inj.state);
           }
           if (_inj._snapState.hasError) {
-            return onError?.call(
+            return _onError?.call(
                   _inj.error,
                   () {
                     if (injected != null) {
-                      injected._snapState = injected._snapState._copyWith(
-                        connectionState: ConnectionState.none,
-                        resetError: true,
-                      );
-                      injected._isInitialized = false;
-                      injected._initialize();
+                      injected.onErrorRefresher!.call();
                     }
 
-                    _inj._snapState = _inj._snapState._copyWith(
-                      connectionState: ConnectionState.none,
-                      resetError: true,
-                    );
-                    _inj._isInitialized = false;
-                    _inj._initialize();
+                    _inj
+                      .._snapState = _inj._snapState._copyWith(
+                        connectionState: ConnectionState.none,
+                        resetError: true,
+                      )
+                      .._isInitialized = false
+                      .._coreRM._completer = null
+                      .._initialize();
                   },
                 ) ??
-                onData(_inj.state);
+                _onData(_inj.state);
           }
           return injected != null
-              ? On.data(() => onData(_inj.state)).listenTo(injected)
-              : onData(_inj.state);
+              ? On.data(() => _onData(_inj.state)).listenTo(injected)
+              : _onData(_inj.state);
         }).listenTo<F>(
           _inj,
           onSetState: onSetState,
@@ -468,43 +486,19 @@ class _OnFuture<F> {
   }
 }
 
-///Used in tests
-T? onCall<T>(
-  On<T> on, {
-  bool isWaiting = false,
-  dynamic error,
-  T? data,
-}) {
-  final connectionState = isWaiting
-      ? ConnectionState.waiting
-      : (error != null || data != null)
-          ? ConnectionState.done
-          : ConnectionState.none;
-  return on._call(SnapState._(
-    connectionState,
-    data,
-    error,
-    null,
-  ));
-}
-
 class _OnCRUD<T> {
-  final T Function()? onWaiting;
-  final T Function(dynamic err)? onError;
-  final T Function(dynamic data) onResult;
+  final T Function()? _onWaiting;
+  final T Function(dynamic err, void Function() refresh)? _onError;
+  final T Function(dynamic data) _onResult;
   _OnCRUD({
-    required this.onWaiting,
-    required this.onError,
-    required this.onResult,
-  });
+    required T Function()? onWaiting,
+    required T Function(dynamic err, void Function() refresh)? onError,
+    required T Function(dynamic data) onResult,
+  })   : _onWaiting = onWaiting,
+        _onError = onError,
+        _onResult = onResult;
 
-  // Widget listenTo(
-  //   InjectedCRUD injected, {
-  //   void Function()? dispose,
-  //   On<void>? onSetState,
-  //   Key? key,
-  // }){}
-
+  ///Listen to an InjectedCRUD state
   Widget listenTo(
     InjectedCRUD injected, {
     void Function()? dispose,
@@ -513,45 +507,127 @@ class _OnCRUD<T> {
   }) {
     return _StateBuilder(
       initState: (context, setState, rm) {
+        injected._initialize();
         final disposer = injected._listenToRMForStateFulWidget(
           (rm, tags, _) {
-            // if (tags != null && tags.isNotEmpty && tags.first == 'curd') {
+            onSetState?._call(rm!.snapState);
             setState(injected);
-            // }
           },
         );
         return disposer;
       },
+      dispose: (_) => dispose?.call(),
       builder: (context, rm) {
         if (injected.isOnCRUD) {
-          return (onWaiting?.call() ?? onResult(injected._result)) as Widget;
+          return (_onWaiting?.call() ?? _onResult(injected._result)) as Widget;
         }
         if (injected.hasError) {
-          return (onError?.call(injected.error) ?? onResult(injected._result))
-              as Widget;
+          return (_onError?.call(injected.error, injected.onErrorRefresher!) ??
+              _onResult(injected._result)) as Widget;
         }
-        return (onResult(injected._result)) as Widget;
+        return (_onResult(injected._result)) as Widget;
       },
     );
   }
+}
 
-  ///Used in tests
-  T? onCall<T>(
-    On<T> on, {
-    bool isWaiting = false,
-    dynamic error,
-    T? data,
+class _OnAuth<T> {
+  T Function()? _onInitialWaiting;
+  final T Function()? _onWaiting;
+  final T Function() _onUnsigned;
+  final T Function() _onSigned;
+  _OnAuth({
+    required T Function()? onInitialWaiting,
+    required T Function()? onWaiting,
+    required T Function() onUnsigned,
+    required T Function() onSigned,
+  })   : _onInitialWaiting = onInitialWaiting,
+        _onWaiting = onWaiting,
+        _onUnsigned = onUnsigned,
+        _onSigned = onSigned;
+
+  ///Listen to an InjectedAuth state
+  Widget listenTo(
+    InjectedAuth injected, {
+    bool useRouteNavigation = false,
+    void Function()? dispose,
+    On<void>? onSetState,
+    Key? key,
   }) {
-    final connectionState = isWaiting
-        ? ConnectionState.waiting
-        : (error != null || data != null)
-            ? ConnectionState.done
-            : ConnectionState.none;
-    return on._call(SnapState._(
+    T widget() => injected.isSigned ? _onSigned() : _onUnsigned();
+
+    bool isNavigated = false;
+    return _StateBuilder(
+      initState: (context, setState, rm) {
+        injected._initialize();
+        final navigatorState =
+            useRouteNavigation ? RM.navigate.navigatorState : null;
+
+        final disposer = injected._listenToRMForStateFulWidget(
+          (rm, tags, _) {
+            onSetState?._call(rm!.snapState);
+            if (useRouteNavigation && injected.hasData) {
+              SchedulerBinding.instance?.scheduleFrameCallback(
+                (_) {
+                  if (injected.isSigned) {
+                    RM.navigate.toAndRemoveUntil<T>(
+                      _onSigned() as Widget,
+                    );
+                  } else {
+                    RM.navigate.toAndRemoveUntil<T>(
+                      _onUnsigned() as Widget,
+                    );
+                  }
+                },
+              );
+              isNavigated = true;
+            } else if (!isNavigated) {
+              setState(injected);
+            }
+          },
+        );
+        injected.addToCleaner(disposer);
+        return () {};
+      },
+      dispose: (_) {
+        //injected.dispose();
+        dispose?.call();
+      },
+      builder: (context, rm) {
+        if (injected.isWaiting) {
+          if (_onInitialWaiting != null) {
+            return (_onInitialWaiting?.call() ?? widget()) as Widget;
+          }
+          return (_onWaiting?.call() ?? widget()) as Widget;
+        }
+        _onInitialWaiting = null;
+        return (isNavigated ? _onUnsigned() : widget()) as Widget;
+      },
+    );
+  }
+}
+
+////Used in tests
+T? onCall<T>(
+  On<T> on, {
+  bool isWaiting = false,
+  dynamic error,
+  T? data,
+  bool isSideEffect = false,
+}) {
+  final connectionState = isWaiting
+      ? ConnectionState.waiting
+      : (error != null || data != null)
+          ? ConnectionState.done
+          : ConnectionState.none;
+  return on._call(
+    SnapState._(
       connectionState,
       data,
       error,
       null,
-    ));
-  }
+      () {},
+    ),
+    isSideEffect,
+  );
 }

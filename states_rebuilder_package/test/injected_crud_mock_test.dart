@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:states_rebuilder/src/reactive_model.dart';
 
-import 'injected_crud_item_test.dart';
-
 class Product {
   final int id;
   final String name;
@@ -99,18 +97,20 @@ final products = RM.injectCRUD<Product, Object>(
     onWaiting: () {
       onCRUDMessage = 'Waiting...';
     },
-    onError: (_) {
+    onError: (_, __) {
       onCRUDMessage = _.message;
     },
     onResult: (r) {
       onCRUDMessage = 'Result: $r';
     },
   ),
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 void main() {
   products.injectCRUDMock(() => _repo);
   setUp(() {
+    RM.disposeAll();
     _repo.error = null;
     disposeMessage = '';
     onCRUDMessage = '';
@@ -342,7 +342,7 @@ void main() {
     products.crud.create(
       Product(id: 2, name: 'product 2'),
       onSetState: On.or(
-          onError: (_) => errorMessage = _.message,
+          onError: (_, __) => errorMessage = _.message,
           onData: () => numberOfonStateMutationCall++,
           or: () {}),
       onResult: (_) => onResult = _,
@@ -370,7 +370,7 @@ void main() {
       where: (product) => product.id == 1,
       set: (product) => product.copyWith(name: 'product 1_new'),
       onSetState: On.or(
-        onError: (_) => errorMessage = _.message,
+        onError: (_, __) => errorMessage = _.message,
         onData: () => numberOfonStateMutationCall++,
         or: () {},
       ),
@@ -397,7 +397,7 @@ void main() {
     products.crud.delete(
       where: (product) => product.id == 1,
       onSetState: On.or(
-        onError: (err) => errorMessage = err.message,
+        onError: (err, _) => errorMessage = err.message,
         onData: () => numberOfonStateMutationCall++,
         or: () {},
       ),
@@ -425,7 +425,7 @@ void main() {
       textDirection: TextDirection.rtl,
       child: On.crud(
         onWaiting: () => Text('Waiting...'),
-        onError: (_) => Text(_.message),
+        onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
       ).listenTo(products),
     );
@@ -472,7 +472,7 @@ void main() {
       textDirection: TextDirection.rtl,
       child: On.crud(
         onWaiting: () => Text('Waiting...'),
-        onError: (_) => Text(_.message),
+        onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
       ).listenTo(products),
     );
@@ -522,13 +522,13 @@ void main() {
         children: [
           On.crud(
             onWaiting: () => Text('CRUD Waiting...'),
-            onError: (_) => Text('CRUD' + _.message),
+            onError: (_, __) => Text('CRUD' + _.message),
             onResult: (r) => Text('Result: $r'),
           ).listenTo(products),
           On.all(
             onIdle: () => Text('Idel'),
             onWaiting: () => Text('OnAll Waiting...'),
-            onError: (_) => Text('OnAll ' + _.message),
+            onError: (_, __) => Text('OnAll ' + _.message),
             onData: () {
               numberOfOnDataRebuild++;
               return Text('onData');
@@ -623,4 +623,90 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(_repo._products.length, 2);
   });
+
+  testWidgets(
+    'When On.crud hasError'
+    'Refresh it',
+    (tester) async {
+      late void Function() refresher;
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: On.crud(
+          onWaiting: () => Text('Waiting...'),
+          onError: (_, refresh) {
+            refresher = refresh;
+            return Text(_.message);
+          },
+          onResult: (r) => Text('Result: $r'),
+        ).listenTo(products),
+      );
+
+      ///READ
+      _repo.error = Exception('Read Error');
+      await tester.pumpWidget(widget);
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Read Error'), findsOneWidget);
+      _repo.error = null;
+      refresher();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Result: null'), findsOneWidget);
+
+      // //CREATE Peissimisally
+      _repo.error = Exception('Create Error');
+
+      products.crud.create(
+        Product(id: 2, name: 'product 2'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Create Error'), findsOneWidget);
+      _repo.error = null;
+      refresher();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Result: null'), findsOneWidget);
+      //UPDATA
+      _repo.error = Exception('Update Error');
+
+      products.crud.update(
+        where: (product) => product.id == 2,
+        set: (product) => product.copyWith(name: 'product 2_new'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Update Error'), findsOneWidget);
+      _repo.error = null;
+      refresher();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Result: 1 items updated'), findsOneWidget);
+      //DELETE
+      _repo.error = Exception('Delete Error');
+
+      products.crud.delete(
+        where: (product) => product.id == 2,
+      );
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Delete Error'), findsOneWidget);
+      _repo.error = null;
+      refresher();
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Result: 1 items deleted'), findsOneWidget);
+    },
+  );
 }

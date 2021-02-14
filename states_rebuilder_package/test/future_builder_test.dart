@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
+import 'fake_classes/models.dart';
 import 'injected_test.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
@@ -33,7 +34,7 @@ void main() {
 
   testWidgets('Injected.futureBuilder with error', (tester) async {
     final widget = vanillaModel.futureBuilder(
-      future: (s, _) => s?.incrementError().then(
+      future: (s, _) => s?.incrementAsyncWithError().then(
             (_) => Future.delayed(
               Duration(seconds: 1),
               () => VanillaModel(5),
@@ -102,7 +103,7 @@ void main() {
       onError: (_, __) => error = 'Error from global $_',
     );
     await tester.pumpWidget(modelFuture.futureBuilder(
-      future: (s, __) => s?.incrementError(),
+      future: (s, __) => s?.incrementAsyncWithError(),
       onWaiting: () => Container(),
       onError: (_) => Container(),
       onData: (_) => Container(),

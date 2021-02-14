@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:states_rebuilder/src/reactive_model.dart';
+import 'fake_classes/models.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
 final streamVanillaModel = RM.injectStream(
@@ -51,7 +52,7 @@ void main() {
         },
         initState: () {
           vanillaModel.setState(
-            (s) => s.incrementError(),
+            (s) => s.incrementAsyncWithError(),
             catchError: true,
           );
         },
@@ -209,7 +210,7 @@ void main() {
       await tester.pumpWidget(vanillaModel.rebuilder(() => Container()));
       String? errorMessage;
       vanillaModel.setState(
-        (state) => state.incrementError(),
+        (state) => state.incrementAsyncWithError(),
         onError: (error) {
           errorMessage = error.message;
         },
@@ -343,7 +344,7 @@ void main() {
   testWidgets('Injected.whenRebuilder', (tester) async {
     final widget = vanillaModel.whenRebuilder(
       initState: () => vanillaModel.setState(
-        (s) => s.incrementError().then(
+        (s) => s.incrementAsyncWithError().then(
               (_) => Future.delayed(
                 Duration(seconds: 1),
                 () => VanillaModel(5),
@@ -405,7 +406,7 @@ void main() {
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('15'), findsOneWidget);
-    vanillaModel.setState((s) => s.incrementError());
+    vanillaModel.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(find.text('waiting ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -463,7 +464,7 @@ void main() {
         ),
       );
       vanillaModel.setState(
-        (state) => state.incrementError(),
+        (state) => state.incrementAsyncWithError(),
       );
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
@@ -1272,7 +1273,7 @@ void main() {
     expect(find.text('11'), findsOneWidget);
 
     //
-    counter2.setState((s) => s.incrementError());
+    counter2.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(find.text('onWaiting'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1327,7 +1328,7 @@ void main() {
     expect(find.text('11'), findsOneWidget);
 
     //
-    counter2.setState((s) => s.incrementError());
+    counter2.setState((s) => s.incrementAsyncWithError());
     await tester.pump();
     expect(find.text('onWaiting'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -1388,7 +1389,7 @@ void main() {
         onSetState: On.all(
           onIdle: () => counter2OnSetState += 'Idle ',
           onWaiting: () => counter2OnSetState += 'Waiting ',
-          onError: (_) => counter2OnSetState += 'Error ',
+          onError: (_, __) => counter2OnSetState += 'Error ',
           onData: () => counter2OnSetState += 'Data ',
         ),
       );
@@ -1517,7 +1518,7 @@ void main() {
 
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => 1),
-        onSetState: On.error((err) {
+        onSetState: On.error((err, _) {
           setStateOnSetState++;
         }),
       );
@@ -1530,7 +1531,7 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On.error((err) {
+        onSetState: On.error((err, _) {
           setStateOnSetState++;
         }),
       );
@@ -1609,66 +1610,6 @@ void main() {
       expect(setStateOnSetState, 4);
     },
   );
-}
-
-class VanillaModel {
-  VanillaModel([this.counter = 0]);
-  int counter = 0;
-  int numberOfDisposeCall = 0;
-  void increment() {
-    counter++;
-  }
-
-  Future<int> incrementAsync() async {
-    await getFuture();
-    counter++;
-    return counter;
-  }
-
-  Future<VanillaModel> incrementAsyncImmutable() async {
-    await getFuture();
-    return VanillaModel(counter + 1);
-  }
-
-  Future<int> incrementError() async {
-    await getFuture();
-    throw Exception('Error message');
-  }
-
-  Stream<int> incrementStream() async* {
-    await Future.delayed(Duration(seconds: 1));
-    yield ++counter;
-    await Future.delayed(Duration(seconds: 1));
-    yield ++counter;
-    await Future.delayed(Duration(seconds: 1));
-    yield ++counter;
-  }
-
-  Stream<int> incrementStreamWithError() async* {
-    await Future.delayed(Duration(seconds: 1));
-    yield ++counter;
-    await Future.delayed(Duration(seconds: 1));
-    yield ++counter;
-    await Future.delayed(Duration(seconds: 1));
-    yield --counter;
-    throw Exception('Error message');
-  }
-
-  dispose() {
-    numberOfDisposeCall++;
-  }
-
-  @override
-  String toString() {
-    return 'VanillaModel($counter)';
-  }
-}
-
-Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
-Stream<int> getStream() {
-  return Stream.periodic(Duration(seconds: 1), (num) {
-    return num;
-  }).take(3);
 }
 
 abstract class IModelInterface {

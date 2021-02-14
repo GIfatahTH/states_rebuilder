@@ -10,20 +10,24 @@ class SnapState<T> {
     this._connectionState,
     this.data,
     this.error,
-    this.stackTrace, [
+    this.stackTrace,
+    this.onErrorRefresher, [
     this.isImmutable = true,
-  ]) : assert(stackTrace == null || error != null);
+    this._numberOFWidgetListeners = 0,
+  ])  : assert(stackTrace == null || error != null),
+        assert(error == null || onErrorRefresher != null);
 
   /// Creates an [SnapState] in [ConnectionState.none] with null data and error.
-  const SnapState._nothing() : this._(ConnectionState.none, null, null, null);
+  const SnapState._nothing()
+      : this._(ConnectionState.none, null, null, null, null);
 
   /// Creates an [SnapState] in [ConnectionState.waiting] with null data and error.
   const SnapState._waiting(T? data)
-      : this._(ConnectionState.waiting, data, null, null);
+      : this._(ConnectionState.waiting, data, null, null, null);
 
   /// Creates an [SnapState] in the specified [state] and with the specified [data].
   const SnapState._withData(ConnectionState state, T data, bool isImmutable)
-      : this._(state, data, null, null, isImmutable);
+      : this._(state, data, null, null, null, isImmutable);
 
   /// Creates an [SnapState] in the specified [state] with the specified [error]
   /// and a [stackTrace].
@@ -32,9 +36,10 @@ class SnapState<T> {
   const SnapState._withError(
     ConnectionState state,
     T? data,
-    dynamic error, [
+    dynamic error,
+    void Function() onErrorRefresher, [
     StackTrace stackTrace = StackTrace.empty,
-  ]) : this._(state, data, error, stackTrace);
+  ]) : this._(state, data, error, stackTrace, onErrorRefresher);
 
   /// Current state of connection to the asynchronous computation.
   final ConnectionState _connectionState;
@@ -68,18 +73,28 @@ class SnapState<T> {
   /// is empty when there is an error but no stack trace has been provided.
   final StackTrace? stackTrace;
 
+  final void Function()? onErrorRefresher;
+
+  final int _numberOFWidgetListeners;
+  int get numberOFWidgetListeners => _numberOFWidgetListeners;
+
   SnapState<T> _copyWith({
     ConnectionState? connectionState,
     T? data,
     dynamic error,
     StackTrace? stackTrace,
+    void Function()? onErrorRefresher,
     bool resetError = false,
+    int numberOFWidgetListeners = 0,
   }) =>
       SnapState<T>._(
         connectionState ?? _connectionState,
         data ?? this.data,
         resetError ? null : error ?? this.error,
         resetError ? null : stackTrace ?? this.stackTrace,
+        resetError ? null : onErrorRefresher ?? this.onErrorRefresher,
+        isImmutable,
+        numberOFWidgetListeners,
       );
 
   /// Returns whether this snapshot contains a non-null [data] value.
@@ -109,7 +124,7 @@ class SnapState<T> {
     } else if (isWaiting) {
       status = 'isWaiting: $data';
     } else if (hasError) {
-      status = 'hasError, error: $error';
+      status = 'hasError: $error';
     } else if (hasData) {
       status = 'hasData: $data';
     }
@@ -128,11 +143,24 @@ class SnapState<T> {
 
   @override
   int get hashCode {
-    return _connectionState.hashCode ^
-        data.hashCode ^
-        error.hashCode ^
-        stackTrace.hashCode;
+    return _connectionState.hashCode ^ data.hashCode ^ error.hashCode;
   }
 }
 
 final deepEquality = const DeepCollectionEquality();
+
+//Used in tests
+SnapState<T> createSnapState<T>(
+  ConnectionState connectionState,
+  T data,
+  dynamic error, {
+  StackTrace? stackTrace,
+  void Function()? onErrorRefresher,
+}) =>
+    SnapState<T>._(
+      connectionState,
+      data,
+      error,
+      stackTrace,
+      onErrorRefresher,
+    );

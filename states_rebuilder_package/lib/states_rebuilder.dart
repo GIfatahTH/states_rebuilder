@@ -27,4 +27,5 @@ export 'src/reactive_model.dart'
         InjectedAuth,
         Child,
         TopAppWidget,
-        SystemLocale;
+        SystemLocale,
+        Transitions;

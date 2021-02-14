@@ -100,7 +100,7 @@ class CounterItem extends StatelessWidget {
       children: [
         On.or(
           onWaiting: () => Text('${counter.state.id}: isWaiting'),
-          onError: (e) => Text('${counter.state.id}: hasError'),
+          onError: (e, _) => Text('${counter.state.id}: hasError'),
           or: () {
             //count the number of rebuild
             numberOfRebuild[counter.state.id] =

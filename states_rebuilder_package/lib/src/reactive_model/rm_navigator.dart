@@ -16,7 +16,6 @@ MaterialApp(
    //
 )
 ''');
-
     return navigatorState!;
   }
 
@@ -25,14 +24,94 @@ MaterialApp(
     return _navigatorKey;
   }
 
+  ///Creates a route that delegates to builder callbacks. It is used to animate
+  ///page transition.
+  ///
+  ///If defined, it overrides the [transitionsBuilder].
+  ///
+  ///Similar ot [PageRouteBuilder]
+  ///
+  PageRoute Function(Widget nextPage)? pageRouteBuilder;
+
+  ///Used to change the page animation transition.
+  ///
+  ///You can defined your custom transitions builder or use one
+  ///of the four predefined transitions :
+  ///* [_Transitions.rightToLeft]
+  ///* [_Transitions.leftToRight]
+  ///* [_Transitions.upToBottom]
+  ///* [_Transitions.bottomToUP]
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  )? transitionsBuilder;
+
+  ///It takes the map of routes and return the onGenerateRoute to be used
+  ///in the [MaterialApp.onGenerateRoute]
+  ///
+  ///The routes map is of type `<String, Widget Function(Object? arguments)>`
+  ///where arguments is the [RouteSettings.settings.arguments]
+  Route<dynamic>? Function(RouteSettings settings) onGenerateRoute(
+    Map<String, Widget Function(Object? arguments)> routes, {
+    Widget Function(
+      BuildContext,
+      Animation<double>,
+      Animation<double>,
+      Widget,
+    )?
+        transitionsBuilder,
+    Widget? unknownRoute,
+  }) {
+    assert(routes.isNotEmpty);
+    this.transitionsBuilder = transitionsBuilder;
+    return (RouteSettings settings) {
+      final route = routes[settings.name];
+      if (route != null) {
+        return _pageRouteBuilder(route(settings.arguments));
+      } else {
+        return MaterialPageRoute(
+          builder: (_) {
+            return unknownRoute ??
+                Scaffold(
+                  body: Center(
+                    child: Text('No route defined for ${settings.name}'),
+                  ),
+                );
+          },
+        );
+      }
+    };
+  }
+
+  static Duration? _transitionDuration;
+  PageRoute<T> _pageRouteBuilder<T>(Widget page) {
+    return transitionsBuilder != null || pageRouteBuilder != null
+        ? (pageRouteBuilder?.call(page) as PageRoute<T>?) ??
+            PageRouteBuilder<T>(
+              pageBuilder: (context, animation, secondaryAnimation) => page,
+              transitionsBuilder: transitionsBuilder!,
+              transitionDuration: _transitionDuration ??
+                  const Duration(
+                    milliseconds: 300,
+                  ),
+              reverseTransitionDuration: _transitionDuration ??
+                  const Duration(
+                    milliseconds: 300,
+                  ),
+            )
+        : MaterialPageRoute<T>(
+            builder: (_) => page,
+          );
+  }
+
   ///navigate to the given page.
   ///
   ///Equivalent to: [NavigatorState.push]
   Future<T?> to<T extends Object?>(Widget page) {
     return navigatorState.push<T>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
-      ),
+      _pageRouteBuilder(page),
     );
   }
 
@@ -55,9 +134,7 @@ MaterialApp(
     TO? result,
   }) {
     return navigatorState.pushReplacement<T, TO>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
-      ),
+      _pageRouteBuilder(page),
       result: result,
     );
   }
@@ -89,9 +166,7 @@ MaterialApp(
     String? untilRouteName,
   }) {
     return navigatorState.pushAndRemoveUntil<T>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
-      ),
+      _pageRouteBuilder(page),
       untilRouteName != null
           ? ModalRoute.withName(untilRouteName)
           : (r) => false,
@@ -271,5 +346,277 @@ MaterialApp(
       semanticsDismissible: semanticsDismissible,
       filter: filter,
     );
+  }
+}
+
+final _transitions = _Transitions();
+
+class _Transitions {
+  ///A right to left predefined [TransitionBuilder].
+  ///
+  ///The TransitionBuilder animate the position and the opacity
+  ///of the page.
+  ///
+  ///You can set the tween the curve , and the duration of the position and opacity
+  ///animation
+  ///
+  ///Default values are :
+  ///
+  ///* For position animation:
+  ///```dart
+  ///positionTween = Tween<Offset>(
+  ///   begin: const Offset(0.25, 0),
+  ///   end: Offset.zero,
+  /// )
+  ///
+  ///positionCurve = Curves.fastOutSlowIn;
+  ///```
+  ///
+  ///* For opacity animation:
+  ///```dart
+  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
+  ///
+  ///opacityCurve = Curves.easeIn;
+  ///```
+  ///
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  ) rightToLeft({
+    Tween<Offset>? positionTween,
+    Curve? positionCurve,
+    Tween<double>? opacityTween,
+    Curve? opacityCurve,
+    Duration? duration,
+  }) {
+    _Navigate._transitionDuration = duration;
+    return (context, animation, secondaryAnimation, child) {
+      positionTween ??= Tween<Offset>(
+        begin: const Offset(0.25, 0),
+        end: Offset.zero,
+      );
+      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
+      final Animation<Offset> _positionAnimation = animation.drive(
+        positionTween!.chain(
+          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
+        ),
+      );
+      final Animation<double> _opacityAnimation = animation.drive(
+        opacityTween!.chain(
+          CurveTween(curve: opacityCurve ?? Curves.easeIn),
+        ),
+      );
+
+      return SlideTransition(
+        position: _positionAnimation,
+        child: FadeTransition(
+          opacity: _opacityAnimation,
+          child: child,
+        ),
+      );
+    };
+  }
+
+  ///A left to right predefined [TransitionBuilder].
+  ///
+  ///The TransitionBuilder animate the position and the opacity
+  ///of the page.
+  ///
+  ///You can set the tween the curve , and the duration of the position and opacity
+  ///animation
+  ///
+  ///Default values are :
+  ///
+  ///* For position animation:
+  ///```dart
+  ///positionTween = Tween<Offset>(
+  ///   begin: const Offset(-0.25, 0),
+  ///   end: Offset.zero,
+  /// )
+  ///
+  ///positionCurve = Curves.fastOutSlowIn;
+  ///```
+  ///
+  ///* For opacity animation:
+  ///```dart
+  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
+  ///
+  ///opacityCurve = Curves.easeIn;
+  ///```
+  ///
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  ) leftToRight({
+    Tween<Offset>? positionTween,
+    Curve? positionCurve,
+    Tween<double>? opacityTween,
+    Curve? opacityCurve,
+    Duration? duration,
+  }) {
+    print(_Navigate._transitionDuration);
+    _Navigate._transitionDuration = duration;
+    print(_Navigate._transitionDuration);
+    return (context, animation, secondaryAnimation, child) {
+      positionTween ??= Tween<Offset>(
+        begin: const Offset(-0.25, 0),
+        end: Offset.zero,
+      );
+      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
+      final Animation<Offset> _positionAnimation = animation.drive(
+        positionTween!.chain(
+          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
+        ),
+      );
+      final Animation<double> _opacityAnimation = animation.drive(
+        opacityTween!.chain(
+          CurveTween(curve: opacityCurve ?? Curves.easeIn),
+        ),
+      );
+      return SlideTransition(
+        position: _positionAnimation,
+        child: FadeTransition(
+          opacity: _opacityAnimation,
+          child: child,
+        ),
+      );
+    };
+  }
+
+  ///A bottom to up predefined [TransitionBuilder].
+  ///
+  ///The TransitionBuilder animate the position and the opacity
+  ///of the page.
+  ///
+  ///You can set the tween the curve , and the duration of the position and opacity
+  ///animation
+  ///
+  ///Default values are :
+  ///
+  ///* For position animation:
+  ///```dart
+  ///positionTween = Tween<Offset>(
+  ///   begin: const Offset(0.0, 0.25),
+  ///   end: Offset.zero,
+  /// )
+  ///
+  ///positionCurve = Curves.fastOutSlowIn;
+  ///```
+  ///
+  ///* For opacity animation:
+  ///```dart
+  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
+  ///
+  ///opacityCurve = Curves.easeIn;
+  ///```
+  ///
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  ) bottomToUP({
+    Tween<Offset>? positionTween,
+    Curve? positionCurve,
+    Tween<double>? opacityTween,
+    Curve? opacityCurve,
+    Duration? duration,
+  }) {
+    _Navigate._transitionDuration = duration;
+    return (context, animation, secondaryAnimation, child) {
+      positionTween ??= Tween<Offset>(
+        begin: const Offset(0.0, 0.25),
+        end: Offset.zero,
+      );
+      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
+      final Animation<Offset> _positionAnimation = animation.drive(
+        positionTween!.chain(
+          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
+        ),
+      );
+      final Animation<double> _opacityAnimation = animation.drive(
+        opacityTween!.chain(
+          CurveTween(curve: opacityCurve ?? Curves.easeIn),
+        ),
+      );
+      return SlideTransition(
+        position: _positionAnimation,
+        child: FadeTransition(
+          opacity: _opacityAnimation,
+          child: child,
+        ),
+      );
+    };
+  }
+
+  ///A up to bottom predefined [TransitionBuilder].
+  ///
+  ///The TransitionBuilder animate the position and the opacity
+  ///of the page.
+  ///
+  ///You can set the tween the curve , and the duration of the position and opacity
+  ///animation
+  ///
+  ///Default values are :
+  ///
+  ///* For position animation:
+  ///```dart
+  ///positionTween = Tween<Offset>(
+  ///   begin: const Offset(0.0, -0.25),
+  ///   end: Offset.zero,
+  /// )
+  ///
+  ///positionCurve = Curves.fastOutSlowIn;
+  ///```
+  ///
+  ///* For opacity animation:
+  ///```dart
+  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
+  ///
+  ///opacityCurve = Curves.easeIn;
+  ///```
+  ///
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  ) upToBottom({
+    Tween<Offset>? positionTween,
+    Curve? positionCurve,
+    Tween<double>? opacityTween,
+    Curve? opacityCurve,
+    Duration? duration,
+  }) {
+    _Navigate._transitionDuration = duration;
+    return (context, animation, secondaryAnimation, child) {
+      positionTween ??= Tween<Offset>(
+        begin: const Offset(0.0, -0.25),
+        end: Offset.zero,
+      );
+      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
+      final Animation<Offset> _positionAnimation = animation.drive(
+        positionTween!.chain(
+          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
+        ),
+      );
+      final Animation<double> _opacityAnimation = animation.drive(
+        opacityTween!.chain(
+          CurveTween(curve: opacityCurve ?? Curves.easeIn),
+        ),
+      );
+
+      return SlideTransition(
+        position: _positionAnimation,
+        child: FadeTransition(
+          opacity: _opacityAnimation,
+          child: child,
+        ),
+      );
+    };
   }
 }

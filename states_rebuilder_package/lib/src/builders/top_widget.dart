@@ -71,6 +71,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   bool _isWaiting = false;
   bool _hasError = false;
   dynamic error;
+  bool _hasWaiteFor = false;
   void initState() {
     super.initState();
     if (widget.waiteFor != null) {
@@ -104,14 +105,20 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         );
       };
     }
-
-    child = _builderI18N?.call(widget.builder) ??
-        _builderTheme?.call(widget.builder) ??
-        widget.builder(context);
+    if (!_hasWaiteFor) {
+      child = _builderI18N?.call(widget.builder) ??
+          _builderTheme?.call(widget.builder) ??
+          widget.builder(context);
+    }
   }
 
-  _startWaiting() async {
+  Future<void> _startWaiting() async {
     List<Future> waiteFor = widget.waiteFor!();
+    _hasWaiteFor = waiteFor.isNotEmpty;
+    if (!_hasWaiteFor) {
+      return;
+    }
+
     _isWaiting = true;
     _hasError = false;
     try {
@@ -127,6 +134,10 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         _hasError = true;
         error = e;
       });
+    } finally {
+      child = _builderI18N?.call(widget.builder) ??
+          _builderTheme?.call(widget.builder) ??
+          widget.builder(context);
     }
   }
 
@@ -153,6 +164,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
     widget.injectedAuth?._initialize();
     widget.injectedI18N?._initialize();
     return child;
+    ;
   }
 }
 

@@ -44,10 +44,6 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         _nullState ??= result as T;
         _coreRM.snapState = _coreRM.snapState._copyWith(data: result as T);
         _coreRM.addToUndoQueue();
-        // if (_coreRM.persistanceProvider != null &&
-        //     !_isStateInitiallyPersisted) {
-        //   _coreRM.persistState();
-        // }
       }
       _onInitState();
       _notifyListeners();
@@ -67,15 +63,23 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       }
       _isAsyncReactiveModel = asyncResult != null;
       if (_isAsyncReactiveModel) {
-        _coreRM._setToIsWaiting(
-          skipWaiting: false,
-        );
+        _coreRM._setToIsWaiting();
         if (!_isFirstInitialized) {
           _onInitState();
         }
 
         _handleAsyncSubscription(
           asyncResult as Stream<T>,
+          onErrorRefresher: () {
+            _snapState = _snapState._copyWith(
+              connectionState: ConnectionState.none,
+              resetError: true,
+            );
+            _isInitialized = false;
+            _coreRM._completer = null;
+            _initialConnectionState = ConnectionState.done;
+            _initialize();
+          },
           onInitData: (s) => _nullState ??= s,
         );
 
@@ -97,7 +101,21 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         _coreRM.persistState();
       }
     } catch (e, s) {
-      _coreRM._setToHasError(e, s);
+      _coreRM._setToHasError(
+        e,
+        s,
+        onErrorRefresher: () {
+          _snapState = _snapState._copyWith(
+            connectionState: ConnectionState.done,
+            resetError: true,
+          );
+          _initialConnectionState = ConnectionState.done;
+          _isInitialized = false;
+          _coreRM._completer = null;
+          _initialize();
+          _coreRM.notifyListeners();
+        },
+      );
     }
     if (!_isFirstInitialized) {
       _onInitState();
@@ -110,6 +128,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
 
   StreamSubscription<dynamic> _handleAsyncSubscription(
     Stream asyncResult, {
+    required void Function() onErrorRefresher,
     On<void>? onSetState,
     void Function()? onRebuildState,
     void Function(dynamic? error)? onError,
@@ -141,6 +160,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         _coreRM._setToHasError(
           e,
           s,
+          onErrorRefresher: onErrorRefresher,
           onSetState: onSetState,
           onError: onError,
           context: context,

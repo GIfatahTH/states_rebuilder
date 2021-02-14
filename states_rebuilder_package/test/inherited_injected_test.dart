@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
-import 'injected_a_to_z.dart/03-computed_counter_test.dart';
-
 void main() {
   testWidgets('get inherited using call', (tester) async {
     final counter1 = RM.inject(() => 1);

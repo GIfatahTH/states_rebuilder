@@ -1,6 +1,8 @@
 part of '../reactive_model.dart';
 
 abstract class RM {
+  RM._();
+
   ///Functional injection of a primitive, enum or object.
   ///
   ///* **Required parameters:**
@@ -55,6 +57,7 @@ abstract class RM {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -79,6 +82,7 @@ abstract class RM {
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
   }
 
@@ -106,6 +110,7 @@ abstract class RM {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -129,6 +134,7 @@ abstract class RM {
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
   }
 
@@ -158,6 +164,7 @@ abstract class RM {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
 
     //
     Object? Function(T? s)? watch,
@@ -185,6 +192,7 @@ abstract class RM {
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
       isLazy: isLazy,
     );
     return inj;
@@ -215,6 +223,7 @@ abstract class RM {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -249,6 +258,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
       isLazy: isLazy,
     );
   }
@@ -307,6 +317,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -349,6 +360,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
     inj.._readOnInitialization = readOnInitialization;
     return inj;
@@ -383,7 +395,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     void Function(T s)? onSigned,
     void Function()? onUnsigned,
     Duration Function(T auth)? autoSignOut,
-    bool authenticateOnInit = true,
+    FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
     //
     void Function(T s)? onInitialized,
     void Function(T s)? onDisposed,
@@ -396,6 +408,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool autoDisposeWhenNotUsed = false,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -405,26 +418,21 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     late InjectedAuth<T, P> inj;
     inj = InjectedAuth<T, P>(
       creator: () {
-        final fn = () async {
-          final repo = repository();
-          await repo.init();
-          return repo;
-        };
+        if (!inj._isFirstInitialized) {
+          final fn = () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          };
 
-        inj._auth = _AuthService(fn(), inj);
+          inj._auth = _AuthService(fn(), inj);
+        }
         return unsignedUser;
-        //if (!inj._isFirstInitialized) {
-        //} else {
-        //  return () async {
-        //    final _repo = await inj.auth._repository;
-        //    return await _repo.signIn(param?.call());
-        //  }();
-        //}
       },
       initialState: unsignedUser,
       autoSignOut: autoSignOut,
       param: param,
-      onInitialized: (s) {
+      onInitialized: (s) async {
         inj._auth ??= _AuthService(
           () async {
             final repo = repository();
@@ -433,9 +441,31 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
           }(),
           inj,
         );
+
+        if (onAuthStream != null) {
+          inj._coreRM._setToIsWaiting();
+          final repo = await inj._auth!._repository;
+          final Stream<T> stream = await onAuthStream(repo);
+          StreamSubscription<T>? subscription = stream.listen(
+            (data) {
+              inj.state = data;
+            },
+            onError: (e, s) {
+              inj.state = inj._initialState!;
+              inj._coreRM._setToHasError(e, s, onErrorRefresher: () {});
+            },
+          );
+          inj.addToCleaner(
+            () {
+              subscription?.cancel();
+              subscription = null;
+            },
+          );
+        }
+
         //If it is mocked using injectMock,
         //Do not invoke onSigned and onUnSigned
-        if (authenticateOnInit && inj.isIdle && !inj._isInjectMock) {
+        if (inj.isIdle && !inj._isInjectMock) {
           if (inj.state != inj._initialState) {
             if (autoSignOut != null) {
               inj._auth!._autoSignOut();
@@ -467,6 +497,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       // autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
 
     return inj;
@@ -505,6 +536,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     PersistState<Key> Function()? persist;
     late InjectedTheme<Key> inj;
@@ -560,6 +592,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
     return inj;
   }
@@ -588,6 +621,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
   }) {
     PersistState<I18N> Function()? persist;
     late InjectedI18N<I18N> inj;
@@ -638,6 +672,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
+      debugNotification: debugNotification,
     );
     return inj;
   }
@@ -723,6 +758,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///
   ///For any other operations you can use [_Navigate.navigatorState] getter.
   static _Navigate navigate = _navigate;
+  static _Transitions transitions = _transitions;
 
   ///Boiler-plate-less helper for side effects that need the [ScaffoldState].
   ///
@@ -805,10 +841,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///Manually dispose all [Injected] models.
   ///
   ///
-  static void disposeAll([bool forceDispose = true]) {
+  static void disposeAll([bool forceDispose = true]) async {
     _scaffold._context = null;
     _context = null;
-    Future.microtask(
+
+    await Future.microtask(
       () => {..._injectedModels}.forEach(
         (e) {
           if (forceDispose || e._autoDisposeWhenNotUsed) {

@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
               whenRebuilderCount++;
               return Text('whenRebuilder: Waiting');
             },
-            onError: (e) {
+            onError: (e, _) {
               whenRebuilderCount++;
               return Text('whenRebuilder: ${e.message}');
             },

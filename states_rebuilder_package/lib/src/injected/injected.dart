@@ -228,7 +228,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
           );
           return;
         }
-        return _coreRM._setToIsWaiting(skipWaiting: false);
+        return _coreRM._setToIsWaiting();
       }
       final errorRM =
           _inheritedInjects.firstWhereOrNull((e) => e._snapState.hasError);
@@ -237,12 +237,14 @@ abstract class Injected<T> implements ReactiveModel<T> {
           _coreRM._snapState = _coreRM._snapState._copyWith(
             error: errorRM.error,
             stackTrace: errorRM.stackTrace,
+            onErrorRefresher: errorRM.onErrorRefresher,
           );
           return;
         }
         return _coreRM._setToHasError(
           errorRM.error,
           errorRM.stackTrace!,
+          onErrorRefresher: errorRM.onErrorRefresher!,
         );
       }
       if (!_isFirstInitialized) {
@@ -492,7 +494,6 @@ Disposer _addToInjectedModels(Injected inj) {
 void _resolveMergedState<T>(Injected<T> dependent, [bool shouldNotify = true]) {
   if (dependent._dependsOn!.injected.any((e) => e._snapState.isWaiting)) {
     return dependent._coreRM._setToIsWaiting(
-      skipWaiting: false,
       shouldNotify: shouldNotify,
     );
   }
@@ -503,12 +504,14 @@ void _resolveMergedState<T>(Injected<T> dependent, [bool shouldNotify = true]) {
       dependent._coreRM._setToHasError(
         errorRM.error,
         errorRM.stackTrace!,
+        onErrorRefresher: errorRM.onErrorRefresher!,
       );
     } else {
       dependent._snapState = SnapState<T>._withError(
         ConnectionState.done,
         dependent._state,
         errorRM.error,
+        errorRM.onErrorRefresher!,
         errorRM.stackTrace!,
       );
     }

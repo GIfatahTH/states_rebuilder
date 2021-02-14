@@ -180,7 +180,7 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
     _widget = OnCombined.all(
       onIdle: widget.onIdle,
       onWaiting: widget.onWaiting,
-      onError: widget.onError,
+      onError: (err, _) => widget.onError(err),
       onData: widget.onData,
     ).listenTo<T>(
       _models,

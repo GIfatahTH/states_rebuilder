@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
-import 'injected_test.dart';
+import 'fake_classes/models.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
 
@@ -46,7 +46,7 @@ void main() {
       },
     ).future(
       () => shouldThrow
-          ? vanillaModel.state.incrementError().then(
+          ? vanillaModel.state.incrementAsyncWithError().then(
                 (_) => Future.delayed(
                   Duration(seconds: 1),
                   () => VanillaModel(5),
@@ -174,7 +174,7 @@ void main() {
       onWaiting: () => Container(),
       onError: (_, __) => Container(),
       onData: (_) => Container(),
-    ).future(modelFuture.future((s) => s.incrementError())));
+    ).future(modelFuture.future((s) => s.incrementAsyncWithError())));
 
     await tester.pump(Duration(seconds: 1));
     expect(error,

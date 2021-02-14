@@ -13,7 +13,7 @@ final Injected<int> counter = RM.inject<int>(
   onSetState: On.all(
     onIdle: () => print('onIdle'),
     onWaiting: () => print('waiting'),
-    onError: (e) => print('error : $e'),
+    onError: (e, _) => print('error : $e'),
     onData: () => print('data ${counter.state}'),
   ),
   onInitialized: (int state) => print('Initialized'),

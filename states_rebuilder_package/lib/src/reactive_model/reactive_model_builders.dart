@@ -5,6 +5,14 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
 
   @override
   void _notifyListeners([List? tags, bool isOnCrud = false]) {
+    assert(() {
+      _coreRM._debugNotification?.call(
+        _coreRM._snapState._copyWith(
+          numberOFWidgetListeners: observerLength,
+        ),
+      );
+      return true;
+    }());
     super._notifyListeners(tags, isOnCrud);
     _listeners.forEach((fn) => fn(this as ReactiveModel<T>));
     RM.printInjected?.call(_snapState);
@@ -317,7 +325,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       On.all(
         onIdle: onIdle,
         onWaiting: onWaiting,
-        onError: onError,
+        onError: (err, _) => onError(err),
         onData: onData,
       ).listenTo<T>(
         this as Injected<T>,
@@ -384,7 +392,7 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
       On.or(
         onIdle: onIdle,
         onWaiting: onWaiting,
-        onError: onError,
+        onError: onError != null ? (err, _) => onError(err) : null,
         onData: onData,
         or: builder,
       ).listenTo<T>(

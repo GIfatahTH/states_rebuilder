@@ -174,7 +174,7 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
     _widget = OnCombined.or(
       onIdle: widget.onIdle,
       onWaiting: widget.onWaiting,
-      onError: widget.onError,
+      onError: widget.onError != null ? (err, _) => widget.onError!(err) : null,
       onData: widget.onData,
       or: (_) => widget.builder(context, rm),
     ).listenTo<T>(

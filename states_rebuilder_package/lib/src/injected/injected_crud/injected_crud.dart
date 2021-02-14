@@ -18,6 +18,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
 
     //
   })  : _param = param,
@@ -37,6 +38,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           debugError: debugError,
+          debugNotification: debugNotification,
         );
 
   final P Function()? _param;
@@ -67,19 +69,19 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
   void _onInitState() {
     super._onInitState();
     if (_onCRUD != null) {
-      if (isOnCRUD && _onCRUD!.onWaiting != null) {
-        _onCRUD!.onWaiting!.call();
+      if (isOnCRUD && _onCRUD!._onWaiting != null) {
+        _onCRUD!._onWaiting!.call();
       }
       final disposer = subscribeToRM((rm) {
-        if (isOnCRUD && _onCRUD!.onWaiting != null) {
-          _onCRUD!.onWaiting!.call();
+        if (isOnCRUD && _onCRUD!._onWaiting != null) {
+          _onCRUD!._onWaiting!.call();
           return;
         }
-        if (hasError && _onCRUD!.onError != null) {
-          _onCRUD!.onError?.call(error);
+        if (hasError && _onCRUD!._onError != null) {
+          _onCRUD!._onError?.call(error, onErrorRefresher!);
           return;
         }
-        _onCRUD!.onResult(_result);
+        _onCRUD!._onResult(_result);
       });
       addToCleaner(disposer);
     }

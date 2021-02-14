@@ -30,9 +30,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
 
   String? _debugPrintWhenNotifiedPreMessage;
 
-  @override
   SnapState<T> get snapState => _coreRM.snapState;
-  @override
   set snapState(SnapState<T> snap) {
     _coreRM.snapState = snap;
     _state = snap.data;
@@ -48,7 +46,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   ///throw an Argument Error. So, make sure to define an initial state, or
   ///to wait until the Future or Stream has data.
   ///
-  @override
   T get state {
     _initialize();
 
@@ -125,6 +122,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   ///The latest error object received by the asynchronous computation.
   dynamic get error => _snapState.error;
   StackTrace? get stackTrace => _snapState.stackTrace;
+  void Function()? get onErrorRefresher => _snapState.onErrorRefresher;
 
   ///Returns whether this snapshot contains a non-null [AsyncSnapshot.data] value.
   ///Unlike in [AsyncSnapshot], hasData has special meaning here.
@@ -225,14 +223,16 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
         if (asyncResult != null) {
           completer = Completer<T>();
           RM.context = context;
-          _coreRM._setToIsWaiting(
-            skipWaiting: skipWaiting,
-            onSetState: onSetState,
-            context: context,
-          );
+          if (!skipWaiting) {
+            _coreRM._setToIsWaiting(
+              onSetState: onSetState,
+              context: context,
+            );
+          }
           isDone = false;
           _handleAsyncSubscription(
             asyncResult,
+            onErrorRefresher: () => call(),
             onSetState: onSetState,
             onData: onData,
             onError: onError,
@@ -253,6 +253,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
         _coreRM._setToHasError(
           e,
           s,
+          onErrorRefresher: () => call(),
           onSetState: onSetState,
           onError: onError,
           context: context,
@@ -315,8 +316,14 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           _coreRM.onData?.call(state);
         }
         data = d;
-      }).catchError((e, s) {
-        snapState = SnapState<T>._withError(ConnectionState.done, _state, e, s);
+      }).catchError((e, StackTrace s) {
+        snapState = SnapState<T>._withError(
+          ConnectionState.done,
+          _state,
+          e,
+          () => this.future(future),
+          s,
+        );
         _coreRM.on?._call(snapState);
         _coreRM.onError?.call(e, s);
         throw e;

@@ -15,14 +15,12 @@ class Route1 extends StatefulWidget {
 class _Route1State extends State<Route1> {
   @override
   void dispose() {
-    print('disposed route1');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.data ?? ModalRoute.of(context)?.settings.arguments;
-    return Text('Route1: $d');
+    return Text('Route1: ${widget.data}');
   }
 }
 
@@ -37,25 +35,25 @@ class Route2 extends StatefulWidget {
 class _Route2State extends State<Route2> {
   @override
   void dispose() {
-    print('disposed route2');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.data ?? ModalRoute.of(context)?.settings.arguments;
-    return Text('Route2: $d');
+    return Text('Route2: ${widget.data}');
   }
 }
 
 final widget_ = MaterialApp(
-  routes: {
-    '/': (_) => Text('Home'),
-    'Route1': (_) => Route1(null),
-    'Route2': (_) => Route2(null),
-    'Route3': (_) => Text('Route3'),
-  },
   navigatorKey: RM.navigate.navigatorKey,
+  onGenerateRoute: RM.navigate.onGenerateRoute(
+    {
+      '/': (_) => Text('Home'),
+      'Route1': (param) => Route1(param as String),
+      'Route2': (param) => Route2(param as String),
+      'Route3': (_) => Text('Route3'),
+    },
+  ),
 );
 
 void main() {
@@ -220,6 +218,7 @@ void main() {
     //
     RM.navigate.backUntil('Route1');
     await tester.pumpAndSettle();
+    await tester.pumpAndSettle(Duration(seconds: 1));
     expect(find.text('Route1: data'), findsOneWidget);
     //
     RM.navigate.back();
@@ -295,5 +294,239 @@ void main() {
     await tester.pumpAndSettle();
     //
     expect(find.text('toCupertinoModalPopup'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN RM.navigate.pageRouteBuilder is defined'
+      'Route animation uses it'
+      'CASE Widget route', (tester) async {
+    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
+          transitionDuration: Duration(milliseconds: 2000),
+          reverseTransitionDuration: Duration(milliseconds: 2000),
+          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+          transitionsBuilder: RM.transitions.upToBottom(),
+        );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.to(Route1('data'));
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Route1: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.toReplacement(Route2('data'), result: '');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN RM.navigate.pageRouteBuilder is defined'
+      'Route animation uses it'
+      'CASE named route', (tester) async {
+    //
+    //IT will not used because pageRouteBuilder is defined
+    RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
+
+    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
+          transitionDuration: Duration(milliseconds: 2000),
+          reverseTransitionDuration: Duration(milliseconds: 2000),
+          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+          transitionsBuilder: RM.transitions.bottomToUP(),
+        );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Route1: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+
+    //
+    RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN RM.navigate.transitionsBuilder is defined'
+      'Route animation uses it'
+      'CASE Widget route', (tester) async {
+    RM.navigate.transitionsBuilder = RM.transitions.leftToRight(
+      duration: Duration(milliseconds: 2000),
+    );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.to(Route1('data'));
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Route1: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.toReplacement(Route2('data'), result: '');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN RM.navigate.transitionsBuilder is defined'
+      'Route animation uses it'
+      'CASE named route', (tester) async {
+    RM.navigate.transitionsBuilder = RM.transitions.rightToLeft(
+      duration: Duration(milliseconds: 2000),
+    );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Route1: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+
+    //
+    RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+    'WHEN RM.navigate.onGenerateRoute defines an empty routes map'
+    'THEN it throws an assertion error',
+    (tester) async {
+      expect(
+        () => MaterialApp(
+          home: Container(),
+          onGenerateRoute: RM.navigate.onGenerateRoute({}),
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  testWidgets(
+      'WHEN transitionsBuilder is defined in RM.navigate.onGenerateRoute'
+      'THEN it will work', (tester) async {
+    final widget_ = MaterialApp(
+      navigatorKey: RM.navigate.navigatorKey,
+      onGenerateRoute: RM.navigate.onGenerateRoute(
+        {
+          '/': (_) => Text('Home'),
+          'Route1': (param) => Route1(param as String),
+          'Route2': (param) => Route2(param as String),
+          'Route3': (_) => Text('Route3'),
+        },
+        transitionsBuilder: RM.transitions.rightToLeft(
+          duration: Duration(milliseconds: 2000),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Route1: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+
+    //
+    RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route1: data'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN undefined name route is given'
+      'THEN it route to default route not found', (tester) async {
+    final widget_ = MaterialApp(
+      navigatorKey: RM.navigate.navigatorKey,
+      onGenerateRoute: RM.navigate.onGenerateRoute(
+        {
+          '/': (_) => Text('Home'),
+          'Route1': (param) => Route1(param as String),
+          'Route2': (param) => Route2(param as String),
+          'Route3': (_) => Text('Route3'),
+        },
+      ),
+    );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('/NAN');
+    await tester.pumpAndSettle();
+
+    expect(find.text('No route defined for /NAN'), findsOneWidget);
+  });
+
+  testWidgets(
+      'WHEN undefined name route is given'
+      'AND WHEN unknownRoute is defined'
+      'THEN it route to custom unknownRoute ', (tester) async {
+    final widget_ = MaterialApp(
+      navigatorKey: RM.navigate.navigatorKey,
+      onGenerateRoute: RM.navigate.onGenerateRoute({
+        '/': (_) => Text('Home'),
+        'Route1': (param) => Route1(param as String),
+        'Route2': (param) => Route2(param as String),
+        'Route3': (_) => Text('Route3'),
+      }, unknownRoute: Text('Unknown Route')),
+    );
+
+    await tester.pumpWidget(widget_);
+
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('/NAN');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Unknown Route'), findsOneWidget);
   });
 }

@@ -81,15 +81,20 @@ class _CRUDService<T, P> {
   ///[param] can be also used to distinguish between many
   ///delete queries
   ///[onSetState] for side effects.
-  Future<List<T>> read(
-      {P Function(P? param)? param, On<void>? onSetState}) async {
+  Future<List<T>> read({
+    P Function(P? param)? param,
+    On<void>? onSetState,
+    List<T> Function(List<T> state, List<T> fetched)? middleWare,
+  }) async {
     injected._result = null;
     await injected.setState(
       (s) async {
         final _repo = await _repository;
-        return _repo.read(
+        final items = await _repo.read(
           param?.call(injected._param?.call()) ?? injected._param?.call(),
         );
+
+        return middleWare?.call(s, items) ?? items;
       },
       onSetState: onSetState,
     );
@@ -141,6 +146,7 @@ class _CRUDService<T, P> {
           );
           onResult?.call(addedItem);
         } catch (e) {
+          injected._isOnCRUD = false;
           if (isOptimistic) {
             yield s.remove(item);
           }
@@ -225,9 +231,9 @@ class _CRUDService<T, P> {
           injected._result = r;
           onResult?.call(r);
         } catch (e) {
+          injected._isOnCRUD = false;
           if (isOptimistic) {
             yield oldState;
-
             if (injected._item != null) {
               injected._item!.injected.refresh();
             }
@@ -303,6 +309,7 @@ class _CRUDService<T, P> {
           injected._result = r;
           onResult?.call(r);
         } catch (e) {
+          injected._isOnCRUD = false;
           if (isOptimistic) {
             yield oldState;
           }

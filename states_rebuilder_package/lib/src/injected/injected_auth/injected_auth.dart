@@ -23,6 +23,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
     //
   })  : _param = param,
         _autoSignOut = autoSignOut,
@@ -45,6 +46,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
           isLazy: true,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           debugError: debugError,
+          debugNotification: debugNotification,
         );
   final P Function()? _param;
   final Duration Function(T s)? _autoSignOut;
@@ -54,7 +56,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
   }
 
   ///Whether the a user is signed or not
-  bool get isSigned => _state != _initialState;
+  bool get isSigned => state != _initialState;
 
   _AuthService<T, P>? _auth;
   Future<R> getRepoAs<R>() async {
@@ -83,20 +85,15 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
     _isInjectMock = false;
     final creator = () {
-      final fn = () async {
-        final repo = fakeRepository();
-        await repo.init();
-        return repo;
-      };
-      _auth = _AuthService(fn(), this);
+      if (!_isFirstInitialized) {
+        final fn = () async {
+          final repo = fakeRepository();
+          await repo.init();
+          return repo;
+        };
+        _auth = _AuthService(fn(), this);
+      }
       return _initialState;
-      // if (!_isFirstInitialized) {
-      // } else {
-      //   return () async {
-      //     final _repo = await _auth!._repository;
-      //     return await _repo.signIn(_param?.call());
-      //   }();
-      // }
     };
     _cachedMockCreator ??= (_) => creator();
     _cleanUpState((_) => creator());

@@ -46,6 +46,18 @@ class FakeAuthRepo implements IAuth<String, String> {
     }
   }
 
+  Future<String> futreSignIn(String user) async {
+    await Future.delayed(Duration(seconds: 1));
+    return user;
+  }
+
+  Stream<String> onAuthChanged() {
+    return Stream.periodic(Duration(seconds: 1), (num) {
+      if (num < 1) return 'user0';
+      return 'user1';
+    });
+  }
+
   @override
   void dispose() {
     disposeMessage = 'isDisposed';
@@ -60,7 +72,7 @@ final user = RM.injectAuth(
   onUnsigned: () => onUnSigned++,
   onSigned: (_) => onSigned++,
 );
-InjectedAuth<String, String> persistedUser = RM.injectAuth<String, String>(
+InjectedAuth<String, String> persistedUser = RM.injectAuth(
   () => FakeAuthRepo(),
   unsignedUser: 'user0',
   persist: () => PersistState(
@@ -70,7 +82,7 @@ InjectedAuth<String, String> persistedUser = RM.injectAuth<String, String>(
   onSigned: (user) => RM.navigate.to(HomePage(user: user)),
   onUnsigned: () => RM.navigate.to(AuthPage(persistedUser)),
   onSetState: On.error(
-    (err) => RM.navigate.to(
+    (err, _) => RM.navigate.to(
       AlertDialog(
         content: Text('${err.message}'),
       ),
@@ -78,8 +90,7 @@ InjectedAuth<String, String> persistedUser = RM.injectAuth<String, String>(
   ),
 );
 
-InjectedAuth<String, String> persistedUserWithAutoDispose =
-    RM.injectAuth<String, String>(
+InjectedAuth<String, String> persistedUserWithAutoDispose = RM.injectAuth(
   () => FakeAuthRepo(),
   unsignedUser: 'user0',
   persist: () => PersistState(key: '__user__'),
@@ -281,7 +292,7 @@ void main() async {
       String error = '';
       persistedUser.auth.signIn(
         (_) => '1',
-        onError: (err) => error = err.message,
+        onError: (err, _) => error = err.message,
       );
       await tester.pump();
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
@@ -292,7 +303,7 @@ void main() async {
       error = '';
       persistedUser.auth.signUp(
         (_) => '1',
-        onError: (err) => error = err.message,
+        onError: (err, _) => error = err.message,
       );
       await tester.pump();
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
@@ -389,6 +400,219 @@ void main() async {
       expect(find.text('HomePage: user2'), findsOneWidget);
       persistedUserWithAutoDispose.dispose();
       //no timer is pending
+    },
+  );
+  testWidgets(
+      'WHEN onAuthStream is defined'
+      'THEN user listens to it and authenticate accordingly', (tester) async {
+    final user = RM.injectAuth(
+      () => FakeAuthRepo(),
+      unsignedUser: 'user0',
+      onUnsigned: () => onUnSigned++,
+      onSigned: (_) => onSigned++,
+      onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+    );
+
+    expect(user.isSigned, false);
+    expect(onUnSigned, 0);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    user.dispose();
+  });
+
+  testWidgets(
+      'WHEN onAuthStream is defined'
+      'AND WHEN the stream emits an error'
+      'THEN user state has the same error'
+      'AND sign out', (tester) async {
+    final user = RM.injectAuth(
+      () => FakeAuthRepo(),
+      unsignedUser: 'user0',
+      onUnsigned: () => onUnSigned++,
+      onSigned: (_) => onSigned++,
+      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (num) {
+        if (num == 1) return 'user1';
+        throw Exception('Stream Error');
+      }),
+    );
+
+    expect(user.isSigned, false);
+    expect(onUnSigned, 0);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.error.message, 'Stream Error');
+    expect(user.isSigned, false);
+    expect(onUnSigned, 2);
+    expect(onSigned, 1);
+    user.dispose();
+  });
+
+  testWidgets(
+    'WHEN onAuthStream is defined'
+    'AND autoSignout is defined '
+    'THEN autoSignout will work',
+    (tester) async {
+      final user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        autoSignOut: (_) => Duration(seconds: 2),
+        onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+      );
+      expect(user.isSigned, false);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, false);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, false);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+
+      user.dispose();
+    },
+  );
+
+  testWidgets(
+    'WHEN onInitialWaiting of On.auth  is defined'
+    'AND WHEN onAuthStream is defined'
+    'THEN onInitialWaiting is invoked only one time the app starts',
+    (tester) async {
+      final user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        autoSignOut: (_) => Duration(seconds: 1),
+        onAuthStream: (repo) =>
+            (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
+      );
+
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: On.auth(
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onWaiting: () => Text('Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+        ).listenTo(user),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('Initial Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Unsigned'), findsOneWidget);
+      //
+      user.setState((s) async {
+        await Future.delayed(Duration(seconds: 1));
+        return 'user1';
+      });
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Signed'), findsOneWidget);
+      //auto sign out
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Unsigned'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'WHEN useRouteNavigation is true'
+    'The transition between onSignedIn and onSignedOut is done using navigation',
+    (tester) async {
+      final widget = MaterialApp(
+        home: On.auth(
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+        ).listenTo(
+          user,
+          useRouteNavigation: true,
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('Unsigned'), findsOneWidget);
+      user.auth.signUp((param) => '1');
+      expect(find.text('Unsigned'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      await tester.pump();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsNothing);
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      user.auth.signOut();
+      await tester.pump();
+      await tester.pump();
+      //expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsNothing);
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'WHEN useRouteNavigation is true'
+    'AND WHEN user is persisted'
+    'THEN The transition between onSignedIn and onSignedOut is done using navigation'
+    'AND onSignedIn is rendered first ',
+    (tester) async {
+      store.store?.addAll({'__user__': 'user1'});
+      final InjectedAuth<String, String> user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        persist: () => PersistState(
+          key: '__user__',
+        ),
+      );
+
+      final widget = MaterialApp(
+        home: On.auth(
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+        ).listenTo(
+          user,
+          useRouteNavigation: true,
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('Signed'), findsOneWidget);
+
+      //
+      user.auth.signOut();
+
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsNothing);
+      await tester.pump(Duration(seconds: 1));
     },
   );
 

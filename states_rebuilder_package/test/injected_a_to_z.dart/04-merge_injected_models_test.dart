@@ -24,7 +24,7 @@ class App extends StatelessWidget {
         //called if at least on plugin is waiting.
         onWaiting: () => Text('Waiting'),
         //called if no plugin is waiting and at least on of them has error
-        onError: (error) => Text('error'),
+        onError: (error, _) => Text('error'),
         //called if both plugins have been initialized successfully
         onData: (_) {
           //Here it is safe to use our plugins

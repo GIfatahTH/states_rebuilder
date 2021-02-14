@@ -24,7 +24,7 @@ class OnCombined<T, R> {
 
   ///Callback to be called when all models are not waiting and at least one of
   ///them has an error.
-  final R Function(T data, dynamic error)? _onError;
+  final R Function(T data, dynamic error, void Function() refresh)? _onError;
 
   ///Callback to be called if all injected models have data
   final R Function(T data)? _onData;
@@ -38,7 +38,8 @@ class OnCombined<T, R> {
   OnCombined._({
     required R Function(T data)? onIdle,
     required R Function(T data)? onWaiting,
-    required R Function(T data, dynamic error)? onError,
+    required R Function(T data, dynamic error, void Function() refresh)?
+        onError,
     required R Function(T data)? onData,
     // required _OnType onType,
   })   : _onIdle = onIdle,
@@ -67,7 +68,7 @@ class OnCombined<T, R> {
     return OnCombined._(
       onIdle: builder,
       onWaiting: builder,
-      onError: (T state, dynamic _) => builder(state),
+      onError: (T state, dynamic _, void Function() __) => builder(state),
       onData: builder,
       // onType: _OnType.when,
     );
@@ -98,11 +99,12 @@ class OnCombined<T, R> {
 
   ///The callback is invoked only when any of the [Injected] models emits a
   ///notification with error status and with no other model is waiting.
-  factory OnCombined.error(R Function(dynamic error) fn) {
+  factory OnCombined.error(
+      R Function(dynamic error, void Function() refresh) fn) {
     return OnCombined._(
       onIdle: null,
       onWaiting: null,
-      onError: (_, dynamic err) => fn(err),
+      onError: (_, dynamic err, void Function() refresh) => fn(err, refresh),
       onData: null,
     );
   }
@@ -117,7 +119,7 @@ class OnCombined<T, R> {
   factory OnCombined.or({
     R Function()? onIdle,
     R Function()? onWaiting,
-    R Function(dynamic error)? onError,
+    R Function(dynamic error, void Function() refresh)? onError,
     R Function(T state)? onData,
     required R Function(T state) or,
   }) {
@@ -125,8 +127,8 @@ class OnCombined<T, R> {
       onIdle: onIdle != null ? (_) => onIdle() : or,
       onWaiting: onWaiting != null ? (_) => onWaiting() : or,
       onError: onError != null
-          ? (_, dynamic err) => onError(err)
-          : (s, dynamic err) => or(s),
+          ? (_, dynamic err, void Function() refresh) => onError(err, refresh)
+          : (s, dynamic err, __) => or(s),
       onData: onData ?? or,
     );
   }
@@ -140,13 +142,14 @@ class OnCombined<T, R> {
   factory OnCombined.all({
     required R Function() onIdle,
     required R Function() onWaiting,
-    required R Function(dynamic error) onError,
+    required R Function(dynamic error, void Function() refresh) onError,
     required R Function(T state) onData,
   }) {
     return OnCombined._(
       onIdle: (_) => onIdle(),
       onWaiting: (_) => onWaiting(),
-      onError: (_, dynamic err) => onError(err),
+      onError: (_, dynamic err, void Function() refresh) =>
+          onError(err, refresh),
       onData: onData,
     );
   }
@@ -161,7 +164,7 @@ class OnCombined<T, R> {
     return true;
   }
 
-  R? _call(SnapState snapState, T state) {
+  R? _call(SnapState snapState, T state, [bool isSideEffect = true]) {
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return _onWaiting?.call(state);
@@ -170,7 +173,8 @@ class OnCombined<T, R> {
     }
     if (snapState.hasError) {
       if (_hasOnError) {
-        return _onError?.call(state, snapState.error);
+        return _onError?.call(
+            state, snapState.error, snapState.onErrorRefresher!);
       }
       return _onData?.call(state);
     }
@@ -179,6 +183,9 @@ class OnCombined<T, R> {
       if (_hasOnIdle) {
         return _onIdle?.call(state);
       }
+      if (isSideEffect) {
+        return null;
+      }
       if (_hasOnData) {
         return _onData?.call(state);
       }
@@ -186,19 +193,22 @@ class OnCombined<T, R> {
         return _onWaiting?.call(state);
       }
       if (_hasOnError) {
-        return _onError?.call(state, snapState.error);
+        return _onError?.call(state, snapState.error, () {});
       }
     }
 
     if (_hasOnData) {
       return _onData?.call(state);
     }
+    if (isSideEffect) {
+      return null;
+    }
     if (_hasOnWaiting) {
       return _onWaiting!.call(state);
     }
 
     if (_hasOnError) {
-      return _onError!.call(state, snapState.error);
+      return _onError!.call(state, snapState.error, () {});
     }
   }
 }
@@ -279,7 +289,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, rm) {
-        return _call(_getCombinedSnap(rms), rm!._state as T)!;
+        return _call(_getCombinedSnap(rms), rm!._state as T, false)!;
       },
     );
   }
@@ -294,10 +304,10 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
         break;
       }
       if (e._snapState.hasError) {
-        snapError = e._snapState;
+        snapError ??= e._snapState;
       }
       if (e._snapState.isIdle) {
-        snapIdle = e._snapState;
+        snapIdle ??= e._snapState;
       }
     }
     return snapWaiting ??
@@ -314,6 +324,7 @@ R? onCombinedCall<T, R>(
   bool isWaiting = false,
   dynamic error,
   T? data,
+  bool isSideEffect = false,
 }) {
   final connectionState = isWaiting
       ? ConnectionState.waiting
@@ -326,7 +337,9 @@ R? onCombinedCall<T, R>(
       data,
       error,
       null,
+      () {},
     ),
     state,
+    isSideEffect,
   );
 }

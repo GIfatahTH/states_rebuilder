@@ -42,7 +42,7 @@ void main() {
       child: OnCombined.all(
         onIdle: () => Text('Idle'),
         onWaiting: () => Text('Waiting'),
-        onError: (e) => Text('${e.message}'),
+        onError: (e, _) => Text('${e.message}'),
         onData: (_) => Text(
           '${rm1.state.count}-${rm2.state.count}-${rm3.state.count}',
         ),
@@ -301,7 +301,7 @@ void main() {
 
   testWidgets('OnCombined.error', (tester) async {
     //
-    final onCombined = OnCombined.error((_) => _);
+    final onCombined = OnCombined.error((_, __) => _);
     expect(onCombinedCall(onCombined, 'data'), null);
     expect(onCombinedCall(onCombined, 'data', isWaiting: true), null);
     expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'Error');
@@ -313,12 +313,13 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.error((_) => ++onSetState),
+      onSetState: On.error((_, __) => ++onSetState),
     );
 
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: OnCombined.error((_) => Text('${++onBuild}')).listenTo([counter]),
+      child:
+          OnCombined.error((_, __) => Text('${++onBuild}')).listenTo([counter]),
     );
     await tester.pumpWidget(widget);
     expect(onSetState, 0);
@@ -348,7 +349,7 @@ void main() {
     final onCombined = OnCombined.all(
       onIdle: () => 'Idle',
       onWaiting: () => 'Waiting',
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: (_) => _,
     );
     expect(onCombinedCall(onCombined, 'data'), 'Idle');
@@ -395,7 +396,7 @@ void main() {
   testWidgets('OnCombined.or, or with onError', (tester) async {
     //
     final onCombined = OnCombined.or(
-      onError: (_) => _,
+      onError: (_, __) => _,
       or: (_) => _,
     );
     expect(onCombinedCall(onCombined, 'Or'), 'Or');
@@ -432,7 +433,7 @@ void main() {
   testWidgets('OnCombined.or, or with onData and onError', (tester) async {
     //
     final onCombined = OnCombined.or(
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: (_) => _,
       or: (_) => _,
     );
@@ -447,7 +448,7 @@ void main() {
     final onCombined = OnCombined.or(
       onIdle: () => 'Idle',
       onWaiting: () => 'Waiting',
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: (_) => _,
       or: (_) => _,
     );
@@ -455,6 +456,21 @@ void main() {
     expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
     expect(onCombinedCall(onCombined, 'Or', error: 'Error'), 'Error');
     expect(onCombinedCall(onCombined, 'Or', data: 'd'), 'Or');
+  });
+
+  testWidgets('OnCombined.error when return void', (tester) async {
+    String? error;
+    //
+    final onCombined = OnCombined.error((_, __) => error = 'error: ' + _);
+    onCombinedCall(onCombined, '', isSideEffect: true);
+    expect(error, null);
+    onCombinedCall(onCombined, '', isWaiting: true, isSideEffect: true);
+    expect(error, null);
+    onCombinedCall(onCombined, '', error: 'Error', isSideEffect: true);
+    expect(error, 'error: Error');
+    error = null;
+    onCombinedCall(onCombined, '', data: 'data', isSideEffect: true);
+    expect(error, null);
   });
 }
 

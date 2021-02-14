@@ -19,6 +19,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
 
     //
   })  : _themes = themes,
@@ -39,6 +40,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           debugError: debugError,
+          debugNotification: debugNotification,
         );
 
   Map<Key, ThemeData> _themes;

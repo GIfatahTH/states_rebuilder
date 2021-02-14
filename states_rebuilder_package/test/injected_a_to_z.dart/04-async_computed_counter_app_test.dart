@@ -65,14 +65,14 @@ class CounterApp extends StatelessWidget {
           On.all(
               onIdle: () => Text('Idle'),
               onWaiting: () => Text('Waiting...'),
-              onError: (e) => Text(e.message),
+              onError: (e, _) => Text(e.message),
               onData: () {
                 counter2NbrOfRebuilds++;
                 return Text('counter2 :${counter2.state.count}');
               }).listenTo(counter2),
           On.or(
               onWaiting: () => Text('Waiting...'),
-              onError: (e) {
+              onError: (e, _) {
                 return Text(e.message);
               },
               or: () {
@@ -98,7 +98,7 @@ class CounterApp1 extends StatelessWidget {
           //this is an example fo a computed counter the depends on another computed counter
           On.or(
             onWaiting: () => Text('Waiting...'),
-            onError: (e) => Text(e.message),
+            onError: (e, _) => Text(e.message),
             or: () {
               computedCounterNbrOfRebuilds++;
               return Text('${anOtherComputedCounter.state}');

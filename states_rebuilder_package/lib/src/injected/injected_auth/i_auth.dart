@@ -34,7 +34,17 @@ class _AuthService<T, P> {
   ///The injected model associated with this service
   ///class
   final InjectedAuth<T, P> injected;
-  _AuthService(this._repository, this.injected);
+  _AuthService(this._repository, this.injected) {
+    _disposer = injected.subscribeToRM((rm) {
+      if (rm.hasData) {
+        _onData(_onSignInOut);
+      }
+    });
+  }
+
+  P? _param;
+  void Function()? _onSignInOut;
+  late Disposer _disposer;
 
   ///Sign in
   ///[param] is used to parametrize the query (ex: user
@@ -42,56 +52,62 @@ class _AuthService<T, P> {
   Future<T> signIn(
     P Function(P? param)? param, {
     void Function()? onAuthenticated,
-    void Function(dynamic error)? onError,
+    void Function(dynamic error, void Function() refresh)? onError,
   }) async {
+    _onSignInOut = onAuthenticated;
     await injected.setState(
       (s) async {
         final _repo = await _repository;
-        return _repo.signIn(
-          param?.call(injected._param?.call()) ?? injected._param?.call(),
-        );
+        _param = param?.call(
+              injected._param?.call(),
+            ) ??
+            injected._param?.call();
+        return _repo.signIn(_param);
       },
       onSetState: onError != null ? On.error(onError) : null,
     );
-    if (injected.hasData) {
-      _onData(onAuthenticated);
-    }
+    _onSignInOut = null;
     return injected.state;
   }
 
   Future<T> signUp(
     P Function(P? param)? param, {
     void Function()? onAuthenticated,
-    void Function(dynamic error)? onError,
+    void Function(dynamic error, void Function() refreh)? onError,
   }) async {
+    _onSignInOut = onAuthenticated;
+
     await injected.setState(
       (s) async {
         final _repo = await _repository;
-        return _repo.signUp(
-          param?.call(injected._param?.call()) ?? injected._param?.call(),
-        );
+        _param = param?.call(
+              injected._param?.call(),
+            ) ??
+            injected._param?.call();
+
+        return _repo.signUp(_param);
       },
       onSetState: onError != null ? On.error(onError) : null,
     );
-    if (injected.hasData) {
-      _onData(onAuthenticated);
-    }
+    _onSignInOut = null;
     return injected.state;
   }
 
   void _onData(void Function()? onAuthenticated) {
+    onAuthenticated?.call();
     if (injected.state == injected._initialState) {
       _cancelTimer();
-      injected._onSignOut?.call();
+      if (onAuthenticated == null) {
+        injected._onSignOut?.call();
+      }
     } else {
       _persist();
       _autoSignOut();
-      if (onAuthenticated != null) {
-        onAuthenticated.call();
-      } else {
+      if (onAuthenticated == null) {
         injected._onAuthenticated?.call(injected.state);
       }
     }
+    _onSignInOut = null;
   }
 
   void _persist() {
@@ -109,23 +125,23 @@ class _AuthService<T, P> {
   Future<void> signOut({
     P Function(P? param)? param,
     void Function()? onSignOut,
-    void Function(dynamic error)? onError,
+    void Function(dynamic error, void Function() refreh)? onError,
   }) async {
     _cancelTimer();
-
+    _onSignInOut = onSignOut;
     await injected.setState(
       (s) async* {
         yield injected._initialState;
         final _repo = await _repository;
         await _repo.signOut(
-            param?.call(injected._param?.call()) ?? injected._param?.call());
+          param?.call(injected._param?.call()) ??
+              injected._param?.call() ??
+              _param,
+        );
       },
-      onSetState: On.or(
-        onError: onError,
-        onData: onSignOut ?? injected._onSignOut,
-        or: () {},
-      ),
+      onSetState: onError != null ? On.error(onError) : null,
     );
+    _onSignInOut = null;
     if (injected.hasData) {
       if (injected._stateIsPersisted) {
         await injected._coreRM.persistanceProvider!.delete();
@@ -141,7 +157,7 @@ class _AuthService<T, P> {
     }
   }
 
-  Future<void> autoSignOut(Duration time, {P Function(P? param)? param}) async {
+  void autoSignOut(Duration time, {P Function(P? param)? param}) {
     _cancelTimer();
     _authTimer = Timer(
       time,
@@ -151,6 +167,7 @@ class _AuthService<T, P> {
 
   Future<void> _dispose() async {
     final _repo = await _repository;
+    _disposer();
     _repo.dispose();
   }
 }

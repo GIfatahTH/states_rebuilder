@@ -126,7 +126,7 @@ void main() {
 
   testWidgets('On.error', (tester) async {
     //
-    final on = On.error((_) => _);
+    final on = On.error((_, __) => _);
     expect(onCall(on), null);
     expect(onCall(on, isWaiting: true), null);
     expect(onCall(on, error: 'Error'), 'Error');
@@ -138,12 +138,12 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.error((_) => ++onSetState),
+      onSetState: On.error((_, __) => ++onSetState),
     );
 
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.error((_) => Text('${++onBuild}')).listenTo(counter),
+      child: On.error((_, __) => Text('${++onBuild}')).listenTo(counter),
     );
     await tester.pumpWidget(widget);
     expect(onSetState, 0);
@@ -172,7 +172,7 @@ void main() {
     final on = On.all(
       onIdle: () => 'Idle',
       onWaiting: () => 'Waiting',
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: () => 'Data',
     );
     expect(onCall(on), 'Idle');
@@ -210,7 +210,7 @@ void main() {
   testWidgets('On.or, or with onError', (tester) async {
     //
     final on = On.or(
-      onError: (_) => _,
+      onError: (_, __) => _,
       or: () => 'Or',
     );
     expect(onCall(on), 'Or');
@@ -244,7 +244,7 @@ void main() {
   testWidgets('On.or, or with onData and onError', (tester) async {
     //
     final on = On.or(
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: () => 'Data',
       or: () => 'Or',
     );
@@ -257,7 +257,7 @@ void main() {
     //
     final on = On.or(
       onWaiting: () => 'Waiting',
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: () => 'Data',
       or: () => 'Or',
     );
@@ -272,7 +272,7 @@ void main() {
     final on = On.or(
       onIdle: () => 'Idle',
       onWaiting: () => 'Waiting',
-      onError: (_) => _,
+      onError: (_, __) => _,
       onData: () => 'Data',
       or: () => 'Or',
     );
@@ -280,5 +280,20 @@ void main() {
     expect(onCall(on, isWaiting: true), 'Waiting');
     expect(onCall(on, error: 'Error'), 'Error');
     expect(onCall(on, data: 'd'), 'Data');
+  });
+
+  testWidgets('On.erro when return void', (tester) async {
+    String? error;
+    //
+    final on = On<void>.error((_, __) => error = 'error: ' + _);
+    onCall(on, isSideEffect: true);
+    expect(error, null);
+    onCall(on, isWaiting: true, isSideEffect: true);
+    expect(error, null);
+    onCall(on, error: 'Error', isSideEffect: true);
+    expect(error, 'error: Error');
+    error = null;
+    onCall(on, data: 'data', isSideEffect: true);
+    expect(error, null);
   });
 }

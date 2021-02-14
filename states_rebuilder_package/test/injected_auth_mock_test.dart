@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
@@ -44,12 +45,26 @@ class FakeAuthRepo implements IAuth<String, String> {
     }
   }
 
+  Future<String> futreSignIn(String user) async {
+    await Future.delayed(Duration(seconds: 1));
+    return user;
+  }
+
+  Stream<String> onAuthChanged() {
+    return Stream.periodic(Duration(seconds: 1), (num) {
+      if (num < 1) return 'user0';
+      return 'user1';
+    });
+  }
+
   @override
   void dispose() {
     disposeMessage = 'isDisposed';
   }
 }
 
+int onUnSigned = 0;
+int onSigned = 0;
 final user = RM.injectAuth(
   () => FakeAuthRepo(),
   unsignedUser: 'user0',
@@ -62,6 +77,8 @@ void main() async {
     RM.disposeAll();
     store.clear();
     disposeMessage = '';
+    onUnSigned = 0;
+    onSigned = 0;
   });
   testWidgets('sign with unsigned unsigned user', (tester) async {
     expect(user.state, 'user0');
@@ -99,4 +116,139 @@ void main() async {
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user2');
   });
+
+  testWidgets(
+      'WHEN onAuthStream is defined'
+      'THEN user listens to it and authenticate accordingly', (tester) async {
+    final user = RM.injectAuth(
+      () => FakeAuthRepo(),
+      unsignedUser: 'user0',
+      onUnsigned: () => onUnSigned++,
+      onSigned: (_) => onSigned++,
+      onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+    );
+
+    expect(user.isSigned, false);
+    expect(onUnSigned, 0);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    user.dispose();
+  });
+
+  testWidgets(
+      'WHEN onAuthStream is defined'
+      'AND WHEN the stream emits an error'
+      'THEN user state has the same error'
+      'AND sign out', (tester) async {
+    final user = RM.injectAuth(
+      () => FakeAuthRepo(),
+      unsignedUser: 'user0',
+      onUnsigned: () => onUnSigned++,
+      onSigned: (_) => onSigned++,
+      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (num) {
+        if (num == 1) return 'user1';
+        throw Exception('Stream Error');
+      }),
+    );
+
+    expect(user.isSigned, false);
+    expect(onUnSigned, 0);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.error.message, 'Stream Error');
+    expect(user.isSigned, false);
+    expect(onUnSigned, 2);
+    expect(onSigned, 1);
+    user.dispose();
+  });
+
+  testWidgets(
+    'WHEN onAuthStream is defined'
+    'AND autoSignout is defined '
+    'THEN autoSignout will work',
+    (tester) async {
+      final user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        autoSignOut: (_) => Duration(seconds: 2),
+        onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+      );
+      expect(user.isSigned, false);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, false);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, false);
+      await tester.pump(Duration(seconds: 1));
+      expect(user.isSigned, true);
+
+      user.dispose();
+    },
+  );
+
+  testWidgets(
+    'WHEN onInitialWaiting of On.auth  is defined'
+    'AND WHEN onAuthStream is defined'
+    'THEN onInitialWaiting is invoked only one time the app starts',
+    (tester) async {
+      final user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        autoSignOut: (_) => Duration(seconds: 1),
+        onAuthStream: (repo) =>
+            (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
+      );
+
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: On.auth(
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onWaiting: () => Text('Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+        ).listenTo(user),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('Initial Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Unsigned'), findsOneWidget);
+      //
+      user.setState((s) async {
+        await Future.delayed(Duration(seconds: 1));
+        return 'user1';
+      });
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Signed'), findsOneWidget);
+      //auto sign out
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Unsigned'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
 }

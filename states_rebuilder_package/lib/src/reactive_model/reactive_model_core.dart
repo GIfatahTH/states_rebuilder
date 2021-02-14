@@ -13,6 +13,7 @@ class ReactiveModelCore<T> {
   void Function(dynamic e, StackTrace? s)? onError;
   PersistState<T>? persistanceProvider;
   void Function(dynamic error, StackTrace stackTrace)? _debugError;
+  void Function(SnapState snapSate)? _debugNotification;
 
   ReactiveModelCore({
     required this.notifyListeners,
@@ -55,19 +56,17 @@ class ReactiveModelCore<T> {
   // }
 
   void _setToIsWaiting({
-    required bool skipWaiting,
     bool shouldNotify = true,
     On<void>? onSetState,
     BuildContext? context,
   }) {
-    if (skipWaiting) {
-      return;
-    }
     _completer = Completer<dynamic>();
     snapState = SnapState._waiting(_state);
+
     if (shouldNotify) {
       RM.context = context;
       _callOnWaiting(onSetState);
+
       notifyListeners();
     }
   }
@@ -102,6 +101,7 @@ class ReactiveModelCore<T> {
     RM.context = context;
     //onData of setState override onData of injected
     _callOnData(onSetState, onData);
+
     notifyListeners();
     if (onRebuildState != null) {
       WidgetsBinding.instance?.addPostFrameCallback(
@@ -116,21 +116,29 @@ class ReactiveModelCore<T> {
   void _setToHasError(
     dynamic e,
     StackTrace s, {
+    required void Function() onErrorRefresher,
     On<void>? onSetState,
     Function(dynamic? error)? onError,
     BuildContext? context,
   }) {
-    _debugError?.call(e, s);
+    assert(() {
+      _debugError?.call(e, s);
+      return true;
+    }());
+
     if (e is Error) {
       StatesRebuilerLogger.log('', e, s);
       throw e;
     }
+
     snapState = SnapState<T>._withError(
       ConnectionState.done,
       snapState.data,
       e,
+      onErrorRefresher,
       s,
     );
+
     if (_completer?.isCompleted == false) {
       _completer!
         ..future.catchError((Object _) {})

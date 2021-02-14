@@ -60,7 +60,7 @@ void main() {
           builder: (context) => On.all(
             onIdle: () => Text('Idle'),
             onWaiting: () => CircularProgressIndicator(),
-            onError: (err) => Text('${err.message}'),
+            onError: (err, _) => Text('${err.message}'),
             onData: () => Text('${rm.state.count}'),
           ).listenTo(
             rm,
@@ -75,7 +75,7 @@ void main() {
                       )
                     : null;
               },
-              onError: (err) {
+              onError: (err, _) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
