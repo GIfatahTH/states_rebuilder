@@ -9,7 +9,7 @@ class _Comments extends StatelessWidget {
     return On.all(
       onIdle: () => Container(),
       onWaiting: () => Center(child: CircularProgressIndicator()),
-      onError: (err) => Center(
+      onError: (err, refresh) => Center(
         child: Text('${err.message}'),
       ),
       onData: () {
@@ -24,7 +24,9 @@ class _Comments extends StatelessWidget {
     ).listenTo(
       commentsInj,
       initState: () => commentsInj.crud.read(param: (_) => postId),
-      onSetState: On.error(ExceptionHandler.showErrorDialog),
+      onSetState: On.error(
+        (err, refresh) => ExceptionHandler.showErrorDialog(err),
+      ),
     );
   }
 }

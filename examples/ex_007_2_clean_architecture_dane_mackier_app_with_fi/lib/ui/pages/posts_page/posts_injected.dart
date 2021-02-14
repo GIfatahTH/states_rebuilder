@@ -5,7 +5,7 @@ final postsInj = RM.injectCRUD(
   param: () => userInj.state.id,
   readOnInitialization: true,
   onSetState: On.error(
-    (err) => ExceptionHandler.showErrorDialog(err),
+    (err, refresh) => ExceptionHandler.showErrorDialog(err),
   ),
   // debugPrintWhenNotifiedPreMessage: '',
 );

@@ -56,6 +56,5 @@ enum SignIn {
   withApple,
   withGoogle,
   withEmailAndPassword,
-  currentUser,
 }
 enum SignUp { withEmailAndPassword }

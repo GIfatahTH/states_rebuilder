@@ -20,7 +20,6 @@ void main() {
       await tester.pumpWidget(MyApp());
       //At start up the app should display a SplashScreen
       expect(find.byType(SplashScreen), findsOneWidget);
-      expect(user.state, UnLoggedUser());
       expect(canSignInWithApple.state, false);
       //After one second of wait
       await tester.pump(Duration(seconds: 1));
@@ -55,7 +54,6 @@ void main() {
 
       //At start up the app should display a SplashScreen
       expect(find.byType(SplashScreen), findsOneWidget);
-      expect(user.state, UnLoggedUser());
       expect(canSignInWithApple.isWaiting, true);
 
       //After one second of wait

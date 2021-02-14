@@ -46,10 +46,22 @@ class MyHomePage extends StatelessWidget {
               return counter + 1;
             },
             onSetState: On.or(
-              onError: (dynamic error) {
+              onError: (dynamic error, void Function() refresh) {
                 RM.navigate.toDialog(
                   AlertDialog(
-                    content: Text('${error.message}'),
+                    content: Row(
+                      children: [
+                        Text('${error.message}'),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            refresh();
+                            RM.navigate.back();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

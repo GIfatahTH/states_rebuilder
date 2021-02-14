@@ -14,19 +14,25 @@ import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
-  user.injectAuthMock(() => FakeAuthRepository());
-  todos.injectCRUDMock(() => FakeTodosRepository());
+  user.injectMock(
+    () => User(
+      userId: 'user1',
+      email: 'user1@mail.com',
+      token: Token(
+        token: 'token_user1',
+        expiryDate: DateTimeX.current.add(
+          Duration(seconds: 10),
+        ),
+      ),
+    ),
+  );
+  todos.injectMock(() => []);
 
   setUp(() {
     storage.clear();
-    //auto log with _user;
-    storage.store.addAll({
-      '__UserToken__': _user,
-    });
   });
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpAndSettle();
     //App start with dart model
     expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
@@ -80,13 +86,13 @@ void main() async {
   });
 }
 
-final _user = User(
-  userId: 'user1',
-  email: 'user1@mail.com',
-  token: Token(
-    token: 'token_user1',
-    expiryDate: DateTimeX.current.add(
-      Duration(seconds: 10),
-    ),
-  ),
-).toJson();
+// final _user = User(
+//   userId: 'user1',
+//   email: 'user1@mail.com',
+//   token: Token(
+//     token: 'token_user1',
+//     expiryDate: DateTimeX.current.add(
+//       Duration(seconds: 10),
+//     ),
+//   ),
+// ).toJson();

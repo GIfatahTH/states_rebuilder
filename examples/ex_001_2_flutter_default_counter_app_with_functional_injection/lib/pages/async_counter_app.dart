@@ -58,7 +58,7 @@ class MyHomePage extends StatelessWidget {
             On.all(
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
-              onError: (error) => Text(counter.error.message),
+              onError: (error, refresh) => Text(counter.error.message),
               onData: () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
@@ -78,14 +78,30 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            //This onData if defined will override the global onData
+            //This onSetState if defined will override the global onData
             onSetState: On.or(
               onData: () {
                 RM.scaffold.hideCurrentSnackBar();
                 print('OnData from setState');
               },
-              onError: (_) {
-                RM.scaffold.hideCurrentSnackBar();
+              onError: (error, refresh) {
+                RM.scaffold.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Text('${error.message}'),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            refresh();
+                            RM.scaffold.hideCurrentSnackBar();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
               or: () {},
             ),

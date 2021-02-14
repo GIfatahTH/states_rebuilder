@@ -8,16 +8,20 @@ import 'home_page.dart';
 import 'themes.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await RM.storageInitializer(HiveStorage());
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await RM.storageInitializer(HiveStorage());
+  RM.navigate.transitionsBuilder = Transitions.leftToRight();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
+      waiteFor: () => [
+        //Plugins can be initialized, to display our Splash screen
+        RM.storageInitializer(HiveStorage()),
+      ],
       injectedTheme: theme,
       injectedI18N: i18n,
       onWaiting: () => MaterialApp(

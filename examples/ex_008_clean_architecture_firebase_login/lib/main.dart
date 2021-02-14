@@ -1,14 +1,13 @@
+import 'package:clean_architecture_firebase_login/ui/pages/home_page/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'domain/entities/user.dart';
-
 import 'injected.dart';
-import 'ui/pages/home_page/home_page.dart';
 import 'ui/pages/sign_in_page/sign_in_page.dart';
 import 'ui/widgets/splash_screen.dart';
 
 main() async {
+  RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
   runApp(MyApp());
 }
 
@@ -17,22 +16,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return TopAppWidget(
       waiteFor: () => [
+        //Here we initialize all plugins
         canSignInWithApple.stateAsync,
       ],
       onWaiting: () => MaterialApp(
         home: SplashScreen(),
       ),
-      injectedAuth: user,
       builder: (_) => MaterialApp(
-        home: user.futureBuilder(
-          future: (s, _) => user.auth.signIn(
-            (param) => UserParam(signIn: SignIn.currentUser),
-          ),
-          onWaiting: () => SplashScreen(),
-          onError: (_) => Text('Error'),
-          onData: (_) {
-            return user.isSigned ? HomePage() : SignInPage();
-          },
+        home: On.auth(
+          onInitialWaiting: () => SplashScreen(),
+          onUnsigned: () => SignInPage(),
+          onSigned: () => HomePage(),
+        ).listenTo(
+          user,
+          useRouteNavigation: true,
         ),
         navigatorKey: RM.navigate.navigatorKey,
       ),

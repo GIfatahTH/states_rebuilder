@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final i18n = RM.injectI18N<EnUS>(
@@ -11,9 +12,31 @@ final i18n = RM.injectI18N<EnUS>(
   },
   persistKey: '__lang__',
   debugPrintWhenNotifiedPreMessage: '',
+  onSetState: On.data(() {
+    //Wait until the next frame to ensure BuildContext is valid and
+    //snackBar is displayed properly for French language as it is async
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      //For better user experience, RTL languages page animates from RTL
+      if (Directionality.of(RM.context) == TextDirection.rtl) {
+        RM.navigate.transitionsBuilder = Transitions.rightToLeft();
+      } else {
+        RM.navigate.transitionsBuilder = Transitions.leftToRight();
+      }
+
+      RM.scaffold.showSnackBar(
+        SnackBar(
+          content: Text(
+            //Get the current translation without BuildContext
+            i18n.state.helloWold,
+          ),
+        ),
+      );
+    });
+  }),
 );
 
 class EnUS {
+  final helloWold = 'Hello World';
   final flutterDemo = 'flutter_demo';
   final preferences = 'Preferences';
   final home = 'Home';
@@ -35,6 +58,7 @@ class EnUS {
 }
 
 class EsES implements EnUS {
+  final helloWold = 'Hola mondo';
   final flutterDemo = 'flutter_demo';
   final preferences = 'Preferencias';
   final home = 'Página de inicio';
@@ -56,6 +80,7 @@ class EsES implements EnUS {
 }
 
 class FrFR implements EnUS {
+  final helloWold = 'Bonjour le monde';
   final flutterDemo = 'flutter_demo';
   final preferences = 'Préférences';
   final home = 'Page d\'accueil';
@@ -78,6 +103,7 @@ class FrFR implements EnUS {
 }
 
 class ArDZ implements EnUS {
+  final helloWold = 'مرحبا بالعالم';
   final flutterDemo = 'تجربة فلاتر';
   final preferences = 'إعدادات';
   final home = 'صفحة البداية';

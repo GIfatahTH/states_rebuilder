@@ -25,7 +25,7 @@ class MyHomePage extends StatelessWidget {
               On.all(
                 onIdle: () => Text('Tap on the FAB to increment the counter'),
                 onWaiting: () => CircularProgressIndicator(),
-                onError: (error) => Text(counterStore.error.message),
+                onError: (error, refresh) => Text(counterStore.error.message),
                 onData: () => Text(
                   '${counterStore.state.count}',
                   style: Theme.of(context).textTheme.headline5,

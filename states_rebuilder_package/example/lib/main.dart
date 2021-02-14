@@ -50,7 +50,7 @@ final helloName = RM.inject<String>(
         ),
       ),
     ),
-    onError: (err) => RM.scaffold.showSnackBar(
+    onError: (err, refresh) => RM.scaffold.showSnackBar(
       SnackBar(content: Text('${err.message}')),
     ),
     // the default case. hide the snackbar
@@ -198,7 +198,7 @@ class HelloNameWidget extends StatelessWidget {
             // error, data).
             onIdle: () => Text(i18n.of(context).enterYourName),
             onWaiting: () => CircularProgressIndicator(),
-            onError: (err) => Text('${err.message}'),
+            onError: (err, refresh) => Text('${err.message}'),
             onData: () => Text(helloName.state),
           ).listenTo(helloName),
         ),
@@ -248,7 +248,7 @@ class StreamNameWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return On.or(
-      onError: (err) => Text(
+      onError: (err, refresh) => Text(
         err.message,
         style: TextStyle(color: Colors.red),
       ),

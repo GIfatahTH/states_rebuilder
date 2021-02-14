@@ -6,7 +6,7 @@ final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   ),
   param: () => '__Todos__/${user.state.userId}',
   readOnInitialization: true,
-  onSetState: On.error((e) {
+  onSetState: On.error((e, r) {
     ErrorHandler.showErrorSnackBar(e);
   }),
   debugPrintWhenNotifiedPreMessage: 'todos',

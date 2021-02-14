@@ -114,6 +114,7 @@ class FormWidget extends StatelessWidget {
                             ),
                           );
                         }
+                        RM.navigate.back();
                       }
                     : null);
           },

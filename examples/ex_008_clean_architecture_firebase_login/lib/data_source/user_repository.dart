@@ -44,8 +44,6 @@ class UserRepository implements IAuth<User, UserParam> {
           param.email,
           param.password,
         );
-      // case SignIn.currentUser:
-      //   return _currentUser();
 
       default:
         throw UnimplementedError();

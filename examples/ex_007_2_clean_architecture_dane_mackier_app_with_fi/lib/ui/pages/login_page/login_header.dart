@@ -14,7 +14,7 @@ class _LoginHeader extends StatelessWidget {
         Text('Enter a number between 1 - 10', style: subHeaderStyle),
         LoginTextField(controller),
         On.or(
-          onError: (error) => Text(
+          onError: (error, refresh) => Text(
             ExceptionHandler.errorMessage(error),
             style: TextStyle(color: Colors.red),
           ),

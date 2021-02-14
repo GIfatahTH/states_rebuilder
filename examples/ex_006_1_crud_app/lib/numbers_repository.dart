@@ -18,6 +18,9 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future<Number> create(Number number, NumberParam param) async {
     await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      throw Exception('Error');
+    }
     final userNumbers = _numbersStore[param.userId] ?? [];
     _numbersStore[param.userId] = [...userNumbers, number];
     print(_numbersStore);
@@ -44,6 +47,9 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future update(List<Number> numbers, NumberParam param) async {
     await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      throw Exception('Error');
+    }
     final userNumbers = _numbersStore[param.userId] ?? [];
     for (var number in numbers) {
       final index = userNumbers.indexWhere((e) => e.id == number.id);
@@ -59,6 +65,9 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future delete(List<Number> numbers, NumberParam param) async {
     await Future.delayed(Duration(seconds: 1));
+    if (Random().nextBool()) {
+      throw Exception('Error');
+    }
     final userNumbers = _numbersStore[param.userId] ?? [];
     for (var number in numbers) {
       final isRemoved = userNumbers.remove(number);

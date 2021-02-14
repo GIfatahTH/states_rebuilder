@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -47,7 +49,9 @@ class HomeScreen extends StatelessWidget {
               Text('Error in Retrieving todos'),
               IconButton(
                 icon: Icon(Icons.refresh),
-                onPressed: () => refresh(),
+                onPressed: () {
+                  refresh();
+                },
               ),
             ],
             mainAxisAlignment: MainAxisAlignment.center,

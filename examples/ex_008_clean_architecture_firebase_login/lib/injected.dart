@@ -12,7 +12,7 @@ import 'ui/pages/sign_in_page/sign_in_page.dart';
 enum Env { dev, prod }
 Env currentEnv = Env.dev;
 
-final user = RM.injectAuth<User, UserParam>(
+final InjectedAuth<User, UserParam> user = RM.injectAuth<User, UserParam>(
   () {
     assert(currentEnv != null);
     return {
@@ -21,18 +21,16 @@ final user = RM.injectAuth<User, UserParam>(
     }[currentEnv];
   },
   unsignedUser: UnLoggedUser(),
-  authenticateOnInit: false,
-  onSigned: (_) => RM.navigate.toReplacement(HomePage()),
-  onUnsigned: () => RM.navigate.toReplacement(SignInPage()),
+  onAuthStream: (repo) => (repo as UserRepository).currentUser().asStream(),
   onSetState: On.error(
-    (err) => RM.navigate.to(
+    (err, refresh) => RM.navigate.to(
       AlertDialog(
         title: Text(ExceptionsHandler.errorMessage(err).title),
         content: Text(ExceptionsHandler.errorMessage(err).message),
       ),
     ),
   ),
-  // debugPrintWhenNotifiedPreMessage: '',
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final canSignInWithApple = RM.injectFuture(

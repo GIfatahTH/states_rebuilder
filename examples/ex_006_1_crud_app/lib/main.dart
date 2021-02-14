@@ -59,7 +59,10 @@ class _App extends StatelessWidget {
       title: Text('InjectCRUD'),
       leading: On.crud(
         onWaiting: () => Icon(Icons.circle, color: Colors.yellow),
-        onError: (_) => Icon(Icons.error, color: Colors.red),
+        onError: (_, retry) => IconButton(
+          icon: Icon(Icons.refresh_outlined, color: Colors.red),
+          onPressed: () => retry(),
+        ),
         onResult: (_) => Icon(Icons.circle, color: Colors.green),
       ).listenTo(numbers),
       actions: [
@@ -101,12 +104,12 @@ class _App extends StatelessWidget {
   Widget _bodyMethod() {
     return On.or(
       onWaiting: () => Center(child: CircularProgressIndicator()),
-      onError: (err) => Center(
-        child: RaisedButton(
-          child: Text('Refresh'),
-          onPressed: () => numbers.refresh(),
-        ),
-      ),
+      // onError: (err, refresh) => Center(
+      //   child: RaisedButton(
+      //     child: Text('Refresh'),
+      //     onPressed: () => refresh(),
+      //   ),
+      // ),
       or: () => ListView.builder(
         itemCount: numbers.state.length,
         itemBuilder: (context, index) {

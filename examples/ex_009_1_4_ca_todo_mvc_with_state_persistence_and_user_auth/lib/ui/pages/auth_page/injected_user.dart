@@ -20,12 +20,6 @@ final user = RM.injectAuth<User, UserParam>(
         .inSeconds;
     return Duration(seconds: timeToExpiry);
   },
-  onSigned: (_) {
-    return RM.navigate.toNamedAndRemoveUntil(HomeScreen.routeName);
-  },
-  onUnsigned: () {
-    return RM.navigate.toNamedAndRemoveUntil(AuthPage.routeName);
-  },
-  onSetState: On.error(ErrorHandler.showErrorSnackBar),
+  onSetState: On.error((e, r) => ErrorHandler.showErrorSnackBar(e)),
   debugPrintWhenNotifiedPreMessage: '',
 );

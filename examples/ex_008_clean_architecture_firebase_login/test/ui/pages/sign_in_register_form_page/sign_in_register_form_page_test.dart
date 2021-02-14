@@ -1,5 +1,6 @@
 import 'package:clean_architecture_firebase_login/data_source/fake_user_repository.dart';
 import 'package:clean_architecture_firebase_login/injected.dart';
+import 'package:clean_architecture_firebase_login/main.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,21 +28,11 @@ void main() {
     return widget is Checkbox && widget.value;
   });
 
-  Widget signInRegisterFormPage;
-  setUp(
-    () {
-      //The first thing to do is to isolate SignInRegisterFormPage.
-      signInRegisterFormPage = TopAppWidget(
-        builder: (_) => MaterialApp(
-          home: SignInRegisterFormPage(),
-          navigatorKey: RM.navigate.navigatorKey,
-        ),
-      );
-    },
-  );
-
   testWidgets('Email validation', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
+    await tester.pumpAndSettle();
 
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
@@ -64,8 +55,10 @@ void main() {
   });
 
   testWidgets('password validation', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
+    await tester.pumpAndSettle();
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
     //expect that the submit button is initially inactive
@@ -87,8 +80,10 @@ void main() {
   });
 
   testWidgets('login with email and password', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
+    await tester.pumpAndSettle();
     //Enter valid email and password
     await tester.enterText(emailTextFiled, 'my@email.com');
     await tester.enterText(passwordTextFiled, 'mypassword1');
@@ -103,7 +98,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
+    //expect to find one Scaffold. This means we are still in the MyApp()
     expect(find.byType(Scaffold), findsOneWidget);
     await tester.pumpAndSettle();
     //Expect to go to homepage after successfully signing in.
@@ -111,8 +106,10 @@ void main() {
   });
 
   testWidgets('Register and login with email and password', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
+    await tester.pumpAndSettle();
     expect(uncheckedCheckBox, findsOneWidget);
 
     //check the CheckBox
@@ -138,7 +135,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
+    //expect to find one Scaffold. This means we are still in the MyApp()
     expect(find.byType(Scaffold), findsOneWidget);
     await tester.pumpAndSettle();
     //Expect to go to homepage after successfully signing in.
