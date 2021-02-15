@@ -1,6 +1,12 @@
 part of '../../reactive_model.dart';
 
+/// Injected state that is responsible for holding a list of items and
+/// send and resolve CREATE, READ, UPDATE and DELETE queries to a backend
+/// service.
 class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
+  /// Injected state that is responsible for holding a list of items and
+  /// send and resolve CREATE, READ, UPDATE and DELETE queries to a backend
+  /// service.
   InjectedCRUD({
     required dynamic Function() creator,
     P Function()? param,
@@ -19,6 +25,11 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
+    SnapState<List<T>>? Function(
+      SnapState<List<T>> state,
+      SnapState<List<T>> nextState,
+    )?
+        middleSnapState,
 
     //
   })  : _param = param,
@@ -37,8 +48,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          debugError: debugError,
-          debugNotification: debugNotification,
+          middleSnapState: middleSnapState,
         );
 
   final P Function()? _param;

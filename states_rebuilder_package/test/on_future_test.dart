@@ -11,7 +11,7 @@ void main() {
     final widget = On.future(
       onWaiting: () => Text('waiting ...'),
       onError: null,
-      onData: (rm) {
+      onData: (rm, _) {
         return Text('data');
       },
     ).future(
@@ -41,7 +41,7 @@ void main() {
         refresh = refresher;
         return Text('${e.message}');
       },
-      onData: (data) {
+      onData: (data, _) {
         return Text(data.counter.toString());
       },
     ).future(
@@ -92,7 +92,7 @@ void main() {
         refresh = refresher;
         return Text('${e.message}');
       },
-      onData: (data) {
+      onData: (data, _) {
         return Text(data.counter.toString());
       },
     ).listenTo(injected);
@@ -126,7 +126,7 @@ void main() {
       On.future(
         onWaiting: () => Container(),
         onError: (_, __) => Container(),
-        onData: (_) => Container(),
+        onData: (_, __) => Container(),
       ).future(
         modelFuture.future(
           (s) => s.incrementAsync(),
@@ -151,7 +151,7 @@ void main() {
     await tester.pumpWidget(On.future(
       onWaiting: () => Container(),
       onError: (_, __) => Container(),
-      onData: (_) => Container(),
+      onData: (_, __) => Container(),
     ).future(
       modelFuture.future((s) => s.incrementAsyncImmutable()),
     ));
@@ -173,7 +173,7 @@ void main() {
     await tester.pumpWidget(On.future(
       onWaiting: () => Container(),
       onError: (_, __) => Container(),
-      onData: (_) => Container(),
+      onData: (_, __) => Container(),
     ).future(modelFuture.future((s) => s.incrementAsyncWithError())));
 
     await tester.pump(Duration(seconds: 1));
@@ -192,7 +192,7 @@ void main() {
       child: On.future(
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text('Error'),
-        onData: (_) => Text(counter.state.toString()),
+        onData: (_, __) => Text(counter.state.toString()),
       ).future(() => counter.stateAsync),
     ));
     expect(find.text('Waiting...'), findsOneWidget);
@@ -223,7 +223,7 @@ void main() {
       child: On.future(
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text('Error'),
-        onData: (_) => Text('${counter.state}-${++numberOfRebuild}'),
+        onData: (_, __) => Text('${counter.state}-${++numberOfRebuild}'),
       ).listenTo(counter),
     ));
     expect(find.text('Waiting...'), findsOneWidget);
@@ -239,7 +239,9 @@ void main() {
     expect(find.text('2-2'), findsOneWidget);
     //
     counter.state++;
-    counter.setState((s) => throw Exception(), catchError: true);
+    counter.setState(
+      (s) => throw Exception(), /*catchError: true*/
+    );
     await tester.pump();
     expect(find.text('3-3'), findsOneWidget);
   });
@@ -249,7 +251,7 @@ void main() {
       () => On.future<int>(
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text('Error'),
-        onData: (_) => Text('$_'),
+        onData: (_, __) => Text('$_'),
       ).future(() => Future.value(true)),
       throwsAssertionError,
     );
@@ -257,7 +259,7 @@ void main() {
     On.future(
       onWaiting: () => Text('Waiting...'),
       onError: (_, __) => Text('Error'),
-      onData: (_) => Text('$_'),
+      onData: (_, __) => Text('$_'),
     ).future(() => Future.value(true));
   });
 
@@ -270,7 +272,7 @@ void main() {
       child: On.future<int>(
         onWaiting: () => Text('Waiting...'),
         onError: null,
-        onData: (_) => Text('$_'),
+        onData: (_, __) => Text('$_'),
       ).listenTo(counter),
     );
 

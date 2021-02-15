@@ -527,6 +527,61 @@ void main() {
     expect(localization.toString(), 'es_script_ES');
     //
   });
+
+  testWidgets(
+    'WHEN middleSnapState is defined'
+    'AND WHEN async translation fails'
+    'THEN  return to another translation',
+    (tester) async {
+      SnapState<String>? _snapState;
+      late SnapState<String> _nextSnapState;
+
+      final i18n = RM.injectI18N<String>(
+        {
+          Locale('ar'): () => 'arabic',
+          Locale('en', 'TN'): () => Future.delayed(
+                Duration(seconds: 1),
+                () => throw Exception('Error'),
+              ),
+          Locale('en', 'US'): () => 'english_US',
+          Locale('es', 'ES'): () => 'spanish',
+        },
+        middleSnapState: (snapState, nextSnapState) {
+          _snapState = snapState;
+          _nextSnapState = nextSnapState;
+          if (nextSnapState.hasError &&
+              nextSnapState.error.message == 'Error') {
+            return snapState.copyWith(
+              connectionState: ConnectionState.done,
+              data: 'arabic',
+            );
+          }
+        },
+      );
+      expect(_snapState, null);
+
+      i18n.locale = Locale('en', 'TN');
+      //
+
+      expect(_snapState?.isIdle, true);
+      expect(_snapState?.data, 'english_US');
+      //
+      expect(_nextSnapState.isWaiting, true);
+      expect(_nextSnapState.data, 'english_US');
+      //
+      await tester.pump(Duration(seconds: 1));
+
+      expect(_snapState?.isWaiting, true);
+      expect(_snapState?.data, 'english_US');
+      //
+      expect(_nextSnapState.hasError, true);
+      expect(_nextSnapState.data, 'english_US');
+      expect(_nextSnapState.error.message, 'Error');
+      //
+      expect(i18n.state, 'arabic');
+      expect(i18n.hasData, true);
+    },
+  );
 }
 
 class _App extends StatelessWidget {

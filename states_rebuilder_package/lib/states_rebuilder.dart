@@ -28,4 +28,4 @@ export 'src/reactive_model.dart'
         Child,
         TopAppWidget,
         SystemLocale,
-        Transitions;
+        SnapState;

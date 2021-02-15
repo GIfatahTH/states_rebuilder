@@ -338,4 +338,37 @@ void main() async {
     expect(theme.themeMode, ThemeMode.dark);
     expect(store.store!['_theme_'], 'theme1#|#1');
   });
+
+  testWidgets(
+    'WHEN '
+    'THEN ',
+    (tester) async {
+      SnapState<String>? _snapState;
+      late SnapState<String> _nextSnapState;
+
+      final lightTheme = ThemeData.light();
+      final darkTheme = ThemeData.dark();
+      final theme = RM.injectTheme<String>(
+        lightThemes: {
+          'theme1': lightTheme,
+          'theme2': lightTheme,
+        },
+        darkThemes: {
+          'theme1': lightTheme,
+          'theme2': darkTheme,
+        },
+        middleSnapState: (snapState, nextSnapState) {
+          _snapState = snapState;
+          _nextSnapState = nextSnapState;
+        },
+      );
+      theme.state = 'theme2';
+
+      expect(_snapState?.isIdle, true);
+      expect(_snapState?.data, 'theme1');
+      //
+      expect(_nextSnapState.hasData, true);
+      expect(_nextSnapState.data, 'theme2');
+    },
+  );
 }

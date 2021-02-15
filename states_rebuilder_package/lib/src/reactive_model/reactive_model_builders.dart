@@ -5,14 +5,14 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
 
   @override
   void _notifyListeners([List? tags, bool isOnCrud = false]) {
-    assert(() {
-      _coreRM._debugNotification?.call(
-        _coreRM._snapState._copyWith(
-          numberOFWidgetListeners: observerLength,
-        ),
-      );
-      return true;
-    }());
+    // assert(() {
+    //   _coreRM._debugNotification?.call(
+    //     _coreRM._snapState.copyWith(
+    //       numberOFWidgetListeners: observerLength,
+    //     ),
+    //   );
+    //   return true;
+    // }());
     super._notifyListeners(tags, isOnCrud);
     _listeners.forEach((fn) => fn(this as ReactiveModel<T>));
     RM.printInjected?.call(_snapState);

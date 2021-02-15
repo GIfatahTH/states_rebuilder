@@ -13,13 +13,21 @@ class SnapState<T> {
     this.stackTrace,
     this.onErrorRefresher, [
     this.isImmutable = true,
-    this._numberOFWidgetListeners = 0,
+    this._infoMessage,
   ])  : assert(stackTrace == null || error != null),
         assert(error == null || onErrorRefresher != null);
 
   /// Creates an [SnapState] in [ConnectionState.none] with null data and error.
-  const SnapState._nothing()
-      : this._(ConnectionState.none, null, null, null, null);
+  const SnapState._nothing(String _infoMessage)
+      : this._(
+          ConnectionState.none,
+          null,
+          null,
+          null,
+          null,
+          true,
+          _infoMessage,
+        );
 
   /// Creates an [SnapState] in [ConnectionState.waiting] with null data and error.
   const SnapState._waiting(T? data)
@@ -62,7 +70,7 @@ class SnapState<T> {
   /// If this is non-null, [hasError] will be true.
   ///
   /// If [data] is not null, this will be null.
-  final Object? error;
+  final dynamic error;
 
   /// The latest stack trace object received by the asynchronous computation.
   ///
@@ -75,17 +83,15 @@ class SnapState<T> {
 
   final void Function()? onErrorRefresher;
 
-  final int _numberOFWidgetListeners;
-  int get numberOFWidgetListeners => _numberOFWidgetListeners;
+  final String? _infoMessage;
 
-  SnapState<T> _copyWith({
+  SnapState<T> copyWith({
     ConnectionState? connectionState,
     T? data,
     dynamic error,
     StackTrace? stackTrace,
     void Function()? onErrorRefresher,
     bool resetError = false,
-    int numberOFWidgetListeners = 0,
   }) =>
       SnapState<T>._(
         connectionState ?? _connectionState,
@@ -94,7 +100,7 @@ class SnapState<T> {
         resetError ? null : stackTrace ?? this.stackTrace,
         resetError ? null : onErrorRefresher ?? this.onErrorRefresher,
         isImmutable,
-        numberOFWidgetListeners,
+        null,
       );
 
   /// Returns whether this snapshot contains a non-null [data] value.
@@ -119,10 +125,12 @@ class SnapState<T> {
   @override
   String toString() {
     var status = '';
-    if (isIdle) {
-      status = 'isIdle: $data';
+    if (isIdle && data == null) {
+      status = '$_infoMessage';
+    } else if (isIdle) {
+      status = 'isIdle : $data';
     } else if (isWaiting) {
-      status = 'isWaiting: $data';
+      status = 'isWaiting : $data';
     } else if (hasError) {
       status = 'hasError: $error';
     } else if (hasData) {
@@ -144,6 +152,33 @@ class SnapState<T> {
   @override
   int get hashCode {
     return _connectionState.hashCode ^ data.hashCode ^ error.hashCode;
+  }
+
+  String toShortString<T>(T d) {
+    var status = '';
+    if (isIdle && data == null) {
+      status = '$_infoMessage';
+    } else if (isIdle) {
+      status = 'isIdle : ${d ?? data}';
+    } else if (isWaiting) {
+      status = 'isWaiting: ${d ?? data}';
+    } else if (hasError) {
+      status = 'hasError: $error';
+    } else if (hasData) {
+      status = 'hasData: ${d ?? data}';
+    }
+    return '$status';
+  }
+
+  static log<T>(
+    SnapState<T> snapState,
+    SnapState<T> nextSnapState, {
+    String Function(SnapState<T> snap)? state,
+    String preMessage = '',
+  }) {
+    return (preMessage.isNotEmpty ? '[${preMessage}] : ' : '') +
+        '${snapState.toShortString(state?.call(snapState))} ==> '
+            '${nextSnapState.toShortString(state?.call(nextSnapState))}';
   }
 }
 

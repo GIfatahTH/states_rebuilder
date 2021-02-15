@@ -10,7 +10,7 @@ import 'themes.dart';
 void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
   // await RM.storageInitializer(HiveStorage());
-  RM.navigate.transitionsBuilder = Transitions.leftToRight();
+  RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
   runApp(MyApp());
 }
 

@@ -286,7 +286,7 @@ void main() {
               initState: (_, modelRM) {
                 modelRM?.setState(
                   (s) => s.incrementAsyncWithError(),
-                  catchError: true,
+                  /*catchError: true*/
                 );
               },
               builder: (context, snapshot) {

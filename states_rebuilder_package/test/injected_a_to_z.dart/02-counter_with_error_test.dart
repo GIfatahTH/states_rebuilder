@@ -111,7 +111,9 @@ void main() {
     counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
-    counter.setState((s) => s.increment(), catchError: true);
+    counter.setState(
+      (s) => s.increment(), /*catchError: true*/
+    );
     await tester.pump();
     expect(errorFromInjection, 'Counter Error');
     errorFromInjection = null;

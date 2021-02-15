@@ -42,7 +42,9 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       }
       if (result != null) {
         _nullState ??= result as T;
-        _coreRM.snapState = _coreRM.snapState._copyWith(data: result as T);
+        _coreRM.snapState = _coreRM.snapState.copyWith(data: result as T);
+        _coreRM._middleState
+            ?.call(SnapState._nothing('INITIALIZING'), _coreRM.snapState);
         _coreRM.addToUndoQueue();
       }
       _onInitState();
@@ -71,12 +73,11 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         _handleAsyncSubscription(
           asyncResult as Stream<T>,
           onErrorRefresher: () {
-            _snapState = _snapState._copyWith(
+            _snapState = _snapState.copyWith(
               connectionState: ConnectionState.none,
               resetError: true,
             );
             _isInitialized = false;
-            _coreRM._completer = null;
             _initialConnectionState = ConnectionState.done;
             _initialize();
           },
@@ -96,6 +97,11 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         result ?? _nullState,
         _coreRM.snapState.isImmutable,
       );
+      _coreRM._middleState?.call(
+          SnapState._nothing(
+            _isFirstInitialized ? 'REFRESHING' : 'INITIALIZING',
+          ),
+          _coreRM.snapState);
       _coreRM.addToUndoQueue();
       if (_shouldPersistStateOnInit) {
         _coreRM.persistState();
@@ -105,13 +111,12 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         e,
         s,
         onErrorRefresher: () {
-          _snapState = _snapState._copyWith(
+          _snapState = _snapState.copyWith(
             connectionState: ConnectionState.done,
             resetError: true,
           );
           _initialConnectionState = ConnectionState.done;
           _isInitialized = false;
-          _coreRM._completer = null;
           _initialize();
           _coreRM.notifyListeners();
         },
@@ -167,9 +172,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         );
       },
       onDone: () {
-        if (_completer?.isCompleted == false) {
-          _completer?.complete(_state);
-        }
+        _coreRM._completeCompleter(_state);
         isDone = true;
         onDane?.call();
       },

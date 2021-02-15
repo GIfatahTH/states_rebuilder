@@ -81,10 +81,24 @@ class _CRUDService<T, P> {
   ///[param] can be also used to distinguish between many
   ///delete queries
   ///[onSetState] for side effects.
+  ///
+  ///[middleState] is a callback that exposes the current state
+  ///before mutation and the next state and returns the state
+  ///that will be used for mutation.
+  ///
+  ///Expample if you want to append the new results to the old state:
+  ///
+  ///```dart
+  ///product.crud.read(
+  /// middleState: (state, nextState) {
+  ///   return [..state, ...nextState];
+  /// }
+  ///)
+  ///```
   Future<List<T>> read({
     P Function(P? param)? param,
     On<void>? onSetState,
-    List<T> Function(List<T> state, List<T> fetched)? middleWare,
+    List<T> Function(List<T> state, List<T> nextState)? middleState,
   }) async {
     injected._result = null;
     await injected.setState(
@@ -94,7 +108,7 @@ class _CRUDService<T, P> {
           param?.call(injected._param?.call()) ?? injected._param?.call(),
         );
 
-        return middleWare?.call(s, items) ?? items;
+        return middleState?.call(s, items) ?? items;
       },
       onSetState: onSetState,
     );
@@ -113,8 +127,8 @@ class _CRUDService<T, P> {
   ///[onSetState] for side effects.
   ///
   ///[isOptimistic]: Whether the querying is done optimistically a
-  ///nd mutates the state before sending the query, or it is done p
-  ///essimistically and the state waits for the query to end and
+  ///nd mutates the state before sending the query, or it is done
+  ///pessimistically and the state waits for the query to end and
   ///mutate. The default value is true.
   ///
   ///[onResult]: Invoked after the query ends successfully and

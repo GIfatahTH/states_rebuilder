@@ -58,6 +58,11 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(
+      SnapState<T> snapState,
+      SnapState<T> nextSnapState,
+    )?
+        middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -81,8 +86,8 @@ abstract class RM {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      debugError: debugError,
-      debugNotification: debugNotification,
+
+      middleSnapState: middleSnapState,
     );
   }
 
@@ -111,6 +116,11 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(
+      SnapState<T> snapState,
+      SnapState<T> nextSnapState,
+    )?
+        middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -133,8 +143,8 @@ abstract class RM {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      debugError: debugError,
-      debugNotification: debugNotification,
+
+      middleSnapState: middleSnapState,
     );
   }
 
@@ -165,6 +175,11 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(
+      SnapState<T> snapState,
+      SnapState<T> nextSnapState,
+    )?
+        middleSnapState,
 
     //
     Object? Function(T? s)? watch,
@@ -191,8 +206,7 @@ abstract class RM {
       undoStackLength: undoStackLength,
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      debugError: debugError,
-      debugNotification: debugNotification,
+      middleSnapState: middleSnapState,
       isLazy: isLazy,
     );
     return inj;
@@ -224,6 +238,11 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(
+      SnapState<T> snapState,
+      SnapState<T> nextSnapState,
+    )?
+        middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -257,8 +276,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       undoStackLength: undoStackLength,
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      debugError: debugError,
-      debugNotification: debugNotification,
+
+      middleSnapState: middleSnapState,
       isLazy: isLazy,
     );
   }
@@ -317,7 +336,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<List<T>>? Function(
+      SnapState<List<T>> snapState,
+      SnapState<List<T>> nextSnapState,
+    )?
+        middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -360,7 +383,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
-      debugNotification: debugNotification,
+      middleSnapState: middleSnapState,
     );
     inj.._readOnInitialization = readOnInitialization;
     return inj;
@@ -408,7 +431,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool autoDisposeWhenNotUsed = false,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(SnapState<T> snapState, SnapState<T> nextSnapState)?
+        middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -497,7 +521,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       // autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
-      debugNotification: debugNotification,
+      middleSnapState: middleSnapState,
     );
 
     return inj;
@@ -536,7 +560,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<Key>? Function(
+            SnapState<Key> snapState, SnapState<Key> nextSnapState)?
+        middleSnapState,
   }) {
     PersistState<Key> Function()? persist;
     late InjectedTheme<Key> inj;
@@ -592,7 +618,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
-      debugNotification: debugNotification,
+      middleSnapState: middleSnapState,
     );
     return inj;
   }
@@ -621,7 +647,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<I18N>? Function(
+      SnapState<I18N> snapState,
+      SnapState<I18N> nextSnapState,
+    )?
+        middleSnapState,
   }) {
     PersistState<I18N> Function()? persist;
     late InjectedI18N<I18N> inj;
@@ -672,7 +702,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       debugError: debugError,
-      debugNotification: debugNotification,
+      middleSnapState: middleSnapState,
     );
     return inj;
   }

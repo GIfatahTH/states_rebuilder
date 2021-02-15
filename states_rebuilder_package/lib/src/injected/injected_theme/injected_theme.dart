@@ -19,7 +19,8 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<Key>? Function(SnapState<Key> state, SnapState<Key> nextState)?
+        middleSnapState,
 
     //
   })  : _themes = themes,
@@ -30,7 +31,6 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
 
-          on: onSetState,
           //
           dependsOn: dependsOn,
           undoStackLength: undoStackLength,
@@ -39,9 +39,20 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          debugError: debugError,
-          debugNotification: debugNotification,
-        );
+          middleSnapState: middleSnapState,
+        ) {
+    if (onSetState != null) {
+      //For InjectedI18N and InjectedTheme schedule side effects
+      //for the next frame.
+      subscribeToRM(
+        (_) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onSetState._call(snapState),
+          );
+        },
+      );
+    }
+  }
 
   Map<Key, ThemeData> _themes;
 
@@ -63,7 +74,14 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
   ThemeMode _themeMode;
 
   ///Get the current light theme.
-  ThemeData get lightTheme => (_themes[state] ?? _darkThemes?[state])!;
+  ThemeData get lightTheme {
+    var theme = _themes[state];
+    if (theme == null) {
+      theme = _darkThemes?[state];
+    }
+    assert(theme != null);
+    return theme!;
+  }
 
   ///Get the current dark theme.
   ThemeData? get darkTheme => _darkThemes?[state] ?? _themes[state];
@@ -107,6 +125,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
   ///toggle method will have no effect
   @override
   void toggle() {
+    _initialize();
     if (isDarkTheme) {
       themeMode = ThemeMode.light;
     } else {

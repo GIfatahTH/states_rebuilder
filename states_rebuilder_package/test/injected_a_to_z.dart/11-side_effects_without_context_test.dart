@@ -103,7 +103,7 @@ void main() {
                       model.setState(
                         (s) => throw Exception('An error!'),
                         context: context,
-                        catchError: true,
+                        /*/*catchError: true*/*/
                       );
                     },
                   );

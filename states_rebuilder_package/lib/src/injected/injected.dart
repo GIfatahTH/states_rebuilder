@@ -223,7 +223,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
         if (_isRefreshing) {
           //while refreshing from global do change  the state
           //and do not rebuild
-          _coreRM._snapState = _coreRM._snapState._copyWith(
+          _coreRM._snapState = _coreRM._snapState.copyWith(
             connectionState: ConnectionState.waiting,
           );
           return;
@@ -234,7 +234,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
           _inheritedInjects.firstWhereOrNull((e) => e._snapState.hasError);
       if (errorRM != null) {
         if (_isRefreshing) {
-          _coreRM._snapState = _coreRM._snapState._copyWith(
+          _coreRM._snapState = _coreRM._snapState.copyWith(
             error: errorRM.error,
             stackTrace: errorRM.stackTrace,
             onErrorRefresher: errorRM.onErrorRefresher,
@@ -254,7 +254,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
         _isInitialized = true;
       }
       if (_isRefreshing) {
-        _coreRM._snapState = _coreRM._snapState._copyWith(
+        _coreRM._snapState = _coreRM._snapState.copyWith(
           connectionState: rm.connectionState,
           data: rm.state,
         );
@@ -520,7 +520,7 @@ void _resolveMergedState<T>(Injected<T> dependent, [bool shouldNotify = true]) {
       dependent.refresh(true);
     }
   } else {
-    dependent._snapState = dependent.snapState._copyWith(
+    dependent._snapState = dependent.snapState.copyWith(
       connectionState: ConnectionState.none,
     );
   }

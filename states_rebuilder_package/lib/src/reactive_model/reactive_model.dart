@@ -76,11 +76,11 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
 
   Future<T> get stateAsync async {
     _initialize();
-    if (_completer == null) {
+    if (_coreRM._completer == null) {
       return _state!;
     }
 
-    await _completer?.future;
+    await _coreRM._completer?.future;
     return _state!;
   }
 
@@ -194,7 +194,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     dynamic Function(T s)? fn, {
     void Function(T data)? onData,
     void Function(dynamic? error)? onError,
-    bool catchError = false,
+    // bool catchError = false,
     On<void>? onSetState,
     void Function()? onRebuildState,
     int debounceDelay = 0,
@@ -259,17 +259,17 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
           context: context,
         );
 
-        final shouldCatchError = catchError ||
-            _whenConnectionState ||
-            _onHasErrorCallback ||
-            (onError != null) ||
-            _coreRM.onError != null;
+        // final shouldCatchError = catchError ||
+        //     _whenConnectionState ||
+        //     _onHasErrorCallback ||
+        //     (onError != null) ||
+        //     _coreRM.onError != null;
 
-        _whenConnectionState = false;
-        _onHasErrorCallback = false;
-        if (!shouldCatchError) {
-          rethrow;
-        }
+        // _whenConnectionState = false;
+        // _onHasErrorCallback = false;
+        // if (!shouldCatchError) {
+        //   rethrow;
+        // }
       }
       return completer?.future ?? Future.value(_state);
     }
@@ -358,10 +358,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     }
     final beforeRefreshState = _snapState;
     _isInitialized = false;
-
-    if (_completer?.isCompleted == false) {
-      _completer!.complete(_state);
-    }
+    _coreRM._completeCompleter(_state);
 
     if (toHasData) {
       _initialConnectionState = ConnectionState.done;
@@ -370,10 +367,11 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       _state = _nullState;
     }
 
-    _snapState = _snapState._copyWith(
+    _snapState = _snapState.copyWith(
       connectionState: ConnectionState.none,
       resetError: true,
     );
+
     _initialize();
     if (_toRefresh.isNotEmpty) {
       _refreshListeners();

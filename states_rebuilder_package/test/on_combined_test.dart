@@ -203,11 +203,12 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-        (s) => Future.delayed(
-              Duration(seconds: 1),
-              () => throw Exception('Error'),
-            ),
-        catchError: true);
+      (s) => Future.delayed(
+        Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+      /*catchError: true*/
+    );
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
     expect(onSetState, 1);
@@ -242,11 +243,12 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-        (s) => Future.delayed(
-              Duration(seconds: 1),
-              () => throw Exception('Error'),
-            ),
-        catchError: true);
+      (s) => Future.delayed(
+        Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+      /*catchError: true*/
+    );
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
     expect(onSetState, 0);
@@ -281,11 +283,12 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-        (s) => Future.delayed(
-              Duration(seconds: 1),
-              () => throw Exception('Error'),
-            ),
-        catchError: true);
+      (s) => Future.delayed(
+        Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+      /*catchError: true*/
+    );
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
     expect(onSetState, 1);
@@ -326,11 +329,12 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-        (s) => Future.delayed(
-              Duration(seconds: 1),
-              () => throw Exception('Error'),
-            ),
-        catchError: true);
+      (s) => Future.delayed(
+        Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+      /*catchError: true*/
+    );
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
     expect(onSetState, 0);

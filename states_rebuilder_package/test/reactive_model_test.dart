@@ -29,19 +29,23 @@ void main() {
     expect(modelRM?.hasData, isTrue);
   });
 
-  test(
-    'ReactiveModel: throw error if error is not caught',
-    () {
-      //throw
-      expect(
-          () => modelRM?.setState((s) => s.incrementError()), throwsException);
-      //do not throw
-      modelRM?.setState((s) => s.incrementError(), catchError: true);
-    },
-  );
+  // test(
+  //   'ReactiveModel: throw error if error is not caught',
+  //   () {
+  //     //throw
+  //     expect(
+  //         () => modelRM?.setState((s) => s.incrementError()), throwsException);
+  //     //do not throw
+  //     modelRM?.setState(
+  //       (s) => s.incrementError(), /*catchError: true*/
+  //     );
+  //   },
+  // );
 
   test('ReactiveModel: get the error', () {
-    modelRM?.setState((s) => s.incrementError(), catchError: true);
+    modelRM?.setState(
+      (s) => s.incrementError(), /*catchError: true*/
+    );
 
     expect(modelRM!.error.message, equals('Error message'));
     expect(
@@ -85,7 +89,7 @@ void main() {
         (s) async {
           await s.incrementAsyncWithError();
         },
-        catchError: true,
+        /*catchError: true*/
       );
 
       //isWaiting
@@ -132,7 +136,9 @@ void main() {
       expect(message, '1');
 
       //throw error
-      modelRM?.setState((s) => s.incrementAsyncWithError(), catchError: true);
+      modelRM?.setState(
+        (s) => s.incrementAsyncWithError(), /*catchError: true*/
+      );
       //isWaiting
       expect(message, 'onWaiting');
 
@@ -194,7 +200,7 @@ void main() {
 //         throw Exception();
 //       },
 //       silent: true,
-//       catchError: true,
+//       /*catchError: true*/,
 //     );
 
 //     expect(rm.hasError, isTrue);
@@ -221,7 +227,7 @@ void main() {
 //                 throw StateError('bad State');
 //               },
 //               silent: true,
-//               catchError: true,
+//               /*catchError: true*/,
 //             ),
 //         throwsStateError);
 //     StatesRebuilderConfig.shouldCatchError = true;
@@ -231,7 +237,7 @@ void main() {
 //         throw StateError('bad State');
 //       },
 //       silent: true,
-//       catchError: true,
+//       /*catchError: true*/,
 //     );
 //     expect(rm.hasError, isTrue);
 //     expect(ctx, isNotNull);
@@ -256,9 +262,11 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text(('Error message')), findsNothing);
       //
-      modelRM!.setState((s) {
-        s.incrementError();
-      }, catchError: true);
+      modelRM!.setState(
+        (s) {
+          s.incrementError();
+        }, /*catchError: true*/
+      );
       await tester.pump();
       expect(find.text(('Error message')), findsOneWidget);
     },
@@ -323,7 +331,9 @@ void main() {
       expect(find.text('isWaiting=false'), findsOneWidget);
       expect(find.text('isIdle=true'), findsOneWidget);
 
-      modelRM!.setState((s) => s.incrementAsyncWithError(), catchError: true);
+      modelRM!.setState(
+        (s) => s.incrementAsyncWithError(), /*catchError: true*/
+      );
       await tester.pump();
       //isWaiting
       expect(find.text('0'), findsOneWidget);
@@ -1083,7 +1093,7 @@ void main() {
 //       modelRM1.setState(
 //         (s) => s.incrementError(),
 //         joinSingleton: true,
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       expect(find.text('modelRM0-0'), findsOneWidget);
@@ -1097,7 +1107,7 @@ void main() {
 //       modelRM2.setState(
 //         (s) => s.incrementError(),
 //         joinSingleton: true,
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       expect(find.text('modelRM0-0'), findsOneWidget);
@@ -1166,7 +1176,7 @@ void main() {
 //       modelRM0.setState(
 //         (s) => s.incrementError(),
 //         notifyAllReactiveInstances: true,
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       expect(find.text('modelRM0-0'), findsOneWidget);
@@ -1180,7 +1190,7 @@ void main() {
 //       modelRM0.setState(
 //         (s) => s.increment(),
 //         notifyAllReactiveInstances: true,
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       expect(find.text('modelRM0-1'), findsOneWidget);
@@ -1194,7 +1204,7 @@ void main() {
 //       modelRM2.setState(
 //         (s) => s.incrementError(),
 //         notifyAllReactiveInstances: true,
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       expect(find.text('modelRM0-1'), findsOneWidget);
@@ -1256,7 +1266,7 @@ void main() {
 //       //mutate reactive instance 1
 //       modelRM1.setState((s) => s.increment(),
 //           joinSingleton: true,
-//           catchError: true,
+//           /*catchError: true*/,
 //           joinSingletonToNewData: () => 'modelRM1-${modelRM1.state.counter}');
 //       await tester.pump();
 //       expect(find.text('modelRM0-modelRM1-1'), findsOneWidget);
@@ -1266,7 +1276,7 @@ void main() {
 //       //mutate reactive instance 2
 //       modelRM2.setState((s) => s.increment(),
 //           joinSingleton: true,
-//           catchError: true,
+//           /*catchError: true*/,
 //           joinSingletonToNewData: () => 'modelRM2-${modelRM1.state.counter}');
 //       await tester.pump();
 //       expect(find.text('modelRM0-modelRM2-2'), findsOneWidget);
@@ -2073,7 +2083,7 @@ void main() {
 //           onError: (_, e) {
 //             error = e;
 //           },
-//           catchError: true,
+//           /*catchError: true*/,
 //         );
 //         await tester.pump();
 //         expect(find.text('Error message'), findsOneWidget);
@@ -2178,7 +2188,7 @@ void main() {
 //             await model.incrementAsyncWithError();
 //             return model.counter;
 //           },
-//           catchError: true,
+//           /*catchError: true*/,
 //         );
 //         await tester.pump();
 //         expect(find.text(('onWaiting')), findsOneWidget);
@@ -2226,7 +2236,7 @@ void main() {
 //         modelRM1.setState(
 //           (_) => modelRM1.state..incrementError(),
 //           joinSingleton: true,
-//           catchError: true,
+//           /*catchError: true*/,
 //         );
 //         await tester.pump();
 //         expect(find.text('modelRM0-0'), findsOneWidget);
@@ -2240,7 +2250,7 @@ void main() {
 //         modelRM2.setState(
 //           (_) => modelRM2.state..incrementError(),
 //           joinSingleton: true,
-//           catchError: true,
+//           /*catchError: true*/,
 //         );
 //         await tester.pump();
 //         expect(find.text('modelRM0-0'), findsOneWidget);
@@ -2393,7 +2403,7 @@ void main() {
 //       await tester.pumpWidget(widget);
 //       expect(find.text(('Error message')), findsNothing);
 //       //
-//       modelRM.setState((s) => s.incrementError(), catchError: true);
+//       modelRM.setState((s) => s.incrementError(), /*catchError: true*/);
 //       await tester.pump();
 //       expect(find.text(('Error message')), findsOneWidget);
 //       expect(modelRM.isIdle, isFalse);
@@ -2426,7 +2436,7 @@ void main() {
 //       await tester.pumpWidget(widget);
 //       expect(find.text(('Error message')), findsNothing);
 //       //
-//       modelRM.setState((s) => s.incrementError(), catchError: true);
+//       modelRM.setState((s) => s.incrementError(), /*catchError: true*/);
 //       await tester.pump();
 //       expect(find.text(('Error message')), findsOneWidget);
 //       expect(modelRM.isIdle, isFalse);
@@ -2467,7 +2477,7 @@ void main() {
 
 //       modelRM.setState(
 //         (_) => throw Exception(),
-//         catchError: true,
+//         /*catchError: true*/,
 //       );
 //       await tester.pump();
 //       //three rebuilds
@@ -2495,7 +2505,7 @@ void main() {
 //       expect(modelRM.toString(), contains(" | state: (Counter(1))"));
 
 //       //
-//       modelRM.setState((s) => s.incrementAsyncWithError(), catchError: true);
+//       modelRM.setState((s) => s.incrementAsyncWithError(), /*catchError: true*/);
 //       await tester.pump(Duration(seconds: 1));
 //       expect(modelRM.toString(), contains('RM<VanillaModel>-[hasError] '));
 

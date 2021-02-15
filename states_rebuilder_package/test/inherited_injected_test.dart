@@ -72,7 +72,9 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(counter1.state, 12);
     //
-    inherited1.setState((s) => throw Exception(), catchError: true);
+    inherited1.setState(
+      (s) => throw Exception(), /*catchError: true*/
+    );
     await tester.pump();
     expect(counter1.hasError, true);
   });

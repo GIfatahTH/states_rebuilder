@@ -59,10 +59,9 @@ class _AuthService<T, P> {
       (s) async {
         final _repo = await _repository;
         _param = param?.call(
-              injected._param?.call(),
-            ) ??
-            injected._param?.call();
-        return _repo.signIn(_param);
+          injected._param?.call(),
+        );
+        return _repo.signIn(_param ?? injected._param?.call());
       },
       onSetState: onError != null ? On.error(onError) : null,
     );
@@ -81,11 +80,10 @@ class _AuthService<T, P> {
       (s) async {
         final _repo = await _repository;
         _param = param?.call(
-              injected._param?.call(),
-            ) ??
-            injected._param?.call();
+          injected._param?.call(),
+        );
 
-        return _repo.signUp(_param);
+        return _repo.signUp(_param ?? injected._param?.call());
       },
       onSetState: onError != null ? On.error(onError) : null,
     );

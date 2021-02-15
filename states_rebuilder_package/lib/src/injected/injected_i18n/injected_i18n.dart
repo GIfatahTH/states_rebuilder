@@ -33,7 +33,8 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<I18N>? Function(SnapState<I18N> state, SnapState<I18N> nextState)?
+        middleSnapState,
     //
   })  : _i18n = i18n,
         super(
@@ -43,7 +44,6 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
           onInitialized: onInitialized,
           onDisposed: onDisposed,
 
-          on: onSetState,
           //
           dependsOn: dependsOn,
           undoStackLength: undoStackLength,
@@ -52,9 +52,20 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
           autoDisposeWhenNotUsed: false,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          debugError: debugError,
-          debugNotification: debugNotification,
-        );
+          middleSnapState: middleSnapState,
+        ) {
+    if (onSetState != null) {
+      //For InjectedI18N and InjectedTheme schedule side effects
+      //for the next frame.
+      subscribeToRM(
+        (_) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onSetState._callForSideEffects(snapState),
+          );
+        },
+      );
+    }
+  }
 
   Map<Locale, FutureOr<I18N> Function()> _i18n;
 

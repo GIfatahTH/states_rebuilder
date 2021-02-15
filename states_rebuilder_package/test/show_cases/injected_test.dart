@@ -172,7 +172,7 @@ void main() {
             }
             return newUsername;
           },
-          catchError: true,
+          /*catchError: true*/
         );
       }
 
@@ -189,7 +189,7 @@ void main() {
             }
             return newPassword;
           },
-          catchError: true,
+          /*catchError: true*/
         );
       }
 

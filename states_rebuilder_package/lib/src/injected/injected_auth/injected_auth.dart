@@ -3,6 +3,8 @@ part of '../../reactive_model.dart';
 /// Injected state that is responsible for authenticating and
 ///authorization of a user.
 class InjectedAuth<T, P> extends InjectedImp<T> {
+  /// Injected state that is responsible for authenticating and
+  ///authorization of a user.
   InjectedAuth({
     required dynamic Function() creator,
     P Function()? param,
@@ -23,7 +25,8 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(SnapState<T> state, SnapState<T> nextState)?
+        middleSnapState,
     //
   })  : _param = param,
         _autoSignOut = autoSignOut,
@@ -45,8 +48,8 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
           autoDisposeWhenNotUsed: false,
           isLazy: true,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          debugError: debugError,
-          debugNotification: debugNotification,
+
+          middleSnapState: middleSnapState,
         );
   final P Function()? _param;
   final Duration Function(T s)? _autoSignOut;

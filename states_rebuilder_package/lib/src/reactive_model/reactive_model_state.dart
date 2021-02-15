@@ -25,8 +25,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   //
   final Queue<SnapState<T>> _undoQueue = ListQueue();
   final Queue<SnapState<T>> _redoQueue = ListQueue();
-  Completer<dynamic>? get _completer => _coreRM._completer;
-  set _completer(Completer<dynamic>? c) => _coreRM._completer = c;
+
   StreamSubscription? _subscription;
   Timer? _debounceTimer;
   //
@@ -49,7 +48,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     to._undoQueue.addAll(_undoQueue);
     to._redoQueue.addAll(_redoQueue);
     to._debounceTimer = _debounceTimer;
-    to._completer = _completer;
+    to._coreRM._completer = _coreRM._completer;
     to._listeners.addAll(_listeners);
     to._cleaner.addAll(_cleaner);
     to._inheritedInjects.addAll(_inheritedInjects);
@@ -67,7 +66,9 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     if (_nullState != null) {
       _state = _nullState!;
     }
-    _snapState = SnapState<T>._nothing();
+    _coreRM._middleState?.call(_snapState, SnapState<T>._nothing('CLEANING'));
+    _snapState = SnapState<T>._nothing('CLEANING');
+
     _previousSnapState = null;
     _initialConnectionState = ConnectionState.none;
 
@@ -76,12 +77,10 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
 
     _undoQueue.clear();
     _redoQueue.clear();
-    if (_completer?.isCompleted == false) {
-      _completer!.complete(_state);
-    }
-    _completer = null;
+    _coreRM._completeCompleter(_state);
     _subscription?.cancel();
     _subscription = null;
+
     _debounceTimer?.cancel();
     _debounceTimer = null;
     //

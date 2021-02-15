@@ -97,10 +97,6 @@ final _repo = Repository();
 final products = RM.injectCRUD<Product, Object>(
   () => _repo,
   readOnInitialization: true,
-  debugPrintWhenNotifiedPreMessage: '',
-  debugError: (e, s) {
-    print('hhh error');
-  },
 );
 
 final widget = MaterialApp(
@@ -108,7 +104,7 @@ final widget = MaterialApp(
     body: On.future(
       onWaiting: () => CircularProgressIndicator(),
       onError: (_, __) => Text('Error'),
-      onData: (_) => ListView.builder(
+      onData: (_, __) => ListView.builder(
         itemCount: products.state.length,
         itemBuilder: (context, index) {
           return products.item.inherited(
@@ -352,4 +348,39 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(_repo._products.length, 4);
   });
+
+  testWidgets(
+    'WHEN middleSnapState is defined'
+    'THEN we can control how state is mutated',
+    (tester) async {
+      SnapState<List<Product>>? _snapState;
+      late SnapState<List<Product>> _nextSnapState;
+      final products = RM.injectCRUD<Product, Object>(
+        () => _repo,
+        readOnInitialization: true,
+        middleSnapState: (snapState, nextSnapState) {
+          _snapState = snapState;
+          _nextSnapState = nextSnapState;
+          if (_nextSnapState.hasData) {
+            return _nextSnapState.copyWith(data: [
+              ..._nextSnapState.data!,
+              ..._nextSnapState.data!,
+            ]);
+          }
+        },
+      );
+      expect(products.isWaiting, true);
+      expect(_snapState, isNotNull);
+      expect(_snapState?.isIdle, true);
+      expect(_snapState?.data, null);
+      expect(_nextSnapState.isWaiting, true);
+      expect(_nextSnapState.data, []);
+      await tester.pumpAndSettle(Duration(seconds: 1));
+      expect(_snapState?.isWaiting, true);
+      expect(_snapState?.data, []);
+      expect(_nextSnapState.hasData, true);
+      expect(_nextSnapState.data!.length, 3);
+      expect(products.state.length, 6);
+    },
+  );
 }

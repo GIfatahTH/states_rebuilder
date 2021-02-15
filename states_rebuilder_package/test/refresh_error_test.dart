@@ -441,7 +441,7 @@ void main() {
             refresher = refresh;
             return Text('Error');
           },
-          onData: (_) => Text('Data'),
+          onData: (_, __) => Text('Data'),
         ).future(
           model.future(
             (s) =>

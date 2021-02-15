@@ -550,6 +550,7 @@ void main() async {
           user,
           useRouteNavigation: true,
         ),
+        navigatorKey: RM.navigate.navigatorKey,
       );
 
       await tester.pumpWidget(widget);
@@ -600,6 +601,7 @@ void main() async {
           user,
           useRouteNavigation: true,
         ),
+        navigatorKey: RM.navigate.navigatorKey,
       );
 
       await tester.pumpWidget(widget);
@@ -613,6 +615,46 @@ void main() async {
       expect(find.text('Unsigned'), findsOneWidget);
       expect(find.text('Signed'), findsNothing);
       await tester.pump(Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'WHEN middleSnapState is defined '
+    'THEN we can control how snapState is mutated',
+    (tester) async {
+      SnapState<String>? _snapState;
+      late SnapState<String> _nextSnapState;
+
+      final InjectedAuth<String, String> user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        onAuthStream: (_) => Future.delayed(
+          Duration(seconds: 1),
+          () => 'user1',
+        ).asStream(),
+        middleSnapState: (snapState, nextSnapState) {
+          _snapState = snapState;
+          _nextSnapState = nextSnapState;
+          if (nextSnapState.hasData && nextSnapState.data == 'user1') {
+            return nextSnapState.copyWith(data: 'user100');
+          }
+        },
+      );
+      expect(user.isWaiting, true);
+      expect(_snapState, isNotNull);
+      expect(_snapState?.isIdle, true);
+      expect(_snapState?.data, 'user0');
+      //
+      expect(_nextSnapState.isWaiting, true);
+      expect(_nextSnapState.data, 'user0');
+      await tester.pump(Duration(seconds: 1));
+      expect(_snapState?.isWaiting, true);
+      expect(_snapState?.data, 'user0');
+      //
+      expect(_nextSnapState.hasData, true);
+      expect(_nextSnapState.data, 'user1');
+      //
+      expect(user.state, 'user100');
     },
   );
 

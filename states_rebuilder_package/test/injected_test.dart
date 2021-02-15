@@ -53,7 +53,7 @@ void main() {
         initState: () {
           vanillaModel.setState(
             (s) => s.incrementAsyncWithError(),
-            catchError: true,
+            /*catchError: true*/
           );
         },
       );
@@ -511,7 +511,7 @@ void main() {
   //     expect(numberOfRebuilds, 1);
   //     vanillaModel.setState(
   //       (state) => state.incrementError(),
-  //       catchError: true,
+  //       /*catchError: true*/
   //     );
   //     await tester.pump();
   //     expect(numberOfRebuilds, 1);

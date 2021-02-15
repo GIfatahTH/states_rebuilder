@@ -12,15 +12,13 @@ final i18n = RM.injectI18N<EnUS>(
   },
   persistKey: '__lang__',
   debugPrintWhenNotifiedPreMessage: '',
-  onSetState: On.data(() {
-    //Wait until the next frame to ensure BuildContext is valid and
-    //snackBar is displayed properly for French language as it is async
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+  onSetState: On.data(
+    () {
       //For better user experience, RTL languages page animates from RTL
       if (Directionality.of(RM.context) == TextDirection.rtl) {
-        RM.navigate.transitionsBuilder = Transitions.rightToLeft();
+        RM.navigate.transitionsBuilder = RM.transitions.rightToLeft();
       } else {
-        RM.navigate.transitionsBuilder = Transitions.leftToRight();
+        RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
       }
 
       RM.scaffold.showSnackBar(
@@ -31,8 +29,8 @@ final i18n = RM.injectI18N<EnUS>(
           ),
         ),
       );
-    });
-  }),
+    },
+  ),
 );
 
 class EnUS {
