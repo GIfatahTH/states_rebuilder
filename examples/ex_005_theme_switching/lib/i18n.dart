@@ -11,7 +11,6 @@ final i18n = RM.injectI18N<EnUS>(
         Future.delayed(Duration(seconds: 1), () => FrFR()),
   },
   persistKey: '__lang__',
-  debugPrintWhenNotifiedPreMessage: '',
   onSetState: On.data(
     () {
       //For better user experience, RTL languages page animates from RTL
@@ -31,6 +30,9 @@ final i18n = RM.injectI18N<EnUS>(
       );
     },
   ),
+  middleSnapState: (middleSnap) {
+    // middleSnap.print();
+  },
 );
 
 class EnUS {

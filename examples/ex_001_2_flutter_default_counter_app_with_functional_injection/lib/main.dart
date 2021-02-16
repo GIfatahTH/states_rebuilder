@@ -20,10 +20,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       navigatorKey: RM.navigate.navigatorKey,
-      navigatorObservers:[
-        NavigatorObserver().
-
-      ],
       home: Scaffold(
         body: Center(
           child: Column(

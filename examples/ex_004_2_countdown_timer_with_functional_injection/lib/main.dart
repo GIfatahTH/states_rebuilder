@@ -14,88 +14,68 @@ enum TimerStatus {
 
 class CountDownTimer {
   // the initial timer value
-  final initialTimer;
+  final int initialTimer;
   CountDownTimer(this.initialTimer);
-
   //inject a stream to represent our timer.
-  final Injected<int> _timer = RM.injectStream<int>(
-    () => Stream.periodic(Duration(seconds: 1), (num) => num + 1),
-    initialState: 0,
-    onInitialized: (_, subscription) {
-      //As stream automatically starts emitting on creation, we have to stop it
-      subscription.pause();
-      //reset the timerStatus back to ready.
-      // timerStatus.state = TimerStatus.ready;
+  Injected<int>? _duration;
+  Injected<int> get duration => _duration ??= RM.injectStream<int>(
+        () => Stream.periodic(Duration(seconds: 1), (num) => num),
+        middleSnapState: (middleState) {
+          ////UnComment to see state transition print log
+          // middleState.print();
 
-      //this onInitialized will be called again we we call 'timer.refresh().
-    },
-  );
+          if (middleState.nextSnap.isWaiting) {
+            //stream is waiting means that is is firs start.
+            //we pause it and display the initial timer
+            duration.subscription?.pause();
+            return middleState.nextSnap.copyToHasData(initialTimer);
+          }
+          final timer = middleState.nextSnap.data!;
+          int d = initialTimer - timer - 1;
+
+          if (d < 1) {
+            //When duration is 0, refresh the time.
+            //refresh the timer means:
+            //- cancel the current subscription
+            //- create brand new subscription
+            //- recall onInitialized (see above) which pauses the subscription
+            stop();
+            return middleState.nextSnap.copyToHasData(initialTimer);
+          }
+          return middleState.nextSnap.copyToHasData(d);
+        },
+      );
 
   //Inject the timer status
   Injected<TimerStatus>? _timerStatus;
   Injected<TimerStatus> get timerStatus =>
       _timerStatus ??= RM.inject<TimerStatus>(
         () => TimerStatus.ready,
-        onData: (timerStatus) {
-          //Each time the timerStatus state is mutate with success, we switch
-          switch (timerStatus) {
-            case TimerStatus.running:
-              //if the new state is running, we resume the stream subscription
-              _timer.subscription?.resume();
-              break;
-            case TimerStatus.ready:
-            case TimerStatus.paused:
-            //for both ready and paused we pause the subscription
-            default:
-              if (_timer.subscription?.isPaused == false) {
-                //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
-                _timer.subscription?.pause();
-              }
-              break;
-          }
+        middleSnapState: (snap) {
+          ////UnComment to see state transition print log
+          // snap.print();
         },
       );
 
-  //timer stream emits data from 0,1,2 and so one without stopping.
-  //Here we compute the duration 60,59,58, ... and stop at 0.
-  Injected<int>? _duration;
-  Injected<int> get duration => _duration ??= RM.inject<int>(
-        () {
-          int d = initialTimer - _timer.state;
-          if (d < 1) {
-            //When duration is 0, refresh the time.
-            //refresh the timer means:
-            //- cancel the current subscription
-            //- create brand new subscription
-            //- recall onInitialized (see above) with pause the subscription and
-            //set timerStatus to ready.
-            stop();
-            return initialTimer;
-          }
-          return d;
-        },
-        //as we want to refresh the timer when duration is 0, and await until
-        //the stream is canceled and new stream is created, we use asyncDependsOn
-        dependsOn: DependsOn({_timer}),
-        initialState: initialTimer,
-        // debugPrintWhenNotifiedPreMessage: 'duration',
-      );
   void start() {
     timerStatus.state = TimerStatus.running;
+    duration.subscription?.resume();
   }
 
   void restart() {
-    _timer.refresh();
+    duration.refresh();
+    start();
   }
 
   void pause() {
     timerStatus.state = TimerStatus.paused;
+    duration.subscription?.pause();
   }
 
   void stop() {
     //call refresh, will cancel the current subscription and create
     //a new one and stop at ready state
-    _timer.refresh();
+    duration.refresh();
     timerStatus.state = TimerStatus.ready;
   }
 }

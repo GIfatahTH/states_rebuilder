@@ -23,7 +23,24 @@ class NameRepository {
 final repository = RM.inject(() => NameRepository());
 
 // create a name state and inject it.
-final name = RM.inject(() => '');
+final name = RM.inject<String>(
+  () => '',
+
+  ///middleSnapState is called after new state calculation and just
+  ///before state mutation.
+  ///
+  ///It exposes the current snapState before mutation and the next snapState.
+  ///
+  ///It is the right palace for logging or crash reporting.
+  ///
+  ///You can also change how state will be mutated (see streamHelloName)
+  middleSnapState: (snapState, nextSnapState) {
+    SnapState.log(
+      snapState,
+      nextSnapState,
+    ).print('name');
+  },
+);
 
 final helloName = RM.inject<String>(
   () => 'Hello, ${name.state}',
@@ -59,8 +76,14 @@ final helloName = RM.inject<String>(
         ),
       ),
     ),
-    onError: (err) => RM.scaffold.showSnackBar(
-      SnackBar(content: Text('${err.message}')),
+    onError: (err, refresh) => RM.scaffold.showSnackBar(
+      SnackBar(
+          content: Row(
+        children: [
+          Text('${err.message}'),
+          IconButton(icon: Icon(Icons.refresh), onPressed: () => refresh()),
+        ],
+      )),
     ),
     // the default case. hide the snackbar
     or: () => RM.scaffold.hideCurrentSnackBar(),
@@ -84,6 +107,16 @@ final streamedHelloName = RM.injectStream<String>(
     // As the stream will start automatically on creation,
     // we use the onInitialized hook to pause it.
     subscription.pause();
+  },
+  middleSnapState: (snapState, nextSnapState) {
+    SnapState.log(
+      snapState,
+      nextSnapState,
+    ).print('streamedHelloName');
+    //Here we change the state
+    if (nextSnapState.hasData) {
+      return nextSnapState.copyWith(data: nextSnapState.data!.toUpperCase());
+    }
   },
 );
 //
@@ -137,7 +170,14 @@ class MyApp extends StatelessWidget {
                     // error, data).
                     onIdle: () => Text('Enter your name'),
                     onWaiting: () => CircularProgressIndicator(),
-                    onError: (err) => Text('${err.message}'),
+                    onError: (err, refresh) => Row(
+                      children: [
+                        Text('${err.message}'),
+                        IconButton(
+                            icon: Icon(Icons.refresh),
+                            onPressed: () => refresh()),
+                      ],
+                    ),
                     onData: () => Text(helloName.state),
                   ).listenTo(helloName),
                 ),

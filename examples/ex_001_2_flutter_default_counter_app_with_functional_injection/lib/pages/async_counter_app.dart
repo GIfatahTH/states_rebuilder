@@ -35,6 +35,14 @@ final Injected<int> counter = RM.inject<int>(
         );
       },
       or: () {}),
+  middleSnapState: (snapState, nextSnapState) {
+    SnapState.log(
+      snapState,
+      nextSnapState,
+      //you can see the print log and select an error to stop and debug.
+      debugWhen: (err) => err is Error,
+    ).print();
+  },
 );
 
 class MyHomePage extends StatelessWidget {

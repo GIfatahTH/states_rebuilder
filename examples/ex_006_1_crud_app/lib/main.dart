@@ -5,10 +5,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'number.dart';
 import 'numbers_repository.dart';
 
-final numbers = RM.injectCRUD(
+final numbers = RM.injectCRUD<Number, NumberParam>(
   () => NumbersRepository(),
   param: () => NumberParam(userId: '1', numType: NumType.all),
   readOnInitialization: true,
+  middleSnapState: (snap) {
+    // snap.print(
+    //   stateToString: (List<Number> s) => '${s?.length}',
+    // );
+  },
 );
 
 final count = RM.injectFuture<List<int>>(
@@ -21,8 +26,8 @@ final count = RM.injectFuture<List<int>>(
   },
   initialState: [0, 0, 0],
   dependsOn: DependsOn({numbers}, shouldNotify: (_) => !numbers.isOnCRUD),
-  debugError: (e, s) {
-    //print(s);
+  middleSnapState: (snap) {
+    // snap.print();
   },
 );
 

@@ -579,9 +579,14 @@ So we update the appBarMethod like this:
 AppBar _appBarMethod() {
     return AppBar(
       title: Text('InjectCRUD'),
-      leading: On.crud(//use On.crud listener
+      leading: On.crud(
         onWaiting: () => Icon(Icons.circle, color: Colors.yellow),
-        onError: (_) => Icon(Icons.error, color: Colors.red),
+        //On error we can refresh and recall the last operation.
+
+        onError: (_, retry) => IconButton(
+          icon: Icon(Icons.refresh_outlined, color: Colors.red),
+          onPressed: () => retry(),
+        ),
         onResult: (_) => Icon(Icons.circle, color: Colors.green),
       ).listenTo(numbers),
       actions: [
@@ -589,3 +594,5 @@ AppBar _appBarMethod() {
       ]
 }
 ```
+
+Notice, how it is optimistic, try add an item, it will be added instantly and the yellow circle appears informing us that something is happening in the background. In case of an error, the removed item is added and a red refresh icon appears instead of the yellow circle. On tapping on the refresh icons, the last call (may be read or update or delete) will be reinvoked and the item to remove is removed from the list.

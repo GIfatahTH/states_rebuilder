@@ -57,7 +57,7 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
           ),
         ),
-        onData: (_) {
+        onData: (_, __) {
           return On.data(
             () => activeTab.state == AppTab.todos ? TodoList() : StatsCounter(),
           ).listenTo(activeTab);

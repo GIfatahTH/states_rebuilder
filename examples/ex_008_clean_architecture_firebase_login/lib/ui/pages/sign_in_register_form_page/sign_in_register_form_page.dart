@@ -1,9 +1,10 @@
+import 'package:clean_architecture_firebase_login/domain/common/validator.dart';
+import 'package:clean_architecture_firebase_login/domain/exceptions/Validation_exception.dart';
+
 import '../../../domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../domain/value_objects/email.dart';
-import '../../../domain/value_objects/password.dart';
 import '../../../injected.dart';
 import '../../exceptions/exceptions_handler.dart';
 
@@ -21,9 +22,36 @@ class SignInRegisterFormPage extends StatelessWidget {
 
 class FormWidget extends StatelessWidget {
   //NOTE1: Creating a  ReactiveModel key for email with empty initial value
-  final _email = ''.inj();
+  final _email = RM.inject<String>(
+    () => '',
+    middleSnapState: (middleSnap) {
+      //
+      if (middleSnap.nextSnap.hasData) {
+        if (!Validators.isValidEmail(middleSnap.nextSnap.data)) {
+          return middleSnap.nextSnap.copyToHasError(
+            ValidationException('Enter a valid email'),
+          );
+        }
+      }
+      return middleSnap.nextSnap;
+    },
+  );
+
   //NOTE1: Creating a  ReactiveModel key for password with empty initial value
-  final _password = ''.inj();
+  final _password = RM.inject<String>(
+    () => '',
+    middleSnapState: (middleSnap) {
+      //
+      if (middleSnap.nextSnap.hasData) {
+        if (!Validators.isValidPassword(middleSnap.nextSnap.data)) {
+          return middleSnap.nextSnap.copyToHasError(
+            ValidationException('Enter a valid password'),
+          );
+        }
+      }
+      return middleSnap.nextSnap;
+    },
+  );
   //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
   final _isRegister = false.inj();
   //NOTE1: bool getter to check if the form is valid
@@ -47,10 +75,7 @@ class FormWidget extends StatelessWidget {
             autocorrect: false,
             onChanged: (email) {
               //NOTE5: set the state of email and notify observers
-              _email.setState(
-                (_) => Email(email).value,
-                catchError: true,
-              );
+              _email.state = email;
             },
           ),
         ).listenTo(_email),
@@ -65,10 +90,7 @@ class FormWidget extends StatelessWidget {
             obscureText: true,
             autocorrect: false,
             onChanged: (password) {
-              _password.setState(
-                (_) => Password(password).value,
-                catchError: true,
-              );
+              _password.state = password;
             },
           ),
         ).listenTo(_password),

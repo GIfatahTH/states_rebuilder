@@ -52,7 +52,6 @@ class AuthFormWidget extends StatelessWidget {
             onChanged: (email) {
               _email.setState(
                 (_) => Email(email).value,
-                catchError: true,
               );
             },
           ),
@@ -70,7 +69,6 @@ class AuthFormWidget extends StatelessWidget {
             onChanged: (password) {
               _password.setState(
                 (_) => Password(password).value,
-                catchError: true,
               );
             },
           ),

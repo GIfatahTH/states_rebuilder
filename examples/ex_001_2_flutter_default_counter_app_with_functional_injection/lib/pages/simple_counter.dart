@@ -3,7 +3,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 //counter is a global variable but the state of the counter is not.
 //It can be easily mocked and tested.
-final Injected<int> counter = RM.inject<int>(() => 0);
+final Injected<int> counter = RM.inject<int>(
+  () => 0,
+  middleSnapState: (snapState, nextSnapState) {
+    SnapState.log(
+      snapState,
+      nextSnapState,
+    ).print();
+  },
+);
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({Key? key, required this.title}) : super(key: key);

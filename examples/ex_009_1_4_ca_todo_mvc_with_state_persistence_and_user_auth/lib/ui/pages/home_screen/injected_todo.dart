@@ -9,7 +9,11 @@ final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   onSetState: On.error((e, r) {
     ErrorHandler.showErrorSnackBar(e);
   }),
-  debugPrintWhenNotifiedPreMessage: 'todos',
+  middleSnapState: (middleSnap) {
+    middleSnap.print(
+      preMessage: 'todo',
+    );
+  },
 );
 
 extension ListTodoX on List<Todo> {
@@ -39,7 +43,11 @@ final Injected<List<Todo>> todosFiltered = RM.inject(
     return [...todos.state];
   },
   dependsOn: DependsOn({activeFilter, todos}),
-  debugPrintWhenNotifiedPreMessage: 'TodosFilter',
+  middleSnapState: (middleSnap) {
+    middleSnap.print(
+      preMessage: 'filterTodos',
+    );
+  },
 );
 
 final Injected<TodosStats> todosStats = RM.inject(
@@ -48,8 +56,11 @@ final Injected<TodosStats> todosStats = RM.inject(
     numActive: todos.state.where((t) => !t.complete).length,
   ),
   dependsOn: DependsOn({todos}),
-
-  // debugPrintWhenNotifiedPreMessage: '',
+  middleSnapState: (middleSnap) {
+    middleSnap.print(
+      preMessage: 'stats',
+    );
+  },
 );
 
 final activeTab = RM.inject(() => AppTab.todos);

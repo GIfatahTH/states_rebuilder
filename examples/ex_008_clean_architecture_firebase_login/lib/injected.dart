@@ -6,8 +6,6 @@ import 'data_source/user_repository.dart';
 import 'domain/entities/user.dart';
 import 'infrastructure/apple_sign_in_available.dart';
 import 'service/exceptions/exception_handler.dart';
-import 'ui/pages/home_page/home_page.dart';
-import 'ui/pages/sign_in_page/sign_in_page.dart';
 
 enum Env { dev, prod }
 Env currentEnv = Env.dev;
@@ -30,7 +28,6 @@ final InjectedAuth<User, UserParam> user = RM.injectAuth<User, UserParam>(
       ),
     ),
   ),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final canSignInWithApple = RM.injectFuture(

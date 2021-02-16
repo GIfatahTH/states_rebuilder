@@ -7,51 +7,49 @@ class Email {
   final String email;
 
   Email(this.email);
-
-  validate() {
-    if (!email.contains("@")) {
-      throw Exception("Enter a valid Email");
-    }
-  }
-
-  @override
-  String toString() {
-    return 'Email($email)';
-  }
 }
 
 class Password {
   final String password;
 
   Password(this.password);
-  validate() {
-    if (password.length <= 3) {
-      throw Exception('Enter a valid password');
-    }
-  }
-
-  @override
-  String toString() {
-    return 'Email($password)';
-  }
 }
 
 //functional injection of email and password.
 //email and password are global variables but their state is not.
 //We do not need RMKey here.
 //they are easily mocked and tested (see test folder)
-final email = RM.inject(
+final email = RM.inject<Email>(
   () => Email(''),
-  //To console print an informative message, we use debugPrintWhenNotifiedPreMessage
-  //As both email and password are Strings, we label them to distinguish them
-  //
-  //Uncomment to see.
-  // debugPrintWhenNotifiedPreMessage: 'email',
+  middleSnapState: (middleSnap) {
+    ////Uncomment to see print logs
+    //middleSnap.print();
+    //
+
+    //Inside the middleSnapState we can validate the state
+    if (!middleSnap.nextSnap.data!.email.contains("@")) {
+      //return a modified state with error
+      return middleSnap.nextSnap.copyToHasError(
+        Exception("Enter a valid Email"),
+      );
+    }
+  },
 );
-final password = RM.inject(
+final password = RM.inject<Password>(
   () => Password(''),
-  //Uncomment to see.
-  // debugPrintWhenNotifiedPreMessage: 'password',
+  middleSnapState: (middleSnap) {
+    ////Uncomment to see print logs
+    // middleSnap.print(
+    //   stateToString: (s) => '${s?.password}',
+    // );
+
+    if (middleSnap.nextSnap.data!.password.length < 4) {
+      return middleSnap.nextSnap.copyToHasError(
+        Exception('Enter a valid password'),
+        stackTrace: StackTrace.current,
+      );
+    }
+  },
 );
 
 class MyApp extends StatelessWidget {
@@ -84,12 +82,7 @@ class MyHomePage extends StatelessWidget {
             //has data only, whereas in our cas we want it rebuild onError also.
             On(
               () => TextField(
-                onChanged: (String value) {
-                  email.setState(
-                    (_) => Email(value)..validate(),
-                    catchError: true,
-                  );
-                },
+                onChanged: (String value) => email.state = Email(value),
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: "your@email.com. It should contain '@'",
@@ -101,13 +94,7 @@ class MyHomePage extends StatelessWidget {
             On(
               () {
                 return TextField(
-                  onChanged: (String value) {
-                    //set the value of passwordRM after validation
-                    password.setState(
-                      (_) => Password(value)..validate(),
-                      catchError: true,
-                    );
-                  },
+                  onChanged: (String value) => password.state = Password(value),
                   decoration: InputDecoration(
                     hintText: "Password should be more than three characters",
                     labelText: 'Password',

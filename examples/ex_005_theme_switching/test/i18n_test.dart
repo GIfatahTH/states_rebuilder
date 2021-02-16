@@ -12,6 +12,8 @@ void main() async {
   testWidgets('Start with the default locale', (tester) async {
     //
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     expect(find.text('Home'), findsOneWidget);
     expect(Localizations.localeOf(RM.context).toString(), 'en_US');
     expect(find.text('Zero times'), findsOneWidget);
@@ -32,6 +34,8 @@ void main() async {
   testWidgets('Changue to spanish', (tester) async {
     //
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     expect(find.text('Home'), findsOneWidget);
     expect(Localizations.localeOf(RM.context).toString(), 'en_US');
     //
@@ -65,6 +69,8 @@ void main() async {
   testWidgets('Changue to Arabic', (tester) async {
     //
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     expect(find.text('Home'), findsOneWidget);
     expect(Localizations.localeOf(RM.context).toString(), 'en_US');
     expect(Directionality.of(RM.context), TextDirection.ltr);
@@ -105,6 +111,8 @@ void main() async {
   testWidgets('Changue to French (async)', (tester) async {
     //
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     expect(find.text('Home'), findsOneWidget);
     expect(Localizations.localeOf(RM.context).toString(), 'en_US');
     //
@@ -141,6 +149,8 @@ void main() async {
   testWidgets('Change system locale', (tester) async {
     //
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     expect(find.text('Home'), findsOneWidget);
     expect(Localizations.localeOf(RM.context).toString(), 'en_US');
     expect(Directionality.of(RM.context), TextDirection.ltr);

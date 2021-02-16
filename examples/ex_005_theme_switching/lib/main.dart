@@ -1,4 +1,4 @@
-import 'package:ex_005_theme_switching/hive_storge.dart';
+import 'package:ex_005_theme_switching/hive_storage.dart';
 
 import 'i18n.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +8,7 @@ import 'home_page.dart';
 import 'themes.dart';
 
 void main() async {
+  //Plugins can initialized in the TopAppWidget
   // WidgetsFlutterBinding.ensureInitialized();
   // await RM.storageInitializer(HiveStorage());
   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();

@@ -12,6 +12,7 @@ void main() async {
   });
   testWidgets('Start with default theme and system theme mode', (tester) async {
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
     //Defautl theme is the AppTheme.Green
     expect(Theme.of(RM.context).primaryColor, Colors.green);
     expect(Theme.of(RM.context).brightness, Brightness.light);
@@ -32,6 +33,8 @@ void main() async {
       '__theme__': 'AppTheme.Blue#|#1',
     });
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     //Stored theme is the AppTheme.Blue and dark model
     expect(Theme.of(RM.context).primaryColor, Colors.blue[700]);
     expect(Theme.of(RM.context).brightness, Brightness.dark);
@@ -46,10 +49,9 @@ void main() async {
 
   testWidgets('Switch default theme between dark and light mode',
       (tester) async {
-    print(store);
-
     await tester.pumpWidget(MyApp());
-    print(theme.themeMode);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
@@ -91,6 +93,8 @@ void main() async {
   testWidgets('use the blue theme and switch between dark and light mode',
       (tester) async {
     await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);

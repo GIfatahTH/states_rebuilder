@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final theme = RM.injectTheme(
+final InjectedTheme theme = RM.injectTheme<AppTheme>(
   //The first theme in lightThemes is the default one,
   lightThemes: {
     AppTheme.Green: ThemeData(
@@ -24,6 +24,11 @@ final theme = RM.injectTheme(
     ),
   },
   persistKey: '__theme__',
+  middleSnapState: (middleSnap) {
+    // middleSnap.print(
+    //   stateToString: (s) => '$s (${theme.themeMode})',
+    // );
+  },
 );
 enum AppTheme {
   Green,
