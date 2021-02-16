@@ -36,7 +36,7 @@ void main() {
         null,
       );
       //
-      expect('$snapState', 'isWaiting : 0');
+      expect('$snapState', 'isWaiting (null) : 0');
       //
       snapState = createSnapState(
         ConnectionState.done,
@@ -44,7 +44,6 @@ void main() {
         null,
       );
       //
-      print(snapState);
       expect('$snapState', 'hasData: 0');
       //
       snapState = createSnapState(

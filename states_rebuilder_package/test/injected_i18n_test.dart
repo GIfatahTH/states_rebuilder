@@ -115,7 +115,6 @@ void main() {
           ],
           home: Builder(
             builder: (ctx) {
-              print(i18n.of(ctx));
               return Text(i18n.of(ctx)!);
             },
           ),
@@ -217,7 +216,6 @@ void main() {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              print(i18n.of(context));
               return Text(i18n.of(context)!);
             },
           ),
@@ -546,15 +544,12 @@ void main() {
           Locale('en', 'US'): () => 'english_US',
           Locale('es', 'ES'): () => 'spanish',
         },
-        middleSnapState: (snapState, nextSnapState) {
-          _snapState = snapState;
-          _nextSnapState = nextSnapState;
-          if (nextSnapState.hasError &&
-              nextSnapState.error.message == 'Error') {
-            return snapState.copyWith(
-              connectionState: ConnectionState.done,
-              data: 'arabic',
-            );
+        middleSnapState: (middleSnap) {
+          _snapState = middleSnap.currentSnap;
+          _nextSnapState = middleSnap.nextSnap;
+          if (middleSnap.nextSnap.hasError &&
+              middleSnap.nextSnap.error.message == 'Error') {
+            return middleSnap.currentSnap.copyToHasData('arabic');
           }
         },
       );

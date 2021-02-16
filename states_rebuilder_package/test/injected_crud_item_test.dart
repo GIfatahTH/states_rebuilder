@@ -110,7 +110,7 @@ final widget = MaterialApp(
           return products.item.inherited(
             key: Key('${products.state[index].id}'),
             item: () => products.state[index],
-            builder: (conext) {
+            builder: (_) {
               return const Item();
             },
           );
@@ -213,7 +213,7 @@ void main() {
 
   testWidgets(
       'change the state of an item, should changes the state of the list of items,'
-      'and restor back en error', (tester) async {
+      'and restore back en error', (tester) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
     _repo.error = Exception('Error');
@@ -226,7 +226,6 @@ void main() {
     expect(products.state[1].count, 1);
     expect(_repo._products[1].count, 0);
     await tester.pump(Duration(seconds: 1));
-    print(find.text('prod2: 0'));
   });
 
   testWidgets(
@@ -257,7 +256,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
   });
 
-  testWidgets('Navigate to an other route, use of reinheited', (tester) async {
+  testWidgets('Navigate to an other route, use of reinherited', (tester) async {
     await tester.pumpWidget(widget);
 
     await tester.pumpAndSettle();
@@ -358,11 +357,11 @@ void main() {
       final products = RM.injectCRUD<Product, Object>(
         () => _repo,
         readOnInitialization: true,
-        middleSnapState: (snapState, nextSnapState) {
-          _snapState = snapState;
-          _nextSnapState = nextSnapState;
+        middleSnapState: (middleSnap) {
+          _snapState = middleSnap.currentSnap;
+          _nextSnapState = middleSnap.nextSnap;
           if (_nextSnapState.hasData) {
-            return _nextSnapState.copyWith(data: [
+            return _nextSnapState.copyToHasData([
               ..._nextSnapState.data!,
               ..._nextSnapState.data!,
             ]);

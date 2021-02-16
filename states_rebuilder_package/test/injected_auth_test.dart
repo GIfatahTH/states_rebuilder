@@ -46,7 +46,7 @@ class FakeAuthRepo implements IAuth<String, String> {
     }
   }
 
-  Future<String> futreSignIn(String user) async {
+  Future<String> futureSignIn(String user) async {
     await Future.delayed(Duration(seconds: 1));
     return user;
   }
@@ -468,8 +468,8 @@ void main() async {
 
   testWidgets(
     'WHEN onAuthStream is defined'
-    'AND autoSignout is defined '
-    'THEN autoSignout will work',
+    'AND autoSignOut is defined '
+    'THEN autoSignOut will work',
     (tester) async {
       final user = RM.injectAuth(
         () => FakeAuthRepo(),
@@ -504,7 +504,7 @@ void main() async {
         unsignedUser: 'user0',
         autoSignOut: (_) => Duration(seconds: 1),
         onAuthStream: (repo) =>
-            (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
+            (repo as FakeAuthRepo).futureSignIn('user0').asStream(),
       );
 
       final widget = Directionality(
@@ -632,11 +632,12 @@ void main() async {
           Duration(seconds: 1),
           () => 'user1',
         ).asStream(),
-        middleSnapState: (snapState, nextSnapState) {
-          _snapState = snapState;
-          _nextSnapState = nextSnapState;
-          if (nextSnapState.hasData && nextSnapState.data == 'user1') {
-            return nextSnapState.copyWith(data: 'user100');
+        middleSnapState: (middleSnap) {
+          _snapState = middleSnap.currentSnap;
+          _nextSnapState = middleSnap.nextSnap;
+          if (middleSnap.nextSnap.hasData &&
+              middleSnap.nextSnap.data == 'user1') {
+            return middleSnap.nextSnap.copyToHasData('user100');
           }
         },
       );
@@ -659,7 +660,7 @@ void main() async {
   );
 
   // testWidgets(
-  //   'call refresh on persited signed user',
+  //   'call refresh on persisted signed user',
   //   (tester) async {
   //     store.store = {
   //       '__user__': 'Persisted user',

@@ -185,7 +185,6 @@ void main() async {
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    print(store);
     expect(store.store!['_theme_'], 'theme1#|#1');
     //
     theme.toggle();
@@ -243,7 +242,6 @@ void main() async {
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.light);
-    print(store);
     expect(store.store!['_theme_'], 'theme1#|#0');
     //
     theme.state = 'theme2';
@@ -287,7 +285,6 @@ void main() async {
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    print(store);
     expect(store.store!['_theme_'], 'theme1#|#1');
     //
     theme.state = 'theme2';
@@ -330,7 +327,6 @@ void main() async {
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    print(store);
     expect(store.store!['_theme_'], 'theme2#|#1');
     //
     theme.state = 'theme1';
@@ -357,9 +353,9 @@ void main() async {
           'theme1': lightTheme,
           'theme2': darkTheme,
         },
-        middleSnapState: (snapState, nextSnapState) {
-          _snapState = snapState;
-          _nextSnapState = nextSnapState;
+        middleSnapState: (middleSnap) {
+          _snapState = middleSnap.currentSnap;
+          _nextSnapState = middleSnap.nextSnap;
         },
       );
       theme.state = 'theme2';
