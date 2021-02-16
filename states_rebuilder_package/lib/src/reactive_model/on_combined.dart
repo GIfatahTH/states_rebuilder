@@ -313,7 +313,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
     return snapWaiting ??
         snapError ??
         snapIdle ??
-        SnapState<dynamic>._withData(ConnectionState.done, 'data', true);
+        SnapState<dynamic>._withData(ConnectionState.done, 'data');
   }
 }
 

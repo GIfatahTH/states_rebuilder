@@ -105,7 +105,6 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
                   _coreRM.snapState = SnapState<T>._withData(
                     ConnectionState.done,
                     _inj.state as T,
-                    true,
                   );
                   if (onSetState?._onData == null) {
                     _coreRM.onData?.call(_coreRM._state!);
@@ -209,7 +208,6 @@ abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
                     _snapState = SnapState<T>._withData(
                       ConnectionState.done,
                       _inj.state as T,
-                      true,
                     );
                     if (onSetState?._onData == null) {
                       _coreRM.onData?.call(_coreRM._state!);

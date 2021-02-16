@@ -19,8 +19,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<Key>? Function(SnapState<Key> state, SnapState<Key> nextState)?
-        middleSnapState,
+    SnapState<Key>? Function(MiddleSnapState<Key> middleSnap)? middleSnapState,
 
     //
   })  : _themes = themes,

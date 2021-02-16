@@ -138,7 +138,7 @@ class On<T> {
   factory On.all({
     required T Function() onIdle,
     required T Function() onWaiting,
-    required T Function(dynamic err, void Function() refreh) onError,
+    required T Function(dynamic err, void Function() refresh) onError,
     required T Function() onData,
   }) {
     return On._(
@@ -464,10 +464,7 @@ class _OnFuture<F> {
               },
             ),
             isLazy: false,
-            middleSnapState: (s, ss) {
-              print(s);
-              print(ss);
-            },
+
             initialValue: injected._state,
           ) as Injected<F>;
         }
@@ -488,10 +485,7 @@ class _OnFuture<F> {
               injected.onErrorRefresher!.call();
             } else {
               injected
-                .._snapState = injected._snapState.copyWith(
-                  connectionState: ConnectionState.none,
-                  resetError: true,
-                )
+                .._snapState = injected._snapState.copyToIsIdle()
                 .._isInitialized = false
                 .._coreRM._completer = null
                 .._initialize();
@@ -499,10 +493,7 @@ class _OnFuture<F> {
           }
 
           _inj
-            .._snapState = _inj._snapState.copyWith(
-              connectionState: ConnectionState.none,
-              resetError: true,
-            )
+            .._snapState = _inj._snapState.copyToIsIdle()
             .._isInitialized = false
             .._coreRM._completer = null
             .._initialize();

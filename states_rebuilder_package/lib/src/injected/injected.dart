@@ -112,9 +112,9 @@ abstract class Injected<T> implements ReactiveModel<T> {
       });
       final disposer = _listenToRMForStateFulWidget(
         (rm, tags, isOnCrud) {
-          // if (isOnCrud) {
-          //   return;
-          // }
+          if (isOnCrud) {
+            return;
+          }
           if (dependent._dependsOn!.shouldNotify?.call(dependent._state) ==
               false) {
             return;
@@ -223,21 +223,22 @@ abstract class Injected<T> implements ReactiveModel<T> {
         if (_isRefreshing) {
           //while refreshing from global do change  the state
           //and do not rebuild
-          _coreRM._snapState = _coreRM._snapState.copyWith(
-            connectionState: ConnectionState.waiting,
-          );
+          //TODO to check if can be removed
+          _coreRM._snapState = _coreRM._snapState._copyToIsWaiting();
           return;
         }
-        return _coreRM._setToIsWaiting();
+        return _coreRM._setToIsWaiting(
+          infoMessage: 'Inherited Child',
+        );
       }
       final errorRM =
           _inheritedInjects.firstWhereOrNull((e) => e._snapState.hasError);
       if (errorRM != null) {
         if (_isRefreshing) {
-          _coreRM._snapState = _coreRM._snapState.copyWith(
-            error: errorRM.error,
+          _coreRM._snapState = _coreRM._snapState._copyToHasError(
+            errorRM.error,
+            errorRM.onErrorRefresher,
             stackTrace: errorRM.stackTrace,
-            onErrorRefresher: errorRM.onErrorRefresher,
           );
           return;
         }
@@ -254,7 +255,7 @@ abstract class Injected<T> implements ReactiveModel<T> {
         _isInitialized = true;
       }
       if (_isRefreshing) {
-        _coreRM._snapState = _coreRM._snapState.copyWith(
+        _coreRM._snapState = _coreRM._snapState._copyWith(
           connectionState: rm.connectionState,
           data: rm.state,
         );
@@ -495,6 +496,7 @@ void _resolveMergedState<T>(Injected<T> dependent, [bool shouldNotify = true]) {
   if (dependent._dependsOn!.injected.any((e) => e._snapState.isWaiting)) {
     return dependent._coreRM._setToIsWaiting(
       shouldNotify: shouldNotify,
+      infoMessage: 'Dependent State',
     );
   }
   final errorRM = dependent._dependsOn!.injected
@@ -507,21 +509,20 @@ void _resolveMergedState<T>(Injected<T> dependent, [bool shouldNotify = true]) {
         onErrorRefresher: errorRM.onErrorRefresher!,
       );
     } else {
-      dependent._snapState = SnapState<T>._withError(
-        ConnectionState.done,
-        dependent._state,
+      dependent._snapState = dependent._snapState._copyToHasError(
         errorRM.error,
         errorRM.onErrorRefresher!,
-        errorRM.stackTrace!,
+        stackTrace: errorRM.stackTrace!,
       );
     }
   } else if (dependent._dependsOn!.injected.any((e) => e._snapState.hasData)) {
     if (shouldNotify) {
+      dependent._snapState = dependent._snapState._copyWith(
+        infoMessage: 'Dependent',
+      );
       dependent.refresh(true);
     }
   } else {
-    dependent._snapState = dependent.snapState.copyWith(
-      connectionState: ConnectionState.none,
-    );
+    dependent._snapState = dependent.snapState.copyToIsIdle();
   }
 }

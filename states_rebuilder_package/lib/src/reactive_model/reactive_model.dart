@@ -69,7 +69,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   set state(T s) {
     _previousSnapState = _snapState;
     _initialize();
-    _coreRM._setToHasData(s);
+    _coreRM._setToHasData(s, isSync: true);
   }
 
   StreamSubscription? get subscription => _subscription;
@@ -227,6 +227,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
             _coreRM._setToIsWaiting(
               onSetState: onSetState,
               context: context,
+              infoMessage: result is Future ? 'Future' : 'Stream',
             );
           }
           isDone = false;
@@ -247,6 +248,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
             onSetState: onSetState,
             onRebuildState: onRebuildState,
             context: context,
+            isSync: true,
           );
         }
       } catch (e, s) {
@@ -311,18 +313,16 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       late F data;
       await future(state).then((d) {
         if (d is T) {
-          snapState = SnapState<T>._withData(ConnectionState.done, d, true);
+          snapState = snapState.copyToHasData(d);
           _coreRM.on?._call(snapState);
           _coreRM.onData?.call(state);
         }
         data = d;
       }).catchError((e, StackTrace s) {
-        snapState = SnapState<T>._withError(
-          ConnectionState.done,
-          _state,
+        snapState = snapState._copyToHasError(
           e,
           () => this.future(future),
-          s,
+          stackTrace: s,
         );
         _coreRM.on?._call(snapState);
         _coreRM.onError?.call(e, s);
@@ -367,9 +367,8 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       _state = _nullState;
     }
 
-    _snapState = _snapState.copyWith(
-      connectionState: ConnectionState.none,
-      resetError: true,
+    _snapState = _snapState._copyToIsIdle(
+      infoMessage: refreshMessage + (beforeRefreshState._infoMessage ?? ''),
     );
 
     _initialize();
@@ -409,7 +408,7 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
   ///If the state is not bool, it will throw an assertion error.
   void toggle() {
     assert(T == bool);
-    _coreRM._setToHasData(!(state as bool));
+    _coreRM._setToHasData(!(state as bool), isSync: true);
   }
 
   ///Notify listeners to rebuild without changing the state

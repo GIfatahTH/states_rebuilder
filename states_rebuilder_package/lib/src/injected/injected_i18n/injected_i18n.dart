@@ -33,7 +33,7 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<I18N>? Function(SnapState<I18N> state, SnapState<I18N> nextState)?
+    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
         middleSnapState,
     //
   })  : _i18n = i18n,

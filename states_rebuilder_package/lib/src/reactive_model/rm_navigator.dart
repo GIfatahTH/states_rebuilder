@@ -458,9 +458,7 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
-    print(_Navigate._transitionDuration);
     _Navigate._transitionDuration = duration;
-    print(_Navigate._transitionDuration);
     return (context, animation, secondaryAnimation, child) {
       positionTween ??= Tween<Offset>(
         begin: const Offset(-0.25, 0),

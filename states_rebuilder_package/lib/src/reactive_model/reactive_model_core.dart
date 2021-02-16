@@ -12,8 +12,7 @@ class ReactiveModelCore<T> {
 
   void Function(dynamic e, StackTrace? s)? onError;
   PersistState<T>? persistanceProvider;
-  SnapState<T>? Function(SnapState<T> state, SnapState<T> nextState)?
-      _middleState;
+  SnapState<T>? Function(MiddleSnapState<T> middleSnap)? _middleState;
 
   ReactiveModelCore({
     required this.notifyListeners,
@@ -31,7 +30,7 @@ class ReactiveModelCore<T> {
   T? _state;
   SnapState<T>? _previousSnapState;
 
-  SnapState<T> _snapState = SnapState._nothing('');
+  SnapState<T> _snapState = SnapState._nothing(initMessage);
   SnapState<T> get snapState => _snapState;
   set snapState(SnapState<T> snap) {
     _snapState = snap;
@@ -74,11 +73,18 @@ class ReactiveModelCore<T> {
     bool shouldNotify = true,
     On<void>? onSetState,
     BuildContext? context,
+    required String? infoMessage,
   }) {
     _initCompleter();
 
-    final snap = SnapState._waiting(_state);
-    snapState = _middleState?.call(_snapState, snap) ?? snap;
+    final snap = snapState._copyToIsWaiting(
+      data: _state,
+      infoMessage: infoMessage,
+    );
+    snapState = _middleState?.call(
+          MiddleSnapState(_snapState, snap),
+        ) ??
+        snap;
 
     if (shouldNotify) {
       RM.context = context;
@@ -94,9 +100,13 @@ class ReactiveModelCore<T> {
     On<void>? onSetState,
     void Function()? onRebuildState,
     BuildContext? context,
+    bool isSync = false,
   }) {
     if (data is T) {
-      final snap = SnapState<T>._withData(ConnectionState.done, data, true);
+      final snap = _snapState._copyToHasData(
+        data,
+        infoMessage: isSync ? '' : null,
+      );
       if (_snapState == snap) {
         //the snap state is immutable and not changed.
         return;
@@ -105,11 +115,20 @@ class ReactiveModelCore<T> {
           deepEquality.equals(_cachedWatch, _cachedWatch = _watch!(data))) {
         return;
       }
-      snapState = _middleState?.call(_snapState, snap) ?? snap;
+      snapState = _middleState?.call(
+            MiddleSnapState(_snapState, snap),
+          ) ??
+          snap;
       addToUndoQueue();
     } else {
-      final snap = SnapState<T>._withData(ConnectionState.done, _state!, false);
-      snapState = _middleState?.call(_snapState, snap) ?? snap;
+      final snap = _snapState._copyToHasData(
+        _state,
+        infoMessage: isSync ? '' : null,
+      );
+      snapState = _middleState?.call(
+            MiddleSnapState(_snapState, snap),
+          ) ??
+          snap;
     }
 
     _completeCompleter(snapState.data);
@@ -137,12 +156,10 @@ class ReactiveModelCore<T> {
     Function(dynamic? error)? onError,
     BuildContext? context,
   }) {
-    final snap = SnapState<T>._withError(
-      ConnectionState.done,
-      snapState.data,
+    final snap = snapState._copyToHasError(
       e,
       onErrorRefresher,
-      s,
+      stackTrace: s,
     );
 
     // assert(() {
@@ -151,12 +168,17 @@ class ReactiveModelCore<T> {
     // }());
 
     if (e is Error) {
-      _middleState?.call(_snapState, snap);
-      StatesRebuilerLogger.log('', e, s);
+      _middleState?.call(
+        MiddleSnapState(_snapState, snap),
+      );
+      // StatesRebuilerLogger.log('', e, s);
       throw e;
     }
 
-    snapState = _middleState?.call(_snapState, snap) ?? snap;
+    snapState = _middleState?.call(
+          MiddleSnapState(_snapState, snap),
+        ) ??
+        snap;
 
     if (_completer?.isCompleted == false) {
       _completer!.future.catchError((Object _) {});

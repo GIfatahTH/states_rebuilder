@@ -25,8 +25,7 @@ class InjectedAuth<T, P> extends InjectedImp<T> {
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<T>? Function(SnapState<T> state, SnapState<T> nextState)?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     //
   })  : _param = param,
         _autoSignOut = autoSignOut,

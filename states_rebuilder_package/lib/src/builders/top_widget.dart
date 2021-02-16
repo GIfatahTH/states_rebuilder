@@ -164,7 +164,6 @@ class _TopAppWidgetState extends State<TopAppWidget> {
     widget.injectedAuth?._initialize();
     widget.injectedI18N?._initialize();
     return child;
-    ;
   }
 }
 

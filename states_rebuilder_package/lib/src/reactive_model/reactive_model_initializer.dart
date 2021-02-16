@@ -42,9 +42,13 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       }
       if (result != null) {
         _nullState ??= result as T;
-        _coreRM.snapState = _coreRM.snapState.copyWith(data: result as T);
-        _coreRM._middleState
-            ?.call(SnapState._nothing('INITIALIZING'), _coreRM.snapState);
+        final snap = _coreRM.snapState._copyWith(
+          data: result as T,
+          infoMessage: '',
+        );
+        _coreRM._middleState?.call(
+          MiddleSnapState(_coreRM.snapState, snap),
+        );
         _coreRM.addToUndoQueue();
       }
       _onInitState();
@@ -65,24 +69,23 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       }
       _isAsyncReactiveModel = asyncResult != null;
       if (_isAsyncReactiveModel) {
-        _coreRM._setToIsWaiting();
-        if (!_isFirstInitialized) {
-          _onInitState();
-        }
-
         _handleAsyncSubscription(
           asyncResult as Stream<T>,
           onErrorRefresher: () {
-            _snapState = _snapState.copyWith(
-              connectionState: ConnectionState.none,
-              resetError: true,
-            );
+            _snapState = _snapState.copyToIsIdle();
             _isInitialized = false;
             _initialConnectionState = ConnectionState.done;
             _initialize();
           },
           onInitData: (s) => _nullState ??= s,
         );
+
+        _coreRM._setToIsWaiting(
+          infoMessage: result is Future ? 'Future' : 'Stream',
+        );
+        if (!_isFirstInitialized) {
+          _onInitState();
+        }
 
         if (!_isFirstInitialized) {
           _onInitialized?.call(_coreRM._state!);
@@ -92,16 +95,20 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       }
       // Injected._activeInjected = cached;
       _nullState ??= result as T;
-      _coreRM.snapState = SnapState<T>._withData(
-        _initialConnectionState,
-        result ?? _nullState,
-        _coreRM.snapState.isImmutable,
-      );
+      final snap = _initialConnectionState == ConnectionState.done
+          ? _coreRM.snapState._copyToHasData(
+              result ?? _nullState,
+              infoMessage: '',
+            )
+          : _coreRM.snapState._copyToIsIdle(
+              data: result ?? _nullState,
+              infoMessage: '',
+            );
+
       _coreRM._middleState?.call(
-          SnapState._nothing(
-            _isFirstInitialized ? 'REFRESHING' : 'INITIALIZING',
-          ),
-          _coreRM.snapState);
+        MiddleSnapState(_coreRM.snapState, snap),
+      );
+      _coreRM.snapState = snap;
       _coreRM.addToUndoQueue();
       if (_shouldPersistStateOnInit) {
         _coreRM.persistState();
@@ -111,10 +118,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
         e,
         s,
         onErrorRefresher: () {
-          _snapState = _snapState.copyWith(
-            connectionState: ConnectionState.done,
-            resetError: true,
-          );
+          _snapState = _snapState.copyToIsIdle();
           _initialConnectionState = ConnectionState.done;
           _isInitialized = false;
           _initialize();
@@ -174,6 +178,7 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       onDone: () {
         _coreRM._completeCompleter(_state);
         isDone = true;
+        _snapState = _snapState._copyWith(infoMessage: '');
         onDane?.call();
       },
       cancelOnError: false,

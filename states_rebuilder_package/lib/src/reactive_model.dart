@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'legacy/injector.dart';
 
@@ -17,6 +17,7 @@ part 'builders/state_with_mixin_builder.dart';
 part 'builders/top_widget.dart';
 part 'builders/when_rebuilder.dart';
 part 'builders/when_rebuilder_or.dart';
+part 'const.dart';
 part 'injected/inherited_state.dart';
 part 'injected/injected.dart';
 part 'injected/injected_auth/i_auth.dart';

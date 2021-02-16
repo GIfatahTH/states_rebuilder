@@ -25,10 +25,7 @@ class InjectedCRUD<T, P> extends InjectedImp<List<T>> {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
-    SnapState<List<T>>? Function(
-      SnapState<List<T>> state,
-      SnapState<List<T>> nextState,
-    )?
+    SnapState<List<T>>? Function(MiddleSnapState<List<T>> middleSnap)?
         middleSnapState,
 
     //

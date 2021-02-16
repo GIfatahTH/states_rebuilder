@@ -58,11 +58,7 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
-    SnapState<T>? Function(
-      SnapState<T> snapState,
-      SnapState<T> nextSnapState,
-    )?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -116,11 +112,7 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
-    SnapState<T>? Function(
-      SnapState<T> snapState,
-      SnapState<T> nextSnapState,
-    )?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -175,11 +167,7 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
-    SnapState<T>? Function(
-      SnapState<T> snapState,
-      SnapState<T> nextSnapState,
-    )?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
 
     //
     Object? Function(T? s)? watch,
@@ -238,11 +226,7 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
     void Function(SnapState snapState)? debugNotification,
-    SnapState<T>? Function(
-      SnapState<T> snapState,
-      SnapState<T> nextSnapState,
-    )?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -336,10 +320,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<List<T>>? Function(
-      SnapState<List<T>> snapState,
-      SnapState<List<T>> nextSnapState,
-    )?
+    SnapState<List<T>>? Function(MiddleSnapState<List<T>> middleSnap)?
         middleSnapState,
   }) {
     assert(
@@ -431,8 +412,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool autoDisposeWhenNotUsed = false,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<T>? Function(SnapState<T> snapState, SnapState<T> nextSnapState)?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -467,7 +447,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
         );
 
         if (onAuthStream != null) {
-          inj._coreRM._setToIsWaiting();
+          inj._coreRM._setToIsWaiting(
+            infoMessage: 'AuthStateChange',
+          );
           final repo = await inj._auth!._repository;
           final Stream<T> stream = await onAuthStream(repo);
           StreamSubscription<T>? subscription = stream.listen(
@@ -560,9 +542,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<Key>? Function(
-            SnapState<Key> snapState, SnapState<Key> nextSnapState)?
-        middleSnapState,
+    SnapState<Key>? Function(MiddleSnapState<Key> middleSnap)? middleSnapState,
   }) {
     PersistState<Key> Function()? persist;
     late InjectedTheme<Key> inj;
@@ -599,7 +579,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
               ///json is of the form key#|#1
               return '$key#|#$th';
             },
-            debugPrintOperations: true,
+            // debugPrintOperations: true,
           );
     }
     inj = InjectedTheme<Key>(
@@ -647,10 +627,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<I18N>? Function(
-      SnapState<I18N> snapState,
-      SnapState<I18N> nextSnapState,
-    )?
+    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
         middleSnapState,
   }) {
     PersistState<I18N> Function()? persist;
@@ -685,7 +662,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
               }
               return l;
             },
-            debugPrintOperations: true,
+            // debugPrintOperations: true,
           );
     }
     inj = InjectedI18N<I18N>(

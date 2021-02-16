@@ -19,8 +19,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     int undoStackLength = 0,
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
-    SnapState<T>? Function(SnapState<T> state, SnapState<T> nextState)?
-        middleSnapState,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     bool isLazy = true,
   }) : super._(
           nullState: nullState,

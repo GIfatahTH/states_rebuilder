@@ -25,7 +25,11 @@ export 'src/reactive_model.dart'
         InjectedCRUD,
         IAuth,
         InjectedAuth,
+        InjectedTheme,
+        InjectedI18N,
         Child,
         TopAppWidget,
         SystemLocale,
-        SnapState;
+        SnapState,
+        SnapStateX,
+        MiddleSnapState;

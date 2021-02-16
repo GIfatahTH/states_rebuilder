@@ -27,6 +27,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   final Queue<SnapState<T>> _redoQueue = ListQueue();
 
   StreamSubscription? _subscription;
+
   Timer? _debounceTimer;
   //
   final _listeners = <void Function(ReactiveModel<T> rm)>[];
@@ -66,8 +67,15 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     if (_nullState != null) {
       _state = _nullState!;
     }
-    _coreRM._middleState?.call(_snapState, SnapState<T>._nothing('CLEANING'));
-    _snapState = SnapState<T>._nothing('CLEANING');
+    _coreRM._middleState?.call(
+      MiddleSnapState(
+        _snapState,
+        _snapState._copyToIsIdle(
+          infoMessage: disposeMessage + '${_snapState._infoMessage ?? ''}',
+        ),
+      ),
+    );
+    _snapState = SnapState<T>._nothing(initMessage);
 
     _previousSnapState = null;
     _initialConnectionState = ConnectionState.none;
