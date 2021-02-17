@@ -71,22 +71,22 @@ class _App extends StatelessWidget {
         onResult: (_) => Icon(Icons.circle, color: Colors.green),
       ).listenTo(numbers),
       actions: [
-        OutlineButton(
+        ElevatedButton(
           child: Text('Even'),
           onPressed: () => numbers.crud.read(
-            param: (param) => param.copyWith(numType: NumType.even),
+            param: (param) => param!.copyWith(numType: NumType.even),
           ),
         ),
-        OutlineButton(
+        ElevatedButton(
           child: Text('Odd'),
           onPressed: () => numbers.crud.read(
-            param: (param) => param.copyWith(numType: NumType.odd),
+            param: (param) => param!.copyWith(numType: NumType.odd),
           ),
         ),
-        OutlineButton(
+        ElevatedButton(
           child: Text('All'),
           onPressed: () => numbers.crud.read(
-            param: (param) => param.copyWith(numType: NumType.all),
+            param: (param) => param!.copyWith(numType: NumType.all),
           ),
         ),
       ],
@@ -133,7 +133,7 @@ class ItemWidget extends StatelessWidget {
   const ItemWidget();
   @override
   Widget build(BuildContext context) {
-    final item = numbers.item(context);
+    final item = numbers.item(context)!;
     return ListTile(
       title: On.data(
         () => Text('${item.state.number}'),
@@ -166,7 +166,7 @@ class ChildItemWidget extends StatelessWidget {
   const ChildItemWidget();
   @override
   Widget build(BuildContext context) {
-    final item = numbers.item.of(context);
+    final item = numbers.item.of(context)!;
     return IconButton(
       icon: Icon(Icons.delete),
       onPressed: () => numbers.crud.delete(

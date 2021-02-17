@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'number.dart';
 
 class NumbersRepository implements ICRUD<Number, NumberParam> {
-  Map<String, List<Number>> _numbersStore;
+  late Map<String, List<Number>> _numbersStore;
 
   @override
   Future<void> init() async {
@@ -16,24 +16,24 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   }
 
   @override
-  Future<Number> create(Number number, NumberParam param) async {
+  Future<Number> create(Number number, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (Random().nextBool()) {
       throw Exception('Error');
     }
-    final userNumbers = _numbersStore[param.userId] ?? [];
+    final userNumbers = _numbersStore[param!.userId] ?? [];
     _numbersStore[param.userId] = [...userNumbers, number];
     print(_numbersStore);
     return number;
   }
 
   @override
-  Future<List<Number>> read(NumberParam param) async {
+  Future<List<Number>> read(NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (Random().nextBool()) {
       throw Exception('Error');
     }
-    final userNumbers = _numbersStore[param.userId] ?? [];
+    final userNumbers = _numbersStore[param!.userId] ?? [];
 
     if (param.numType == NumType.even) {
       return userNumbers.where((e) => e.number % 2 == 0).toList();
@@ -45,16 +45,16 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   }
 
   @override
-  Future update(List<Number> numbers, NumberParam param) async {
+  Future update(List<Number> numbers, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (Random().nextBool()) {
       throw Exception('Error');
     }
-    final userNumbers = _numbersStore[param.userId] ?? [];
+    final userNumbers = _numbersStore[param!.userId] ?? [];
     for (var number in numbers) {
       final index = userNumbers.indexWhere((e) => e.id == number.id);
       if (index < 0) {
-        throw Exception('Can not update non exisiting number');
+        throw Exception('Can not update non existing number');
       }
       userNumbers[index] = number;
     }
@@ -63,12 +63,12 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   }
 
   @override
-  Future delete(List<Number> numbers, NumberParam param) async {
+  Future delete(List<Number> numbers, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (Random().nextBool()) {
       throw Exception('Error');
     }
-    final userNumbers = _numbersStore[param.userId] ?? [];
+    final userNumbers = _numbersStore[param!.userId] ?? [];
     for (var number in numbers) {
       final isRemoved = userNumbers.remove(number);
       if (!isRemoved) {

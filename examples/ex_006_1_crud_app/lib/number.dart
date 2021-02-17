@@ -4,13 +4,13 @@ class Number {
   final String id;
   final int number;
   Number({
-    this.id,
-    this.number,
+    required this.id,
+    required this.number,
   });
 
   Number copyWith({
-    String id,
-    int number,
+    String? id,
+    int? number,
   }) {
     return Number(
       id: id ?? this.id,
@@ -26,8 +26,6 @@ class Number {
   }
 
   factory Number.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return Number(
       id: map['id'],
       number: map['number'],
@@ -58,13 +56,13 @@ class NumberParam {
   final String userId;
   final NumType numType;
   NumberParam({
-    this.userId,
-    this.numType,
+    required this.userId,
+    required this.numType,
   });
 
   NumberParam copyWith({
-    String userId,
-    NumType numType,
+    String? userId,
+    NumType? numType,
   }) {
     return NumberParam(
       userId: userId ?? this.userId,
