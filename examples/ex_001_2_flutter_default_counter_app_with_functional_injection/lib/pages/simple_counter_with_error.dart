@@ -9,16 +9,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //With functional injection we do not need to use RMKey.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  middleSnapState: (snapState, nextSnapState) {
-    SnapState.log(
-      snapState,
-      nextSnapState,
-      //you can see the print log and select an error to stop and debug.
-      debugWhen: (err) => err.message == 'A Counter Error',
-    ).print();
-    if (nextSnapState.hasData) {
+  middleSnapState: (middleSnap) {
+    middleSnap.print();
+
+    if (middleSnap.nextSnap.hasData) {
       //Multiply the state by 10
-      return nextSnapState.copyToHasData(nextSnapState.data! * 10);
+      return middleSnap.nextSnap.copyToHasData(middleSnap.nextSnap.data! * 10);
     }
   },
 );
