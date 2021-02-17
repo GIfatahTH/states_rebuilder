@@ -131,7 +131,6 @@ class SnapState<T> {
     dynamic error,
     void Function()? onErrorRefresher, {
     StackTrace? stackTrace,
-    T? data,
     String? infoMessage,
   }) {
     return _copyWith(

@@ -115,18 +115,39 @@ void main() {
     //
     RM.navigate.toAndRemoveUntil(
       Route2('data'),
-      untilRouteName: 'Route3',
+      name: 'ROUTE2',
+      untilRouteName: '/',
     );
     await tester.pumpAndSettle();
     expect(find.text('Route2: data'), findsOneWidget);
     //
     RM.navigate.back();
     await tester.pumpAndSettle();
-    // print(find.text('Route2')); //TODO to verify in emulator
-    // print(find.text('Route1'));
-    // print(find.text('Home'));
-    // print(find.text('Route3'));
-    // //expect(find.text('Route2'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    //With route name
+    RM.navigate.toAndRemoveUntil(
+      Route2('data'),
+      name: 'ROUTE2',
+      untilRouteName: '/',
+    );
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    //
+    RM.navigate.toAndRemoveUntil(
+      Route1(''),
+      untilRouteName: 'ROUTE2',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route1: '), findsOneWidget);
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Route2: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
   });
 
   testWidgets('navigate to remove all', (tester) async {
@@ -138,45 +159,39 @@ void main() {
     RM.navigate.toNamed('Route3', arguments: 'data');
     await tester.pumpAndSettle();
     //
-    RM.navigate.toAndRemoveUntil(
-      Route2('data'),
-    );
+    RM.navigate.toAndRemoveUntil(Route2('data'), name: 'ROUTE2');
     await tester.pumpAndSettle();
     expect(find.text('Route2: data'), findsOneWidget);
     //
     RM.navigate.back();
     await tester.pumpAndSettle();
-    // print(find.text('Route2')); //TODO to verify in emulator
-    // print(find.text('Route1'));
-    // print(find.text('Home'));
-    // print(find.text('Route3'));
-    // //expect(find.text('Route2'), findsOneWidget);
+    expect(find.text('Route2: data'), findsNothing);
+    expect(find.text('Home'), findsNothing);
   });
 
   testWidgets('navigate to named remove  until', (tester) async {
     await tester.pumpWidget(widget_);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    RM.navigate.to(Route1(''), name: 'ROUTE1');
     await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route2', arguments: 'data');
+    RM.navigate.toNamed('Route2', arguments: '');
     await tester.pumpAndSettle();
     //
     RM.navigate.toNamedAndRemoveUntil(
       'Route3',
       arguments: 'data',
-      untilRouteName: 'Route2',
+      untilRouteName: 'ROUTE1',
     );
     await tester.pumpAndSettle();
     expect(find.text('Route3'), findsOneWidget);
     //
     RM.navigate.back();
     await tester.pumpAndSettle();
-    // print(find.text('Route2')); TODO to verify in emulator
-    // print(find.text('Route1'));
-    // print(find.text('Home'));
-    // print(find.text('Route3'));
-    // //expect(find.text('Route2'), findsOneWidget);
+    expect(find.text('Route1: '), findsOneWidget);
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
   });
 
   testWidgets('navigate to named remove  all', (tester) async {
@@ -197,14 +212,12 @@ void main() {
     //
     RM.navigate.back();
     await tester.pumpAndSettle();
-    // print(find.text('Route2')); TODO to verify in emulator
-    // print(find.text('Route1'));
-    // print(find.text('Home'));
-    // print(find.text('Route3'));
-    // //expect(find.text('Route2'), findsOneWidget);
+
+    expect(find.text('Route3'), findsNothing);
+    expect(find.text('Home'), findsNothing);
   });
 
-  testWidgets('back unitll', (tester) async {
+  testWidgets('back until', (tester) async {
     await tester.pumpWidget(widget_);
 
     expect(find.text('Home'), findsOneWidget);
@@ -219,12 +232,12 @@ void main() {
     RM.navigate.backUntil('Route1');
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(Duration(seconds: 1));
-    //TODO to fix
-    expect(find.text('Route1: data'), findsOneWidget, skip: '');
+
+    expect(find.text('Route1: data'), findsOneWidget);
     //
-    //RM.navigate.back();
-    //await tester.pumpAndSettle();
-    //expect(find.text('Home'), findsOneWidget);
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
   });
 
   testWidgets('back and to named', (tester) async {
@@ -342,7 +355,7 @@ void main() {
           transitionDuration: Duration(milliseconds: 2000),
           reverseTransitionDuration: Duration(milliseconds: 2000),
           pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: RM.transitions.bottomToUP(),
+          transitionsBuilder: RM.transitions.bottomToUp(),
         );
 
     await tester.pumpWidget(widget_);
@@ -484,29 +497,29 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
   });
 
-  testWidgets(
-      'WHEN undefined name route is given'
-      'THEN it route to default route not found', (tester) async {
-    final widget_ = MaterialApp(
-      navigatorKey: RM.navigate.navigatorKey,
-      onGenerateRoute: RM.navigate.onGenerateRoute(
-        {
-          '/': (_) => Text('Home'),
-          'Route1': (param) => Route1(param as String),
-          'Route2': (param) => Route2(param as String),
-          'Route3': (_) => Text('Route3'),
-        },
-      ),
-    );
+  // testWidgets(
+  //     'WHEN undefined name route is given'
+  //     'THEN it route to default route not found', (tester) async {
+  //   final widget_ = MaterialApp(
+  //     navigatorKey: RM.navigate.navigatorKey,
+  //     onGenerateRoute: RM.navigate.onGenerateRoute(
+  //       {
+  //         '/': (_) => Text('Home'),
+  //         'Route1': (param) => Route1(param as String),
+  //         'Route2': (param) => Route2(param as String),
+  //         'Route3': (_) => Text('Route3'),
+  //       },
+  //     ),
+  //   );
 
-    await tester.pumpWidget(widget_);
+  //   await tester.pumpWidget(widget_);
 
-    expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('/NAN');
-    await tester.pumpAndSettle();
+  //   expect(find.text('Home'), findsOneWidget);
+  //   RM.navigate.toNamed('/NAN');
+  //   await tester.pumpAndSettle();
 
-    expect(find.text('No route defined for /NAN'), findsOneWidget);
-  });
+  //   expect(find.text('No route defined for /NAN'), findsOneWidget);
+  // });
 
   testWidgets(
       'WHEN undefined name route is given'

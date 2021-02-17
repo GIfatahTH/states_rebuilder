@@ -128,8 +128,7 @@ final productRepository = RM.inject<IProductRepository>(
 //Inject Product Service
 final productService = RM.inject(
   () => ProductService(productRepository.state),
-  // onDisposed: (_) =>
-  //     productRepository.dispose(), //TODO check the utility of dispose here
+
   // debugPrintWhenNotifiedPreMessage: '',
 );
 

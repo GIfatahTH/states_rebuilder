@@ -1,8 +1,6 @@
 part of '../reactive_model.dart';
 
 abstract class ReactiveModelBuilder<T> extends ReactiveModelInitializer<T> {
-  bool _onHasErrorCallback = false;
-
   @override
   void _notifyListeners([List? tags, bool isOnCrud = false]) {
     // assert(() {

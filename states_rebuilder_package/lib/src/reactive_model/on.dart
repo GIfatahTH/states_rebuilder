@@ -96,7 +96,7 @@ class On<T> {
 
   ///The callback is invoked only when the [Injected] model emits a
   ///notification with error status.
-  factory On.error(T Function(dynamic errn, void Function() refresh) fn) {
+  factory On.error(T Function(dynamic err, void Function() refresh) fn) {
     return On._(
       onIdle: null,
       onWaiting: null,
@@ -116,7 +116,7 @@ class On<T> {
   factory On.or({
     T Function()? onIdle,
     T Function()? onWaiting,
-    T Function(dynamic err, void Function() refreh)? onError,
+    T Function(dynamic err, void Function() refresh)? onError,
     T Function()? onData,
     required T Function() or,
   }) {
@@ -334,7 +334,6 @@ extension OnX on On<Widget> {
           }
 
           onSetState?._call(rm._snapState);
-          rm._onHasErrorCallback = _hasOnError;
 
           if (!_canRebuild(rm)) {
             return;
@@ -353,7 +352,6 @@ extension OnX on On<Widget> {
       watch: watch,
       didUpdateWidget: (_, oldWidget) => didUpdateWidget?.call(oldWidget),
       builder: (_, __) {
-        injected._onHasErrorCallback = _hasOnError;
         return _call(injected._snapState, false)!;
       },
     );
@@ -397,13 +395,13 @@ class _OnFuture<F> {
     );
   }
 
-  ///Used to listen to the `stateAsyc` of an injected state.
+  ///Used to listen to the `stateAsync` of an injected state.
   ///
   ///This is a one-time subscription for `onWaiting` and `onError`. That is
-  ///after the `stateAsyc` future ends, this widget will not rebuild if the
+  ///after the `stateAsync` future ends, this widget will not rebuild if the
   ///injected state emits notification with `hasError` or `isWaiting` state status.
   ///
-  ///Whereas, `onData` is an ongoing subscritpion. the widget keeps listening the
+  ///Whereas, `onData` is an ongoing subscription. the widget keeps listening the
   ///injected state when emits a notification with `hasData` status.
   ///
   /// * **Required parameters**:
@@ -598,8 +596,6 @@ class _OnAuth<T> {
     return _StateBuilder(
       initState: (context, setState, rm) {
         injected._initialize();
-        final navigatorState =
-            useRouteNavigation ? RM.navigate.navigatorState : null;
 
         final disposer = injected._listenToRMForStateFulWidget(
           (rm, tags, _) {

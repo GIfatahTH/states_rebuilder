@@ -86,7 +86,7 @@ class AuthService {
   AuthService({required this.localStorage, required this.authRepository});
   User user = NullUser();
   Future<User> autoLogin() async {
-    final token = localStorage.getValue<String>('User-token');
+    //final token = localStorage.getValue<String>('User-token');
     //check if token is valid
 
     //

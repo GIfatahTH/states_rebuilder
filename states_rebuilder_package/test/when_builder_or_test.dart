@@ -38,7 +38,6 @@ void main() {
         textDirection: TextDirection.ltr,
         child: WhenRebuilderOr<Model1>(
           observeMany: [() => reactiveModel],
-          tag: 'tag1',
           onData: (data) => Text('data'),
           builder: (context, modelRM) => Text('other'),
         ),

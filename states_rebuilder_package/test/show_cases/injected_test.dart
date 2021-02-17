@@ -115,13 +115,11 @@ void main() {
   testWidgets(
     'Stream Injected is linked to another future Injected',
     (tester) async {
-      int count = 0;
       final counter1Future = RM.injectFuture(
         () => Future.delayed(Duration(seconds: 2), () => [1]),
       );
       final counter2Stream = RM.injectStream<int>(
         () {
-          count++;
           return Stream.periodic(
             Duration(seconds: 1),
             (data) {

@@ -40,7 +40,7 @@ MaterialApp(
   ///* [_Transitions.rightToLeft]
   ///* [_Transitions.leftToRight]
   ///* [_Transitions.upToBottom]
-  ///* [_Transitions.bottomToUP]
+  ///* [_Transitions.bottomToUp]
   Widget Function(
     BuildContext,
     Animation<double>,
@@ -69,27 +69,21 @@ MaterialApp(
     return (RouteSettings settings) {
       final route = routes[settings.name];
       if (route != null) {
-        return _pageRouteBuilder(route(settings.arguments));
+        return _pageRouteBuilder(route(settings.arguments), settings);
       } else {
-        return MaterialPageRoute(
-          builder: (_) {
-            return unknownRoute ??
-                Scaffold(
-                  body: Center(
-                    child: Text('No route defined for ${settings.name}'),
-                  ),
-                );
-          },
-        );
+        return unknownRoute != null
+            ? _pageRouteBuilder(unknownRoute, settings)
+            : null;
       }
     };
   }
 
   static Duration? _transitionDuration;
-  PageRoute<T> _pageRouteBuilder<T>(Widget page) {
+  PageRoute<T> _pageRouteBuilder<T>(Widget page, RouteSettings? settings) {
     return transitionsBuilder != null || pageRouteBuilder != null
         ? (pageRouteBuilder?.call(page) as PageRoute<T>?) ??
             PageRouteBuilder<T>(
+              settings: settings != null ? settings : null,
               pageBuilder: (context, animation, secondaryAnimation) => page,
               transitionsBuilder: transitionsBuilder!,
               transitionDuration: _transitionDuration ??
@@ -102,16 +96,23 @@ MaterialApp(
                   ),
             )
         : MaterialPageRoute<T>(
+            settings: settings != null ? settings : null,
             builder: (_) => page,
           );
   }
 
   ///navigate to the given page.
   ///
+  ///You can specify a name to the route  (e.g., "/settings"). It will be used with
+  ///[backUntil], [toAndRemoveUntil]; [toAndRemoveUntil], [toNamedAndRemoveUntil]
+  ///
   ///Equivalent to: [NavigatorState.push]
-  Future<T?> to<T extends Object?>(Widget page) {
+  Future<T?> to<T extends Object?>(
+    Widget page, {
+    String? name,
+  }) {
     return navigatorState.push<T>(
-      _pageRouteBuilder(page),
+      _pageRouteBuilder(page, RouteSettings(name: name)),
     );
   }
 
@@ -128,13 +129,17 @@ MaterialApp(
   ///Navigate to the given page, and remove the current route and replace it
   ///with the new one.
   ///
+  ///You can specify a name to the route  (e.g., "/settings"). It will be used with
+  ///[backUntil], [toAndRemoveUntil]; [toAndRemoveUntil], [toNamedAndRemoveUntil]
+  ///
   ///Equivalent to: [NavigatorState.pushReplacement]
   Future<T?> toReplacement<T extends Object?, TO extends Object?>(
     Widget page, {
     TO? result,
+    String? name,
   }) {
     return navigatorState.pushReplacement<T, TO>(
-      _pageRouteBuilder(page),
+      _pageRouteBuilder(page, RouteSettings(name: name)),
       result: result,
     );
   }
@@ -160,13 +165,18 @@ MaterialApp(
   ///If no route name is given ([untilRouteName] is null) , all routes will be
   ///removed except the new page route.
   ///
+  ///You can specify a name to the route  (e.g., "/settings"). It will be used with
+  ///[backUntil], [toAndRemoveUntil]; [toAndRemoveUntil], [toNamedAndRemoveUntil].
+  ///
+  ///
   ///Equivalent to: [NavigatorState.pushAndRemoveUntil]
   Future<T?> toAndRemoveUntil<T extends Object?>(
     Widget page, {
     String? untilRouteName,
+    String? name,
   }) {
     return navigatorState.pushAndRemoveUntil<T>(
-      _pageRouteBuilder(page),
+      _pageRouteBuilder(page, RouteSettings(name: name)),
       untilRouteName != null
           ? ModalRoute.withName(untilRouteName)
           : (r) => false,
@@ -183,6 +193,7 @@ MaterialApp(
   ///Equivalent to: [NavigatorState.pushNamedAndRemoveUntil]
   Future<T?> toNamedAndRemoveUntil<T extends Object?>(String newRouteName,
       {String? untilRouteName, Object? arguments}) {
+    print(ModalRoute.withName('/'));
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -517,7 +528,7 @@ class _Transitions {
     Animation<double>,
     Animation<double>,
     Widget,
-  ) bottomToUP({
+  ) bottomToUp({
     Tween<Offset>? positionTween,
     Curve? positionCurve,
     Tween<double>? opacityTween,

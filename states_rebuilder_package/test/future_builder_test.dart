@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
 
 import 'fake_classes/models.dart';
-import 'injected_test.dart';
 
 final vanillaModel = RM.inject(() => VanillaModel());
 

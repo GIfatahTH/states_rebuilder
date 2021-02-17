@@ -294,7 +294,7 @@ void main() {
       int numberOfDidUpdateWidget = 0;
       int numberAfterRebuild = 0;
       int numberOfDispose = 0;
-      var ticker;
+
       final widget = StateBuilder(
         observe: () => model,
         tag: ['mainTag'],
@@ -311,7 +311,6 @@ void main() {
                     },
                     dispose: (_, __, tick) {
                       numberOfDispose++;
-                      ticker = tick;
                     },
                     didChangeDependencies: (_, ___, __) {
                       numberOfDidChangeDependencies++;

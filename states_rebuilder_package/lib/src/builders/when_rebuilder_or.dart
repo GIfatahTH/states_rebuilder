@@ -56,16 +56,16 @@ class WhenRebuilderOr<T> extends StatefulWidget {
   ///```
   final List<ReactiveModel Function()>? observeMany;
 
-  ///A tag or list of tags you want this [WhenRebuilderOr] to register with.
-  ///
-  ///Whenever any of the observable model to which this [WhenRebuilderOr] is subscribed emits
-  ///a notifications with a list of filter tags, this [WhenRebuilderOr] will rebuild if the
-  ///the filter tags list contains at least on of those tags.
-  ///
-  ///It can be String (for small projects) or enum member (enums are preferred for big projects).
-  ///
-  ///Each [WhenRebuilderOr] has a default tag which is its [BuildContext]
-  final dynamic tag;
+  // ///A tag or list of tags you want this [WhenRebuilderOr] to register with.
+  // ///
+  // ///Whenever any of the observable model to which this [WhenRebuilderOr] is subscribed emits
+  // ///a notifications with a list of filter tags, this [WhenRebuilderOr] will rebuild if the
+  // ///the filter tags list contains at least on of those tags.
+  // ///
+  // ///It can be String (for small projects) or enum member (enums are preferred for big projects).
+  // ///
+  // ///Each [WhenRebuilderOr] has a default tag which is its [BuildContext]
+  // final dynamic tag;
 
   /// callback to be executed before notifying listeners. It the returned value is
   /// the same as the last one, the rebuild process is interrupted.
@@ -118,7 +118,6 @@ class WhenRebuilderOr<T> extends StatefulWidget {
     required this.builder,
     this.observe,
     this.observeMany,
-    this.tag, //TODO to remove
     this.watch,
     this.shouldRebuild,
     this.initState,
