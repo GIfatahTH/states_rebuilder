@@ -89,15 +89,15 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return i18n.inherited(
+    return TopAppWidget(
+      injectedI18N: i18n,
       builder: (context) {
-        print('rebuild');
         return MaterialApp(
           // To navigate and show snackBars without the BuildContext, we define
           // the navigator key
           navigatorKey: RM.navigate.navigatorKey,
-          supportedLocales: I18n.supportedLocal.keys,
-          locale: currentLocale.state,
+          locale: i18n.locale,
+          localeResolutionCallback: i18n.localeResolutionCallback,
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -122,20 +122,20 @@ class HomeWidget extends StatelessWidget {
         actions: [
           On(
             () => DropdownButton<Locale>(
-              value: currentLocale.state,
+              value: i18n.locale,
               onChanged: (Locale locale) {
-                currentLocale.state = locale;
+                i18n.locale = locale;
               },
-              items: I18n.supportedLocal.keys
+              items: i18n.supportedLocales
                   .map(
                     (locale) => DropdownMenuItem<Locale>(
-                      child: Text(I18n.supportedLocal[locale].languageName),
+                      child: Text('$locale'),
                       value: locale,
                     ),
                   )
                   .toList(),
             ),
-          ).listenTo(currentLocale),
+          ).listenTo(i18n),
         ],
       ),
       body: Column(

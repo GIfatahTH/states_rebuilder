@@ -3,27 +3,14 @@ import 'dart:ui';
 import 'package:flutter/widgets.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final currentLocale = RM.inject<Locale>(
-  () {
-    final systemLocale = WidgetsBinding.instance.window.locales.first;
-    if (I18n.supportedLocal.keys.contains(systemLocale)) {
-      return systemLocale;
-    }
-    return I18n.supportedLocal.keys.first;
-  },
-);
-final i18n = RM.inject<I18n>(
-  () => I18n.supportedLocal[currentLocale.state],
-  dependsOn: DependsOn({currentLocale}),
-);
+final i18n = RM.injectI18N({
+  Locale('en'): () => EN(),
+  Locale('fr'): () => ES(),
+  Locale('ar'): () => AR(),
+  Locale('de'): () => DE(),
+});
 
 abstract class I18n {
-  static final supportedLocal = {
-    Locale('en'): EN(),
-    Locale('fr'): ES(),
-    Locale('ar'): AR(),
-    Locale('de'): DE(),
-  };
   final String languageName;
   I18n(this.languageName);
   final helloWorldExample = 'Hello world Example';
