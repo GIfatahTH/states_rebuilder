@@ -129,11 +129,11 @@ class CounterApp extends StatelessWidget {
 
 # Breaking Changes 
 
-### Since 4.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-4.0.0.md) <!-- omit in toc --> 
+### Since 4.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/null_safety/states_rebuilder_package/changelog/v-4.0.0.md) 
 
-### Since 3.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-3.0.0.md) <!-- omit in toc --> 
+### Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) 
 
-### Since 2.0: &nbsp; [Here](/states_rebuilder_package/changelog/v-2.0.0.md) <!-- omit in toc --> 
+### Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) 
 
 
 # A Quick Tour of states_rebuilder API
@@ -167,13 +167,12 @@ class Foo { //don't extend any other library specific class
   }
 }
 ```
-
 <!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons.png" width="600" alt=''/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p> -->
 
 <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons.png" width="600" alt='555'/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p>
 
 To make the `Foo` object reactive, we simply inject it using global functional injection:
@@ -481,7 +480,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
     set: (product)=> product.copyWith(...),
   );
   //DELETE
-  products.crud.update(
+  products.crud.delete(
     where: (product) => product.id == 1,
     isOptimistic: false, // Optional (Default is true)
   );
@@ -504,7 +503,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   //Sign up
   user.auth.signUp((param)=> Param());
   //Sign in
-  user.auth.signIn(()=> Param());
+  user.auth.signIn((param)=> Param());
   //Sign out
   user.auth.signOut();
   ```
