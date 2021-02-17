@@ -131,7 +131,7 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
   }
 
   Locale _getSystemLocale() {
-    return WidgetsBinding.instance!.window.locales.first;
+    return WidgetsBinding.instance!.platformDispatcher.locale;
   }
 
   ///Default locale resolution used by states_rebuilder.

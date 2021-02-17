@@ -64,25 +64,28 @@ abstract class StatesRebuilder<T> {
           }
         }
         //
-        return _listenToRMForStateFulWidget((rm, tags, __) {
-          if (!(shouldRebuild?.call(null) ?? true)) {
-            return;
-          }
-          if (tags != null) {
-            if (tag == null || !tags.any((dynamic e) => _tags.contains('$e'))) {
+        return _listenToRMForStateFulWidget(
+          (rm, tags, __) {
+            if (!(shouldRebuild?.call(null) ?? true)) {
               return;
             }
-          }
-
-          if (setState(rm)) {
-            onSetState?.call(context);
-            if (onAfterBuild != null) {
-              WidgetsBinding.instance?.addPostFrameCallback(
-                (_) => onAfterBuild(context),
-              );
+            if (tags != null) {
+              if (tag == null ||
+                  !tags.any((dynamic e) => _tags.contains('$e'))) {
+                return;
+              }
             }
-          }
-        });
+
+            if (setState(rm)) {
+              onSetState?.call(context);
+              if (onAfterBuild != null) {
+                WidgetsBinding.instance?.addPostFrameCallback(
+                  (_) => onAfterBuild(context),
+                );
+              }
+            }
+          },
+        );
       },
       dispose: (context) {
         dispose?.call(context);

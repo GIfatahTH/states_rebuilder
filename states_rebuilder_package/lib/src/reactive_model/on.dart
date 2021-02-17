@@ -167,6 +167,15 @@ class On<T> {
     );
   }
 
+  ///Set of callbacks to be invoked with [RM.injectCRUD].
+  ///
+  ///`On.crud` listens to the [InjectedCRUD] and waits until the sent query ends.
+  ///
+  ///If the query ends with an error the `OnError` callback is called with the
+  ///error and a refresher to resend the query.
+  ///
+  ///If the query ends successfully, the `data` is invoked with the returned result
+  ///that may be the number of items deleted or updated.
   static _OnCRUD<T> crud<T>({
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresher)? onError,
@@ -179,7 +188,19 @@ class On<T> {
     );
   }
 
-  //
+  ///Set of callbacks to be invoked with [RM.injectAuth].
+  ///
+  ///`On.auth` listens to the [InjectedAuth] and waits until the authentication ends.
+  ///
+  ///`onInitialWaiting` is called once when the auth state is initialized.
+  ///
+  ///`onWaiting` is called whenever the auth state is waiting for authentication.
+  ///
+  ///`onUnsigned` is called when the user is signed out. Typically used to render Auth page.
+  ///
+  ///
+  ///`onSigned` is called when the user is signed. Typically used to render User home page.
+  ///
   static _OnAuth<T> auth<T>({
     T Function()? onInitialWaiting,
     T Function()? onWaiting,
@@ -583,6 +604,11 @@ class _OnAuth<T> {
         _onSigned = onSigned;
 
   ///Listen to an InjectedAuth state
+  ///
+  ///By default, the switch between the onSinged and the onUnsigned pages is
+  ///a simple widget replacement. To use the navigation page transition
+  ///animation, set [userRouteNavigation] to true. In this case, you
+  ///need to set the [RM.navigate.navigatorKey].
   Widget listenTo(
     InjectedAuth injected, {
     bool useRouteNavigation = false,

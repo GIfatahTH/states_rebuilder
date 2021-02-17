@@ -191,9 +191,11 @@ MaterialApp(
   ///removed except the new page route.
   ///
   ///Equivalent to: [NavigatorState.pushNamedAndRemoveUntil]
-  Future<T?> toNamedAndRemoveUntil<T extends Object?>(String newRouteName,
-      {String? untilRouteName, Object? arguments}) {
-    print(ModalRoute.withName('/'));
+  Future<T?> toNamedAndRemoveUntil<T extends Object?>(
+    String newRouteName, {
+    String? untilRouteName,
+    Object? arguments,
+  }) {
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
