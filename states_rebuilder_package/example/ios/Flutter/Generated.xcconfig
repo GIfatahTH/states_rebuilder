@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/mnt/A270A07970A055B7/flutter
-FLUTTER_APPLICATION_PATH=/mnt/A270A07970A055B7/Repositories/states_rebuilder/states_rebuilder_package/example
+FLUTTER_ROOT=/run/media/mafatahnj/data/flutter
+FLUTTER_APPLICATION_PATH=/run/media/mafatahnj/data/Repositories/states_rebuilder/states_rebuilder_package/example
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
 SYMROOT=${SOURCE_ROOT}/../build/ios

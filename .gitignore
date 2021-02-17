@@ -52,3 +52,5 @@ coverage/
 
 analysis_options.yaml
 pubspec.lock
+states_rebuilder_package/example/ios/Flutter/Generated.xcconfig
+states_rebuilder_package/example/ios/Flutter/flutter_export_environment.sh
