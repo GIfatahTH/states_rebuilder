@@ -11,9 +11,10 @@
 A Flutter state management combined with a dependency injection solution to get the best experience with state management. 
 
 - Performance
+  - Predictable and controllable state mutation
+  - Immutable / Mutable states support
   - Strictly rebuild control
   - Auto clean state when not used
-  - Immutable / Mutable states support
 
 - Code Clean
   - Zero Boilerplate
@@ -26,6 +27,7 @@ A Flutter state management combined with a dependency injection solution to get 
   - `SetState` in StatelessWidget.
   - Hot-pluggable Stream / Futures
   - Easily Undo / Redo
+  - Elegant error handling and refreshing
   - Navigate, show dialogs without `BuildContext`
   - Easily persist the state and retrieve it back
   - Override the state for a particular widget tree branch (widget-wise state)
@@ -33,11 +35,12 @@ A Flutter state management combined with a dependency injection solution to get 
 - Production-time-saving
   - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
   - Easy user authentication and authorization.
-  - Easily switch themes.
+  - Easily app themes management.
   - Simple internalization and localization.
 
 - Maintainable
   - Easy to test, mock the dependencies
+  - state tracker middleware
   - Built-in debugging print function
   - Capable for complex apps
 
@@ -52,10 +55,10 @@ A Flutter state management combined with a dependency injection solution to get 
   - [Business logic](#business-logic)
   - [UI logic](#ui-logic)
 - [Examples:](#examples)
-  - [Basics:](#basics)
+  <!-- - [Basics:](#basics)
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
-    - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
+    - [Firestore Series in Todo App:](#firestore-series-in-todo-app) -->
 
 # Getting Started with States_rebuilder
 1. Add the latest version to your package's pubspec.yaml file.
@@ -81,7 +84,20 @@ extension ModelX on Model {
 
 // 🚀Global Functional Injection 
 // This state will be auto-disposed when no longer used, and also testable and mockable.
-final modelX = RM.inject<Model>(() => Model(0), undoStackLength: 8);
+final model = RM.inject<Model>(
+  () => Model(0), 
+  undoStackLength: 8,
+  //Called after new state calculation and just before state mutation
+  middleSnapState: (MiddleSnapState middleSnap){
+    //Log all state transition.
+    print(middleSnap.currentSnap);
+    print(middleSnap.nextSnap);
+
+    middleSnap.print()//Build-in logger
+
+    //Can return another state
+  }
+);
 
 // 👀UI  
 class CounterApp extends StatelessWidget {
@@ -94,17 +110,17 @@ class CounterApp extends StatelessWidget {
         children: [
             ElevatedButton(
                 child: const Text('🏎️ Counter ++'),
-                onPressed: () => modelX.setState(
+                onPressed: () => model.setState(
                     (s) => s.increment(),
                 ),
             ),
             RaisedButton(
                 child: const Text('⏱️ Undo'),
-                onPressed: () => modelX.undoState(),
+                onPressed: () => model.undoState(),
             ),
             On(
-              () => Text('🏁Result: ${modelX.state.counter}'),
-            ).listenTo(modelX),
+              () => Text('🏁Result: ${model.state.counter}'),
+            ).listenTo(model),
         ],
     );
   }  
@@ -180,9 +196,25 @@ final Injected<Foo> foo = RM.inject<Foo>(
       key: '__FooKey__',
       toJson: (Foo s) => s.toJson(),
       fromJson: (String json) => Foo.fromJson(json),
-      //Optionally, throttle the state persistance
+      // Optionally, throttle the state persistance
       throttleDelay: 1000,
   ),
+  // middleSnapState as a middleWare place
+  // Used to track and log state lifecycle and transitions.
+  // It can also be used to return another state created from 
+  // the current state and the next state.
+  middleSnapState: (middleSnap) {
+     middleSnap.print(); //Build-in logger
+    
+    // Example of simple email validation
+    if (middleSnap.nextSnap.hasData) {
+      if (!middleSnap.nextSnap.data.contains('@')) {
+        return middleSnap.nextSnap.copyToHasError(
+          Exception('Enter a valid Email'),
+        );
+      }
+    }
+  },
 );
 //For simple injection you can use `inj()` extension:
 final foo = Foo().inj<Foo>();
@@ -219,7 +251,12 @@ foo.setState(
   onSetState: On.waiting(()=> showSnackBar() ),
   debounceDelay : 400,
 )
+
+//if state is bool
+foo.toggle();
 ```
+
+
 
 
 <!-- <p align="center">
@@ -241,18 +278,18 @@ On.data(()=> print('data'));
 // Called when notified with waiting status
 On.waiting(()=> print('waiting'));
 // Called when notified with error status
-On.error(()=> print('error'));
+On.error((err, refresh)=> print('error'));
 // Exhaustively handle all four status
 On.all(
   onIdle: ()=> print('Idle'), // If is Idle
   onWaiting: ()=> print('Waiting'), // If is waiting
-  onError: (err)=> print('Error'), // If has error 
+  onError: (err, refresh)=> print('Error'), // If has error 
   onData:  ()=> print('Data'), // If has Data
 )
 // Optionally handle the four status
 On.or(
   onWaiting: ()=> print('Waiting'),
-  onError: (err)=> print('Error'),
+  onError: (err, refresh)=> print('Error'),
   onData:  ()=> print('Data'),
   or: () =>  print('or')
 )
@@ -277,11 +314,23 @@ On.future<F>(
 ///Used with injectedCRUD. It watches the state of the backend service
 On.crud(
     onWaiting: ()=> Text('Waiting..'),//The querying is ongoing
-    onError: (error) => Text('Error'),// The querying fails
+    onError: (error, refresh) => Text('Error'),// The querying fails
     onResult: (result)=> MyWidget(),// The querying succeeds
 ).listenTo(injectedCRUD);
+
+///Used with injectedAuth. It displays the right page depending on 
+//the signed user
+On.auth(
+    onWaiting: ()=> Text('Waiting..'),
+    onUnsigned: ()=> AuthPage(),
+    onSigned: ()=> HomeUserPage(),
+).listenTo(injectedAuth);
 ```
->  [See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+
+> All onError callbacks expose a refresher. It can be use to refresh the error; that is recalling the last  function that caused the error.
+
+
+  [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
@@ -299,7 +348,9 @@ If the state is persisted, calling `refresh` will delete the persisted state and
 
 Calling `refresh` will cancel any pending async task from the state before refreshing.
 
-> [See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+ [🗎 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+
+
 
 ## UI logic
 
@@ -309,7 +360,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
     On.all(
         onIdle: ()=> Text('Idle'),
         onWaiting: ()=> Text('Waiting'),
-        onError: (err)=> Text('Error'),
+        onError: (err, refresh)=> Text('Error'),
         onData:  ()=> Text('Data'),
     ).listenTo(
       foo, //Listen to foo state
@@ -362,30 +413,34 @@ Calling `refresh` will cancel any pending async task from the state before refre
   ```dart
     OnCombined.all(
         isWaiting: ()=> Text('Waiting'),//If any is waiting
-        hasError: (err)=> Text('Error'),//If any has error
+        hasError: (err, refresh)=> Text('Error'),//If any has error
         isIdle: ()=> Text('Idle'),//If any is Idle
         hasData: (data)=> Text('Data'),//If all have Data
     ).listenTo([model1, model1 ..., modelN]);
   ```
-> [See more detailed information about the widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
+  [🗎 See more detailed information about the widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
 
 * To undo and redo immutable state:
   ```dart
   model.undoState();
   model.redoState();
   ```
-> [See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
+  [🗎 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
 
 
 * To navigate, show dialogs and snackBars without `BuildContext`:
   ```dart
   RM.navigate.to(HomePage());
 
+  RM.navigate.to('/namePage');
+
   RM.navigate.toDialog(AlertDialog( ... ));
 
   RM.scaffoldShow.snackbar(SnackBar( ... ));
   ```
-> [See more detailed information about side effects without `BuildContext`](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+  > You can easily change page transition animation, using one of the predefined TransitionBuilder or just define yours.
+
+  [🗎 See more detailed information about side effects without `BuildContext`](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
 * To Persist the state and retrieve it when the app restarts,
   ```dart
@@ -405,7 +460,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   model.persistState();
   model.deletePersistState();
   ```
-> [See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+  [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
 
 * To Create, Read, Update and Delete (CRUD) from backend or DataBase,
   ```dart
@@ -432,7 +487,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   );
   ```
 
-> [See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+  [🗎 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
 
 * To authenticate and authorize users,
   ```dart
@@ -454,7 +509,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
   user.auth.signOut();
   ```
 
-> [See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
+  [🗎 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
 
 * Widget-wise state (overriding the state):
@@ -485,7 +540,7 @@ class App extends StatelessWidget{
   }
 }
 ```
-> [See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api).
+  [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api).
 
 * To dynamically switch themes,
   ```dart
@@ -510,7 +565,7 @@ class App extends StatelessWidget{
   theme.toggle();
   ```
 
-> [See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
+  [🗎 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
 
 * To internationalize and localize your app:
   ```dart
@@ -544,7 +599,7 @@ class App extends StatelessWidget{
   i18n.locale = SystemLocale();
   ```
 
-> [See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
+  [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
 
 * To mock it in test:
   ```dart
@@ -562,13 +617,13 @@ And many more features.
 
 # Examples:
 
-* [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection)
+<!-- * [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection) -->
 
-* Here are three **must-read examples** that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
+<!-- * Here are three **must-read examples** that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
 
   1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world). Hello world app. It gives you the most important feature simply by say hello world.
   2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
-  3. [Example 3](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
+  3. [Example 3](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected. -->
 
 ## Basics:
 Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
@@ -579,9 +634,13 @@ Since you are new to `states_rebuilder`, this is the right place for you to expl
 
 * [**Login form validation**](examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection): Simple form login validation. The basic `Injected` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
 
-* [**Counter app with flavors**](examples/ex_003_2_async_counter_app_with_functional_injection): states_rebuilder as dependency injection is used, and a counter app with two flavors is built.
-
 * [**CountDown timer**](examples/ex_004_2_countdown_timer_with_functional_injection). This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted.
+
+* [**Theming and internationalization**](examples/ex_005_theme_switching). This is a demonstration how to handle theme switching and app internationalization using `RM.injectedTheme `and `RM.injectedI18N`.
+
+* [**CRUD query**](examples/ex_006_1_crud_app). This is an example of a backend service fetching data app. The app performs CRUD operation using `RM.injectCRUD`.
+
+* [**Infinite scroll listView**](examples/ex_006_2_infinite_scroll_list). This is another example of CRUD operation using `RM.injectCRUD`. More items will be fetched when the list reaches its bottom.
 
 
 </br>
@@ -591,27 +650,29 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 
 * [**User posts and comments**](examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi):  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
-* [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds.
-
+<!-- * [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds. -->
+<!--  -->
 ### Firebase Series:
 
 * [**Firebase login** ](examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
-
-* [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base.
+<!-- 
+* [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base. -->
 
 ### Firestore Series in Todo App:
 
-## <p align='center'>`Immutable State`</p> <!-- omit in toc --> 
+[TODOS MVC app](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
 
-* [**Todo MVC with immutable state and firebase cloud service**](examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
+<!-- ## <p align='center'>`Immutable State`</p> omit in toc  -->
+
+<!-- * [**Todo MVC with immutable state and firebase cloud service**](examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
 ## <p align='center'>`Mutable State`</p> <!-- omit in toc --> 
 
-* [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
+<!-- * [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
 
 
 ## <p align='center'>`Code in BLOC Style`</p> <!-- omit in toc --> 
 
-* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library.
+* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. --> -->
 
 
 </br>

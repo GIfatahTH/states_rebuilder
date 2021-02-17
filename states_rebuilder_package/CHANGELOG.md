@@ -1,10 +1,19 @@
-## 4.0.0 (2021-02-1)
+## 4.0.0-nullsafety.0 (2021-02-1)
+### Breaking change :
 * Remove RMKey classes.
+* `RM.injectComputed `is removed
 * Change Injector.en to RM.env.
+### New features :
 * Add On and OnCombined.
+* All `onError` callbacks in `On` and `OnCombined` expose a refresher to retry the last async function that causes the exception.
+* middleSnapState
+* Add page route transition animation.
 * Add RM.injectCRUD, RM.injectAuth, RM.injectTheme, andRM.injectI18N.
 * Refactor the internal logic.
 * Refactor to null safety.
+
+See the detailed change log [Here](/changelog/v-4.0.0.md)
+
 ## 3.2.0 (2020-10-27)
 * `Injected.persist` is a function instead of a simple object
 * add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.
