@@ -77,7 +77,8 @@ class PersistState<T> {
     _persistStateSingleton ??= _persistStateGlobalTest;
     _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
 
-    assert(_persistStateSingleton != null, '''
+    assert(_persistStateSingleton != null,
+        '''
 No implementation of `IPersistStore` is provided.
 Pleas implementation the `IPersistStore` interface and Initialize it in the main 
 method.
@@ -114,10 +115,12 @@ await RM.storageInitializerMock();\n\n
         return null;
       }
       if (r is Future) {
-        return r.then((dynamic value) => () => _fromJsonHandler(
-              key,
-              value as String,
-            ));
+        return r.then(
+          (dynamic value) => () => _fromJsonHandler(
+                key,
+                value as String,
+              ),
+        );
       }
 
       return _fromJsonHandler(key, r as String);
