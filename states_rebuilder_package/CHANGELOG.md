@@ -1,3 +1,8 @@
+## 4.0.0-nullsafety.1 (2021-03-2)
+* add `isActive` state status
+* Add `copyTo` method to the `SnapState`
+* Add `fullscreenDialog` and `maintainState` params to the `navigator`
+
 ## 4.0.0-nullsafety.0 (2021-02-1)
 ### Breaking change :
 * Remove RMKey classes.
