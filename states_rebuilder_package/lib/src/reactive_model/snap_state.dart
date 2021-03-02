@@ -13,6 +13,8 @@ class SnapState<T> {
     this.stackTrace,
     this.onErrorRefresher, [
     this._infoMessage,
+    this.isDone = false,
+    this.isActive = true,
   ])  : assert(stackTrace == null || error != null),
         assert(error == null || onErrorRefresher != null);
 
@@ -89,6 +91,8 @@ class SnapState<T> {
     void Function()? onErrorRefresher,
     bool resetError = false,
     String? infoMessage,
+    bool isDone = false,
+    bool? isActive,
   }) =>
       SnapState<T>._(
         connectionState ?? _connectionState,
@@ -97,7 +101,33 @@ class SnapState<T> {
         resetError ? null : stackTrace ?? this.stackTrace,
         resetError ? null : onErrorRefresher ?? this.onErrorRefresher,
         infoMessage ?? _infoMessage,
+        isDone,
+        isActive ?? this.isActive,
       );
+
+  SnapState<T> copyTo({
+    bool? isWaiting,
+    bool? isIdle,
+    bool? isActive,
+    T? data,
+    dynamic error,
+    StackTrace? stackTrace,
+  }) {
+    if (isWaiting != null) {
+      return _copyToIsWaiting();
+    }
+    if (error != null) {
+      return _copyToHasError(error, () {}, stackTrace: stackTrace);
+    }
+    if (isIdle != null) {
+      return _copyToIsIdle();
+    }
+    if (isActive != null) {
+      return _copyWith(isActive: isActive);
+    }
+
+    return _copyToHasData(data);
+  }
 
   SnapState<T> _copyToIsWaiting({T? data, String? infoMessage}) {
     return _copyWith(
@@ -112,6 +142,12 @@ class SnapState<T> {
     return _copyWith(
       connectionState: ConnectionState.waiting,
       resetError: true,
+    );
+  }
+
+  SnapState<T> copyToIsDone() {
+    return _copyWith(
+      isDone: true,
     );
   }
 
@@ -198,6 +234,9 @@ class SnapState<T> {
   bool get isWaiting => _connectionState == ConnectionState.waiting;
 
   bool get isReady => data != null;
+
+  final bool isDone;
+  final bool isActive;
 
   @override
   String toString() {

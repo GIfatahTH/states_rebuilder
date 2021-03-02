@@ -16,6 +16,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
       _coreRM._previousSnapState = snap;
 
   ConnectionState _initialConnectionState = ConnectionState.none;
+  Object? argument;
   //
   bool get _isInitialized => _coreRM._isInitialized;
   set _isInitialized(bool isInit) => _coreRM._isInitialized = isInit;
@@ -36,6 +37,19 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
   late dynamic Function(ReactiveModel<T> rm) _creator;
   bool _shouldPersistStateOnInit = false;
 
+  void _stateRefresh(bool toHasData) {
+    _isInitialized = false;
+    _coreRM._completeCompleter(_state);
+
+    if (toHasData) {
+      _initialConnectionState = ConnectionState.done;
+    } else {
+      _initialConnectionState = ConnectionState.none;
+      _state = _nullState;
+    }
+    argument = null;
+  }
+
   void cloneToAndClean(ReactiveModel<T> to) {
     to._coreRM = _coreRM;
     to._nullState = _nullState;
@@ -44,6 +58,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
     to._snapState = _snapState;
     to._previousSnapState = _previousSnapState;
     to._initialConnectionState = _initialConnectionState;
+    to.argument = argument;
     to._isInitialized = _isInitialized;
     to._isFirstInitialized = _isFirstInitialized;
     to._undoQueue.addAll(_undoQueue);
@@ -79,7 +94,7 @@ abstract class ReactiveModelState<T> with StatesRebuilder<T> {
 
     _previousSnapState = null;
     _initialConnectionState = ConnectionState.none;
-
+    argument = null;
     _isInitialized = false;
     _isFirstInitialized = false;
 

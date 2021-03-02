@@ -6,7 +6,6 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
   // T get state => (this as ReactiveModel<T>).state;
   // SnapState<T> get snapState => _coreRM.snapState;
   // set snapState(SnapState<T> snap) => _coreRM.snapState = snap;
-  bool isDone = false;
 
   void _initialize() {
     if (_isInitialized) {
@@ -177,8 +176,10 @@ abstract class ReactiveModelInitializer<T> extends ReactiveModelState<T> {
       },
       onDone: () {
         _coreRM._completeCompleter(_state);
-        isDone = true;
-        _snapState = _snapState._copyWith(infoMessage: '');
+        _snapState = _snapState._copyWith(
+          infoMessage: '',
+          isDone: _isAsyncReactiveModel,
+        );
         onDane?.call();
       },
       cancelOnError: false,

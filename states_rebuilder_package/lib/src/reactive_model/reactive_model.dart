@@ -113,6 +113,18 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
     return _snapState.isWaiting;
   }
 
+  bool get isDone {
+    _initialize();
+    return _snapState.isDone;
+  }
+
+  bool get isActive {
+    _initialize();
+    return _snapState.isActive;
+  }
+
+  set isActive(bool value) => _snapState._copyWith(isActive: value);
+
   ///Returns whether this state contains a non-null [error] value.
   bool get hasError {
     _initialize();
@@ -230,7 +242,6 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
               infoMessage: result is Future ? 'Future' : 'Stream',
             );
           }
-          isDone = false;
           _handleAsyncSubscription(
             asyncResult,
             onErrorRefresher: () => call(),
@@ -357,20 +368,10 @@ abstract class ReactiveModel<T> extends ReactiveModelUndoRedoState<T> {
       return stateAsync;
     }
     final beforeRefreshState = _snapState;
-    _isInitialized = false;
-    _coreRM._completeCompleter(_state);
-
-    if (toHasData) {
-      _initialConnectionState = ConnectionState.done;
-    } else {
-      _initialConnectionState = ConnectionState.none;
-      _state = _nullState;
-    }
-
+    _stateRefresh(toHasData);
     _snapState = _snapState._copyToIsIdle(
       infoMessage: refreshMessage + (beforeRefreshState._infoMessage ?? ''),
     );
-
     _initialize();
     if (_toRefresh.isNotEmpty) {
       _refreshListeners();
