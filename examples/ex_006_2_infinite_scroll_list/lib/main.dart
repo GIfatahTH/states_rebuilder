@@ -24,8 +24,7 @@ final _controller = ScrollController();
 class PostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return On.future(
-      onWaiting: () => const Center(child: CircularProgressIndicator()),
+    return On.or(
       onError: (err, refresh) => Center(
         child: Row(
           children: [
@@ -38,10 +37,15 @@ class PostsPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
         ),
       ),
-      onData: (_, refresh) {
+      or: () {
         if (posts.state.isEmpty) {
+          if (posts.isWaiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           return const Center(child: Text('no posts'));
         }
+
         return ListView.builder(
           itemBuilder: (BuildContext context, int index) {
             return index < posts.state.length
@@ -50,7 +54,7 @@ class PostsPage extends StatelessWidget {
                     title: Text(posts.state[index].title),
                     subtitle: Text(posts.state[index].body),
                   )
-                : posts.state.canScroll
+                : posts.argument != 'hasReachedMax'
                     ? On.or(
                         onError: (err, refresh) => ElevatedButton(
                           onPressed: () => refresh(),
@@ -62,8 +66,7 @@ class PostsPage extends StatelessWidget {
                       ).listenTo(posts)
                     : ElevatedButton(
                         onPressed: () {
-                          posts.state.refresh();
-                          refresh();
+                          posts.refresh();
                         },
                         child: Text('Refresh Posts'),
                       );
@@ -80,7 +83,7 @@ class PostsPage extends StatelessWidget {
   }
 
   void _onScroll() {
-    if (!posts.state.canScroll) {
+    if (posts.argument == 'hasReachedMax' || posts.isWaiting) {
       return;
     }
     if (_controller.offset >= _controller.position.maxScrollExtent) {

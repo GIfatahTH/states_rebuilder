@@ -15,15 +15,12 @@ final posts = RM.injectCRUD<Post, int>(
 );
 
 extension PostsX on List<Post> {
-  static bool _canScroll = true;
-  bool get canScroll => _canScroll && !posts.isWaiting;
-  void refresh() => _canScroll = true;
   void fetchMorePosts() {
     posts.crud.read(
       param: (_) => posts.state.length,
       middleState: (state, nextState) {
         if (nextState.isEmpty) {
-          _canScroll = false;
+          posts.argument = 'hasReachedMax';
           return state;
         }
         return [...state, ...nextState];
