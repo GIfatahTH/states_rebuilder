@@ -48,6 +48,9 @@ MaterialApp(
     Widget,
   )? transitionsBuilder;
 
+  bool _fullscreenDialog = false;
+  bool _maintainState = true;
+
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
   ///
@@ -69,21 +72,37 @@ MaterialApp(
     return (RouteSettings settings) {
       final route = routes[settings.name];
       if (route != null) {
-        return _pageRouteBuilder(route(settings.arguments), settings);
+        final p = _pageRouteBuilder(
+          route(settings.arguments),
+          settings,
+          _fullscreenDialog,
+          _maintainState,
+        );
+        //set to default
+        _fullscreenDialog = false;
+        _maintainState = true;
+        return p;
       } else {
         return unknownRoute != null
-            ? _pageRouteBuilder(unknownRoute, settings)
+            ? _pageRouteBuilder(unknownRoute, settings, false, true)
             : null;
       }
     };
   }
 
   static Duration? _transitionDuration;
-  PageRoute<T> _pageRouteBuilder<T>(Widget page, RouteSettings? settings) {
+  PageRoute<T> _pageRouteBuilder<T>(
+    Widget page,
+    RouteSettings? settings,
+    bool fullscreenDialog,
+    bool maintainState,
+  ) {
     return transitionsBuilder != null || pageRouteBuilder != null
         ? (pageRouteBuilder?.call(page) as PageRoute<T>?) ??
             PageRouteBuilder<T>(
               settings: settings != null ? settings : null,
+              fullscreenDialog: fullscreenDialog,
+              maintainState: maintainState,
               pageBuilder: (context, animation, secondaryAnimation) => page,
               transitionsBuilder: transitionsBuilder!,
               transitionDuration: _transitionDuration ??
@@ -98,6 +117,8 @@ MaterialApp(
         : MaterialPageRoute<T>(
             settings: settings != null ? settings : null,
             builder: (_) => page,
+            fullscreenDialog: fullscreenDialog,
+            maintainState: maintainState,
           );
   }
 
@@ -110,16 +131,30 @@ MaterialApp(
   Future<T?> to<T extends Object?>(
     Widget page, {
     String? name,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
   }) {
     return navigatorState.push<T>(
-      _pageRouteBuilder(page, RouteSettings(name: name)),
+      _pageRouteBuilder(
+        page,
+        RouteSettings(name: name),
+        fullscreenDialog,
+        maintainState,
+      ),
     );
   }
 
   ///Navigate to the page with the given named route.
   ///
   ///Equivalent to: [NavigatorState.pushNamed]
-  Future<T?> toNamed<T extends Object?>(String routeName, {Object? arguments}) {
+  Future<T?> toNamed<T extends Object?>(
+    String routeName, {
+    Object? arguments,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
+  }) {
+    _fullscreenDialog = fullscreenDialog;
+    _maintainState = maintainState;
     return navigatorState.pushNamed<T>(
       routeName,
       arguments: arguments,
@@ -137,9 +172,16 @@ MaterialApp(
     Widget page, {
     TO? result,
     String? name,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
   }) {
     return navigatorState.pushReplacement<T, TO>(
-      _pageRouteBuilder(page, RouteSettings(name: name)),
+      _pageRouteBuilder(
+        page,
+        RouteSettings(name: name),
+        fullscreenDialog,
+        maintainState,
+      ),
       result: result,
     );
   }
@@ -149,9 +191,14 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.pushReplacementNamed]
   Future<T?> toReplacementNamed<T extends Object?, TO extends Object?>(
-      String routeName,
-      {TO? result,
-      Object? arguments}) {
+    String routeName, {
+    TO? result,
+    Object? arguments,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
+  }) {
+    _fullscreenDialog = fullscreenDialog;
+    _maintainState = maintainState;
     return navigatorState.pushReplacementNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -174,9 +221,16 @@ MaterialApp(
     Widget page, {
     String? untilRouteName,
     String? name,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
   }) {
     return navigatorState.pushAndRemoveUntil<T>(
-      _pageRouteBuilder(page, RouteSettings(name: name)),
+      _pageRouteBuilder(
+        page,
+        RouteSettings(name: name),
+        fullscreenDialog,
+        maintainState,
+      ),
       untilRouteName != null
           ? ModalRoute.withName(untilRouteName)
           : (r) => false,
@@ -195,7 +249,11 @@ MaterialApp(
     String newRouteName, {
     String? untilRouteName,
     Object? arguments,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
   }) {
+    _fullscreenDialog = fullscreenDialog;
+    _maintainState = maintainState;
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -230,7 +288,11 @@ MaterialApp(
     String routeName, {
     TO? result,
     Object? arguments,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
   }) {
+    _fullscreenDialog = fullscreenDialog;
+    _maintainState = maintainState;
     return navigatorState.popAndPushNamed<T, TO>(
       routeName,
       arguments: arguments,
