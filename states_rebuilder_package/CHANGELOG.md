@@ -1,9 +1,6 @@
-## 4.0.0-nullsafety.1 (2021-03-2)
-* add `isActive` state status
-* Add `copyTo` method to the `SnapState`
-* Add `fullscreenDialog` and `maintainState` params to the `navigator`
 
-## 4.0.0-nullsafety.0 (2021-02-1)
+## 4.0.0 (2021-03-2)
+
 ### Breaking change :
 * Remove RMKey classes.
 * `RM.injectComputed `is removed
@@ -12,12 +9,14 @@
 * Add On and OnCombined.
 * All `onError` callbacks in `On` and `OnCombined` expose a refresher to retry the last async function that causes the exception.
 * middleSnapState
-* Add page route transition animation.
 * Add RM.injectCRUD, RM.injectAuth, RM.injectTheme, andRM.injectI18N.
+* Add page route transition animation.
+* Add `fullscreenDialog` and `maintainState` parameters to the `navigator`
+* Add dynamic segment and nested routing
 * Refactor the internal logic.
 * Refactor to null safety.
 
-See the detailed change log [Here](/changelog/v-4.0.0.md)
+See the detailed change log [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md)
 
 ## 3.2.0 (2020-10-27)
 * `Injected.persist` is a function instead of a simple object

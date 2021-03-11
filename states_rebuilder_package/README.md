@@ -7,9 +7,6 @@
 <p align="center">
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="600" alt=''/>
 </p>
-
-A Flutter state management combined with a dependency injection solution to get the best experience with state management. 
-
 - Performance
   - Predictable and controllable state mutation
   - Immutable / Mutable states support
@@ -29,10 +26,12 @@ A Flutter state management combined with a dependency injection solution to get 
   - Easily Undo / Redo
   - Elegant error handling and refreshing
   - Navigate, show dialogs without `BuildContext`
+  - Named route with dynamic segmenet
+  - Nested routes mapping
   - Easily persist the state and retrieve it back
   - Override the state for a particular widget tree branch (widget-wise state)
 
-- Production-time-saving
+- development-time-saving
   - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
   - Easy user authentication and authorization.
   - Easily app themes management.
@@ -44,9 +43,9 @@ A Flutter state management combined with a dependency injection solution to get 
   - Built-in debugging print function
   - Capable for complex apps
 
-<p align="center" >
+<!-- <p align="center" >
     <image src="../assets/Poster-Simple.png" width="1280"  alt=''/>
-</p>
+</p> -->
 
 # Table of Contents <!-- omit in toc --> 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
@@ -129,7 +128,7 @@ class CounterApp extends StatelessWidget {
 
 # Breaking Changes 
 
-### Since 4.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/null_safety/states_rebuilder_package/changelog/v-4.0.0.md) 
+### Since 4.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md) 
 
 ### Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) 
 
@@ -168,11 +167,11 @@ class Foo { //don't extend any other library specific class
 }
 ```
 <!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p> -->
 
 <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/null_safety/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p>
 
 To make the `Foo` object reactive, we simply inject it using global functional injection:
@@ -329,7 +328,7 @@ On.auth(
 > All onError callbacks expose a refresher. It can be use to refresh the error; that is recalling the last  function that caused the error.
 
 
-  [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+  [🗎 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
@@ -439,7 +438,48 @@ Calling `refresh` will cancel any pending async task from the state before refre
   ```
   > You can easily change page transition animation, using one of the predefined TransitionBuilder or just define yours.
 
-  [🗎 See more detailed information about side effects without `BuildContext`](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+  You can use dynamic segments with named routing
+
+    ```dart
+    return MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute({
+          '/': (_) => LoginPage(),
+          '/posts': (_) => RouteWidget(
+                routes: {
+                  '/:author': (RouteData data) {
+                      final queryParams = data.queryParams;
+                      final pathParams = data.pathParams;
+                      final arguments = data.arguments;
+
+                      //OR
+                      //Inside a child widget of AuthorWidget :
+                      //
+                      //context.routeQueryParams;
+                      //context.routePathParams;
+                      //context.routeArguments;
+                      return  AuthorWidget();
+
+                  },
+                  '/postDetails': (_) => PostDetailsWidget(),
+                },
+              ),
+          '/settings': (_) => SettingsPage(),
+        }),
+      );
+    ```
+    In the UI:
+    ```dart
+    RM.navigate.to('/'); // => renders LoginPage()
+    RM.navigate.to('/posts'); // => 404 error
+    RM.navigate.to('/posts/foo'); // =>  renders AuthorWidget(), with pathParams = {'author' : 'foo' }
+    RM.navigate.to('/posts/postDetails'); // =>  renders PostDetailsWidget(),
+    //If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
+    RM.navigate.to('postDetails'); // =>  renders PostDetailsWidget(),
+    RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // =>  renders PostDetailsWidget(),
+    ```
+    
+  [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
 * To Persist the state and retrieve it when the app restarts,
   ```dart
@@ -629,17 +669,17 @@ Since you are new to `states_rebuilder`, this is the right place for you to expl
 
 * [**Hello world app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world): Hello world app. It gives you the most important feature simply by say hello world. You will understand the concept of global function injection and how to make a pure dart class reactive. You will see how an injected state can depends on other injected state to be refreshed when the other injected state emits notification.
 
-* [**The simplest counter app**](examples/ex_001_2_flutter_default_counter_app_with_functional_injection): Default flutter counter app refactored using `states_rebuilder`. 
+* [**The simplest counter app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection): Default flutter counter app refactored using `states_rebuilder`. 
 
-* [**Login form validation**](examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection): Simple form login validation. The basic `Injected` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
+* [**Login form validation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection): Simple form login validation. The basic `Injected` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
 
-* [**CountDown timer**](examples/ex_004_2_countdown_timer_with_functional_injection). This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted.
+* [**CountDown timer**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_004_2_countdown_timer_with_functional_injection). This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted.
 
-* [**Theming and internationalization**](examples/ex_005_theme_switching). This is a demonstration how to handle theme switching and app internationalization using `RM.injectedTheme `and `RM.injectedI18N`.
+* [**Theming and internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching). This is a demonstration how to handle theme switching and app internationalization using `RM.injectedTheme `and `RM.injectedI18N`.
 
-* [**CRUD query**](examples/ex_006_1_crud_app). This is an example of a backend service fetching data app. The app performs CRUD operation using `RM.injectCRUD`.
+* [**CRUD query**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_1_crud_app). This is an example of a backend service fetching data app. The app performs CRUD operation using `RM.injectCRUD`.
 
-* [**Infinite scroll listView**](examples/ex_006_2_infinite_scroll_list). This is another example of CRUD operation using `RM.injectCRUD`. More items will be fetched when the list reaches its bottom.
+* [**Infinite scroll listView**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_2_infinite_scroll_list). This is another example of CRUD operation using `RM.injectCRUD`. More items will be fetched when the list reaches its bottom.
 
 
 </br>
@@ -647,13 +687,13 @@ Since you are new to `states_rebuilder`, this is the right place for you to expl
 ## Advanced:
 Here, you will take your programming skills up a notch, deep dive in Architecture 🧐:
 
-* [**User posts and comments**](examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi):  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
+* [**User posts and comments**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi):  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
 
 <!-- * [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds. -->
 <!--  -->
 ### Firebase Series:
 
-* [**Firebase login** ](examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
+* [**Firebase login** ](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
 <!-- 
 * [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base. -->
 
@@ -670,8 +710,8 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 
 
 ## <p align='center'>`Code in BLOC Style`</p> <!-- omit in toc --> 
-
-* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. --> -->
+<!-- 
+* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. --> --> -->
 
 
 </br>
