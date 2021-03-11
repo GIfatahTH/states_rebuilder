@@ -75,12 +75,12 @@ class __RouteFullWidgetState extends State<_RouteFullWidget> {
     for (var i = keys.length - 1; i >= 0; i--) {
       final data = routeData[keys[i]]!;
 
-      if (!_shouldAnimate && shouldAnimate) {
-        // if (_shouldAnimate) {
-        // _lastSubRoute = child;
-        // }
-        _shouldAnimate = true;
-      }
+      // if (!_shouldAnimate && shouldAnimate) {
+      //   // if (_shouldAnimate) {
+      //   // _lastSubRoute = child;
+      //   // }
+      //   _shouldAnimate = true;
+      // }
 
       _lastSubRoute[i] = child;
       final ch = shouldAnimate

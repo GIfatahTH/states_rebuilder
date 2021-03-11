@@ -86,6 +86,8 @@ MaterialApp(
     assert(routes.isNotEmpty);
     this.transitionsBuilder = transitionsBuilder;
     _routes = routes;
+    _baseUrl = '';
+    pageRouteBuilder = null;
     Widget? resolvePage(RouteSettings settings) {
       assert(settings.name != null);
 
