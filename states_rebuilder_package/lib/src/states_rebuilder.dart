@@ -1,262 +1,122 @@
-import 'dart:collection';
-import 'dart:developer' as developer;
+part of 'reactive_model.dart';
 
-import 'package:flutter/widgets.dart';
+abstract class StatesRebuilder<T> {
+  bool _autoDisposeWhenNotUsed = true;
 
-import 'builders.dart';
-import 'reactive_model.dart';
-
-///[StatesRebuilder] use the observer pattern.
-///
-///Observer classes should implement [ObserverOfStatesRebuilder]
-abstract class ObserverOfStatesRebuilder {
-  ///Method to executed when observer is notified.
-  void update(
-      [dynamic Function(BuildContext) onSetState, dynamic reactiveModel]);
-}
-
-///[StatesRebuilder] use the observer pattern.
-///
-///Observable class should implement [Subject]
-abstract class Subject {
-  ///Notify observers
-  void rebuildStates(
-      [List<dynamic> tags, void Function(BuildContext) onSetState]);
-
-  ///Add Observer
-  void addObserver({
-    @required ObserverOfStatesRebuilder observer,
-    @required String tag,
-  });
-
-  ///Remove observer
-  void removeObserver({
-    @required ObserverOfStatesRebuilder observer,
-    @required String tag,
-  });
-}
-
-///Your logics classes extend `StatesRebuilder` to create your own business logic BloC (alternatively called ViewModel or Model).
-class StatesRebuilder<T> implements Subject {
-  ///key holds the observer tags and the value holds the observers
-  ///_observers = {"tag" : [observer1, observer2, ...]}
-  ///Observers are  automatically add and removed by [StateBuilder] in the [State.initState] and [State.dispose]  methods.
-  final LinkedHashMap<String, Set<ObserverOfStatesRebuilder>> _observersMap =
-      LinkedHashMap<String, Set<ObserverOfStatesRebuilder>>();
-  Set<ObserverOfStatesRebuilder> _observersSet = <ObserverOfStatesRebuilder>{};
-
-  /// observers getter
-  Map<String, Set<ObserverOfStatesRebuilder>> observers() => _observersMap;
+  final _listenersOfStateFulWidget =
+      <void Function(ReactiveModel<T>? rm, List? tags, bool isOnCRUD)>[];
+  Disposer _listenToRMForStateFulWidget(
+      void Function(ReactiveModel<T>? rm, List? tags, bool isOnCRUD) fn) {
+    _listenersOfStateFulWidget.add(fn);
+    return () {
+      _listenersOfStateFulWidget.remove(fn);
+      if (_listenersOfStateFulWidget.isEmpty) {
+        _clean();
+      }
+    };
+  }
 
   ///Check if this observable has observer
-  bool get hasObservers => _observersMap.isNotEmpty;
+  bool get hasObservers => _listenersOfStateFulWidget.isNotEmpty;
+  int get observerLength => _listenersOfStateFulWidget.length;
 
-  ///Holds user defined void callback to be executed after removing all observers.
-  final Set<VoidCallback> _statesRebuilderCleaner = <VoidCallback>{};
-
-  @override
-  void addObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    assert(observer != null);
-    assert(tag != null);
-    _observersSet = {observer, ..._observersSet};
-    if (_observersMap[tag] == null) {
-      _observersMap[tag] = <ObserverOfStatesRebuilder>{observer};
-    } else {
-      _observersMap[tag] = {observer, ..._observersMap[tag]};
-    }
-    // _observersCount = __observersCount + 1;
+  void _notifyListeners([List? tags, bool isOnCRUD = false]) {
+    _listenersOfStateFulWidget.forEach((fn) => fn(
+        this is ReactiveModel<T> ? this as ReactiveModel<T> : null,
+        tags,
+        isOnCRUD));
   }
 
-  @override
-  void removeObserver({ObserverOfStatesRebuilder observer, String tag}) {
-    assert(
-      () {
-        if (_observersMap[tag] == null) {
-          throw Exception(
-            '''
+  void rebuildStates([List? tags]) {
+    _notifyListeners(tags);
+  }
 
-| ***Trying to unregister non registered Tag***
-| The tag: [$tag] is not registered in this [$runtimeType] observers.
-| Tags are automatically registered by states_rebuilder.
-| If you see this error, this means that something wrong happens.
-| Please report an issue.
-| 
-| The registered tags are : ${_observersMap.keys}
-       ''',
+  Widget statesRebuilderSubscription({
+    void Function(BuildContext context)? onSetState,
+    void Function(BuildContext context)? onAfterInitialBuild,
+    void Function(BuildContext context)? onAfterBuild,
+    required Widget Function(BuildContext context) child,
+    void Function(BuildContext context)? initState,
+    void Function(BuildContext context)? dispose,
+    Object? Function()? watch,
+    void Function(BuildContext context)? didChangeDependencies,
+    void Function(BuildContext context, _StateBuilder oldWidget)?
+        didUpdateWidget,
+    bool Function(SnapState<T>? previousState)? shouldRebuild,
+    dynamic tag,
+    Key? key,
+  }) {
+    return _StateBuilder(
+      key: key,
+      initState: (context, setState, _) {
+        initState?.call(context);
+        if (onAfterInitialBuild != null) {
+          WidgetsBinding.instance?.addPostFrameCallback(
+            (_) => onAfterInitialBuild(context),
           );
         }
-        return true;
-      }(),
+        List<String> _tags = [];
+        if (tag != null) {
+          if (tag is List) {
+            _tags.addAll(tag.map((dynamic e) => '$e'));
+          } else {
+            _tags.add('$tag');
+          }
+        }
+        //
+        return _listenToRMForStateFulWidget(
+          (rm, tags, __) {
+            if (!(shouldRebuild?.call(null) ?? true)) {
+              return;
+            }
+            if (tags != null) {
+              if (tag == null ||
+                  !tags.any((dynamic e) => _tags.contains('$e'))) {
+                return;
+              }
+            }
+
+            if (setState(rm)) {
+              onSetState?.call(context);
+              if (onAfterBuild != null) {
+                WidgetsBinding.instance?.addPostFrameCallback(
+                  (_) => onAfterBuild(context),
+                );
+              }
+            }
+          },
+        );
+      },
+      dispose: (context) {
+        dispose?.call(context);
+      },
+      watch: watch,
+      didChangeDependencies: (context) => didChangeDependencies?.call(context),
+      didUpdateWidget: (context, oldWidget) =>
+          didUpdateWidget?.call(context, oldWidget),
+      builder: (context, _) {
+        return child.call(context);
+      },
     );
-
-    _observersMap[tag].remove(observer);
-    _observersSet.remove(observer);
-
-    // _observersCount = __observersCount - 1;
-
-    if (_observersMap[tag]?.isEmpty == true) {
-      _observersMap.remove(tag);
-      if (_observersMap.isEmpty) {
-        statesRebuilderCleaner(this);
-      }
-    }
   }
 
-  /// You call [rebuildStates] inside any of your logic classes that extends [StatesRebuilder].
-  ///
-  /// It will notify observers with [tags] and executed [onSetState] after notification is sent.
-  @override
-  void rebuildStates([List tags, void Function(BuildContext) onSetState]) {
-    assert(() {
-      if (RM.debugPrintActiveRM == true) {
-        if (this is ReactiveModel) {
-          final ReactiveModel self = this as ReactiveModel;
-          developer.log(
-            'RM ${self.type()}. Tag: ${tags == null ? "no tags" : tags}',
-            name: 'ReactiveModel Notification',
-            error: self.hasData
-                ? 'hasData : ${self.state}'
-                : self.isIdle
-                    ? 'isIdle'
-                    : self.isWaiting ? 'isWaiting' : 'hasError : ${self.error}',
-          );
-        }
-      }
+  final _cleaner = <void Function()>[];
+  Disposer addToCleaner(void Function() fn, [bool insertAt0 = false]) {
+    if (insertAt0) {
+      _cleaner.insert(0, fn);
+    } else {
+      _cleaner.add(fn);
+    }
+    return () => _cleaner.remove(fn);
+  }
 
-      if (!hasObservers) {
-        throw Exception(
-          '''
-
-***No observer is subscribed yet***
-| There is no observer subscribed to this observable $runtimeType model.
-| To subscribe a widget you use:
-| 1- StateBuilder for an already defined:
-|   ex:
-|   StateBuilder(
-|     observer: () => ${runtimeType}instance,
-|     builder : ....
-|   )
-| 2 - WhenRebuilder, WhenRebuilderOr, OnSetStateListener, StatesWithMixinBuilder are similar to StateBuilder.
-| 3 _ With global functional injection use rebuilder(), whenRebuilder() or whenRebuilderOr():
-|      ex :
-|      final model = RM.inject(()=>Model());
-|
-|      model.rebuilder(()=> MyWidget());
-|
-| To silent this error you check for the existence of observers before calling [rebuildStates]
-| ex:
-|  if(hasObservers){
-|    rebuildStates()
-| }
-| or in set the silent parameter of set state to true.
-| ex: 
-| setState(
-|  (s)=> .... ,
-|  silent : true,
-| )
-)
-| 
-''',
-        );
-      }
-      return true;
-    }());
-    _notifyingModel = this;
-    //used to ensure that [onSetState] is executed only one time.
-    bool isOnSetStateCalledOrNull = onSetState == null;
-
-    if (tags == null) {
-      for (ObserverOfStatesRebuilder observer in _observersSet) {
-        observer.update(
-          isOnSetStateCalledOrNull
-              ? null
-              : (context) {
-                  isOnSetStateCalledOrNull = true;
-                  onSetState(context);
-                },
-          this is ReactiveModel ? this : null,
-        );
-      }
-
+  @mustCallSuper
+  void _clean([bool force = false]) {
+    if (!force && !_autoDisposeWhenNotUsed) {
       return;
     }
-
-    for (var tag in tags) {
-      String _tag;
-
-      if (tag is BuildContext) {
-        _tag = 'AutoGeneratedTag#|:${tag.hashCode}';
-      } else {
-        _tag = tag.toString();
-      }
-
-      final observers = _observersMap[_tag];
-      if (observers != null) {
-        for (ObserverOfStatesRebuilder observer in observers) {
-          observer.update(
-            isOnSetStateCalledOrNull
-                ? null
-                : (context) {
-                    isOnSetStateCalledOrNull = true;
-                    onSetState(context);
-                  },
-            this is ReactiveModel ? this : null,
-          );
-        }
-      }
-    }
+    _cleaner
+      ..forEach((e) => e())
+      ..clear();
   }
-
-  ///Add a callback to be executed when all listeners are removed
-  void cleaner(VoidCallback voidCallback, [bool remove = false]) {
-    if (remove) {
-      _statesRebuilderCleaner.remove(voidCallback);
-    } else {
-      _statesRebuilderCleaner.add(voidCallback);
-    }
-  }
-
-  static StatesRebuilder _notifyingModel;
-
-  ///Copy the list of observer from this model to the model in the argument
-  ///
-  ///By default the old list is cleared
-  void copy(StatesRebuilder sb, [bool clear = true]) {
-    sb._observersMap.addAll(_observersMap);
-    sb._observersSet.addAll(_observersSet);
-    sb._statesRebuilderCleaner.addAll(_statesRebuilderCleaner);
-    if (clear) {
-      statesRebuilderCleaner(this);
-    }
-  }
-}
-
-///Package private class
-class StatesRebuilderInternal {
-  /// get notified model
-  static ReactiveModel getNotifiedModel() {
-    return StatesRebuilder._notifyingModel is ReactiveModel
-        ? StatesRebuilder._notifyingModel as ReactiveModel
-        : null;
-  }
-}
-
-void statesRebuilderCleaner(StatesRebuilder sr, [bool clean = true]) {
-  if (sr == null ||
-      sr is ReactiveModelInternal && sr.numberOfFutureAndStreamBuilder > 0) {
-    return;
-  }
-  if (clean) {
-    //Al observers are remove, it is time to execute custom cleaning
-    for (final void Function() voidCallBack in [
-      ...sr._statesRebuilderCleaner
-    ]) {
-      if (voidCallBack != null) {
-        voidCallBack();
-      }
-    }
-  }
-  sr._statesRebuilderCleaner.clear();
-  sr._observersMap.clear();
-  sr._observersSet.clear();
 }

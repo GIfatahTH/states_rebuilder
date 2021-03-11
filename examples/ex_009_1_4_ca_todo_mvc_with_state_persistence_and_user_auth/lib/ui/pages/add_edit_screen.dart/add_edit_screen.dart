@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/todo.dart';
 import '../../common/localization/localization.dart';
+import '../home_screen/home_screen.dart';
 
 class AddEditPage extends StatefulWidget {
   static String routeName = '/addEditPage';
@@ -30,7 +30,7 @@ class _AddEditPageState extends State<AddEditPage> {
   String _note;
   @override
   Widget build(BuildContext context) {
-    final todo = todoItem(context);
+    final todo = todos.item(context);
     bool isEditing = todo != null;
 
     return Scaffold(
@@ -88,8 +88,9 @@ class _AddEditPageState extends State<AddEditPage> {
               );
               todo.state = newTodo;
             } else {
-              todos.setState(
-                (s) => s.addTodo(Todo(_task, note: _note)),
+              todos.crud.create(
+                Todo(_task, note: _note),
+                isOptimistic: false,
               );
             }
             RM.navigate.back();

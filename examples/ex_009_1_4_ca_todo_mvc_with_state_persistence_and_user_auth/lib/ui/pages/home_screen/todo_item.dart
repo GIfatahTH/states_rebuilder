@@ -1,11 +1,6 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
-import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+part of 'home_screen.dart';
 
-import '../../../domain/entities/todo.dart';
-import '../../../ui/pages/detail_screen/detail_screen.dart';
-import '../../common/localization/localization.dart';
-
+///
 class TodoItem extends StatelessWidget {
   const TodoItem({
     Key key,
@@ -13,57 +8,58 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = todoItem(context);
-    return todo.rebuilder(
-      () {
-        return Dismissible(
-          key: Key('__${todo.state.id}__'),
-          onDismissed: (direction) {
-            removeTodo(todo.state);
+    final todo = todos.item(context);
+    return On.data(
+      () => Dismissible(
+        key: Key('__${todo.state.id}__'),
+        onDismissed: (direction) {
+          print('onDismistted $Key');
+          removeTodo(todo.state);
+        },
+        child: ListTile(
+          onTap: () async {
+            final shouldDelete = await RM.navigate.to(
+              todos.item.reInherited(
+                context: context,
+                builder: (context) => DetailScreen(),
+              ),
+            );
+            if (shouldDelete == true) {
+              RM.scaffold.context = context;
+              removeTodo(todo.state);
+            }
           },
-          child: ListTile(
-            onTap: () async {
-              final shouldDelete = await RM.navigate.to(
-                todoItem.reInherited(
-                  context: context,
-                  builder: (context) => DetailScreen(),
-                ),
+          leading: Checkbox(
+            key: Key('__Checkbox${todo.state.id}__'),
+            value: todo.state.complete,
+            onChanged: (value) {
+              final newTodo = todo.state.copyWith(
+                complete: value,
               );
-              if (shouldDelete == true) {
-                RM.scaffoldShow.context = context;
-                removeTodo(todo.state);
-              }
+              todo.state = newTodo;
             },
-            leading: Checkbox(
-              key: Key('__Checkbox${todo.state.id}__'),
-              value: todo.state.complete,
-              onChanged: (value) {
-                final newTodo = todo.state.copyWith(
-                  complete: value,
-                );
-                todo.state = newTodo;
-              },
-            ),
-            title: Text(
-              todo.state.task,
-              style: Theme.of(context).textTheme.headline6,
-            ),
-            subtitle: Text(
-              todo.state.note,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.subtitle1,
-            ),
           ),
-        );
-      },
-    );
+          title: Text(
+            todo.state.task,
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          subtitle: Text(
+            todo.state.note,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.subtitle1,
+          ),
+        ),
+      ),
+    ).listenTo(todo);
   }
 
   void removeTodo(Todo todo) {
-    todos.setState((s) => s.deleteTodo(todo));
+    todos.crud.delete(
+      where: (t) => todo.id == t.id,
+    );
 
-    RM.scaffoldShow.snackBar(
+    RM.scaffold.showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
         content: Text(
@@ -74,7 +70,7 @@ class TodoItem extends StatelessWidget {
         action: SnackBarAction(
           label: i18n.of(RM.context).undo,
           onPressed: () {
-            todos.setState((s) => s.addTodo(todo));
+            todos.crud.create(todo);
           },
         ),
       ),

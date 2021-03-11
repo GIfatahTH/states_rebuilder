@@ -1,13 +1,15 @@
-import 'package:clean_architecture_firebase_login/service/user_service.dart';
+import 'package:clean_architecture_firebase_login/data_source/fake_user_repository.dart';
+import 'package:clean_architecture_firebase_login/injected.dart';
+import 'package:clean_architecture_firebase_login/main.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../data_source/fake_user_repository.dart';
-
 void main() {
-  Widget signInRegisterFormPage;
+  currentEnv = Env.dev;
+  user.injectAuthMock(() => FakeUserRepository());
+  canSignInWithApple.injectMock(() => true);
 
   Finder emailTextFiled = find.byWidgetPredicate((widget) {
     return widget is TextField && widget.decoration.labelText == 'Email';
@@ -26,44 +28,12 @@ void main() {
     return widget is Checkbox && widget.value;
   });
 
-  setUp(() {
-    //The first thing to do is to isolate SignInRegisterFormPage by faking its dependencies
-    //There is one dependency that should be faked (UserService)
-    signInRegisterFormPage = Injector(
-      inject: [Inject<UserService>(() => FakeUserService())],
-      builder: (_) {
-        //the SignInRegisterFormPage widget has to pop back after successful log in.
-        // (line 130  onData: (_, __) => Navigator.pop(context),)
-
-        //Ta test this behavior, we add a RaisedButton to push to SignInRegisterFormPage so we can check that popping works.
-
-        //In this example we can simple use SignInPage and from there we can route to SignInRegisterFormPage.
-        //But in more complex situation, we have to fake all the dependencies of SignInPage which may not be needed for aur test.
-        //For this reason I use simple RaisedButton,
-        return MaterialApp(
-          //From SignInRegisterFormPage we have to notify StateBuilder in main.dart page (line 50)
-          //I wrapped the RaisedButton with StateBuilder and subscribe it to the UserService ReactiveModel.
-          home: StateBuilder(
-              observe: () => RM.get<UserService>(),
-              builder: (context, _) {
-                return RaisedButton(
-                    child: Text('Log in with email and password'),
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return SignInRegisterFormPage();
-                      }));
-                    });
-              }),
-        );
-      },
-    );
-  });
-
   testWidgets('Email validation', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
     await tester.pumpAndSettle();
+
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
     //expect that the submit button is initially inactive
@@ -85,8 +55,9 @@ void main() {
   });
 
   testWidgets('password validation', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
     await tester.pumpAndSettle();
     //expect that the checkBox is initially unchecked
     expect(uncheckedCheckBox, findsOneWidget);
@@ -109,8 +80,9 @@ void main() {
   });
 
   testWidgets('login with email and password', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
     await tester.pumpAndSettle();
     //Enter valid email and password
     await tester.enterText(emailTextFiled, 'my@email.com');
@@ -126,17 +98,17 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
+    //expect to find one Scaffold. This means we are still in the MyApp()
     expect(find.byType(Scaffold), findsOneWidget);
     await tester.pumpAndSettle();
-    //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
-    expect(find.byType(Scaffold), findsNothing);
-    expect(find.text('Log in with email and password'), findsOneWidget);
+    //Expect to go to homepage after successfully signing in.
+    expect(find.text('Welcome my@email.com!'), findsOneWidget);
   });
 
   testWidgets('Register and login with email and password', (tester) async {
-    await tester.pumpWidget(signInRegisterFormPage);
-    await tester.tap(find.byType(RaisedButton));
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.tap(find.text('Sign in With Email and password'));
     await tester.pumpAndSettle();
     expect(uncheckedCheckBox, findsOneWidget);
 
@@ -163,11 +135,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    //expect to find one Scaffold. This means we are still in the SignInRegisterFormPage
+    //expect to find one Scaffold. This means we are still in the MyApp()
     expect(find.byType(Scaffold), findsOneWidget);
     await tester.pumpAndSettle();
-    //expect to find no Scaffold. This means we are poppet out from the SignInRegisterFormPage
-    expect(find.byType(Scaffold), findsNothing);
-    expect(find.text('Log in with email and password'), findsOneWidget);
+    //Expect to go to homepage after successfully signing in.
+    expect(find.text('Welcome my@email.com!'), findsOneWidget);
   });
 }

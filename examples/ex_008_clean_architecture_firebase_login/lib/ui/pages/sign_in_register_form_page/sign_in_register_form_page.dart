@@ -1,9 +1,11 @@
+import 'package:clean_architecture_firebase_login/domain/common/validator.dart';
+import 'package:clean_architecture_firebase_login/domain/exceptions/Validation_exception.dart';
+
+import '../../../domain/entities/user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../domain/value_objects/email.dart';
-import '../../../domain/value_objects/password.dart';
-import '../../../service/user_service.dart';
+import '../../../injected.dart';
 import '../../exceptions/exceptions_handler.dart';
 
 class SignInRegisterFormPage extends StatelessWidget {
@@ -20,13 +22,40 @@ class SignInRegisterFormPage extends StatelessWidget {
 
 class FormWidget extends StatelessWidget {
   //NOTE1: Creating a  ReactiveModel key for email with empty initial value
-  final _emailRM = RMKey('');
+  final _email = RM.inject<String>(
+    () => '',
+    middleSnapState: (middleSnap) {
+      //
+      if (middleSnap.nextSnap.hasData) {
+        if (!Validators.isValidEmail(middleSnap.nextSnap.data)) {
+          return middleSnap.nextSnap.copyToHasError(
+            ValidationException('Enter a valid email'),
+          );
+        }
+      }
+      return middleSnap.nextSnap;
+    },
+  );
+
   //NOTE1: Creating a  ReactiveModel key for password with empty initial value
-  final _passwordRM = RMKey('');
+  final _password = RM.inject<String>(
+    () => '',
+    middleSnapState: (middleSnap) {
+      //
+      if (middleSnap.nextSnap.hasData) {
+        if (!Validators.isValidPassword(middleSnap.nextSnap.data)) {
+          return middleSnap.nextSnap.copyToHasError(
+            ValidationException('Enter a valid password'),
+          );
+        }
+      }
+      return middleSnap.nextSnap;
+    },
+  );
   //NOTE1: Creating a  ReactiveModel key for isRegister with false initial value
-  final _isRegisterRM = RMKey(false);
+  final _isRegister = false.inj();
   //NOTE1: bool getter to check if the form is valid
-  bool get _isFormValid => _emailRM.hasData && _passwordRM.hasData;
+  bool get _isFormValid => _email.hasData && _password.hasData;
 
   @override
   Widget build(BuildContext context) {
@@ -34,137 +63,98 @@ class FormWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        WhenRebuilderOr(
-          //NOTE2: create and subscribe to local ReactiveModel of empty string
-          observe: () => RM.create(''),
-          //NOTE3: couple this StateBuilder with the email ReactiveModel key
-          rmKey: _emailRM,
-          builder: (_, __) {
-            return TextField(
-              decoration: InputDecoration(
-                icon: Icon(Icons.email),
-                labelText: 'Email',
-                //NOTE4: Delegate to ExceptionsHandler.errorMessage for error handling
-                errorText:
-                    ExceptionsHandler.errorMessage(_emailRM.error).message,
-              ),
-              keyboardType: TextInputType.emailAddress,
-              autocorrect: false,
-              onChanged: (email) {
-                //NOTE5: set the state of email and notify observers
-                _emailRM.setState(
-                  (_) => Email(email).value,
-                  catchError: true,
-                );
-              },
-            );
-          },
-        ),
-        WhenRebuilderOr(
-          observe: () => RM.create(''),
-          rmKey: _passwordRM,
-          builder: (_, __) {
-            return TextField(
-              decoration: InputDecoration(
-                icon: Icon(Icons.lock),
-                labelText: 'Password',
-                errorText:
-                    ExceptionsHandler.errorMessage(_passwordRM.error).message,
-              ),
-              obscureText: true,
-              autocorrect: false,
-              onChanged: (password) {
-                _passwordRM.setState(
-                  (_) => Password(password).value,
-                  catchError: true,
-                );
-              },
-            );
-          },
-        ),
+        On(
+          () => TextField(
+            decoration: InputDecoration(
+              icon: Icon(Icons.email),
+              labelText: 'Email',
+              //NOTE4: Delegate to ExceptionsHandler.errorMessage for error handling
+              errorText: ExceptionsHandler.errorMessage(_email.error).message,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            autocorrect: false,
+            onChanged: (email) {
+              //NOTE5: set the state of email and notify observers
+              _email.state = email;
+            },
+          ),
+        ).listenTo(_email),
+        On(
+          () => TextField(
+            decoration: InputDecoration(
+              icon: Icon(Icons.lock),
+              labelText: 'Password',
+              errorText:
+                  ExceptionsHandler.errorMessage(_password.error).message,
+            ),
+            obscureText: true,
+            autocorrect: false,
+            onChanged: (password) {
+              _password.state = password;
+            },
+          ),
+        ).listenTo(_password),
         SizedBox(height: 10),
-        StateBuilder(
-            observe: () => RM.create(false),
-            rmKey: _isRegisterRM,
-            builder: (_, __) {
-              return Row(
-                children: <Widget>[
-                  Checkbox(
-                    value: _isRegisterRM.state,
-                    onChanged: (value) {
-                      _isRegisterRM.setState((_) => value);
-                    },
-                  ),
-                  Text(' I do not have an account')
-                ],
-              );
-            }),
-        StateBuilder<UserService>(
-            //NOTE6: subscribe to all the ReactiveModels
-            //_emailRM, _passwordRM: to activate/deactivate the button if the form is valid/non valid
-            //_isRegisterRM: to toggle the button text between Register and sing in depending on the checkbox value
-            //userServiceRM: To show CircularProgressIndicator is the state is waiting
-            observeMany: [
-              () => _emailRM,
-              () => _passwordRM,
-              () => _isRegisterRM,
-              () => RM.get<UserService>().asNew('signInRegisterForm'),
+        On(
+          () => Row(
+            children: <Widget>[
+              Checkbox(
+                value: _isRegister.state,
+                onChanged: (value) {
+                  _isRegister.state = value;
+                },
+              ),
+              Text(' I do not have an account')
             ],
-            shouldRebuild: (_) => true,
-            //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
-            builder: (_, userServiceRM) {
-              if (userServiceRM.isWaiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-              return RaisedButton(
-                  //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
-                  child:
-                      _isRegisterRM.state ? Text('Register') : Text('Sign in'),
-                  //NOTE8: activate/deactivate the button if the form is valid/non valid
-                  onPressed: _isFormValid
-                      ? () {
-                          userServiceRM.setState(
-                            (s) async {
-                              //NOTE9: If _isRegisterRM.state is true call createUserWithEmailAndPassword,
-                              if (_isRegisterRM.state) {
-                                return s.createUserWithEmailAndPassword(
-                                  _emailRM.state,
-                                  _passwordRM.state,
-                                );
-                              } else {
-                                //NOTE9: If _isRegisterRM.state is true call signInWithEmailAndPassword,
-                                return s.signInWithEmailAndPassword(
-                                  _emailRM.state,
-                                  _passwordRM.state,
-                                );
-                              }
-                            },
-                            //we want to notify the local new ReactiveModel created bellow
-                            notifyAllReactiveInstances: true,
-                            onData: (_, __) {
-                              Navigator.pop(context);
-                            },
-                            catchError: true,
+          ),
+        ).listenTo(_isRegister),
+        OnCombined(
+          (_) {
+            if (user.isWaiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return RaisedButton(
+                //NOTE8: toggle the button text between 'Register' and 'Sign in' depending on the checkbox value
+                child: _isRegister.state ? Text('Register') : Text('Sign in'),
+                //NOTE8: activate/deactivate the button if the form is valid/non valid
+                onPressed: _isFormValid
+                    ? () async {
+                        if (_isRegister.state) {
+                          await user.auth.signUp(
+                            (_) => UserParam(
+                              signUp: SignUp.withEmailAndPassword,
+                              email: _email.state,
+                              password: _password.state,
+                            ),
+                          );
+                        } else {
+                          await user.auth.signIn(
+                            (_) => UserParam(
+                              signIn: SignIn.withEmailAndPassword,
+                              email: _email.state,
+                              password: _password.state,
+                            ),
                           );
                         }
-                      : null);
-            }),
-        StateBuilder<UserService>(
-          //we created a local new ReactiveModel form the global registered ReactiveModel
-          observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
-          builder: (_, userServiceRM) {
+                        RM.navigate.back();
+                      }
+                    : null);
+          },
+        ).listenTo([_email, _password, _isRegister, user]),
+        On(
+          () {
             //NOTE10: Display an error message telling the user what goes wrong.
-            if (userServiceRM.hasError) {
+            if (user.hasError) {
               return Center(
                 child: Text(
-                  ExceptionsHandler.errorMessage(userServiceRM.error).message,
+                  ExceptionsHandler.errorMessage(user.error).message,
                   style: TextStyle(color: Colors.red),
                 ),
               );
             }
             return Text('');
           },
-        ),
+        ).listenTo(user),
       ],
     );
   }

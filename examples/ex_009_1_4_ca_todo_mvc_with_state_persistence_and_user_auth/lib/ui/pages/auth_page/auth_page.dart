@@ -1,10 +1,15 @@
-import '../../injected/injected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../../data_source/firebase_auth_repository.dart';
+import '../../../domain/common/extensions.dart';
+import '../../../domain/entities/user.dart';
 import '../../../domain/value_object/email.dart';
 import '../../../domain/value_object/password.dart';
 import '../../../ui/exceptions/error_handler.dart';
+import '../home_screen/home_screen.dart';
+
+part 'injected_user.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({Key key}) : super(key: key);
@@ -22,9 +27,9 @@ class AuthPage extends StatelessWidget {
 }
 
 class AuthFormWidget extends StatelessWidget {
-  final _email = RM.inject(() => '');
-  final _password = RM.inject(() => '');
-  final _isRegister = RM.inject(() => false);
+  final _email = ''.inj();
+  final _password = ''.inj();
+  final _isRegister = false.inj();
 
   bool get _isFormValid => _email.hasData && _password.hasData;
 
@@ -34,8 +39,8 @@ class AuthFormWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _email.whenRebuilderOr(
-          builder: () => TextField(
+        On(
+          () => TextField(
             key: Key('__EmailField__'),
             decoration: InputDecoration(
               icon: Icon(Icons.email),
@@ -47,13 +52,12 @@ class AuthFormWidget extends StatelessWidget {
             onChanged: (email) {
               _email.setState(
                 (_) => Email(email).value,
-                catchError: true,
               );
             },
           ),
-        ),
-        _password.whenRebuilderOr(
-          builder: () => TextField(
+        ).listenTo(_email),
+        On(
+          () => TextField(
             key: Key('__PasswordField__'),
             decoration: InputDecoration(
               icon: Icon(Icons.lock),
@@ -65,13 +69,12 @@ class AuthFormWidget extends StatelessWidget {
             onChanged: (password) {
               _password.setState(
                 (_) => Password(password).value,
-                catchError: true,
               );
             },
           ),
-        ),
+        ).listenTo(_password),
         SizedBox(height: 10),
-        _isRegister.rebuilder(
+        On.data(
           () => Row(
             children: <Widget>[
               Checkbox(
@@ -83,9 +86,9 @@ class AuthFormWidget extends StatelessWidget {
               Text(' I do not have an account')
             ],
           ),
-        ),
-        [_email, _password, _isRegister, user].whenRebuilderOr(
-          builder: () {
+        ).listenTo(_isRegister),
+        OnCombined(
+          (_) {
             if (user.isWaiting) {
               return Center(child: CircularProgressIndicator());
             }
@@ -93,25 +96,27 @@ class AuthFormWidget extends StatelessWidget {
               child: _isRegister.state ? Text('Register') : Text('Sign in'),
               onPressed: _isFormValid
                   ? () {
-                      user.setState(
-                        (_) {
-                          if (_isRegister.state) {
-                            return user.state.signUp(
-                              _email.state,
-                              _password.state,
-                            );
-                          } else {
-                            return user.state.login(
-                              _email.state,
-                              _password.state,
-                            );
-                          }
-                        },
-                      );
+                      if (_isRegister.state) {
+                        return user.auth.signUp(
+                          (_) => UserParam(
+                            email: _email.state,
+                            password: _password.state,
+                          ),
+                        );
+                      } else {
+                        return user.auth.signIn(
+                          (_) => UserParam(
+                            email: _email.state,
+                            password: _password.state,
+                          ),
+                        );
+                      }
                     }
                   : null,
             );
           },
+        ).listenTo(
+          [_email, _password, _isRegister, user],
         ),
       ],
     );

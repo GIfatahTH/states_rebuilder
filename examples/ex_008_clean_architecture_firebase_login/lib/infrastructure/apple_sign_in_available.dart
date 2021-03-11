@@ -1,9 +1,14 @@
 import 'package:apple_sign_in/apple_sign_in.dart';
 
-import '../service/interfaces/i_apple_sign_in_available.dart';
-
-class AppleSignInChecker implements IAppleSignInChecker {
+class AppleSignInChecker {
   Future<bool> check() async {
     return await AppleSignIn.isAvailable();
+  }
+}
+
+class FakeAppleSignInChecker implements AppleSignInChecker {
+  Future<bool> check() async {
+    await Future.delayed(Duration(seconds: 1));
+    return true;
   }
 }

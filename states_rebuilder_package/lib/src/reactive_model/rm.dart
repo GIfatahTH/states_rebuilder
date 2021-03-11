@@ -1,164 +1,203 @@
 part of '../reactive_model.dart';
 
-///
 abstract class RM {
-  ///Create a [ReactiveModel] from primitives or any object
-  static ReactiveModel<T> create<T>(T model) {
-    final T _model = model;
-    return ReactiveModel<T>.create(_model);
-  }
-
-  ///Create a [ReactiveModel] from callback. It's like [create] with the difference
-  ///that when [ReactiveModel.refresh] is called, an updated value is obtained.
-  ///
-  ///Useful with [ReactiveModel.refresh] method.
-  static ReactiveModel<T> createFromCallback<T>(T Function() creationFunction) {
-    return Inject<T>(creationFunction).getReactive();
-  }
+  RM._();
 
   ///Functional injection of a primitive, enum or object.
   ///
-  ///* Required parameters:
-  ///  * [creationFunction]:  (positional parameter) a callback that
+  ///* **Required parameters:**
+  ///  * **creator**:  (positional parameter) a callback that
   /// creates an instance of the injected object
-  /// * optional parameters:
-  ///   * [onInitialized]: Callback to be executed after the injected model is first created.
-  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
-  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model is in the awaiting state.
-  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with data.
-  ///   * [onError]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with error.
-  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  /// {@template injectOptionalParameter}
+  /// * **Optional parameters:**
+  ///   * **initialState**: Initial state. If not defined, it will be inferred.
+  /// (int: 0, double: 0.0, String: '', bool: false, Other objects: The first
+  /// created instance)
+  ///   * **onInitialized**: Callback to be executed after the injected model
+  /// is first created.
+  ///   * **onDisposed**: Callback to be executed after the injected model is
+  /// removed.
+  ///   * **onWaiting**: Callback to be executed each time the [ReactiveModel]
+  /// associated with the injected model is in the awaiting state.
+  ///   * **onData**: Callback to be executed each time the [ReactiveModel]
+  /// associated with the injected model emits a notification with data.
+  ///   * **onError**: Callback to be executed each time the [ReactiveModel]
+  /// associated with the injected model emits a notification with error.
+  ///   * **dependsOn**: The other [Injected] models this Injected depends on.
+  /// It takes an instance of [DependsOn] object.
+  ///   * **undoStackLength**: the length of the undo/redo stack. If not
+  /// defined, the undo/redo is disabled.
+  ///   * **persist**: If defined the state of this Injected will be persisted.
+  /// It takes A callback that returns an instance of [PersistState].
+  ///   * **autoDisposeWhenNotUsed**: Whether to auto dispose the injected
+  /// model when no longer used (listened to).
   /// The default value is true.
-  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
-  ///   * [debugPrintWhenNotifiedPreMessage]: if not null, print an informative message when this model is notified in the debug mode.
-  /// The entered message will pré-append the debug message. Useful if the type of the injected model is primitive to distinguish
+  ///   * **isLazy**: By default models are lazily injected; that is not
+  /// instantiated until first used.
+  ///   * **debugPrintWhenNotifiedPreMessage**: if not null, print an
+  /// informative message when this model is notified in the debug mode. The
+  /// entered message will pré-append the debug message. Useful if the type of
+  /// the injected model is primitive to distinguish
+  /// {@endtemplate}
   static Injected<T> inject<T>(
-    T Function() creationFunction, {
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    void Function() onWaiting,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
+    T Function() creator, {
+    T? initialState,
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    void Function()? onWaiting,
+    void Function(T s)? onData,
+    On<void>? onSetState,
+    void Function(dynamic e, StackTrace? s)? onError,
+    //
+    DependsOn<T>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
     bool autoDisposeWhenNotUsed = true,
-    int undoStackLength,
-    PersistState<T> Function() persist,
-    String debugPrintWhenNotifiedPreMessage,
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
+    assert(
+      T != dynamic && T != Object,
+      'Type can not be inferred, please declare it explicitly',
+    );
+
     return InjectedImp<T>(
-      creationFunction,
-      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-      onData: onData,
-      onError: onError,
-      onWaiting: onWaiting,
+      creator: (_) => creator(),
+      nullState: initialState,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
+      onWaiting: onWaiting,
+      onData: onData,
+      onError: onError,
+      on: onSetState,
+      //
+      dependsOn: dependsOn,
       undoStackLength: undoStackLength,
-      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+
+      middleSnapState: middleSnapState,
     );
   }
 
   ///Functional injection of a [Future].
   ///
-  ///* Required parameters:
-  ///  * [creationFunction]:  (positional parameter) a callback that return a [Future].
-  /// * optional parameters:
-  ///   * [onInitialized]: Callback to be executed after the
-  /// injected model is first created.
-  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
-  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model is in the awaiting state.
-  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with data.
-  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with error.
-  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
-  /// The default value is true.
-  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
-  ///   * [initialValue]: Initial value of the Future.
-  ///   * [isLazy]: Whether to lazily invoke the Future. Default value is true.
+  ///* **Required parameters:**
+  ///  * [creator]:  (positional parameter) a callback that return a [Future].
+  /// {@macro injectOptionalParameter}
   static Injected<T> injectFuture<T>(
-    Future<T> Function() creationFunction, {
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    void Function() onWaiting,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
+    Future<T> Function() creator, {
+    T? initialState,
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    void Function()? onWaiting,
+    void Function(T s)? onData,
+    void Function(dynamic e, StackTrace? s)? onError,
+    On<void>? onSetState,
+
+    //
+    DependsOn<T>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
     bool autoDisposeWhenNotUsed = true,
-    int undoStackLength,
-    PersistState<T> Function() persist,
-    T initialValue,
     bool isLazy = true,
-    String debugPrintWhenNotifiedPreMessage,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
-    return InjectedFuture<T>(
-      creationFunction,
-      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-      onData: onData,
-      onError: onError,
-      onWaiting: onWaiting,
+    assert(
+      T != dynamic && T != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
+    return InjectedImp<T>(
+      creator: (_) => creator(),
+      initialValue: initialState,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
-      isLazy: isLazy,
-      initialValue: initialValue,
+      onWaiting: onWaiting,
+      onData: onData,
+      onError: onError,
+      on: onSetState,
+      //
+      dependsOn: dependsOn,
       undoStackLength: undoStackLength,
       persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+
+      middleSnapState: middleSnapState,
     );
   }
 
   ///Functional injection of a [Stream].
   ///
-  ///* Required parameters:
-  ///  * [creationFunction]:  (positional parameter) a callback that return a [Stream].
-  /// * optional parameters:
-  ///   * [onInitialized]: Callback to be executed after the
-  /// injected model is first created.
-  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
-  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model is in the awaiting state.
-  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with data.
-  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with error.
-  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
-  /// The default value is true.
-  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
-  ///   * [initialValue]: Initial value of the Future.
-  ///   * [isLazy]: Whether to lazily invoke the Future. Default value is true.
-  ///   * [watch]: callback to determine the parameter to watch and do not emit a notification
-  /// unless they changed.
+  ///* **Required parameters:**
+  ///  * [creator]:  (positional parameter) a callback that return a [Stream].
+  /// {@macro injectOptionalParameter}
+  ///   * **watch**: Object to watch its change, and do not notify listener if
+  /// not changed after the stream emits data.
   static Injected<T> injectStream<T>(
-    Stream<T> Function() creationFunction, {
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    void Function() onWaiting,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
+    Stream<T> Function() creator, {
+    T? initialState,
+    void Function(T s, StreamSubscription subscription)? onInitialized,
+    void Function(T s)? onDisposed,
+    void Function()? onWaiting,
+    void Function(T s)? onData,
+    void Function(dynamic e, StackTrace? s)? onError,
+    On<void>? onSetState,
+
+    //
+    DependsOn<T>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
     bool autoDisposeWhenNotUsed = true,
-    int undoStackLength,
-    T initialValue,
     bool isLazy = true,
-    Function(T s) watch,
-    String debugPrintWhenNotifiedPreMessage,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+
+    //
+    Object? Function(T? s)? watch,
   }) {
-    return InjectedStream<T>(
-      creationFunction,
+    assert(
+      T != dynamic && T != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
+    InjectedImp<T>? inj;
+    inj = InjectedImp<T>(
+      creator: (_) => creator(),
+      initialValue: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onInitialized: onInitialized,
+      on: onSetState,
+      onInitialized: onInitialized != null
+          ? (s) => onInitialized(s, inj!.subscription!)
+          : null,
       onDisposed: onDisposed,
-      isLazy: isLazy,
       watch: watch,
-      initialValue: initialValue,
+      dependsOn: dependsOn,
       undoStackLength: undoStackLength,
+      persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      middleSnapState: middleSnapState,
+      isLazy: isLazy,
     );
+    return inj;
   }
 
   ///Functional injection of flavors (environments).
@@ -166,205 +205,538 @@ abstract class RM {
   ///* Required parameters:
   ///  * [impl]:  (positional parameter) Map of the implementations of the interface.
   /// * optional parameters:
-  ///   * [onInitialized]: Callback to be executed after the
-  /// injected model is first created.
-  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
-  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model is in the awaiting state.
-  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with data.
-  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with error.
-  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
-  /// The default value is true.
-  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
-  ///   * [initialValue]: Initial value of the Future.
-  ///   * [isLazy]: Whether to lazily execute the impl callback. Default value is true.
+  /// {@macro injectOptionalParameter}
   static Injected<T> injectFlavor<T>(
     Map<dynamic, FutureOr<T> Function()> impl, {
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    void Function() onWaiting,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
+    T? initialState,
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    void Function()? onWaiting,
+    void Function(T s)? onData,
+    void Function(dynamic e, StackTrace? s)? onError,
+    On<void>? onSetState,
+
+    //
+    DependsOn<T>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
     bool autoDisposeWhenNotUsed = true,
-    int undoStackLength,
-    T initialValue,
     bool isLazy = true,
-    String debugPrintWhenNotifiedPreMessage,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    void Function(SnapState snapState)? debugNotification,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
   }) {
-    return InjectedInterface<T>(
-      impl,
+    assert(
+      T != dynamic && T != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
+    return InjectedImp<T>(
+      creator: (_) {
+        _envMapLength ??= impl.length;
+        assert(RM.env != null, '''
+You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
+    ''');
+        assert(impl[env] != null, '''
+There is no implementation for $env of $T interface
+    ''');
+        assert(impl.length == _envMapLength, '''
+You must be consistent about the number of flavor environment you have.
+you had $_envMapLength flavors and you are defining ${impl.length} flavors.
+    ''');
+        return impl[env]!();
+      },
+      initialValue: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       onData: onData,
       onError: onError,
       onWaiting: onWaiting,
+      on: onSetState,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
-      initialValue: initialValue,
+      // watch: watch,
+      dependsOn: dependsOn,
       undoStackLength: undoStackLength,
-      isLazy: isLazy,
+      persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+
+      middleSnapState: middleSnapState,
+      isLazy: isLazy,
     );
   }
 
-  ///Functional injection of a computed model.
-  ///
-  ///The model
+  ///Functional injection of a state that can create, read, update and
+  ///delete from a backend or database service.
   ///
   ///* Required parameters:
-  ///  * [impl]:  (positional parameter) Map of the implementations of the interface.
-  /// * optional parameters:
-  ///   * [onInitialized]: Callback to be executed after the
-  /// injected model is first created.
-  ///   * [onDisposed]: Callback to be executed after the injected model is removed.
-  ///   * [onWaiting]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model is in the awaiting state.
-  ///   * [onData]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with data.
-  ///   * [error]: Callback to be executed each time the [ReactiveModel] associated with the injected
-  /// model emits a notification with error.
-  ///   * [autoDisposeWhenNotUsed]: Whether to auto dispose the injected model when no longer used (listened to).
+  ///  * **repository**:  (positional parameter) Repository that implements
+  /// the ICRUD<T,P> interface, where T is the Type of the state, and P is
+  /// the type of the param to be used when querying the backend service.
+  ///
+  /// * **Optional parameters:**
+  ///   * **param**: Default param to be used when querying the database.
+  /// It can be overridden when calling create, read, update and delete
+  /// methods
+  ///   * **readOnInitialization**: If true a read query with the default
+  /// param will se sent to the backend service once the state is initialized.
+  /// You can set it to false and intentionally call read method the time you
+  /// want.
+  /// {@template customInjectOptionalParameter}
+  ///   * **onInitialized**: Callback to be executed after the injected model
+  /// is first created.
+  ///   * **onDisposed**: Callback to be executed after the injected model is
+  /// removed.
+  ///   * **dependsOn**: The other [Injected] models this Injected depends on.
+  /// It takes an instance of [DependsOn] object.
+  ///   * **undoStackLength**: the length of the undo/redo stack. If not
+  /// defined, the undo/redo is disabled.
+  ///   * **persist**: If defined the state of this Injected will be persisted.
+  /// It takes A callback that returns an instance of [PersistState].
+  ///   * **autoDisposeWhenNotUsed**: Whether to auto dispose the injected
+  /// model when no longer used (listened to).
   /// The default value is true.
-  ///   * [undoStackLength]: the length of the undo/redo stack. If not defined, the undo/redo is disabled.
-  ///   * [initialValue]: Initial value of the Future.
-  ///   * [isLazy]: Whether to lazily execute the compute method. Default value is true.
-  static Injected<T> injectComputed<T>({
-    T Function(T s) compute,
-    List<Injected<dynamic>> asyncDependsOn,
-    Stream<T> Function(T s) computeAsync,
+  ///   * **isLazy**: By default models are lazily injected; that is not
+  /// instantiated until first used.
+  ///   * **debugPrintWhenNotifiedPreMessage**: if not null, print an
+  /// informative message when this model is notified in the debug mode. The
+  /// entered message will pré-append the debug message. Useful if the type of
+  /// the injected model is primitive to distinguish
+  /// {@endtemplate}
+  static InjectedCRUD<T, P> injectCRUD<T, P>(
+    ICRUD<T, P> Function() repository, {
+    P Function()? param,
+    bool readOnInitialization = false,
+    void Function(List<T> s)? onInitialized,
+    void Function(List<T> s)? onDisposed,
+    _OnCRUD<void>? onCRUD,
+    On<void>? onSetState,
+    //
+    DependsOn<List<T>>? dependsOn,
+    int undoStackLength = 0,
+    PersistState<List<T>> Function()? persist,
+    //
     bool autoDisposeWhenNotUsed = true,
-    void Function(T s) onData,
-    void Function(dynamic e, StackTrace s) onError,
-    void Function() onWaiting,
-    void Function(T s) onInitialized,
-    void Function(T s) onDisposed,
-    T initialState,
-    bool Function(T s) shouldCompute,
-    int undoStackLength,
     bool isLazy = true,
-    String debugPrintWhenNotifiedPreMessage,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    SnapState<List<T>>? Function(MiddleSnapState<List<T>> middleSnap)?
+        middleSnapState,
   }) {
-    return InjectedComputed<T>(
-      compute: compute,
-      computeAsync: computeAsync,
-      asyncDependsOn: asyncDependsOn,
-      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-      onData: onData,
-      onError: onError,
-      onWaiting: onWaiting,
-      initialState: initialState,
-      shouldCompute: shouldCompute,
+    assert(
+      T != dynamic && T != Object,
+      'Type can not be inferred, please declare it explicitly',
+    );
+
+    late InjectedCRUD<T, P> inj;
+    inj = InjectedCRUD<T, P>(
+      creator: () {
+        if (!inj._isFirstInitialized) {
+          final fn = () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          };
+          inj._crud = _CRUDService(fn(), inj);
+        }
+        if (!inj._isFirstInitialized && !(readOnInitialization)) {
+          return <T>[];
+        } else {
+          return () async {
+            final _repo = await inj._crud!._repository;
+            final l = await _repo.read(param?.call());
+            return [...l];
+          }();
+        }
+      },
+      initialState: <T>[],
+      param: param,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
+      onCRUD: onCRUD,
+      onSetState: onSetState,
+      //
+      dependsOn: dependsOn,
       undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
+      middleSnapState: middleSnapState,
     );
+    inj.._readOnInitialization = readOnInitialization;
+    return inj;
   }
 
-  ///Clean and dispose all Injected model;
+  ///Functional injection of a state that can authenticate and authorize
+  ///a user.
   ///
-  ///Although Injected models are auto cleaned, sometimes, we need to
-  ///manually clean the Injected models especially in tests.
-  static void disposeAll() {
-    cleanInjector();
+  ///* Required parameters:
+  ///  * **repository**:  (positional parameter) Repository that implements
+  /// the IAuth<T, P> interface, where T is the Type of the user, and P is
+  /// the type of the param to be used when querying the backend service.
+  ///  * **unsignedUser**:  (named parameter) An object that represents an
+  /// unsigned user. It must be of type T.
+  ///
+  /// * **Optional parameters:**
+  ///   * **param**: Default param to be used for authentication.
+  /// It can be overridden when calling signUp, signIn and signOut
+  /// methods
+  ///   * **onSigned**: Callback to be called when a user is signed. This
+  /// is the right place to navigate to a user related page.
+  ///   * **onUnsigned**: Callback to be called when a user is unsigned or
+  /// signed out. This is the right place to navigate to authentication page.
+  ///   * **autoSignOut**: Callback that exposes the current signed user and
+  /// returns a duration after which the user is automatically signed out.
+  ///   * **authenticateOnInit**: Whether to authenticate the
+  /// {@macro customInjectOptionalParameter}
+  static InjectedAuth<T, P> injectAuth<T, P>(
+    IAuth<T, P> Function() repository, {
+    required T unsignedUser,
+    P Function()? param,
+    void Function(T s)? onSigned,
+    void Function()? onUnsigned,
+    Duration Function(T auth)? autoSignOut,
+    FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
+    //
+    void Function(T s)? onInitialized,
+    void Function(T s)? onDisposed,
+    On<void>? onSetState,
+    //
+    //DependsOn<T>? dependsOn,
+    //int undoStackLength = 0,
+    PersistState<T> Function()? persist,
+    //
+    bool autoDisposeWhenNotUsed = false,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+  }) {
+    assert(
+      T != dynamic && T != Object,
+      'Type can not be inferred, please declare it explicitly',
+    );
+
+    late InjectedAuth<T, P> inj;
+    inj = InjectedAuth<T, P>(
+      creator: () {
+        if (!inj._isFirstInitialized) {
+          final fn = () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          };
+
+          inj._auth = _AuthService(fn(), inj);
+        }
+        return unsignedUser;
+      },
+      initialState: unsignedUser,
+      autoSignOut: autoSignOut,
+      param: param,
+      onInitialized: (s) async {
+        inj._auth ??= _AuthService(
+          () async {
+            final repo = repository();
+            await repo.init();
+            return repo;
+          }(),
+          inj,
+        );
+
+        if (onAuthStream != null) {
+          inj._coreRM._setToIsWaiting(
+            infoMessage: 'AuthStateChange',
+          );
+          final repo = await inj._auth!._repository;
+          final Stream<T> stream = await onAuthStream(repo);
+          StreamSubscription<T>? subscription = stream.listen(
+            (data) {
+              inj.state = data;
+            },
+            onError: (e, s) {
+              inj.state = inj._initialState!;
+              inj._coreRM._setToHasError(e, s, onErrorRefresher: () {});
+            },
+          );
+          inj.addToCleaner(
+            () {
+              subscription?.cancel();
+              subscription = null;
+            },
+          );
+        }
+
+        //If it is mocked using injectMock,
+        //Do not invoke onSigned and onUnSigned
+        if (inj.isIdle && !inj._isInjectMock) {
+          if (inj.state != inj._initialState) {
+            if (autoSignOut != null) {
+              inj._auth!._autoSignOut();
+              // inj._auth!.autoSignOut(autoSignOut(inj._state!));
+            }
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onSigned?.call(inj._state!),
+            );
+          } else {
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onUnsigned?.call(),
+            );
+          }
+        }
+        onInitialized?.call(s);
+      },
+      onDisposed: (s) {
+        inj._auth!._cancelTimer();
+        onDisposed?.call(s);
+      },
+      onSetState: onSetState,
+      onAuthenticated: onSigned,
+      onSignOut: onUnsigned,
+      //
+      //dependsOn: dependsOn,
+      //undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      // autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
+      middleSnapState: middleSnapState,
+    );
+
+    return inj;
   }
 
-  ///Create a [ReactiveModel] from future.
-  static ReactiveModel<T> future<T>(
-    Future<T> future, {
-    dynamic name,
-    T initialValue,
-    List<dynamic> filterTags,
+  ///{@template injectedTheme}
+  ///Functional injection of a state that handle app theme switching.
+  ///
+  ///* Required parameters:
+  ///  * **lightThemes**:  Map of light themes the app supports. The keys of
+  /// the Map are the names of the themes. They can be String or enumeration
+  ///
+  /// * **Optional parameters:**
+  ///  * **darkThemes**:  Map of dark themes the app supports. There should
+  /// be a correspondence between light and dark themes. Nevertheless, you
+  /// can have light themes with no corresponding dark one.
+  ///  * **themeMode**: the theme Mode the app should start with.
+  ///  * **persistKey**: If defined the app theme is persisted to a local
+  /// storage. The persisted theme will be used on app restarting.
+  /// {@endtemplate}
+  /// {@macro customInjectOptionalParameter}
+  static InjectedTheme<Key> injectTheme<Key>({
+    required Map<Key, ThemeData> lightThemes,
+    Map<Key, ThemeData>? darkThemes,
+    ThemeMode themeMode = ThemeMode.system,
+    String? persistKey,
+    //
+    void Function(Key s)? onInitialized,
+    void Function(Key s)? onDisposed,
+    On<void>? onSetState,
+    //
+    DependsOn<Key>? dependsOn,
+    int undoStackLength = 0,
+    //
+    bool autoDisposeWhenNotUsed = true,
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    SnapState<Key>? Function(MiddleSnapState<Key> middleSnap)? middleSnapState,
   }) {
-    return ReactiveModel<T>.future(
-      future,
-      name: name,
-      initialValue: initialValue,
-      filterTags: filterTags,
-    );
-  }
+    PersistState<Key> Function()? persist;
+    late InjectedTheme<Key> inj;
+    if (persistKey != null) {
+      persist = () => PersistState(
+            key: persistKey,
+            fromJson: (json) {
+              ///json is of the form key#|#1
+              final s = json.split('#|#');
+              assert(s.length <= 2);
+              final Key key = lightThemes.keys.firstWhere(
+                (k) => s.first == '$k',
+                orElse: () => lightThemes.keys.first,
+              );
+              //
 
-  ///Create a [Stream] from future.
-  static ReactiveModel<T> stream<T>(
-    Stream<T> stream, {
-    dynamic name,
-    T initialValue,
-    List<dynamic> filterTags,
-    Object Function(T) watch,
-  }) {
-    return ReactiveModel<T>.stream(
-      stream,
-      name: name,
-      initialValue: initialValue,
-      filterTags: filterTags,
-      watch: watch,
-    );
-  }
+              if (s.last == '0') {
+                inj._themeMode = ThemeMode.light;
+              } else if (s.last == '1') {
+                inj._themeMode = ThemeMode.dark;
+              } else {
+                inj._themeMode = ThemeMode.system;
+              }
+              return key;
+            },
+            toJson: (key) {
+              String th = '';
+              if (inj._themeMode == ThemeMode.light) {
+                th = '0';
+              } else if (inj._themeMode == ThemeMode.dark) {
+                th = '1';
+              }
 
-  ///Get the [ReactiveModel] singleton of an injected model.
-  static ReactiveModel<T> get<T>({
-    dynamic name,
-    bool silent,
-    BuildContext context,
-  }) {
-    final rm = Injector.getAsReactive<T>(
-      name: name,
-      silent: silent,
-    );
-    if (rm != null && context != null) {
-      rm.contextSubscription(context);
+              ///json is of the form key#|#1
+              return '$key#|#$th';
+            },
+            // debugPrintOperations: true,
+          );
     }
-    return rm;
+    inj = InjectedTheme<Key>(
+      themes: lightThemes,
+      darkThemes: darkThemes,
+      themeMode: themeMode,
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      onSetState: onSetState,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
+      middleSnapState: middleSnapState,
+    );
+    return inj;
   }
 
-  ///get the model that is sending the notification
-  static ReactiveModel get notified =>
-      StatesRebuilderInternal.getNotifiedModel();
+  ///Functional injection of a state that handle app internationalization
+  ///and localization.
+  ///
+  ///* Required parameters:
+  ///  * **i18n**:  Map of supported locales with their language translation.
+  ///
+  /// * **Optional parameters:**
+  ///  * **persistKey**: If defined the app locale is persisted to a local
+  /// storage. On app start, the stored locale will be used.
+  /// {@macro customInjectOptionalParameter}
+  static InjectedI18N<I18N> injectI18N<I18N>(
+    Map<Locale, FutureOr<I18N> Function()> selectionMap, {
+    String? persistKey,
+    //
+    void Function(I18N s)? onInitialized,
+    void Function(I18N s)? onDisposed,
+    On<void>? onSetState,
+    //
+    DependsOn<I18N>? dependsOn,
+    int undoStackLength = 0,
+    //
+    bool isLazy = true,
+    String? debugPrintWhenNotifiedPreMessage,
+    void Function(dynamic error, StackTrace stackTrace)? debugError,
+    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
+        middleSnapState,
+  }) {
+    PersistState<I18N> Function()? persist;
+    late InjectedI18N<I18N> inj;
+    if (persistKey != null) {
+      persist = () => PersistState(
+            key: persistKey,
+            fromJson: (json) {
+              final s = json.split('#|#');
+              assert(s.length <= 3);
+              if (s.first.isEmpty) {
+                return inj._getLanguage(SystemLocale());
+              }
+              final l = Locale.fromSubtags(
+                languageCode: s.first,
+                scriptCode: s.length > 2 ? s[1] : null,
+                countryCode: s.last,
+              );
 
-  static BuildContext _context;
+              return inj._getLanguage(l);
+            },
+            toJson: (_) {
+              String l = '';
+              if (inj._locale is SystemLocale) {
+                l = '#|#';
+              } else {
+                l = '${inj._resolvedLocale!.languageCode}#|#' +
+                    (inj._locale?.scriptCode != null
+                        ? '${inj._resolvedLocale!.scriptCode}#|#'
+                        : '') +
+                    '${inj._resolvedLocale!.countryCode}';
+              }
+              return l;
+            },
+            // debugPrintOperations: true,
+          );
+    }
+    inj = InjectedI18N<I18N>(
+      i18n: selectionMap,
+      //
+      onInitialized: onInitialized,
+      onDisposed: onDisposed,
+      onSetState: onSetState,
+      //
+      dependsOn: dependsOn,
+      undoStackLength: undoStackLength,
+      persist: persist,
+      //
+      isLazy: isLazy,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      debugError: debugError,
+      middleSnapState: middleSnapState,
+    );
+    return inj;
+  }
+
+  ///Static variable the holds the chosen working environment or flavour.
+  static dynamic env;
+  static int? _envMapLength;
+  //
+  // ignore: prefer_final_fields
+  static bool _printAllInitDispose = false;
+
+  static BuildContext? _context;
+  static final List<BuildContext> _contextSet = [];
+  static Disposer _addToContextSet(BuildContext context) {
+    _contextSet.add(context);
+    return () {
+      _contextSet.remove(context);
+      if (_contextSet.isEmpty) {
+        Future.microtask(
+          () => disposeAll(false),
+        );
+      }
+    };
+  }
 
   ///Get an active [BuildContext].
   ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
+  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets
+  ///context;
   ///
   ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  static BuildContext get context {
+  static BuildContext? get context {
     if (_context != null) {
       return _context;
     }
 
-    if (InjectorState.contextSet.isNotEmpty) {
-      if (InjectorState.contextSet.last?.findRenderObject()?.attached != true) {
-        InjectorState.contextSet.removeLast();
-        return context;
-      }
-      return InjectorState.contextSet.last;
+    if (_contextSet.isNotEmpty) {
+      // if (_contextSet.last.findRenderObject()?.attached != true) {
+      //   _contextSet.removeLast();
+      //   return context;
+      // }
+      return _contextSet.last;
     }
 
-    return RM.navigate._navigatorKey?.currentState?.context;
+    return RM.navigate._navigatorKey.currentState?.context;
   }
 
-  static set context(BuildContext context) {
+  static set context(BuildContext? context) {
+    if (context == null) {
+      return;
+    }
     _context = context;
-    WidgetsBinding.instance.addPostFrameCallback(
+    WidgetsBinding.instance?.addPostFrameCallback(
       (_) {
         return _context = null;
       },
     );
-  }
-
-  ///get The state for a [Navigator] widget.
-  ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
-  ///
-  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  @Deprecated('use RM.navigate instead')
-  static NavigatorState get navigator {
-    return Navigator.of(context);
   }
 
   ///Boiler-plate-less helper for Navigation and routing.
@@ -391,8 +763,9 @@ abstract class RM {
   ///* toBottomSheet => showModalBottomSheet
   ///* toCupertinoModalPopup => showCupertinoModalPopup
   ///
-  ///For any other operations you can use navigatorState getter.
+  ///For any other operations you can use [_Navigate.navigatorState] getter.
   static _Navigate navigate = _navigate;
+  static _Transitions transitions = _transitions;
 
   ///Boiler-plate-less helper for side effects that need the [ScaffoldState].
   ///
@@ -421,78 +794,39 @@ abstract class RM {
   ///equivalence:
   ///
   ///* bottomSheet => Scaffold.of(context).showBottomSheet,
-  ///* snackBar => Scaffold.of(context).showSnackBar,
+  ///* snackBar => ScaffoldMessenger.of(context).showSnackBar,
+  ///* hideCurrentSnackBar => ScaffoldMessenger.of(context).showSnackBar,
+  ///* removeCurrentSnackBarm => ScaffoldMessenger.of(context).showSnackBar,
   ///* openDrawer => Scaffold.of(context).openDrawer,
   ///* openEndDrawer => Scaffold.of(context).openEndDrawer,
   ///
-  ///For any other operations you can use scaffoldState getter.
-  static _Scaffold scaffoldShow = _scaffold;
+  ///For any other operations you can use [_Scaffold.scaffoldState] or
+  ///[_Scaffold.scaffoldMessengerState]  getter.
+  static _Scaffold scaffold = _scaffold;
 
-  ///Get the [ScaffoldState]
+  ///Initialize the default persistance provider to be used.
   ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
+  ///Called in the main method:
+  ///```dart
+  ///void main()async{
+  /// WidgetsFlutterBinding.ensureInitialized();
   ///
-  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  @Deprecated('use RM.scaffoldShow instead')
-  static ScaffoldState get scaffold {
-    return Scaffold.of(context);
-  }
-
-  ///A callBack that exposes an active [BuildContext]
+  /// await RM.storageInitializer(IPersistStoreImp());
+  /// runApp(MyApp());
+  ///}
   ///
-  ///The obtained [BuildContext] is one of the [states_rebuilder]'s widgets context;
-  ///[Injector], [StateBuilder], ... .
-  ///
-  ///For this reason you have to use at least one of [states_rebuilder]'s widgets.
-  @deprecated
-  static dynamic show(void Function(BuildContext context) fn) {
-    return fn(context);
-  }
-
-  ///if true, An informative message is printed in the consol,
-  ///showing the model being sending the Notification,
-  ///
-  ///See : [debugWidgetsRebuild], [debugError] and [debugErrorWithStackTrace]
-
-  static bool debugPrintActiveRM = false;
-
-  ///Consol log information about the widgets that have just rebuild
-  ///
-  ///See : [debugPrintActiveRM], [debugError] and [debugErrorWithStackTrace]
-  static bool debugWidgetsRebuild = false;
-
-  ///If true , print error message
-  ///
-  ///As states_rebuilder can catches errors, bu using [debugError]
-  ///you can console log them.
-  ///
-  ///Default value is false
-  ///
-  ///See : [debugPrintActiveRM], [debugWidgetsRebuild] and [debugErrorWithStackTrace]
-  static bool debugError = false;
-
-  ///If true (default), print error message and stack trace
-  ///
-  ///Default value is false
-  ///
-  ///See : [debugPrintActiveRM], [debugWidgetsRebuild] and [debugError]
-  static bool debugErrorWithStackTrace = false;
-
-  static void Function(dynamic e, StackTrace s) errorLog;
-
-  ///Initialize the default persistance provider to be used
+  ///```
   ///
   ///This is considered as the default storage provider. It can be overridden
   ///with [PersistState.persistStateProvider]
   ///
   ///For test use [RM.storageInitializerMock].
-  static Future<void> storageInitializer(IPersistStore store) {
-    if (persistStateGlobal != null) {
-      return null;
+  static Future<void> storageInitializer(IPersistStore store) async {
+    if (_persistStateGlobal != null || _persistStateGlobalTest != null) {
+      return;
     }
-    persistStateGlobal = store;
-    return persistStateGlobal.init();
+    _persistStateGlobal = store;
+    return _persistStateGlobal?.init();
   }
 
   ///Initialize a mock persistance provider.
@@ -505,509 +839,43 @@ abstract class RM {
   ///  storage.clear();
   /// });
   ///```
-  static Future<PersistStoreMock> storageInitializerMock() async {
-    persistStateGlobalTest = PersistStoreMock();
-    await persistStateGlobalTest.init();
-    return (persistStateGlobalTest as PersistStoreMock);
+  static Future<_PersistStoreMock> storageInitializerMock() async {
+    _persistStateGlobalTest = _PersistStoreMock();
+    await _persistStateGlobalTest?.init();
+    return (_persistStateGlobalTest as _PersistStoreMock);
   }
 
-  @Deprecated('use storageInitializerMock instead')
-  static Future<PersistStoreMock> localStorageInitializerMock() async {
-    persistStateGlobalTest = PersistStoreMock();
-    await persistStateGlobalTest.init();
-    return (persistStateGlobalTest as PersistStoreMock);
-  }
-
-  @Deprecated('use storageInitializer instead')
-  static Future<void> localStorageInitializer(IPersistStore store) {
-    if (persistStateGlobal != null) {
-      return null;
-    }
-    persistStateGlobal = store;
-    return persistStateGlobal.init();
-  }
-}
-
-IPersistStore persistStateGlobal;
-IPersistStore persistStateGlobalTest;
-
-final _navigate = _Navigate();
-final _scaffold = _Scaffold();
-
-class _Navigate {
-  ///get the NavigatorState
-  NavigatorState get navigatorState {
-    final navigatorState = _navigatorKey.currentState;
-    assert(navigatorState != null, '''
-The MaterialApp has no defined navigatorKey.
-
-To fix:
-MaterialApp(
-   navigatorKey: RM.navigate.navigatorKey,
-   //
-   //
-)
-''');
-    return navigatorState;
-  }
-
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  GlobalKey<NavigatorState> get navigatorKey {
-    return _navigatorKey;
-  }
-
-  ///navigate to the given page.
+  ///Manually dispose all [Injected] models.
   ///
-  ///Equivalent to: [NavigatorState.push]
-  Future<T> to<T extends Object>(Widget page) {
-    return navigatorState.push<T>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
+  ///
+  static void disposeAll([bool forceDispose = true]) async {
+    _scaffold._context = null;
+    _context = null;
+
+    await Future.microtask(
+      () => {..._injectedModels}.forEach(
+        (e) {
+          if (forceDispose || e._autoDisposeWhenNotUsed) {
+            e.dispose();
+            _injectedModels.remove(e);
+          }
+        },
       ),
     );
   }
 
-  ///Navigate to the page with the given named route.
-  ///
-  ///Equivalent to: [NavigatorState.pushNamed]
-  Future<T> toNamed<T extends Object>(String routeName, {Object arguments}) {
-    return navigatorState.pushNamed<T>(
-      routeName,
-      arguments: arguments,
-    );
+  static bool? debugPrintActiveRM;
+  static void Function(SnapState)? printInjected;
+  //
+  //
+  static ReactiveModel<T> get<T>([String? name]) {
+    return Injector.getAsReactive<T>(name: name);
   }
 
-  ///Navigate to the given page, and remove the current route and replace it
-  ///with the new one.
-  ///
-  ///Equivalent to: [NavigatorState.pushReplacement]
-  Future<T> toReplacement<T extends Object, TO extends Object>(
-    Widget page, {
-    TO result,
-  }) {
-    return navigatorState.pushReplacement<T, TO>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
-      ),
-      result: result,
-    );
-  }
-
-  ///Navigate to the page with the given named route, and remove the current
-  ///route and replace it with the new one.
-  ///
-  ///Equivalent to: [NavigatorState.pushReplacementNamed]
-  Future<T> toReplacementNamed<T extends Object, TO extends Object>(
-      String routeName,
-      {TO result,
-      Object arguments}) {
-    return navigatorState.pushReplacementNamed<T, TO>(
-      routeName,
-      arguments: arguments,
-      result: result,
-    );
-  }
-
-  ///Navigate to the given page, and then remove all the previous routes until
-  ///meeting the route with defined route name [untilRouteName].
-  ///
-  ///If no route name is given ([untilRouteName] is null) , all routes will be
-  ///removed except the new page route.
-  ///
-  ///Equivalent to: [NavigatorState.pushAndRemoveUntil]
-  Future<T> toAndRemoveUntil<T extends Object>(
-    Widget page, {
-    String untilRouteName,
-  }) {
-    return navigatorState.pushAndRemoveUntil<T>(
-      MaterialPageRoute<T>(
-        builder: (_) => page,
-      ),
-      untilRouteName != null
-          ? ModalRoute.withName(untilRouteName)
-          : (r) => false,
-    );
-  }
-
-  ///Navigate to the page with the given named route (first argument), and then
-  ///remove all the previous routes until meeting the route with defined route
-  ///name [untilRouteName].
-  ///
-  ///If no route name is given ([untilRouteName] is null) , all routes will be
-  ///removed except the new page route.
-  ///
-  ///Equivalent to: [NavigatorState.pushNamedAndRemoveUntil]
-  Future<T> toNamedAndRemoveUntil<T extends Object>(String newRouteName,
-      {String untilRouteName, Object arguments}) {
-    return navigatorState.pushNamedAndRemoveUntil<T>(
-      newRouteName,
-      untilRouteName != null
-          ? ModalRoute.withName(untilRouteName)
-          : (r) => false,
-      arguments: arguments,
-    );
-  }
-
-  ///Navigate back to the last page, ie
-  ///Pop the top-most route off the navigator.
-  ///
-  ///Equivalent to: [NavigatorState.pop]
-  void back<T extends Object>([T result]) {
-    navigatorState.pop<T>(result);
-  }
-
-  ///Navigate back and remove all the previous routes until meeting the route
-  ///with defined name
-  ///
-  ///Equivalent to: [NavigatorState.popUntil]
-  void backUntil(String untilRouteName) {
-    return navigatorState.popUntil(
-      ModalRoute.withName(untilRouteName),
-    );
-  }
-
-  ///Navigate back than to the page with the given named route
-  ///
-  ///Equivalent to: [NavigatorState.popAndPushNamed]
-  Future<T> backAndToNamed<T extends Object, TO extends Object>(
-    String routeName, {
-    TO result,
-    Object arguments,
-  }) {
-    return navigatorState.popAndPushNamed<T, TO>(
-      routeName,
-      arguments: arguments,
-      result: result,
-    );
-  }
-
-  ///Displays a Material dialog above the current contents of the app, with
-  ///Material entrance and exit animations, modal barrier color, and modal
-  ///barrier behavior (dialog is dismissible with a tap on the barrier).
-  ///
-  ///* Required parameters:
-  ///  * [dialog]:  (positional parameter) Widget to display.
-  /// * optional parameters:
-  ///  * [barrierDismissible]: Whether dialog is dismissible when tapping
-  /// outside it. Default value is true.
-  ///  * [barrierColor]: the color of the modal barrier that darkens everything
-  /// the dialog. If null the default color Colors.black54 is used.
-  ///  * [useSafeArea]: Whether the dialog should only display in 'safe' areas
-  /// of the screen. Default value is true.
-  ///
-  ///Equivalent to: [showDialog].
-  Future<T> toDialog<T>(
-    Widget dialog, {
-    bool barrierDismissible = true,
-    Color barrierColor,
-    bool useSafeArea = true,
-  }) {
-    return showDialog<T>(
-      context: navigatorState.context,
-      builder: (_) => dialog,
-      barrierDismissible: barrierDismissible,
-      barrierColor: barrierColor,
-      useSafeArea: useSafeArea,
-    );
-  }
-
-  ///Displays an iOS-style dialog above the current contents of the app, with
-  ///iOS-style entrance and exit animations, modal barrier color, and modal
-  ///barrier behavior
-  ///
-  ///* Required parameters:
-  ///  * [dialog]:  (positional parameter) Widget to display.
-  /// * optional parameters:
-  ///  * [barrierDismissible]: Whether dialog is dismissible when tapping
-  /// outside it. Default value is false.
-  ///
-  ///Equivalent to: [showCupertinoDialog].
-  Future<T> toCupertinoDialog<T>(
-    Widget dialog, {
-    bool barrierDismissible = false,
-  }) {
-    return showCupertinoDialog<T>(
-      context: navigatorState.context,
-      builder: (_) => dialog,
-      barrierDismissible: barrierDismissible,
-    );
-  }
-
-  ///Shows a modal material design bottom sheet that prevents the user from
-  ///interacting with the rest of the app.
-  ///
-  ///A closely related widget is the persistent bottom sheet, which allows
-  ///the user to interact with the rest of the app. Persistent bottom sheets
-  ///can be created and displayed with the (RM.scaffoldShow.bottomSheet) or
-  ///[showBottomSheet] Methods.
-  ///
-  ///
-  ///* Required parameters:
-  ///  * [bottomSheet]:  (positional parameter) Widget to display.
-  /// * optional parameters:
-  ///  * [isDismissible]: whether the bottom sheet will be dismissed when user
-  /// taps on the scrim. Default value is true.
-  ///  * [enableDrag]: whether the bottom sheet can be dragged up and down and
-  /// dismissed by swiping downwards. Default value is true.
-  ///  * [isScrollControlled]: whether this is a route for a bottom sheet that
-  /// will utilize [DraggableScrollableSheet]. If you wish to have a bottom
-  /// sheet that has a scrollable child such as a [ListView] or a [GridView]
-  /// and have the bottom sheet be draggable, you should set this parameter
-  /// to true.Default value is false.
-  ///  * [backgroundColor], [elevation], [shape], [clipBehavior] and
-  /// [barrierColor]: used to customize the appearance and behavior of modal
-  /// bottom sheets
-  ///
-  ///Equivalent to: [showModalBottomSheet].
-  Future<T> toBottomSheet<T>(
-    Widget bottomSheet, {
-    bool isDismissible = true,
-    bool enableDrag = true,
-    bool isScrollControlled = false,
-    Color backgroundColor,
-    double elevation,
-    ShapeBorder shape,
-    Clip clipBehavior,
-    Color barrierColor,
-  }) {
-    return showModalBottomSheet<T>(
-      context: navigatorState.context,
-      builder: (_) => bottomSheet,
-      backgroundColor: backgroundColor,
-      elevation: elevation,
-      shape: shape,
-      clipBehavior: clipBehavior,
-      barrierColor: barrierColor,
-      isScrollControlled: isScrollControlled,
-      isDismissible: isDismissible,
-      enableDrag: enableDrag,
-    );
-  }
-
-  ///Shows a modal iOS-style popup that slides up from the bottom of the screen.
-  ///* Required parameters:
-  ///  * [cupertinoModalPopup]:  (positional parameter) Widget to display.
-  /// * optional parameters:
-  ///  * [filter]:
-  ///  * [semanticsDismissible]: whether the semantics of the modal barrier are
-  /// included in the semantics tree
-  Future<T> toCupertinoModalPopup<T>(
-    Widget cupertinoModalPopup, {
-    ImageFilter filter,
-    bool semanticsDismissible,
-  }) {
-    return showCupertinoModalPopup<T>(
-      context: navigatorState.context,
-      builder: (_) => cupertinoModalPopup,
-      semanticsDismissible: semanticsDismissible,
-      filter: filter,
-    );
+  static ReactiveModel<T> create<T>(T m) {
+    return ReactiveModelImp(creator: (_) => m, nullState: m);
   }
 }
 
-class _Scaffold {
-  BuildContext _context;
-
-  ScaffoldState get scaffoldState {
-    final ctx = _context ?? RM.context;
-    try {
-      return Scaffold.of(ctx);
-    } catch (e) {
-      throw Exception(
-        '''
-No valid BuildContext is defined yet
-
-  Before calling any method a decedent BuildContext of Scaffold must be set.
-  This can be done either:
-  
-  * ```dart
-     onPressed: (){
-      RM.scaffoldShow.context= context;
-      RM.scaffoldShow.bottomSheet(...);
-     }
-    ```
-  * ```dart
-     onPressed: (){
-      modelRM.setState(
-       (s)=> doSomeThing(),
-       context:context,
-       onData: (_,__){
-          RM.scaffoldShow.bottomSheet(...);
-        )
-      }
-     }
-    ```
-''',
-      );
-    }
-  }
-
-  set context(BuildContext context) => _context = context;
-
-  ///Shows a material design persistent bottom sheet in the nearest [Scaffold].
-  ///
-  ///The new bottom sheet becomes a [LocalHistoryEntry] for the enclosing
-  ///[ModalRoute] and a back button is added to the app bar of the [Scaffold]
-  ///that closes the bottom sheet.
-  ///
-  ///To create a persistent bottom sheet that is not a [LocalHistoryEntry] and
-  ///does not add a back button to the enclosing Scaffold's app bar, use the
-  ///[Scaffold.bottomSheet] constructor parameter.
-  ///
-  ///A closely related widget is a modal bottom sheet, which is an alternative
-  ///to a menu or a dialog and prevents the user from interacting with the
-  ///rest of the app. Modal bottom sheets can be created and displayed with
-  ///the [_Navigate.toBottomSheet] or [showModalBottomSheet] Methods.
-  ///
-  ///Returns a controller that can be used to close and otherwise manipulate
-  ///the bottom sheet.
-  ///
-  ///
-  ///* Required parameters:
-  ///  * [bottomSheet]:  (positional parameter) Widget to display.
-  /// * optional parameters:
-  ///  * [backgroundColor], [elevation], [shape], and [clipBehavior] : used to
-  /// customize the appearance and behavior of bottom sheet
-  ///
-  ///Equivalent to: [ScaffoldState.showBottomSheet].
-  ///
-  ///Before calling any method a decedent BuildContext of Scaffold must be set.
-  ///This can be done either:
-  ///
-  ///* ```dart
-  ///   onPressed: (){
-  ///    RM.scaffoldShow.context= context;
-  ///    RM.scaffoldShow.bottomSheet(...);
-  ///   }
-  ///  ```
-  ///* ```dart
-  ///   onPressed: (){
-  ///    modelRM.setState(
-  ///     (s)=> doSomeThing(),
-  ///     context:context,
-  ///     onData: (_,__){
-  ///        RM.scaffoldShow.bottomSheet(...);
-  ///      )
-  ///    }
-  ///   }
-  ///  ```
-  PersistentBottomSheetController<T> bottomSheet<T>(
-    Widget bottomSheet, {
-    Color backgroundColor,
-    double elevation,
-    ShapeBorder shape,
-    Clip clipBehavior,
-  }) {
-    final r = scaffoldState.showBottomSheet<T>(
-      (_) => bottomSheet,
-      backgroundColor: backgroundColor,
-      elevation: elevation,
-      shape: shape,
-      clipBehavior: clipBehavior,
-    );
-    _context = null;
-    return r;
-  }
-
-  ///Shows a [SnackBar] at the bottom of the scaffold.
-  ///
-  ///By default any current SnackBar will be hidden.
-  ///
-  ///* Required parameters:
-  ///  * [snackBar]:  (positional parameter) The SnackBar to display.
-  /// * optional parameters:
-  ///  * [hideCurrentSnackBar]: Whether to hide the current SnackBar (if any).
-  /// Default value is true.
-  ///
-  ///Equivalent to: [ScaffoldState.showSnackBar].
-  ///
-  ///Before calling any method a decedent BuildContext of Scaffold must be set.
-  ///This can be done either:
-  ///
-  ///* ```dart
-  ///   onPressed: (){
-  ///    RM.scaffoldShow.context= context;
-  ///    RM.scaffoldShow.snackBar(...);
-  ///   }
-  ///  ```
-  ///* ```dart
-  ///   onPressed: (){
-  ///    modelRM.setState(
-  ///     (s)=> doSomeThing(),
-  ///     context:context,
-  ///     onData: (_,__){
-  ///        RM.scaffoldShow.snackBar(...);
-  ///      )
-  ///    }
-  ///   }
-  ///  ```
-  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> snackBar<T>(
-    SnackBar snackBar, {
-    bool hideCurrentSnackBar = true,
-  }) {
-    if (hideCurrentSnackBar) {
-      scaffoldState.hideCurrentSnackBar();
-    }
-    final r = scaffoldState.showSnackBar(snackBar);
-    _context = null;
-    return r;
-  }
-
-  ///Opens the [Drawer] (if any).
-  ///
-  ///Before calling any method a decedent BuildContext of Scaffold must be set.
-  ///This can be done either:
-  ///
-  ///Equivalent to: [ScaffoldState.openDrawer].
-  ///
-  ///* ```dart
-  ///   onPressed: (){
-  ///    RM.scaffoldShow.context= context;
-  ///    RM.scaffoldShow.openDrawer();
-  ///   }
-  ///  ```
-  ///* ```dart
-  ///   onPressed: (){
-  ///    modelRM.setState(
-  ///     (s)=> doSomeThing(),
-  ///     context:context,
-  ///     onData: (_,__){
-  ///        RM.scaffoldShow.openDrawer();
-  ///      )
-  ///    }
-  ///   }
-  ///  ```
-  void openDrawer<T>() {
-    scaffoldState.openDrawer();
-    _context = null;
-  }
-
-  ///Opens the end side [Drawer] (if any).
-  ///
-  ///Before calling any method a decedent BuildContext of Scaffold must be set.
-  ///This can be done either:
-  ///
-  //Equivalent to: [ScaffoldState.openEndDrawer].
-  ///
-  ///* ```dart
-  ///   onPressed: (){
-  ///    RM.scaffoldShow.context= context;
-  ///    RM.scaffoldShow.openEndDrawer();
-  ///   }
-  ///  ```
-  ///* ```dart
-  ///   onPressed: (){
-  ///    modelRM.setState(
-  ///     (s)=> doSomeThing(),
-  ///     context:context,
-  ///     onData: (_,__){
-  ///        RM.scaffoldShow.openEndDrawer();
-  ///      )
-  ///    }
-  ///   }
-  ///  ```
-  void openEndDrawer<T>() {
-    scaffoldState.openEndDrawer();
-    _context = null;
-  }
-}
+IPersistStore? _persistStateGlobal;
+IPersistStore? _persistStateGlobalTest;

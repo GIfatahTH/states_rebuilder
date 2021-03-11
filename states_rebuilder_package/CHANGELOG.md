@@ -1,3 +1,23 @@
+
+## 4.0.0 (2021-03-2)
+
+### Breaking change :
+* Remove RMKey classes.
+* `RM.injectComputed `is removed
+* Change Injector.en to RM.env.
+### New features :
+* Add On and OnCombined.
+* All `onError` callbacks in `On` and `OnCombined` expose a refresher to retry the last async function that causes the exception.
+* middleSnapState
+* Add RM.injectCRUD, RM.injectAuth, RM.injectTheme, andRM.injectI18N.
+* Add page route transition animation.
+* Add `fullscreenDialog` and `maintainState` parameters to the `navigator`
+* Add dynamic segment and nested routing
+* Refactor the internal logic.
+* Refactor to null safety.
+
+See the detailed change log [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md)
+
 ## 3.2.0 (2020-10-27)
 * `Injected.persist` is a function instead of a simple object
 * add `persistStateProvider`, `catchPersistError` and `debugPrintOperations` to `PersistState` class.

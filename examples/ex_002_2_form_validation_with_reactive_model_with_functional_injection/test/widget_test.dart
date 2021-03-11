@@ -4,20 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:form_validation_with_reactive_model/main.dart';
 
 void main() {
-  Finder emailTextField;
-  Finder passwordTextField;
-  Finder activeLoginButton;
+  late Finder emailTextField;
+  late Finder passwordTextField;
+  late Finder activeLoginButton;
   setUp(
     () {
       emailTextField = find.byWidgetPredicate(
         (widget) =>
             widget is TextField &&
-            widget.decoration.labelText == "Email Address",
+            widget.decoration?.labelText == "Email Address",
       );
 
       passwordTextField = find.byWidgetPredicate(
         (widget) =>
-            widget is TextField && widget.decoration.labelText == "Password",
+            widget is TextField && widget.decoration?.labelText == "Password",
       );
 
       //active login button is that with a non null onPressed parameter

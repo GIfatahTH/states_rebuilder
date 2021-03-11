@@ -2,19 +2,19 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import '../../common/localization/localization.dart';
+import '../home_screen/home_screen.dart';
 
 class DetailScreen extends StatelessWidget {
   DetailScreen();
 
   @override
   Widget build(BuildContext context) {
-    final todo = todoItem(context);
+    final todo = todos.item(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(i18n.of(context).todoDetails),
@@ -32,7 +32,7 @@ class DetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            todo.rebuilder(
+            On.data(
               () => Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -71,7 +71,7 @@ class DetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ).listenTo(todo),
           ],
         ),
       ),
@@ -80,7 +80,7 @@ class DetailScreen extends StatelessWidget {
         child: const Icon(Icons.edit),
         onPressed: () {
           RM.navigate.to(
-            todoItem.reInherited(
+            todos.item.reInherited(
               context: context,
               builder: (context) => AddEditPage(),
             ),

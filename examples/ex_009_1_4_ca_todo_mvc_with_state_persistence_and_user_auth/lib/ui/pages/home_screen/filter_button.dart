@@ -2,13 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/injected/injected_todo.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-
-import '../../../service/common/enums.dart';
-import '../../common/enums.dart';
-import '../../common/localization/localization.dart';
+part of 'home_screen.dart';
 
 class FilterButton extends StatelessWidget {
   const FilterButton({Key key}) : super(key: key);
@@ -24,7 +18,7 @@ class FilterButton extends StatelessWidget {
       defaultStyle: defaultStyle,
     );
 
-    return activeTab.rebuilder(
+    return On.data(
       () {
         final _isActive = activeTab.state == AppTab.todos;
         return AnimatedOpacity(
@@ -33,7 +27,7 @@ class FilterButton extends StatelessWidget {
           child: _isActive ? button : IgnorePointer(child: button),
         );
       },
-    );
+    ).listenTo(activeTab);
   }
 }
 
@@ -50,7 +44,7 @@ class _Button extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //This is an example of Local ReactiveModel
-    return activeFilter.rebuilder(
+    return On.data(
       () {
         return PopupMenuButton<VisibilityFilter>(
           tooltip: i18n.of(context).filterTodos,
@@ -93,6 +87,6 @@ class _Button extends StatelessWidget {
           icon: const Icon(Icons.filter_list),
         );
       },
-    );
+    ).listenTo(activeFilter);
   }
 }

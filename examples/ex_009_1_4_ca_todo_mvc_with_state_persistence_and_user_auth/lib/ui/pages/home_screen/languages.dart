@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../../common/localization/languages/language_base.dart';
-import '../../common/localization/localization.dart';
+part of 'home_screen.dart';
 
 class Languages extends StatelessWidget {
   const Languages();
@@ -9,19 +6,17 @@ class Languages extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<Locale>(
       onSelected: (l) {
-        locale.state = l;
+        i18n.locale = l;
       },
       itemBuilder: (BuildContext context) => <PopupMenuItem<Locale>>[
         PopupMenuItem<Locale>(
           key: Key('__System_language__'),
-          value: const Locale.fromSubtags(
-            languageCode: 'und',
-          ),
+          value: SystemLocale(),
           child: Text(
             i18n.of(context).systemLanguage,
           ),
         ),
-        ...I18N.supportedLocale.map(
+        ...i18n.supportedLocales.map(
           (e) => PopupMenuItem<Locale>(
             value: e,
             child: Text(

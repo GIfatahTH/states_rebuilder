@@ -5,7 +5,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 //counter is a global variable but the state of the counter is not.
 //It can be easily mocked and tested.
-//With functional injection we do not need to use RMKey.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
   //Here we defined a global onData handling
@@ -16,28 +15,34 @@ final Injected<int> counter = RM.inject<int>(
   //of setState.
   //
   //If both are defined, the onData of setState override this global onData here
-  onData: (int data) {
-    //show snackBar
-    //any current snackBar is hidden.
-    RM.scaffoldShow.snackBar(
-      SnackBar(
-        content: Text('$data'),
-      ),
-    );
-  },
-  onWaiting: () {
-    //show snackBar
-    //any current snackBar is hidden.
-    RM.scaffoldShow.snackBar(
-      SnackBar(
-        content: Text('Waiting ...'),
-      ),
-    );
+  onSetState: On.or(
+      onData: () {
+        //show snackBar
+        //any current snackBar is hidden.
+        RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Text('${counter.state}'),
+          ),
+        );
+      },
+      onWaiting: () {
+        //show snackBar
+        //any current snackBar is hidden.
+        RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Text('Waiting ...'),
+          ),
+        );
+      },
+      or: () {}),
+
+  middleSnapState: (middleSnap) {
+    middleSnap.print();
   },
 );
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -53,16 +58,16 @@ class MyHomePage extends StatelessWidget {
             Text(
               'You have pushed the button this many times:',
             ),
-            //Subscribing to the counterRM using StateBuilder
-            counter.whenRebuilder(
+            //Subscribing to the counterRM using On.all
+            On.all(
               onIdle: () => Text('Tap on the FAB to increment the counter'),
               onWaiting: () => CircularProgressIndicator(),
-              onError: (error) => Text(counter.error.message),
+              onError: (error, refresh) => Text(counter.error.message),
               onData: () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ),
+            ).listenTo(counter),
           ],
         ),
       ),
@@ -77,8 +82,33 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            //This onData if defined will override the global onData
-            onData: (_, __) => print('OnData from setState'),
+            //This onSetState if defined will override the global onData
+            onSetState: On.or(
+              onData: () {
+                RM.scaffold.hideCurrentSnackBar();
+                print('OnData from setState');
+              },
+              onError: (error, refresh) {
+                RM.scaffold.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Text('${error.message}'),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            refresh();
+                            RM.scaffold.hideCurrentSnackBar();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              or: () {},
+            ),
           );
         },
         tooltip: 'Increment',

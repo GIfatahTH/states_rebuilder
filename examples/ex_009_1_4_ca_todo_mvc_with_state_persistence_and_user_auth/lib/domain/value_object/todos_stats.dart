@@ -9,4 +9,8 @@ class TodosStats {
     @required this.numCompleted,
     @required this.numActive,
   }) : allComplete = numActive == 0;
+
+  @override
+  String toString() =>
+      'TodosStats(numCompleted: $numCompleted, numActive: $numActive)';
 }

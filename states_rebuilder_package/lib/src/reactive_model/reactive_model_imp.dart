@@ -1,50 +1,50 @@
 part of '../reactive_model.dart';
 
-class ReactiveModelImp<T> extends ReactiveModelInternal<T> {
-  ReactiveModelImp(Inject<T> inject)
-      : assert(inject != null),
-        super._(inject) {
-    snapshot = AsyncSnapshot<T>.withData(
-      ConnectionState.none,
-      inject?.getSingleton(),
+class ReactiveModelImp<T> extends ReactiveModel<T> {
+  ReactiveModelImp({
+    required dynamic Function(ReactiveModel<T> rm) creator,
+    T? nullState,
+    T? initialState,
+  }) : super(nullState, initialState) {
+    _creator = creator;
+  }
+
+  ReactiveModelImp._({
+    T? nullState,
+    T? initialState,
+  }) : super(nullState, initialState);
+
+  factory ReactiveModelImp.future(
+    Future<T> Function() future, {
+    T? nullState,
+    T? initialState,
+    bool isLazy = true,
+  }) {
+    final rm = ReactiveModelImp(
+      creator: (_) => future().asStream(),
+      nullState: nullState,
+      initialState: initialState,
     );
-  }
-
-  @override
-  Future<T> refresh({void Function() onInitRefresh}) {
-    cleaner(unsubscribe, true);
-    unsubscribe();
-    try {
-      final s = (inject as InjectImp)?.creationFunction();
-      if (_deepEquality.equals(state, s)) {
-        resetToIdle(s);
-      } else {
-        resetToIdle(s);
-        if (hasObservers) {
-          rebuildStates();
-        }
-      }
-    } catch (e) {
-      if (e is Error) {
-        rethrow;
-      }
-      resetToHasError(e);
-      notify();
+    if (!isLazy) {
+      rm._initialize();
     }
-    onInitRefresh?.call();
-    return stateAsync.catchError((_) {});
+    return rm;
   }
 
-  @override
-  String type([bool detailed = true]) {
-    if (detailed) {
-      return '<$T>';
+  factory ReactiveModelImp.stream(
+    Stream<T> Function(ReactiveModel<T> rm) stream, {
+    T? nullState,
+    T? initialState,
+    bool isLazy = true,
+  }) {
+    final rm = ReactiveModelImp(
+      creator: stream,
+      nullState: nullState,
+      initialState: initialState,
+    );
+    if (!isLazy) {
+      rm._initialize();
     }
-    return '$T';
-  }
-
-  @override
-  bool isA<T>() {
-    return (inject as InjectImp).creationFunction is T Function();
+    return rm;
   }
 }

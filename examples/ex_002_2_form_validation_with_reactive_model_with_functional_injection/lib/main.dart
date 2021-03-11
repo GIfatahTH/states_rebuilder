@@ -7,51 +7,49 @@ class Email {
   final String email;
 
   Email(this.email);
-
-  validate() {
-    if (!email.contains("@")) {
-      throw Exception("Enter a valid Email");
-    }
-  }
-
-  @override
-  String toString() {
-    return 'Email($email)';
-  }
 }
 
 class Password {
   final String password;
 
   Password(this.password);
-  validate() {
-    if (password.length <= 3) {
-      throw Exception('Enter a valid password');
-    }
-  }
-
-  @override
-  String toString() {
-    return 'Email($password)';
-  }
 }
 
 //functional injection of email and password.
 //email and password are global variables but their state is not.
 //We do not need RMKey here.
 //they are easily mocked and tested (see test folder)
-final email = RM.inject(
+final email = RM.inject<Email>(
   () => Email(''),
-  //To console print an informative message, we use debugPrintWhenNotifiedPreMessage
-  //As both email and password are Strings, we label them to distinguish them
-  //
-  //Uncomment to see.
-  // debugPrintWhenNotifiedPreMessage: 'email',
+  middleSnapState: (middleSnap) {
+    ////Uncomment to see print logs
+    //middleSnap.print();
+    //
+
+    //Inside the middleSnapState we can validate the state
+    if (!middleSnap.nextSnap.data!.email.contains("@")) {
+      //return a modified state with error
+      return middleSnap.nextSnap.copyToHasError(
+        Exception("Enter a valid Email"),
+      );
+    }
+  },
 );
-final password = RM.inject(
+final password = RM.inject<Password>(
   () => Password(''),
-  //Uncomment to see.
-  // debugPrintWhenNotifiedPreMessage: 'password',
+  middleSnapState: (middleSnap) {
+    ////Uncomment to see print logs
+    // middleSnap.print(
+    //   stateToString: (s) => '${s?.password}',
+    // );
+
+    if (middleSnap.nextSnap.data!.password.length < 4) {
+      return middleSnap.nextSnap.copyToHasError(
+        Exception('Enter a valid password'),
+        stackTrace: StackTrace.current,
+      );
+    }
+  },
 );
 
 class MyApp extends StatelessWidget {
@@ -79,38 +77,24 @@ class MyHomePage extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: ListView(
           children: <Widget>[
-            //use whenRebuilderOr to subscribe to the injected email
-            //'email.rebuilder' do not work here, because it rebuild when model
+            //use On to subscribe to the injected email
+            //'On.data' do not work here, because it rebuild when model
             //has data only, whereas in our cas we want it rebuild onError also.
-            email.whenRebuilderOr(
-              //the builder is called whenever the email is in the idle, error or has data state.
-              builder: () {
+            On(
+              () => TextField(
+                onChanged: (String value) => email.state = Email(value),
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: "your@email.com. It should contain '@'",
+                  labelText: "Email Address",
+                  errorText: email.error?.message,
+                ),
+              ),
+            ).listenTo(email),
+            On(
+              () {
                 return TextField(
-                  onChanged: (String value) {
-                    email.setState(
-                      (_) => Email(value)..validate(),
-                      catchError: true,
-                    );
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "your@email.com. It should contain '@'",
-                    labelText: "Email Address",
-                    errorText: email.error?.message,
-                  ),
-                );
-              },
-            ),
-            password.whenRebuilderOr(
-              builder: () {
-                return TextField(
-                  onChanged: (String value) {
-                    //set the value of passwordRM after validation
-                    password.setState(
-                      (_) => Password(value)..validate(),
-                      catchError: true,
-                    );
-                  },
+                  onChanged: (String value) => password.state = Password(value),
                   decoration: InputDecoration(
                     hintText: "Password should be more than three characters",
                     labelText: 'Password',
@@ -118,12 +102,11 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-            ),
-            WhenRebuilderOr(
-              //subscribe to both email and password ReactiveModel keys
-              observeMany: [() => email.getRM, () => password.getRM],
-              builder: (_, exposedModel) {
-                //this builder is called each time email or password emit a notification
+            ).listenTo(password),
+            OnCombined(
+              //See documentation to understand more about the exposed model
+              //(in the wiki / widget listeners / The exposed state)
+              (exposedModel) {
                 return Column(
                   children: <Widget>[
                     RaisedButton(
@@ -136,21 +119,23 @@ class MyHomePage extends StatelessWidget {
                           : null,
                     ),
                     Text('exposedModel is :'),
-                    Builder(builder: (_) {
-                      if (exposedModel.state is Email) {
-                        return Text('Email : '
-                            '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.email}');
-                      }
-                      if (exposedModel.state is Password) {
-                        return Text('password : '
-                            '${exposedModel.hasError ? exposedModel.error.message : exposedModel.state.password}');
-                      }
-                      return Container();
-                    })
+                    Builder(
+                      builder: (_) {
+                        if (exposedModel is Email) {
+                          return Text('Email : '
+                              '${email.hasError ? email.error.message : email.state.email}');
+                        }
+                        if (exposedModel is Password) {
+                          return Text('password : '
+                              '${password.hasError ? password.error.message : password.state.password}');
+                        }
+                        return Container();
+                      },
+                    )
                   ],
                 );
               },
-            ),
+            ).listenTo([email, password]),
           ],
         ),
       ),
