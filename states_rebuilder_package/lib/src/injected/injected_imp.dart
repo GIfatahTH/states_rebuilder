@@ -73,7 +73,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> with Injected<T> {
     _undoStackLength = undoStackLength;
     _dependsOn = dependsOn != null ? dependsOn as DependsOn<T> : null;
     _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage;
-    ;
+
     //
     _coreRM
       ..onWaiting = onWaiting

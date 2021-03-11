@@ -201,7 +201,6 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   /// [builder] or and only or [builderWithChild]  with [child] must be defined.
   /// * Optional parameters:
   ///   * [observe] : The model to observer.
-  ///   * [observeMany] Callback to be called when the widget is first inserted.//TODO remove observeMany
   ///   * [dispose] : Callback to be called when the widget is removed.
   ///   * [didChangeDependencies] : Callback to be called when dependencies changed.
   ///   * [didUpdateWidget] : Callback to be called when the widget updated

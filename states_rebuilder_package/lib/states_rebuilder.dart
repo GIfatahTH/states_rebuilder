@@ -32,4 +32,7 @@ export 'src/reactive_model.dart'
         SystemLocale,
         SnapState,
         SnapStateX,
-        MiddleSnapState;
+        MiddleSnapState,
+        RouteWidget,
+        BuildContextX,
+        RouteData;

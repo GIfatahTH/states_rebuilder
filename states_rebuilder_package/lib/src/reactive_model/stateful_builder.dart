@@ -13,6 +13,7 @@ class _StateBuilder<T> extends StatefulWidget {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.rm,
+    this.isLite = false,
   }) : super(key: key);
 
   /// Called to obtain the child widget.
@@ -31,10 +32,13 @@ class _StateBuilder<T> extends StatefulWidget {
       didUpdateWidget;
   final Object? Function()? watch;
   final List<ReactiveModel<dynamic>>? rm;
+  final bool isLite;
   @override
-  _StateBuilderState createState() => watch == null
-      ? _StateBuilderWithoutWatchState<T>()
-      : _StateBuilderWithWatchState<T>();
+  State createState() => isLite
+      ? _StateBuilderLiteState<T>()
+      : watch == null
+          ? _StateBuilderWithoutWatchState<T>()
+          : _StateBuilderWithWatchState<T>();
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -170,5 +174,35 @@ class _StateBuilderWithWatchState<T> extends _StateBuilderState<T> {
       },
       rm ?? rmNotified,
     );
+  }
+}
+
+class _StateBuilderLiteState<T> extends State<_StateBuilder<T>> {
+  late Disposer _disposer;
+
+  @override
+  void initState() {
+    super.initState();
+    _disposer = widget.initState(
+      context,
+      (_) {
+        if (mounted) {
+          setState(() {});
+        }
+        return false;
+      },
+      null,
+    );
+  }
+
+  void dispose() {
+    widget.dispose?.call(context);
+    Future.microtask(() => _disposer());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context, null);
   }
 }

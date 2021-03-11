@@ -326,7 +326,7 @@ class _Log<T> {
   _Log(this.snapState, this.nextSnapState, this.stateToString);
 
   void print([String preMessage = '']) => debugPrint(
-        (preMessage.isNotEmpty ? '[${preMessage}] : ' : '') + toString(),
+        (preMessage.isNotEmpty ? '[$preMessage] : ' : '') + toString(),
       );
 
   @override

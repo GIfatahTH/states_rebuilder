@@ -163,7 +163,7 @@ class RaisedButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
+    return ElevatedButton(
       child: Text(i18n.of(context).startStreaming),
       onPressed: () {
         // Calling refresh on any injected will re-execute its creation

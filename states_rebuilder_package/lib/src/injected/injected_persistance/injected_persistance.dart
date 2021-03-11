@@ -77,8 +77,7 @@ class PersistState<T> {
     _persistStateSingleton ??= _persistStateGlobalTest;
     _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
 
-    assert(_persistStateSingleton != null,
-        '''
+    assert(_persistStateSingleton != null, '''
 No implementation of `IPersistStore` is provided.
 Pleas implementation the `IPersistStore` interface and Initialize it in the main 
 method.
@@ -176,23 +175,6 @@ await RM.storageInitializerMock();\n\n
       );
     }
     return r;
-    // } catch (e, s) {//TODO
-    //   if (onPersistError != null) {
-    //     var undo;
-    //     final r = onPersistError(e, s);
-    //     if (r is Future) {
-    //       undo = await r;
-    //     } else {
-    //       undo = r;
-    //     }
-    //     if ((undo ?? true) == false) {
-    //       return null;
-    //     }
-    //   } else {
-    //     StatesRebuilerLogger.log('Write to localStorage error', e);
-    //   }
-    //   rethrow;
-    // }
   }
 
   ///Delete the persisted state
@@ -226,10 +208,6 @@ await RM.storageInitializerMock();\n\n
       rethrow;
     }
   }
-  //TODO
-  // void dispose() {
-  //   persistStateSingleton = null;
-  // }
 }
 
 ///Enums {disposed, manualPersist}

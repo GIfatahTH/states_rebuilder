@@ -51,13 +51,29 @@ MaterialApp(
   bool _fullscreenDialog = false;
   bool _maintainState = true;
 
+  //For onGenerateRoute
+  late Map<String, Widget Function(RouteData data)> _routes;
+  Map<String, _RouteData> _routeData = {};
+  RouteData? routeData;
+
+  String _urlPath = '';
+  String _baseUrl = '';
+  String _routePath = '';
+  dynamic _routeArguments;
+  Map<String, String> _routeQueryParams = {};
+  Map<String, String> _routePathParams = {};
+
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
   ///
   ///The routes map is of type `<String, Widget Function(Object? arguments)>`
   ///where arguments is the [RouteSettings.settings.arguments]
+  ///
+  ///You can provide the the route page transition builder usning [transitionsBuilder] and the
+  ///unknown route page using [unknownRoute]
+  ///
   Route<dynamic>? Function(RouteSettings settings) onGenerateRoute(
-    Map<String, Widget Function(Object? arguments)> routes, {
+    Map<String, Widget Function(RouteData data)> routes, {
     Widget Function(
       BuildContext,
       Animation<double>,
@@ -65,26 +81,181 @@ MaterialApp(
       Widget,
     )?
         transitionsBuilder,
-    Widget? unknownRoute,
+    Widget Function(String routeName)? unknownRoute,
   }) {
     assert(routes.isNotEmpty);
     this.transitionsBuilder = transitionsBuilder;
-    return (RouteSettings settings) {
-      final route = routes[settings.name];
+    _routes = routes;
+    Widget? resolvePage(RouteSettings settings) {
+      assert(settings.name != null);
+
+      final uri = Uri.parse(settings.name!);
+      late Uri routeUri;
+      late String childName;
+
+      var name = _routes.keys.firstWhereOrNull(
+        (key) {
+          final matcher = _isMatched(
+            Uri.parse(key),
+            uri,
+          );
+          if (matcher.first == true) {
+            routeUri = matcher[1];
+            childName = matcher[2];
+
+            return true;
+          }
+          return false;
+        },
+      );
+
+      final route = _routes[name];
       if (route != null) {
-        final p = _pageRouteBuilder(
-          route(settings.arguments),
-          settings,
+        _routeArguments = settings.arguments;
+        if (uri.queryParameters.isNotEmpty) {
+          _routeQueryParams.addAll(uri.queryParameters);
+        }
+        if (routeUri.queryParameters.isNotEmpty) {
+          _routePathParams.addAll(routeUri.queryParameters);
+        }
+
+        _urlPath += routeUri.path;
+        _routePath += name!;
+        routeData = RouteData(
+          baseUrl: _getBaseUrl(_urlPath),
+          routePath: _routePath,
+          arguments: _routeArguments,
+          queryParams: {..._routeQueryParams},
+          pathParams: {..._routePathParams},
+        );
+        routeData!._isBaseUrlChanged =
+            _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
+
+        Widget page = route(routeData!);
+
+        if (page is RouteWidget) {
+          if (page.routes.isEmpty) {
+            name = _routeData.containsKey(name)
+                ? '$name' + '${_routeData.length}'
+                : name;
+            _routeData[name] = _RouteData(
+              builder: page.builder,
+              subRoute: null,
+              transitionsBuilder: page.transitionsBuilder,
+              routeData: routeData!,
+            );
+            return page.builder!(Container());
+          } else {
+            if (page.builder != null) {
+              name = _routeData.containsKey(name)
+                  ? '$name' + '${_routeData.length}'
+                  : name;
+              _routeData[name] = _RouteData(
+                builder: page.builder,
+                subRoute: null,
+                transitionsBuilder: page.transitionsBuilder,
+                routeData: routeData!,
+              );
+            }
+
+            final n = childName.startsWith('/') ? childName : '/$childName';
+            _routes = page.routes;
+            final p = resolvePage(settings.copyWith(name: n));
+            _routes = routes;
+            if (p != null) {
+              if (page.builder != null) {
+                _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
+              }
+              return p;
+            }
+            return null;
+          }
+        }
+        name = _routeData.containsKey(name)
+            ? '$name' + '${_routeData.length}'
+            : name;
+        _routeData[name] = _RouteData(
+          builder: (_) => page,
+          routeData: routeData!,
+          subRoute: null,
+          transitionsBuilder: null,
+        );
+        return page;
+      }
+      return null;
+    }
+
+    return (RouteSettings settings) {
+      _routeData.clear();
+      routeData = null;
+      _routeQueryParams.clear();
+      _routePathParams.clear();
+      _routeArguments = null;
+
+      _urlPath = '';
+      _routePath = '';
+      late String absolutePath;
+      if (settings.name!.startsWith('/')) {
+        absolutePath = settings.name!;
+      } else {
+        if (_baseUrl == '') {
+          absolutePath = '/' + settings.name!;
+        } else {
+          String relativeBasePath = _getBaseUrl('/' + settings.name!);
+          String? p;
+          while (relativeBasePath.isNotEmpty) {
+            // add '/' to ensure the route name and not a stirng containing the name
+            final r = (_baseUrl + '/').split(relativeBasePath + '/');
+            if (r.length > 1) {
+              r.removeLast();
+              p = r.join('/');
+            }
+            if (p != null) {
+              break;
+            }
+            relativeBasePath = _getBaseUrl(relativeBasePath);
+          }
+
+          absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
+        }
+      }
+
+      settings = settings.copyWith(name: absolutePath);
+
+      final page = resolvePage(settings);
+      if (page != null) {
+        bool isSubRouteTransition = _routeData.values.any(
+          (e) {
+            return !e.routeData._isBaseUrlChanged;
+          },
+        );
+        final _routeDataCopy = {..._routeData};
+
+        final r = _pageRouteBuilder(
+          (animation) {
+            return _RouteFullWidget(
+              child: page,
+              routeData: _routeDataCopy,
+              animation: animation,
+              key: Key(_routeDataCopy.keys.toString()),
+            );
+          },
+          RouteSettings(
+            name: settings.name,
+            arguments: _routeArguments,
+          ),
           _fullscreenDialog,
           _maintainState,
+          isSubRouteTransition: isSubRouteTransition,
         );
         //set to default
         _fullscreenDialog = false;
         _maintainState = true;
-        return p;
+        return r;
       } else {
         return unknownRoute != null
-            ? _pageRouteBuilder(unknownRoute, settings, false, true)
+            ? _pageRouteBuilder(
+                (_) => unknownRoute(absolutePath), settings, false, true)
             : null;
       }
     };
@@ -92,34 +263,37 @@ MaterialApp(
 
   static Duration? _transitionDuration;
   PageRoute<T> _pageRouteBuilder<T>(
-    Widget page,
+    Widget Function(Animation<double>? animation) page,
     RouteSettings? settings,
     bool fullscreenDialog,
-    bool maintainState,
-  ) {
-    return transitionsBuilder != null || pageRouteBuilder != null
-        ? (pageRouteBuilder?.call(page) as PageRoute<T>?) ??
-            PageRouteBuilder<T>(
-              settings: settings != null ? settings : null,
-              fullscreenDialog: fullscreenDialog,
-              maintainState: maintainState,
-              pageBuilder: (context, animation, secondaryAnimation) => page,
-              transitionsBuilder: transitionsBuilder!,
-              transitionDuration: _transitionDuration ??
-                  const Duration(
-                    milliseconds: 300,
-                  ),
-              reverseTransitionDuration: _transitionDuration ??
-                  const Duration(
-                    milliseconds: 300,
-                  ),
-            )
-        : MaterialPageRoute<T>(
-            settings: settings != null ? settings : null,
-            builder: (_) => page,
+    bool maintainState, {
+    bool isSubRouteTransition = false,
+  }) {
+    Widget? _page;
+    return pageRouteBuilder != null
+        ? pageRouteBuilder!.call(_page ??= page(null)) as PageRoute<T>
+        : _PageRouteBuilder<T>(
+            builder: (context, animation) => _page ??= page(animation),
+            settings: settings,
             fullscreenDialog: fullscreenDialog,
             maintainState: maintainState,
+            isSubRouteTransition: isSubRouteTransition,
+            customBuildTransitions: transitionsBuilder,
+            transitionDuration: _transitionDuration ??
+                const Duration(
+                  milliseconds: 300,
+                ),
+            reverseTransitionDuration: _transitionDuration ??
+                const Duration(
+                  milliseconds: 300,
+                ),
           );
+    // : _MaterialPageRoute<T>(
+    //     settings: settings != null ? settings : null,
+    //     builder: (_, animation) => _page ??= page(animation),
+    //     fullscreenDialog: fullscreenDialog,
+    //     maintainState: maintainState,
+    //   );
   }
 
   ///navigate to the given page.
@@ -136,7 +310,7 @@ MaterialApp(
   }) {
     return navigatorState.push<T>(
       _pageRouteBuilder(
-        page,
+        (_) => page,
         RouteSettings(name: name),
         fullscreenDialog,
         maintainState,
@@ -150,11 +324,16 @@ MaterialApp(
   Future<T?> toNamed<T extends Object?>(
     String routeName, {
     Object? arguments,
+    Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+    if (queryParams != null) {
+      routeName = Uri(path: routeName, queryParameters: queryParams).toString();
+    }
+
     return navigatorState.pushNamed<T>(
       routeName,
       arguments: arguments,
@@ -177,7 +356,7 @@ MaterialApp(
   }) {
     return navigatorState.pushReplacement<T, TO>(
       _pageRouteBuilder(
-        page,
+        (_) => page,
         RouteSettings(name: name),
         fullscreenDialog,
         maintainState,
@@ -194,11 +373,15 @@ MaterialApp(
     String routeName, {
     TO? result,
     Object? arguments,
+    Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+    if (queryParams != null) {
+      routeName = Uri(path: routeName, queryParameters: queryParams).toString();
+    }
     return navigatorState.pushReplacementNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -226,7 +409,7 @@ MaterialApp(
   }) {
     return navigatorState.pushAndRemoveUntil<T>(
       _pageRouteBuilder(
-        page,
+        (_) => page,
         RouteSettings(name: name),
         fullscreenDialog,
         maintainState,
@@ -248,12 +431,17 @@ MaterialApp(
   Future<T?> toNamedAndRemoveUntil<T extends Object?>(
     String newRouteName, {
     String? untilRouteName,
+    Map<String, String>? queryParams,
     Object? arguments,
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+    if (queryParams != null) {
+      newRouteName =
+          Uri(path: newRouteName, queryParameters: queryParams).toString();
+    }
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -424,272 +612,40 @@ MaterialApp(
   }
 }
 
-final _transitions = _Transitions();
-
-class _Transitions {
-  ///A right to left predefined [TransitionBuilder].
-  ///
-  ///The TransitionBuilder animate the position and the opacity
-  ///of the page.
-  ///
-  ///You can set the tween the curve , and the duration of the position and opacity
-  ///animation
-  ///
-  ///Default values are :
-  ///
-  ///* For position animation:
-  ///```dart
-  ///positionTween = Tween<Offset>(
-  ///   begin: const Offset(0.25, 0),
-  ///   end: Offset.zero,
-  /// )
-  ///
-  ///positionCurve = Curves.fastOutSlowIn;
-  ///```
-  ///
-  ///* For opacity animation:
-  ///```dart
-  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
-  ///
-  ///opacityCurve = Curves.easeIn;
-  ///```
-  ///
-  Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  ) rightToLeft({
-    Tween<Offset>? positionTween,
-    Curve? positionCurve,
-    Tween<double>? opacityTween,
-    Curve? opacityCurve,
-    Duration? duration,
-  }) {
-    _Navigate._transitionDuration = duration;
-    return (context, animation, secondaryAnimation, child) {
-      positionTween ??= Tween<Offset>(
-        begin: const Offset(0.25, 0),
-        end: Offset.zero,
-      );
-      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
-      final Animation<Offset> _positionAnimation = animation.drive(
-        positionTween!.chain(
-          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
-        ),
-      );
-      final Animation<double> _opacityAnimation = animation.drive(
-        opacityTween!.chain(
-          CurveTween(curve: opacityCurve ?? Curves.easeIn),
-        ),
-      );
-
-      return SlideTransition(
-        position: _positionAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: child,
-        ),
-      );
-    };
+List<dynamic> _isMatched(Uri route, Uri url) {
+  Map<String, String>? params;
+  if (route.pathSegments.length > url.pathSegments.length) {
+    return [false, null, null];
+  }
+  if (route.pathSegments.length == 0) {
+    if (url.pathSegments.length == 0) {
+      return [true, route, ''];
+    } else {
+      return [false, null, null];
+    }
   }
 
-  ///A left to right predefined [TransitionBuilder].
-  ///
-  ///The TransitionBuilder animate the position and the opacity
-  ///of the page.
-  ///
-  ///You can set the tween the curve , and the duration of the position and opacity
-  ///animation
-  ///
-  ///Default values are :
-  ///
-  ///* For position animation:
-  ///```dart
-  ///positionTween = Tween<Offset>(
-  ///   begin: const Offset(-0.25, 0),
-  ///   end: Offset.zero,
-  /// )
-  ///
-  ///positionCurve = Curves.fastOutSlowIn;
-  ///```
-  ///
-  ///* For opacity animation:
-  ///```dart
-  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
-  ///
-  ///opacityCurve = Curves.easeIn;
-  ///```
-  ///
-  Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  ) leftToRight({
-    Tween<Offset>? positionTween,
-    Curve? positionCurve,
-    Tween<double>? opacityTween,
-    Curve? opacityCurve,
-    Duration? duration,
-  }) {
-    _Navigate._transitionDuration = duration;
-    return (context, animation, secondaryAnimation, child) {
-      positionTween ??= Tween<Offset>(
-        begin: const Offset(-0.25, 0),
-        end: Offset.zero,
-      );
-      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
-      final Animation<Offset> _positionAnimation = animation.drive(
-        positionTween!.chain(
-          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
-        ),
-      );
-      final Animation<double> _opacityAnimation = animation.drive(
-        opacityTween!.chain(
-          CurveTween(curve: opacityCurve ?? Curves.easeIn),
-        ),
-      );
-      return SlideTransition(
-        position: _positionAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: child,
-        ),
-      );
-    };
+  String parsedUrl = '';
+  for (var i = 0; i < route.pathSegments.length; i++) {
+    if (route.pathSegments[i].startsWith(':')) {
+      params ??= {};
+      params[route.pathSegments[i].substring(1)] = url.pathSegments[i];
+    } else {
+      if (route.pathSegments[i] != url.pathSegments[i]) {
+        return [false, params, ''];
+      }
+    }
+    parsedUrl += '/${url.pathSegments[i]}';
   }
+  return [
+    true,
+    route.replace(path: parsedUrl, queryParameters: params),
+    url.path.replaceFirst(parsedUrl, ''),
+  ];
+}
 
-  ///A bottom to up predefined [TransitionBuilder].
-  ///
-  ///The TransitionBuilder animate the position and the opacity
-  ///of the page.
-  ///
-  ///You can set the tween the curve , and the duration of the position and opacity
-  ///animation
-  ///
-  ///Default values are :
-  ///
-  ///* For position animation:
-  ///```dart
-  ///positionTween = Tween<Offset>(
-  ///   begin: const Offset(0.0, 0.25),
-  ///   end: Offset.zero,
-  /// )
-  ///
-  ///positionCurve = Curves.fastOutSlowIn;
-  ///```
-  ///
-  ///* For opacity animation:
-  ///```dart
-  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
-  ///
-  ///opacityCurve = Curves.easeIn;
-  ///```
-  ///
-  Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  ) bottomToUp({
-    Tween<Offset>? positionTween,
-    Curve? positionCurve,
-    Tween<double>? opacityTween,
-    Curve? opacityCurve,
-    Duration? duration,
-  }) {
-    _Navigate._transitionDuration = duration;
-    return (context, animation, secondaryAnimation, child) {
-      positionTween ??= Tween<Offset>(
-        begin: const Offset(0.0, 0.25),
-        end: Offset.zero,
-      );
-      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
-      final Animation<Offset> _positionAnimation = animation.drive(
-        positionTween!.chain(
-          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
-        ),
-      );
-      final Animation<double> _opacityAnimation = animation.drive(
-        opacityTween!.chain(
-          CurveTween(curve: opacityCurve ?? Curves.easeIn),
-        ),
-      );
-      return SlideTransition(
-        position: _positionAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: child,
-        ),
-      );
-    };
-  }
-
-  ///A up to bottom predefined [TransitionBuilder].
-  ///
-  ///The TransitionBuilder animate the position and the opacity
-  ///of the page.
-  ///
-  ///You can set the tween the curve , and the duration of the position and opacity
-  ///animation
-  ///
-  ///Default values are :
-  ///
-  ///* For position animation:
-  ///```dart
-  ///positionTween = Tween<Offset>(
-  ///   begin: const Offset(0.0, -0.25),
-  ///   end: Offset.zero,
-  /// )
-  ///
-  ///positionCurve = Curves.fastOutSlowIn;
-  ///```
-  ///
-  ///* For opacity animation:
-  ///```dart
-  ///opacityTween = Tween<double>(begin: 0.0, end: 1.0)
-  ///
-  ///opacityCurve = Curves.easeIn;
-  ///```
-  ///
-  Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  ) upToBottom({
-    Tween<Offset>? positionTween,
-    Curve? positionCurve,
-    Tween<double>? opacityTween,
-    Curve? opacityCurve,
-    Duration? duration,
-  }) {
-    _Navigate._transitionDuration = duration;
-    return (context, animation, secondaryAnimation, child) {
-      positionTween ??= Tween<Offset>(
-        begin: const Offset(0.0, -0.25),
-        end: Offset.zero,
-      );
-      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
-      final Animation<Offset> _positionAnimation = animation.drive(
-        positionTween!.chain(
-          CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
-        ),
-      );
-      final Animation<double> _opacityAnimation = animation.drive(
-        opacityTween!.chain(
-          CurveTween(curve: opacityCurve ?? Curves.easeIn),
-        ),
-      );
-
-      return SlideTransition(
-        position: _positionAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: child,
-        ),
-      );
-    };
-  }
+String _getBaseUrl(String path) {
+  final segments = path.split('/');
+  segments.removeLast();
+  return segments.join('/');
 }
