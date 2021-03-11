@@ -101,12 +101,12 @@ class CounterItem extends StatelessWidget {
             return Text('${counter.state.id}: ${counter.state.value}');
           },
         ).listenTo(counter),
-        RaisedButton(
+        ElevatedButton(
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),
           child: Text(counter.state.id),
         ),
-        RaisedButton(
+        ElevatedButton(
           key: Key('Navigate to ' + counter.state.id),
           onPressed: () {
             RM.navigate.to(

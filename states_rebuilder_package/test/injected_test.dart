@@ -104,38 +104,6 @@ void main() {
     },
   );
 
-  // testWidgets(//TODO
-  //   'models are injected lazily and disposed automatically',
-  //   (tester) async {
-  //     expect(functionalInjectedModels.length, 0);
-  //     final switcherRM = RM.create(true);
-  //     bool disposeIsCalled = false;
-  //     final widget = StateBuilder(
-  //       observe: () => switcherRM,
-  //       dispose: (_, __) => RM.disposeAll(),
-  //       builder: (_, __) => switcherRM.state
-  //           ? vanillaModel.rebuilder(
-  //               () => Container(),
-  //               shouldRebuild: () => true,
-  //               watch: () => 1,
-  //               dispose: () => disposeIsCalled = true,
-  //             )
-  //           : Container(),
-  //     );
-  //     await tester.pumpWidget(widget);
-  //     expect(functionalInjectedModels.length, 1);
-  //     switcherRM.state = false;
-  //     await tester.pumpWidget(widget);
-  //     expect(functionalInjectedModels.length, 0);
-  //     //
-  //     streamVanillaModel.getRM;
-  //     switcherRM.state = true;
-  //     await tester.pumpWidget(widget);
-  //     expect(functionalInjectedModels.length, 2);
-  //     expect(disposeIsCalled, isTrue);
-  //   },
-  // );
-
   testWidgets(
       'should register Stream and Rebuild StateBuilder each time stream sends data with watch',
       (WidgetTester tester) async {

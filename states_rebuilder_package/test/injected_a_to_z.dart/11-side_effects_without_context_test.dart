@@ -98,7 +98,7 @@ void main() {
               ),
               Builder(
                 builder: (context) {
-                  return RaisedButton(
+                  return ElevatedButton(
                     onPressed: () {
                       model.setState(
                         (s) => throw Exception('An error!'),
@@ -106,6 +106,7 @@ void main() {
                         /*/*catchError: true*/*/
                       );
                     },
+                    child: Text(''),
                   );
                 },
               )
@@ -116,7 +117,7 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(find.byType(SnackBar), findsNothing);
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('An error!'), findsOneWidget);

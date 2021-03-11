@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
             ).listenTo(injectedStream)
           else
             Text('Injected stream is disposed'),
-          RaisedButton(
+          ElevatedButton(
             child: Text('Toggle Hide'),
             onPressed: () => setState(() => _isHidden = !_isHidden),
           ),
@@ -67,7 +67,7 @@ void main() {
       expect(streamData, 1);
 
       //hide injected stream widget observer
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
       //
       expect(find.text('Injected stream is disposed'), findsOneWidget);
@@ -113,7 +113,7 @@ void main() {
       expect(streamData, 1);
 
       //hide injected stream widget observer
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
       //
       expect(find.text('Injected stream is disposed'), findsOneWidget);

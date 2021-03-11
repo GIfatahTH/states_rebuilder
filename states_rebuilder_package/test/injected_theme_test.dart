@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/reactive_model.dart';
@@ -108,7 +106,6 @@ void main() async {
     );
     expect(theme.isDarkTheme, false);
     late Brightness brightness;
-    late BuildContext context;
     final widget = TopAppWidget(
       injectedTheme: theme,
       builder: (ctx) {
@@ -119,7 +116,6 @@ void main() async {
           home: Builder(
             builder: (ctx) {
               brightness = Theme.of(ctx).brightness;
-              context = ctx;
               return Container();
             },
           ),

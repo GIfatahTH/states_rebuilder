@@ -49,7 +49,7 @@ class CounterItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        RaisedButton(
+        ElevatedButton(
           //Key use in tests
           key: Key('button-$index'),
           child: On.data(
@@ -70,7 +70,7 @@ void main() {
   testWidgets('Initial build', (tester) async {
     await tester.pumpWidget(Counters());
     //Expect to see 4 RaisedButtons
-    expect(find.byType(RaisedButton), findsNWidgets(4));
+    expect(find.byType(ElevatedButton), findsNWidgets(4));
     //Here is the details:
     expect(find.text('0'), findsOneWidget);
     expect(find.text('10'), findsOneWidget);

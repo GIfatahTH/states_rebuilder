@@ -444,7 +444,7 @@ void main() {
       () => Text('widget2'),
     ).listenTo(counter);
     final widget1 = On(
-      () => RaisedButton(
+      () => ElevatedButton(
         child: Text(
           counter.state.toString(),
         ),
@@ -453,7 +453,7 @@ void main() {
     ).listenTo(counter);
     await tester.pumpWidget(MaterialApp(home: widget1));
     //
-    expect(find.byType(RaisedButton), findsOneWidget);
+    expect(find.byType(ElevatedButton), findsOneWidget);
     //
     Navigator.of(RM.context!).push(
       MaterialPageRoute(
@@ -474,7 +474,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(RaisedButton), findsOneWidget);
+    expect(find.byType(ElevatedButton), findsOneWidget);
     expect(find.byType(AlertDialog), findsOneWidget);
   });
 

@@ -129,8 +129,8 @@ class Item extends StatelessWidget {
     return Column(
       children: [
         On.data(
-          () => RaisedButton(
-            key: Key('RaisedButton: ${product.state.id}'),
+          () => ElevatedButton(
+            key: Key('ElevatedButton: ${product.state.id}'),
             child: Text('${product.state.name}: ${product.state.count}'),
             onPressed: () {
               product.state = product.state.copyWith(
@@ -139,7 +139,7 @@ class Item extends StatelessWidget {
             },
           ),
         ).listenTo(product),
-        RaisedButton(
+        ElevatedButton(
           key: Key('NavigateTo: ${product.state.id}'),
           child: Text('Navigate to'),
           onPressed: () {
@@ -161,7 +161,7 @@ class NewPage extends StatelessWidget {
     final product = products.item(context)!;
 
     return On.data(
-      () => RaisedButton(
+      () => ElevatedButton(
         key: Key('RaisedButton2: ${product.state.id}'),
         child:
             Text('${products.item.of(context)!.name}: ${product.state.count}'),
@@ -195,7 +195,7 @@ void main() {
       'and update the store', (tester) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(Key('RaisedButton: 1')));
+    await tester.tap(find.byKey(Key('ElevatedButton: 1')));
     await tester.pump();
     expect(find.text('prod1: 1'), findsOneWidget);
     expect(find.text('prod2: 0'), findsOneWidget);
@@ -217,7 +217,7 @@ void main() {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
     _repo.error = Exception('Error');
-    await tester.tap(find.byKey(Key('RaisedButton: 2')));
+    await tester.tap(find.byKey(Key('ElevatedButton: 2')));
     await tester.pump();
     expect(find.text('prod1: 0'), findsOneWidget);
     expect(find.text('prod2: 1'), findsOneWidget);

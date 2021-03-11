@@ -274,8 +274,8 @@ void main() {
     'WHEN '
     'THEN ',
     (tester) async {
-      SnapState<int>? _snapState;
-      SnapState<int>? _nextSnapState;
+      // SnapState<int>? _snapState;
+      // SnapState<int>? _nextSnapState;
       final model1 = RM.inject(() => 0);
       final model2 = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => 1),
@@ -283,8 +283,8 @@ void main() {
           middleSnap.print(
             stateToString: (s) => '[$s]',
           );
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
+          // _snapState = middleSnap.currentSnap;
+          // _nextSnapState = middleSnap.nextSnap;
         },
         dependsOn: DependsOn({model1}),
       );
