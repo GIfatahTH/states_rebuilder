@@ -30,10 +30,9 @@ class App extends StatelessWidget {
       //returns the onGenerateRoute.
       onGenerateRoute: RM.navigate.onGenerateRoute(
         {
-          '/': (arg) => LoginPage(),
-          '/posts': (arg) => PostsPage(),
-          // The arg is the argument returned form the ModalRoute
-          '/comments': (arg) => CommentsPage(post: arg as Post),
+          '/': (data) => LoginPage(),
+          '/posts': (data) => PostsPage(),
+          '/comments': (data) => CommentsPage(post: data.arguments as Post),
         },
       ),
     );

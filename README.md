@@ -9,26 +9,58 @@
 </p>
 
 <p align="justify">
-States Rebuilder is an easy flutter state management solution that allows for clear and sharp separation of concern between the user interface (UI) logic and the business logic. The separation is clear and sharp to the point that the business logic is written with pure, vanilla, plain old dart classes without extending any external library-specific classes and without annotation or code generation.
+`states_rebuilder` is Flutter state management combined with a dependency injection solution and an integrated router to get the best state management experience and speed up your development.
 </p>
 
- With `States_rebuilder`, you can easily: 
-* Manage / Refactor the [Immutable](https://github.com/GIfatahTH/states_rebuilder/wiki/immutable-state-management) and [Mutable](https://github.com/GIfatahTH/states_rebuilder/wiki/mutable-state-management) state without affecting your UI code. 
+<p align="justify">
+`states_rebuilder` is a feature-rich state management sulution
+</p>
 
-* Work with [Future and Stream](https://github.com/GIfatahTH/states_rebuilder/wiki/futures_and_streams), it's "hot pluggable", without affecting your UI code.
+- Performance
+  - Predictable and controllable state mutation
+  - Immutable / Mutable states support
+  - Strictly rebuild control
+  - Auto clean state when not used
+
+- Code Clean
+  - Zero Boilerplate
+  - No annotation & code-generation
+  - Separation of UI & business logic
+  - Achieve business logic in pure Dart.
+
+- User Friendly
+  - Built-in dependency injection system
+  - `SetState` in StatelessWidget.
+  - Hot-pluggable Stream / Futures
+  - Easily Undo / Redo
+  - Elegant error handling and refreshing
+  - Navigate, show dialogs without `BuildContext`
+  - Named route with dynamic segment
+  - Nested routes mapping
+  - Easily persist the state and retrieve it back
+  - Override the state for a particular widget tree branch (widget-wise state)
+
+- development-time-saving
+  - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
+  - Easy user authentication and authorization.
+  - Easily app themes management.
+  - Simple internalization and localization.
+
+- Maintainable
+  - Easy to test, mock the dependencies
+  - state tracker middleware
+  - Built-in debugging print function
+  - Capable for complex apps
 
 
-* [Achieve injected dependencies](https://github.com/GIfatahTH/states_rebuilder/wiki/Asynchronous-Dependency-Injection) asynchronously (no Provider needed). &nbsp; 
-
-* Invoke side effects without ❌`BuildContext`, like Dialogs, Navigate, SnackBars, and [many others](https://github.com/GIfatahTH/states_rebuilder/issues/129). 
-
-* [Persist state](https://github.com/GIfatahTH/states_rebuilder/issues/134) to localStorage and restore it when the application is restarted.
-
-* [Override the state](https://github.com/GIfatahTH/states_rebuilder/wiki/17-inherited_inject) for a particular widget tree branch (Widget-aware state).
-
-<p align="center" >
+<!-- <p align="center" >
     <image src="./assets/Poster-Simple.png"  width="1280" alt=''/>
+</p> -->
+
+<p align="center">
+    <image src="./assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat sheet'/>
 </p>
 
 # Documentation
 * [**Official Documentation**](states_rebuilder_package)
+
