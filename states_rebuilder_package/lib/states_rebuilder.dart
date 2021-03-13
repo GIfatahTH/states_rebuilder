@@ -2,6 +2,13 @@ library states_rebuilder;
 
 export 'src/reactive_model.dart'
     show
+        //Builders
+        WhenRebuilderOr,
+        WhenRebuilder,
+        StateBuilder,
+        StateWithMixinBuilder,
+        //
+        ReactiveModel,
         RM,
         DependsOn,
         PersistState,
@@ -11,10 +18,8 @@ export 'src/reactive_model.dart'
         OnX,
         OnCombined,
         OnCombinedX,
-        StateBuilder,
         InjectedX,
         ReactiveModelX,
-        StateWithMixinBuilder,
         IPersistStore,
         IntX,
         StringX,
@@ -36,3 +41,5 @@ export 'src/reactive_model.dart'
         RouteWidget,
         BuildContextX,
         RouteData;
+export 'src/legacy/inject.dart';
+export 'src/legacy/injector.dart';
