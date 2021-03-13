@@ -1,5 +1,5 @@
 
-## 4.0.0 (2021-03-2)
+## 4.0.0+1 (2021-03-2)
 
 ### Breaking change :
 * Remove RMKey classes.

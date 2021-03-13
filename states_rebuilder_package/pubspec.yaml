@@ -1,6 +1,6 @@
 name: states_rebuilder
 description: a simple yet powerful state management technique for Flutter
-version: 4.0.0
+version: 4.0.0+1
 homepage: https://github.com/GIfatahTH/states_rebuilder
 
 environment:
