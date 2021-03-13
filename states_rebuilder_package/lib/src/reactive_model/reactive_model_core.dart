@@ -103,10 +103,15 @@ class ReactiveModelCore<T> {
     bool isSync = false,
   }) {
     if (data is T) {
-      final snap = _snapState._copyToHasData(
+      SnapState<T> snap = _snapState._copyToHasData(
         data,
         infoMessage: isSync ? '' : null,
       );
+      snap = _middleState?.call(
+            MiddleSnapState(_snapState, snap),
+          ) ??
+          snap;
+
       if (_snapState == snap) {
         //the snap state is immutable and not changed.
         return;
@@ -115,10 +120,8 @@ class ReactiveModelCore<T> {
           deepEquality.equals(_cachedWatch, _cachedWatch = _watch!(data))) {
         return;
       }
-      snapState = _middleState?.call(
-            MiddleSnapState(_snapState, snap),
-          ) ??
-          snap;
+      snapState = snap;
+
       addToUndoQueue();
     } else {
       final snap = _snapState._copyToHasData(
