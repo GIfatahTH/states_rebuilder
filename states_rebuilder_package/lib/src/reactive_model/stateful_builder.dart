@@ -57,6 +57,7 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
   late Disposer _removeContext;
   bool _isDirty = true;
   bool _isDeactivate = true;
+  bool _isMounted = false;
   Object? _cachedWatch;
   ReactiveModel<T>? rm;
   ReactiveModel? rmNotified;
@@ -64,6 +65,7 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
   @override
   void initState() {
     super.initState();
+    _isMounted = false;
     bool isA<D>() => T == D;
 
     if (!isA<Object?>() && T != dynamic && T != Object) {
@@ -125,9 +127,12 @@ class _StateBuilderState<T> extends State<_StateBuilder<T>> {
 }
 
 class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
-  @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isMounted) {
+      return;
+    }
+    _isMounted = true;
     _disposer = widget.initState(
       context,
       (rm) {
@@ -135,9 +140,10 @@ class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
           _isDirty = true;
           rmNotified = rm;
           // print(SchedulerBinding.instance?.schedulerPhase);
-          SchedulerBinding.instance?.scheduleFrameCallback(
-            (_) => setState(() {}),
-          );
+          setState(() {});
+          // SchedulerBinding.instance?.scheduleFrameCallback(
+          //   (_) => ,
+          // );
           return true;
         }
         return false;
@@ -148,9 +154,12 @@ class _StateBuilderWithoutWatchState<T> extends _StateBuilderState<T> {
 }
 
 class _StateBuilderWithWatchState<T> extends _StateBuilderState<T> {
-  @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isMounted) {
+      return;
+    }
+    _isMounted = true;
     _cachedWatch = widget.watch?.call();
     _disposer = widget.initState(
       context,
@@ -165,9 +174,10 @@ class _StateBuilderWithWatchState<T> extends _StateBuilderState<T> {
         if (!_isDirty) {
           _isDirty = true;
           rmNotified = rm;
-          SchedulerBinding.instance?.scheduleFrameCallback(
-            (_) => setState(() {}),
-          );
+          setState(() {});
+          // SchedulerBinding.instance?.scheduleFrameCallback(
+          //   (_) => ,
+          // );
           return true;
         }
         return false;
