@@ -23,9 +23,8 @@ class CountDownTimer {
         middleSnapState: (middleState) {
           ////UnComment to see state transition print log
           // middleState.print();
-
           if (middleState.nextSnap.isWaiting) {
-            //stream is waiting means that is is firs start.
+            //stream is waiting means that is is first start.
             //we pause it and display the initial timer
             duration.subscription?.pause();
             return middleState.nextSnap.copyToHasData(initialTimer);
