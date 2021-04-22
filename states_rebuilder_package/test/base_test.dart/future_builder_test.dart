@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../common.dart';
+import 'common.dart';
 
 class Counter {
   int _count = 0;

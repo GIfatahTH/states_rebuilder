@@ -4,7 +4,7 @@ import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
 
-import '../common.dart';
+import 'common.dart';
 
 var counter = RM.inject<int>(
   () => 0,
