@@ -22,7 +22,7 @@ void main() {
 
       //active login button is that with a non null onPressed parameter
       activeLoginButton = find.byWidgetPredicate(
-        (widget) => widget is RaisedButton && widget.onPressed != null,
+        (widget) => widget is ElevatedButton && widget.onPressed != null,
       );
     },
   );

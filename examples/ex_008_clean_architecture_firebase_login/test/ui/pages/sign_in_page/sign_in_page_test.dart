@@ -8,10 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   currentEnv = Env.dev;
-  user.injectAuthMock(() => FakeUserRepository());
-  canSignInWithApple.injectFutureMock(
-    () => Future.delayed(Duration(seconds: 1), () => true),
-  );
+  setUp(() {
+    user.injectAuthMock(() => FakeUserRepository());
+    canSignInWithApple.injectFutureMock(
+      () => Future.delayed(Duration(seconds: 1), () => true),
+    );
+  });
 
   testWidgets('Sign in With Apple', (tester) async {
     await tester.pumpWidget(MyApp());

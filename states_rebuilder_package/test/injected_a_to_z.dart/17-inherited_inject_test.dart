@@ -1,7 +1,6 @@
 //Fetching a list of counters from a backend service
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Counter {
@@ -31,29 +30,29 @@ class Counter {
 late List<Counter> _listOfCounters; //Will be initialized id setUp method
 
 //Global reference to the injected state item
-final injectedCounter = RM.inject<Counter>(
-  () => throw UnimplementedError(),
-  onWaiting: () {
-    //Called if any of the counter item is waiting
-  },
-  onError: (err, stack) {
-    //Called if any of the counter item has error
-  },
-  onData: (counter) {
-    //Called if all items have data
-    //
-    //Whenever any of the counter items state is changed this onData is invoked,
-    //with the new value of the counter item.
-    //
-    //get the index of the counter item
-    final index = _listOfCounters.indexOf(
-      _listOfCounters.firstWhere((e) => e.id == counter.id),
-    );
-    //
-    //update the _listOfCounters
-    _listOfCounters[index] = counter;
-  },
-);
+final injectedCounter = RM.inject<Counter>(() => throw UnimplementedError(),
+    onWaiting: () {
+      //Called if any of the counter item is waiting
+    },
+    onError: (err, stack) {
+      //Called if any of the counter item has error
+    },
+    onData: (counter) {
+      //Called if all items have data
+      //
+      //Whenever any of the counter items state is changed this onData is invoked,
+      //with the new value of the counter item.
+      //
+      //get the index of the counter item
+      final index = _listOfCounters.indexOf(
+        _listOfCounters.firstWhere((e) => e.id == counter.id),
+      );
+      //
+      //update the _listOfCounters
+      _listOfCounters[index] = counter;
+    },
+    debugPrintWhenNotifiedPreMessage: 'golbal',
+    toDebugString: (c) => '${c?.id} : ${c?.value}');
 
 //Use in test to track the number of rebuild of counter item widgets
 late Map<String, int> numberOfRebuild;
@@ -71,14 +70,17 @@ class _App extends StatelessWidget {
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[0],
               builder: (_) => const CounterItem(),
+              debugPrintWhenNotifiedPreMessage: 'counter1',
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[1],
               builder: (_) => const CounterItem(),
+              debugPrintWhenNotifiedPreMessage: 'counter2',
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[2],
               builder: (_) => const CounterItem(),
+              debugPrintWhenNotifiedPreMessage: 'counter3',
             ),
           ],
         ),

@@ -136,14 +136,13 @@ class FormWidget extends StatelessWidget {
                             ),
                           );
                         }
-                        RM.navigate.back();
                       }
                     : null);
           },
         ).listenTo([_email, _password, _isRegister, user]),
         On(
           () {
-            //NOTE10: Display an error message telling the user what goes wrong.
+            // Display an error message telling the user what goes wrong.
             if (user.hasError) {
               return Center(
                 child: Text(

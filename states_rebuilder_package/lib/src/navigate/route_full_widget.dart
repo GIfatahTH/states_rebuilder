@@ -1,4 +1,4 @@
-part of '../reactive_model.dart';
+part of '../rm.dart';
 
 class _RouteFullWidget extends StatefulWidget {
   final Widget child;
@@ -130,26 +130,26 @@ class __RouteFullWidgetState extends State<_RouteFullWidget> {
         )
       ],
     );
-    return _StateBuilder(
-      isLite: true,
-      initState: (context, setState, _) {
+    return StateBuilderBase(
+      (_, setState) {
         final listener = (status) {
           if (status == AnimationStatus.completed) {
             animationIsRunning = false;
-            setState(null);
+            setState();
           } else if (status == AnimationStatus.reverse) {
             animationIsRunning = true;
-            setState(null);
+            setState();
           }
         };
         widget.animation!.addStatusListener(listener);
-        return () {
-          widget.animation!.removeStatusListener(listener);
-        };
+        return LifeCycleHooks(
+          dispose: (_) => widget.animation!.removeStatusListener(listener),
+          builder: (_, __) {
+            return animationIsRunning ? stack : child;
+          },
+        );
       },
-      builder: (_, __) {
-        return animationIsRunning ? stack : child;
-      },
+      widget: Container(),
     );
   }
 

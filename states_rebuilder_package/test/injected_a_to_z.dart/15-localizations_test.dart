@@ -61,6 +61,7 @@ final Injected<I18n> i18n = RM.injectFuture<I18n>(
     );
   },
   dependsOn: DependsOn({currentLocale}),
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 //The UI
@@ -119,23 +120,22 @@ class LocalizationsApp extends StatelessWidget {
 //Testing
 
 void main() {
-  //Faking the i18n injected model
-  i18n.injectFutureMock(() async {
-    await Future.delayed(Duration(seconds: 1));
-    if (currentLocale.state.languageCode == 'en') {
-      return I18n(
-        firstString: 'This is the first String',
-        secondString: 'This is the second String',
-      );
-    } else {
-      return I18n(
-        firstString: 'هذه هي الجملة الأولى',
-        secondString: 'هذه هي الجملة الثانية',
-      );
-    }
-  });
-
   setUp(() {
+    //Faking the i18n injected model
+    i18n.injectFutureMock(() async {
+      await Future.delayed(Duration(seconds: 1));
+      if (currentLocale.state.languageCode == 'en') {
+        return I18n(
+          firstString: 'This is the first String',
+          secondString: 'This is the second String',
+        );
+      } else {
+        return I18n(
+          firstString: 'هذه هي الجملة الأولى',
+          secondString: 'هذه هي الجملة الثانية',
+        );
+      }
+    });
     _localeFromTheApp = null;
     _storedLocale = null;
   });

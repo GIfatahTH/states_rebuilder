@@ -6,7 +6,7 @@ import 'injected.dart';
 import 'ui/pages/sign_in_page/sign_in_page.dart';
 import 'ui/widgets/splash_screen.dart';
 
-main() async {
+main() {
   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
   runApp(MyApp());
 }

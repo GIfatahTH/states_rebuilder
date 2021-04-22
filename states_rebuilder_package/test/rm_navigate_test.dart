@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Route1 extends StatefulWidget {
   final dynamic data;
@@ -58,7 +58,7 @@ final app = MaterialApp(
 );
 
 void main() {
-  testWidgets('Assertiion not navigatorKey is not assigned', (tester) async {
+  testWidgets('Assertion not navigatorKey is not assigned', (tester) async {
     final widget = MaterialApp(
       routes: {
         '/': (_) => Text('Home'),

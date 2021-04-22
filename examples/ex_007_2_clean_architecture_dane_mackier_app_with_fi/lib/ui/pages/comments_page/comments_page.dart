@@ -20,7 +20,7 @@ part 'like_button.dart';
 class CommentsPage extends StatelessWidget {
   CommentsPage({required this.post});
   final Post post;
-  final user = userInj.state;
+  final user = userInj.state!;
 
   @override
   Widget build(BuildContext context) {

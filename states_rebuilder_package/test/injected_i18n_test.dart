@@ -1,7 +1,7 @@
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 final i18n = RM.injectI18N({
   Locale('ar'): () => 'arabic',
@@ -17,16 +17,25 @@ final i18nStored = RM.injectI18N(
     Locale('es', 'ES'): () => 'spanish',
   },
   persistKey: '_lan_',
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
-void main() {
+void main() async {
+  Map<String, String> store = (await RM.storageInitializerMock()).store!;
+  setUp(() {
+    store.clear();
+  });
+
   testWidgets('system language is not in the supported local, get the first',
       (tester) async {
     TextDirection? textDirection;
-    final i18n = RM.injectI18N({
-      Locale('ar'): () => 'arabic',
-      Locale('es'): () => 'spanish',
-    });
+    final i18n = RM.injectI18N(
+      {
+        Locale('ar'): () => 'arabic',
+        Locale('es'): () => 'spanish',
+      },
+      debugPrintWhenNotifiedPreMessage: 'i18n',
+    );
     final widget = TopAppWidget(
       injectedI18N: i18n,
       builder: (context) {
@@ -262,13 +271,7 @@ void main() {
   testWidgets('persist language. no locale is stored yet', (tester) async {
     TextDirection? textDirection;
     Locale? localization;
-    late Map<String, String> store;
     final widget = TopAppWidget(
-      waiteFor: () => [
-        () async {
-          store = (await RM.storageInitializerMock()).store!;
-        }()
-      ],
       onWaiting: () => CircularProgressIndicator(),
       injectedI18N: i18nStored,
       builder: (context) {
@@ -311,14 +314,8 @@ void main() {
   testWidgets('persist language. supported locale is stored', (tester) async {
     TextDirection? textDirection;
     Locale? localization;
-    late Map<String, String> store;
+    store.addAll({'_lan_': 'es#|#ES'});
     final widget = TopAppWidget(
-      waiteFor: () => [
-        () async {
-          store = (await RM.storageInitializerMock()).store!;
-          store.addAll({'_lan_': 'es#|#ES'});
-        }()
-      ],
       onWaiting: () => CircularProgressIndicator(),
       injectedI18N: i18nStored,
       builder: (context) {
@@ -355,18 +352,12 @@ void main() {
     //
   });
 
-  testWidgets('persist language. non suported locale is stored',
+  testWidgets('persist language. non supported locale is stored',
       (tester) async {
     TextDirection? textDirection;
     Locale? localization;
-    late Map<String, String> store;
+    store.addAll({'_lan_': 'fr#|#FF'});
     final widget = TopAppWidget(
-      waiteFor: () => [
-        () async {
-          store = (await RM.storageInitializerMock()).store!;
-          store.addAll({'_lan_': 'fr#|#FF'});
-        }()
-      ],
       onWaiting: () => CircularProgressIndicator(),
       injectedI18N: i18nStored,
       builder: (context) {
@@ -391,7 +382,7 @@ void main() {
 
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
-    expect(store['_lan_'], 'fr#|#FF');
+    expect(store['_lan_'], 'ar#|#null');
     expect(i18nStored.locale.toString(), 'ar');
     expect(textDirection, TextDirection.rtl);
     expect(localization.toString(), 'ar');

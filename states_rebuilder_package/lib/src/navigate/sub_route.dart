@@ -1,4 +1,4 @@
-part of '../reactive_model.dart';
+part of '../rm.dart';
 
 class SubRoute extends InheritedWidget {
   const SubRoute._({

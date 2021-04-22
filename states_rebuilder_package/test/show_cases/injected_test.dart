@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/rm.dart' as sb;
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Counter {
   Counter(this.count);
   int count = 0;
+  @override
+  String toString() {
+    return 'Counter($count)';
+  }
 }
 
 final counter1 = RM.inject(
   () => 0,
+  debugPrintWhenNotifiedPreMessage: 'counter1',
 );
 final counter1Future = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => Counter(1)),
+  autoDisposeWhenNotUsed: true,
+  debugPrintWhenNotifiedPreMessage: 'counter1Future',
 );
 
 //
@@ -21,16 +28,20 @@ void main() {
   testWidgets(
     'simple injected is linked to futureInjected',
     (tester) async {
-      final counter1Computed = RM.inject<int>(
+      final counter1Computed = RM.inject<int?>(
         () => counter1.state + counter1Future.state.count,
-        dependsOn: DependsOn({counter1Future}),
+        dependsOn: DependsOn({counter1Future, counter1}),
+        debugPrintWhenNotifiedPreMessage: 'counter1Computed',
       );
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: On.or(
           onWaiting: () => Text('Waiting'),
           or: () => Text('${counter1Computed.state}'),
-        ).listenTo(counter1Computed),
+        ).listenTo(
+          counter1Computed,
+          debugPrintNotification: '',
+        ),
       );
       //
       await tester.pumpWidget(widget);
@@ -51,7 +62,7 @@ void main() {
   testWidgets(
     'futureInjected is linked to simple Injected',
     (tester) async {
-      assert(injectedModels.length == 0);
+      assert(sb.injectedModels.length == 0);
       final counter2Future = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
         dependsOn: DependsOn({counter1}),
@@ -257,10 +268,12 @@ void main() {
       final dependentCounter1 = RM.inject<int>(
         () => counter1.state + counter1Future.state,
         dependsOn: DependsOn({counter1, counter1Future}),
+        debugPrintWhenNotifiedPreMessage: 'dpendent1',
       );
       final dependentCounter2 = RM.inject<int>(
         () => dependentCounter1.state + 1,
         dependsOn: DependsOn({dependentCounter1}),
+        debugPrintWhenNotifiedPreMessage: 'dpendent2',
       );
       int numberOfNotification = 0;
       dependentCounter2.subscribeToRM((rm) {
@@ -271,14 +284,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 1);
+      expect(numberOfNotification, 0);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasData, true);
       expect(dependentCounter1.hasData, true);
       expect(dependentCounter2.hasData, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 2);
+      expect(numberOfNotification, 1);
 
       //
       counter1Future.refresh();
@@ -286,16 +299,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 3);
+      expect(numberOfNotification, 2);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasData, true);
       expect(dependentCounter1.hasData, true);
       expect(dependentCounter2.hasData, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 4);
-
-      //
+      expect(numberOfNotification, 3);
 
       //
       shouldThrow = true;
@@ -304,14 +315,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 5);
+      expect(numberOfNotification, 4);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasError, true);
       expect(dependentCounter1.hasError, true);
       expect(dependentCounter2.hasError, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 6);
+      expect(numberOfNotification, 5);
 
       //
       shouldThrow = false;
@@ -320,14 +331,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 7);
+      expect(numberOfNotification, 6);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasData, true);
       expect(dependentCounter1.hasData, true);
       expect(dependentCounter2.hasData, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 8);
+      expect(numberOfNotification, 7);
       //
       //
       shouldThrow = true;
@@ -336,14 +347,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 9);
+      expect(numberOfNotification, 8);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasError, true);
       expect(dependentCounter1.hasError, true);
       expect(dependentCounter2.hasError, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 10);
+      expect(numberOfNotification, 9);
 
       //
       shouldThrow = false;
@@ -352,14 +363,14 @@ void main() {
       expect(dependentCounter1.isWaiting, true);
       expect(counter1Future.isWaiting, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 11);
+      expect(numberOfNotification, 10);
 
       await tester.pump(Duration(seconds: 1));
       expect(counter1Future.hasData, true);
       expect(dependentCounter1.hasData, true);
       expect(dependentCounter2.hasData, true);
       expect(counter1.isIdle, true);
-      expect(numberOfNotification, 12);
+      expect(numberOfNotification, 11);
     },
   );
 
@@ -427,15 +438,15 @@ void main() {
     injectedMap.state = {'1': _Model(1), '2': _Model(3)};
     expect(numberOfNotification, 2);
     //
-    numberOfNotification = 0;
-    final injectModel = _Model(5).inj<_Model>();
-    injectModel.subscribeToRM((rm) {
-      numberOfNotification++;
-    });
-    expect(injectModel.state.count, 5);
-    injectModel.setState((s) => s.increment());
-    expect(injectModel.state.count, 6);
-    expect(numberOfNotification, 1);
+    // numberOfNotification = 0;
+    // final injectModel = _Model(5).inj<_Model>();
+    // injectModel.subscribeToRM((rm) {
+    //   numberOfNotification++;
+    // });
+    // expect(injectModel.state.count, 5);
+    // injectModel.setState((s) => s.increment());
+    // expect(injectModel.state.count, 6);
+    // expect(numberOfNotification, 1);
   });
 
   testWidgets('description', (tester) async {

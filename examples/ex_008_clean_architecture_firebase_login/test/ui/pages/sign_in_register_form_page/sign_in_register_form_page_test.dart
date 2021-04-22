@@ -8,8 +8,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   currentEnv = Env.dev;
-  user.injectAuthMock(() => FakeUserRepository());
-  canSignInWithApple.injectMock(() => true);
+  setUp(() {
+    user.injectAuthMock(() => FakeUserRepository());
+    canSignInWithApple.injectMock(() => true);
+  });
 
   Finder emailTextFiled = find.byWidgetPredicate((widget) {
     return widget is TextField && widget.decoration.labelText == 'Email';

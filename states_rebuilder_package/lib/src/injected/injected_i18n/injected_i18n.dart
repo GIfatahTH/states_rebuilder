@@ -1,73 +1,122 @@
-part of '../../reactive_model.dart';
+import 'dart:async';
+import 'dart:ui';
 
-///Used to represent the locale of the system.
-class SystemLocale extends Locale {
-  final Locale? _locale;
+import 'package:flutter/widgets.dart';
+import '../../rm.dart';
 
-  const SystemLocale._(this._locale) : super('systemLocale');
+import 'package:collection/collection.dart';
 
-  factory SystemLocale() {
-    return const SystemLocale._(null);
-  }
-  bool operator ==(Object o) {
-    return o is SystemLocale;
-  }
+abstract class InjectedI18N<I18N> implements Injected<I18N> {
+  ///Get lists of supported locales
+  List<Locale> get supportedLocales;
 
-  @override
-  int get hashCode => 0;
+  ///The current locale
+  Locale? locale;
+
+  ///Default locale resolution used by states_rebuilder.
+  ///
+  ///It first research for an exact match of the chosen locale in the list
+  ///of supported locales, if no match exists, it search for the language
+  ///code match, if it fails the first language is the supported language
+  ///will be used.
+  ///
+  ///for more elaborate logic, use [MaterialApp.localeListResolutionCallback]
+  ///and define your logic.
+  Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
+      get localeResolutionCallback;
 }
 
-///Injected state that handles app internationalization and localization
-class InjectedI18N<I18N> extends InjectedImp<I18N> {
-  InjectedI18N({
-    required Map<Locale, FutureOr<I18N> Function()> i18n,
+class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
+  InjectedI18NImp({
+    required this.i18Ns,
+    String? persistKey,
     //
-    void Function(I18N s)? onInitialized,
+    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
+        middleSnapState,
+    void Function(I18N? s)? onInitialized,
     void Function(I18N s)? onDisposed,
     On<void>? onSetState,
     //
     DependsOn<I18N>? dependsOn,
     int undoStackLength = 0,
-    PersistState<I18N> Function()? persist,
     //
-    bool isLazy = true,
+    bool autoDisposeWhenNotUsed = true,
+    // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
-        middleSnapState,
-    //
-  })  : _i18n = i18n,
-        super(
-          creator: (inj) {
-            return (inj as InjectedI18N)._getLanguage(SystemLocale());
-          },
+  }) : super(
+          creator: null,
           onInitialized: onInitialized,
+          //
+          middleSnapState: middleSnapState,
+          // onSetState: onSetState,
           onDisposed: onDisposed,
-
           //
           dependsOn: dependsOn,
-          undoStackLength: undoStackLength,
-          persist: persist,
-          //
-          autoDisposeWhenNotUsed: false,
-          isLazy: isLazy,
+          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+          // isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          middleSnapState: middleSnapState,
         ) {
+    final persist = persistKey == null
+        ? null
+        : PersistState<I18N>(
+            key: persistKey,
+            fromJson: (json) {
+              final s = json.split('#|#');
+              assert(s.length <= 3);
+              if (s.first.isEmpty) {
+                return _getLanguage(SystemLocale());
+              }
+              final l = Locale.fromSubtags(
+                languageCode: s.first,
+                scriptCode: s.length > 2 ? s[1] : null,
+                countryCode: s.last,
+              );
+
+              return _getLanguage(l);
+            },
+            toJson: (key) {
+              String l = '';
+              if (_locale is SystemLocale) {
+                l = '#|#';
+              } else {
+                l = '${_resolvedLocale!.languageCode}#|#' +
+                    (_locale?.scriptCode != null
+                        ? '${_resolvedLocale!.scriptCode}#|#'
+                        : '') +
+                    '${_resolvedLocale!.countryCode}';
+              }
+              return l;
+            },
+          );
+    if (undoStackLength > 0 || persist != null) {
+      undoRedoPersistState = UndoRedoPersistState<I18N>(
+        undoStackLength: undoStackLength,
+        persistanceProvider: persist,
+      );
+    }
+
+    reactiveModelState = ReactiveModelBase<I18N>(
+      creator: () {
+        return _getLanguage(SystemLocale());
+      },
+      initializer: initialize,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    );
+
     if (onSetState != null) {
       //For InjectedI18N and InjectedTheme schedule side effects
       //for the next frame.
       subscribeToRM(
         (_) {
           WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onSetState._callForSideEffects(snapState),
+            (_) => onSetState.call(snapState),
           );
         },
       );
     }
   }
 
-  Map<Locale, FutureOr<I18N> Function()> _i18n;
+  final Map<Locale, FutureOr<I18N> Function()> i18Ns;
 
   Locale? _locale;
 
@@ -76,12 +125,12 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
   //_resolvedLocale is a valid locale from the supported locale list
   Locale? _resolvedLocale;
 
-  ///Get lists of supported locales
-  List<Locale> get supportedLocales => _i18n.keys.toList();
+  @override
+  List<Locale> get supportedLocales => i18Ns.keys.toList();
 
-  ///The current locale
+  @override
   Locale? get locale {
-    _initialize();
+    initialize();
     return _locale is SystemLocale ? _resolvedLocale : _locale;
   }
 
@@ -106,11 +155,11 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
       _locale = _resolvedLocale;
     }
 
-    return _i18n[_resolvedLocale]!.call();
+    return i18Ns[_resolvedLocale]!.call();
   }
 
   Locale _localeResolution(Locale locale, [bool tryWithSystemLocale = true]) {
-    if (_i18n.keys.contains(locale)) {
+    if (i18Ns.keys.contains(locale)) {
       return locale;
     }
     //If locale is not supported,
@@ -122,36 +171,57 @@ class InjectedI18N<I18N> extends InjectedImp<I18N> {
       }
     }
 
-    final l = _i18n.keys
+    final l = i18Ns.keys
         .firstWhereOrNull((l) => locale.languageCode == l.languageCode);
     if (l != null) {
       return l;
     }
-    return _i18n.keys.first;
+    return i18Ns.keys.first;
   }
 
   Locale _getSystemLocale() {
     return WidgetsBinding.instance!.platformDispatcher.locale;
   }
 
-  ///Default locale resolution used by states_rebuilder.
-  ///
-  ///It first research for an exact match of the chosen locale in the list
-  ///of supported locales, if no match exists, it search for the language
-  ///code match, if it fails the first language is the supported language
-  ///will be used.
-  ///
-  ///for more elaborate logic, use [MaterialApp.localeListResolutionCallback]
-  ///and define your logic.
+  @override
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback => (locale, __) {
             return _resolvedLocale!;
           };
 
+  void didChangeLocales(List<Locale>? locales) {
+    if (_locale is SystemLocale && locales != null) {
+      _locale = locales.first;
+      locale = SystemLocale._(locales.first);
+    }
+  }
+
+  // @override
+  // void initialize() {
+  //   super.initialize();
+  // }
+
   @override
-  void _onDisposeState() {
-    super._onDisposeState();
+  void dispose() {
+    super.dispose();
     _locale = null;
     _resolvedLocale = null;
   }
+}
+
+///Used to represent the locale of the system.
+class SystemLocale extends Locale {
+  final Locale? _locale;
+
+  const SystemLocale._(this._locale) : super('systemLocale');
+
+  factory SystemLocale() {
+    return const SystemLocale._(null);
+  }
+  bool operator ==(Object o) {
+    return o is SystemLocale;
+  }
+
+  @override
+  int get hashCode => 0;
 }

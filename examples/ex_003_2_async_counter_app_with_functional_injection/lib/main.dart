@@ -133,7 +133,7 @@ class MyApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                RaisedButton(
+                ElevatedButton(
                   child: Text('Increment by one flavor'),
                   onPressed: () {
                     //set the env static variable to be Flavor.IncrByOne
@@ -142,7 +142,7 @@ class MyApp extends StatelessWidget {
                     RM.navigate.to(MyHomePage());
                   },
                 ),
-                RaisedButton(
+                ElevatedButton(
                   child: Text('Increment by Two flavor'),
                   onPressed: () {
                     //set the env static variable to be Flavor.IncrByOne

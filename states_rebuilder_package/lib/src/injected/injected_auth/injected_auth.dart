@@ -1,104 +1,319 @@
-part of '../../reactive_model.dart';
+import 'dart:async';
 
-/// Injected state that is responsible for authenticating and
-///authorization of a user.
-class InjectedAuth<T, P> extends InjectedImp<T> {
-  /// Injected state that is responsible for authenticating and
-  ///authorization of a user.
-  InjectedAuth({
-    required dynamic Function() creator,
-    P Function()? param,
-    T? initialState,
-    Duration Function(T s)? autoSignOut,
-    void Function(T s)? onInitialized,
-    void Function(T s)? onDisposed,
-    void Function(T s)? onAuthenticated,
-    void Function()? onSignOut,
-    On<void>? onSetState,
-    void Function(dynamic e, StackTrace? s)? onError,
-    //
-    DependsOn<T>? dependsOn,
-    int undoStackLength = 0,
-    PersistState<T> Function()? persist,
-    //
-    // bool autoDisposeWhenNotUsed = false,
-    // bool isLazy = true,
-    String? debugPrintWhenNotifiedPreMessage,
-    void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
-    //
-  })  : _param = param,
-        _autoSignOut = autoSignOut,
-        _onAuthenticated = onAuthenticated,
-        _onSignOut = onSignOut,
-        super(
-          creator: (_) => creator(),
-          initialValue: initialState,
-          nullState: initialState,
-          onInitialized: onInitialized?.call,
-          onDisposed: onDisposed,
+import 'package:flutter/material.dart';
+import '../../rm.dart';
+import '../../common/consts.dart';
 
-          on: onSetState,
-          //
-          dependsOn: dependsOn,
-          undoStackLength: undoStackLength,
-          persist: persist,
-          //
-          autoDisposeWhenNotUsed: false,
-          isLazy: true,
-          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+part 'i_auth.dart';
+part 'on_auth.dart';
 
-          middleSnapState: middleSnapState,
-        );
-  final P Function()? _param;
-  final Duration Function(T s)? _autoSignOut;
-  _AuthService<T, P> get auth {
-    _initialize();
-    return _auth!;
+abstract class InjectedAuth<T, P> implements Injected<T> {
+  IAuth<T, P>? _repo;
+
+  ///Get the auth repository
+  R getRepoAs<R extends IAuth<T, P>>() {
+    if (_repo != null) {
+      return _repo as R;
+    }
+    final repoMock = _cachedRepoMocks.last;
+    _repo = repoMock != null
+        ? repoMock()
+        : (this as InjectedAuthImp<T, P>).repoCreator();
+    (this as InjectedAuthImp)._init();
+    return _repo as R;
   }
 
   ///Whether the a user is signed or not
-  bool get isSigned => state != _initialState;
-
+  bool get isSigned => state != (this as InjectedAuthImp<T, P>).unsignedUser;
+  //
   _AuthService<T, P>? _auth;
-  Future<R> getRepoAs<R>() async {
-    assert(R != dynamic && R != Object);
-    // We get the repo, so we are supposed we want to sign.
-    //If the auth state is not initialized, and it will invoke
-    //OnUnSigned. This may lead to a bug.
-    //Set _initialConnectionState to done will prevent calling
-    //OnUnSinged on app initialization. (See RM.injectedAuth onInitialized)
-    // _initialConnectionState = ConnectionState.done;
-    return (await auth._repository) as R;
-  }
 
-  final void Function(T s)? _onAuthenticated;
-  final void Function()? _onSignOut;
-  @override
-  void _onDisposeState() {
-    _auth?._dispose();
-    super._onDisposeState();
-  }
+  ///To sign up, in or out
+  _AuthService<T, P> get auth => _auth ??= _AuthService<T, P>(
+        getRepoAs<IAuth<T, P>>(),
+        this as InjectedAuthImp<T, P>,
+      );
+
+  List<IAuth<T, P> Function()?> _cachedRepoMocks = [null];
 
   ///Inject a fake implementation of this injected model.
   ///
   ///* Required parameters:
   ///   * [creationFunction] (positional parameter): the fake creation function
+
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
-    _isInjectMock = false;
-    final creator = () {
-      if (!_isFirstInitialized) {
-        final fn = () async {
-          final repo = fakeRepository();
-          await repo.init();
-          return repo;
-        };
-        _auth = _AuthService(fn(), this);
+    RM.disposeAll();
+    _cachedRepoMocks.add(fakeRepository);
+  }
+}
+
+/// Injected state that is responsible for authenticating and
+///authorization of a user.
+class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
+  /// Injected state that is responsible for authenticating and
+  ///authorization of a user.
+  InjectedAuthImp({
+    required this.repoCreator,
+    this.unsignedUser,
+    this.param,
+    this.onSigned,
+    this.onUnsigned,
+    this.autoSignOut,
+    this.onAuthStream,
+    this.on,
+    //
+    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    void Function(T? s)? onInitialized,
+    void Function(T s)? onDisposed,
+
+    //
+    PersistState<T> Function()? persist,
+    String? debugPrintWhenNotifiedPreMessage,
+    String Function(T?)? toDebugString,
+  }) : super(
+          creator: () => unsignedUser,
+          initialState: unsignedUser,
+          onInitialized: onInitialized,
+          onDisposed: onDisposed,
+          middleSnapState: middleSnapState,
+          persist: persist,
+          isLazy: true,
+          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+          toDebugString: toDebugString,
+          autoDisposeWhenNotUsed: false,
+        );
+  final IAuth<T, P> Function() repoCreator;
+
+  final P Function()? param;
+  final void Function(T s)? onSigned;
+  final void Function()? onUnsigned;
+  final On<void>? on;
+  final Duration Function(T auth)? autoSignOut;
+  final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
+  StreamSubscription<T>? onAuthStreamSubscription;
+  T? unsignedUser;
+
+  @override
+  dynamic middleCreator(
+    dynamic Function() crt,
+    dynamic Function()? creatorMock,
+  ) {
+    if (creatorMock != null) {
+      return super.middleCreator(crt, creatorMock);
+    }
+    return () async {
+      snapState = snapState.copyWith(infoMessage: 'REPO $kInitMessage');
+      auth._param = param?.call();
+      await _init();
+      snapState = snapState.copyWith(infoMessage: kInitMessage);
+      if (onAuthStream != null) {
+        final Stream<T> stream = await onAuthStream!(getRepoAs<IAuth<T, P>>());
+        return super.middleCreator(() => stream, creatorMock);
       }
-      return _initialState;
-    };
-    _cachedMockCreator ??= (_) => creator();
-    _cleanUpState((_) => creator());
-    addToCleaner(() => _cleanUpState(_cachedMockCreator));
+      final r = super.middleCreator(crt, creatorMock);
+
+      return r;
+    }();
+  }
+
+  Future<void> _init() async {
+    if (_isInitialized) {
+      return;
+    }
+    await getRepoAs<IAuth<T, P>>().init();
+    _isInitialized = true;
+  }
+
+  bool _isInitialized = false;
+
+  @override
+  void dispose() {
+    auth._dispose();
+    onAuthStreamSubscription?.cancel();
+    onAuthStreamSubscription = null;
+    if (_cachedRepoMocks.length > 1) {
+      _cachedRepoMocks.removeLast();
+    }
+    super.dispose();
+    _repo = null;
+    _auth = null;
+    _isInitialized = false;
+  }
+}
+
+class _AuthService<T, P> {
+  final IAuth<T, P> _repository;
+
+  ///The injected model associated with this service
+  ///class
+  final InjectedAuthImp<T, P> injected;
+  _AuthService(this._repository, this.injected) {
+    _disposer = injected.subscribeToRM((snap) {
+      if (snap!.hasData) {
+        _onData(_onSignInOut);
+      } else if (snap.hasError) {
+        _onError(_onSignInOut);
+      }
+      injected.on?.call(snap);
+    });
+  }
+
+  P? _param;
+  void Function()? _onSignInOut;
+  late VoidCallback _disposer;
+  Timer? _authTimer;
+
+  ///Sign in
+  ///[param] is used to parametrize the query (ex: user
+  ///id, token).
+  ///
+  ///[onAuthenticated] called after user authentication.
+  ///
+  ///[onError] called when authentication fails
+  Future<T> signIn(
+    P Function(P? param)? param, {
+    void Function()? onAuthenticated,
+    void Function(dynamic error, void Function() refresh)? onError,
+  }) async {
+    _onSignInOut = onAuthenticated;
+    await injected.setState(
+      (s) async {
+        _param = param?.call(
+          injected.param?.call(),
+        );
+        await injected._init();
+        return _repository.signIn(_param ?? injected.param?.call());
+      },
+      onSetState: onError != null ? On.error(onError) : null,
+    );
+    _onSignInOut = null;
+    return injected.state;
+  }
+
+  ///Sign up
+  ///[param] is used to parametrize the query (ex: user
+  ///id, token).
+  ///
+  ///[onAuthenticated] called after user authentication.
+  ///
+  ///[onError] called when authentication fails
+  Future<T> signUp(
+    P Function(P? param)? param, {
+    void Function()? onAuthenticated,
+    void Function(dynamic error, void Function() refresh)? onError,
+  }) async {
+    _onSignInOut = onAuthenticated;
+
+    await injected.setState(
+      (s) async {
+        _param = param?.call(
+          injected.param?.call(),
+        );
+        await injected._init();
+
+        return _repository.signUp(_param ?? injected.param?.call());
+      },
+      onSetState: onError != null ? On.error(onError) : null,
+    );
+    _onSignInOut = null;
+    return injected.state;
+  }
+
+  void _onError(void Function()? onAuthenticated) {
+    final snap = injected.snapState;
+    injected.snapState = snap.copyToHasError(
+      snap.error,
+      onErrorRefresher: snap.onErrorRefresher,
+      stackTrace: snap.stackTrace,
+      data: injected.unsignedUser,
+      enableNull: true,
+    );
+    injected.onUnsigned?.call();
+  }
+
+  void _onData(void Function()? onAuthenticated) {
+    onAuthenticated?.call();
+    if (injected.state == injected.unsignedUser) {
+      _cancelTimer();
+      if (onAuthenticated == null) {
+        injected.onUnsigned?.call();
+      }
+    } else {
+      _persist();
+      _autoSignOut();
+      if (onAuthenticated == null) {
+        injected.onSigned?.call(injected.state);
+      }
+    }
+    _onSignInOut = null;
+  }
+
+  void _persist() {
+    injected.persistState();
+  }
+
+  void _autoSignOut() {
+    if (injected.autoSignOut != null) {
+      _cancelTimer();
+      _authTimer = Timer(
+        injected.autoSignOut!(injected.state),
+        () => signOut(),
+      );
+    }
+  }
+
+  ///Sign out
+  ///[param] is used to parametrize the query (ex: user
+  ///id, token).
+  ///
+  ///[onSignOut] called after user has signed out.
+  ///
+  ///[onError] called when authentication fails
+  Future<void> signOut({
+    P Function(P? param)? param,
+    void Function()? onSignOut,
+    void Function(dynamic error, void Function() refresh)? onError,
+  }) async {
+    _cancelTimer();
+    _onSignInOut = onSignOut;
+    await injected.setState(
+      (s) async* {
+        yield injected.unsignedUser;
+        await injected._init();
+
+        await _repository.signOut(
+          param?.call(injected.param?.call()) ??
+              injected.param?.call() ??
+              _param,
+        );
+      },
+      onSetState: onError != null ? On.error(onError) : null,
+    );
+    _onSignInOut = null;
+
+    if (injected.hasData) {
+      injected.deletePersistState();
+    }
+  }
+
+  void _cancelTimer() {
+    if (_authTimer != null) {
+      _authTimer!.cancel();
+      _authTimer = null;
+    }
+  }
+
+  // void autoSignOut(Duration time, {P Function(P? param)? param}) {
+  //   _cancelTimer();
+  //   _authTimer = Timer(
+  //     time,
+  //     () => signOut(param: param),
+  //   );
+  // }
+
+  Future<void> _dispose() async {
+    _disposer();
+    _authTimer?.cancel();
+    _repository.dispose();
   }
 }

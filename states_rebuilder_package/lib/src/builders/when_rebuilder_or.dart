@@ -1,4 +1,7 @@
-part of '../reactive_model.dart';
+import 'package:flutter/material.dart';
+import '../rm.dart';
+
+import 'package:collection/collection.dart';
 
 ///Just like [WhenRebuilder] but you do not have to define all possible states.
 class WhenRebuilderOr<T> extends StatefulWidget {
@@ -186,6 +189,7 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
       watch: widget.watch != null ? () => widget.watch!(rm) : null,
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
+      debugPrintNotification: '',
     );
   }
 

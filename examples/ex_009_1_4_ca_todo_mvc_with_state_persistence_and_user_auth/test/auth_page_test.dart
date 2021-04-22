@@ -13,9 +13,10 @@ import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
-  user.injectAuthMock(() => FakeAuthRepository());
-  todos.injectCRUDMock(() => FakeTodosRepository());
+
   setUp(() {
+    user.injectAuthMock(() => FakeAuthRepository());
+    todos.injectCRUDMock(() => FakeTodosRepository());
     DateTimeX.customNow = DateTime(2020);
     storage.clear();
   });

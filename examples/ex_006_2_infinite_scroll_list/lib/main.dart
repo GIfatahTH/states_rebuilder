@@ -54,7 +54,7 @@ class PostsPage extends StatelessWidget {
                     title: Text(posts.state[index].title),
                     subtitle: Text(posts.state[index].body),
                   )
-                : posts.argument != 'hasReachedMax'
+                : posts.customStatus != 'hasReachedMax'
                     ? On.or(
                         onError: (err, refresh) => ElevatedButton(
                           onPressed: () => refresh(),
@@ -66,6 +66,7 @@ class PostsPage extends StatelessWidget {
                       ).listenTo(posts)
                     : ElevatedButton(
                         onPressed: () {
+                          posts.customStatus = null;
                           posts.refresh();
                         },
                         child: Text('Refresh Posts'),
@@ -83,7 +84,7 @@ class PostsPage extends StatelessWidget {
   }
 
   void _onScroll() {
-    if (posts.argument == 'hasReachedMax' || posts.isWaiting) {
+    if (posts.customStatus == 'hasReachedMax' || posts.isWaiting) {
       return;
     }
     if (_controller.offset >= _controller.position.maxScrollExtent) {

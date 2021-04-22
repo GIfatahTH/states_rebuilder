@@ -21,13 +21,16 @@ void main() {
       navigatorKey: RM.navigate.navigatorKey,
     ),
   );
-  userInj.injectMock(
-    () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
-  );
 
-  postsInj.injectCRUDMock(
-    () => FakePostRepository(),
-  );
+  setUp(() {
+    userInj.injectMock(
+      () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
+    );
+
+    postsInj.injectCRUDMock(
+      () => FakePostRepository(),
+    );
+  });
   testWidgets(
       'display CircularProgressIndicator at startup and show error dialog on NetworkErrorException',
       (tester) async {

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/rm.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -9,14 +10,15 @@ void main() {
     (tester) async {
       //Will not circle because the default null state is inferred
       expect(x.state, 0);
-      dynamic err;
-      try {
-        //throw because null state is not defined
-        arrayWithoutNullState.state;
-      } catch (e) {
-        err = e;
-      }
-      expect(err, isA<ArgumentError>());
+      // expect(() => arrayWithoutNullState.state, throwsArgumentError);
+      // dynamic err;
+      // try {
+      //   //throw because null state is not defined
+      //   arrayWithoutNullState.state;
+      // } catch (e) {
+      //   err = e;
+      // }
+      // expect(err, isA<ArgumentError>());
 
       //Will not circle because the default null state is defined
       expect(arrayWithNullState.state, []);
@@ -42,14 +44,14 @@ void main() {
   // );
 }
 
-final x = RM.inject<int>(() => x.state);
+final x = RM.inject<int>(() => x.state, initialState: 0);
 final arrayWithoutNullState =
     RM.inject<List>(() => arrayWithoutNullState.state);
 final arrayWithNullState =
     RM.inject<List>(() => arrayWithNullState.state, initialState: []);
 //
-final y1 = RM.inject<int>(() => y2.state);
-final y2 = RM.inject<int>(() => y1.state);
+final y1 = RM.inject<int?>(() => y2.state, initialState: 0);
+final y2 = RM.inject<int?>(() => y1.state, initialState: 0);
 
 //
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../reactive_model.dart';
+import '../rm.dart';
+
 // import 'assertions.dart';
 import 'inject.dart';
 
@@ -188,16 +189,16 @@ class Injector extends StatefulWidget {
     final Inject<T> inject = _getInject<T>(_name, silent);
 
     final reactiveModel = inject.injected;
-    assert(
-      () {
-        if (reactiveModel.state is StatesRebuilder) {
-          throw Exception(
-            'Injected model extends StatesRebuilder',
-          );
-        }
-        return true;
-      }(),
-    );
+    // assert(
+    //   () {
+    //     if (reactiveModel.state is StatesRebuilder) {
+    //       throw Exception(
+    //         'Injected model extends StatesRebuilder',
+    //       );
+    //     }
+    //     return true;
+    //   }(),
+    // );
 
     return reactiveModel;
   }
@@ -249,7 +250,7 @@ class InjectorState extends State<Injector> {
     if (widget.reinjectOn != null) {
       for (ReactiveModel model in widget.reinjectOn!) {
         model.subscribeToRM((rm) {
-          if (!rm.hasData) {
+          if (!rm!.hasData) {
             return;
           }
           for (Inject inj in widget.inject.cast<Inject>()) {

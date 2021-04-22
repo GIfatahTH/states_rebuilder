@@ -67,9 +67,11 @@ class FakeCounter extends Counter {
 }
 
 void main() {
-  //Default injected mock
-  //It is set to incrementBy 2
-  counter.injectMock(() => FakeCounter(incrementBy: 2));
+  setUp(() {
+    //Default injected mock
+    //It is set to incrementBy 2
+    counter.injectMock(() => FakeCounter(incrementBy: 2));
+  });
   testWidgets('should increment counter', (tester) async {
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);

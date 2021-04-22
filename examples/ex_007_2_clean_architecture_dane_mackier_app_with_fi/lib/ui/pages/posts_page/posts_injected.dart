@@ -2,7 +2,7 @@ part of 'posts_page.dart';
 
 final postsInj = RM.injectCRUD(
   () => PostRepository(),
-  param: () => userInj.state.id,
+  param: () => userInj.state!.id,
   readOnInitialization: true,
   onSetState: On.error(
     (err, refresh) => ExceptionHandler.showErrorDialog(err),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Product {
   final int id;
@@ -108,9 +108,8 @@ final products = RM.injectCRUD<Product, Object>(
 );
 
 void main() {
-  products.injectCRUDMock(() => _repo);
   setUp(() {
-    RM.disposeAll();
+    products.injectCRUDMock(() => _repo);
     _repo.error = null;
     disposeMessage = '';
     onCRUDMessage = '';
@@ -119,6 +118,7 @@ void main() {
     int numberOfonStateMutationCall = 0;
     dynamic onResultMessage;
     expect(products.isWaiting, true);
+    await tester.pump();
     expect(onCRUDMessage, 'Waiting...');
     await tester.pump(Duration(seconds: 1));
     expect(products.hasData, true);
@@ -134,7 +134,7 @@ void main() {
     );
     expect(numberOfonStateMutationCall, 0);
     expect(onResultMessage, null);
-
+    await tester.pump();
     expect(products.isWaiting, true);
     expect(onCRUDMessage, 'Waiting...');
     await tester.pump(Duration(seconds: 1));
@@ -156,6 +156,7 @@ void main() {
       onSetState: On.data(() => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
+    await tester.pump();
     expect(numberOfonStateMutationCall, 0);
     expect(onResultMessage, null);
     expect(products.isWaiting, true);
@@ -179,6 +180,7 @@ void main() {
       onSetState: On.data(() => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
+    await tester.pump();
     expect(numberOfonStateMutationCall, 0);
     expect(onResultMessage, null);
     expect(products.isWaiting, true);
@@ -246,6 +248,7 @@ void main() {
     dynamic onResult;
 
     expect(products.isWaiting, true);
+    await tester.pump();
     expect(onCRUDMessage, 'Waiting...');
     await tester.pump(Duration(seconds: 1));
     expect(products.hasData, true);
@@ -443,6 +446,7 @@ void main() {
       isOptimistic: false,
     );
     await tester.pump();
+    await tester.pump();
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Result: null'), findsOneWidget);
@@ -453,6 +457,7 @@ void main() {
       isOptimistic: false,
     );
     await tester.pump();
+    await tester.pump();
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Result: 1 items updated'), findsOneWidget);
@@ -461,6 +466,7 @@ void main() {
       where: (product) => product.id == 2,
       isOptimistic: false,
     );
+    await tester.pump();
     await tester.pump();
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -638,7 +644,10 @@ void main() {
             return Text(_.message);
           },
           onResult: (r) => Text('Result: $r'),
-        ).listenTo(products),
+        ).listenTo(
+          products,
+          debugPrintNotification: '',
+        ),
       );
 
       ///READ
@@ -654,7 +663,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(find.text('Result: null'), findsOneWidget);
 
-      // //CREATE Peissimisally
+      //CREATE Peissimisally
       _repo.error = Exception('Create Error');
 
       products.crud.create(
@@ -698,11 +707,13 @@ void main() {
         where: (product) => product.id == 2,
       );
       await tester.pump();
+      await tester.pump();
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       expect(find.text('Delete Error'), findsOneWidget);
       _repo.error = null;
       refresher();
+      await tester.pump();
       await tester.pump();
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));

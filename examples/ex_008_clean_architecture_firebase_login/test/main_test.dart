@@ -10,10 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   currentEnv = Env.dev;
-  user.injectAuthMock(() => FakeUserRepository());
-  canSignInWithApple.injectFutureMock(
-    () => Future.delayed(Duration(seconds: 1), () => true),
-  );
+  setUp(() {
+    user.injectAuthMock(() => FakeUserRepository());
+    canSignInWithApple.injectFutureMock(
+      () => Future.delayed(Duration(seconds: 1), () => true),
+    );
+  });
   testWidgets(
     'display SplashScreen and go to SignInPage after checking no current user',
     (tester) async {
@@ -44,7 +46,7 @@ void main() {
       await tester.pumpWidget(MyApp());
 
       //setting the USerService to return a known user
-      final repo = await user.getRepoAs<FakeUserRepository>();
+      final repo = user.getRepoAs<FakeUserRepository>();
 
       repo.fakeUser = User(
         uid: '1',
@@ -81,7 +83,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(MyApp());
 
-      final repo = await user.getRepoAs<FakeUserRepository>();
+      final repo = user.getRepoAs<FakeUserRepository>();
 
       repo.fakeUser = User(
         uid: '1',

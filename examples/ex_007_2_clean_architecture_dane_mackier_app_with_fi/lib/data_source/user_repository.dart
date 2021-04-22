@@ -9,26 +9,24 @@ class UserRepository implements IAuth<User, int> {
     if (userId == null) {
       throw NullNumberException();
     }
-    http.Response response;
     try {
-      response = await _client.get(
+      final response = await _client.get(
         Uri.parse('$_endpoint/users/$userId'),
       );
+      //Handle not found page
+      if (response.statusCode == 404) {
+        throw UserNotFoundException(userId);
+      }
+      if (response.statusCode != 200) {
+        throw NetworkErrorException();
+      }
+
+      return User.fromJson(response.body);
     } catch (e) {
       //Handle network error
       //It must throw custom errors classes defined in the service layer
       throw NetworkErrorException();
     }
-
-    //Handle not found page
-    if (response.statusCode == 404) {
-      throw UserNotFoundException(userId);
-    }
-    if (response.statusCode != 200) {
-      throw NetworkErrorException();
-    }
-
-    return User.fromJson(response.body);
   }
 
   @override
@@ -42,7 +40,5 @@ class UserRepository implements IAuth<User, int> {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
+  void dispose() {}
 }

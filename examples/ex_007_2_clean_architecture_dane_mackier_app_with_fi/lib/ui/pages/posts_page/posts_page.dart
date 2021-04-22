@@ -13,7 +13,7 @@ part 'posts_injected.dart';
 part 'postlist_item.dart';
 
 class PostsPage extends StatelessWidget {
-  final user = userInj.state;
+  final user = userInj.state!;
   @override
   Widget build(BuildContext context) {
     return Scaffold(

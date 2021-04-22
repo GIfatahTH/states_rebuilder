@@ -66,14 +66,18 @@ class CounterApp extends StatelessWidget {
           // }),
           //
           //Or you can use StateBuilder,
-          StateBuilder(
-            observe: () => counter2,
-            builder: (context, counter2RM) {
-              numberOfCounter2Rebuild++;
-              return Text('counter2 : ${counter2.state}');
-            },
-          ),
 
+          // StateBuilder(
+          //   observe: () => counter2,
+          //   builder: (context, counter2RM) {
+          //     numberOfCounter2Rebuild++;
+          //     return Text('counter2 : ${counter2.state}');
+          //   },
+          // ),
+          On.data(() {
+            numberOfCounter2Rebuild++;
+            return Text('counter2 : ${counter2.state}');
+          }).listenTo(counter2),
           On.data(() {
             numberOfComputedRebuild++;
             return Text('computedCounter : ${computedCounter.state}');

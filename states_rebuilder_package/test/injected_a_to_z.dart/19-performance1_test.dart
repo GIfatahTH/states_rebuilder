@@ -14,6 +14,7 @@ final injectedStream = RM.injectStream(
       return data;
     },
   ),
+  initialState: 0,
 );
 
 //Use StatefulWidget

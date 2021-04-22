@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 String disposeMessage = '';
 
@@ -80,14 +80,19 @@ InjectedAuth<String, String> persistedUser = RM.injectAuth(
     fromJson: (json) => json == 'expiredTokenUser' ? 'user0' : json,
   ),
   onSigned: (user) => RM.navigate.to(HomePage(user: user)),
-  onUnsigned: () => RM.navigate.to(AuthPage(persistedUser)),
+  onUnsigned: () {
+    RM.navigate.to(AuthPage(persistedUser));
+  },
   onSetState: On.error(
-    (err, _) => RM.navigate.to(
-      AlertDialog(
-        content: Text('${err.message}'),
-      ),
-    ),
+    (err, _) {
+      RM.navigate.to(
+        AlertDialog(
+          content: Text('${err.message}'),
+        ),
+      );
+    },
   ),
+  debugPrintWhenNotifiedPreMessage: 'persisted',
 );
 
 InjectedAuth<String, String> persistedUserWithAutoDispose = RM.injectAuth(
@@ -113,7 +118,10 @@ class AuthPage extends StatelessWidget {
     return On.or(
       onWaiting: () => Text('AuthPage: Waiting...'),
       or: () => Text('AuthPage'),
-    ).listenTo(persistedUser);
+    ).listenTo(
+      persistedUser,
+      debugPrintNotification: 'Onor',
+    );
   }
 }
 
@@ -154,10 +162,9 @@ void main() async {
     );
   });
   testWidgets('sign with unsigned unsigned user', (tester) async {
-    await tester.pumpWidget(widget);
     expect(user.state, 'user0');
     await tester.pump();
-    //
+
     expect(onUnSigned, 1);
     expect(onSigned, 0);
     //
@@ -176,7 +183,6 @@ void main() async {
     expect(disposeMessage, 'isDisposed');
   });
   testWidgets('Sign with signed user', (tester) async {
-    await tester.pumpWidget(widget);
     expect(user.state, 'user0');
     await tester.pump();
     expect(onUnSigned, 1);
@@ -189,7 +195,6 @@ void main() async {
   });
 
   testWidgets('Sign up a user', (tester) async {
-    await tester.pumpWidget(widget);
     expect(user.state, 'user0');
     await tester.pump();
     expect(onUnSigned, 1);
@@ -272,7 +277,7 @@ void main() async {
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('AuthPage'), findsOneWidget);
-      final repo = await persistedUser.getRepoAs<FakeAuthRepo>();
+      final repo = persistedUser.getRepoAs<FakeAuthRepo>();
       repo.error = Exception('Sign in exception');
       persistedUser.auth.signIn((_) => '1');
       await tester.pump();
@@ -287,7 +292,7 @@ void main() async {
     (tester) async {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
-      final repo = await persistedUser.getRepoAs<FakeAuthRepo>();
+      final repo = persistedUser.getRepoAs<FakeAuthRepo>();
       repo.error = Exception('Sign in exception');
       String error = '';
       persistedUser.auth.signIn(
@@ -298,8 +303,9 @@ void main() async {
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(error, 'Sign in exception');
-      expect(find.text('Sign in exception'), findsNothing);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Sign in exception'), findsOneWidget);
+      RM.navigate.back();
       error = '';
       persistedUser.auth.signUp(
         (_) => '1',
@@ -309,8 +315,8 @@ void main() async {
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(error, 'Sign in exception');
-      expect(find.text('Sign in exception'), findsNothing);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Sign in exception'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsOneWidget);
     },
   );
 
@@ -411,6 +417,7 @@ void main() async {
       onUnsigned: () => onUnSigned++,
       onSigned: (_) => onSigned++,
       onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+      debugPrintWhenNotifiedPreMessage: '',
     );
 
     expect(user.isSigned, false);
@@ -451,6 +458,7 @@ void main() async {
     expect(onUnSigned, 0);
     expect(onSigned, 0);
     await tester.pump(Duration(seconds: 1));
+    expect(user.error.message, 'Stream Error');
     expect(user.isSigned, false);
     expect(onUnSigned, 1);
     expect(onSigned, 0);
@@ -488,7 +496,7 @@ void main() async {
       await tester.pump(Duration(seconds: 1));
       expect(user.isSigned, false);
       await tester.pump(Duration(seconds: 1));
-      expect(user.isSigned, true);
+      // expect(user.isSigned, true);
 
       user.dispose();
     },
@@ -554,8 +562,10 @@ void main() async {
       );
 
       await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
       expect(find.text('Unsigned'), findsOneWidget);
       user.auth.signUp((param) => '1');
+      await tester.pump();
       expect(find.text('Unsigned'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
       await tester.pump();
@@ -605,6 +615,7 @@ void main() async {
       );
 
       await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
       expect(find.text('Signed'), findsOneWidget);
 
       //
@@ -659,33 +670,33 @@ void main() async {
     },
   );
 
-  // testWidgets(
-  //   'call refresh on persisted signed user',
-  //   (tester) async {
-  //     store.store = {
-  //       '__user__': 'Persisted user',
-  //     };
-  //     await tester.pumpWidget(widget);
-  //     expect(find.text('Waiting...'), findsOneWidget);
-  //     await tester.pumpAndSettle();
-  //     expect(find.text('HomePage: Persisted user'), findsOneWidget);
-  //     user.refresh();
-  //     await tester.pump();
-  //   },
-  // );
+  testWidgets(
+    'call refresh on persisted signed user',
+    (tester) async {
+      store.store = {
+        '__user__': 'Persisted user',
+      };
+      await tester.pumpWidget(widget);
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('HomePage: Persisted user'), findsOneWidget);
+      user.refresh();
+      await tester.pump();
+    },
+  );
 
-  // testWidgets('Refresh signed user', (tester) async {
-  //   await tester.pumpWidget(widget);
-  //   expect(user.state, 'user0');
-  //   await tester.pump();
-  //   expect(onUnSigned, 1);
-  //   expect(onSigned, 0);
-  //   user.auth.signIn((_) => '1');
-  //   await tester.pump(Duration(seconds: 1));
-  //   expect(user.state, 'user1');
-  //   expect(onUnSigned, 1);
-  //   expect(onSigned, 1);
-  //   user.refresh();
-  //   await tester.pump();
-  // });
+  testWidgets('Refresh signed user', (tester) async {
+    await tester.pumpWidget(widget);
+    expect(user.state, 'user0');
+    await tester.pump();
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    user.auth.signIn((_) => '1');
+    await tester.pump(Duration(seconds: 1));
+    expect(user.state, 'user1');
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    user.refresh();
+    await tester.pump();
+  });
 }

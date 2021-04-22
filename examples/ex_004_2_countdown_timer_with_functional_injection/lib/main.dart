@@ -17,44 +17,41 @@ class CountDownTimer {
   final int initialTimer;
   CountDownTimer(this.initialTimer);
   //inject a stream to represent our timer.
-  Injected<int>? _duration;
-  Injected<int> get duration => _duration ??= RM.injectStream<int>(
-        () => Stream.periodic(Duration(seconds: 1), (num) => num),
-        middleSnapState: (middleState) {
-          ////UnComment to see state transition print log
-          // middleState.print();
-          if (middleState.nextSnap.isWaiting) {
-            //stream is waiting means that is is first start.
-            //we pause it and display the initial timer
-            duration.subscription?.pause();
-            return middleState.nextSnap.copyToHasData(initialTimer);
-          }
-          final timer = middleState.nextSnap.data!;
-          int d = initialTimer - timer - 1;
+  late Injected<int> duration = RM.injectStream<int>(
+    () => Stream.periodic(Duration(seconds: 1), (num) => num),
+    middleSnapState: (middleState) {
+      ////UnComment to see state transition print log
+      // middleState.print();
+      if (middleState.nextSnap.isWaiting) {
+        //stream is waiting means that is is first start.
+        //we pause it and display the initial timer
+        duration.subscription?.pause();
+        return middleState.nextSnap.copyToHasData(initialTimer);
+      }
+      final timer = middleState.nextSnap.data!;
+      int d = initialTimer - timer - 1;
 
-          if (d < 1) {
-            //When duration is 0, refresh the time.
-            //refresh the timer means:
-            //- cancel the current subscription
-            //- create brand new subscription
-            //- recall onInitialized (see above) which pauses the subscription
-            stop();
-            return middleState.nextSnap.copyToHasData(initialTimer);
-          }
-          return middleState.nextSnap.copyToHasData(d);
-        },
-      );
+      if (d < 1) {
+        //When duration is 0, refresh the time.
+        //refresh the timer means:
+        //- cancel the current subscription
+        //- create brand new subscription
+        //- recall onInitialized (see above) which pauses the subscription
+        stop();
+        return middleState.nextSnap.copyToHasData(initialTimer);
+      }
+      return middleState.nextSnap.copyToHasData(d);
+    },
+    // debugPrintWhenNotifiedPreMessage: 'duration',
+  );
 
   //Inject the timer status
-  Injected<TimerStatus>? _timerStatus;
-  Injected<TimerStatus> get timerStatus =>
-      _timerStatus ??= RM.inject<TimerStatus>(
-        () => TimerStatus.ready,
-        middleSnapState: (snap) {
-          ////UnComment to see state transition print log
-          // snap.print();
-        },
-      );
+  late Injected<TimerStatus> timerStatus = RM.inject<TimerStatus>(
+    () => TimerStatus.ready,
+
+    //UnComment to see state transition print log
+    //debugPrintWhenNotifiedPreMessage: '',
+  );
 
   void start() {
     timerStatus.state = TimerStatus.running;

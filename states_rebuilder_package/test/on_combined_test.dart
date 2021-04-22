@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/rm.dart';
+
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets('many simple counters app', (tester) async {
-    final rm1 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
-    final rm2 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
-    final rm3 = ReactiveModelImp(creator: (_) => 0, nullState: 0);
+    final rm1 = ReactiveModel(creator: () => 0, initialState: 0);
+    final rm2 = ReactiveModel(creator: () => 0, initialState: 0);
+    final rm3 = ReactiveModel(creator: () => 0, initialState: 0);
     final widget = OnCombined.data(
       (_) => Directionality(
         textDirection: TextDirection.ltr,
@@ -31,11 +33,11 @@ void main() {
 
   testWidgets('many async counters app', (tester) async {
     final rm1 =
-        ReactiveModelImp(creator: (_) => _Model(0), nullState: _Model(0));
+        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
     final rm2 =
-        ReactiveModelImp(creator: (_) => _Model(0), nullState: _Model(0));
+        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
     final rm3 =
-        ReactiveModelImp(creator: (_) => _Model(0), nullState: _Model(0));
+        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
     String onWaitngSideEffect = '';
     final widget = Directionality(
       textDirection: TextDirection.ltr,
@@ -155,7 +157,8 @@ void main() {
     expect(exposedState, 'new');
   });
 
-  testWidgets('exposed state of list of injected with non defined generic type',
+  testWidgets(
+      'exposed state of list of injected with non defined generic type1',
       (tester) async {
     final intInj = 0.inj();
     final boolInj = false.inj();
@@ -247,7 +250,6 @@ void main() {
         Duration(seconds: 1),
         () => throw Exception('Error'),
       ),
-      /*catchError: true*/
     );
     await tester.pump();
     expect(find.text('1'), findsOneWidget);

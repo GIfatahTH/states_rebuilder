@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Product {
   final int id;
@@ -110,7 +109,7 @@ void main() {
     expect(products.hasData, true);
     expect(products.state.length, 2);
     expect(_repo._products.length, 2);
-    //
+    // //
     products.crud.update(
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),

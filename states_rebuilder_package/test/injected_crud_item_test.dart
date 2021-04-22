@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Product {
   final int id;
@@ -97,6 +96,7 @@ final _repo = Repository();
 final products = RM.injectCRUD<Product, Object>(
   () => _repo,
   readOnInitialization: true,
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final widget = MaterialApp(
@@ -113,10 +113,14 @@ final widget = MaterialApp(
             builder: (_) {
               return const Item();
             },
+            debugPrintWhenNotifiedPreMessage: '${products.state[index].id}',
           );
         },
       ),
-    ).listenTo(products),
+    ).listenTo(
+      products,
+      debugPrintNotification: 'On.future',
+    ),
   ),
   navigatorKey: RM.navigate.navigatorKey,
 );
@@ -203,7 +207,7 @@ void main() {
     //
     expect(products.state[0].count, 1);
     expect(_repo._products.first.count, 0);
-    final repo = await products.getRepoAs<Repository>();
+    final repo = products.getRepoAs<Repository>();
     expect(repo._products.first.count, 0);
 
     await tester.pump(Duration(seconds: 1));
@@ -226,6 +230,9 @@ void main() {
     expect(products.state[1].count, 1);
     expect(_repo._products[1].count, 0);
     await tester.pump(Duration(seconds: 1));
+    expect(find.text('prod1: 0'), findsOneWidget);
+    expect(find.text('prod2: 0'), findsOneWidget);
+    expect(find.text('prod3: 0'), findsOneWidget);
   });
 
   testWidgets(
@@ -241,18 +248,23 @@ void main() {
     //
 
     products.crud.update(
-      where: (p) => p.id == 1,
-      set: (p) => p.copyWith(count: 1),
+      where: (p) => p.id == 1 || p.id == 2,
+      set: (p) {
+        if (p.id == 1) {
+          return p.copyWith(count: 10);
+        }
+        return p.copyWith(count: 20);
+      },
     );
 
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('prod1: 1'), findsOneWidget);
-    expect(find.text('prod2: 0'), findsOneWidget);
+    expect(find.text('prod1: 10'), findsOneWidget);
+    expect(find.text('prod2: 20'), findsOneWidget);
     expect(find.text('prod3: 0'), findsOneWidget);
 
-    expect(products.state[0].count, 1);
+    expect(products.state[0].count, 10);
     await tester.pump(Duration(seconds: 1));
   });
 
@@ -371,7 +383,7 @@ void main() {
       expect(products.isWaiting, true);
       expect(_snapState, isNotNull);
       expect(_snapState?.isIdle, true);
-      expect(_snapState?.data, null);
+      expect(_snapState?.data, []);
       expect(_nextSnapState.isWaiting, true);
       expect(_nextSnapState.data, []);
       await tester.pumpAndSettle(Duration(seconds: 1));

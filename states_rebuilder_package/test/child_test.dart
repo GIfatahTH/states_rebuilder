@@ -6,7 +6,7 @@ void main() {
   testWidgets('StateWithMixinBuilder appLifeCycle works',
       (WidgetTester tester) async {
     final widget = Child(
-      (child) => Directionality(
+      builder: (child) => Directionality(
         textDirection: TextDirection.ltr,
         child: child,
       ),

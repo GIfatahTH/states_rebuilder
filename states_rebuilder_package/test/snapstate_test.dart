@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/src/rm.dart';
+
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets(
@@ -28,7 +30,7 @@ void main() {
         0,
         null,
       );
-      expect('$snapState', 'isIdle : 0');
+      expect('$snapState', 'SnapState<int>(isIdle : 0)');
       //
       snapState = createSnapState(
         ConnectionState.waiting,
@@ -36,7 +38,7 @@ void main() {
         null,
       );
       //
-      expect('$snapState', 'isWaiting (null) : 0');
+      expect('$snapState', 'SnapState<int>(isWaiting (): 0)');
       //
       snapState = createSnapState(
         ConnectionState.done,
@@ -44,7 +46,7 @@ void main() {
         null,
       );
       //
-      expect('$snapState', 'hasData: 0');
+      expect('$snapState', 'SnapState<int>(hasData: 0)');
       //
       snapState = createSnapState(
         ConnectionState.done,
@@ -52,7 +54,7 @@ void main() {
         Exception('Error'),
         onErrorRefresher: () {},
       );
-      expect('$snapState', 'hasError: Exception: Error');
+      expect('$snapState', 'SnapState<int>(hasError: Exception: Error)');
       //
       final snapState2 = createSnapState(
         ConnectionState.done,

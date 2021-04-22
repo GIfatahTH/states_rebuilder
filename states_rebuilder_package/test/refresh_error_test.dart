@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_classes/models.dart';
 import 'fake_classes/test_widget.dart';
@@ -13,9 +13,12 @@ void main() {
     (tester) async {
       bool shouldThrow = true;
       late void Function() refresher;
-      final model = RM.inject(() => shouldThrow ? throw Exception('Error') : 1);
+      final model = RM.inject(
+        () => shouldThrow ? throw Exception('Error') : 1,
+        initialState: 0,
+      );
       final widget = testWidget(
-        On.error((errn, refresh) {
+        On.error((err, refresh) {
           refresher = refresh;
           return Text('Error: ${model.state}');
         }).listenTo(model),
@@ -45,7 +48,10 @@ void main() {
             return Text('Error');
           },
           or: () => Text('Data: ${model.state}'),
-        ).listenTo(model),
+        ).listenTo(
+          model,
+          debugPrintNotification: '',
+        ),
       );
 
       await tester.pumpWidget(widget);
@@ -96,7 +102,7 @@ void main() {
     (tester) async {
       bool shouldThrow = true;
       late void Function() refresher;
-      final model = RM.inject(
+      final model = RM.inject<int?>(
         () => shouldThrow ? throw Exception('Error') : 1,
         onSetState: On.error(
           (errn, refresh) => refresher = refresh,
@@ -109,7 +115,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      expect(find.text('Error: 0'), findsOneWidget);
+      expect(find.text('Error: null'), findsOneWidget);
       shouldThrow = false;
       refresher();
       await tester.pump();
@@ -330,16 +336,19 @@ void main() {
           Duration(seconds: 1),
           () => shouldThrow ? throw Exception('Error1') : 1,
         ),
+        debugPrintWhenNotifiedPreMessage: 'model1',
       );
       final model2 = RM.injectFuture(
         () => Future.delayed(
           Duration(seconds: 1),
           () => shouldThrow ? throw Exception('Error2') : 2,
         ),
+        debugPrintWhenNotifiedPreMessage: 'model2',
       );
       final model3 = RM.inject<int>(
         () => model1.state + model2.state,
         dependsOn: DependsOn({model1, model2}),
+        debugPrintWhenNotifiedPreMessage: '',
       );
 
       final widget = testWidget(
@@ -357,14 +366,16 @@ void main() {
 
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
-      expect(find.text('Error1'), findsOneWidget);
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Error2'), findsOneWidget);
 
       shouldThrow = false;
       refresher();
       await tester.pump();
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
-      expect(find.text('Error2'), findsOneWidget);
+      expect(find.text('Error1'), findsOneWidget);
 
       refresher();
       await tester.pump();

@@ -1,4 +1,4 @@
-part of '../reactive_model.dart';
+part of '../rm.dart';
 
 class RouteWidget extends Widget {
   final Widget Function(Widget child)? builder;

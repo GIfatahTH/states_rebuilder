@@ -22,11 +22,15 @@ class Password {
 final email = RM.inject<Email>(
   () => Email(''),
   middleSnapState: (middleSnap) {
-    ////Uncomment to see print logs
-    //middleSnap.print();
-    //
-
     //Inside the middleSnapState we can validate the state
+
+    //
+    if (!middleSnap.nextSnap.hasData) {
+      //At app start and when fields are empty we do not want to validate the field
+      //
+      //If you want to remove this if
+      return null;
+    }
     if (!middleSnap.nextSnap.data!.email.contains("@")) {
       //return a modified state with error
       return middleSnap.nextSnap.copyToHasError(
@@ -43,6 +47,9 @@ final password = RM.inject<Password>(
     //   stateToString: (s) => '${s?.password}',
     // );
 
+    if (!middleSnap.nextSnap.hasData) {
+      return null;
+    }
     if (middleSnap.nextSnap.data!.password.length < 4) {
       return middleSnap.nextSnap.copyToHasError(
         Exception('Enter a valid password'),
@@ -109,7 +116,7 @@ class MyHomePage extends StatelessWidget {
               (exposedModel) {
                 return Column(
                   children: <Widget>[
-                    RaisedButton(
+                    ElevatedButton(
                       child: Text("login"),
                       onPressed: isValid
                           ? () {

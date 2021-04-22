@@ -1,4 +1,8 @@
-part of '../reactive_model.dart';
+import 'package:flutter/material.dart';
+import '../injected/injected_i18n/injected_i18n.dart';
+import '../injected/injected_theme/injected_theme.dart';
+import '../injected/injected_auth/injected_auth.dart';
+import '../rm.dart';
 
 ///{@template topWidget}
 ///Widget to put on top of the app.
@@ -161,8 +165,8 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         _startWaiting();
       });
     }
-    widget.injectedAuth?._initialize();
-    widget.injectedI18N?._initialize();
+    (widget.injectedAuth as InjectedAuthImp?)?.initialize();
+    (widget.injectedI18N as InjectedI18NImp?)?.initialize();
     return child;
   }
 }
@@ -189,9 +193,6 @@ class _TopWidgetWidgetsBindingObserverState extends _TopAppWidgetState
   @override
   void didChangeLocales(List<Locale>? locales) {
     super.didChangeLocales(locales);
-    if (widget.injectedI18N?._locale is SystemLocale && locales != null) {
-      widget.injectedI18N!._locale = locales.first;
-      widget.injectedI18N!.locale = SystemLocale._(locales.first);
-    }
+    (widget.injectedI18N as InjectedI18NImp).didChangeLocales(locales);
   }
 }

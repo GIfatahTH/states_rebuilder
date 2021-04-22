@@ -20,7 +20,7 @@ extension PostsX on List<Post> {
       param: (_) => posts.state.length,
       middleState: (state, nextState) {
         if (nextState.isEmpty) {
-          posts.argument = 'hasReachedMax';
+          posts.customStatus = 'hasReachedMax';
           return state;
         }
         return [...state, ...nextState];

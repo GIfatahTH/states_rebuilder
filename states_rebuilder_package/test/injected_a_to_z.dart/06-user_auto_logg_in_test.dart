@@ -205,11 +205,17 @@ class FakeAuthRepository extends IAuthRepository {
 
 //
 void main() {
-  // inject the fake implementations
-  localStorage.injectFutureMock(() {
-    return FakeLocalStorage().init();
-  });
-  authRepository.injectMock(() => FakeAuthRepository());
+  setUp(
+    () {
+      // inject the fake implementations
+      localStorage.injectFutureMock(
+        () {
+          return FakeLocalStorage().init();
+        },
+      );
+      authRepository.injectMock(() => FakeAuthRepository());
+    },
+  );
   testWidgets('First build with no user auto logged', (tester) async {
     await tester.pumpWidget(Directionality(
       textDirection: TextDirection.ltr,

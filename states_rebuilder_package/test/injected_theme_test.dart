@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 final theme = RM.injectTheme(
   lightThemes: {
@@ -277,7 +277,7 @@ void main() async {
     );
     await tester.pumpWidget(widget);
     expect(theme.themeMode, ThemeMode.system);
-    expect(store.store!['_theme_'], 'theme3#|#');
+    expect(store.store!['_theme_'], 'theme1#|#');
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);

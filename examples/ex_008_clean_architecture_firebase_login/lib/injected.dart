@@ -35,5 +35,6 @@ final canSignInWithApple = RM.injectFuture(
     Env.dev: FakeAppleSignInChecker().check(),
     Env.prod: AppleSignInChecker().check(),
   }[currentEnv],
+  initialState: false,
   autoDisposeWhenNotUsed: false,
 );

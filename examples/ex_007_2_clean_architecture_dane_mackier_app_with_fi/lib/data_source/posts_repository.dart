@@ -7,29 +7,28 @@ class PostRepository implements ICRUD<Post, int> {
       throw NullNumberException();
     }
     var posts = <Post>[];
-    http.Response response;
     try {
-      response = await _client.get(
+      final response = await _client.get(
         Uri.parse('$_endpoint/posts?userId=$userId'),
       );
+      if (response.statusCode == 404) {
+        throw PostNotFoundException(userId);
+      }
+
+      if (response.statusCode != 200) {
+        throw NetworkErrorException();
+      }
+
+      var parsed = json.decode(response.body) as List<dynamic>;
+
+      for (var post in parsed) {
+        posts.add(Post.fromMap(post));
+      }
+
+      return posts;
     } catch (e) {
       throw NetworkErrorException();
     }
-    if (response.statusCode == 404) {
-      throw PostNotFoundException(userId);
-    }
-
-    if (response.statusCode != 200) {
-      throw NetworkErrorException();
-    }
-
-    var parsed = json.decode(response.body) as List<dynamic>;
-
-    for (var post in parsed) {
-      posts.add(Post.fromMap(post));
-    }
-
-    return posts;
   }
 
   @override

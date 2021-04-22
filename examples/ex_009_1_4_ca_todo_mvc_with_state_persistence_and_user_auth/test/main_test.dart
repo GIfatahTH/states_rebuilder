@@ -14,21 +14,21 @@ import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
-  user.injectMock(
-    () => User(
-      userId: 'user1',
-      email: 'user1@mail.com',
-      token: Token(
-        token: 'token_user1',
-        expiryDate: DateTimeX.current.add(
-          Duration(seconds: 10),
-        ),
-      ),
-    ),
-  );
-  todos.injectMock(() => []);
 
   setUp(() {
+    user.injectMock(
+      () => User(
+        userId: 'user1',
+        email: 'user1@mail.com',
+        token: Token(
+          token: 'token_user1',
+          expiryDate: DateTimeX.current.add(
+            Duration(seconds: 10),
+          ),
+        ),
+      ),
+    );
+    todos.injectMock(() => []);
     storage.clear();
   });
   testWidgets('Toggle theme should work', (tester) async {
