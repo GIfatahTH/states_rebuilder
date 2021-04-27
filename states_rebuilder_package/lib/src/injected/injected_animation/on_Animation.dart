@@ -8,6 +8,7 @@ class OnAnimation {
   Widget listenTo(
     InjectedAnimation injected, {
     void Function()? onInitialized,
+    Key? key,
   }) {
     return StateBuilderBaseWithTicker<_OnAnimationWidget>(
       (_, setState, ticker) {
@@ -23,7 +24,7 @@ class OnAnimation {
         late final Animate animate;
         T? getValue<T>(String name) {
           try {
-            final val = _curvedTweens[name]?.evaluate(injected.controller!);
+            final val = _curvedTweens[name]?.evaluate(inj.controller!);
             return val;
           } catch (e) {
             if (e is TypeError) {
@@ -59,8 +60,7 @@ class OnAnimation {
 
           if (isInit) {
             currentValue = tween.begin;
-            _curvedTweens[name] =
-                tween.chain(CurveTween(curve: injected.curve));
+            _curvedTweens[name] = tween.chain(CurveTween(curve: inj.curve));
             _tweens[name] = tween;
             if (tween.begin == tween.end) {
               return tween.begin;
@@ -70,8 +70,7 @@ class OnAnimation {
           } else if ((cachedTween?.end != tween.end ||
                   cachedTween?.begin != tween.begin) &&
               _isDirty) {
-            _curvedTweens[name] =
-                tween.chain(CurveTween(curve: injected.curve));
+            _curvedTweens[name] = tween.chain(CurveTween(curve: inj.curve));
             _tweens[name] = tween;
             _isChanged = true;
           }
@@ -152,6 +151,7 @@ class OnAnimation {
       },
       widget: _OnAnimationWidget(anim),
       injected: injected,
+      key: key,
     );
   }
 }
