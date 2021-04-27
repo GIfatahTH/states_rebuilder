@@ -26,7 +26,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
     bool Function()? shouldRebuild,
     Object? Function()? watch,
     Key? key,
-    String? debugPrintNotification,
+    String? debugPrintWhenRebuild,
   }) {
     return StateBuilderBase<_OnCombinedWidget<Widget>>(
       (widget, setState) {
@@ -79,8 +79,8 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                   }
                   setState();
                   assert(() {
-                    if (debugPrintNotification != null) {
-                      print('REBUILD <' + debugPrintNotification + '>: $snap');
+                    if (debugPrintWhenRebuild != null) {
+                      print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                     }
                     return true;
                   }());
@@ -106,8 +106,8 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
               );
             }
             assert(() {
-              if (debugPrintNotification != null) {
-                print('INITIAL BUILD <' + debugPrintNotification + '>: $snap');
+              if (debugPrintWhenRebuild != null) {
+                print('INITIAL BUILD <' + debugPrintWhenRebuild + '>: $snap');
               }
               return true;
             }());

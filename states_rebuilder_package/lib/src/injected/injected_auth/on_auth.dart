@@ -30,6 +30,7 @@ class OnAuth<T> {
     void Function()? dispose,
     On<void>? onSetState,
     Key? key,
+    String? debugPrintWhenRebuild,
   }) {
     T getWidget() => injected.isSigned ? _onSigned() : _onUnsigned();
 
@@ -43,7 +44,7 @@ class OnAuth<T> {
                 .reactiveModelState
                 .listeners
                 .addListener(
-              (_) {
+              (snap) {
                 onSetState?.call(injected.snapState);
 
                 if (useRouteNavigation && injected.hasData) {
@@ -60,10 +61,24 @@ class OnAuth<T> {
                   isNavigated = true;
                 } else if (!isNavigated) {
                   setState();
+                  assert(() {
+                    if (debugPrintWhenRebuild != null) {
+                      print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                    }
+                    return true;
+                  }());
                 }
               },
               clean: null,
             );
+            assert(() {
+              if (debugPrintWhenRebuild != null) {
+                print('INITIAL BUILD <' +
+                    debugPrintWhenRebuild +
+                    '>: ${injected.snapState}');
+              }
+              return true;
+            }());
           },
           dispose: (_) {
             dispose?.call();

@@ -55,7 +55,7 @@ extension OnX on On<Widget> {
     bool Function(SnapState<T>? snapState)? shouldRebuild,
     Object? Function()? watch,
     Key? key,
-    String? debugPrintNotification,
+    String? debugPrintWhenRebuild,
   }) {
     return StateBuilderBase<_OnWidget<Widget>>(
       (widget, setState) {
@@ -88,8 +88,8 @@ extension OnX on On<Widget> {
                 });
                 setState();
                 assert(() {
-                  if (debugPrintNotification != null) {
-                    print('REBUILD <' + debugPrintNotification + '>: $snap');
+                  if (debugPrintWhenRebuild != null) {
+                    print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                   }
                   return true;
                 }());
@@ -100,9 +100,9 @@ extension OnX on On<Widget> {
                   : () => injected.dispose(),
             );
             assert(() {
-              if (debugPrintNotification != null) {
+              if (debugPrintWhenRebuild != null) {
                 print('INITIAL BUILD <' +
-                    debugPrintNotification +
+                    debugPrintWhenRebuild +
                     '>: ${injected.snapState}');
               }
               return true;

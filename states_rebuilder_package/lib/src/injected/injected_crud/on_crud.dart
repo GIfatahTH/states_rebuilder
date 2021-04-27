@@ -17,7 +17,7 @@ class OnCRUD<T> {
     InjectedCRUD inj, {
     void Function()? dispose,
     On<void>? onSetState,
-    String? debugPrintNotification,
+    String? debugPrintWhenRebuild,
     Key? key,
   }) {
     final injected = inj as InjectedCRUDImp;
@@ -26,27 +26,28 @@ class OnCRUD<T> {
         injected.initialize();
         return LifeCycleHooks(
           mountedState: (_) {
-            assert(() {
-              if (debugPrintNotification != null) {
-                print('INITIAL BUILD <' +
-                    debugPrintNotification +
-                    '>: ${injected.snapState}');
-              }
-              return true;
-            }());
             injected.onCRUDListeners.addListener(
               (snap) {
                 onSetState?.call(injected.onCrudSnap);
                 setState();
                 assert(() {
-                  if (debugPrintNotification != null) {
-                    print('REBUILD <' + debugPrintNotification + '>: $snap');
+                  if (debugPrintWhenRebuild != null) {
+                    print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                   }
                   return true;
                 }());
               },
               clean: null,
             );
+
+            assert(() {
+              if (debugPrintWhenRebuild != null) {
+                print('INITIAL BUILD <' +
+                    debugPrintWhenRebuild +
+                    '>: ${injected.snapState}');
+              }
+              return true;
+            }());
           },
           dispose: (_) {
             dispose?.call();

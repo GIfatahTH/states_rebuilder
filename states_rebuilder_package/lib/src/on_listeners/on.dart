@@ -242,6 +242,75 @@ class On<T> {
     );
   }
 
+  ///Used to subscribe to an [InjectedAnimation].
+  ///
+  ///Example:
+  ///
+  ///First inject an animation:
+  ///
+  ///```dart
+  /// final animation = RM.injectAnimation(
+  ///   duration: const Duration(seconds: 1),
+  ///   curve: Curves.fastOutSlowIn,
+  /// );
+  ///```
+  ///
+  ///## Implicit Animation
+  ///In the widget tree :
+  ///
+  ///```dart
+  ///  On.animation(
+  ///   (animate) => Container(
+  ///     width: animate(selected ? 200.0 : 100.0),
+  ///     height: animate(selected ? 100.0 : 200.0, 'height'),
+  ///     color: animate(selected ? Colors.red : Colors.blue),
+  ///     alignment: animate(
+  ///       selected ? Alignment.center : AlignmentDirectional.topCenter,
+  ///     ),
+  ///     child: const FlutterLogo(size: 75),
+  ///   ),
+  /// ).listenTo(animation),
+  ///```
+  ///Similar to Flutter AnimatedContainer, when the `selected` variable value is toggled
+  ///and the the `On.animation` is rebuild, the animation is implicitly animated.
+  ///
+  ///## Explicit Animation
+  ///
+  ///Use `animate.fromTween` to explicitly parametrize your animation.
+  ///```dart
+  /// On.animation(
+  ///   (animate) => Transform.rotate(
+  ///     angle: animate.formTween(
+  ///       (_) => Tween(begin: 0, end: 2 * 3.14),
+  ///     )!,
+  ///     child: const FlutterLogo(size: 75),
+  ///   ),
+  /// ).listenTo(animation),
+  ///```
+  ///
+  ///You can also use pre-built widget of the Flutter library that ends with
+  ///Transition (ex:SlideTransition,  RotationTransition)
+  ///
+  ///This is an example of SlideTransition.
+  ///```dart
+  ///On.animation(
+  ///  (_) => SlideTransition(
+  ///    position: Tween<Offset>(
+  ///      begin: Offset.zero,
+  ///      end: const Offset(1.5, 0.0),
+  ///    ).animate(animation.curvedAnimation),
+  ///    child: const Padding(
+  ///      padding: EdgeInsets.all(8.0),
+  ///      child: FlutterLogo(size: 150.0),
+  ///    ),
+  ///  ),
+  ///).listenTo(
+  ///  animation,
+  ///  onInitialized: () {
+  ///    animation.triggerAnimation();
+  ///  },
+  ///);
+  ///```
   static OnAnimation animation<F>(Widget Function(Animate animate) anim) {
     return OnAnimation(anim);
   }
