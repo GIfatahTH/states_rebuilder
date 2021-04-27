@@ -77,6 +77,8 @@ class ReactiveModel<T> extends Injected<T> {
 
   T? get initialState => _reactiveModelState._initialState;
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
+  SnapState<T>? middleSnap(SnapState<T> snap) {}
+
   @override
   SnapState<T>? _middleSnap(
     SnapState<T> snap, {
@@ -84,6 +86,7 @@ class ReactiveModel<T> extends Injected<T> {
     void Function(T data)? onData,
     void Function(dynamic? error)? onError,
   }) {
+    snap = middleSnap(snap) ?? snap;
     if (snap.isWaiting) {
       if (snapState.isWaiting) {
         return null;
@@ -196,4 +199,10 @@ class ReactiveModel<T> extends Injected<T> {
   }
 
   int get observerLength => _reactiveModelState.listeners.observerLength;
+}
+
+extension ReactiveModelX<T> on ReactiveModel<T> {
+  void setReactiveModelState(ReactiveModelBase<T> rm) {
+    _reactiveModelState = rm;
+  }
 }

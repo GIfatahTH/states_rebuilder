@@ -1,36 +1,47 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ui';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'legacy/injector.dart';
 
+import 'common/consts.dart';
+import 'common/deep_equality.dart';
+import 'common/logger.dart';
 import 'injected/injected_animation/injected_animation.dart';
 import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
+import 'injected/injected_scrolling/injected_scrolling.dart';
+import 'injected/injected_text_editing/injected_text_editing.dart';
 import 'injected/injected_theme/injected_theme.dart';
-import 'common/deep_equality.dart';
-import 'common/logger.dart';
-import 'common/consts.dart';
+import 'legacy/injector.dart';
 
 part 'basics/depends_on.dart';
-part 'basics/reactive_model.dart';
-part 'extensions/injected_list_x.dart';
-part 'extensions/injected_x.dart';
-part 'extensions/on_combined_x.dart';
-part 'extensions/on_x.dart';
 part 'basics/injected.dart';
 part 'basics/injected_imp.dart';
 part 'basics/injected_persistance/i_persistStore.dart';
 part 'basics/injected_persistance/injected_persistance.dart';
 part 'basics/injected_persistance/persist_state_mock.dart';
+part 'basics/injected_state.dart';
+part 'basics/reactive_model.dart';
+part 'basics/reactive_model_base.dart';
+part 'basics/reactive_model_listener.dart';
+part 'basics/snap_state.dart';
+part 'basics/state_builder.dart';
+part 'basics/undo_redo_persist_state.dart';
+part 'extensions/injected_list_x.dart';
+part 'extensions/injected_x.dart';
+part 'extensions/on_combined_x.dart';
+part 'extensions/on_future_X.dart';
+part 'extensions/on_x.dart';
 part 'navigate/build_context_x.dart';
 part 'navigate/page_route_builder.dart';
 part 'navigate/rm_navigator.dart';
+part 'navigate/rm_scaffold.dart';
 part 'navigate/route_data.dart';
 part 'navigate/route_full_widget.dart';
 part 'navigate/route_widget.dart';
@@ -39,14 +50,6 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
-part 'basics/injected_state.dart';
-part 'basics/reactive_model_base.dart';
-part 'basics/reactive_model_listener.dart';
-part 'basics/snap_state.dart';
-part 'basics/state_builder.dart';
-part 'basics/undo_redo_persist_state.dart';
-part 'navigate/rm_scaffold.dart';
-part 'extensions/on_future_X.dart';
 
 abstract class RM {
   RM._();
@@ -515,6 +518,32 @@ abstract class RM {
     );
   }
 
+  static InjectedTextEditing injectTextEditing({
+    String text = '',
+    TextSelection selection = const TextSelection.collapsed(offset: -1),
+    TextRange composing = TextRange.empty,
+    String? Function(String text)? validator,
+  }) {
+    return InjectedTextEditingImp(
+      text: text,
+      selection: selection,
+      composing: composing,
+      validator: validator,
+    );
+  }
+
+  static InjectedScrolling injectScrolling({
+    double initialScrollOffset = 0.0,
+    bool keepScrollOffset = true,
+    OnScroll? onScroll,
+  }) {
+    return InjectedScrollingImp(
+      initialScrollOffset: initialScrollOffset,
+      keepScrollOffset: keepScrollOffset,
+      onScroll: onScroll,
+    );
+  }
+
   ///Static variable the holds the chosen working environment or flavour.
   static dynamic env;
   static int? _envMapLength;
@@ -553,16 +582,13 @@ abstract class RM {
     return InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null,
-            '''
+        assert(RM.env != null, '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null,
-            '''
+        assert(impl[env] != null, '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength,
-            '''
+        assert(impl.length == _envMapLength, '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');

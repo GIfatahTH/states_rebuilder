@@ -44,3 +44,5 @@ export 'src/builders/state_with_mixin_builder.dart'
     show StateWithMixinBuilder, MixinWith;
 export 'src/builders/when_rebuilder.dart' show WhenRebuilder;
 export 'src/builders/when_rebuilder_or.dart' show WhenRebuilderOr;
+export 'src/injected/injected_scrolling/injected_scrolling.dart'
+    show OnScroll, OnScrollX;
