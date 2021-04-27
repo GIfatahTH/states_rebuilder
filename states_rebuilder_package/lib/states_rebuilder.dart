@@ -8,6 +8,7 @@ export 'src/rm.dart'
         PersistState,
         PersistOn,
         Injected,
+        // InjectedController,
         On,
         OnX,
         OnCombined,
@@ -21,7 +22,8 @@ export 'src/rm.dart'
         RouteWidget,
         BuildContextX,
         RouteData,
-        OnFuture;
+        OnFuture,
+        OnFutureX;
 export 'src/legacy/inject.dart' show Inject, Injectable;
 export 'src/legacy/injector.dart' show IN, Injector;
 export 'src/builders/child.dart' show Child, Child2, Child3;

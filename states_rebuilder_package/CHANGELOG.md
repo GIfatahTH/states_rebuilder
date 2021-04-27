@@ -1,3 +1,9 @@
+## 4.1.0 (2021-04-23)
+* Solve #183 and #184 issues. (state can be nullable)
+* For `InjectedCRUD` and `InjectedAuth`, `getRepoAs` is now sync.
+* In tests, global mock must be put inside `setUp` method.
+* Preview release of `InjectedAnimation` and `On.animation`.
+* Refactor internal code.
 
 ## 4.0.0+1 (2021-03-2)
 
