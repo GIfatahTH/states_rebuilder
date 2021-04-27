@@ -172,7 +172,10 @@ class ReactiveModelBase<T> {
 
           return _snapState;
         }
-        assert(result == null || result is T);
+        assert(
+          result == null || result is T,
+          'Type mismatch of the state: $result is not $T',
+        );
         _setSnapStateAndRebuild = middleState(
           _snapState._copyToHasData(result),
         );

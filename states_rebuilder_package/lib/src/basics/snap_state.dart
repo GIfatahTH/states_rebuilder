@@ -252,13 +252,7 @@ class SnapState<T> {
 
   SnapState<T> _copyToHasData(dynamic data, {String? infoMessage}) {
     final isImmutable = _isNullable || data is T;
-    // return _copyWith(
-    //   connectionState: ConnectionState.done,
-    //   data: isImmutable ? data : this.data,
-    //   resetError: true,
-    //   infoMessage: infoMessage ?? '',
-    //   isImmutable: isImmutable,
-    // );
+
     return SnapState<T>._(
       ConnectionState.done,
       isImmutable ? data : this.data,

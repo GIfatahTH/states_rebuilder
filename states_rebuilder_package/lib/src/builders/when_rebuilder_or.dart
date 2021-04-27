@@ -189,7 +189,7 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
       watch: widget.watch != null ? () => widget.watch!(rm) : null,
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
-      debugPrintNotification: '',
+      debugPrintWhenRebuild: '',
     );
   }
 

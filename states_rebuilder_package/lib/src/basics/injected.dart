@@ -82,6 +82,7 @@ part of '../rm.dart';
 ///
 abstract class Injected<T> {
   late ReactiveModelBase<T> _reactiveModelState;
+  InjectedImp<T> get _imp => this as InjectedImp<T>;
 
   ///Get the current state.
   ///
