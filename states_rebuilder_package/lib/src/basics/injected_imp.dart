@@ -149,10 +149,10 @@ class InjectedImp<T> extends Injected<T> {
 
     if (dependsOn != null) {
       _setCombinedSnap(
-        dependsOn!.injected.cast<InjectedImp>(),
+        dependsOn!.injected,
         shouldRebuild: false,
       );
-      _subscribeForCombinedSnap(dependsOn!.injected.cast<InjectedImp>());
+      _subscribeForCombinedSnap(dependsOn!.injected);
     } else {
       _reactiveModelState._initialStateCreator!();
     }
@@ -272,9 +272,9 @@ class InjectedImp<T> extends Injected<T> {
     return snap;
   }
 
-  void _subscribeForCombinedSnap(Set<InjectedImp> depends) {
+  void _subscribeForCombinedSnap(Set<Injected> depends) {
     final disposers = <VoidCallback>[];
-    for (var depend in dependsOn!.injected.cast<InjectedImp>()) {
+    for (var depend in dependsOn!.injected) {
       final disposer = depend._reactiveModelState.listeners.addListener(
         (_) {
           if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
@@ -287,7 +287,7 @@ class InjectedImp<T> extends Injected<T> {
             _dependentDebounceTimer = Timer(
               Duration(milliseconds: dependsOn!.debounceDelay),
               () {
-                _setCombinedSnap(dependsOn!.injected.cast<InjectedImp>());
+                _setCombinedSnap(dependsOn!.injected);
                 // _reactiveModelState._refresh(infoMessage: kRecomputing);
                 _dependentDebounceTimer = null;
               },
@@ -305,11 +305,11 @@ class InjectedImp<T> extends Injected<T> {
             );
           }
 
-          _setCombinedSnap(dependsOn!.injected.cast<InjectedImp>());
+          _setCombinedSnap(dependsOn!.injected);
           // _reactiveModelState._refresh(infoMessage: kRecomputing);
         },
         clean: () {
-          if (depend.autoDisposeWhenNotUsed) {
+          if (depend._imp.autoDisposeWhenNotUsed) {
             depend.dispose();
           }
         },
@@ -321,7 +321,7 @@ class InjectedImp<T> extends Injected<T> {
     );
   }
 
-  void _setCombinedSnap(Set<InjectedImp> depends, {bool shouldRebuild = true}) {
+  void _setCombinedSnap(Set<Injected> depends, {bool shouldRebuild = true}) {
     bool isIdle = false;
     // bool isWaiting = false;
 
@@ -331,7 +331,7 @@ class InjectedImp<T> extends Injected<T> {
     for (var depend in depends) {
       if (depend.isWaiting) {
         final snap = _reactiveModelState._snapState._copyToIsWaiting(
-          data: depend.oldSnap?._infoMessage == kRefreshMessage
+          data: depend._imp.oldSnap?._infoMessage == kRefreshMessage
               ? _reactiveModelState._initialState
               : null,
           infoMessage: kDependsOn,
@@ -579,10 +579,7 @@ class InjectedImp<T> extends Injected<T> {
               if (connectWithGlobal) {
                 _reactiveModelState._isInitialized = true;
                 _inheritedInjects.add(injected);
-                _setCombinedInheritedSnap(
-                  _inheritedInjects.cast<InjectedImp<T>>(),
-                  injected as InjectedImp<T>,
-                );
+                _setCombinedInheritedSnap(_inheritedInjects, injected);
               }
             },
             debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
@@ -599,10 +596,7 @@ class InjectedImp<T> extends Injected<T> {
                 }
                 print(snapState);
                 if (_inheritedInjects.isNotEmpty) {
-                  _setCombinedInheritedSnap(
-                    _inheritedInjects.cast<InjectedImp<T>>(),
-                    injected as InjectedImp<T>,
-                  );
+                  _setCombinedInheritedSnap(_inheritedInjects, injected);
                 }
                 setState();
               },
@@ -637,7 +631,7 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   void _setCombinedInheritedSnap(
-      Set<InjectedImp<T>> inheritStates, InjectedImp<T> inj) {
+      Set<Injected<T>> inheritStates, Injected<T> inj) {
     bool isWaiting = false;
 
     dynamic error;
@@ -648,14 +642,14 @@ class InjectedImp<T> extends Injected<T> {
     for (var state in inheritStates) {
       if (state.isWaiting) {
         isWaiting = true;
-        oldSnap = state.oldSnap;
+        oldSnap = state._imp.oldSnap;
         break;
       }
       if (state.hasError) {
         error = state.error;
         stackTrace = state._reactiveModelState._snapState.stackTrace!;
         refresher = state._reactiveModelState._snapState.onErrorRefresher!;
-        oldSnap = state.oldSnap;
+        oldSnap = state._imp.oldSnap;
       }
     }
 
@@ -671,7 +665,7 @@ class InjectedImp<T> extends Injected<T> {
       );
     }
 
-    snapState = oldSnap ?? inj.oldSnap!;
+    snapState = oldSnap ?? inj._imp.oldSnap!;
     _reactiveModelState._setSnapStateAndRebuild =
         middleSnap(newSnap ?? inj.snapState);
   }

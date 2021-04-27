@@ -91,29 +91,77 @@ class StateBuilderBaseWithTicker<T> extends StatefulWidget {
   final LifeCycleHooks<T> Function(
     T widget,
     SetState setState,
-    TickerProvider ticker,
+    TickerProvider? ticker,
   ) initState;
 
   final T widget;
+  final InjectedAnimation injected;
   const StateBuilderBaseWithTicker(
     this.initState, {
     Key? key,
     required this.widget,
+    required this.injected,
   }) : super(key: key);
 
   @override
-  _StateBuilderBaseWithTickerState<T> createState() {
-    return _StateBuilderBaseWithTickerState();
+  State<StateBuilderBaseWithTicker<T>> createState() {
+    return injected.controller == null
+        ? _StateBuilderBaseWithTickerState<T>()
+        : _StateBuilderBaseWithOutTicker<T>();
   }
 }
 
-class _StateBuilderBaseWithTickerState<T>
-    extends State<StateBuilderBaseWithTicker<T>>
-    with SingleTickerProviderStateMixin {
+class _StateBuilderBase<T> extends State<StateBuilderBaseWithTicker<T>> {
   late LifeCycleHooks<T> _builder;
   bool _isMounted = false;
   bool isDirty = false;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isMounted) {
+      _builder.mountedState?.call(context);
+      _isMounted = true;
+    }
+  }
+
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _builder.didUpdateWidget?.call(context, oldWidget.widget, widget.widget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _builder.builder(context, widget.widget);
+  }
+}
+
+class _StateBuilderBaseWithOutTicker<T> extends _StateBuilderBase<T> {
+  @override
+  void initState() {
+    super.initState();
+    _builder = widget.initState(
+      widget.widget,
+      () {
+        if (mounted) {
+          setState(() {});
+        }
+        return false;
+      },
+      null,
+    );
+
+    _isMounted = false;
+  }
+
+  void dispose() {
+    _builder.dispose?.call(context);
+    super.dispose();
+  }
+}
+
+class _StateBuilderBaseWithTickerState<T> extends _StateBuilderBase<T>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -131,27 +179,8 @@ class _StateBuilderBaseWithTickerState<T>
     _isMounted = false;
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isMounted) {
-      _builder.mountedState?.call(context);
-      _isMounted = true;
-    }
-  }
-
-  void didUpdateWidget(oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _builder.didUpdateWidget?.call(context, oldWidget.widget, widget.widget);
-  }
-
   void dispose() {
     _builder.dispose?.call(context);
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _builder.builder(context, widget.widget);
   }
 }

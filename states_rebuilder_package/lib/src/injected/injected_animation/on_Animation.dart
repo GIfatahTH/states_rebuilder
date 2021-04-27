@@ -4,9 +4,11 @@ class OnAnimation {
   final Widget Function(Animate animate) anim;
   OnAnimation(this.anim);
 
+  ///Listen to the [InjectedAnimation]
   Widget listenTo(
-    InjectedAnimation injected,
-  ) {
+    InjectedAnimation injected, {
+    void Function()? onInitialized,
+  }) {
     return StateBuilderBaseWithTicker<_OnAnimationWidget>(
       (_, setState, ticker) {
         final inj = injected as InjectedAnimationImp;
@@ -107,35 +109,39 @@ class OnAnimation {
 
         return LifeCycleHooks(
           mountedState: (_) {
-            inj.initialize(ticker);
+            if (ticker != null) {
+              inj.initialize(ticker);
+            }
+            onInitialized?.call();
             animate = Animate._(
               value: animateValue,
               formTween: animateTween,
-            ).._controller = CurvedAnimation(
-                parent: injected.controller!,
-                curve: injected.curve,
-              );
+            );
             disposer = injected.reactiveModelState.listeners.addListener((_) {
-              setState();
-            }, clean: () {
-              inj.dispose();
+              if (_curvedTweens.isNotEmpty) {
+                setState();
+              }
             });
           },
           dispose: (_) {
+            if (ticker != null) {
+              inj.dispose();
+            }
             disposer();
           },
           didUpdateWidget: (_, __, ___) {
             inj.didUpdateWidget();
-            animate._controller = CurvedAnimation(
-              parent: injected.controller!,
-              curve: injected.curve,
-            );
+            // animate._controller = CurvedAnimation(
+            //   parent: injected.controller!,
+            //   curve: injected.curve,
+            // );
             if (isAnimating) {
               isAnimating = false;
             }
             _isDirty = true;
           },
           builder: (_, widget) {
+            print('builder');
             final child = widget.animate(animate);
             assertionList.clear();
             triggerAnimation();
@@ -145,6 +151,7 @@ class OnAnimation {
         );
       },
       widget: _OnAnimationWidget(anim),
+      injected: injected,
     );
   }
 }

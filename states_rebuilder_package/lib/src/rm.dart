@@ -39,12 +39,14 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
+part 'basics/injected_state.dart';
 part 'basics/reactive_model_base.dart';
 part 'basics/reactive_model_listener.dart';
 part 'basics/snap_state.dart';
 part 'basics/state_builder.dart';
 part 'basics/undo_redo_persist_state.dart';
 part 'navigate/rm_scaffold.dart';
+part 'extensions/on_future_X.dart';
 
 abstract class RM {
   RM._();
@@ -484,18 +486,31 @@ abstract class RM {
     );
   }
 
+  ///Inject an animation. It works for both implicit and explicit animation.
+  ///
+  ///Animation is auto disposed if no longer used.
+  ///
+  ///* **duration** Animation duration, It is required.
+  ///* **curve** Animation curve, It defaults to Curves.linear
+  ///* **repeats** the number of times the animation repeats (always from start to end).
+  ///A value of zero means that the animation will repeats infinity.
+  ///* **shouldReverseRepeats** When it is set to true, animation will repeat by alternating
+  ///between begin and end on each repeat.
+  ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
+  ///
+  ///See [On.animation]
   static InjectedAnimation injectAnimation({
-    Duration duration = const Duration(milliseconds: 500),
+    required Duration duration,
     Curve curve = Curves.linear,
-    int? repeats,
-    int? cycles,
+    int repeats = 1,
+    bool shouldReverseRepeats = false,
     void Function()? endAnimationListener,
   }) {
     return InjectedAnimationImp(
       duration: duration,
       curve: curve,
       repeats: repeats,
-      cycles: cycles,
+      isReverse: shouldReverseRepeats,
       endAnimationListener: endAnimationListener,
     );
   }
@@ -538,13 +553,16 @@ abstract class RM {
     return InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null, '''
+        assert(RM.env != null,
+            '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null, '''
+        assert(impl[env] != null,
+            '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength, '''
+        assert(impl.length == _envMapLength,
+            '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
