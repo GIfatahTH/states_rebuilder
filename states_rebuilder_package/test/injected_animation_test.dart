@@ -170,4 +170,219 @@ void main() {
       expect(tester.takeException(), isArgumentError);
     },
   );
+  final animation = RM.injectAnimation(duration: Duration(seconds: 1));
+
+  testWidgets(
+    'WHEN rebuild is performed during animation and implicit parameters are changed'
+    'THEN the animation works as expected similar to flutter implicit animation'
+    'CASE one On.animation listener',
+    (tester) async {
+      final isSelected = false.inj();
+      late Container container1;
+      final widget = On(() {
+        return Column(
+          children: [
+            On.animation(
+              (animate) => container1 = Container(
+                width: animate(isSelected.state ? 100 : 200),
+              ),
+            ).listenTo(animation),
+          ],
+        );
+      }).listenTo(isSelected);
+      await tester.pumpWidget(widget);
+      expect(container1.constraints!.maxWidth, 200.0);
+      isSelected.toggle();
+      await tester.pump();
+      expect(container1.constraints!.maxWidth, 200.0);
+      await tester.pump(Duration(milliseconds: 400));
+
+      expect(container1.constraints!.maxWidth, 160.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 120.0);
+      print('switch');
+      isSelected.toggle();
+      await tester.pump();
+      expect(container1.constraints!.maxWidth, 120.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 152.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 184.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(container1.constraints!.maxWidth, 200.0);
+    },
+  );
+
+  testWidgets(
+    'WHEN rebuild is performed during animation and implicit parameters are changed'
+    'THEN the animation works as expected similar to flutter implicit animation'
+    'CASE many On.animation listeners',
+    (tester) async {
+      final isSelected = false.inj();
+      late Container container1;
+      late Container container2;
+
+      final widget = On(() {
+        return Column(
+          children: [
+            On.animation(
+              (animate) => container1 = Container(
+                width: animate(isSelected.state ? 100 : 200),
+              ),
+            ).listenTo(animation),
+            On.animation(
+              (animate) => container2 = Container(
+                width: animate(isSelected.state ? 100 : 200),
+              ),
+            ).listenTo(animation),
+          ],
+        );
+      }).listenTo(isSelected);
+      await tester.pumpWidget(widget);
+      expect(container1.constraints!.maxWidth, 200.0);
+      expect(container2.constraints!.maxWidth, 200.0);
+      isSelected.toggle();
+      await tester.pump();
+      expect(container1.constraints!.maxWidth, 200.0);
+      expect(container2.constraints!.maxWidth, 200.0);
+      await tester.pump();
+
+      await tester.pump(Duration(milliseconds: 400));
+
+      expect(container1.constraints!.maxWidth, 160.0);
+      expect(container2.constraints!.maxWidth, 160.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 120.0);
+      expect(container2.constraints!.maxWidth, 120.0);
+      print('switch');
+      isSelected.toggle();
+      await tester.pump();
+      await tester.pump();
+      expect(container1.constraints!.maxWidth, 120.0);
+      expect(container2.constraints!.maxWidth, 120.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 152.0);
+      expect(container2.constraints!.maxWidth, 152.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(container1.constraints!.maxWidth, 184.0);
+      expect(container2.constraints!.maxWidth, 184.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(container1.constraints!.maxWidth, 200.0);
+      expect(container2.constraints!.maxWidth, 200.0);
+    },
+  );
+
+  testWidgets(
+    'WHEN SlideTransition (or any ...Transition widgets) is used, and the animate param is not used'
+    'THEN the curved animation is obtained and On.animation does not rebuild',
+    (tester) async {
+      int numberOfOnAnimationRebuild = 0;
+      late Animation<Offset> anim;
+      final widget = On.animation(
+        (_) {
+          numberOfOnAnimationRebuild++;
+          return SlideTransition(
+            position: anim = Tween<Offset>(
+              begin: Offset.zero,
+              end: Offset(1, 1),
+            ).animate(
+              animation.curvedAnimation,
+            ),
+            child: Container(),
+          );
+        },
+      ).listenTo(
+        animation,
+        onInitialized: () => animation.triggerAnimation(),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(numberOfOnAnimationRebuild, 1);
+      expect(anim.value, Offset(0.0, 0.0));
+      await tester.pump(Duration(milliseconds: 400));
+      expect(numberOfOnAnimationRebuild, 1);
+      expect(anim.value, Offset(0.4, 0.4));
+      await tester.pump(Duration(milliseconds: 400));
+      expect(numberOfOnAnimationRebuild, 1);
+      expect(anim.value, Offset(0.8, 0.8));
+      await tester.pump(Duration(milliseconds: 400));
+      expect(numberOfOnAnimationRebuild, 1);
+      expect(anim.value, Offset(1.0, 1.0));
+    },
+  );
+
+  testWidgets(
+    'WHEN repeats is 2'
+    'THEN animation repeats two times and stop',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        repeats: 2,
+      );
+      late double width;
+      final widget = On.animation(
+        (animate) => Container(
+          width: width = animate.formTween(
+            (_) => Tween(begin: 0.0, end: 100.0),
+          )!,
+        ),
+      ).listenTo(animation);
+
+      await tester.pumpWidget(widget);
+      expect(width, 0.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 90.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 100.0);
+      await tester.pump(Duration(milliseconds: 100));
+
+      expect(width, 0.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 90.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 100.0);
+    },
+  );
+
+  testWidgets(
+    'WHEN repeats is 2 and  shouldReverseRepeats is true'
+    'THEN animation cycle two times and stop',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        repeats: 2,
+        shouldReverseRepeats: true,
+      );
+      late double width;
+      final widget = On.animation(
+        (animate) => Container(
+          width: width = animate.formTween(
+            (_) => Tween(begin: _ ?? 0.0, end: 100.0),
+          )!,
+        ),
+      ).listenTo(animation);
+
+      await tester.pumpWidget(widget);
+      expect(width, 0.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 90.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 100.0);
+      await tester.pump(Duration(milliseconds: 100));
+
+      expect(width, 100.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 9.999999999999998);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 0.0);
+    },
+  );
 }

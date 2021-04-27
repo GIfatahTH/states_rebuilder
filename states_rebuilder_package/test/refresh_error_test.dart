@@ -50,7 +50,7 @@ void main() {
           or: () => Text('Data: ${model.state}'),
         ).listenTo(
           model,
-          debugPrintNotification: '',
+          debugPrintWhenRebuild: '',
         ),
       );
 

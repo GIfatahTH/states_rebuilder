@@ -46,7 +46,7 @@ class App extends StatelessWidget {
                     () => Text('counter: ${counter.state}'),
                   ).listenTo(
                     counter,
-                    debugPrintNotification: 'counter',
+                    debugPrintWhenRebuild: 'counter',
                   )
                 : Container(),
           ).listenTo(switcher),
@@ -55,7 +55,7 @@ class App extends StatelessWidget {
             or: () => Text('counterFuture: ${counterFuture.state}'),
           ).listenTo(
             counterFuture,
-            debugPrintNotification: 'App',
+            debugPrintWhenRebuild: 'App',
           ),
         ],
       ),

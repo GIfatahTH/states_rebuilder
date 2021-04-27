@@ -39,7 +39,7 @@ void main() {
                 ),
               ),
             ),
-            debugPrintNotification: '',
+            debugPrintWhenRebuild: '',
           ),
         ),
       ),
@@ -170,7 +170,9 @@ void main() {
 class _Model {
   int count;
   _Model(this.count);
-  void incrementFuture() => Future.delayed(Duration(seconds: 1), () => count++);
+  void incrementFuture() => Future.delayed(Duration(seconds: 1), () {
+        count++;
+      });
   void incrementFutureWithError([String? error]) => Future.delayed(
       Duration(seconds: 1), () => throw Exception(error ?? 'Error Message'));
   Stream<void> incrementStream() async* {

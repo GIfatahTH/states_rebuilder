@@ -40,7 +40,7 @@ void main() {
           or: () => Text('${counter1Computed.state}'),
         ).listenTo(
           counter1Computed,
-          debugPrintNotification: '',
+          debugPrintWhenRebuild: '',
         ),
       );
       //

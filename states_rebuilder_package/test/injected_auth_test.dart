@@ -120,7 +120,7 @@ class AuthPage extends StatelessWidget {
       or: () => Text('AuthPage'),
     ).listenTo(
       persistedUser,
-      debugPrintNotification: 'Onor',
+      debugPrintWhenRebuild: 'Onor',
     );
   }
 }

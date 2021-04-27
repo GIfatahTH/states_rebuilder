@@ -119,7 +119,7 @@ final widget = MaterialApp(
       ),
     ).listenTo(
       products,
-      debugPrintNotification: 'On.future',
+      debugPrintWhenRebuild: 'On.future',
     ),
   ),
   navigatorKey: RM.navigate.navigatorKey,

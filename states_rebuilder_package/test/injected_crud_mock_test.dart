@@ -646,7 +646,7 @@ void main() {
           onResult: (r) => Text('Result: $r'),
         ).listenTo(
           products,
-          debugPrintNotification: '',
+          debugPrintWhenRebuild: '',
         ),
       );
 
