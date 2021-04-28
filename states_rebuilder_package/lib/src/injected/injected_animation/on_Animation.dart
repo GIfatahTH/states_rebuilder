@@ -106,6 +106,17 @@ class OnAnimation {
           }
         }
 
+        void didUpdateWidget() {
+          inj.didUpdateWidget();
+          if (isAnimating) {
+            isAnimating = false;
+          }
+          _isDirty = true;
+        }
+
+        final disposeDidUpdateWidget =
+            inj.addToDidUpdateWidgetListeners(didUpdateWidget);
+
         return LifeCycleHooks(
           mountedState: (_) {
             if (ticker != null) {
@@ -127,20 +138,12 @@ class OnAnimation {
               inj.dispose();
             }
             disposer();
+            disposeDidUpdateWidget();
           },
           didUpdateWidget: (_, __, ___) {
-            inj.didUpdateWidget();
-            // animate._controller = CurvedAnimation(
-            //   parent: injected.controller!,
-            //   curve: injected.curve,
-            // );
-            if (isAnimating) {
-              isAnimating = false;
-            }
-            _isDirty = true;
+            didUpdateWidget();
           },
           builder: (_, widget) {
-            print('builder');
             final child = widget.animate(animate);
             assertionList.clear();
             triggerAnimation();

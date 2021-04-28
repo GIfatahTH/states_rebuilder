@@ -24,6 +24,12 @@ abstract class InjectedAnimation implements Injected<double> {
 
   ///Start animation
   void triggerAnimation();
+
+  ///Update `On.animation` widgets listening the this animation
+  ///
+  ///Has similar effect as when the widget rebuilds to invoke implicit animation
+  @override
+  Future<double> refresh();
 }
 
 ///InjectedAnimation implementation
@@ -34,6 +40,7 @@ class InjectedAnimationImp extends ReactiveModel<double>
     this.curve = Curves.linear,
     this.repeats = 1,
     this.isReverse = false,
+    this.onInitialized,
     this.endAnimationListener,
   }) : super(
           creator: () => 0.0,
@@ -43,6 +50,7 @@ class InjectedAnimationImp extends ReactiveModel<double>
   final Curve curve;
   final int repeats;
   final bool isReverse;
+  final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
 
@@ -96,11 +104,8 @@ class InjectedAnimationImp extends ReactiveModel<double>
         notify();
       })
       ..addStatusListener(repeatStatusListenerListener);
+    onInitialized?.call(this);
   }
-
-  // int _setRepeatCount(int? repeats, int? cycles) {
-  //   return repeats == null ? cycles ?? 1 : repeats;
-  // }
 
   bool _isFrameScheduling = false;
   @override
@@ -115,8 +120,10 @@ class InjectedAnimationImp extends ReactiveModel<double>
         //correctly.
         _isFrameScheduling = true;
         WidgetsBinding.instance!.scheduleFrameCallback((_) {
-          _startAnimation();
-          _isFrameScheduling = false;
+          if (_controller != null) {
+            _startAnimation();
+            _isFrameScheduling = false;
+          }
         });
       }
     }
@@ -135,12 +142,28 @@ class InjectedAnimationImp extends ReactiveModel<double>
   }
 
   void didUpdateWidget() {
-    if (_controller!.duration != duration) {
-      _controller!.duration = duration;
+    if (_controller?.duration != duration) {
+      _controller?.duration = duration;
     }
     if (isAnimating && !_isFrameScheduling) {
       isAnimating = false;
     }
+  }
+
+  final List<VoidCallback> _didUpdateWidgetListeners = [];
+  VoidCallback addToDidUpdateWidgetListeners(VoidCallback fn) {
+    _didUpdateWidgetListeners.add(fn);
+    return () => _didUpdateWidgetListeners.remove(fn);
+  }
+
+  ///Update `On.animation` widgets listening the this animation
+  ///
+  ///Has similar effect as when the widget rebuilds to invoke implicit animation
+  @override
+  Future<double> refresh() async {
+    _didUpdateWidgetListeners.forEach((fn) => fn());
+    notify();
+    return 0.0;
   }
 
   @override
@@ -150,6 +173,7 @@ class InjectedAnimationImp extends ReactiveModel<double>
     _curvedAnimation = null;
     isAnimating = false;
     _isFrameScheduling = false;
+    _didUpdateWidgetListeners.clear();
     super.dispose();
   }
 }
@@ -268,6 +292,10 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
 
 class Animate {
   final T? Function<T>(T? value, [String name]) _value;
+
+  ///Set animation explicitly by defining the Tween.
+  ///
+  ///The callback exposes the currentValue value
   final T? Function<T>(Tween<T?> Function(T? currentValue) fn, [String name])
       formTween;
 
@@ -276,5 +304,6 @@ class Animate {
     required this.formTween,
   }) : _value = value;
 
+  ///Implicitly animate to the given value
   T? call<T>(T? value, [String name = '']) => _value.call<T>(value, name);
 }

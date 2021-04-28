@@ -507,6 +507,7 @@ abstract class RM {
     Curve curve = Curves.linear,
     int repeats = 1,
     bool shouldReverseRepeats = false,
+    void Function(InjectedAnimation)? onInitialized,
     void Function()? endAnimationListener,
   }) {
     return InjectedAnimationImp(
@@ -514,6 +515,7 @@ abstract class RM {
       curve: curve,
       repeats: repeats,
       isReverse: shouldReverseRepeats,
+      onInitialized: onInitialized,
       endAnimationListener: endAnimationListener,
     );
   }
