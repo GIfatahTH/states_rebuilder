@@ -18,7 +18,7 @@ class InjectedImp<T> extends Injected<T> {
     bool isLazy = true,
     this.debugPrintWhenNotifiedPreMessage,
     this.toDebugString,
-    this.autoDisposeWhenNotUsed = true,
+    bool autoDisposeWhenNotUsed = true,
   }) : _isAsyncInjected = isAsyncInjected {
     if (undoStackLength > 0 || persist != null) {
       undoRedoPersistState = UndoRedoPersistState(
@@ -33,6 +33,7 @@ class InjectedImp<T> extends Injected<T> {
         creator: creator,
         initialState: initialState,
         initializer: initialize,
+        autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
         debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       );
       if (!isLazy) {
@@ -48,7 +49,7 @@ class InjectedImp<T> extends Injected<T> {
   final On<void>? onSetState;
   final String? debugPrintWhenNotifiedPreMessage;
   final String Function(T?)? toDebugString;
-  final bool autoDisposeWhenNotUsed;
+
   final void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
   final void Function()? onWaiting;
@@ -107,7 +108,7 @@ class InjectedImp<T> extends Injected<T> {
     _reactiveModelState
       .._isInitialized = true
       .._isDisposed = false;
-    _removeFromInjectedList = _addToInjectedModels(this);
+    _removeFromInjectedList = addToInjectedModels(this);
     final creatorMock = cachedCreatorMocks.last;
     bool isInitializing = true;
 

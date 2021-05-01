@@ -231,6 +231,8 @@ abstract class InjectedState<T> implements Injected<T> {
 
   @override
   bool get isWaiting => _injected.isWaiting;
+  @override
+  bool get autoDisposeWhenNotUsed => _injected.autoDisposeWhenNotUsed;
 
   @override
   void notify() {

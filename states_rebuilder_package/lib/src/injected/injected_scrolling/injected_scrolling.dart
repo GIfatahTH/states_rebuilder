@@ -39,6 +39,8 @@ class InjectedScrollingImp extends ReactiveModel<double>
           creator: () => 0.0,
           initialState: initialScrollOffset,
         ) {
+    _removeFromInjectedList = addToInjectedModels(this);
+
     controller = ScrollController(
       initialScrollOffset: initialScrollOffset,
       keepScrollOffset: keepScrollOffset,
@@ -93,6 +95,8 @@ class InjectedScrollingImp extends ReactiveModel<double>
       setState((s) => controller.offset / controller.position.maxScrollExtent);
     });
   }
+  late VoidCallback _removeFromInjectedList;
+
   @override
   set state(double s) {
     assert(s >= 0 && s <= 1);
@@ -102,4 +106,11 @@ class InjectedScrollingImp extends ReactiveModel<double>
 
   bool _isOnTop = false;
   bool _isOnBottom = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+    _removeFromInjectedList();
+    controller.dispose();
+  }
 }

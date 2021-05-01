@@ -100,6 +100,7 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
         return _getLanguage(SystemLocale());
       },
       initializer: initialize,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
 

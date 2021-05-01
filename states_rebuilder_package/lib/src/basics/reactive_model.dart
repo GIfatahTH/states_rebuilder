@@ -22,10 +22,12 @@ class ReactiveModel<T> extends Injected<T> {
   ReactiveModel({
     required this.creator,
     T? initialState,
+    bool autoDisposeWhenNotUsed = true,
   }) {
     _reactiveModelState = ReactiveModelBase<T>(
       creator: creator,
       initialState: initialState,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       initializer: () {
         if (_reactiveModelState._isInitialized) {
           return;

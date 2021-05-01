@@ -314,6 +314,12 @@ class On<T> {
   static OnAnimation animation<F>(Widget Function(Animate animate) anim) {
     return OnAnimation(anim);
   }
+
+  static OnForm form(
+    Widget Function() builder,
+  ) {
+    return OnForm(builder);
+  }
 }
 
 ////Used in tests

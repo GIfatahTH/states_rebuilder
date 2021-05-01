@@ -6,6 +6,7 @@ class ReactiveModelBase<T> {
     required this.creator,
     required this.initializer,
     T? initialState,
+    required this.autoDisposeWhenNotUsed,
     this.debugPrintWhenNotifiedPreMessage,
   }) {
     //Set initial state on construction
@@ -34,7 +35,8 @@ class ReactiveModelBase<T> {
 
   ///The initializer of the state, called lazily when the state is first used or
   ///on state construction if isLazy is false.
-  VoidCallback initializer;
+  final VoidCallback initializer;
+  final bool autoDisposeWhenNotUsed;
 
   late SnapState<T> _snapState;
 

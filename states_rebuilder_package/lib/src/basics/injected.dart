@@ -157,6 +157,7 @@ abstract class Injected<T> {
   ///It is not null if the state is waiting for a Future or is subscribed to a
   ///Stream
   StreamSubscription? get subscription => _reactiveModelState.subscription;
+  bool get autoDisposeWhenNotUsed => _reactiveModelState.autoDisposeWhenNotUsed;
 
   ///Custom status of the state. Set manually to mark the state with a particular
   ///tag to be used in your logic.
@@ -549,6 +550,11 @@ abstract class Injected<T> {
       return this;
     }
     return null;
+  }
+
+  @override
+  String toString() {
+    return '$snapState';
   }
 }
 

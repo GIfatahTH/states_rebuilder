@@ -520,18 +520,39 @@ abstract class RM {
     );
   }
 
+  ///Inject a TextEditingController
+  ///
+  ///* **text** is the initial text.
+  ///* **selection** the initial text selection
+  ///* **composing** is initial the range of text.
+  ///* **validator** used for input validation, If it returns null means input
+  ///is valid, else the return string is the error message.
+  ///* **autoValidate** if set to true the input text is validated while typing.
+  ///Default value is true.
+  ///* **autoDispose** if set to true the InjectedTextEditing is disposed of when
+  ///no longer used.
   static InjectedTextEditing injectTextEditing({
     String text = '',
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
-    String? Function(String text)? validator,
+    String? Function(String? text)? validator,
+    bool? autoValidate,
+    bool autoDispose = true,
   }) {
     return InjectedTextEditingImp(
       text: text,
       selection: selection,
       composing: composing,
       validator: validator,
+      autoValidate: autoValidate,
+      autoDispose: autoDispose,
     );
+  }
+
+  static InjectedForm injectForm({
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+  }) {
+    return InjectedFormImp(autovalidateMode: autovalidateMode);
   }
 
   static InjectedScrolling injectScrolling({
@@ -715,7 +736,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 }
 
 final injectedModels = <Injected>{};
-VoidCallback _addToInjectedModels(Injected inj) {
+VoidCallback addToInjectedModels(Injected inj) {
   injectedModels.add(inj);
   return () {
     injectedModels.remove(inj);
