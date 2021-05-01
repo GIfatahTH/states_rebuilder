@@ -13,7 +13,7 @@ class OnForm {
     InjectedForm injected, {
     Key? key,
   }) {
-    return StateBuilderBase<_OnWidget<Widget>>(
+    return StateBuilderBase<_OnFormWidget<Widget>>(
       (widget, setState) {
         late VoidCallback disposer;
         final inj = injected as InjectedFormImp;
@@ -32,6 +32,9 @@ class OnForm {
               },
               clean: () => inj.dispose(),
             );
+            // SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+            //   inj.notify();
+            // });
             // assert(() {
             //   if (debugPrintWhenRebuild != null) {
             //     print('INITIAL BUILD <' +
@@ -53,24 +56,33 @@ class OnForm {
             }
           },
           builder: (ctx, widget) {
+            // return widget.on.builder();
             final cached = InjectedFormImp._currentInitializedForm;
             InjectedFormImp._currentInitializedForm = inj;
-            final w = widget.on.builder();
-            InjectedFormImp._currentInitializedForm = cached;
-            return w;
+            return Stack(
+              children: [
+                widget.on.builder(),
+                Builder(
+                  builder: (_) {
+                    InjectedFormImp._currentInitializedForm = cached;
+                    return const SizedBox(height: 0, width: 0);
+                  },
+                ),
+              ],
+            );
           },
         );
       },
-      widget: _OnWidget<Widget>(inject: injected, on: this),
+      widget: _OnFormWidget<Widget>(inject: injected, on: this),
       key: key,
     );
   }
 }
 
-class _OnWidget<T> {
+class _OnFormWidget<T> {
   final InjectedForm inject;
   final OnForm on;
-  _OnWidget({
+  _OnFormWidget({
     required this.inject,
     required this.on,
   });
