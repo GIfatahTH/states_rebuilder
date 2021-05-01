@@ -70,7 +70,7 @@ extension OnFutureX<F> on OnFuture<F> {
     Key? key,
     String? debugPrintWhenRebuild,
   }) {
-    return StateBuilderBase<NullWidget>(
+    return StateBuilderBase<OnFutureWidget>(
       (widget, setState) {
         assert(injected != null || future != null);
         late Injected<F> inj;
@@ -178,8 +178,19 @@ extension OnFutureX<F> on OnFuture<F> {
           },
         );
       },
-      widget: NullWidget(injects: []),
+      widget: OnFutureWidget(injects: []),
       key: key,
     );
+  }
+}
+
+class OnFutureWidget extends Widget {
+  final List<Injected> injects;
+  OnFutureWidget({
+    required this.injects,
+  });
+  @override
+  Element createElement() {
+    throw UnimplementedError();
   }
 }

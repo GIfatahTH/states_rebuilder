@@ -493,4 +493,94 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+  testWidgets(
+    'WHEN Two form are defined with one has ListView builder'
+    'THEN each form get the right associated TextFields',
+    (tester) async {
+      final form1 = RM.injectForm(
+        autovalidateMode: AutovalidateMode.always,
+      );
+      final form2 = RM.injectForm(
+        autovalidateMode: AutovalidateMode.always,
+      );
+
+      final textField1 = RM.injectTextEditing(
+        validator: (_) => 'TextField1 Error',
+      );
+      final textField2 = RM.injectTextEditing(
+        validator: (_) => 'TextField2 Error',
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  itemCount: 1,
+                  itemBuilder: (_, __) {
+                    return Builder(
+                      builder: (_) {
+                        return On.form(
+                          () => TextField(
+                            key: Key('TextField1'),
+                            controller: textField1.controller,
+                            decoration: InputDecoration(
+                              errorText: textField1.error,
+                            ),
+                          ),
+                        ).listenTo(form1);
+                      },
+                    );
+                  },
+                ),
+              ),
+              On.form(
+                () => TextField(
+                  key: Key('TextField2'),
+                  controller: textField2.controller,
+                  decoration: InputDecoration(
+                    errorText: textField2.error,
+                  ),
+                ),
+              ).listenTo(form2),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      expect(find.text('TextField1 Error'), findsOneWidget);
+      expect(find.text('TextField2 Error'), findsOneWidget);
+      //
+      await tester.enterText(find.byKey(Key('TextField1')), 'Field 1');
+      await tester.enterText(find.byKey(Key('TextField2')), 'Field 2');
+      await tester.pump();
+      expect(find.text('Field 1'), findsOneWidget);
+      expect(find.text('Field 2'), findsOneWidget);
+      form1.reset();
+      await tester.pump();
+      expect(find.text('Field 1'), findsNothing);
+      expect(find.text('Field 2'), findsOneWidget);
+      form2.reset();
+      await tester.pump();
+      expect(find.text('Field 1'), findsNothing);
+      expect(find.text('Field 2'), findsNothing);
+      //
+      await tester.enterText(find.byKey(Key('TextField1')), 'Field 1');
+      await tester.enterText(find.byKey(Key('TextField2')), 'Field 2');
+      await tester.pump();
+      expect(find.text('Field 1'), findsOneWidget);
+      expect(find.text('Field 2'), findsOneWidget);
+      form2.reset();
+      await tester.pump();
+      expect(find.text('Field 1'), findsOneWidget);
+      expect(find.text('Field 2'), findsNothing);
+      form1.reset();
+      await tester.pump();
+      expect(find.text('Field 1'), findsNothing);
+      expect(find.text('Field 2'), findsNothing);
+    },
+  );
 }

@@ -55,7 +55,7 @@ extension OnScrollX on OnScroll<Widget> {
     Key? key,
   }) {
     assert(onScrolling != null);
-    return StateBuilderBase<_OnWidget<Widget>>(
+    return StateBuilderBase<_OnScrollWidget<Widget>>(
       (widget, setState) {
         late VoidCallback disposer;
         final inj = injected as InjectedScrollingImp;
@@ -98,16 +98,16 @@ extension OnScrollX on OnScroll<Widget> {
           },
         );
       },
-      widget: _OnWidget<Widget>(inject: injected, on: this),
+      widget: _OnScrollWidget<Widget>(inject: injected, on: this),
       key: key,
     );
   }
 }
 
-class _OnWidget<T> {
+class _OnScrollWidget<T> {
   final InjectedScrolling inject;
   final OnScroll<T> on;
-  _OnWidget({
+  _OnScrollWidget({
     required this.inject,
     required this.on,
   });
