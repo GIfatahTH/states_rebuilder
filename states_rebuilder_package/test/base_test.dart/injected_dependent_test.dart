@@ -131,16 +131,16 @@ void main() {
     (tester) async {
       final modelA = RM.inject(
         () => 1,
-        debugPrintWhenNotifiedPreMessage: 'modelA',
+        // debugPrintWhenNotifiedPreMessage: 'modelA',
       );
       final modelB = RM.inject(
         () => 1,
-        debugPrintWhenNotifiedPreMessage: 'modelB',
+        // debugPrintWhenNotifiedPreMessage: 'modelB',
       );
       final modelC = RM.inject<int>(
         () => modelA.state + modelB.state,
         dependsOn: DependsOn({modelA, modelB}),
-        debugPrintWhenNotifiedPreMessage: 'modelC',
+        // debugPrintWhenNotifiedPreMessage: 'modelC',
       );
       expect(modelC.state, 2);
       expect(modelC.isIdle, true);

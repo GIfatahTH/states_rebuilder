@@ -121,7 +121,7 @@ void main() {
       final model = RM.inject<int>(
         () => 1,
         onInitialized: (state) {
-          print(state);
+          // print(state);
         },
       );
 

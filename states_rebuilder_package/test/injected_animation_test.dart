@@ -200,7 +200,6 @@ void main() {
       expect(container1.constraints!.maxWidth, 160.0);
       await tester.pump(Duration(milliseconds: 400));
       expect(container1.constraints!.maxWidth, 120.0);
-      print('switch');
       isSelected.toggle();
       await tester.pump();
       expect(container1.constraints!.maxWidth, 120.0);
@@ -254,7 +253,6 @@ void main() {
       await tester.pump(Duration(milliseconds: 400));
       expect(container1.constraints!.maxWidth, 120.0);
       expect(container2.constraints!.maxWidth, 120.0);
-      print('switch');
       isSelected.toggle();
       await tester.pump();
       await tester.pump();

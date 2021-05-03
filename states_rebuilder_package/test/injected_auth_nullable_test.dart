@@ -89,7 +89,7 @@ InjectedAuth<String?, String> persistedUser = RM.injectAuth(
       );
     },
   ),
-  debugPrintWhenNotifiedPreMessage: 'persisted',
+  // debugPrintWhenNotifiedPreMessage: 'persisted',
 );
 
 InjectedAuth<String?, String> persistedUserWithAutoDispose = RM.injectAuth(
@@ -411,7 +411,7 @@ void main() async {
       onUnsigned: () => onUnSigned++,
       onSigned: (_) => onSigned++,
       onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
-      debugPrintWhenNotifiedPreMessage: '',
+      // debugPrintWhenNotifiedPreMessage: '',
     );
 
     expect(user.isSigned, false);

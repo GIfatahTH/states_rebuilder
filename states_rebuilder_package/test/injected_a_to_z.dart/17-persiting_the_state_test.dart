@@ -9,10 +9,9 @@ final counterFuture = RM.injectFuture(
     key: 'counterFuture',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
-    debugPrintOperations: true,
+    // debugPrintOperations: true,
   ),
   autoDisposeWhenNotUsed: true,
-  debugPrintWhenNotifiedPreMessage: 'counterFuture',
 );
 
 //We use var here to set counter for another options in test
@@ -22,15 +21,12 @@ var counter = RM.inject(
     key: 'counter',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
-    debugPrintOperations: true,
   ),
-  debugPrintWhenNotifiedPreMessage: 'counter',
 );
 
 //Used to dispose counter for test
 final switcher = RM.inject(
   () => true,
-  debugPrintWhenNotifiedPreMessage: 'switcher',
 );
 
 class App extends StatelessWidget {
@@ -46,7 +42,6 @@ class App extends StatelessWidget {
                     () => Text('counter: ${counter.state}'),
                   ).listenTo(
                     counter,
-                    debugPrintWhenRebuild: 'counter',
                   )
                 : Container(),
           ).listenTo(switcher),
@@ -55,7 +50,6 @@ class App extends StatelessWidget {
             or: () => Text('counterFuture: ${counterFuture.state}'),
           ).listenTo(
             counterFuture,
-            debugPrintWhenRebuild: 'App',
           ),
         ],
       ),

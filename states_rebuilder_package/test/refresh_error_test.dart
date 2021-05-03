@@ -50,7 +50,6 @@ void main() {
           or: () => Text('Data: ${model.state}'),
         ).listenTo(
           model,
-          debugPrintWhenRebuild: '',
         ),
       );
 
@@ -336,19 +335,16 @@ void main() {
           Duration(seconds: 1),
           () => shouldThrow ? throw Exception('Error1') : 1,
         ),
-        debugPrintWhenNotifiedPreMessage: 'model1',
       );
       final model2 = RM.injectFuture(
         () => Future.delayed(
           Duration(seconds: 1),
           () => shouldThrow ? throw Exception('Error2') : 2,
         ),
-        debugPrintWhenNotifiedPreMessage: 'model2',
       );
       final model3 = RM.inject<int>(
         () => model1.state + model2.state,
         dependsOn: DependsOn({model1, model2}),
-        debugPrintWhenNotifiedPreMessage: '',
       );
 
       final widget = testWidget(

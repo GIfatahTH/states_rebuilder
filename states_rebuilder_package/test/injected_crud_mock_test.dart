@@ -104,7 +104,7 @@ final products = RM.injectCRUD<Product, Object>(
       onCRUDMessage = 'Result: $r';
     },
   ),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 void main() {
@@ -646,7 +646,7 @@ void main() {
           onResult: (r) => Text('Result: $r'),
         ).listenTo(
           products,
-          debugPrintWhenRebuild: '',
+          // debugPrintWhenRebuild: '',
         ),
       );
 

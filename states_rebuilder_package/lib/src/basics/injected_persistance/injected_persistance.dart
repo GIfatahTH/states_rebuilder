@@ -203,21 +203,21 @@ await RM.storageInitializerMock();\n\n
     }
   }
 
-  ///Delete all data in localStorage
-  Future<void> deleteAll() async {
-    final persistState = _persistState;
-    try {
-      final r = await persistState.deleteAll();
-      StatesRebuilerLogger.log('PersistState: deleteAll');
-      return r;
-    } catch (e, s) {
-      if (catchPersistError) {
-        StatesRebuilerLogger.log('Delete all from localStorage error', e, s);
-        return null;
-      }
-      rethrow;
-    }
-  }
+  // ///Delete all data in localStorage
+  // Future<void> deleteAll() async {
+  //   final persistState = _persistState;
+  //   try {
+  //     final r = await persistState.deleteAll();
+  //     StatesRebuilerLogger.log('PersistState: deleteAll');
+  //     return r;
+  //   } catch (e, s) {
+  //     if (catchPersistError) {
+  //       StatesRebuilerLogger.log('Delete all from localStorage error', e, s);
+  //       return null;
+  //     }
+  //     rethrow;
+  //   }
+  // }
 }
 
 ///Enums {disposed, manualPersist}

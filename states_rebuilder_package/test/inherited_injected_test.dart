@@ -81,7 +81,7 @@ void main() {
   testWidgets('mutate global with inherited is waiting  ', (tester) async {
     final counter1 = RM.inject(
       () => 1,
-      debugPrintWhenNotifiedPreMessage: 'counter1',
+      // debugPrintWhenNotifiedPreMessage: 'counter1',
     );
     late BuildContext context1;
     final widget = counter1.inherited(
@@ -92,7 +92,7 @@ void main() {
         context1 = ctx;
         return Container();
       },
-      debugPrintWhenNotifiedPreMessage: 'inherited',
+      // debugPrintWhenNotifiedPreMessage: 'inherited',
     );
 
     await tester.pumpWidget(widget);

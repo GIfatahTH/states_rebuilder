@@ -65,4 +65,32 @@ void main() {
       expect(snapState.hashCode != snapState2.hashCode, true);
     },
   );
+
+  testWidgets(
+    ' copyWith ',
+    (tester) async {
+      SnapState<int> snapState = createSnapState(
+        ConnectionState.none,
+        0,
+        null,
+      );
+      expect('$snapState', 'SnapState<int>(isIdle : 0)');
+      //
+      snapState = snapState.copyTo(isWaiting: true);
+      //
+      expect('$snapState', 'SnapState<int>(isWaiting (): 0)');
+      //
+      snapState = snapState.copyTo(data: 0);
+      //
+      expect('$snapState', 'SnapState<int>(hasData: 0)');
+      //
+      snapState = snapState.copyTo(
+        error: Exception('Error'),
+        stackTrace: StackTrace.empty,
+      );
+
+      expect('$snapState', 'SnapState<int>(hasError: Exception: Error)');
+      //
+    },
+  );
 }

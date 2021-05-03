@@ -39,7 +39,6 @@ void main() {
                 ),
               ),
             ),
-            debugPrintWhenRebuild: '',
           ),
         ),
       ),

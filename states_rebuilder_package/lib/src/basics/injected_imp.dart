@@ -595,7 +595,6 @@ class InjectedImp<T> extends Injected<T> {
                   setState();
                   return;
                 }
-                print(snapState);
                 if (_inheritedInjects.isNotEmpty) {
                   _setCombinedInheritedSnap(_inheritedInjects, injected);
                 }

@@ -38,11 +38,9 @@ void main() {
                 return Text(textEditing.text);
               }).listenTo(textEditing),
               On(() {
-                print(textEditing.selection.toString());
                 return Text(textEditing.selection.toString());
               }).listenTo(textEditing),
               On(() {
-                print(textEditing.composing.toString());
                 return Text(textEditing.composing.toString());
               }).listenTo(textEditing)
             ],

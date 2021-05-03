@@ -17,7 +17,7 @@ final i18nStored = RM.injectI18N(
     Locale('es', 'ES'): () => 'spanish',
   },
   persistKey: '_lan_',
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 void main() async {
@@ -34,7 +34,7 @@ void main() async {
         Locale('ar'): () => 'arabic',
         Locale('es'): () => 'spanish',
       },
-      debugPrintWhenNotifiedPreMessage: 'i18n',
+      // debugPrintWhenNotifiedPreMessage: 'i18n',
     );
     final widget = TopAppWidget(
       injectedI18N: i18n,

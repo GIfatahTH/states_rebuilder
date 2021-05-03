@@ -6,7 +6,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class SearchRepository {
   //
   Future<List<String>> getUsers(String param) async {
-    print('GetUser');
     await Future.delayed(Duration(seconds: 1));
     return _data.where((e) => e.startsWith(param)).toList();
   }
@@ -37,13 +36,11 @@ final Injected<String> query = RM.inject(
   // - any pending future will be canceled.
   // - a new search request is called
   onData: (_) => fetchedUsers.refresh(),
-  debugPrintWhenNotifiedPreMessage: 'query',
 );
 
 //Inject the list of fetched user
 final fetchedUsers = RM.injectFuture(
   () => searchRepo.state.getUsers(query.state),
-  debugPrintWhenNotifiedPreMessage: 'fetchedUsers',
 );
 
 //The UI

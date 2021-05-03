@@ -480,7 +480,7 @@ void main() async {
       () => 0,
       persist: () => PersistState(
         key: 'counter',
-        debugPrintOperations: true,
+        // debugPrintOperations: true,
       ),
     );
     //first increment

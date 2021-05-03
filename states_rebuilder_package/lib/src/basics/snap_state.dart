@@ -37,15 +37,15 @@ class SnapState<T> {
           null,
           debugPrintWhenNotifiedPreMessage,
         );
-  const SnapState.none()
-      : this._(
-          ConnectionState.none,
-          null,
-          null,
-          null,
-          null,
-          '',
-        );
+  // const SnapState.none()
+  //     : this._(
+  //         ConnectionState.none,
+  //         null,
+  //         null,
+  //         null,
+  //         null,
+  //         '',
+  //       );
   const SnapState.data([T? data])
       : this._(
           ConnectionState.done,

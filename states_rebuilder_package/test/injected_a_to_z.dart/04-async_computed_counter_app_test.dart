@@ -35,19 +35,14 @@ class Counter2 {
 
 final counter1 = RM.inject(
   () => Counter1(),
-  debugPrintWhenNotifiedPreMessage: 'counter1',
-  toDebugString: (s) => '${s?._count}',
 );
 final counter2 = RM.inject(
   () => Counter2(),
-  debugPrintWhenNotifiedPreMessage: 'Coutner2',
-  toDebugString: (s) => '${s?._count}',
 );
 
 final computedCounter = RM.inject<int>(
   () => counter1.state.count * counter2.state.count,
   dependsOn: DependsOn({counter1, counter2}),
-  debugPrintWhenNotifiedPreMessage: 'computedCounter',
 );
 
 //this is an example fo a computed counter the depends on another computed counter

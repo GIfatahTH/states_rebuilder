@@ -45,7 +45,6 @@ class CounterStore {
 
 final counter = RM.inject(
   () => CounterStore(0),
-  debugPrintWhenNotifiedPreMessage: '',
 );
 
 //variable use to track the number of rebuilds

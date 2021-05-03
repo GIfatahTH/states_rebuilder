@@ -14,12 +14,10 @@ class Counter {
 
 final counter1 = RM.inject(
   () => 0,
-  debugPrintWhenNotifiedPreMessage: 'counter1',
 );
 final counter1Future = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => Counter(1)),
   autoDisposeWhenNotUsed: true,
-  debugPrintWhenNotifiedPreMessage: 'counter1Future',
 );
 
 //
@@ -31,7 +29,6 @@ void main() {
       final counter1Computed = RM.inject<int?>(
         () => counter1.state + counter1Future.state.count,
         dependsOn: DependsOn({counter1Future, counter1}),
-        debugPrintWhenNotifiedPreMessage: 'counter1Computed',
       );
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -40,7 +37,6 @@ void main() {
           or: () => Text('${counter1Computed.state}'),
         ).listenTo(
           counter1Computed,
-          debugPrintWhenRebuild: '',
         ),
       );
       //
@@ -268,12 +264,10 @@ void main() {
       final dependentCounter1 = RM.inject<int>(
         () => counter1.state + counter1Future.state,
         dependsOn: DependsOn({counter1, counter1Future}),
-        debugPrintWhenNotifiedPreMessage: 'dpendent1',
       );
       final dependentCounter2 = RM.inject<int>(
         () => dependentCounter1.state + 1,
         dependsOn: DependsOn({dependentCounter1}),
-        debugPrintWhenNotifiedPreMessage: 'dpendent2',
       );
       int numberOfNotification = 0;
       dependentCounter2.subscribeToRM((rm) {

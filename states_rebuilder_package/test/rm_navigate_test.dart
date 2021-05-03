@@ -895,8 +895,6 @@ void main() {
               builder: (child) => getSubRoute
                   ? Builder(
                       builder: (context) {
-                        print(child);
-                        print(context.routeWidget);
                         assert(child == context.routeWidget);
                         return context.routeWidget;
                       },

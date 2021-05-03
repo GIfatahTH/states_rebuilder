@@ -14,6 +14,7 @@ void main() {
   bool hasEnded = false;
   final scroll = RM.injectScrolling(
     onScrolling: (scroll) {
+      print(scroll); //used for test coverage
       isTop = scroll.hasReachedMinExtent;
       isBottom = scroll.hasReachedMaxExtent;
       //
@@ -66,7 +67,7 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
-      final maxScrollExtent = scroll.controller.position.maxScrollExtent;
+      final maxScrollExtent = scroll.maxScrollExtent;
       expect(scroll.offset, 0.0);
       expect(find.text('offset: 0.0'), findsOneWidget);
       //

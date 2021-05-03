@@ -96,7 +96,7 @@ final _repo = Repository();
 final products = RM.injectCRUD<Product, Object>(
   () => _repo,
   readOnInitialization: true,
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 final widget = MaterialApp(
@@ -113,13 +113,13 @@ final widget = MaterialApp(
             builder: (_) {
               return const Item();
             },
-            debugPrintWhenNotifiedPreMessage: '${products.state[index].id}',
+            // debugPrintWhenNotifiedPreMessage: '${products.state[index].id}',
           );
         },
       ),
     ).listenTo(
       products,
-      debugPrintWhenRebuild: 'On.future',
+      // debugPrintWhenRebuild: 'On.future',
     ),
   ),
   navigatorKey: RM.navigate.navigatorKey,

@@ -90,7 +90,7 @@ void main() async {
       onError: (e, s) {
         StatesRebuilerLogger.log('', e);
       },
-      debugPrintWhenNotifiedPreMessage: '',
+      // debugPrintWhenNotifiedPreMessage: '',
     );
     expect(counter.isWaiting, true);
     await tester.pump(Duration(seconds: 1));

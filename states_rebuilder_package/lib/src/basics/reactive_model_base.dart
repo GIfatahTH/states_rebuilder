@@ -186,8 +186,7 @@ class ReactiveModelBase<T> {
       } catch (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
-          print(err);
-          print(s);
+
           rethrow;
         }
         //In the other hand Exception are handled
