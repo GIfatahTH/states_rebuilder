@@ -90,7 +90,9 @@ class InjectedTextEditingImp extends ReactiveModel<String>
         super(
           creator: () => text,
           autoDisposeWhenNotUsed: autoDispose,
-        );
+        ) {
+    _removeFromInjectedList = addToInjectedModels(this);
+  }
 
   final TextSelection _selection;
   final TextRange _composing;
@@ -133,8 +135,6 @@ class InjectedTextEditingImp extends ReactiveModel<String>
         return false;
       },
     );
-
-    _removeFromInjectedList = addToInjectedModels(this);
 
     _controller!.addListener(() {
       if (state == this.text) {
@@ -180,7 +180,7 @@ class InjectedTextEditingImp extends ReactiveModel<String>
   void dispose() {
     super.dispose();
     _removeFromInjectedList();
-    _controller!.dispose();
+    _controller?.dispose();
     _controller = null;
     _focusNode?.dispose();
     _focusNode = null;
