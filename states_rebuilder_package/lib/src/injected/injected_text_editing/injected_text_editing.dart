@@ -83,6 +83,7 @@ class InjectedTextEditingImp extends ReactiveModel<String>
     String? Function(String?)? validator,
     this.autoValidate,
     this.autoDispose = true,
+    this.onTextEditing,
   })  : _validator = validator,
         initialValue = text,
         _composing = composing,
@@ -99,6 +100,7 @@ class InjectedTextEditingImp extends ReactiveModel<String>
   bool? autoValidate;
   bool _formIsSet = false;
   final bool autoDispose;
+  final void Function(InjectedTextEditing textEditing)? onTextEditing;
   TextEditingControllerImp get controller {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;
@@ -137,6 +139,7 @@ class InjectedTextEditingImp extends ReactiveModel<String>
     );
 
     _controller!.addListener(() {
+      onTextEditing?.call(this);
       if (state == this.text) {
         notify();
         return;
