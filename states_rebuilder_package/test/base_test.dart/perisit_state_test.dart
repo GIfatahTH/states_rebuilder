@@ -355,7 +355,6 @@ void main() async {
       'WHEN catchPersistError is true'
       'THEN persisted exceptions are caught and a print message is logged',
       (tester) async {
-    String error = '';
     final counter = RM.inject(() => 0,
         persist: () => PersistState(
               key: 'counter',
@@ -364,7 +363,7 @@ void main() async {
               catchPersistError: true,
             ),
         onError: (e, s) {
-          error = e.message;
+          // error = e.message;
         });
 
     store.exception = Exception('Read Error');

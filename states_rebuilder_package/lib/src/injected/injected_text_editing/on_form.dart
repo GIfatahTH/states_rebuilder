@@ -17,7 +17,6 @@ class OnForm {
       (widget, setState) {
         late VoidCallback disposer;
         final inj = injected as InjectedFormImp;
-        bool isInit = false;
         return LifeCycleHooks(
           mountedState: (_) {
             disposer = inj.reactiveModelState.listeners.addListener(

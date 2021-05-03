@@ -320,6 +320,13 @@ class On<T> {
   ) {
     return OnForm(builder);
   }
+
+  ///Listen to [InjectedScrolling]
+  static OnScroll<T> scroll<T>(
+    T Function(InjectedScrolling scroll) builder,
+  ) {
+    return OnScroll<T>(builder);
+  }
 }
 
 ////Used in tests

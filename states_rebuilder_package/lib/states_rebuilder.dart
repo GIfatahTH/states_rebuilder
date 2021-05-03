@@ -18,7 +18,7 @@ export 'src/injected/injected_crud/injected_crud.dart'
 export 'src/injected/injected_i18n/injected_i18n.dart'
     show InjectedI18N, SystemLocale;
 export 'src/injected/injected_scrolling/injected_scrolling.dart'
-    show InjectedScrolling, OnScroll, OnScrollX;
+    show InjectedScrolling;
 export 'src/injected/injected_text_editing/injected_text_editing.dart'
     show InjectedTextEditing, InjectedForm;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;

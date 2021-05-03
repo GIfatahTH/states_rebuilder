@@ -494,7 +494,13 @@ abstract class RM {
   ///Animation is auto disposed if no longer used.
   ///
   ///* **duration** Animation duration, It is required.
+  ///* **reverseDuration** The length of time this animation should last when going in reverse.
   ///* **curve** Animation curve, It defaults to Curves.linear
+  ///* **initialValue** The AnimationController's value the animation start with.
+  ///* **lowerBound** The value at which this animation is deemed to be dismissed.
+  ///* **upperBound** The value at which this animation is deemed to be completed.
+  ///* **animationBehavior** he behavior of the controller when [AccessibilityFeatures.disableAnimations]
+  /// is true.
   ///* **repeats** the number of times the animation repeats (always from start to end).
   ///A value of zero means that the animation will repeats infinity.
   ///* **shouldReverseRepeats** When it is set to true, animation will repeat by alternating
@@ -504,19 +510,29 @@ abstract class RM {
   ///See [On.animation]
   static InjectedAnimation injectAnimation({
     required Duration duration,
+    Duration? reverseDuration,
     Curve curve = Curves.linear,
-    int repeats = 1,
+    double? initialValue,
+    double lowerBound = 0.0,
+    double upperBound = 1.0,
+    AnimationBehavior animationBehavior = AnimationBehavior.normal,
+    int? repeats,
     bool shouldReverseRepeats = false,
     void Function(InjectedAnimation)? onInitialized,
     void Function()? endAnimationListener,
   }) {
     return InjectedAnimationImp(
       duration: duration,
+      reverseDuration: reverseDuration,
       curve: curve,
+      lowerBound: lowerBound,
+      upperBound: upperBound,
+      animationBehavior: animationBehavior,
       repeats: repeats,
       isReverse: shouldReverseRepeats,
       onInitialized: onInitialized,
       endAnimationListener: endAnimationListener,
+      initialValue: initialValue,
     );
   }
 
@@ -549,21 +565,32 @@ abstract class RM {
     );
   }
 
+  ///Inject a form.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
   }) {
     return InjectedFormImp(autovalidateMode: autovalidateMode);
   }
 
+  ///Inject a
+  ///
+  ///* **initialScrollOffset** is the initial scroll offset
+  ///* **keepScrollOffset** similar to [ScrollController.keepScrollOffset]
+  ///* **OnScroll: a callback invoked each time the ScrollController emits a
+  ///notification.
+  ///* **endScrollDelay** The delay to be awaited after the user stop scrolling to
+  ///consider scrolling action ended.
   static InjectedScrolling injectScrolling({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
-    OnScroll? onScroll,
+    void Function(InjectedScrolling)? onScroll,
+    int endScrollDelay = 300,
   }) {
     return InjectedScrollingImp(
       initialScrollOffset: initialScrollOffset,
       keepScrollOffset: keepScrollOffset,
-      onScroll: onScroll,
+      onScroll: onScroll != null ? OnScroll<void>(onScroll) : null,
+      onScrollEndedDelay: endScrollDelay,
     );
   }
 
