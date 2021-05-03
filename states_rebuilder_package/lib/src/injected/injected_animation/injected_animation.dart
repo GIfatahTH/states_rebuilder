@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../rm.dart';
 
 part 'on_Animation.dart';
@@ -22,7 +23,12 @@ abstract class InjectedAnimation implements Injected<double> {
     );
   }
 
-  ///Start animation
+  ///Start animation.
+  ///
+  ///If animation is completed (stopped at the end) then the animation is reversed, and if the animation
+  ///is dismissed (stopped at the beginning) then the animation is forwarded.
+  ///
+  ///You can start animation conventionally using `controller!.forward` for example.
   void triggerAnimation();
 
   ///Update `On.animation` widgets listening the this animation
@@ -37,8 +43,13 @@ class InjectedAnimationImp extends ReactiveModel<double>
     with InjectedAnimation {
   InjectedAnimationImp({
     this.duration = const Duration(milliseconds: 500),
+    this.reverseDuration,
     this.curve = Curves.linear,
-    this.repeats = 1,
+    this.initialValue,
+    this.upperBound = 1.0,
+    this.lowerBound = 0.0,
+    this.animationBehavior = AnimationBehavior.normal,
+    this.repeats,
     this.isReverse = false,
     this.onInitialized,
     this.endAnimationListener,
@@ -46,9 +57,38 @@ class InjectedAnimationImp extends ReactiveModel<double>
           creator: () => 0.0,
         );
 
-  final Duration duration;
+  ///The AnimationController's value the animation start with.
+  final double? initialValue;
+
+  /// The length of time this animation should last.
+  ///
+  /// If [reverseDuration] is specified, then [duration] is only used when going
+  /// [forward]. Otherwise, it specifies the duration going in both directions.
+  Duration duration;
+
+  /// The length of time this animation should last when going in [reverse].
+  ///
+  /// The value of [duration] us used if [reverseDuration] is not specified or
+  /// set to null.
+  Duration? reverseDuration;
   final Curve curve;
-  final int repeats;
+
+  /// The value at which this animation is deemed to be dismissed.
+  final double lowerBound;
+
+  /// The value at which this animation is deemed to be completed.
+  final double upperBound;
+
+  /// The behavior of the controller when [AccessibilityFeatures.disableAnimations]
+  /// is true.
+  ///
+  /// Defaults to [AnimationBehavior.normal].
+  final AnimationBehavior animationBehavior;
+
+  ///Number of times the animation should repeat. If 0 animation will repeat
+  ///indefinitely
+  final int? repeats;
+
   final bool isReverse;
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
@@ -57,42 +97,63 @@ class InjectedAnimationImp extends ReactiveModel<double>
   bool isAnimating = false;
 
   bool skipDismissStatus = false;
-  int repeatCount = 0;
+  int? repeatCount;
 
   void initialize(TickerProvider ticker) {
     if (_controller != null) {
       return;
     }
     _controller = AnimationController(
-      duration: duration,
       vsync: ticker,
+      duration: duration,
+      reverseDuration: reverseDuration,
+      value: initialValue,
+      lowerBound: lowerBound,
+      upperBound: upperBound,
+      animationBehavior: animationBehavior,
     );
 
     repeatStatusListenerListener = (status) {
-      if (status == AnimationStatus.completed ||
-          (status == AnimationStatus.dismissed &&
-              isReverse &&
-              !skipDismissStatus)) {
-        if (repeatCount == 1) {
-          isAnimating = false;
-          endAnimationListener?.call();
+      if (status != AnimationStatus.completed &&
+          status != AnimationStatus.dismissed) {
+        return;
+      }
+      if (repeats == null) {
+        endAnimationListener?.call();
+        return;
+      }
+      if (skipDismissStatus) {
+        return;
+      }
+      repeatCount ??= repeats;
 
-          WidgetsBinding.instance!.scheduleFrameCallback((_) {
-            notify(); //TODO Check me. Used to trigger a rebuild after animation ends
-          });
-        } else {
-          if (status == AnimationStatus.completed) {
-            if (repeatCount > 1) repeatCount--;
-            if (isReverse) {
-              _controller!.reverse();
-            } else {
-              _controller!
-                ..value = 0
-                ..forward();
-            }
-          } else if (status == AnimationStatus.dismissed) {
-            if (repeatCount > 1) repeatCount--;
+      if (repeatCount == 1) {
+        isAnimating = false;
+        endAnimationListener?.call();
+        repeatCount = null;
+        WidgetsBinding.instance!.scheduleFrameCallback((_) {
+          notify(); //TODO Check me. Used to trigger a rebuild after animation ends
+        });
+      } else {
+        if (status == AnimationStatus.completed) {
+          if (repeatCount! > 1) repeatCount = repeatCount! - 1;
+          if (isReverse) {
+            _controller!.reverse();
+          } else {
+            skipDismissStatus = true;
+            _controller!.value = lowerBound;
+            skipDismissStatus = false;
             _controller!.forward();
+          }
+        } else if (status == AnimationStatus.dismissed) {
+          if (repeatCount! > 1) repeatCount = repeatCount! - 1;
+          if (isReverse) {
+            _controller!.forward();
+          } else {
+            skipDismissStatus = true;
+            _controller!.value = upperBound;
+            skipDismissStatus = false;
+            _controller!.reverse();
           }
         }
       }
@@ -119,7 +180,7 @@ class InjectedAnimationImp extends ReactiveModel<double>
         //animation until the next frame so that all implicit values are calculated
         //correctly.
         _isFrameScheduling = true;
-        WidgetsBinding.instance!.scheduleFrameCallback((_) {
+        SchedulerBinding.instance!.scheduleFrameCallback((_) {
           if (_controller != null) {
             _startAnimation();
             _isFrameScheduling = false;
@@ -131,13 +192,16 @@ class InjectedAnimationImp extends ReactiveModel<double>
 
   void _startAnimation() {
     _resetControllerValue();
-    repeatCount = repeats;
-    _controller!.forward();
+    if (_controller?.status == AnimationStatus.completed) {
+      _controller!.reverse();
+    } else {
+      _controller!.forward();
+    }
   }
 
   void _resetControllerValue() {
     skipDismissStatus = true;
-    _controller!.value = 0;
+    _controller!.value = initialValue ?? lowerBound;
     skipDismissStatus = false;
   }
 
