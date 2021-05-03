@@ -574,7 +574,7 @@ abstract class RM {
     return InjectedFormImp(autovalidateMode: autovalidateMode);
   }
 
-  ///Inject a
+  ///Inject a ScrollController
   ///
   ///* **initialScrollOffset** is the initial scroll offset
   ///* **keepScrollOffset** similar to [ScrollController.keepScrollOffset]
