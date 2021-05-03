@@ -553,6 +553,7 @@ abstract class RM {
     TextRange composing = TextRange.empty,
     String? Function(String? text)? validator,
     bool? autoValidate,
+    void Function(InjectedTextEditing textEditing)? onTextEditing,
     bool autoDispose = true,
   }) {
     return InjectedTextEditingImp(
@@ -562,6 +563,7 @@ abstract class RM {
       validator: validator,
       autoValidate: autoValidate,
       autoDispose: autoDispose,
+      onTextEditing: onTextEditing,
     );
   }
 
@@ -576,20 +578,20 @@ abstract class RM {
   ///
   ///* **initialScrollOffset** is the initial scroll offset
   ///* **keepScrollOffset** similar to [ScrollController.keepScrollOffset]
-  ///* **OnScroll: a callback invoked each time the ScrollController emits a
+  ///* **onScrolling: a callback invoked each time the ScrollController emits a
   ///notification.
-  ///* **endScrollDelay** The delay to be awaited after the user stop scrolling to
+  ///* **endScrollDelay** The delay in milliseconds to be awaited after the user stop scrolling to
   ///consider scrolling action ended.
   static InjectedScrolling injectScrolling({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
-    void Function(InjectedScrolling)? onScroll,
+    void Function(InjectedScrolling)? onScrolling,
     int endScrollDelay = 300,
   }) {
     return InjectedScrollingImp(
       initialScrollOffset: initialScrollOffset,
       keepScrollOffset: keepScrollOffset,
-      onScroll: onScroll != null ? OnScroll<void>(onScroll) : null,
+      onScroll: onScrolling != null ? OnScroll<void>(onScrolling) : null,
       onScrollEndedDelay: endScrollDelay,
     );
   }

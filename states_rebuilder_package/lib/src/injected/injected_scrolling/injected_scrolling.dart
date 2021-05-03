@@ -17,6 +17,16 @@ abstract class InjectedScrolling implements Injected<double> {
   ///The current offset
   double get offset => _controller!.offset;
 
+  ///The maximum in-range value for [pixels].
+  ///
+  /// Similar to [ScrollPosition.maxScrollExtent]
+  double get maxScrollExtent => _controller!.position.maxScrollExtent;
+
+  ///The minimum in-range value for [pixels].
+  ///
+  /// Similar to [ScrollPosition.minScrollExtent]
+  double get minScrollExtent => _controller!.position.minScrollExtent;
+
   ///Whether the associates Scroll view is scrolling.
   bool isScrolling = false;
 
@@ -42,11 +52,11 @@ abstract class InjectedScrolling implements Injected<double> {
   //
   ///The scroll list has reached its top (the current offset is less or equal then
   ///minScrollExtent)
-  bool hasReachedTheTop = false;
+  bool hasReachedMinExtent = false;
 
   ///The scroll list has reached its bottom (the current offset is greater or equal then
   ///maxScrollExtent)
-  bool hasReachedTheBottom = false;
+  bool hasReachedMaxExtent = false;
 
   ///Calls [ScrollPosition.jumpTo] if duration is null or [Duration.zero],
   ///otherwise [ScrollPosition.animateTo] is called.
@@ -71,9 +81,9 @@ abstract class InjectedScrolling implements Injected<double> {
 
   @override
   String toString() {
-    if (hasReachedTheBottom)
+    if (hasReachedMaxExtent)
       return 'InjectedScrolling(hasReachedTheBottom: true)';
-    if (hasReachedTheTop) return 'InjectedScrolling(hasReachedTheTop: true)';
+    if (hasReachedMinExtent) return 'InjectedScrolling(hasReachedTheTop: true)';
     if (hasStartedScrollingForward)
       return 'InjectedScrolling(hasStartedScrolling: true )';
     if (hasStartedScrollingReverse)
@@ -115,17 +125,6 @@ class InjectedScrollingImp extends ReactiveModel<double>
 
   ScrollController get controller {
     if (_controller != null) {
-      if (_maxScrollExtent != position.maxScrollExtent) {
-        _maxScrollExtent = position.maxScrollExtent;
-        SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
-          if (_controller == null) {
-            return;
-          }
-          setState(
-            (s) => _controller!.offset / _maxScrollExtent!,
-          );
-        });
-      }
       return _controller!;
     }
 
@@ -134,7 +133,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
       keepScrollOffset: keepScrollOffset,
     );
     Timer? _timer;
-    hasReachedTheTop = initialState == 0;
+    hasReachedMinExtent = initialState == 0;
     void setFlags() {
       hasStartedScrolling = false;
       hasStartedScrollingForward = false;
@@ -150,15 +149,26 @@ class InjectedScrollingImp extends ReactiveModel<double>
       }
       if (_controller!.offset >= position.maxScrollExtent &&
           !position.outOfRange) {
-        hasReachedTheTop = false;
-        hasReachedTheBottom = true;
+        hasReachedMinExtent = false;
+        hasReachedMaxExtent = true;
+        SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+          if (_maxScrollExtent != position.maxScrollExtent) {
+            _maxScrollExtent = position.maxScrollExtent;
+            if (_controller == null) {
+              return;
+            }
+            setState(
+              (s) => _controller!.offset / _maxScrollExtent!,
+            );
+          }
+        });
       } else if (_controller!.offset <= position.minScrollExtent &&
           !position.outOfRange) {
-        hasReachedTheTop = true;
-        hasReachedTheBottom = false;
+        hasReachedMinExtent = true;
+        hasReachedMaxExtent = false;
       } else {
-        hasReachedTheTop = false;
-        hasReachedTheBottom = false;
+        hasReachedMinExtent = false;
+        hasReachedMaxExtent = false;
       }
 
       if (_timer == null) {
@@ -179,8 +189,8 @@ class InjectedScrollingImp extends ReactiveModel<double>
           hasStartedScrolling = false;
           isScrolling = false;
           _userScrollDirection = null;
-          hasReachedTheBottom = false;
-          hasReachedTheTop = false;
+          hasReachedMaxExtent = false;
+          hasReachedMinExtent = false;
           onScroll?.call(this);
           _timer = null;
           notify();

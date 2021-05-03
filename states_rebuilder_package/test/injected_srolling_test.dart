@@ -13,9 +13,9 @@ void main() {
   bool hasStartedDown = false;
   bool hasEnded = false;
   final scroll = RM.injectScrolling(
-    onScroll: (scroll) {
-      isTop = scroll.hasReachedTheTop;
-      isBottom = scroll.hasReachedTheBottom;
+    onScrolling: (scroll) {
+      isTop = scroll.hasReachedMinExtent;
+      isBottom = scroll.hasReachedMaxExtent;
       //
       isScrolling = scroll.isScrolling;
       isScrollingUp = scroll.isScrollingReverse;
@@ -119,11 +119,11 @@ void main() {
             leading: On.animation((animate) => Container()).listenTo(animation),
             title: On.scroll(
               (scroll) {
-                if (scroll.hasReachedTheTop) {
+                if (scroll.hasReachedMinExtent) {
                   return Text('isTop');
                 }
 
-                if (scroll.hasReachedTheBottom) {
+                if (scroll.hasReachedMaxExtent) {
                   return Text('isBottom');
                 }
 
@@ -309,11 +309,11 @@ void main() {
             leading: On.animation((animate) => Container()).listenTo(animation),
             title: On.scroll(
               (scroll) {
-                if (scroll.hasReachedTheTop) {
+                if (scroll.hasReachedMinExtent) {
                   return Text('isTop');
                 }
 
-                if (scroll.hasReachedTheBottom) {
+                if (scroll.hasReachedMaxExtent) {
                   return Text('isBottom');
                 }
 
@@ -484,6 +484,43 @@ void main() {
       expect(find.text('isScrollingDown'), findsNothing);
       expect(find.text('isScrolling'), findsNothing);
       expect(find.text('hasEnded'), findsNothing);
+      await tester.pump(Duration(milliseconds: 300));
+    },
+  );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      final itemCount = 20.inj();
+      final scroll = RM.injectScrolling(
+        onScrolling: (scroll) {
+          if (scroll.hasReachedMaxExtent) {
+            itemCount.state = itemCount.state + 20;
+          }
+        },
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: On(
+            () => ListView.builder(
+              controller: scroll.controller,
+              itemCount: itemCount.state,
+              itemBuilder: (_, i) {
+                return ListTile(
+                  title: Text('Item $i'),
+                );
+              },
+            ),
+          ).listenTo(itemCount),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(scroll.minScrollExtent, 0);
+      expect(scroll.offset, 0);
+      scroll.state = 1;
+      await tester.pump();
+      expect(scroll.state, 0.3170731707317073);
       await tester.pump(Duration(milliseconds: 300));
     },
   );
