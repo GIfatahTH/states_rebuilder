@@ -3,7 +3,7 @@ part of 'injected_text_editing.dart';
 ///Inject a Form state.
 ///
 ///Used in conjunction with [On.form].
-abstract class InjectedForm implements Injected<String> {
+abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///Validate the text fields and return true if they are all valid
   bool validate();
 
@@ -38,10 +38,10 @@ abstract class InjectedForm implements Injected<String> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends ReactiveModel<String> with InjectedForm {
+class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
-  }) : super(creator: () => '');
+  }) : super(creator: () => null);
   @override
   AutovalidateMode autovalidateMode;
   final List<InjectedTextEditingImp> _textFields = [];
