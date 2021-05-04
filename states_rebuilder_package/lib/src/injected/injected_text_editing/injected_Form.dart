@@ -41,9 +41,13 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
+    this.autoFocusOnFirstError = true,
   }) : super(creator: () => null);
   @override
   AutovalidateMode autovalidateMode;
+
+  ///After form is validate, get focused on the first non valid TextField, if any.
+  final autoFocusOnFirstError;
   final List<InjectedTextEditingImp> _textFields = [];
   VoidCallback addTextFieldToForm(InjectedTextEditingImp field) {
     _textFields.add(field);
@@ -58,8 +62,13 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   @override
   bool validate() {
     bool isNotValid = false;
+    InjectedTextEditingImp? firstErrorField;
     for (var field in _textFields) {
       isNotValid = !field.validate() || isNotValid;
+      firstErrorField ??= isNotValid ? field : null;
+    }
+    if (autoFocusOnFirstError) {
+      firstErrorField?._focusNode?.requestFocus();
     }
     return !isNotValid;
   }
@@ -69,9 +78,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     for (var field in _textFields) {
       field.reset();
     }
-    if (_autoFocusedNode != null) {
-      _autoFocusedNode!.requestFocus();
-    }
+    _autoFocusedNode?.requestFocus();
   }
 
   @override
