@@ -321,6 +321,18 @@ class On<T> {
     return OnForm(builder);
   }
 
+  static OnFormSubmission formSubmission({
+    required Widget Function() onSubmitting,
+    Widget Function(dynamic error, VoidCallback onRefresh)? onSubmissionError,
+    required Widget child,
+  }) {
+    return OnFormSubmission(
+      onSubmitting: onSubmitting,
+      onSubmissionError: onSubmissionError,
+      child: child,
+    );
+  }
+
   ///Listen to [InjectedScrolling]
   static OnScroll<T> scroll<T>(
     T Function(InjectedScrolling scroll) builder,

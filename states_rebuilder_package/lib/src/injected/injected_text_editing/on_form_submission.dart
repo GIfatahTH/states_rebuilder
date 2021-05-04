@@ -1,19 +1,19 @@
 part of 'injected_text_editing.dart';
 
-///Used to listen to [InjectedForm] state.
-///
-///It associates child TextFiled or TextFormField to the [InjectedForm] state.
-class OnForm {
-  final Widget Function() builder;
-  OnForm(this.builder);
-
-  ///Listen to to [InjectedForm] state, and associate the child TextFields to the
-  ///[InjectedForm] state
+class OnFormSubmission {
+  final Widget Function() onSubmitting;
+  final Widget Function(dynamic error, VoidCallback refresh)? onSubmissionError;
+  final Widget child;
+  OnFormSubmission({
+    required this.onSubmitting,
+    required this.onSubmissionError,
+    required this.child,
+  });
   Widget listenTo(
     InjectedForm injected, {
     Key? key,
   }) {
-    return StateBuilderBase<_OnFormWidget<Widget>>(
+    return StateBuilderBase<_OnFormSubmissionWidget<Widget>>(
       (widget, setState) {
         late VoidCallback disposer;
         final inj = injected as InjectedFormImp;
@@ -21,10 +21,12 @@ class OnForm {
           mountedState: (_) {
             disposer = inj.reactiveModelState.listeners.addListener(
               (snap) {
-                if (!snap!.isWaiting) {
-                  setState();
+                if (inj.isWaiting) {
+                  inj.onSubmitting?.call();
+                } else if (inj.hasError) {
+                  inj.onSubmissionError?.call(inj.error, inj.refresh);
                 }
-
+                setState();
                 // assert(() {
                 //   if (debugPrintWhenRebuild != null) {
                 //     print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
@@ -58,33 +60,41 @@ class OnForm {
             }
           },
           builder: (ctx, widget) {
-            // return widget.on.builder();
-            final cached = InjectedFormImp._currentInitializedForm;
-            InjectedFormImp._currentInitializedForm = inj;
-            return Stack(
-              children: [
-                widget.on.builder(),
-                Builder(
-                  builder: (_) {
-                    InjectedFormImp._currentInitializedForm = cached;
-                    return const SizedBox(height: 0, width: 0);
-                  },
-                ),
-              ],
-            );
+            if (inj.isWaiting) {
+              return widget.on.onSubmitting();
+            }
+            if (inj.hasError && widget.on.onSubmissionError != null) {
+              return widget.on.onSubmissionError!(
+                  inj.error, inj.onErrorRefresher);
+            }
+            return widget.on.child;
+            // // return widget.on.builder();
+            // final cached = InjectedFormImp._currentInitializedForm;
+            // InjectedFormImp._currentInitializedForm = inj;
+            // return Stack(
+            //   children: [
+            //     widget.on.builder(),
+            //     Builder(
+            //       builder: (_) {
+            //         InjectedFormImp._currentInitializedForm = cached;
+            //         return const SizedBox(height: 0, width: 0);
+            //       },
+            //     ),
+            //   ],
+            // );
           },
         );
       },
-      widget: _OnFormWidget<Widget>(inject: injected, on: this),
+      widget: _OnFormSubmissionWidget<Widget>(inject: injected, on: this),
       key: key,
     );
   }
 }
 
-class _OnFormWidget<T> {
+class _OnFormSubmissionWidget<T> {
   final InjectedForm inject;
-  final OnForm on;
-  _OnFormWidget({
+  final OnFormSubmission on;
+  _OnFormSubmissionWidget({
     required this.inject,
     required this.on,
   });

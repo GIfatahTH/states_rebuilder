@@ -554,7 +554,8 @@ abstract class RM {
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
     String? Function(String? text)? validator,
-    bool? autoValidate,
+    bool? validateOnTyping,
+    bool validateOnLoseFocus = false,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
     bool autoDispose = true,
   }) {
@@ -563,7 +564,8 @@ abstract class RM {
       selection: selection,
       composing: composing,
       validator: validator,
-      autoValidate: autoValidate,
+      validateOnTyping: validateOnTyping,
+      validateOnLoseFocus: validateOnLoseFocus,
       autoDispose: autoDispose,
       onTextEditing: onTextEditing,
     );
@@ -576,10 +578,14 @@ abstract class RM {
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
+    void Function()? onSubmitting,
+    void Function(dynamic, void Function())? onSubmissionError,
   }) {
     return InjectedFormImp(
       autovalidateMode: autovalidateMode,
       autoFocusOnFirstError: autoFocusOnFirstError,
+      onSubmitting: onSubmitting,
+      onSubmissionError: onSubmissionError,
     );
   }
 

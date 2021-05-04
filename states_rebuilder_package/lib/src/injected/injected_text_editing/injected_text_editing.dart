@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../../rm.dart';
 part 'injected_Form.dart';
 part 'on_form.dart';
+part 'on_form_submission.dart';
 
 ///Inject a TextEditingController
 abstract class InjectedTextEditing implements InjectedBaseState<String> {
@@ -24,27 +25,32 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///Input text validator
   String? Function(String? text)? _validator;
   String? _errorText;
+  String? get errorText => _errorText;
+  set errorText(String? error) {
+    _errorText = error;
+    if (error != null && error.isNotEmpty) {
+      snapState = snapState.copyToHasError(error, data: this.text);
+    } else {
+      snapState = snapState.copyToHasData(this.text);
+    }
+  }
+
+  bool _validateOnFocusChange = false;
 
   ///Whether it passes the validation test
   bool get isValid => hasData;
 
   ///Get Validator to be used with TextFormField
   String? Function(String? text)? get validator {
-    return (_) => _errorText;
+    return (_) => errorText;
   }
 
   ///Validate the input text by invoking its validator.
   bool validate() {
-    _errorText = _validator?.call(this.text);
-
-    if (_errorText != null && _errorText!.isNotEmpty) {
-      snapState = snapState.copyToHasError(_errorText!, data: this.text);
-    } else {
-      snapState = snapState.copyToHasData(this.text);
-    }
+    errorText = _validator?.call(this.text);
     notify();
     (this as InjectedTextEditingImp).form?.notify();
-    return _errorText == null;
+    return errorText == null;
   }
 
   ///Set the field to its initialValue
@@ -69,6 +75,14 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
         }
       });
     });
+
+    if (_validateOnFocusChange) {
+      _focusNode!.addListener(() {
+        if (!_focusNode!.hasFocus) {
+          validate();
+        }
+      });
+    }
     return _focusNode!;
   }
 }
@@ -81,9 +95,10 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
     String? Function(String?)? validator,
-    this.autoValidate,
+    this.validateOnTyping,
     this.autoDispose = true,
     this.onTextEditing,
+    bool validateOnLoseFocus = false,
   })  : _validator = validator,
         initialValue = text,
         _composing = composing,
@@ -93,11 +108,12 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
           autoDisposeWhenNotUsed: autoDispose,
         ) {
     _removeFromInjectedList = addToInjectedModels(this);
+    _validateOnFocusChange = validateOnLoseFocus;
   }
 
   final TextSelection _selection;
   final TextRange _composing;
-  bool? autoValidate;
+  bool? validateOnTyping;
   bool _formIsSet = false;
   final bool autoDispose;
   final void Function(InjectedTextEditing textEditing)? onTextEditing;
@@ -141,14 +157,15 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     _controller!.addListener(() {
       onTextEditing?.call(this);
       if (state == this.text) {
+        //if only selection is changed notify and return
         notify();
         return;
       }
-      if (form != null && autoValidate != true) {
+      if (form != null && validateOnTyping != true) {
         //If form is not null than override the autoValidate of this Injected
-        autoValidate = form!.autovalidateMode != AutovalidateMode.disabled;
+        validateOnTyping = form!.autovalidateMode != AutovalidateMode.disabled;
       }
-      if (autoValidate ?? true) {
+      if (validateOnTyping ?? true) {
         validate();
       }
     });

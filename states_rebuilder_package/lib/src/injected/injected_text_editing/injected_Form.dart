@@ -3,7 +3,7 @@ part of 'injected_text_editing.dart';
 ///Inject a Form state.
 ///
 ///Used in conjunction with [On.form].
-abstract class InjectedForm implements InjectedBaseState<bool?> {
+abstract class InjectedForm implements InjectedBase<bool?> {
   ///Validate the text fields and return true if they are all valid
   bool validate();
 
@@ -38,13 +38,18 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
+class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
+    this.onSubmitting,
+    this.onSubmissionError,
   }) : super(creator: () => null);
   @override
   AutovalidateMode autovalidateMode;
+
+  final void Function()? onSubmitting;
+  final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
 
   ///After form is validate, get focused on the first non valid TextField, if any.
   final autoFocusOnFirstError;
