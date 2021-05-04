@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 ///A lightweight version of InjectedImp
-class ReactiveModel<T> extends Injected<T> {
+class ReactiveModel<T> extends InjectedBase<T> {
   final Function() creator;
   factory ReactiveModel.create(T state) {
     return ReactiveModel(creator: () => state, initialState: state);
@@ -147,64 +147,5 @@ class ReactiveModel<T> extends Injected<T> {
     return onData.call(state);
   }
 
-  @override
-  bool get canRedoState => false;
-
-  @override
-  bool get canUndoState => false;
-
-  @override
-  void clearUndoStack() {}
-
-  @override
-  void deletePersistState() {}
-
-  @override
-  void injectFutureMock(Future<T> Function() fakeCreator) {}
-
-  @override
-  void injectMock(T Function() fakeCreator) {}
-
-  @override
-  void injectStreamMock(Stream<T> Function() fakeCreator) {}
-
-  @override
-  void persistState() {}
-
-  @override
-  void redoState() {}
-
-  @override
-  void undoState() {}
-
-  @override
-  Widget inherited({
-    required Widget Function(BuildContext) builder,
-    Key? key,
-    FutureOr<T> Function()? stateOverride,
-    bool connectWithGlobal = true,
-    String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  reInherited({
-    Key? key,
-    required BuildContext context,
-    required Widget Function(BuildContext) builder,
-    String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
-  }) {
-    throw UnimplementedError();
-  }
-
   int get observerLength => _reactiveModelState.listeners.observerLength;
-}
-
-extension ReactiveModelX<T> on ReactiveModel<T> {
-  void setReactiveModelState(ReactiveModelBase<T> rm) {
-    _reactiveModelState = rm;
-  }
 }

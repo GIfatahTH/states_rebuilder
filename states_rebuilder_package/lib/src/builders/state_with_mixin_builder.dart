@@ -57,7 +57,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   // final List<Injected> models;
 
   ///an observable to which you want [StateWithMixinBuilder] to subscribe.
-  final Injected<R> Function()? observe;
+  final InjectedBaseState<R> Function()? observe;
 
   // ///List of observables to which you want [StateWithMixinBuilder] to subscribe.
   // final List<Injected Function()>? observeMany;
@@ -211,7 +211,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
     Widget? child,
-    Injected<R> Function()? observe,
+    InjectedBaseState<R> Function()? observe,
     void Function(BuildContext context, Injected<R>? rm,
             TickerProviderStateMixin? ticker)?
         initState,
@@ -267,7 +267,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       singleTickerProvider<R>({
     Key? key,
     dynamic tag,
-    Injected<R> Function()? observe,
+    InjectedBaseState<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -328,7 +328,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       automaticKeepAlive<R>({
     Key? key,
     dynamic tag,
-    Injected<R> Function()? observe,
+    InjectedBaseState<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -393,7 +393,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       widgetsBindingObserver<R>({
     Key? key,
     dynamic? tag,
-    Injected<R> Function()? observe,
+    InjectedBaseState<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -469,7 +469,7 @@ and you are supposed to to instantiate your controllers in the initState() and d
 class _State<T, R> extends State<StateWithMixinBuilder<T, R>> {
   T? _mixin;
   Injected<R>? rm;
-  Injected? observe;
+  InjectedBaseState? observe;
   late Widget _widget;
   late bool _isDisposed;
 

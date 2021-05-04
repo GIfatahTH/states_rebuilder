@@ -8,7 +8,7 @@ import '../../rm.dart';
 part 'on_scroll.dart';
 
 ///Injected a ScrollController
-abstract class InjectedScrolling implements Injected<double> {
+abstract class InjectedScrolling implements InjectedBaseState<double> {
   ScrollController? _controller;
 
   ///The created [ScrollController]
@@ -157,9 +157,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
             if (_controller == null) {
               return;
             }
-            setState(
-              (s) => _controller!.offset / _maxScrollExtent!,
-            );
+            _setState();
           }
         });
       } else if (_controller!.offset <= position.minScrollExtent &&
@@ -203,9 +201,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
         _maxScrollExtent = position.maxScrollExtent;
         setFlags();
         onScroll?.call(this);
-        setState(
-          (s) => _controller!.offset / _maxScrollExtent!,
-        );
+        _setState();
       },
     );
 
@@ -219,6 +215,12 @@ class InjectedScrollingImp extends ReactiveModel<double>
     assert(s >= 0 && s <= 1);
     moveTo(position.maxScrollExtent * s);
     // super.state = s;
+  }
+
+  void _setState() {
+    final data = _controller!.offset / _maxScrollExtent!;
+    snapState = snapState.copyToHasData(data);
+    notify();
   }
 
   @override

@@ -73,7 +73,7 @@ extension OnFutureX<F> on OnFuture<F> {
     return StateBuilderBase<OnFutureWidget>(
       (widget, setState) {
         assert(injected != null || future != null);
-        late Injected<F> inj;
+        late InjectedBaseState<F> inj;
         VoidCallback? disposer;
         if (future != null) {
           inj = ReactiveModel(creator: () => future());

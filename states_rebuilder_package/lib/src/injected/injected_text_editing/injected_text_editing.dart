@@ -6,7 +6,7 @@ part 'injected_Form.dart';
 part 'on_form.dart';
 
 ///Inject a TextEditingController
-abstract class InjectedTextEditing implements Injected<String> {
+abstract class InjectedTextEditing implements InjectedBaseState<String> {
   TextEditingControllerImp? _controller;
 
   ///A controller for an editable text field.
@@ -74,7 +74,7 @@ abstract class InjectedTextEditing implements Injected<String> {
 }
 
 /// InjectedTextEditing implementation
-class InjectedTextEditingImp extends ReactiveModel<String>
+class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     with InjectedTextEditing {
   InjectedTextEditingImp({
     String text = '',

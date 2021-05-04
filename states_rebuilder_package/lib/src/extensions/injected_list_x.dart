@@ -2,7 +2,7 @@ part of '../rm.dart';
 
 ///An extension of List<Injected>
 
-extension InjectedListX on List<Injected> {
+extension InjectedListX on List<InjectedBaseState<dynamic>> {
   /// {@macro injected.rebuilder}
   Widget rebuilder(
     Widget Function() builder, {
@@ -80,8 +80,10 @@ extension InjectedListX on List<Injected> {
     Key? key,
     required Widget Function(BuildContext) builder,
   }) {
+    assert(this is List<Injected<dynamic>>);
+    final self = this as List<Injected<dynamic>>;
     final lastWidget =
-        this[length - 1].inherited(builder: (ctx) => builder(ctx));
+        self[length - 1].inherited(builder: (ctx) => builder(ctx));
     if (length == 1) {
       return lastWidget;
     }
@@ -89,7 +91,7 @@ extension InjectedListX on List<Injected> {
     Widget? widget;
     for (var i = length - 2; i >= 0; i--) {
       var temp = widget ?? lastWidget;
-      widget = this[i].inherited(builder: (ctx) => temp);
+      widget = self[i].inherited(builder: (ctx) => temp);
     }
     return widget!;
   }

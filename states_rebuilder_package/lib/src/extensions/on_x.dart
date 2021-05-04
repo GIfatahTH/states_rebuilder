@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 extension OnX on On<Widget> {
-  bool _canRebuild(Injected inj) {
+  bool _canRebuild(InjectedBaseState inj) {
     if (inj.isWaiting) {
       return _hasOnWaiting;
     }
@@ -46,7 +46,7 @@ extension OnX on On<Widget> {
   ///
   ///onSetState, child and onAfterBuild parameters receives a [On] object.
   Widget listenTo<T>(
-    Injected<T> injected, {
+    InjectedBaseState<T> injected, {
     On<void>? onSetState,
     On<void>? onAfterBuild,
     void Function()? initState,
@@ -143,7 +143,7 @@ extension OnX on On<Widget> {
 }
 
 class _OnWidget<T> {
-  final Injected inject;
+  final InjectedBaseState inject;
   final On<T> on;
   _OnWidget({
     required this.inject,

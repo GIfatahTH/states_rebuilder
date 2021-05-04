@@ -17,7 +17,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
   ///onSetState, child and onAfterBuild parameters receives a
   ///[OnCombined] object.
   Widget listenTo<T>(
-    List<Injected<dynamic>> injects, {
+    List<InjectedBaseState<dynamic>> injects, {
     OnCombined<T, void>? onSetState,
     OnCombined<T, void>? onAfterBuild,
     void Function()? initState,
@@ -148,7 +148,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
   }
 
   SnapState<T> _getCombinedSnap<T>(
-      List<Injected> injects, SnapState<T> snapFromType) {
+      List<InjectedBaseState<dynamic>> injects, SnapState<T> snapFromType) {
     SnapState? snapError;
     SnapState? snapIdle;
     for (var e in injects) {
@@ -177,7 +177,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
 }
 
 class _OnCombinedWidget<T> {
-  final List<Injected> injects;
+  final List<InjectedBaseState<dynamic>> injects;
   final OnCombined<dynamic, T> on;
   _OnCombinedWidget({
     required this.injects,

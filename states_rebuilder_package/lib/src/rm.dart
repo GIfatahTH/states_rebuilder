@@ -22,6 +22,8 @@ import 'legacy/injector.dart';
 
 part 'basics/depends_on.dart';
 part 'basics/injected.dart';
+part 'basics/injected_base_state.dart';
+part 'basics/injected_base.dart';
 part 'basics/injected_imp.dart';
 part 'basics/injected_persistance/i_persistStore.dart';
 part 'basics/injected_persistance/injected_persistance.dart';
@@ -568,10 +570,17 @@ abstract class RM {
   }
 
   ///Inject a form.
+  ///
+  ///* **autoFocusOnFirstError** : After the form is validate, get focused on
+  ///the first non valid TextField, if any.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+    bool autoFocusOnFirstError = true,
   }) {
-    return InjectedFormImp(autovalidateMode: autovalidateMode);
+    return InjectedFormImp(
+      autovalidateMode: autovalidateMode,
+      autoFocusOnFirstError: autoFocusOnFirstError,
+    );
   }
 
   ///Inject a ScrollController
@@ -764,8 +773,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   }
 }
 
-final injectedModels = <Injected>{};
-VoidCallback addToInjectedModels(Injected inj) {
+final injectedModels = <InjectedBaseState<dynamic>>{};
+VoidCallback addToInjectedModels(InjectedBaseState<dynamic> inj) {
   injectedModels.add(inj);
   return () {
     injectedModels.remove(inj);

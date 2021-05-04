@@ -5,7 +5,7 @@ import '../../rm.dart';
 part 'on_Animation.dart';
 
 ///Inject an animation
-abstract class InjectedAnimation implements Injected<double> {
+abstract class InjectedAnimation implements InjectedBaseState<double> {
   AnimationController? _controller;
 
   ///Get the `AnimationController` associated with this [InjectedAnimation]
@@ -34,12 +34,11 @@ abstract class InjectedAnimation implements Injected<double> {
   ///Update `On.animation` widgets listening the this animation
   ///
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
-  @override
   Future<double> refresh();
 }
 
 ///InjectedAnimation implementation
-class InjectedAnimationImp extends ReactiveModel<double>
+class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     with InjectedAnimation {
   InjectedAnimationImp({
     this.duration = const Duration(milliseconds: 500),

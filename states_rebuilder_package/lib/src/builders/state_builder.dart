@@ -30,7 +30,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
-  final Injected<T> Function()? observe;
+  final InjectedBaseState<T> Function()? observe;
 
   ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
@@ -43,7 +43,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
-  final List<Injected Function()>? observeMany;
+  final List<InjectedBaseState Function()>? observeMany;
 
   ///A tag or list of tags you want this [StateBuilder] to register with.
   ///
@@ -195,7 +195,7 @@ class StateBuilder<T> extends StatefulWidget {
 class StateBuilderState<T> extends State<StateBuilder<T>> {
   ReactiveModel<T>? rm;
   ReactiveModel<T>? exposedModelFromInitState;
-  Injected<T>? observe;
+  InjectedBaseState<T>? observe;
   late Widget _widget;
 
   @override
@@ -243,7 +243,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
   }
 
   void resolveObservers() {
-    final observeMany = <Injected>[];
+    final observeMany = <InjectedBaseState>[];
 
     if (widget.observe != null) {
       observe = widget.observe!.call();
