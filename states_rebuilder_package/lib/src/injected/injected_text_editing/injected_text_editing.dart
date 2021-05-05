@@ -33,9 +33,10 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
     } else {
       snapState = snapState.copyToHasData(this.text);
     }
+    notify();
   }
 
-  bool _validateOnFocusChange = false;
+  bool? _validateOnLoseFocus;
 
   ///Whether it passes the validation test
   bool get isValid => hasData;
@@ -48,7 +49,6 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///Validate the input text by invoking its validator.
   bool validate() {
     errorText = _validator?.call(this.text);
-    notify();
     (this as InjectedTextEditingImp).form?.notify();
     return errorText == null;
   }
@@ -76,7 +76,7 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
       });
     });
 
-    if (_validateOnFocusChange) {
+    if (_validateOnLoseFocus == true) {
       _focusNode!.addListener(() {
         if (!_focusNode!.hasFocus) {
           validate();
@@ -98,7 +98,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     this.validateOnTyping,
     this.autoDispose = true,
     this.onTextEditing,
-    bool validateOnLoseFocus = false,
+    bool? validateOnLoseFocus,
   })  : _validator = validator,
         initialValue = text,
         _composing = composing,
@@ -108,7 +108,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
           autoDisposeWhenNotUsed: autoDispose,
         ) {
     _removeFromInjectedList = addToInjectedModels(this);
-    _validateOnFocusChange = validateOnLoseFocus;
+    _validateOnLoseFocus = validateOnLoseFocus;
   }
 
   final TextSelection _selection;
@@ -133,6 +133,16 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
               form!.validate();
             },
           );
+        } else {
+          if (_validateOnLoseFocus == null && validateOnTyping != true) {
+            _focusNode!.addListener(
+              () {
+                if (!_focusNode!.hasFocus) {
+                  validate();
+                }
+              },
+            );
+          }
         }
       }
     }
@@ -167,6 +177,9 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       }
       if (validateOnTyping ?? true) {
         validate();
+      } else {
+        snapState = snapState.copyToHasData(this.text);
+        notify();
       }
     });
 

@@ -3,7 +3,7 @@ part of 'injected_text_editing.dart';
 ///Inject a Form state.
 ///
 ///Used in conjunction with [On.form].
-abstract class InjectedForm implements InjectedBase<bool?> {
+abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///Validate the text fields and return true if they are all valid
   bool validate();
 
@@ -14,6 +14,8 @@ abstract class InjectedForm implements InjectedBase<bool?> {
   ///
   /// If any TextField is autoFocused, than it gets focused after reset.
   void reset();
+
+  void submit();
 
   /// Used to enable/disable this form field auto validation and update its
   /// error text.
@@ -38,21 +40,25 @@ abstract class InjectedForm implements InjectedBase<bool?> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
+class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
     this.onSubmitting,
-    this.onSubmissionError,
-  }) : super(creator: () => null);
+    this.onSubmitted,
+    Future<void> Function()? submit,
+  })  : _submit = submit,
+        super(creator: () => null);
   @override
   AutovalidateMode autovalidateMode;
 
   final void Function()? onSubmitting;
-  final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
+  final void Function()? onSubmitted;
+  Future<void> Function()? _submit;
+  // final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
 
   ///After form is validate, get focused on the first non valid TextField, if any.
-  final autoFocusOnFirstError;
+  final bool autoFocusOnFirstError;
   final List<InjectedTextEditingImp> _textFields = [];
   VoidCallback addTextFieldToForm(InjectedTextEditingImp field) {
     _textFields.add(field);
@@ -84,6 +90,32 @@ class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
       field.reset();
     }
     _autoFocusedNode?.requestFocus();
+  }
+
+  @override
+  void submit() async {
+    if (!validate()) {
+      return;
+    }
+    snapState = snapState.copyToIsWaiting();
+    notify();
+    await _submit?.call();
+    snapState = snapState.copyToHasData(null);
+    if (autoFocusOnFirstError) {
+      InjectedTextEditingImp? firstErrorField;
+      for (var field in _textFields) {
+        if (field.hasError) {
+          firstErrorField = field;
+          break;
+        }
+      }
+      if (firstErrorField != null) {
+        firstErrorField._focusNode?.requestFocus();
+      } else {
+        onSubmitted?.call();
+      }
+    }
+    notify();
   }
 
   @override

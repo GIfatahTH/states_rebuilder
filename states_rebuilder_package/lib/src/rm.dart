@@ -555,7 +555,7 @@ abstract class RM {
     TextRange composing = TextRange.empty,
     String? Function(String? text)? validator,
     bool? validateOnTyping,
-    bool validateOnLoseFocus = false,
+    bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
     bool autoDispose = true,
   }) {
@@ -575,17 +575,22 @@ abstract class RM {
   ///
   ///* **autoFocusOnFirstError** : After the form is validate, get focused on
   ///the first non valid TextField, if any.
+  ///* **onSubmitting** : Callback called while waiting for form submission.
+  ///* **onSubmissionError** : Callback called if the form fails to submit.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
     void Function()? onSubmitting,
-    void Function(dynamic, void Function())? onSubmissionError,
+    void Function()? onSubmitted,
+    Future<void> Function()? submit,
+    // void Function(dynamic, void Function())? onSubmissionError,
   }) {
     return InjectedFormImp(
       autovalidateMode: autovalidateMode,
       autoFocusOnFirstError: autoFocusOnFirstError,
       onSubmitting: onSubmitting,
-      onSubmissionError: onSubmissionError,
+      onSubmitted: onSubmitted,
+      submit: submit,
     );
   }
 
