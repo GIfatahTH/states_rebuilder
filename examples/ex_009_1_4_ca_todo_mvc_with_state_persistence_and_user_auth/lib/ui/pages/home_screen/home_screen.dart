@@ -26,13 +26,14 @@ part 'todo_list.dart';
 class HomeScreen extends StatelessWidget {
   static String routeName = '/HomeScreen';
 
-  const HomeScreen({Key key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final _i18n = i18n.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(i18n.of(context).appTitle),
+        title: Text(_i18n.appTitle),
         actions: [
           const FilterButton(),
           const ExtraActionsButton(),
@@ -62,13 +63,15 @@ class HomeScreen extends StatelessWidget {
             () => activeTab.state == AppTab.todos ? TodoList() : StatsCounter(),
           ).listenTo(activeTab);
         },
-      ).listenTo(todosFiltered),
+      ).listenTo(
+        todosFiltered,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           RM.navigate.toNamed(AddEditPage.routeName);
         },
         child: const Icon(Icons.add),
-        tooltip: i18n.of(context).addTodo,
+        tooltip: _i18n.addTodo,
       ),
       bottomNavigationBar: On.data(
         () => BottomNavigationBar(
@@ -79,11 +82,11 @@ class HomeScreen extends StatelessWidget {
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.list),
-              label: i18n.of(context).stats,
+              label: _i18n.stats,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.show_chart),
-              label: i18n.of(context).todos,
+              label: _i18n.todos,
             ),
           ],
         ),

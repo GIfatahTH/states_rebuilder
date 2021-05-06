@@ -35,7 +35,7 @@ void main() async {
     await tester.pumpWidget(App());
     await tester.pumpAndSettle();
     //App start with dart model
-    expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
 
     //tap on the ExtraActionsButton
     await tester.tap(find.byType(ExtraActionsButton));
@@ -45,7 +45,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is light
-    expect(Theme.of(RM.context).brightness == Brightness.light, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
     //
     //Tap to toggle theme to dark mode
     await tester.tap(find.byType(ExtraActionsButton));
@@ -54,14 +54,14 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is dark
-    expect(Theme.of(RM.context).brightness == Brightness.dark, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
   });
 
   testWidgets('Change language should work', (tester) async {
     await tester.pumpWidget(App());
     await tester.pumpAndSettle();
     //App start with english
-    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
+    expect(MaterialLocalizations.of(RM.context!).alertDialogLabel, 'Alert');
 
     await tester.tap(find.byType(Languages));
     await tester.pumpAndSettle();
@@ -71,7 +71,7 @@ void main() async {
     await tester.pumpAndSettle();
 
     //App is in arabic
-    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'تنبيه');
+    expect(MaterialLocalizations.of(RM.context!).alertDialogLabel, 'تنبيه');
     //
     await tester.tap(find.byType(Languages));
     await tester.pumpAndSettle();
@@ -82,7 +82,7 @@ void main() async {
     await tester.pumpAndSettle();
 
     //App is back to system language (english).
-    expect(MaterialLocalizations.of(RM.context).alertDialogLabel, 'Alert');
+    expect(MaterialLocalizations.of(RM.context!).alertDialogLabel, 'Alert');
   });
 }
 

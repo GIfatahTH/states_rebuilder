@@ -5,7 +5,7 @@ final _extraAction = RM.inject(
 );
 
 class ExtraActionsButton extends StatelessWidget {
-  const ExtraActionsButton({Key key}) : super(key: key);
+  const ExtraActionsButton({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +37,11 @@ class ExtraActionsButton extends StatelessWidget {
               PopupMenuItem<ExtraAction>(
                 key: Key('__toggleAll__'),
                 value: ExtraAction.toggleAllComplete,
-                child: Text(todosStats.state.allComplete
-                    ? i18n.of(context).markAllIncomplete
-                    : i18n.of(context).markAllComplete),
+                child: On(
+                  () => Text(todosStats.state.allComplete
+                      ? i18n.of(context).markAllIncomplete
+                      : i18n.of(context).markAllComplete),
+                ).listenTo(todosStats),
               ),
               PopupMenuItem<ExtraAction>(
                 key: Key('__toggleClearCompleted__'),

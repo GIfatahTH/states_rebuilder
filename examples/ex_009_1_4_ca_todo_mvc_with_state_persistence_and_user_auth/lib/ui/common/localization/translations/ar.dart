@@ -1,56 +1,74 @@
 import 'en_us.dart';
 
 class AR extends EN {
-  String appTitle = 'States_rebuilder مثال';
-  String todos = 'واجبات';
+  final String email = 'البريد';
+  final String password = 'كلمة السر';
+  final String confirmPassword = 'تأكيد كلمة السر';
+  final String doNotHaveAnAccount = 'أنا لا امتلك حساب';
+  final String signIn = 'سجل الدخول';
+  final String signUp = 'أنشئ حساب';
 
-  String stats = 'إحصاء';
+  //
+  final String appTitle = 'States_rebuilder مثال';
+  final String todos = 'واجبات';
 
-  String showAll = 'أظهر الكل';
+  final String stats = 'إحصاء';
 
-  String showActive = 'أظهر النشط';
+  final String showAll = 'أظهر الكل';
 
-  String showCompleted = 'أظهر المكتمل';
+  final String showActive = 'أظهر النشط';
 
-  String newTodoHint = 'ماذا يجب أن ينجز؟';
+  final String showCompleted = 'أظهر المكتمل';
 
-  String markAllComplete = 'حدد الكل كمنتهى';
+  final String newTodoHint = 'ماذا يجب أن ينجز؟';
 
-  String markAllIncomplete = 'حدد الحل كغير منتهى';
+  final String markAllComplete = 'حدد الكل كمنتهى';
 
-  String clearCompleted = 'إحذف المنتهى';
+  final String markAllIncomplete = 'حدد الحل كغير منتهى';
 
-  String addTodo = 'أضف واجب';
+  final String clearCompleted = 'إحذف المنتهى';
 
-  String editTodo = 'عدل واجب';
+  final String addTodo = 'أضف واجب';
 
-  String saveChanges = 'إحفظ المتغيرات';
+  final String editTodo = 'عدل واجب';
 
-  String filterTodos = 'رشح الواجبات';
+  final String saveChanges = 'إحفظ المتغيرات';
 
-  String deleteTodo = 'إحذف واجب';
+  final String filterTodos = 'رشح الواجبات';
 
-  String todoDetails = 'تفاصيل الواجب';
+  final String deleteTodo = 'إحذف واجب';
 
-  String emptyTodoError = 'من فضل أكتب شيئ';
+  final String todoDetails = 'تفاصيل الواجب';
 
-  String notesHint = 'واجبات اضافية ...';
+  final String emptyTodoError = 'من فضل أكتب شيئ';
 
-  String completedTodos = 'الواجبات المنتهة';
+  final String notesHint = 'واجبات اضافية ...';
 
-  String activeTodos = 'الواجبات النشطة';
+  final String completedTodos = 'الواجبات المنتهة';
 
-  String todoDeleted(String task) => 'إمسح "$task"';
+  final String activeTodos = 'الواجبات النشطة';
 
-  String undo = 'تراجع';
+  String todoDeleted(final String task) => 'إمسح "$task"';
 
-  String deleteTodoConfirmation = 'إحذف هذا الواجب';
+  final String undo = 'تراجع';
 
-  String delete = 'إمسح';
+  final String deleteTodoConfirmation = 'إحذف هذا الواجب';
 
-  String cancel = 'تراجع';
+  final String delete = 'إمسح';
 
-  String switchToDarkMode = 'انتقل للوضع الداكن';
-  String switchToLightMode = 'إنتقل للوضغ الفاتح';
-  String logout = 'تسجيل الخروج';
+  final String cancel = 'تراجع';
+
+  final String switchToDarkMode = 'انتقل للوضع الداكن';
+  final String switchToLightMode = 'إنتقل للوضغ الفاتح';
+  final String logout = 'تسجيل الخروج';
+  //
+  final String enterValidPassword = 'أدخل كلمة سر مقبولة';
+  final String enterValidEmail = 'أستعمل اسم بريد مقبول';
+  final String invalidEmail = 'اسم البريد غير صالح';
+  final String emailNotFound = 'اسم البريد غير موجود';
+  final String emailExists = 'اسم البريد غير موجود';
+  final String weakPassword = 'كلمة السر لا يجب أن تقل عن 6 وحدات';
+  final String invalidPassword = 'كلمة السر غير صالحة';
+  final String pageNotFound = 'الصفحة غير موجودة';
+  final String networkFailure = 'خلل في الشبكة';
 }

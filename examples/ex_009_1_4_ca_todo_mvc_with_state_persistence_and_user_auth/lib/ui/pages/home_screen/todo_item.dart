@@ -3,17 +3,16 @@ part of 'home_screen.dart';
 ///
 class TodoItem extends StatelessWidget {
   const TodoItem({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final todo = todos.item(context);
+    final todo = todos.item(context)!;
     return On.data(
       () => Dismissible(
         key: Key('__${todo.state.id}__'),
         onDismissed: (direction) {
-          print('onDismistted $Key');
           removeTodo(todo.state);
         },
         child: ListTile(
@@ -63,12 +62,12 @@ class TodoItem extends StatelessWidget {
       SnackBar(
         duration: const Duration(seconds: 2),
         content: Text(
-          i18n.of(RM.context).todoDeleted(todo.task),
+          i18n.of(RM.context!).todoDeleted(todo.task),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         action: SnackBarAction(
-          label: i18n.of(RM.context).undo,
+          label: i18n.of(RM.context!).undo,
           onPressed: () {
             todos.crud.create(todo);
           },

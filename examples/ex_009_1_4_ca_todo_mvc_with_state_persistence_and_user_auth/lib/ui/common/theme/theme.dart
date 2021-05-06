@@ -10,5 +10,5 @@ final isDark = RM.injectTheme(
   },
   themeMode: ThemeMode.dark,
   persistKey: '__themeData__',
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );

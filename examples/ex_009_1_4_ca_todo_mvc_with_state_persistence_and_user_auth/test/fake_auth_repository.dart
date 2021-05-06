@@ -10,13 +10,13 @@ class FakeAuthRepository implements FireBaseAuth {
   Future<void> init() async {}
 
   @override
-  Future<User> signUp(UserParam param) async {
+  Future<User?> signUp(UserParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (exception != null) {
       throw exception;
     }
     return User(
-      userId: 'Id_${param.email}',
+      userId: 'Id_${param!.email}',
       email: param.email,
       token: Token(
         token: 'token_${param.email}',
@@ -28,13 +28,13 @@ class FakeAuthRepository implements FireBaseAuth {
   }
 
   @override
-  Future<User> signIn(UserParam param) async {
+  Future<User> signIn(UserParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     if (exception != null) {
       throw exception;
     }
     return User(
-      userId: 'Id_${param.email}',
+      userId: 'Id_${param!.email}',
       email: param.email,
       token: Token(
         token: 'token_${param.email}',
@@ -46,7 +46,7 @@ class FakeAuthRepository implements FireBaseAuth {
   }
 
   @override
-  Future<void> signOut(UserParam param) async {
+  Future<void> signOut(UserParam? param) async {
     if (exception != null) {
       throw exception;
     }

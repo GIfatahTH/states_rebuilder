@@ -2,8 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -12,90 +10,86 @@ import '../../../domain/entities/todo.dart';
 import '../../common/localization/localization.dart';
 import '../home_screen/home_screen.dart';
 
-class AddEditPage extends StatefulWidget {
+final _task = RM.injectTextEditing(
+  text: 'hhhhhhh',
+  validator: (val) {
+    if (val!.trim().isEmpty) {
+      return i18n.of(RM.context!).emptyTodoError;
+    }
+  },
+);
+final _note = RM.injectTextEditing();
+final _form = RM.injectForm();
+
+class AddEditPage extends StatelessWidget {
   static String routeName = '/addEditPage';
 
   const AddEditPage({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
-  _AddEditPageState createState() => _AddEditPageState();
-}
-
-class _AddEditPageState extends State<AddEditPage> {
-  static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  // Here we use a StatefulWidget to hold local fields _task and _note
-  String _task;
-  String _note;
-  @override
   Widget build(BuildContext context) {
+    final _i18n = i18n.of(context);
     final todo = todos.item(context);
     bool isEditing = todo != null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            isEditing ? i18n.of(context).editTodo : i18n.of(context).addTodo),
+          isEditing ? _i18n.editTodo : _i18n.addTodo,
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: formKey,
-          autovalidate: false,
-          onWillPop: () {
-            return Future(() => true);
-          },
-          child: ListView(
+        child: On.form(
+          () => ListView(
             children: [
-              TextFormField(
+              TextField(
                 key: Key('__TaskField'),
-                initialValue: todo != null ? todo.state.task : '',
+                controller: _task.controller
+                  ..text = todo != null ? todo.state.task : '',
+
                 autofocus: isEditing ? false : true,
                 style: Theme.of(context).textTheme.headline5,
-                decoration:
-                    InputDecoration(hintText: i18n.of(context).newTodoHint),
-                validator: (val) =>
-                    val.trim().isEmpty ? i18n.of(context).emptyTodoError : null,
-                onSaved: (value) => _task = value,
+                decoration: InputDecoration(hintText: _i18n.newTodoHint),
+                // validator: (val) =>
+                //     val!.trim().isEmpty ? _i18n.emptyTodoError : null,
+                // onSaved: (value) => _task = value,
               ),
-              TextFormField(
+              TextField(
                 key: Key('__NoteField'),
-                initialValue: todo != null ? todo.state.note : '',
+                controller: _note.controller
+                  ..text = todo != null ? todo.state.note : '',
                 maxLines: 10,
                 style: Theme.of(context).textTheme.subtitle1,
                 decoration: InputDecoration(
-                  hintText: i18n.of(context).notesHint,
+                  hintText: _i18n.notesHint,
                 ),
-                onSaved: (value) => _note = value,
+                // onSaved: (value) => _note = value,
               )
             ],
           ),
-        ),
+        ).listenTo(_form),
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip:
-            isEditing ? i18n.of(context).saveChanges : i18n.of(context).addTodo,
+        tooltip: isEditing ? _i18n.saveChanges : _i18n.addTodo,
         child: Icon(isEditing ? Icons.check : Icons.add),
-        onPressed: () {
-          final form = formKey.currentState;
-          if (form.validate()) {
-            form.save();
-            if (isEditing) {
-              final newTodo = todo.state.copyWith(
-                task: _task,
-                note: _note,
-              );
-              todo.state = newTodo;
-            } else {
-              todos.crud.create(
-                Todo(_task, note: _note),
-                isOptimistic: false,
-              );
-            }
-            RM.navigate.back();
+        onPressed: () => _form.submit(() async {
+          if (isEditing) {
+            final newTodo = todo.state.copyWith(
+              task: _task.text,
+              note: _note.text,
+            );
+            todo.state = newTodo;
+          } else {
+            todos.crud.create(
+              Todo(_task.text, note: _note.text),
+              isOptimistic: false,
+            );
           }
-        },
+          RM.navigate.back();
+        }),
       ),
     );
   }

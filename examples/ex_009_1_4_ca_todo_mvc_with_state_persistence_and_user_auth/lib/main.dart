@@ -16,7 +16,7 @@ void main() async {
 }
 
 class App extends StatelessWidget {
-  const App({Key key}) : super(key: key);
+  const App({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
@@ -30,10 +30,16 @@ class App extends StatelessWidget {
         ),
       ),
       onError: (error, refresh) {
-        return Text('error');
+        return MaterialApp(
+          theme: ThemeData.dark(),
+          home: Scaffold(
+            body: Text('$error'),
+          ),
+        );
       },
       injectedTheme: isDark,
       injectedI18N: i18n,
+      injectedAuth: user,
       builder: (context) {
         return MaterialApp(
           title: i18n.of(context).appTitle,
@@ -49,11 +55,13 @@ class App extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           home: On.auth(
+            onInitialWaiting: () => Center(child: CircularProgressIndicator()),
             onUnsigned: () => AuthPage(),
             onSigned: () => HomeScreen(),
           ).listenTo(
             user,
             useRouteNavigation: true,
+            // debugPrintWhenRebuild: 'On.auth',
           ),
           navigatorKey: RM.navigate.navigatorKey,
           onGenerateRoute: RM.navigate.onGenerateRoute(

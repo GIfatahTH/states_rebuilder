@@ -2,7 +2,7 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/c
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/persistance_exception.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/fetch_todos_exception.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/detail_screen/detail_screen.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
@@ -68,7 +68,7 @@ void main() async {
     // await tester.pump(Duration(seconds: 1));
 
     final storedTodos =
-        todos.getRepoAs<FakeTodosRepository>().todos['__Todos__/user1'].first;
+        todos.getRepoAs<FakeTodosRepository>().todos['__Todos__/user1']!.first;
     expect(storedTodos.task, 'Task1');
     expect(storedTodos.note, 'Note1');
   });
@@ -79,9 +79,9 @@ void main() async {
     expect(find.byType(TodoItem), findsNWidgets(3));
 
     final repo = todos.getRepoAs<FakeTodosRepository>();
-    expect(repo.todos['__Todos__/user2'].length, 3);
-    expect(repo.todos['__Todos__/user2'][1].task, 'Task2');
-    expect(repo.todos['__Todos__/user2'][1].note, 'Note2');
+    expect(repo.todos['__Todos__/user2']!.length, 3);
+    expect(repo.todos['__Todos__/user2']![1].task, 'Task2');
+    expect(repo.todos['__Todos__/user2']![1].note, 'Note2');
 
     //Dismiss the second todo
     await tester.drag(find.text('Note2'), Offset(-1000, 0));
@@ -91,9 +91,9 @@ void main() async {
     expect(find.text('Note2'), findsNothing);
     expect(find.byType(TodoItem), findsNWidgets(2));
     //The new state is persisted
-    expect(repo.todos['__Todos__/user2'].length, 2);
-    expect(repo.todos['__Todos__/user2'][1].task, 'Task3');
-    expect(repo.todos['__Todos__/user2'][1].note, 'Note3');
+    expect(repo.todos['__Todos__/user2']!.length, 2);
+    expect(repo.todos['__Todos__/user2']![1].task, 'Task3');
+    expect(repo.todos['__Todos__/user2']![1].note, 'Note3');
 
     //A SnackBar is displayed with undo button
     expect(find.byType(SnackBar), findsOneWidget);
@@ -103,9 +103,9 @@ void main() async {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle(Duration(seconds: 1));
     expect(find.byType(TodoItem), findsNWidgets(3));
-    expect(repo.todos['__Todos__/user2'].length, 3);
-    expect(repo.todos['__Todos__/user2'][2].task, 'Task2');
-    expect(repo.todos['__Todos__/user2'][2].note, 'Note2');
+    expect(repo.todos['__Todos__/user2']!.length, 3);
+    expect(repo.todos['__Todos__/user2']![2].task, 'Task2');
+    expect(repo.todos['__Todos__/user2']![2].note, 'Note2');
   });
 
   testWidgets(
@@ -120,7 +120,7 @@ void main() async {
       //Set the mocked store to throw PersistanceException after one seconds,
       //when writing to the store
       final repo = todos.getRepoAs<FakeTodosRepository>();
-      repo.error = PersistanceException('mock message');
+      repo.error = CRUDTodosException.netWorkFailure();
       storage.timeToThrow = 1000;
       //Dismiss the second todo
       await tester.drag(find.text('Note2'), Offset(-1000, 0));
@@ -190,10 +190,10 @@ void main() async {
       expect(unCheckedCheckBox, findsNWidgets(2));
 
       final repo = todos.getRepoAs<FakeTodosRepository>();
-      expect(repo.todos['__Todos__/user2'][0].task, 'Task1');
-      expect(repo.todos['__Todos__/user2'][0].complete, true);
+      expect(repo.todos['__Todos__/user2']![0].task, 'Task1');
+      expect(repo.todos['__Todos__/user2']![0].complete, true);
       await tester.pump(Duration(seconds: 1));
-      expect(repo.todos['__Todos__/user2'][0].complete, false);
+      expect(repo.todos['__Todos__/user2']![0].complete, false);
     },
   );
 

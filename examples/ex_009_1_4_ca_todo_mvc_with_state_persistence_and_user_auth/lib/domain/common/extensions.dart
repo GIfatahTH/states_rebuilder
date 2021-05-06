@@ -1,9 +1,9 @@
 extension DateTimeX on DateTime {
-  static DateTime customNow;
-  static int customFromMillisecondsSinceEpoch;
+  static DateTime? customNow;
+  static int? customFromMillisecondsSinceEpoch;
   static DateTime get current {
     if (customNow != null) {
-      return customNow;
+      return customNow!;
     }
     return DateTime.now();
   }

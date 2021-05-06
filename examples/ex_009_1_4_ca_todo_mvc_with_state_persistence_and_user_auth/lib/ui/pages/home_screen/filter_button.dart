@@ -5,17 +5,17 @@
 part of 'home_screen.dart';
 
 class FilterButton extends StatelessWidget {
-  const FilterButton({Key key}) : super(key: key);
+  const FilterButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final defaultStyle = Theme.of(context).textTheme.bodyText2;
     final activeStyle = Theme.of(context)
         .textTheme
-        .bodyText2
+        .bodyText2!
         .copyWith(color: Theme.of(context).accentColor);
     final button = _Button(
       activeStyle: activeStyle,
-      defaultStyle: defaultStyle,
+      defaultStyle: defaultStyle!,
     );
 
     return On.data(
@@ -33,9 +33,9 @@ class FilterButton extends StatelessWidget {
 
 class _Button extends StatelessWidget {
   const _Button({
-    Key key,
-    @required this.activeStyle,
-    @required this.defaultStyle,
+    Key? key,
+    required this.activeStyle,
+    required this.defaultStyle,
   }) : super(key: key);
 
   final TextStyle activeStyle;
