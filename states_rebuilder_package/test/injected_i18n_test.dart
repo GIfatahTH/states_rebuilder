@@ -21,7 +21,7 @@ final i18nStored = RM.injectI18N(
 );
 
 void main() async {
-  Map<String, String> store = (await RM.storageInitializerMock()).store!;
+  Map<String, String> store = (await RM.storageInitializerMock()).store;
   setUp(() {
     store.clear();
   });
@@ -50,7 +50,7 @@ void main() async {
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
-              return Text(i18n.of(ctx)!);
+              return Text(i18n.of(ctx));
             },
           ),
         );
@@ -88,7 +88,7 @@ void main() async {
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
-              return Text(i18n.of(ctx)!);
+              return Text(i18n.of(ctx));
             },
           ),
         );
@@ -124,7 +124,7 @@ void main() async {
           ],
           home: Builder(
             builder: (ctx) {
-              return Text(i18n.of(ctx)!);
+              return Text(i18n.of(ctx));
             },
           ),
         );
@@ -225,7 +225,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18n.of(context)!);
+              return Text(i18n.of(context));
             },
           ),
         );
@@ -287,7 +287,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context)!);
+              return Text(i18nStored.of(context));
             },
           ),
         );
@@ -331,7 +331,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context)!);
+              return Text(i18nStored.of(context));
             },
           ),
         );
@@ -373,7 +373,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context)!);
+              return Text(i18nStored.of(context));
             },
           ),
         );
@@ -416,7 +416,7 @@ void main() async {
     final widget = TopAppWidget(
       waiteFor: () => [
         () async {
-          store = (await RM.storageInitializerMock()).store!;
+          store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': '#|#'});
         }()
       ],
@@ -435,7 +435,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context)!);
+              return Text(i18nStored.of(context));
             },
           ),
         );
@@ -481,7 +481,7 @@ void main() async {
     final widget = TopAppWidget(
       waiteFor: () => [
         () async {
-          store = (await RM.storageInitializerMock()).store!;
+          store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': 'es#|#script#|#ES'});
         }()
       ],
@@ -500,7 +500,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context)!);
+              return Text(i18nStored.of(context));
             },
           ),
         );
@@ -574,7 +574,7 @@ class _App extends StatelessWidget {
   const _App();
   @override
   Widget build(BuildContext context) {
-    final _i18n = i18n.of(context)!;
+    final _i18n = i18n.of(context);
     return Text(_i18n);
   }
 }

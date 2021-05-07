@@ -21,7 +21,7 @@ void main() {
     await tester.pumpWidget(widget);
     expect(counter1.call(context1), counter1);
     expect(counter1.call(context2), counter1);
-    expect(counter2.call(context1), null);
+    expect(() => counter2.call(context1), throwsException);
     expect(counter2.call(context1, defaultToGlobal: true), counter2);
     expect(counter2.call(context2), counter2);
   });
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(widget);
     expect(counter1.of(context1), counter1.state);
     expect(counter1.of(context2), counter1.state);
-    expect(counter2.of(context1), null);
+    expect(() => counter2.call(context1), throwsException);
     expect(counter2.of(context1, defaultToGlobal: true), counter2.state);
     expect(counter2.of(context2), counter2.state);
   });
@@ -61,7 +61,7 @@ void main() {
     );
 
     await tester.pumpWidget(widget);
-    final inherited1 = counter1(context1)!;
+    final inherited1 = counter1(context1);
 
     inherited1.state++;
     expect(counter1.state, 11);
@@ -96,7 +96,7 @@ void main() {
     );
 
     await tester.pumpWidget(widget);
-    final inherited1 = counter1(context1)!;
+    final inherited1 = counter1(context1);
     expect(inherited1.isWaiting, true);
     expect(counter1.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
@@ -127,12 +127,12 @@ void main() {
     await tester.pumpWidget(widget);
     //
     final inherited1 = counter1(context1);
-    expect(inherited1?.hasError, true);
+    expect(inherited1.hasError, true);
     expect(counter1.hasError, true);
 
     counter1.refresh();
     await tester.pump();
-    expect(inherited1?.hasError, true);
+    expect(inherited1.hasError, true);
     expect(counter1.hasError, true);
   });
 }

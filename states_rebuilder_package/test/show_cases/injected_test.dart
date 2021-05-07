@@ -495,7 +495,7 @@ void main() {
         stateOverride: () => 0,
         builder: (context) {
           context = context;
-          inheritedCounter1 = counter(context)!;
+          inheritedCounter1 = counter(context);
           inheritedCounter2 = counter.of(context);
           return On(() => Container()).listenTo(inheritedCounter1);
         },
@@ -518,7 +518,7 @@ void main() {
     final widget2 = inheritedCounter1.reInherited(
       context: RM.context!,
       builder: (context) {
-        reInheritedCounter1 = counter(context)!;
+        reInheritedCounter1 = counter(context);
         reInheritedCounter2 = counter.of(context);
         return Container();
       },

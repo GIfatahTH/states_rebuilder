@@ -168,7 +168,7 @@ class NewPage extends StatelessWidget {
       () => ElevatedButton(
         key: Key('RaisedButton2: ${product.state.id}'),
         child:
-            Text('${products.item.of(context)!.name}: ${product.state.count}'),
+            Text('${products.item.of(context).name}: ${product.state.count}'),
         onPressed: () {
           product.state = product.state.copyWith(
             count: product.state.count + 1,

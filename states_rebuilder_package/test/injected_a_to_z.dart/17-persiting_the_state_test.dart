@@ -60,7 +60,7 @@ class App extends StatelessWidget {
 void main() async {
   //Inject a mocked implementation of ILocalStorage
   //it return a store of type Mao
-  final store = (await RM.storageInitializerMock()).store!;
+  final store = (await RM.storageInitializerMock()).store;
   setUp(() {
     store.clear();
   });

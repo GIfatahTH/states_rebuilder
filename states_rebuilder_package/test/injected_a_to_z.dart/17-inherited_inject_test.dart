@@ -89,7 +89,7 @@ class _App extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   const CounterItem();
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context)!;
+    final counter = injectedCounter(context);
     return Row(
       children: [
         On.data(
@@ -128,7 +128,7 @@ class CounterItemDetailed extends StatelessWidget {
   const CounterItemDetailed();
   @override
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context)!;
+    final counter = injectedCounter(context);
     return Text('Detailed of ${counter.state.id}: ${counter.state.value}');
   }
 }

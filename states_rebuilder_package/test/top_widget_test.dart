@@ -27,7 +27,7 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)!),
+          child: Text(i18n.of(ctx)),
         );
       },
     );
@@ -51,7 +51,7 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)!),
+          child: Text(i18n.of(ctx)),
         );
       },
     );
@@ -72,7 +72,7 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)!),
+          child: Text(i18n.of(ctx)),
         );
       },
     );
@@ -124,7 +124,7 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)!),
+          child: Text(i18n.of(ctx)),
         );
       },
     );
@@ -153,7 +153,7 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)!),
+          child: Text(i18n.of(ctx)),
         );
       },
     );

@@ -37,7 +37,7 @@ void main() async {
     counter.dispose();
   });
   testWidgets('Persist before calling', (tester) async {
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, 10);
     counter.state = counter.state! + 1;
     expect(store.store, {'counter': '11'});
@@ -48,7 +48,7 @@ void main() async {
   testWidgets('persist with async read', (tester) async {
     store.isAsyncRead = true;
     store.timeToWait = 1000;
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, null);
     await tester.pump();
     expect(counter.state, null);
@@ -62,7 +62,7 @@ void main() async {
     //
     await tester.pump(Duration(seconds: 1));
 
-    store.store?['counter'] = '20';
+    store.store['counter'] = '20';
     counter.refresh();
     await tester.pump();
     expect(counter.state, 0);
@@ -74,13 +74,13 @@ void main() async {
     store.isAsyncRead = true;
     store.timeToThrow = 1000;
     store.exception = Exception('Read error');
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, null);
     await tester.pump();
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.hasError, true);
-    store.store?['counter'] = '10';
+    store.store['counter'] = '10';
   });
 
   testWidgets('persist with async fromJson', (tester) async {
@@ -98,7 +98,7 @@ void main() async {
       // onDisposed: (_) => print('onDisposed'),
     );
 
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -125,7 +125,7 @@ void main() async {
     );
 
     store.isAsyncRead = true;
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -136,7 +136,7 @@ void main() async {
   });
 
   testWidgets('Persist before calling  (check run all test) ', (tester) async {
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     counter = RM.inject(
       () => 0,
       persist: () => PersistState(
@@ -164,7 +164,7 @@ void main() async {
       initialState: 0,
     );
     store.isAsyncRead = true;
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, 0);
     await tester.pump();
     expect(counter.state, 10);
@@ -189,7 +189,7 @@ void main() async {
     );
 
     store.isAsyncRead = true;
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -206,7 +206,7 @@ void main() async {
         persistStateProvider: PersistStoreMockImp(),
       ),
     );
-    store.store?.addAll({'Future_counter': '10'});
+    store.store.addAll({'Future_counter': '10'});
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -274,7 +274,7 @@ void main() async {
       () => 0,
       persist: () => PersistState(key: 'counter'),
     );
-    store.store?.addAll({'counter': '10'});
+    store.store.addAll({'counter': '10'});
     expect(counter.state, 10);
     counter.state = counter.state! + 1;
     expect(store.store, {'counter': '11'});
@@ -284,7 +284,7 @@ void main() async {
       () => 0.0,
       persist: () => PersistState(key: 'counter'),
     );
-    store.store?.addAll({'counter': '10.0'});
+    store.store.addAll({'counter': '10.0'});
     expect(counter.state, 10.0);
     counter.state = counter.state + 1;
     expect(store.store, {'counter': '11.0'});
@@ -294,7 +294,7 @@ void main() async {
       () => 'str0',
       persist: () => PersistState(key: 'counter'),
     );
-    store.store?.addAll({'counter': 'str1'});
+    store.store.addAll({'counter': 'str1'});
     expect(counter.state, 'str1');
     counter.state = 'str2';
     expect(store.store, {'counter': 'str2'});
@@ -304,7 +304,7 @@ void main() async {
       () => false,
       persist: () => PersistState(key: 'counter'),
     );
-    store.store?.addAll({'counter': '1'});
+    store.store.addAll({'counter': '1'});
     expect(counter.state, true);
     counter.toggle();
     await tester.pump();
@@ -348,14 +348,14 @@ void main() async {
       ),
     );
     expect(counter.state, 0);
-    expect(store.store!['counter'], null);
+    expect(store.store['counter'], null);
 
     //first increment
     counter.state = counter.state + 1;
     //after the first second
     await tester.pump(Duration(seconds: 1));
     //the state is not persisted
-    expect(store.store!['counter'], null);
+    expect(store.store['counter'], null);
 
     //the state is mutated and displayed
     expect(counter.state, 1);
@@ -365,14 +365,14 @@ void main() async {
     //after the another second
     await tester.pump(Duration(seconds: 1));
     //the state is not persisted
-    expect(store.store!['counter'], null);
+    expect(store.store['counter'], null);
     //the state is mutated and displayed
     expect(counter.state, 2);
     //
     counter.state = counter.state + 1;
     await tester.pump(Duration(seconds: 1));
     //After three seconds as in the throttleDelay the state is persisted
-    expect(store.store!['counter'], '3');
+    expect(store.store['counter'], '3');
     expect(counter.state, 3);
     expect(StatesRebuilerLogger.message,
         '[states_rebuilder]: PersistState: write(counter, 3)');
@@ -390,7 +390,7 @@ void main() async {
     counter.state = counter.state + 1;
     //after the first second
     await tester.pump(Duration(seconds: 1));
-    expect(store.store!['counter'], '1');
+    expect(store.store['counter'], '1');
     RM.deleteAllPersistState();
     await tester.pump();
   });
@@ -406,19 +406,19 @@ void main() async {
     store.timeToWait = 1000;
     counter.state = counter.state + 1;
     await tester.pump(Duration(seconds: 1));
-    expect(store.store!['counter'], '1');
+    expect(store.store['counter'], '1');
     //
     counter.deletePersistState();
     await tester.pump(Duration(seconds: 1));
-    expect(store.store!['counter'], null);
+    expect(store.store['counter'], null);
     //
     counter.state = counter.state + 1;
     await tester.pump(Duration(seconds: 1));
-    expect(store.store!['counter'], '2');
+    expect(store.store['counter'], '2');
     //
     RM.deleteAllPersistState();
     await tester.pump(Duration(seconds: 1));
-    expect(store.store!['counter'], null);
+    expect(store.store['counter'], null);
   });
 }
 

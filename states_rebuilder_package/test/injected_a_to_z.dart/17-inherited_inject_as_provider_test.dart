@@ -36,7 +36,7 @@ class _MyHomePage extends StatelessWidget {
           children: [
             Text('counter1: ${counter1.of(context)}'),
             Text('counter2: ${counter2.of(context)}'),
-            if (counter3(context)?.isWaiting == false)
+            if (counter3(context).isWaiting == false)
               Text('counter3: ${counter3.of(context)}')
             else
               CircularProgressIndicator(),

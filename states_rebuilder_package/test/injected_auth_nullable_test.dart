@@ -228,12 +228,12 @@ void main() async {
       expect(find.text('AuthPage: Waiting...'), findsOneWidget);
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(find.text('HomePage: user1'), findsOneWidget);
-      expect(store.store!['__user__'], 'user1');
+      expect(store.store['__user__'], 'user1');
       persistedUser.auth.signOut();
       await tester.pumpAndSettle();
       expect(find.text('AuthPage'), findsOneWidget);
       await tester.pump(Duration(seconds: 1));
-      expect(store.store!['__user__'], null);
+      expect(store.store['__user__'], null);
     },
   );
 
@@ -584,7 +584,7 @@ void main() async {
     'THEN The transition between onSignedIn and onSignedOut is done using navigation'
     'AND onSignedIn is rendered first ',
     (tester) async {
-      store.store?.addAll({'__user__': 'user1'});
+      store.store.addAll({'__user__': 'user1'});
       final InjectedAuth<String?, String> user = RM.injectAuth(
         () => FakeAuthRepo(),
         persist: () => PersistState(
