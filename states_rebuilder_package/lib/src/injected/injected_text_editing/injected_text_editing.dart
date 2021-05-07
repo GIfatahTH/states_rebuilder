@@ -24,10 +24,13 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
 
   ///Input text validator
   String? Function(String? text)? _validator;
-  String? _errorText;
-  String? get errorText => _errorText;
-  set errorText(String? error) {
-    _errorText = error;
+
+  ///Get the error text (as String)
+  @override
+  dynamic get error;
+  // String? get errorText => _errorText;
+  set error(dynamic error) {
+    assert(error is String?);
     if (error != null && error.isNotEmpty) {
       snapState = snapState.copyToHasError(error, data: this.text);
     } else {
@@ -43,14 +46,14 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
 
   ///Get Validator to be used with TextFormField
   String? Function(String? text)? get validator {
-    return (_) => errorText;
+    return (_) => error;
   }
 
   ///Validate the input text by invoking its validator.
   bool validate() {
-    errorText = _validator?.call(this.text);
+    error = _validator?.call(this.text);
     (this as InjectedTextEditingImp).form?.notify();
-    return errorText == null;
+    return error == null;
   }
 
   ///Set the field to its initialValue
@@ -77,13 +80,24 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
     });
 
     if (_validateOnLoseFocus == true) {
-      _focusNode!.addListener(() {
-        if (!_focusNode!.hasFocus) {
-          validate();
-        }
-      });
+      _listenToFocusNode();
     }
     return _focusNode!;
+  }
+
+  void _listenToFocusNode() {
+    var fn;
+    fn = () {
+      if (!_focusNode!.hasFocus) {
+        if (!validate()) {
+          //After the first lose of focus and if field is not valid,
+          // turn validateOnTyping to true and remove listener
+          (this as InjectedTextEditingImp).validateOnTyping = true;
+          _focusNode!.removeListener(fn);
+        }
+      }
+    };
+    _focusNode!.addListener(fn);
   }
 }
 
@@ -101,6 +115,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     bool? validateOnLoseFocus,
   })  : _validator = validator,
         initialValue = text,
+        _initialValidateOnTyping = validateOnTyping,
         _composing = composing,
         _selection = selection,
         super(
@@ -108,11 +123,13 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
           autoDisposeWhenNotUsed: autoDispose,
         ) {
     _removeFromInjectedList = addToInjectedModels(this);
+
     _validateOnLoseFocus = validateOnLoseFocus;
   }
 
   final TextSelection _selection;
   final TextRange _composing;
+  final bool? _initialValidateOnTyping;
   bool? validateOnTyping;
   bool _formIsSet = false;
   final bool autoDispose;
@@ -135,13 +152,12 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
           );
         } else {
           if (_validateOnLoseFocus == null && validateOnTyping != true) {
-            _focusNode!.addListener(
-              () {
-                if (!_focusNode!.hasFocus) {
-                  validate();
-                }
-              },
-            );
+            //If the TextField is inside a On.form, set _validateOnLoseFocus to
+            //true if it is not
+            _validateOnLoseFocus = true;
+            if (_focusNode != null) {
+              _listenToFocusNode();
+            }
           }
         }
       }
@@ -219,6 +235,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     _focusNode = null;
     _formIsSet = false;
     form = null;
+    validateOnTyping = _initialValidateOnTyping;
     formTextFieldDisposer?.call();
   }
 }

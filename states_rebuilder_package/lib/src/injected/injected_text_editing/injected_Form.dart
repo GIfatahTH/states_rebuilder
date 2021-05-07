@@ -15,7 +15,7 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   /// If any TextField is autoFocused, than it gets focused after reset.
   void reset();
 
-  void submit();
+  void submit([Future<void> Function()? fn]);
 
   /// Used to enable/disable this form field auto validation and update its
   /// error text.
@@ -93,13 +93,13 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   }
 
   @override
-  void submit() async {
+  void submit([Future<void> Function()? fn]) async {
     if (!validate()) {
       return;
     }
     snapState = snapState.copyToIsWaiting();
     notify();
-    await _submit?.call();
+    await (fn == null ? _submit?.call() : fn());
     snapState = snapState.copyToHasData(null);
     if (autoFocusOnFirstError) {
       InjectedTextEditingImp? firstErrorField;

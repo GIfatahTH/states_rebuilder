@@ -545,8 +545,11 @@ abstract class RM {
   ///* **composing** is initial the range of text.
   ///* **validator** used for input validation, If it returns null means input
   ///is valid, else the return string is the error message.
-  ///* **autoValidate** if set to true the input text is validated while typing.
+  ///* **validateOnTyping** if set to true the input text is validated while typing.
   ///Default value is true.
+  ///* **validateOnLoseFocus** if set to true the input text is validated just
+  ///after the field lose focus.
+  ///* **onTextEditing** fired whenever the input text or selection changes
   ///* **autoDispose** if set to true the InjectedTextEditing is disposed of when
   ///no longer used.
   static InjectedTextEditing injectTextEditing({
@@ -575,8 +578,10 @@ abstract class RM {
   ///
   ///* **autoFocusOnFirstError** : After the form is validate, get focused on
   ///the first non valid TextField, if any.
+  ///* **submit** : Contains the user submission logic. Called when invoking
+  ///[InjectedForm.submit] method.
   ///* **onSubmitting** : Callback called while waiting for form submission.
-  ///* **onSubmissionError** : Callback called if the form fails to submit.
+  ///* **onSubmitted** : Callback called if the form successfully submitted.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
@@ -787,8 +792,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 final injectedModels = <InjectedBaseState<dynamic>>{};
 VoidCallback addToInjectedModels(InjectedBaseState<dynamic> inj) {
   injectedModels.add(inj);
+  print('add: length: ${injectedModels.length}');
   return () {
+    print('dispose1: length: ${injectedModels.length}');
     injectedModels.remove(inj);
+    print('dispose2: length: ${injectedModels.length}');
   };
 }
 
@@ -796,9 +804,9 @@ final List<BuildContext> _contextSet = [];
 
 VoidCallback addToContextSet(BuildContext ctx) {
   _contextSet.add(ctx);
-  // print('contextSet length is ${_contextSet.length}');
+  print('contextSet length is ${_contextSet.length}');
   return () {
     _contextSet.remove(ctx);
-    // print('contextSet dispose length is ${_contextSet.length}');
+    print('contextSet dispose length is ${_contextSet.length}');
   };
 }
