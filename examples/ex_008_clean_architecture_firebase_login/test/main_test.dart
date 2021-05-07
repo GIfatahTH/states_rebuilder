@@ -27,7 +27,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
 
       //After another one second of wait
@@ -36,7 +36,7 @@ void main() {
       await tester.pumpAndSettle(Duration(seconds: 1));
       //SignInPage should be displayed because user is null
       expect(find.byType(SignInPage), findsOneWidget);
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
     },
   );
@@ -63,7 +63,7 @@ void main() {
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
 
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
 
       //After another one second of wait

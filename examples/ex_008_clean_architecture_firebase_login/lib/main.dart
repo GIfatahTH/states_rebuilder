@@ -1,8 +1,8 @@
-import 'package:clean_architecture_firebase_login/ui/pages/home_page/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'injected.dart';
+import 'ui/pages/home_page/home_page.dart';
 import 'ui/pages/sign_in_page/sign_in_page.dart';
 import 'ui/widgets/splash_screen.dart';
 

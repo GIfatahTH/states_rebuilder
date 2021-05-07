@@ -1,11 +1,11 @@
 class User {
   final String uid;
-  final String email;
-  final String displayName;
-  final String photoUrl;
+  final String? email;
+  final String? displayName;
+  final String? photoUrl;
 
   User({
-    this.uid,
+    required this.uid,
     this.email,
     this.displayName,
     this.photoUrl,
@@ -36,13 +36,11 @@ class User {
   }
 }
 
-class UnLoggedUser extends User {}
-
 class UserParam {
-  final String email;
-  final String password;
-  final SignIn signIn;
-  final SignUp signUp;
+  final String? email;
+  final String? password;
+  final SignIn? signIn;
+  final SignUp? signUp;
   UserParam({
     this.email,
     this.password,

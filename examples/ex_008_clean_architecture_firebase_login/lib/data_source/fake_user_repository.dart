@@ -1,25 +1,21 @@
-import 'package:states_rebuilder/states_rebuilder.dart';
-
 import '../domain/entities/user.dart';
 import 'user_repository.dart';
 
 class FakeUserRepository implements UserRepository {
-  final dynamic error;
-  User fakeUser;
-  FakeUserRepository({this.error});
+  final dynamic exception;
+  User? fakeUser;
+  FakeUserRepository({this.exception});
 
   @override
-  Future<IAuth<User, UserParam>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 
   @override
-  Future<User> signUp(UserParam param) async {
-    switch (param.signUp) {
+  Future<User> signUp(UserParam? param) async {
+    switch (param!.signUp) {
       case SignUp.withEmailAndPassword:
         await Future.delayed(Duration(seconds: 1));
-        if (error != null) {
-          throw error;
+        if (exception != null) {
+          throw exception;
         }
         return User(uid: '1', email: param.email);
       default:
@@ -28,20 +24,20 @@ class FakeUserRepository implements UserRepository {
   }
 
   @override
-  Future<User> signIn(UserParam param) async {
-    switch (param.signIn) {
+  Future<User> signIn(UserParam? param) async {
+    switch (param!.signIn) {
       case SignIn.withEmailAndPassword:
         await Future.delayed(Duration(seconds: 1));
-        if (error != null) {
-          throw error;
+        if (exception != null) {
+          throw exception;
         }
         return User(uid: '1', email: param.email);
       case SignIn.anonymously:
       case SignIn.withApple:
       case SignIn.withGoogle:
         await Future.delayed(Duration(seconds: 1));
-        if (error != null) {
-          throw error;
+        if (exception != null) {
+          throw exception;
         }
         return _user;
       default:
@@ -50,7 +46,7 @@ class FakeUserRepository implements UserRepository {
   }
 
   @override
-  Future<void> signOut(UserParam param) async {
+  Future<void> signOut(UserParam? param) async {
     await Future.delayed(Duration(seconds: 1));
     return null;
   }
@@ -66,8 +62,8 @@ class FakeUserRepository implements UserRepository {
   );
   //
   @override
-  Future<User> currentUser() async {
+  Future<User?> currentUser() async {
     await Future.delayed(Duration(seconds: 2));
-    return fakeUser ?? UnLoggedUser();
+    return fakeUser;
   }
 }
