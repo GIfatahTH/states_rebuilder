@@ -61,12 +61,13 @@ extension OnX on On<Widget> {
       (widget, setState) {
         late VoidCallback disposer;
         var previousWatch = watch?.call();
-        if (injected is InjectedImp) {
-          (injected as InjectedImp).initialize();
+        final inj = injected;
+        if (inj is InjectedImp<T>) {
+          inj.initialize();
         }
         return LifeCycleHooks(
           mountedState: (_) {
-            disposer = injected._reactiveModelState.listeners.addListener(
+            disposer = inj._reactiveModelState.listeners.addListener(
               (snap) {
                 if (shouldRebuild != null &&
                     !shouldRebuild(injected.snapState)) {
@@ -94,22 +95,22 @@ extension OnX on On<Widget> {
                   return true;
                 }());
               },
-              clean: injected is InjectedImp &&
-                      !(injected as InjectedImp).autoDisposeWhenNotUsed
+              clean: inj is InjectedImp &&
+                      !(inj as InjectedImp).autoDisposeWhenNotUsed
                   ? null
-                  : () => injected.dispose(),
+                  : () => inj.dispose(),
             );
             assert(() {
               if (debugPrintWhenRebuild != null) {
                 print('INITIAL BUILD <' +
                     debugPrintWhenRebuild +
-                    '>: ${injected.snapState}');
+                    '>: ${inj.snapState}');
               }
               return true;
             }());
             initState?.call();
             WidgetsBinding.instance!.addPostFrameCallback((_) {
-              onAfterBuild?.call(injected.snapState);
+              onAfterBuild?.call(inj.snapState);
             });
           },
           dispose: (_) {

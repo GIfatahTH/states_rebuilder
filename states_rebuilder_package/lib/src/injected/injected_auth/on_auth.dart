@@ -32,18 +32,17 @@ class OnAuth<T> {
     Key? key,
     String? debugPrintWhenRebuild,
   }) {
-    T getWidget() => injected.isSigned ? _onSigned() : _onUnsigned();
+    final inj = injected as InjectedAuthImp;
+    inj.initialize();
+    T getWidget() => inj.isSigned ? _onSigned() : _onUnsigned();
 
     bool isNavigated = false;
     return StateBuilderBase<_OnAuthWidget<T>>(
-      (_, setState) {
+      (widget, setState) {
         return LifeCycleHooks(
           mountedState: (_) {
             //It is not disposed
-            (injected as InjectedAuthImp)
-                .reactiveModelState
-                .listeners
-                .addListener(
+            injected.reactiveModelState.listeners.addListener(
               (snap) {
                 onSetState?.call(injected.snapState);
 
@@ -60,6 +59,9 @@ class OnAuth<T> {
 
                   isNavigated = true;
                 } else if (!isNavigated) {
+                  if (injected.isWaiting && widget.onInitialWaiting == null) {
+                    return;
+                  }
                   setState();
                   assert(() {
                     if (debugPrintWhenRebuild != null) {

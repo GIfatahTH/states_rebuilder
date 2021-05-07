@@ -536,10 +536,18 @@ class _Item<T, P> {
   ///emits a notification, the [Element] related the the [BuildContext] will rebuild.
   ///
   ///If you want to obtain the state without registering use the [call] method.
-  T? of(BuildContext context) => injected.of(context);
+  T of(BuildContext context) {
+    return injected.of(context);
+  }
 
   ///Obtain the item from the nearest [InheritedWidget] inserted using [inherited].
   ///The [BuildContext] used, will not be registered.
   ///If you want to obtain the state and register it use the [of] method.
-  Injected<T>? call(BuildContext context) => injected.call(context);
+  Injected<T>? call(BuildContext context) {
+    final inj = injected.call(
+      context,
+      defaultToGlobal: true,
+    );
+    return inj == injected ? null : inj;
+  }
 }

@@ -5,7 +5,7 @@ IPersistStore? _persistStateGlobalTest;
 ///Mock implementation of [IPersistStore] used for test
 class _PersistStoreMock extends IPersistStore {
   ///The fake store
-  Map<String, String>? store;
+  Map<String, String> store = {};
   bool isAsyncRead = false;
 
   ///Exception to throw
@@ -19,7 +19,7 @@ class _PersistStoreMock extends IPersistStore {
   @override
   Future<void> init() {
     final oldStore = (_persistStateGlobalTest as _PersistStoreMock).store;
-    if (oldStore != null) {
+    if (oldStore.isNotEmpty) {
       store = oldStore;
     } else {
       store = <String, String>{};
@@ -40,12 +40,12 @@ class _PersistStoreMock extends IPersistStore {
     }
 
     if (timeToWait == 0) {
-      store?.remove(key);
+      store.remove(key);
       return;
     } else {
       return Future.delayed(
         Duration(milliseconds: timeToWait),
-        () => store?.remove(key),
+        () => store.remove(key),
       );
     }
   }
@@ -59,12 +59,12 @@ class _PersistStoreMock extends IPersistStore {
       );
     }
     if (timeToWait == 0) {
-      store?.clear();
+      store.clear();
       return;
     } else {
       return Future.delayed(
         Duration(milliseconds: timeToWait),
-        () => store?.clear(),
+        () => store.clear(),
       );
     }
   }
@@ -79,14 +79,14 @@ class _PersistStoreMock extends IPersistStore {
         );
       }
       return timeToWait == 0
-          ? Future.value(store?[key])
+          ? Future.value(store[key])
           : Future.delayed(
-              Duration(milliseconds: timeToWait), () => store?[key]);
+              Duration(milliseconds: timeToWait), () => store[key]);
     }
     if (exception != null) {
       throw exception!;
     }
-    return store?[key];
+    return store[key];
   }
 
   @override
@@ -98,19 +98,19 @@ class _PersistStoreMock extends IPersistStore {
       );
     }
     if (timeToWait == 0) {
-      store?[key] = '$value';
+      store[key] = '$value';
       return;
     } else {
       return Future.delayed(
         Duration(milliseconds: timeToWait),
-        () => store?[key] = '$value',
+        () => store[key] = '$value',
       );
     }
   }
 
   ///Clear the store, Typically used inside setUp method of tests
   void clear() {
-    store?.clear();
+    store.clear();
     isAsyncRead = false;
     exception = null;
     timeToThrow = 0;

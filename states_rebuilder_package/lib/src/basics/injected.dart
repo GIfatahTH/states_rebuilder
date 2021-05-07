@@ -213,7 +213,7 @@ abstract class Injected<T> extends InjectedBase<T> {
   ///myModel(context); // Will return the Injected model and do not register the BuildContext.
   ///```
   ///
-  T? of(BuildContext context, {bool defaultToGlobal = false}) {
+  T of(BuildContext context, {bool defaultToGlobal = false}) {
     final _inheritedInjected =
         context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
 
@@ -230,7 +230,8 @@ abstract class Injected<T> extends InjectedBase<T> {
     if (defaultToGlobal) {
       return state;
     }
-    return null;
+    throw Exception('No InheritedWidget of type $T is found');
+    // return null;
   }
 
   ///Obtain the Injected model from the nearest [InheritedWidget] inserted using [inherited].
@@ -244,7 +245,7 @@ abstract class Injected<T> extends InjectedBase<T> {
   ///myModel(context); // Will return the Injected model and do not register the BuildContext.
   ///```
   ///
-  Injected<T>? call(BuildContext context, {bool defaultToGlobal = false}) {
+  Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
     final _inheritedInjected = context
         .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
         ?.widget as _InheritedInjected<T>?;
@@ -262,7 +263,9 @@ abstract class Injected<T> extends InjectedBase<T> {
     if (defaultToGlobal) {
       return this;
     }
-    return null;
+    throw Exception('No InheritedWidget of type $T is found');
+
+    // return null;
   }
 
   @override

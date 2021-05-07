@@ -69,7 +69,7 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
               final l = Locale.fromSubtags(
                 languageCode: s.first,
                 scriptCode: s.length > 2 ? s[1] : null,
-                countryCode: s.last,
+                countryCode: s.last.isNotEmpty ? s.last : null,
               );
 
               return _getLanguage(l);

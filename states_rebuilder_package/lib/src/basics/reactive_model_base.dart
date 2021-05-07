@@ -86,7 +86,7 @@ class ReactiveModelBase<T> {
   final String? debugPrintWhenNotifiedPreMessage;
 
   ///Used to refresh the state
-  void Function()? _initialStateCreator;
+  Future<SnapState<T>> Function()? _initialStateCreator;
 
   ///Set the creator of the state
   void _setInitialStateCreator({

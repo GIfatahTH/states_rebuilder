@@ -78,9 +78,8 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   bool _hasWaiteFor = false;
   void initState() {
     super.initState();
-    if (widget.waiteFor != null) {
-      _startWaiting();
-    }
+    _startWaiting();
+
     if (widget.injectedTheme != null) {
       _builderTheme = (builder) {
         return On(
@@ -117,9 +116,17 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   }
 
   Future<void> _startWaiting() async {
-    List<Future> waiteFor = widget.waiteFor!();
-    _hasWaiteFor = waiteFor.isNotEmpty;
+    List<Future> waiteFor = widget.waiteFor?.call() ?? [];
+
+    _hasWaiteFor = waiteFor.isNotEmpty ||
+        widget.injectedI18N?.isWaiting == true ||
+        widget.injectedAuth?.isWaiting == true;
     if (!_hasWaiteFor) {
+      // if (widget.injectedI18N != null) {
+      //   waiteFor.add(widget.injectedI18N!.stateAsync);
+      // } else {
+      //   return;
+      // }
       return;
     }
 
@@ -129,6 +136,12 @@ class _TopAppWidgetState extends State<TopAppWidget> {
       for (var future in waiteFor) {
         await future;
       }
+      var i18n = widget.injectedI18N?.stateAsync;
+      var auth = widget.injectedAuth?.stateAsync;
+
+      await i18n;
+      await auth;
+
       setState(() {
         _isWaiting = false;
       });
@@ -166,7 +179,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
       });
     }
     (widget.injectedAuth as InjectedAuthImp?)?.initialize();
-    (widget.injectedI18N as InjectedI18NImp?)?.initialize();
+    // (widget.injectedI18N as InjectedI18NImp?)?.initialize();
     return child;
   }
 }

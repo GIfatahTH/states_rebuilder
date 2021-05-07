@@ -153,7 +153,13 @@ class InjectedImp<T> extends Injected<T> {
         dependsOn!.injected,
         shouldRebuild: false,
       );
-      _subscribeForCombinedSnap(dependsOn!.injected);
+      if (hasObservers) {
+        _subscribeForCombinedSnap(dependsOn!.injected);
+      } else {
+        _reactiveModelState.listeners.onFirstListerAdded = () {
+          _subscribeForCombinedSnap(dependsOn!.injected);
+        };
+      }
     } else {
       _reactiveModelState._initialStateCreator!();
     }
@@ -273,8 +279,9 @@ class InjectedImp<T> extends Injected<T> {
     return snap;
   }
 
+  final _dependentDisposers = <VoidCallback>[];
+
   void _subscribeForCombinedSnap(Set<Injected> depends) {
-    final disposers = <VoidCallback>[];
     for (var depend in dependsOn!.injected) {
       final disposer = depend._reactiveModelState.listeners.addListener(
         (_) {
@@ -310,16 +317,19 @@ class InjectedImp<T> extends Injected<T> {
           // _reactiveModelState._refresh(infoMessage: kRecomputing);
         },
         clean: () {
+          print('DISSSSSSSSS');
           if (depend._imp.autoDisposeWhenNotUsed) {
             depend.dispose();
           }
         },
       );
-      disposers.add(disposer);
+      _dependentDisposers.add(disposer);
     }
-    _reactiveModelState.listeners.addCleaner(
-      () => disposers.forEach((fn) => fn()),
-    );
+    // _reactiveModelState.listeners.addCleaner(
+    //   () {
+    //     disposers.forEach((fn) => fn());
+    //   },
+    // );
   }
 
   void _setCombinedSnap(Set<Injected> depends, {bool shouldRebuild = true}) {
@@ -442,6 +452,14 @@ class InjectedImp<T> extends Injected<T> {
           return true;
         }(),
       );
+      if (dependsOn != null) {
+        // for (var inj in dependsOn!.injected) {
+        //   if (inj.autoDisposeWhenNotUsed && !inj.hasObservers) {
+        //     inj.dispose();
+        //   }
+        // }
+        _dependentDisposers.forEach((e) => e());
+      }
       _removeFromInjectedList?.call();
       super.dispose();
     }
@@ -563,6 +581,7 @@ class InjectedImp<T> extends Injected<T> {
   }) {
     return StateBuilderBase(
       (widget, setState) {
+        //Not always globalInjected == this
         globalInjected ??= this;
         late Injected<T> injected;
         late VoidCallback disposer;
@@ -601,15 +620,26 @@ class InjectedImp<T> extends Injected<T> {
                 setState();
               },
               clean: () {
+                if (reInheritedInject == null) {
+                  //clean the created injected (because for sure it is created here)
+
+                  //Logically this is never reached if  reInheritedInject is not null,
+                  injected.dispose();
+                }
+
                 if (!hasObservers) {
+                  //injected may be equal this injected (case reInheritedInject
+                  //and overrideState are null)
                   dispose();
                 }
               },
             );
           },
           dispose: (context) {
+            //dispose the current listener
+            disposer();
             if (reInheritedInject == null) {
-              disposer();
+              //If it in on re- inherited, than do not remove from the inherited list
               _inheritedInjects.remove(injected);
             }
           },
