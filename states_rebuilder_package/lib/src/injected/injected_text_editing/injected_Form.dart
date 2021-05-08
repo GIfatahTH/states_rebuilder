@@ -40,7 +40,7 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
+class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
@@ -97,10 +97,12 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
-    snapState = snapState.copyToIsWaiting();
-    notify();
-    await (fn == null ? _submit?.call() : fn());
-    snapState = snapState.copyToHasData(null);
+
+    await setState(
+      (s) => fn == null ? _submit?.call() : fn(),
+      onSetState: onSubmitted != null ? On.data(onSubmitted!) : null,
+    );
+
     if (autoFocusOnFirstError) {
       InjectedTextEditingImp? firstErrorField;
       for (var field in _textFields) {
@@ -111,11 +113,38 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
       }
       if (firstErrorField != null) {
         firstErrorField._focusNode?.requestFocus();
-      } else {
-        onSubmitted?.call();
       }
     }
-    notify();
+
+    // Future<void> Function() call;
+    // call = () async {
+    //   try {
+    //     snapState = snapState.copyToIsWaiting();
+    //     notify();
+    //     await (fn == null ? _submit?.call() : fn());
+    //     snapState = snapState.copyToHasData(null);
+    //     if (autoFocusOnFirstError) {
+    //       InjectedTextEditingImp? firstErrorField;
+    //       for (var field in _textFields) {
+    //         if (field.hasError) {
+    //           firstErrorField = field;
+    //           break;
+    //         }
+    //       }
+    //       if (firstErrorField != null) {
+    //         firstErrorField._focusNode?.requestFocus();
+    //       }
+    //     }
+    //     onSubmitted?.call();
+    //     notify();
+    //   } catch (e) {
+    //     if (e is Error) {
+    //       rethrow;
+    //     }
+    //     snapState = snapState.copyToHasData(null);
+    //   }
+    // };
+    // await call();
   }
 
   @override

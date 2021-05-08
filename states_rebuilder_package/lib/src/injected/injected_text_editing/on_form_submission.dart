@@ -63,10 +63,10 @@ class OnFormSubmission {
             if (inj.isWaiting) {
               return widget.on.onSubmitting();
             }
-            // if (inj.hasError && widget.on.onSubmissionError != null) {
-            //   return widget.on.onSubmissionError!(
-            //       inj.error, inj.onErrorRefresher);
-            // }
+            if (inj.hasError && widget.on.onSubmissionError != null) {
+              return widget.on.onSubmissionError!(
+                  inj.error, inj.onErrorRefresher);
+            }
             return widget.on.child;
             // // return widget.on.builder();
             // final cached = InjectedFormImp._currentInitializedForm;

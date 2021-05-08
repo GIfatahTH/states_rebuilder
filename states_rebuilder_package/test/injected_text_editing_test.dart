@@ -581,4 +581,135 @@ void main() {
       expect(find.text('Field 2'), findsNothing);
     },
   );
+
+  testWidgets(
+    'On.formSubmission widget and side effects work',
+    (tester) async {
+      final name = RM.injectTextEditing(
+        validateOnLoseFocus: false,
+      );
+      final email = RM.injectTextEditing(
+        validateOnTyping: false,
+      );
+      String submitMessage = '';
+      String? serverError = 'Server Error';
+      late void Function() refresher;
+      final form = RM.injectForm(
+        // autoFocusOnFirstError: false,
+        submit: () async {
+          await Future.delayed(Duration(seconds: 1));
+          email.error = 'Email Server Error';
+        },
+        onSubmitting: () => submitMessage = 'Submitting...',
+        onSubmitted: () => submitMessage = 'Submitted',
+      );
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              On.form(
+                () {
+                  return Column(
+                    children: [
+                      TextField(
+                        key: Key('Name'),
+                        controller: name.controller,
+                        focusNode: name.focusNode,
+                        decoration: InputDecoration(errorText: name.error),
+                      ),
+                      TextField(
+                        key: Key('Email'),
+                        controller: email.controller,
+                        focusNode: email.focusNode,
+                        decoration: InputDecoration(errorText: email.error),
+                      ),
+                      On.formSubmission(
+                        onSubmitting: () => Text('Submitting...'),
+                        onSubmissionError: (error, ref) {
+                          refresher = ref;
+                          return Text(error);
+                        },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            form.submit();
+                          },
+                          child: Text('Submit1'),
+                        ),
+                      ).listenTo(form),
+                    ],
+                  );
+                },
+              ).listenTo(form),
+              On.formSubmission(
+                onSubmitting: () => Text('Submitting...'),
+                child: ElevatedButton(
+                  onPressed: () {
+                    form.submit(
+                      () async {
+                        await Future.delayed(Duration(seconds: 1));
+                        if (serverError != null) throw serverError;
+                      },
+                    );
+                  },
+                  child: Text('Submit2'),
+                ),
+              ).listenTo(form),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(submitMessage, '');
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      //
+      await tester.tap(find.text('Submit1'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(submitMessage, 'Submitted');
+      expect(find.text('Submitting...'), findsNothing);
+      //
+      await tester.tap(find.text('Submit2'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+      serverError = null;
+      refresher();
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+    },
+  );
 }
