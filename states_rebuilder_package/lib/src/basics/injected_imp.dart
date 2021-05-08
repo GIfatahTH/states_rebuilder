@@ -70,7 +70,6 @@ class InjectedImp<T> extends Injected<T> {
   @override
   dynamic get error => _reactiveModelState.snapState.error;
   SnapState<T>? oldSnap;
-  T? firstOnDataState;
 
   bool _isAsyncInjected;
 
@@ -78,7 +77,6 @@ class InjectedImp<T> extends Injected<T> {
 
   DependsOn<T>? dependsOn;
   Timer? _dependentDebounceTimer;
-  VoidCallback? _removeFromInjectedList;
 
   ///Create the state
   dynamic middleCreator(
@@ -108,7 +106,6 @@ class InjectedImp<T> extends Injected<T> {
     _reactiveModelState
       .._isInitialized = true
       .._isDisposed = false;
-    _removeFromInjectedList = addToInjectedModels(this);
     final creatorMock = cachedCreatorMocks.last;
     bool isInitializing = true;
 
@@ -134,13 +131,11 @@ class InjectedImp<T> extends Injected<T> {
             return middleSnap(snap);
           }
           if (snap.hasData) {
-            firstOnDataState ??= snap.data;
             snap = _isAsyncInjected ? snap : snap._copyToIsIdle();
           }
           _reactiveModelState._snapState = middleSnap(snap) ?? snap;
           return null;
         }
-        firstOnDataState ??= snap.data;
         return middleSnap(snap);
       },
       onDone: (snap) {
@@ -153,13 +148,13 @@ class InjectedImp<T> extends Injected<T> {
         dependsOn!.injected,
         shouldRebuild: false,
       );
-      if (hasObservers) {
-        _subscribeForCombinedSnap(dependsOn!.injected);
-      } else {
-        _reactiveModelState.listeners.onFirstListerAdded = () {
-          _subscribeForCombinedSnap(dependsOn!.injected);
-        };
-      }
+      _subscribeForCombinedSnap(dependsOn!.injected);
+      // if (hasObservers) {
+      // } else {
+      //   _reactiveModelState.listeners.onFirstListerAdded = () {
+      //     _subscribeForCombinedSnap(dependsOn!.injected);
+      //   };
+      // }
     } else {
       _reactiveModelState._initialStateCreator!();
     }
@@ -275,6 +270,9 @@ class InjectedImp<T> extends Injected<T> {
 
       return true;
     }());
+    if (_reactiveModelState._removeFromInjectedList == null && !snap.isIdle) {
+      _reactiveModelState._removeFromInjectedList = addToInjectedModels(this);
+    }
 
     return snap;
   }
@@ -283,53 +281,80 @@ class InjectedImp<T> extends Injected<T> {
 
   void _subscribeForCombinedSnap(Set<Injected> depends) {
     for (var depend in dependsOn!.injected) {
-      final disposer = depend._reactiveModelState.listeners.addListener(
-        (_) {
-          if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
-            return;
-          }
+      final fn = (_) {
+        if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
+          return;
+        }
 
-          if (dependsOn!.debounceDelay > 0) {
-            subscription?.cancel();
-            _dependentDebounceTimer?.cancel();
-            _dependentDebounceTimer = Timer(
-              Duration(milliseconds: dependsOn!.debounceDelay),
-              () {
-                _setCombinedSnap(dependsOn!.injected);
-                // _reactiveModelState._refresh(infoMessage: kRecomputing);
-                _dependentDebounceTimer = null;
-              },
-            );
+        if (dependsOn!.debounceDelay > 0) {
+          subscription?.cancel();
+          _dependentDebounceTimer?.cancel();
+          _dependentDebounceTimer = Timer(
+            Duration(milliseconds: dependsOn!.debounceDelay),
+            () {
+              _setCombinedSnap(dependsOn!.injected);
+              // _reactiveModelState._refresh(infoMessage: kRecomputing);
+              _dependentDebounceTimer = null;
+            },
+          );
+          return null;
+        } else if (dependsOn!.throttleDelay > 0) {
+          if (_dependentDebounceTimer != null) {
             return null;
-          } else if (dependsOn!.throttleDelay > 0) {
-            if (_dependentDebounceTimer != null) {
-              return null;
-            }
-            _dependentDebounceTimer = Timer(
-              Duration(milliseconds: dependsOn!.throttleDelay),
-              () {
-                _dependentDebounceTimer = null;
-              },
-            );
           }
+          _dependentDebounceTimer = Timer(
+            Duration(milliseconds: dependsOn!.throttleDelay),
+            () {
+              _dependentDebounceTimer = null;
+            },
+          );
+        }
 
-          _setCombinedSnap(dependsOn!.injected);
-          // _reactiveModelState._refresh(infoMessage: kRecomputing);
-        },
-        clean: () {
-          print('DISSSSSSSSS');
-          if (depend._imp.autoDisposeWhenNotUsed) {
-            depend.dispose();
+        _setCombinedSnap(dependsOn!.injected);
+        // _reactiveModelState._refresh(infoMessage: kRecomputing);
+      };
+
+      void addListenerForRebuild() {
+        final disposer =
+            depend._reactiveModelState.listeners.addListenerForRebuild(
+          fn,
+          clean: () {
+            if (depend._imp.autoDisposeWhenNotUsed) {
+              depend.dispose();
+            }
+          },
+        );
+        _dependentDisposers.add(disposer);
+      }
+
+      if (!hasObservers) {
+        // var disposer;
+        // bool _isDisposed = false;
+
+        final disposer =
+            depend._reactiveModelState.listeners.addListenerForSideEffect(
+          fn,
+          clean: () {
+            if (depend._imp.autoDisposeWhenNotUsed) {
+              depend.dispose();
+            }
+          },
+        );
+        _reactiveModelState.listeners.onFirstListerAdded = () {
+          _reactiveModelState.listeners._sideEffectListeners.remove(fn);
+          _dependentDisposers.remove(disposer);
+          addListenerForRebuild();
+        };
+        depend._reactiveModelState.listeners.addCleaner(() {
+          if (!hasObservers && _imp.autoDisposeWhenNotUsed) {
+            dispose();
           }
-        },
-      );
-      _dependentDisposers.add(disposer);
+        });
+        _dependentDisposers.add(disposer);
+      } else {
+        addListenerForRebuild();
+      }
     }
-    // _reactiveModelState.listeners.addCleaner(
-    //   () {
-    //     disposers.forEach((fn) => fn());
-    //   },
-    // );
   }
 
   void _setCombinedSnap(Set<Injected> depends, {bool shouldRebuild = true}) {
@@ -453,14 +478,11 @@ class InjectedImp<T> extends Injected<T> {
         }(),
       );
       if (dependsOn != null) {
-        // for (var inj in dependsOn!.injected) {
-        //   if (inj.autoDisposeWhenNotUsed && !inj.hasObservers) {
-        //     inj.dispose();
-        //   }
-        // }
         _dependentDisposers.forEach((e) => e());
       }
-      _removeFromInjectedList?.call();
+      _reactiveModelState._removeFromInjectedList?.call();
+      _reactiveModelState._removeFromInjectedList = null;
+
       super.dispose();
     }
   }
@@ -468,6 +490,7 @@ class InjectedImp<T> extends Injected<T> {
   List<dynamic Function()?> cachedCreatorMocks = [null];
 
   void _injectMock(dynamic Function() fakeCreator) {
+    dispose();
     RM.disposeAll();
     cachedCreatorMocks.add(fakeCreator);
   }
@@ -526,7 +549,7 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   String toString() {
-    return 'Injected($snapState)';
+    return 'Injected#$hashCode($snapState)';
   }
 
   final _inheritedInjects = <Injected<T>>{};
@@ -608,7 +631,8 @@ class InjectedImp<T> extends Injected<T> {
         }
         return LifeCycleHooks<NullWidget>(
           mountedState: (context) {
-            disposer = injected._reactiveModelState.listeners.addListener(
+            disposer =
+                injected._reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 if (snapState._infoMessage == kRefreshMessage) {
                   setState();
@@ -626,16 +650,14 @@ class InjectedImp<T> extends Injected<T> {
                   //Logically this is never reached if  reInheritedInject is not null,
                   injected.dispose();
                 }
-
-                if (!hasObservers) {
-                  //injected may be equal this injected (case reInheritedInject
-                  //and overrideState are null)
-                  dispose();
-                }
               },
             );
           },
           dispose: (context) {
+            if (stateOverride != null) {
+              //The injected is created here then dispose it here
+              injected.dispose();
+            }
             //dispose the current listener
             disposer();
             if (reInheritedInject == null) {
@@ -695,9 +717,18 @@ class InjectedImp<T> extends Injected<T> {
       );
     }
 
-    snapState = oldSnap ?? inj._imp.oldSnap!;
-    _reactiveModelState._setSnapStateAndRebuild =
-        middleSnap(newSnap ?? inj.snapState);
+    snapState = oldSnap?._copyWith(
+            debugPrintWhenNotifiedPreMessage:
+                snapState._debugPrintWhenNotifiedPreMessage) ??
+        inj._imp.oldSnap!._copyWith(
+            debugPrintWhenNotifiedPreMessage:
+                snapState._debugPrintWhenNotifiedPreMessage);
+    _reactiveModelState._setSnapStateAndRebuild = middleSnap(newSnap?._copyWith(
+            debugPrintWhenNotifiedPreMessage:
+                snapState._debugPrintWhenNotifiedPreMessage) ??
+        inj.snapState._copyWith(
+            debugPrintWhenNotifiedPreMessage:
+                snapState._debugPrintWhenNotifiedPreMessage));
   }
 }
 

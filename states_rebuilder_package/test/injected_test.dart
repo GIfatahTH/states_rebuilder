@@ -517,6 +517,43 @@ void main() {
     expect(counter4IsDisposed, false);
   });
 
+  testWidgets('autoDispose dependent injected model1', (tester) async {
+    bool counter1IsDisposed = false;
+    bool counter2IsDisposed = false;
+    bool counter3IsDisposed = false;
+    final counter1 = RM.inject(
+      () => 0,
+      onDisposed: (_) => counter1IsDisposed = true,
+      debugPrintWhenNotifiedPreMessage: 'counter1',
+    );
+    final counter2 = RM.inject(
+      () => counter1.state,
+      dependsOn: DependsOn({counter1}),
+      onDisposed: (_) => counter2IsDisposed = true,
+    );
+    final counter3 = RM.inject<int>(
+      () {
+        return counter1.state;
+      },
+      dependsOn: DependsOn({counter1}),
+      onDisposed: (_) => counter3IsDisposed = true,
+    );
+    final switcher = RM.inject(() => true);
+    await tester.pumpWidget(switcher.rebuilder(() {
+      counter2.state;
+      if (switcher.state) {
+        return counter3.rebuilder(() => Container());
+      }
+      return Container();
+    }));
+    switcher.state = false;
+    await tester.pump();
+    expect(counter3IsDisposed, true);
+    await tester.pump();
+    expect(counter1IsDisposed, true);
+    expect(counter2IsDisposed, true);
+  });
+
   testWidgets('async computed ', (tester) async {
     final counter1 = RM.inject(() => 1);
     final counter2 = RM.inject(() => 1);

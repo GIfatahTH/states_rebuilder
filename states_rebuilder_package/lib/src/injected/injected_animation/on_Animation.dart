@@ -127,7 +127,8 @@ class OnAnimation {
               value: animateValue,
               formTween: animateTween,
             );
-            disposer = injected.reactiveModelState.listeners.addListener((_) {
+            disposer = injected.reactiveModelState.listeners
+                .addListenerForRebuild((_) {
               if (_curvedTweens.isNotEmpty) {
                 setState();
               }

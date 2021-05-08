@@ -26,7 +26,7 @@ class OnCRUD<T> {
         injected.initialize();
         return LifeCycleHooks(
           mountedState: (_) {
-            injected.onCRUDListeners.addListener(
+            injected.onCRUDListeners.addListenerForRebuild(
               (snap) {
                 onSetState?.call(injected.onCrudSnap);
                 setState();

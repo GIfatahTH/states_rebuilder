@@ -48,6 +48,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   ///   * [creationFunction] (positional parameter): the fake creation function
 
   void injectCRUDMock(ICRUD<T, P> Function() fakeRepository) {
+    dispose();
     RM.disposeAll();
     _cachedRepoMocks.add(fakeRepository);
   }
@@ -171,6 +172,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }
     super.dispose();
     _isInitialized = false;
+    _item?.dispose();
     _item = null;
     _repo = null;
     _crud = null;
@@ -459,7 +461,7 @@ class _CRUDService<T, P> {
 
 class _Item<T, P> {
   final InjectedCRUD<T, P> injectedList;
-  late Injected<T> injected;
+  late final Injected<T> injected;
   bool _isUpdating = false;
   bool _isRefreshing = false;
   _Item(this.injectedList) {
@@ -476,7 +478,7 @@ class _Item<T, P> {
               where: (t) {
                 return t == (injected as InjectedImp).oldSnap?.data;
               },
-              set: (t) => injected.state,
+              set: (t) => injected.state!,
             );
             _isUpdating = false;
           } catch (e) {
@@ -537,7 +539,7 @@ class _Item<T, P> {
   ///
   ///If you want to obtain the state without registering use the [call] method.
   T of(BuildContext context) {
-    return injected.of(context);
+    return injected.of(context)!;
   }
 
   ///Obtain the item from the nearest [InheritedWidget] inserted using [inherited].
@@ -549,5 +551,9 @@ class _Item<T, P> {
       defaultToGlobal: true,
     );
     return inj == injected ? null : inj;
+  }
+
+  void dispose() {
+    injected.dispose();
   }
 }

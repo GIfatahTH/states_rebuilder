@@ -2,7 +2,7 @@ part of 'injected_auth.dart';
 
 ///[InjectedAuth] listener
 class OnAuth<T> {
-  T Function()? _onInitialWaiting;
+  final T Function()? _onInitialWaiting;
   final T Function()? _onWaiting;
   final T Function() _onUnsigned;
   final T Function() _onSigned;
@@ -35,14 +35,14 @@ class OnAuth<T> {
     final inj = injected as InjectedAuthImp;
     inj.initialize();
     T getWidget() => inj.isSigned ? _onSigned() : _onUnsigned();
-
     bool isNavigated = false;
     return StateBuilderBase<_OnAuthWidget<T>>(
       (widget, setState) {
+        var onInitialWaiting = widget.onInitialWaiting;
         return LifeCycleHooks(
           mountedState: (_) {
             //It is not disposed
-            injected.reactiveModelState.listeners.addListener(
+            injected.reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 onSetState?.call(injected.snapState);
 
@@ -97,13 +97,13 @@ class OnAuth<T> {
           },
           builder: (ctx, widget) {
             if (injected.isWaiting) {
-              if (widget.onInitialWaiting != null) {
+              if (onInitialWaiting != null) {
                 return (widget.onInitialWaiting?.call() ?? getWidget())
                     as Widget;
               }
               return (widget.onWaiting?.call() ?? getWidget()) as Widget;
             }
-            widget.onInitialWaiting = null;
+            onInitialWaiting = null;
             return (isNavigated ? widget.onUnsigned() : getWidget()) as Widget;
           },
         );
@@ -122,7 +122,7 @@ class OnAuth<T> {
 
 class _OnAuthWidget<T> {
   final Injected inject;
-  T Function()? onInitialWaiting;
+  final T Function()? onInitialWaiting;
   final T Function()? onWaiting;
   final T Function() onUnsigned;
   final T Function() onSigned;

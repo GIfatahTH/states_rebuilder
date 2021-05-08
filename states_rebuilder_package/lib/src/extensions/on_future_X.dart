@@ -98,7 +98,8 @@ extension OnFutureX<F> on OnFuture<F> {
             debugPrintWhenNotifiedPreMessage: '',
           ) as Injected<F>;
 
-          disposer = injected._reactiveModelState.listeners.addListener(
+          disposer =
+              injected._reactiveModelState.listeners.addListenerForRebuild(
             (_) {},
             clean: injected is InjectedImp &&
                     !(injected as InjectedImp).autoDisposeWhenNotUsed

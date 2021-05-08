@@ -94,14 +94,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         return widget.injectedI18N!.inherited(
           builder: (context) {
             if (_isWaiting || widget.injectedI18N!.isWaiting) {
-              if (widget.onWaiting == null) {
-                throw Exception(
-                    'TopWidget is waiting for dependencies to initialize. '
-                    'you have to define a waiting screen using the onWaiting '
-                    'parameter of the TopWidget');
-              } else {
-                return widget.onWaiting!();
-              }
+              return widget.onWaiting!();
             }
             return _builderTheme?.call(builder) ?? builder(context);
           },
@@ -160,13 +153,18 @@ class _TopAppWidgetState extends State<TopAppWidget> {
 
   @override
   void dispose() {
-    Future.microtask(() => RM.disposeAll());
+    RM.disposeAll();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isWaiting) {
+    if (_isWaiting || widget.injectedI18N?.isWaiting == true) {
+      if (widget.onWaiting == null) {
+        throw Exception('TopWidget is waiting for dependencies to initialize. '
+            'you have to define a waiting screen using the onWaiting '
+            'parameter of the TopWidget');
+      }
       return widget.onWaiting!();
     }
     if (_hasError && widget.onError != null) {

@@ -19,7 +19,7 @@ class OnFormSubmission {
         final inj = injected as InjectedFormImp;
         return LifeCycleHooks(
           mountedState: (_) {
-            disposer = inj.reactiveModelState.listeners.addListener(
+            disposer = inj.reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 if (inj.isWaiting) {
                   inj.onSubmitting?.call();

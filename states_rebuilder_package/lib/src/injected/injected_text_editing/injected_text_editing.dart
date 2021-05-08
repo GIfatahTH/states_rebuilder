@@ -122,8 +122,6 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
           creator: () => text,
           autoDisposeWhenNotUsed: autoDispose,
         ) {
-    _removeFromInjectedList = addToInjectedModels(this);
-
     _validateOnLoseFocus = validateOnLoseFocus;
   }
 
@@ -165,6 +163,8 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     if (_controller != null) {
       return _controller!;
     }
+    _removeFromInjectedList = addToInjectedModels(this);
+
     _controller ??= TextEditingControllerImp.fromValue(
       TextEditingValue(
         text: initialValue,
@@ -194,7 +194,13 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       if (validateOnTyping ?? true) {
         validate();
       } else {
-        snapState = snapState.copyToHasData(this.text);
+        if (validator == null) {
+          snapState = snapState.copyToHasData(this.text);
+        } else {
+          //IF there is a validator, then set with idle flag so that isValid
+          //is false unless validator is called
+          snapState = snapState.copyToIsIdle(this.text);
+        }
         notify();
       }
     });
@@ -207,7 +213,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     return _controller!;
   }
 
-  late VoidCallback _removeFromInjectedList;
+  VoidCallback? _removeFromInjectedList;
 
   ///The associated [InjectedForm]
   InjectedForm? form;
@@ -228,7 +234,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   @override
   void dispose() {
     super.dispose();
-    _removeFromInjectedList();
+    _removeFromInjectedList?.call();
     _controller?.dispose();
     _controller = null;
     _focusNode?.dispose();

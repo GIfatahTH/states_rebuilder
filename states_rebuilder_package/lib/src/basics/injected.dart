@@ -268,16 +268,25 @@ abstract class Injected<T> extends InjectedBase<T> {
     // return null;
   }
 
+  static void debugAddRemoveListener(
+    InjectedBaseState inj, {
+    void Function(int length)? onAaddListener,
+    void Function(int length)? onRemoveListener,
+  }) {
+    inj._reactiveModelState.listeners.onAddListener = onAaddListener;
+    inj._reactiveModelState.listeners.onRemoveListener = onRemoveListener;
+  }
+
   @override
   String toString() {
-    return '$snapState';
+    return '$hashCode: $snapState';
   }
 }
 
 extension InjectedX1<T> on InjectedBaseState<T> {
   ///Add observer for rebuild
   VoidCallback observeForRebuild(void Function(InjectedBaseState<T>? rm) fn) {
-    return _reactiveModelState.listeners.addListener((_) => fn(this));
+    return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));
   }
 
   ///Add callback to be executed when model is disposed

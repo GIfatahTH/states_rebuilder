@@ -1,3 +1,5 @@
+import 'package:states_rebuilder/src/rm.dart';
+
 ///States_Rebuilder logger
 class StatesRebuilerLogger {
   ///Set to true to avoid printing in test mode

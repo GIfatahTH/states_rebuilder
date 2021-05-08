@@ -42,6 +42,7 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
   ///   * [creationFunction] (positional parameter): the fake creation function
 
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
+    dispose();
     RM.disposeAll();
     _cachedRepoMocks.add(fakeRepository);
   }
@@ -126,7 +127,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
 
   @override
   void dispose() {
-    auth._dispose();
+    _auth?._dispose();
     onAuthStreamSubscription?.cancel();
     onAuthStreamSubscription = null;
     if (_cachedRepoMocks.length > 1) {

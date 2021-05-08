@@ -21,12 +21,14 @@ abstract class InjectedBaseState<T> {
         final m = inj.debugPrintWhenNotifiedPreMessage?.isNotEmpty == true
             ? inj.debugPrintWhenNotifiedPreMessage
             : '$T';
+
         throw ArgumentError.notNull(
-          '\nNON-NULLABLE STATE IS NULL!\n'
-          'The state of $m has no defined initialState and it '
-          '${snapState.isWaiting ? "is waiting for data" : "has an error"}. '
-          'You have to define an initialState '
-          'or handle ${snapState.isWaiting ? "onWaiting" : "onError"} widget\n',
+          '\n[$m] is NON-NULLABLE STATE!\n'
+          'The non-nullable state [$m] has null value which is not accepted\n'
+          'To fix:\n'
+          '1- Define an initial value to injected state.\n'
+          '2- Handle onWaiting or onError state.\n'
+          '3- Make the state nullable. ($T?).\n',
         );
       }
       throw ArgumentError();

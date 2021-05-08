@@ -119,7 +119,7 @@ class ReactiveModel<T> extends InjectedBase<T> {
       _reactiveModelState._snapState._connectionState;
 
   VoidCallback observeForRebuild(void Function(ReactiveModel<T>? rm) fn) {
-    return _reactiveModelState.listeners.addListener((_) => fn(this));
+    return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));
   }
 
   void addCleaner(VoidCallback fn) {

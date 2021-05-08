@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -284,6 +285,31 @@ void main() {
       expect(modelB.state, 10);
       await tester.pump(Duration(milliseconds: 1000));
       expect(modelB.state, 10);
+    },
+  );
+
+  testWidgets(
+    'WHEN Dependent model has no widget observer, il will register as a side effect'
+    'Once it has a widget observer, it will dispose the side effect and register the widget',
+    (tester) async {
+      final modelA = RM.inject(() => 1);
+      final modelB = RM.inject<int>(
+        () => modelA.state * 2,
+        dependsOn: DependsOn({modelA}),
+      );
+      expect(modelB.state, 2);
+      expect(modelB.isIdle, true);
+      modelA.state++;
+      expect(modelB.state, 4);
+      expect(modelB.hasData, true);
+      //
+
+      final widget = On(() => Container()).listenTo(modelA);
+      await tester.pumpWidget(widget);
+      modelA.state++;
+      expect(modelB.state, 6);
+      modelA.state++;
+      expect(modelB.state, 8);
     },
   );
 }

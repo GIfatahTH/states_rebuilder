@@ -81,6 +81,9 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
 
   @override
   String toString() {
+    if (_controller?.hasClients == false) {
+      return 'InjectedScrolling(HasNoClient)';
+    }
     if (hasReachedMaxExtent)
       return 'InjectedScrolling(hasReachedTheBottom: true)';
     if (hasReachedMinExtent) return 'InjectedScrolling(hasReachedTheTop: true)';
@@ -108,9 +111,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
   }) : super(
           creator: () => 0.0,
           initialState: initialScrollOffset,
-        ) {
-    _removeFromInjectedList = addToInjectedModels(this);
-  }
+        );
 
   ///Initial scroll offset
   final double initialScrollOffset;
@@ -127,11 +128,11 @@ class InjectedScrollingImp extends ReactiveModel<double>
     if (_controller != null) {
       return _controller!;
     }
-
     _controller = ScrollController(
       initialScrollOffset: initialScrollOffset,
       keepScrollOffset: keepScrollOffset,
     );
+    _removeFromInjectedList = addToInjectedModels(this);
     Timer? _timer;
     hasReachedMinExtent = initialState == 0;
     void setFlags() {
@@ -208,7 +209,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
     return _controller!;
   }
 
-  late VoidCallback _removeFromInjectedList;
+  VoidCallback? _removeFromInjectedList;
 
   @override
   set state(double s) {
@@ -226,7 +227,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
   @override
   void dispose() {
     super.dispose();
-    _removeFromInjectedList();
+    _removeFromInjectedList?.call();
     _controller?.dispose();
     _controller = null;
   }

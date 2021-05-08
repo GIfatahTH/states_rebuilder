@@ -141,6 +141,7 @@ class SnapState<T> {
     bool isDone = false,
     bool? isActive,
     bool? isImmutable,
+    String? debugPrintWhenNotifiedPreMessage,
   }) =>
       SnapState<T>._(
         connectionState ?? _connectionState,
@@ -152,7 +153,7 @@ class SnapState<T> {
         isDone,
         isActive ?? this.isActive,
         isImmutable ?? _isImmutable,
-        _debugPrintWhenNotifiedPreMessage,
+        debugPrintWhenNotifiedPreMessage ?? _debugPrintWhenNotifiedPreMessage,
       );
   SnapState<T> copyTo({
     bool? isWaiting,
@@ -267,10 +268,11 @@ class SnapState<T> {
     );
   }
 
-  SnapState<T> copyToIsIdle() {
+  SnapState<T> copyToIsIdle([T? data]) {
     return _copyWith(
       connectionState: ConnectionState.none,
       resetError: true,
+      data: data,
       infoMessage: '',
     );
   }

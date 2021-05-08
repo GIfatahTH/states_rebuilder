@@ -40,6 +40,8 @@ class ReactiveModelBase<T> {
 
   late SnapState<T> _snapState;
 
+  VoidCallback? _removeFromInjectedList;
+
   ///Snap representation fo the state
   SnapState<T> get snapState {
     initializer(); //state is initialized when getting the snapState

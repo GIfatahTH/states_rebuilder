@@ -20,7 +20,7 @@ class OnScroll<T> {
         final inj = injected as InjectedScrollingImp;
         return LifeCycleHooks(
           mountedState: (_) {
-            disposer = inj.reactiveModelState.listeners.addListener(
+            disposer = inj.reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 setState();
                 // assert(() {

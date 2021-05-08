@@ -242,7 +242,7 @@ extension InjectedX<T> on InjectedBaseState<T> {
         } else {
           f = stateAsync as Future<F?>;
         }
-        disposer = inj._reactiveModelState.listeners.addListener(
+        disposer = inj._reactiveModelState.listeners.addListenerForRebuild(
           (_) {},
           clean: inj.autoDisposeWhenNotUsed
               ? () {

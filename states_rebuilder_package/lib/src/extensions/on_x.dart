@@ -67,7 +67,7 @@ extension OnX on On<Widget> {
         }
         return LifeCycleHooks(
           mountedState: (_) {
-            disposer = inj._reactiveModelState.listeners.addListener(
+            disposer = inj._reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 if (shouldRebuild != null &&
                     !shouldRebuild(injected.snapState)) {
