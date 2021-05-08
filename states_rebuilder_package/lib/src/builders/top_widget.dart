@@ -37,8 +37,11 @@ class TopAppWidget extends StatefulWidget {
   final Widget Function()? onWaiting;
   final Widget Function(dynamic error, void Function() refresh)? onError;
 
-  ///List of future to wait for, and display a waiting screen while waiting
-  final List<Future> Function()? waiteFor;
+  ///List of future (plugins initialization) to wait for, and display a waiting screen while waiting
+  final List<Future> Function()? ensureInitialization;
+
+  @Deprecated('Use ensureInitialization instead')
+  final List<Future> Function()? waitFor;
 
   ///{@macro topWidget}
   const TopAppWidget({
@@ -47,12 +50,13 @@ class TopAppWidget extends StatefulWidget {
     this.injectedTheme,
     this.injectedI18N,
     this.onWaiting,
-    this.waiteFor,
+    this.ensureInitialization,
+    this.waitFor,
     this.onError,
     this.injectedAuth,
     required this.builder,
   })   : assert(
-          waiteFor == null || onWaiting != null,
+          ensureInitialization == null || onWaiting != null,
           'You have to define a waiting splash screen '
           'using onWaiting parameter',
         ),
@@ -109,7 +113,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   }
 
   Future<void> _startWaiting() async {
-    List<Future> waiteFor = widget.waiteFor?.call() ?? [];
+    List<Future> waiteFor = widget.ensureInitialization?.call() ?? [];
 
     _hasWaiteFor = waiteFor.isNotEmpty ||
         widget.injectedI18N?.isWaiting == true ||
