@@ -233,7 +233,6 @@ abstract class RM {
         return snap;
       },
       persist: persist,
-      isLazy: isLazy,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
