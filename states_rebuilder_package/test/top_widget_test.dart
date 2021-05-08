@@ -9,7 +9,7 @@ void main() {
     (tester) async {
       expect(
           () => TopAppWidget(
-                waiteFor: () => [Future.value(0)],
+                ensureInitialization: () => [Future.value(0)],
                 builder: (_) {
                   return Container();
                 },
@@ -83,7 +83,7 @@ void main() {
 
   testWidgets('Top widget waits for provided futures', (tester) async {
     final widget = TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         Future.delayed(Duration(seconds: 1)),
         Future.delayed(Duration(seconds: 2)),
       ],
@@ -113,7 +113,7 @@ void main() {
     });
     final widget = TopAppWidget(
       injectedI18N: i18n,
-      waiteFor: () => [
+      ensureInitialization: () => [
         Future.delayed(Duration(seconds: 2)),
         i18n.stateAsync,
       ],
@@ -142,7 +142,7 @@ void main() {
     });
     final widget = TopAppWidget(
       injectedI18N: i18n,
-      waiteFor: () => [
+      ensureInitialization: () => [
         Future.delayed(Duration(seconds: 1)),
         i18n.stateAsync,
       ],
@@ -168,7 +168,7 @@ void main() {
     bool shouldThrow = true;
     void Function()? refresh;
     final widget = TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         Future.delayed(Duration(seconds: 1),
             () => shouldThrow ? throw Exception('Error') : 1),
         Future.delayed(Duration(seconds: 2), () => 2),

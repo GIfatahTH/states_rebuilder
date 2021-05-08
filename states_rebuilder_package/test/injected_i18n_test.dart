@@ -414,7 +414,7 @@ void main() async {
     Locale? localization;
     late Map<String, String> store;
     final widget = TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         () async {
           store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': '#|#'});
@@ -479,7 +479,7 @@ void main() async {
     Locale? localization;
     late Map<String, String> store;
     final widget = TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         () async {
           store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': 'es#|#script#|#ES'});

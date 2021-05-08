@@ -420,6 +420,53 @@ void main() async {
     await tester.pump(Duration(seconds: 1));
     expect(store.store['counter'], null);
   });
+
+  testWidgets(
+    'injectedStream works persisted state'
+    'Case not initially persisted state',
+    (tester) async {
+      counter = RM.injectStream(
+        () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
+        persist: () => PersistState(
+          key: 'counter',
+        ),
+      );
+      expect(counter.state, null);
+      expect(store.store['counter'], null);
+
+      await tester.pump(Duration(seconds: 1));
+      expect(counter.state, 0);
+      expect(store.store['counter'], '0');
+
+      await tester.pump(Duration(seconds: 1));
+      expect(counter.state, 10);
+      expect(store.store['counter'], '10');
+
+      await tester.pump(Duration(seconds: 1));
+      expect(counter.state, 20);
+      expect(store.store['counter'], '20');
+    },
+  );
+
+  testWidgets(
+    'injectedStream works persisted state'
+    'Case the state is already persisted',
+    (tester) async {
+      counter = RM.injectStream(
+        () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
+        persist: () => PersistState(
+          key: 'counter',
+        ),
+      );
+      store.store.addAll({'counter': '10'});
+      expect(counter.state, 10);
+      expect(store.store['counter'], '10');
+
+      await tester.pump(Duration(seconds: 1));
+      expect(counter.state, 10);
+      expect(store.store['counter'], '10');
+    },
+  );
 }
 
 class PersistStoreMockImp extends IPersistStore {
