@@ -34,15 +34,14 @@ class ExtraActionsButton extends StatelessWidget {
           },
           itemBuilder: (BuildContext context) {
             return <PopupMenuItem<ExtraAction>>[
-              PopupMenuItem<ExtraAction>(
-                key: Key('__toggleAll__'),
-                value: ExtraAction.toggleAllComplete,
-                child: On(
-                  () => Text(todosStats.state.allComplete
+              if (todosStats.hasData)
+                PopupMenuItem<ExtraAction>(
+                  key: Key('__toggleAll__'),
+                  value: ExtraAction.toggleAllComplete,
+                  child: Text(todosStats.state.allComplete
                       ? i18n.of(context).markAllIncomplete
                       : i18n.of(context).markAllComplete),
-                ).listenTo(todosStats),
-              ),
+                ),
               PopupMenuItem<ExtraAction>(
                 key: Key('__toggleClearCompleted__'),
                 value: ExtraAction.clearCompleted,
