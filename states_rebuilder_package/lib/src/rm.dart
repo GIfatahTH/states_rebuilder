@@ -194,7 +194,8 @@ abstract class RM {
     void Function(T s)? onDisposed,
     void Function()? onWaiting,
     void Function(T s)? onData,
-    // On<void>? onSetState,
+    On<void>? onSetState,
+    PersistState<T> Function()? persist,
     void Function(dynamic e, StackTrace? s)? onError,
     DependsOn<T>? dependsOn,
     int undoStackLength = 0,
@@ -216,6 +217,7 @@ abstract class RM {
       onWaiting: onWaiting,
       onData: onData,
       onError: onError,
+      onSetState: onSetState,
       onDisposed: onDisposed,
       dependsOn: dependsOn,
       isAsyncInjected: true,
@@ -230,7 +232,8 @@ abstract class RM {
         }
         return snap;
       },
-      isLazy: true,
+      persist: persist,
+      isLazy: isLazy,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
