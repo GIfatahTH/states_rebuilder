@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         //Plugins can be initialized, to display our Splash screen
         RM.storageInitializer(HiveStorage()),
       ],

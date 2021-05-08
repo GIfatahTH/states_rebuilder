@@ -20,7 +20,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         RM.storageInitializer(HiveStorage()),
       ],
       onWaiting: () => MaterialApp(

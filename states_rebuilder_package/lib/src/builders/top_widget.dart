@@ -41,7 +41,7 @@ class TopAppWidget extends StatefulWidget {
   final List<Future> Function()? ensureInitialization;
 
   @Deprecated('Use ensureInitialization instead')
-  final List<Future> Function()? waitFor;
+  final List<Future> Function()? waiteFor;
 
   ///{@macro topWidget}
   const TopAppWidget({
@@ -51,7 +51,7 @@ class TopAppWidget extends StatefulWidget {
     this.injectedI18N,
     this.onWaiting,
     this.ensureInitialization,
-    this.waitFor,
+    this.waiteFor,
     this.onError,
     this.injectedAuth,
     required this.builder,
@@ -114,7 +114,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
 
   Future<void> _startWaiting() async {
     List<Future> waiteFor = widget.ensureInitialization?.call() ?? [];
-
+    waiteFor.addAll(widget.waiteFor?.call() ?? []);
     _hasWaiteFor = waiteFor.isNotEmpty ||
         widget.injectedI18N?.isWaiting == true ||
         widget.injectedAuth?.isWaiting == true;

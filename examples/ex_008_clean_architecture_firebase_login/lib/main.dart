@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
-      waiteFor: () => [
+      ensureInitialization: () => [
         //Here we initialize all plugins
         canSignInWithApple.stateAsync,
       ],
