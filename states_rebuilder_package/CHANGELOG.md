@@ -1,9 +1,12 @@
-## 4.1.0 (2021-04-23)
+## 4.1.0 (2021-05-08)
 * Solve #183 and #184 issues. (state can be nullable)
 * For `InjectedCRUD` and `InjectedAuth`, `getRepoAs` is now sync.
-* In tests, global mock must be put inside `setUp` method.
-* First release of `InjectedAnimation`  `InjectedScroll` and `InjectedTextEditing`.
+* First release of `InjectedAnimation`  `InjectedScrolling`, `InjectedTextEditing` and `InjectedForm`.
+* Deprecate `TopAppWidget.waitFor` in favor of `TopAppWidget.ensureInitialization`.
 * Refactor internal code.
+
+**Test**: 
+* In tests, global mock must be put inside `setUp` method.
 
 ## 4.0.0+1 (2021-03-2)
 
