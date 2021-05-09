@@ -79,7 +79,7 @@ void main() {
       expect(_nextSnapState!.data, 2);
       expect(model.state, 2);
       //
-      model.onErrorRefresher!();
+      model.onErrorRefresher();
       expect(_snapState!.hasError, true);
       expect(_snapState!.data, 2);
       expect(_nextSnapState!.isWaiting, true);
@@ -124,6 +124,7 @@ void main() {
       SnapState<int>? _nextSnapState;
       final model = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => 1),
+        initialState: 0,
         middleSnapState: (middleSnap) {
           middleSnap.print(
             stateToString: (s) => '[$s]',
@@ -134,7 +135,7 @@ void main() {
         isLazy: false,
       );
       expect(_snapState!.isIdle, true);
-      expect(_snapState!.data, null);
+      expect(_snapState!.data, 0);
       expect(_nextSnapState!.isWaiting, true);
       expect(_nextSnapState!.data, 0);
       await tester.pump(Duration(seconds: 1));
@@ -163,7 +164,7 @@ void main() {
       //Initialize after disposing
       expect(model.isWaiting, true);
       expect(_snapState!.isIdle, true);
-      expect(_snapState!.data, null);
+      expect(_snapState!.data, 0);
       expect(_nextSnapState!.isWaiting, true);
       expect(_nextSnapState!.data, 0);
       //Dispose while waiting for a future
@@ -205,11 +206,11 @@ void main() {
       expect(_snapState!.isIdle, true);
       expect(_snapState!.data, null);
       expect(_nextSnapState!.isWaiting, true);
-      expect(_nextSnapState!.data, 0);
+      expect(_nextSnapState!.data, null);
       //
       await tester.pump(Duration(seconds: 1));
       expect(_snapState!.isWaiting, true);
-      expect(_snapState!.data, 0);
+      expect(_snapState!.data, null);
       expect(_nextSnapState!.hasData, true);
       expect(_nextSnapState!.data, 0);
       //
@@ -229,11 +230,11 @@ void main() {
       expect(_snapState!.isIdle, true);
       expect(_snapState!.data, 2);
       expect(_nextSnapState!.isWaiting, true);
-      expect(_nextSnapState!.data, 0);
+      expect(_nextSnapState!.data, 2);
       //
       await tester.pump(Duration(seconds: 1));
       expect(_snapState!.isWaiting, true);
-      expect(_snapState!.data, 0);
+      expect(_snapState!.data, 2);
       expect(_nextSnapState!.hasData, true);
       expect(_nextSnapState!.data, 0);
       //
@@ -253,11 +254,11 @@ void main() {
       expect(_snapState!.isIdle, true);
       expect(_snapState!.data, null);
       expect(_nextSnapState!.isWaiting, true);
-      expect(_nextSnapState!.data, 0);
+      expect(_nextSnapState!.data, null);
       //
       await tester.pump(Duration(seconds: 1));
       expect(_snapState!.isWaiting, true);
-      expect(_snapState!.data, 0);
+      expect(_snapState!.data, null);
       expect(_nextSnapState!.hasData, true);
       expect(_nextSnapState!.data, 0);
       //

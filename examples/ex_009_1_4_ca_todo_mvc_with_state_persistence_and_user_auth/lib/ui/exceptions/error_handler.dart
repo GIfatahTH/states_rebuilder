@@ -1,26 +1,18 @@
-import '../../service/exceptions/auth_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../domain/exceptions/validation_exception.dart';
-import '../../service/exceptions/persistance_exception.dart';
+import '../../service/exceptions/auth_exception.dart';
+import '../../service/exceptions/fetch_todos_exception.dart';
 
 class ErrorHandler {
-  static String getErrorMessage(dynamic error) {
-    if (error == null) {
-      return null;
-    }
-    if (error is ValidationException) {
+  static String getErrorMessage(Object error) {
+    if (error is CRUDTodosException) {
       return error.message;
     }
 
-    if (error is PersistanceException) {
-      return error.message;
-    }
     if (error is AuthException) {
       return error.message;
     }
-    // return '$error';
     throw (error);
   }
 
@@ -41,7 +33,7 @@ class ErrorHandler {
     );
   }
 
-  static Future<T> showErrorDialog<T>(dynamic error) {
+  static Future<T?> showErrorDialog<T>(dynamic error) {
     return RM.navigate.toDialog<T>(
       AlertDialog(
         content: Column(

@@ -10,10 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   currentEnv = Env.dev;
-  user.injectAuthMock(() => FakeUserRepository());
-  canSignInWithApple.injectFutureMock(
-    () => Future.delayed(Duration(seconds: 1), () => true),
-  );
+  setUp(() {
+    user.injectAuthMock(() => FakeUserRepository());
+    canSignInWithApple.injectFutureMock(
+      () => Future.delayed(Duration(seconds: 1), () => true),
+    );
+  });
   testWidgets(
     'display SplashScreen and go to SignInPage after checking no current user',
     (tester) async {
@@ -25,7 +27,7 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
 
       //After another one second of wait
@@ -34,7 +36,7 @@ void main() {
       await tester.pumpAndSettle(Duration(seconds: 1));
       //SignInPage should be displayed because user is null
       expect(find.byType(SignInPage), findsOneWidget);
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
     },
   );
@@ -44,7 +46,7 @@ void main() {
       await tester.pumpWidget(MyApp());
 
       //setting the USerService to return a known user
-      final repo = await user.getRepoAs<FakeUserRepository>();
+      final repo = user.getRepoAs<FakeUserRepository>();
 
       repo.fakeUser = User(
         uid: '1',
@@ -61,7 +63,7 @@ void main() {
       //SplashScreen should be still visible
       expect(find.byType(SplashScreen), findsOneWidget);
 
-      expect(user.state, UnLoggedUser());
+      expect(user.state, null);
       expect(canSignInWithApple.state, isTrue);
 
       //After another one second of wait
@@ -81,7 +83,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(MyApp());
 
-      final repo = await user.getRepoAs<FakeUserRepository>();
+      final repo = user.getRepoAs<FakeUserRepository>();
 
       repo.fakeUser = User(
         uid: '1',

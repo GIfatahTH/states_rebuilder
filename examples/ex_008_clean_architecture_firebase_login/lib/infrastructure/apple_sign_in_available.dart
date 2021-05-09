@@ -1,8 +1,9 @@
-import 'package:apple_sign_in/apple_sign_in.dart';
+// import 'package:apple_sign_in/apple_sign_in.dart';
 
 class AppleSignInChecker {
   Future<bool> check() async {
-    return await AppleSignIn.isAvailable();
+    // return await AppleSignIn.isAvailable();
+    return true;
   }
 }
 

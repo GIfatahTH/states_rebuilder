@@ -16,7 +16,7 @@ final Injected<int> counter = RM.inject<int>(
     onError: (e, _) => print('error : $e'),
     onData: () => print('data ${counter.state}'),
   ),
-  onInitialized: (int state) => print('Initialized'),
+  onInitialized: (int? state) => print('Initialized'),
 
   //For disposing resources
   //It will be called when the last observer is removed from the widget tree
@@ -37,9 +37,11 @@ class CounterApp extends StatelessWidget {
 }
 
 void main() {
-  //Inject a mock implementation of counter.
-  //This is the default mock implementation. It can be overridden for any particular test.
-  counter.injectMock(() => 0);
+  setUp(() {
+//Inject a mock implementation of counter.
+    //This is the default mock implementation. It can be overridden for any particular test.
+    counter.injectMock(() => 0);
+  });
   testWidgets('First test : should increment counter', (tester) async {
     await tester.pumpWidget(CounterApp());
     //

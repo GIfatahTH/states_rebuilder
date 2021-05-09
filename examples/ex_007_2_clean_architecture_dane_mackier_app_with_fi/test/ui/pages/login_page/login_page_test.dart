@@ -8,9 +8,11 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../data_source/fake_api.dart';
 
 void main() {
-  userInj.injectAuthMock(() => FakeUserRepository());
+  setUp(() {
+    userInj.injectAuthMock(() => FakeUserRepository());
+  });
 
-  Finder loginBtn = find.byType(FlatButton);
+  Finder loginBtn = find.byType(TextButton);
   Finder loginTextField = find.byType(TextField);
 
   final Widget loginPage = TopAppWidget(
@@ -26,6 +28,7 @@ void main() {
   testWidgets('display "The entered value is not a number" message',
       (tester) async {
     await tester.pumpWidget(loginPage);
+    await tester.pumpAndSettle();
     final String notNumberError = NotNumberException().message;
     // before tap, no error message
     expect(find.text(notNumberError), findsNothing);
@@ -138,7 +141,7 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
     expect(userInj.hasData, isTrue);
-    expect(userInj.state.id, equals(1));
+    expect(userInj.state!.id, equals(1));
 
     //await page animation to finish
     await tester.pumpAndSettle();
@@ -155,7 +158,7 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
     expect(userInj.hasData, isTrue);
-    expect(userInj.state.id, equals(2));
+    expect(userInj.state!.id, equals(2));
 
     //await page animation to finish
     await tester.pumpAndSettle();

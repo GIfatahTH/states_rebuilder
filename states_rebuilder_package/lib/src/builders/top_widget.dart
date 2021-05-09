@@ -1,4 +1,8 @@
-part of '../reactive_model.dart';
+import 'package:flutter/material.dart';
+import '../injected/injected_i18n/injected_i18n.dart';
+import '../injected/injected_theme/injected_theme.dart';
+import '../injected/injected_auth/injected_auth.dart';
+import '../rm.dart';
 
 ///{@template topWidget}
 ///Widget to put on top of the app.
@@ -33,7 +37,10 @@ class TopAppWidget extends StatefulWidget {
   final Widget Function()? onWaiting;
   final Widget Function(dynamic error, void Function() refresh)? onError;
 
-  ///List of future to wait for, and display a waiting screen while waiting
+  ///List of future (plugins initialization) to wait for, and display a waiting screen while waiting
+  final List<Future> Function()? ensureInitialization;
+
+  @Deprecated('Use ensureInitialization instead')
   final List<Future> Function()? waiteFor;
 
   ///{@macro topWidget}
@@ -43,12 +50,13 @@ class TopAppWidget extends StatefulWidget {
     this.injectedTheme,
     this.injectedI18N,
     this.onWaiting,
+    this.ensureInitialization,
     this.waiteFor,
     this.onError,
     this.injectedAuth,
     required this.builder,
   })   : assert(
-          waiteFor == null || onWaiting != null,
+          ensureInitialization == null || onWaiting != null,
           'You have to define a waiting splash screen '
           'using onWaiting parameter',
         ),
@@ -74,9 +82,8 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   bool _hasWaiteFor = false;
   void initState() {
     super.initState();
-    if (widget.waiteFor != null) {
-      _startWaiting();
-    }
+    _startWaiting();
+
     if (widget.injectedTheme != null) {
       _builderTheme = (builder) {
         return On(
@@ -91,14 +98,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         return widget.injectedI18N!.inherited(
           builder: (context) {
             if (_isWaiting || widget.injectedI18N!.isWaiting) {
-              if (widget.onWaiting == null) {
-                throw Exception(
-                    'TopWidget is waiting for dependencies to initialize. '
-                    'you have to define a waiting screen using the onWaiting '
-                    'parameter of the TopWidget');
-              } else {
-                return widget.onWaiting!();
-              }
+              return widget.onWaiting!();
             }
             return _builderTheme?.call(builder) ?? builder(context);
           },
@@ -113,9 +113,17 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   }
 
   Future<void> _startWaiting() async {
-    List<Future> waiteFor = widget.waiteFor!();
-    _hasWaiteFor = waiteFor.isNotEmpty;
+    List<Future> waiteFor = widget.ensureInitialization?.call() ?? [];
+    waiteFor.addAll(widget.waiteFor?.call() ?? []);
+    _hasWaiteFor = waiteFor.isNotEmpty ||
+        widget.injectedI18N?.isWaiting == true ||
+        widget.injectedAuth?.isWaiting == true;
     if (!_hasWaiteFor) {
+      // if (widget.injectedI18N != null) {
+      //   waiteFor.add(widget.injectedI18N!.stateAsync);
+      // } else {
+      //   return;
+      // }
       return;
     }
 
@@ -125,6 +133,12 @@ class _TopAppWidgetState extends State<TopAppWidget> {
       for (var future in waiteFor) {
         await future;
       }
+      var i18n = widget.injectedI18N?.stateAsync;
+      var auth = widget.injectedAuth?.stateAsync;
+
+      await i18n;
+      await auth;
+
       setState(() {
         _isWaiting = false;
       });
@@ -143,13 +157,18 @@ class _TopAppWidgetState extends State<TopAppWidget> {
 
   @override
   void dispose() {
-    Future.microtask(() => RM.disposeAll());
+    RM.disposeAll();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isWaiting) {
+    if (_isWaiting || widget.injectedI18N?.isWaiting == true) {
+      if (widget.onWaiting == null) {
+        throw Exception('TopWidget is waiting for dependencies to initialize. '
+            'you have to define a waiting screen using the onWaiting '
+            'parameter of the TopWidget');
+      }
       return widget.onWaiting!();
     }
     if (_hasError && widget.onError != null) {
@@ -161,8 +180,8 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         _startWaiting();
       });
     }
-    widget.injectedAuth?._initialize();
-    widget.injectedI18N?._initialize();
+    (widget.injectedAuth as InjectedAuthImp?)?.initialize();
+    // (widget.injectedI18N as InjectedI18NImp?)?.initialize();
     return child;
   }
 }
@@ -189,9 +208,6 @@ class _TopWidgetWidgetsBindingObserverState extends _TopAppWidgetState
   @override
   void didChangeLocales(List<Locale>? locales) {
     super.didChangeLocales(locales);
-    if (widget.injectedI18N?._locale is SystemLocale && locales != null) {
-      widget.injectedI18N!._locale = locales.first;
-      widget.injectedI18N!.locale = SystemLocale._(locales.first);
-    }
+    (widget.injectedI18N as InjectedI18NImp).didChangeLocales(locales);
   }
 }

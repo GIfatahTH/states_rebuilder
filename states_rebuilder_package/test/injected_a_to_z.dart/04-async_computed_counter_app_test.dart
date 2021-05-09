@@ -33,8 +33,12 @@ class Counter2 {
   }
 }
 
-final counter1 = RM.inject(() => Counter1());
-final counter2 = RM.inject(() => Counter2());
+final counter1 = RM.inject(
+  () => Counter1(),
+);
+final counter2 = RM.inject(
+  () => Counter2(),
+);
 
 final computedCounter = RM.inject<int>(
   () => counter1.state.count * counter2.state.count,
@@ -63,13 +67,14 @@ class CounterApp extends StatelessWidget {
             return Text('counter1 :${counter1.state.count}');
           }).listenTo(counter1),
           On.all(
-              onIdle: () => Text('Idle'),
-              onWaiting: () => Text('Waiting...'),
-              onError: (e, _) => Text(e.message),
-              onData: () {
-                counter2NbrOfRebuilds++;
-                return Text('counter2 :${counter2.state.count}');
-              }).listenTo(counter2),
+            onIdle: () => Text('Idle'),
+            onWaiting: () => Text('Waiting...'),
+            onError: (e, _) => Text(e.message),
+            onData: () {
+              counter2NbrOfRebuilds++;
+              return Text('counter2 :${counter2.state.count}');
+            },
+          ).listenTo(counter2),
           On.or(
               onWaiting: () => Text('Waiting...'),
               onError: (e, _) {
@@ -115,10 +120,10 @@ void main() {
     counter1NbrOfRebuilds = 0;
     counter2NbrOfRebuilds = 0;
     computedCounterNbrOfRebuilds = 0;
+    counter1.injectMock(() => Counter1(incrementBy: 2));
+    counter2.injectMock(() => Counter2());
   });
 
-  counter1.injectMock(() => Counter1(incrementBy: 2));
-  counter2.injectMock(() => Counter2());
   testWidgets('initial state ', (tester) async {
     await tester.pumpWidget(CounterApp());
     //
@@ -142,7 +147,7 @@ void main() {
     expect(find.text('computedCounter :0'), findsNWidgets(1));
     expect(counter1NbrOfRebuilds, 2);
     expect(counter2NbrOfRebuilds, 0);
-    //computed counter did not change (1*0 =0) so its listener are not rebuilt.
+    //computed counter did not change (1*0 =0) so its listeners are not rebuilt.
     expect(computedCounterNbrOfRebuilds, 1);
     //
     counter2.setState((s) => s.increment());

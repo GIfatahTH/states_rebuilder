@@ -7,7 +7,7 @@ class ExceptionsHandler {
       return ErrorMessage();
     }
     if (error is SignInException) {
-      return ErrorMessage(message: error.message, title: error.title);
+      return ErrorMessage(message: error.message!, title: error.title);
     }
 
     if (error is ValidationException) {
@@ -18,8 +18,8 @@ class ExceptionsHandler {
 }
 
 class ErrorMessage {
-  final String title;
-  final String message;
+  final String? title;
+  final String? message;
 
   ErrorMessage({this.title, this.message});
 }

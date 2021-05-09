@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_classes/models.dart';
 
@@ -70,7 +70,7 @@ void main() {
     expect(find.text('5'), findsOneWidget);
   });
 
-  testWidgets('On.future with error and refersh cas listenTo is used',
+  testWidgets('On.future with error and refresh cas listenTo is used',
       (tester) async {
     bool shouldThrow = true;
     late void Function() refresh;
@@ -264,12 +264,16 @@ void main() {
   });
 
   testWidgets('onError is not defined', (tester) async {
-    final counter = RM.injectFuture<int>(() =>
-        Future.delayed(Duration(seconds: 1), () => throw Exception('Error')));
+    final counter = RM.injectFuture<int?>(
+      () => Future.delayed(
+        Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+    );
 
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.future<int>(
+      child: On.future(
         onWaiting: () => Text('Waiting...'),
         onError: null,
         onData: (_, __) => Text('$_'),
@@ -279,7 +283,7 @@ void main() {
     await tester.pumpWidget(widget);
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
-    expect(find.text('0'), findsOneWidget);
+    expect(find.text('null'), findsOneWidget);
     expect(counter.hasError, isTrue);
   });
 }

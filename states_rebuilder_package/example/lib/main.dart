@@ -74,6 +74,7 @@ final streamedHelloName = RM.injectStream<String>(
       yield n += letter;
     }
   },
+  initialState: '',
   onInitialized: (state, subscription) {
     // As the stream will start automatically on creation,
     // we use the onInitialized hook to pause it.
@@ -103,6 +104,7 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           home: const HomeWidget(),
+          debugShowCheckedModeBanner: false,
         );
       },
     );

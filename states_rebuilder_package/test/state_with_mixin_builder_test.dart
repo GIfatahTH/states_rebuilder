@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  late Model model;
+  late ReactiveModel<Model> model;
   setUp(() {
-    model = Model();
+    model = ReactiveModel.create(Model());
   });
 
   testWidgets(
@@ -14,8 +14,9 @@ void main() {
     (WidgetTester tester) async {
       expect(
           () => StateWithMixinBuilder(
-              mixinWith: MixinWith.tickerProviderStateMixin,
-              observe: () => model),
+                mixinWith: MixinWith.tickerProviderStateMixin,
+                observe: () => model,
+              ),
           throwsAssertionError);
     },
   );
@@ -79,19 +80,19 @@ void main() {
       var ticker;
       Widget widget = StateWithMixinBuilder.singleTickerProvider<Model>(
         observe: () => model,
-        initState: (context, ReactiveModel<Model>? rm,
+        initState: (context, Injected<Model>? rm,
             SingleTickerProviderStateMixin? tick) {
           ticker = tick;
         },
-        dispose: (context, ReactiveModel<Model>? rm,
+        dispose: (context, Injected<Model>? rm,
             SingleTickerProviderStateMixin? tick) {},
-        builder: (context, ReactiveModel<Model>? rm) => Container(),
-        didChangeDependencies: (context, ReactiveModel<Model>? rm,
+        builder: (context, Injected<Model>? rm) => Container(),
+        didChangeDependencies: (context, Injected<Model>? rm,
             SingleTickerProviderStateMixin? ticker) {},
         didUpdateWidget:
             (context, old, SingleTickerProviderStateMixin? ticker) {},
-        afterInitialBuild: (context, ReactiveModel<Model>? rm) {},
-        afterRebuild: (context, ReactiveModel<Model>? rm) {},
+        afterInitialBuild: (context, Injected<Model>? rm) {},
+        afterRebuild: (context, Injected<Model>? rm) {},
       );
 
       await tester.pumpWidget(widget);
@@ -145,18 +146,18 @@ void main() {
       var ticker;
       Widget widget = StateWithMixinBuilder.tickerProvider<Model>(
         observe: () => model,
-        initState: (context, ReactiveModel<Model>? rm,
-            TickerProviderStateMixin? tick) {
+        initState:
+            (context, Injected<Model>? rm, TickerProviderStateMixin? tick) {
           ticker = tick;
         },
-        dispose: (context, ReactiveModel<Model>? rm,
-            TickerProviderStateMixin? tick) {},
-        builder: (context, ReactiveModel<Model>? rm) => Container(),
-        didChangeDependencies: (context, ReactiveModel<Model>? rm,
-            TickerProviderStateMixin? ticker) {},
+        dispose:
+            (context, Injected<Model>? rm, TickerProviderStateMixin? tick) {},
+        builder: (context, Injected<Model>? rm) => Container(),
+        didChangeDependencies:
+            (context, Injected<Model>? rm, TickerProviderStateMixin? ticker) {},
         didUpdateWidget: (context, old, TickerProviderStateMixin? ticker) {},
-        afterInitialBuild: (context, ReactiveModel<Model>? rm) {},
-        afterRebuild: (context, ReactiveModel<Model>? rm) {},
+        afterInitialBuild: (context, Injected<Model>? rm) {},
+        afterRebuild: (context, Injected<Model>? rm) {},
       );
 
       await tester.pumpWidget(widget);
@@ -209,14 +210,14 @@ void main() {
     (WidgetTester tester) async {
       Widget widget = StateWithMixinBuilder.automaticKeepAlive<Model>(
         observe: () => model,
-        initState: (context, ReactiveModel<Model>? rm) {},
-        dispose: (context, ReactiveModel<Model>? rm) {},
-        builder: (context, ReactiveModel<Model>? rm) => Container(),
-        didChangeDependencies: (context, ReactiveModel<Model>? rm) {},
+        initState: (context, Injected<Model>? rm) {},
+        dispose: (context, Injected<Model>? rm) {},
+        builder: (context, Injected<Model>? rm) => Container(),
+        didChangeDependencies: (context, Injected<Model>? rm) {},
         didUpdateWidget: (context,
             StateWithMixinBuilder<AutomaticKeepAliveClientMixin, Model> old) {},
-        afterInitialBuild: (context, ReactiveModel<Model>? rm) {},
-        afterRebuild: (context, ReactiveModel<Model>? rm) {},
+        afterInitialBuild: (context, Injected<Model>? rm) {},
+        afterRebuild: (context, Injected<Model>? rm) {},
       );
 
       await tester.pumpWidget(widget);
@@ -266,14 +267,14 @@ void main() {
     (WidgetTester tester) async {
       Widget widget = StateWithMixinBuilder.widgetsBindingObserver<Model>(
           observe: () => model,
-          initState: (context, ReactiveModel<Model>? rm) {},
-          dispose: (context, ReactiveModel<Model>? rm) {},
-          builder: (context, ReactiveModel<Model>? rm) => Container(),
-          didChangeDependencies: (context, ReactiveModel<Model>? rm) {},
+          initState: (context, Injected<Model>? rm) {},
+          dispose: (context, Injected<Model>? rm) {},
+          builder: (context, Injected<Model>? rm) => Container(),
+          didChangeDependencies: (context, Injected<Model>? rm) {},
           didUpdateWidget: (context,
               StateWithMixinBuilder<WidgetsBindingObserver, Model> old) {},
-          afterInitialBuild: (context, ReactiveModel<Model>? rm) {},
-          afterRebuild: (context, ReactiveModel<Model>? rm) {},
+          afterInitialBuild: (context, Injected<Model>? rm) {},
+          afterRebuild: (context, Injected<Model>? rm) {},
           didChangeAppLifecycleState: (context, state) {
             // print(state);
           },
@@ -324,10 +325,11 @@ void main() {
                     observe: () => model,
                     tag: 'childTag',
                     builder: (context, _) {
-                      return Text('${model.counter}');
+                      return Text('${model.state.counter}');
                     },
                   );
                 }
+                return Container();
               },
             ),
           );
@@ -343,26 +345,24 @@ void main() {
       expect(numberAfterRebuild, equals(0));
       expect(numberOfDispose, equals(0));
 
-      model.rebuildStates(['mainTag']);
+      model.notify();
       await tester.pump();
 
-      // expect(numberOfAfterInitialBuilds, equals(1));
-      // expect(numberOfDidChangeDependencies, equals(1));
-      // expect(numberOfDidUpdateWidget, equals(1));
-      // expect(numberAfterRebuild, equals(1));
-      // expect(numberOfDispose, equals(0));
+      expect(numberOfAfterInitialBuilds, equals(1));
+      expect(numberOfDidChangeDependencies, equals(1));
+      expect(numberOfDidUpdateWidget, equals(1));
+      expect(numberAfterRebuild, equals(1));
+      expect(numberOfDispose, equals(0));
 
-      // switcher = false;
-      // model.rebuildStates(['mainTag']);
-      // await tester.pump();
+      switcher = false;
+      model.notify();
+      await tester.pump();
 
-      // expect(numberOfAfterInitialBuilds, equals(1));
-      // expect(numberOfDidChangeDependencies, equals(1));
-      // expect(numberOfDidUpdateWidget, equals(1));
-      // expect(numberAfterRebuild, equals(2));
-      // expect(numberOfDispose, equals(1));
-
-      // expect(ticker, isA<TickerProviderStateMixin>());
+      expect(numberOfAfterInitialBuilds, equals(1));
+      expect(numberOfDidChangeDependencies, equals(1));
+      expect(numberOfDidUpdateWidget, equals(1));
+      expect(numberAfterRebuild, equals(1));
+      expect(numberOfDispose, equals(1));
     },
   );
 
@@ -379,20 +379,20 @@ void main() {
             textDirection: TextDirection.ltr,
             child: Column(
               children: <Widget>[
-                Text('${model.counter}'),
+                Text('${model.state.counter}'),
                 child,
               ],
             ),
           );
         },
-        child: Text('${model.counter}'),
+        child: Text('${model.state.counter}'),
       );
 
       await tester.pumpWidget(widget);
       expect(find.text('0'), findsNWidgets(2));
       //
-      model.increment();
-      model.rebuildStates();
+      model.state.increment();
+      model.notify();
       await tester.pump();
       expect(find.text('0'), findsOneWidget);
       expect(find.text('1'), findsOneWidget);
@@ -412,20 +412,20 @@ void main() {
             textDirection: TextDirection.ltr,
             child: Column(
               children: <Widget>[
-                Text('${model.counter}'),
+                Text('${model.state.counter}'),
                 child,
               ],
             ),
           );
         },
-        child: Text('${model.counter}'),
+        child: Text('${model.state.counter}'),
       );
 
       await tester.pumpWidget(widget);
       expect(find.text('0'), findsNWidgets(2));
       //
-      model.increment();
-      model.rebuildStates();
+      model.state.increment();
+      model.notify();
       await tester.pump();
       expect(find.text('0'), findsOneWidget);
       expect(find.text('1'), findsOneWidget);
@@ -562,13 +562,13 @@ void main() {
             textDirection: TextDirection.ltr,
             child: Column(
               children: <Widget>[
-                Text('${model.counter}'),
+                Text('${model.state.counter}'),
                 child,
               ],
             ),
           );
         },
-        child: Text('${model.counter}'),
+        child: Text('${model.state.counter}'),
       );
 
       await tester.pumpWidget(widget);
@@ -617,7 +617,7 @@ void main() {
   });
 }
 
-class Model extends StatesRebuilder<Model> {
+class Model {
   int counter = 0;
   int numberOfDisposeCall = 0;
   void increment() {

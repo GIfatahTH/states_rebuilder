@@ -36,6 +36,9 @@
   - Easy user authentication and authorization.
   - Easily app themes management.
   - Simple internalization and localization.
+  - Work with TextFields and Form validation, both in client and server side.
+  - Implicit animation with the power of explicit animation.
+  - Easy and user friendly interface for ScrollControllers
 
 - Maintainable
   - Easy to test, mock the dependencies
@@ -229,8 +232,6 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 **The injected state even if it is injected globally it has a lifecycle**. It is created when first used and destroyed when no longer used. Between the creation and the destruction of the state, it can be listened to and mutated to notify its registered listeners.
 
-**The state of an injected model is null safe**, that is it can not be null. For this reason, the initial state will be inferred by the library, and in case it is not, it must be defined explicitly. The initial state of primitives is inferred as follows: (**int: 0, double, 0.0, String:'', and bool: false**). For other non-primitive objects, the initial state will be the first created instance.
-
 **When the state is disposed of, its list of listeners is cleared**, and if the state is waiting for a Future or subscribed to a Stream, it will cancel them to free resources.
 
 **Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
@@ -253,9 +254,6 @@ foo.setState(
 //if state is bool
 foo.toggle();
 ```
-
-
-
 
 <!-- <p align="center">
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder_state_wheel.png" width="400" alt=''/>
@@ -316,13 +314,57 @@ On.crud(
     onResult: (result)=> MyWidget(),// The querying succeeds
 ).listenTo(injectedCRUD);
 
-///Used with injectedAuth. It displays the right page depending on 
-//the signed user
+///Used with injectedAuth. It displays the right page depending on the signed user
 On.auth(
     onWaiting: ()=> Text('Waiting..'),
     onUnsigned: ()=> AuthPage(),
     onSigned: ()=> HomeUserPage(),
 ).listenTo(injectedAuth);
+
+///Listen to an injectedAnimation and set the animation tween implicitly of explicitly
+On.animation(
+    (animate) => Container(
+        width: animate.call(selected ? 200.0 : 100.0),
+        color: animate(selected ? Colors.red : Colors.blue),
+        alignment: animate(selected ? Alignment.center : AlignmentDirectional.topCenter),
+        child: const FlutterLogo(size: 75),
+    ),
+).listenTo(animation)
+
+///List to an InjectedForm and control TextField inside its callback
+On.form(
+  () => Column(
+    children: <Widget>[
+        TextField(
+            focusNode: email.focusNode,
+            controller: email.controller,
+            onSubmitted: (_) {
+              password.focusNode.requestFocus();
+            },
+        ),
+        TextField(
+            focusNode: password.focusNode,
+            controller: password.controller,
+            onSubmitted: (_) {
+              form.submitFocusNode.requestFocus();
+            },
+        ),    
+    ],
+  ),
+).listenTo(form),
+
+///Listen to an InjectedScrolling
+On.scroll(
+  (scroll) {
+    if (scroll.isScrolling) {
+      //While scrolling return an empty container
+      return Container();
+    }
+    return FloatingActionButton(
+      onPressed: () {},
+    );
+  },
+).listenTo(scroll),
 ```
 
 > All onError callbacks expose a refresher. It can be use to refresh the error; that is recalling the last  function that caused the error.
@@ -639,6 +681,162 @@ class App extends StatelessWidget{
   ```
 
   [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
+
+  * To set an animation:
+  ```dart
+  final animation = RM.injectAnimation(
+    duration: const Duration(seconds: 1),
+    curve: Curves.linear,
+  );
+  ```
+
+  In the UI:
+  For Implicit animation
+  ```dart
+  Center(
+    child: On.animation(
+        (animate) => Container(
+            // Animate is a callable class
+            width: animate.call(selected ? 200.0 : 100.0),
+            height: animate(selected ? 100.0 : 200.0, 'height'),
+            color: animate(selected ? Colors.red : Colors.blue),
+            alignment: animate(selected ? Alignment.center : AlignmentDirectional.topCenter),
+            child: const FlutterLogo(size: 75),
+        ),
+    ).listenTo(animation),
+  ),
+  ```
+  For explicit animation
+  ```dart
+  On.animation(
+    (animate) => Transform.rotate(
+    angle: animate.formTween(
+        (currentValue) => Tween(begin: 0, end: 2 * 3.14),
+    )!,
+    child: const FlutterLogo(size: 75),
+    ),
+  ).listenTo(animation),
+  ```
+
+  [🗎 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
+
+  * To deal with TextFields and Form validation
+  ```dart
+  final email =  RM.injectTextEditing():
+
+  final password = RM.injectTextEditing(
+    validator: (String? value) {
+      if (value!.length < 6) {
+        return "Password must have at least 6 characters";
+      }
+      return null;
+    },
+  );
+
+  final form = RM.injectForm(
+    autovalidateMode: AutovalidateMode.disable,
+    autoFocusOnFirstError: true,
+    submit: () async {
+      //This is the default submission logic,
+      //It may be override when calling form.submit( () async { });
+      //It may contains server validation.
+      await serverError =  authRepository.signInWithEmailAndPassword(
+          email: email.text,
+          password: password.text,
+        );
+        //after server validation
+        if(serverError == 'Invalid-Email'){
+          email.error = 'Invalid email';
+        }
+        if(serverError == 'Weak-Password'){
+          email.error = 'Password must have more the 6 characters';
+        }
+    },
+    onSubmitting: () {
+      // called while waiting for form submission,
+    },
+    onSubmitted: () {
+      // called after form is successfully submitted
+      // For example navigation to user page
+    }
+  );
+  ```
+
+  In the UI:
+  ```dart
+    On.form(
+      () => Column(
+        children: <Widget>[
+            TextField(
+                focusNode: email.focusNode,
+                controller: email.controller,
+                decoration: InputDecoration(
+                  errorText: email.error,
+                ),
+                onSubmitted: (_) {
+                  //request the password node
+                  password.focusNode.requestFocus();
+                },
+            ),
+            TextField(
+                focusNode: password.focusNode,
+                controller: password.controller,
+                decoration: new InputDecoration(
+                  errorText: password.error,
+                ),
+                onSubmitted: (_) {
+                  //request the submit button node
+                  form.submitFocusNode.requestFocus();
+                },
+            ),
+            On.submission(
+              onSubmitting: () => CircularProgressIndicator(),
+              child : ElevatedButton(
+                focusNode: form.submitFocusNode,
+                onPressed: (){
+                    form.submit();
+                },
+                child: Text('Submit'),
+              ),
+            ).listenTo(form),     
+        ],
+      ),
+  ).listenTo(form),
+  ```
+
+  [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
+
+  * To work with scrolling list:
+  ```dart
+  final scroll = RM.injectScrolling(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+    endScrollDelay: 300,
+    onScrolling: (scroll){
+      if (scroll.hasReachedMinExtent) {
+      print('Scrolling vertical list is in its top position');
+      }
+      if (scroll.hasReachedMaxExtent) {
+        print('Scrolling vertical list is in its bottom position');
+      }
+
+      if (scroll.hasStartedScrolling) {
+        //Called only one time.
+        print('User has just start scrolling');
+      }
+    }
+  );
+  ```
+
+  In the UI:
+  ```dart
+  ListView(
+      controller: scroll.controller,
+      children: <Widget>[],
+  )
+  ```
+
+  [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
 
 * To mock it in test:
   ```dart

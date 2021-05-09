@@ -36,7 +36,7 @@ class SignInPage extends StatelessWidget {
                 SizedBox(height: 32),
                 //NOTE2: IF can log with apple
                 if (canSignInWithApple.state) ...[
-                  RaisedButton(
+                  ElevatedButton(
                     child: Text('Sign in With Apple Account'),
                     onPressed: isLoading
                         ? null
@@ -46,7 +46,7 @@ class SignInPage extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                 ],
-                RaisedButton(
+                ElevatedButton(
                   child: Text('Sign in With Google Account'),
                   onPressed: isLoading
                       ? null
@@ -55,7 +55,7 @@ class SignInPage extends StatelessWidget {
                           ),
                 ),
                 SizedBox(height: 8),
-                RaisedButton(
+                ElevatedButton(
                   child: Text('Sign in With Email and password'),
                   onPressed: isLoading
                       ? null
@@ -72,7 +72,7 @@ class SignInPage extends StatelessWidget {
                         },
                 ),
                 SizedBox(height: 8),
-                RaisedButton(
+                ElevatedButton(
                   child: Text('Sign in anonymously'),
                   onPressed: isLoading
                       ? null

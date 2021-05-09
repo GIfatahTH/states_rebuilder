@@ -25,21 +25,7 @@ final repository = RM.inject(() => NameRepository());
 // create a name state and inject it.
 final name = RM.inject<String>(
   () => '',
-
-  ///middleSnapState is called after new state calculation and just
-  ///before state mutation.
-  ///
-  ///It exposes the current snapState before mutation and the next snapState.
-  ///
-  ///It is the right palace for logging or crash reporting.
-  ///
-  ///You can also change how state will be mutated (see streamHelloName)
-  middleSnapState: (snapState, nextSnapState) {
-    SnapState.log(
-      snapState,
-      nextSnapState,
-    ).print('name');
-  },
+  debugPrintWhenNotifiedPreMessage: 'name',
 );
 
 final helloName = RM.inject<String>(
@@ -91,6 +77,7 @@ final helloName = RM.inject<String>(
   //Set the undoStackLength to 5. This will automatically
   // enable doing and undoing of the  state
   undoStackLength: 5,
+  debugPrintWhenNotifiedPreMessage: 'helloName',
 );
 //Stream that emits the entered name letter by letter
 final streamedHelloName = RM.injectStream<String>(
@@ -108,14 +95,12 @@ final streamedHelloName = RM.injectStream<String>(
     // we use the onInitialized hook to pause it.
     subscription.pause();
   },
-  middleSnapState: (snapState, nextSnapState) {
-    SnapState.log(
-      snapState,
-      nextSnapState,
-    ).print('streamedHelloName');
+  middleSnapState: (snapState) {
+    snapState.print(preMessage: 'streamedHelloName');
     //Here we change the state
-    if (nextSnapState.hasData) {
-      return nextSnapState.copyWith(data: nextSnapState.data!.toUpperCase());
+    if (snapState.nextSnap.hasData) {
+      return snapState.nextSnap
+          .copyWith(data: snapState.nextSnap.data!.toUpperCase());
     }
   },
 );
@@ -193,7 +178,7 @@ class MyApp extends StatelessWidget {
               ],
             ),
             Spacer(),
-            RaisedButton(
+            ElevatedButton(
               child: Text('Start Streaming'),
               onPressed: () {
                 // Calling refresh on any injected will re-execute its creation

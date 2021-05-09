@@ -9,16 +9,12 @@ final numbers = RM.injectCRUD<Number, NumberParam>(
   () => NumbersRepository(),
   param: () => NumberParam(userId: '1', numType: NumType.all),
   readOnInitialization: true,
-  middleSnapState: (snap) {
-    // snap.print(
-    //   stateToString: (List<Number> s) => '${s?.length}',
-    // );
-  },
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 final count = RM.injectFuture<List<int>>(
   () async {
-    final repo = await numbers.getRepoAs<NumbersRepository>();
+    final repo = numbers.repo as NumbersRepository;
     final all = repo.count(NumberParam(userId: '1', numType: NumType.all));
     final odd = repo.count(NumberParam(userId: '1', numType: NumType.odd));
     final even = repo.count(NumberParam(userId: '1', numType: NumType.even));
@@ -26,9 +22,7 @@ final count = RM.injectFuture<List<int>>(
   },
   initialState: [0, 0, 0],
   dependsOn: DependsOn({numbers}, shouldNotify: (_) => !numbers.isOnCRUD),
-  middleSnapState: (snap) {
-    // snap.print();
-  },
+  debugPrintWhenNotifiedPreMessage: 'count',
 );
 
 void main() => runApp(_App());

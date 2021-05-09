@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveStorage implements IPersistStore {
-  Box box;
+  late Box box;
 
   @override
   Future<void> init() async {
@@ -12,7 +12,7 @@ class HiveStorage implements IPersistStore {
   }
 
   @override
-  Object read(String key) {
+  Object? read(String key) {
     return box.get(key);
   }
 
@@ -28,6 +28,6 @@ class HiveStorage implements IPersistStore {
 
   @override
   Future<void> deleteAll() async {
-    return box.clear();
+    await box.clear();
   }
 }

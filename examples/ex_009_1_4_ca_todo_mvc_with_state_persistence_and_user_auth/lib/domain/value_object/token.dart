@@ -3,31 +3,31 @@ import 'dart:convert';
 import '../common/extensions.dart';
 
 class Token {
-  final String _token;
-  final DateTime expiryDate;
+  final String? _token;
+  final DateTime? expiryDate;
 
   Token({
-    String token,
-    this.expiryDate,
+    String? token,
+    required this.expiryDate,
   }) : _token = token;
 
   bool get isAuth {
     return token != null;
   }
 
-  String get token {
+  String? get token {
     if (_token == null || expiryDate == null) {
       return null;
     }
-    if (expiryDate.isAfter(DateTimeX.current)) {
+    if (expiryDate!.isAfter(DateTimeX.current)) {
       return _token;
     }
     return null;
   }
 
   Token copyWith({
-    String token,
-    DateTime expiryDate,
+    String? token,
+    DateTime? expiryDate,
   }) {
     return Token(
       token: token ?? this._token,
@@ -43,8 +43,6 @@ class Token {
   }
 
   factory Token.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return Token(
       token: map['token'],
       expiryDate: DateTime.fromMillisecondsSinceEpoch(map['expiryDate']),

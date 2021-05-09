@@ -1,10 +1,9 @@
 import 'dart:convert' as convert;
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/persistance_exception.dart';
+import '../service/exceptions/fetch_todos_exception.dart';
 
 import '../domain/entities/todo.dart';
 import 'my_project_data.dart' as myProjectData; //TODO Delete this.
@@ -19,12 +18,12 @@ class TodosQuery {
   final String userId;
   TodosQuery({
     this.todos = const [],
-    this.userId,
+    required this.userId,
   });
 
   TodosQuery copyWith({
-    List<Todo> todos,
-    String userId,
+    List<Todo>? todos,
+    String? userId,
   }) {
     return TodosQuery(
       todos: todos ?? this.todos,
@@ -37,166 +36,111 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
   final String authToken;
 
   FireBaseTodosRepository({
-    @required this.authToken,
+    required this.authToken,
   });
   @override
-  Future<List<Todo>> read(String userId) async {
+  Future<List<Todo>> read(String? userId) async {
+    if (userId == null) {
+      return [];
+    }
     try {
       // await Future.delayed(Duration(seconds: 5));
 
-      final response = await http.get('$baseUrl/$userId.json?auth=$authToken');
+      final response = await http.get(
+        Uri.parse('$baseUrl/$userId.json?auth=$authToken'),
+      );
       if (response.statusCode >= 400) {
-        throw PersistanceException('Read failure');
+        throw CRUDTodosException.pageNotFound();
       }
 
       final result =
-          convert.json.decode(response.body ?? '{}') as Map<dynamic, dynamic>;
+          convert.json.decode(response.body) as Map<String, dynamic>?;
       if (result == null) {
         return [];
       }
       return result
-          .map((k, m) => MapEntry(k, Todo.fromJson(m).copyWith(id: k)))
+          .map<String, Todo>(
+              (k, m) => MapEntry(k, Todo.fromJson(m).copyWith(id: k)))
           .values
           .toList();
     } catch (e) {
-      if (e is PersistanceException) {
+      if (e is Error) {
         rethrow;
       }
-      throw PersistanceException('NetWork Failure');
+      throw CRUDTodosException.netWorkFailure();
     }
   }
 
   @override
-  Future<dynamic> update(List<Todo> items, String userId) async {
+  Future<dynamic> update(List<Todo> items, String? userId) async {
+    if (userId == null) {
+      return null;
+    }
     try {
       assert(items.isNotEmpty);
       // await Future.delayed(Duration(seconds: 0));
       // throw PersistanceException('Write failure');
       for (var item in items) {
         final response = await http.put(
-          '$baseUrl/$userId/${item.id}.json?auth=$authToken',
+          Uri.parse('$baseUrl/$userId/${item.id}.json?auth=$authToken'),
           body: convert.json.encode(item.toJson()),
         );
         if (response.statusCode >= 400) {
-          throw PersistanceException('Write failure');
+          throw CRUDTodosException.pageNotFound();
         }
       }
       return true;
     } catch (e) {
-      if (e is PersistanceException) {
-        rethrow;
-      }
-      throw PersistanceException('NetWork Failure');
+      throw CRUDTodosException.netWorkFailure();
     }
   }
 
   @override
-  Future<Todo> create(Todo item, String userId) async {
+  Future<Todo> create(Todo item, String? userId) async {
+    if (userId == null) {
+      return item;
+    }
     try {
       // await Future.delayed(Duration(seconds: 0));
       // throw PersistanceException('Write failure');
       final response = await http.post(
-        '$baseUrl/$userId.json?auth=$authToken',
+        Uri.parse('$baseUrl/$userId.json?auth=$authToken'),
         body: convert.json.encode(item.toJson()),
       );
       if (response.statusCode >= 400) {
-        throw PersistanceException('Write failure');
+        throw CRUDTodosException.pageNotFound();
       }
       final result =
           convert.json.decode(response.body) as Map<dynamic, dynamic>;
       return item.copyWith(id: result['name']);
     } catch (e) {
-      if (e is PersistanceException) {
-        rethrow;
-      }
-      throw PersistanceException('NetWork Failure');
+      throw CRUDTodosException.netWorkFailure();
     }
   }
 
   @override
-  Future<dynamic> delete(List<Todo> item, String userId) async {
+  Future<dynamic> delete(List<Todo> item, String? userId) async {
+    if (userId == null) {
+      return null;
+    }
     try {
       // await Future.delayed(Duration(seconds: 0));
       // throw PersistanceException('Write failure');
       final response = await http.delete(
-        '$baseUrl/$userId/${item.first.id}.json?auth=$authToken',
+        Uri.parse('$baseUrl/$userId/${item.first.id}.json?auth=$authToken'),
       );
       if (response.statusCode >= 400) {
-        throw PersistanceException('Write failure');
+        throw CRUDTodosException.pageNotFound();
       }
       return true;
     } catch (e) {
-      if (e is PersistanceException) {
-        rethrow;
-      }
-      throw PersistanceException('NetWork Failure');
+      throw CRUDTodosException.netWorkFailure();
     }
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
+  void dispose() {}
 
   @override
-  Future<ICRUD<Todo, String>> init() async {
-    return this;
-  }
+  Future<void> init() async {}
 }
-
-// class FireBaseTodosRepository implements IPersistStore {
-//   final String authToken;
-
-//   FireBaseTodosRepository({
-//     @required this.authToken,
-//   });
-
-//   @override
-//   Future<void> init() async {}
-
-//   @override
-//   Object read(String key) async {
-//     try {
-//       // await Future.delayed(Duration(seconds: 5));
-
-//       final response = await http.get('$baseUrl/$key.json?auth=$authToken');
-//       if (response.statusCode > 400) {
-//         throw PersistanceException('Read failure');
-//       }
-//       return response.body;
-//     } catch (e) {
-//       if (e is PersistanceException) {
-//         rethrow;
-//       }
-//       throw PersistanceException('NetWork Failure');
-//     }
-//   }
-
-//   @override
-//   Future<void> write<T>(String key, T value) async {
-//     try {
-//       // await Future.delayed(Duration(seconds: 0));
-//       // throw PersistanceException('Write failure');
-//       final response =
-//           await http.put('$baseUrl/$key.json?auth=$authToken', body: value);
-//       if (response.statusCode >= 400) {
-//         throw PersistanceException('Write failure');
-//       }
-//     } catch (e) {
-//       if (e is PersistanceException) {
-//         rethrow;
-//       }
-//       throw PersistanceException('NetWork Failure');
-//     }
-//   }
-
-//   @override
-//   Future<void> delete(String key) {
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   Future<void> deleteAll() {
-//     throw UnimplementedError();
-//   }
-// }

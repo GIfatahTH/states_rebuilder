@@ -55,12 +55,3 @@ class User {
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ username.hashCode;
 }
-
-class UnSignedUser extends User {
-  UnSignedUser()
-      : super(
-          id: 0,
-          name: '',
-          username: '',
-        );
-}

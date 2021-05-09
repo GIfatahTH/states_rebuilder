@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 final theme = RM.injectTheme(
   lightThemes: {
@@ -174,38 +174,38 @@ void main() async {
         );
       },
     );
-    expect(store.store?.isEmpty, true);
+    expect(store.store.isEmpty, true);
     await tester.pumpWidget(widget);
     expect(theme.themeMode, ThemeMode.system);
-    expect(store.store!['_theme_'], 'theme1#|#');
+    expect(store.store['_theme_'], 'theme1#|#');
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme1#|#1');
+    expect(store.store['_theme_'], 'theme1#|#1');
     //
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.light);
-    expect(store.store!['_theme_'], 'theme1#|#0');
+    expect(store.store['_theme_'], 'theme1#|#0');
     //
     theme.state = 'theme2';
     await tester.pump();
     expect(theme.themeMode, ThemeMode.light);
-    expect(store.store!['_theme_'], 'theme2#|#0');
+    expect(store.store['_theme_'], 'theme2#|#0');
     //
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme2#|#1');
+    expect(store.store['_theme_'], 'theme2#|#1');
     //
     theme.state = 'theme1';
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme1#|#1');
+    expect(store.store['_theme_'], 'theme1#|#1');
   });
 
   testWidgets('Persisting theme, case dark theme persisted', (tester) async {
-    store.store?.addAll({'_theme_': 'theme1#|#1'});
+    store.store.addAll({'_theme_': 'theme1#|#1'});
     //
     final lightTheme = ThemeData.light();
     final darkTheme = ThemeData.dark();
@@ -234,21 +234,21 @@ void main() async {
     );
     await tester.pumpWidget(widget);
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme1#|#1');
+    expect(store.store['_theme_'], 'theme1#|#1');
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.light);
-    expect(store.store!['_theme_'], 'theme1#|#0');
+    expect(store.store['_theme_'], 'theme1#|#0');
     //
     theme.state = 'theme2';
     await tester.pump();
     expect(theme.themeMode, ThemeMode.light);
-    expect(store.store!['_theme_'], 'theme2#|#0');
+    expect(store.store['_theme_'], 'theme2#|#0');
     //
   });
 
   testWidgets('Persisting theme, case system theme persisted', (tester) async {
-    store.store?.addAll({'_theme_': 'theme3#|#'});
+    store.store.addAll({'_theme_': 'theme3#|#'});
     //
     final lightTheme = ThemeData.light();
     final darkTheme = ThemeData.dark();
@@ -277,20 +277,20 @@ void main() async {
     );
     await tester.pumpWidget(widget);
     expect(theme.themeMode, ThemeMode.system);
-    expect(store.store!['_theme_'], 'theme3#|#');
+    expect(store.store['_theme_'], 'theme1#|#');
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme1#|#1');
+    expect(store.store['_theme_'], 'theme1#|#1');
     //
     theme.state = 'theme2';
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme2#|#1');
+    expect(store.store['_theme_'], 'theme2#|#1');
   });
 
   testWidgets('Persisting theme, case light theme persisted', (tester) async {
-    store.store?.addAll({'_theme_': 'theme2#|#0'});
+    store.store.addAll({'_theme_': 'theme2#|#0'});
     //
     final lightTheme = ThemeData.light();
     final darkTheme = ThemeData.dark();
@@ -319,16 +319,16 @@ void main() async {
     );
     await tester.pumpWidget(widget);
     expect(theme.themeMode, ThemeMode.light);
-    expect(store.store!['_theme_'], 'theme2#|#0');
+    expect(store.store['_theme_'], 'theme2#|#0');
     theme.toggle();
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme2#|#1');
+    expect(store.store['_theme_'], 'theme2#|#1');
     //
     theme.state = 'theme1';
     await tester.pump();
     expect(theme.themeMode, ThemeMode.dark);
-    expect(store.store!['_theme_'], 'theme1#|#1');
+    expect(store.store['_theme_'], 'theme1#|#1');
   });
 
   testWidgets(

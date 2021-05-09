@@ -7,24 +7,24 @@ import '../value_object/token.dart';
 @immutable
 class User {
   final String userId;
-  final String email;
-  final String displayName;
-  final String photoUrl;
+  final String? email;
+  final String? displayName;
+  final String? photoUrl;
   final Token token;
   User({
-    this.userId,
+    required this.userId,
     this.email,
     this.displayName,
     this.photoUrl,
-    this.token,
+    required this.token,
   });
 
   User copyWith({
-    String userId,
-    String email,
-    String displayName,
-    String photoUrl,
-    Token token,
+    String? userId,
+    String? email,
+    String? displayName,
+    String? photoUrl,
+    Token? token,
   }) {
     return User(
       userId: userId ?? this.userId,
@@ -41,13 +41,11 @@ class User {
       'email': email,
       'displayName': displayName,
       'photoUrl': photoUrl,
-      'token': token?.toMap(),
+      'token': token.toMap(),
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return User(
       userId: map['userId'],
       email: map['email'],
@@ -89,13 +87,11 @@ class User {
   }
 }
 
-class UnsignedUser extends User {}
-
 class UserParam {
   final String email;
   final String password;
   UserParam({
-    this.email,
-    this.password,
+    required this.email,
+    required this.password,
   });
 }

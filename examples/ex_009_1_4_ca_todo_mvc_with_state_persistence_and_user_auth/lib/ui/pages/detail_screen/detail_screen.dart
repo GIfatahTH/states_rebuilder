@@ -14,7 +14,7 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = todos.item(context);
+    final todo = todos.item.call(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(i18n.of(context).todoDetails),

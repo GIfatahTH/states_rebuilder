@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final i18n = RM.injectI18N({
   Locale('en'): () => EN(),
-  Locale('fr'): () => ES(),
+  Locale('es'): () => ES(),
   Locale('ar'): () => AR(),
   Locale('de'): () => DE(),
 });

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:states_rebuilder/src/reactive_model.dart';
+import '../rm.dart';
 
 import 'injector.dart';
 
@@ -10,7 +10,7 @@ abstract class Injectable {}
 class Inject<T> extends Injectable {
   Inject._(this.injected, this._name);
 
-  final Injected<T> injected;
+  final ReactiveModel<T> injected;
   String? _name;
 
   ///Inject a value or a model.
@@ -20,11 +20,7 @@ class Inject<T> extends Injectable {
     bool isLazy = true,
   }) {
     return Inject._(
-      RM.inject(
-        creationFunction,
-        isLazy: isLazy,
-        autoDisposeWhenNotUsed: false,
-      ),
+      ReactiveModel(creator: creationFunction),
       name,
     );
   }
@@ -36,12 +32,9 @@ class Inject<T> extends Injectable {
     T? initialValue,
   }) {
     return Inject._(
-      RM.injectFuture(
+      ReactiveModel.future(
         creationFutureFunction,
-        isLazy: isLazy,
         initialState: initialValue,
-        autoDisposeWhenNotUsed: false,
-        debugPrintWhenNotifiedPreMessage: 'future',
       ),
       name,
     );
@@ -55,12 +48,9 @@ class Inject<T> extends Injectable {
     Object? Function(T?)? watch,
   }) {
     return Inject._(
-      RM.injectStream(
+      ReactiveModel.stream(
         creationFutureFunction,
-        isLazy: isLazy,
         initialState: initialValue,
-        watch: watch,
-        autoDisposeWhenNotUsed: false,
       ),
       name,
     );
@@ -70,18 +60,22 @@ class Inject<T> extends Injectable {
   factory Inject.interface(
     Map<dynamic, FutureOr<T> Function()> impl, {
     dynamic name,
-    bool isLazy = false,
+    // bool isLazy = false,
     T? initialValue,
   }) {
     // ignore: deprecated_member_use_from_same_package
     RM.env = Injector.env;
     return Inject._(
-      RM.injectFlavor(
-        impl,
-        isLazy: isLazy,
-        initialState: initialValue,
-        autoDisposeWhenNotUsed: false,
-      ),
+      ReactiveModel(creator: () {
+        return RM
+            .injectFlavor(
+              impl,
+              isLazy: false,
+              initialState: initialValue,
+              autoDisposeWhenNotUsed: false,
+            )
+            .state;
+      }),
       name,
     );
   }

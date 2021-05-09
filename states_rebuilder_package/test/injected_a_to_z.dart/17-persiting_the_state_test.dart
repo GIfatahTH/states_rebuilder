@@ -9,7 +9,9 @@ final counterFuture = RM.injectFuture(
     key: 'counterFuture',
     fromJson: (json) => int.parse(json),
     toJson: (s) => '$s',
+    // debugPrintOperations: true,
   ),
+  autoDisposeWhenNotUsed: true,
 );
 
 //We use var here to set counter for another options in test
@@ -23,7 +25,9 @@ var counter = RM.inject(
 );
 
 //Used to dispose counter for test
-final switcher = RM.inject(() => true);
+final switcher = RM.inject(
+  () => true,
+);
 
 class App extends StatelessWidget {
   @override
@@ -36,13 +40,17 @@ class App extends StatelessWidget {
             () => switcher.state
                 ? On.data(
                     () => Text('counter: ${counter.state}'),
-                  ).listenTo(counter)
+                  ).listenTo(
+                    counter,
+                  )
                 : Container(),
           ).listenTo(switcher),
           On.or(
             onWaiting: () => Text('Waiting...'),
             or: () => Text('counterFuture: ${counterFuture.state}'),
-          ).listenTo(counterFuture),
+          ).listenTo(
+            counterFuture,
+          ),
         ],
       ),
     );
@@ -52,7 +60,7 @@ class App extends StatelessWidget {
 void main() async {
   //Inject a mocked implementation of ILocalStorage
   //it return a store of type Mao
-  final store = (await RM.storageInitializerMock()).store!;
+  final store = (await RM.storageInitializerMock()).store;
   setUp(() {
     store.clear();
   });
@@ -144,8 +152,6 @@ void main() async {
       () => 0,
       persist: () => PersistState(
         key: 'counter',
-        fromJson: (json) => int.parse(json),
-        toJson: (s) => '$s',
         persistOn: PersistOn.disposed,
       ),
     );
@@ -153,18 +159,18 @@ void main() async {
     expect(store.isEmpty, isTrue);
     expect(store['counter'], null);
     await tester.pumpWidget(App());
-    expect(store['counter'], '0');
+    expect(store['counter'], null);
     expect(store['counterFuture'], null);
     //
     await tester.pump(Duration(seconds: 1));
-    expect(store['counter'], '0');
+    expect(store['counter'], null);
     expect(store['counterFuture'], '0');
 
     //increment counter
     counter.state++;
     await tester.pump();
     //the new state is not persisted
-    expect(store['counter'], '0');
+    expect(store['counter'], null);
     expect(store['counterFuture'], '0');
     //
     //Dispose the state
@@ -183,7 +189,7 @@ void main() async {
         key: 'counter',
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
-        persistOn: PersistOn.disposed,
+        persistOn: PersistOn.manualPersist,
       ),
     );
 
@@ -193,13 +199,13 @@ void main() async {
     expect(store['counterFuture'], null);
     //
     await tester.pump(Duration(seconds: 1));
-    expect(store['counter'], '0');
+    expect(store['counter'], null);
     expect(store['counterFuture'], '0');
 
     //
     counter.state++;
     await tester.pump();
-    expect(store['counter'], '0');
+    expect(store['counter'], null);
     expect(store['counterFuture'], '0');
     //manually persist the state
     counter.persistState();

@@ -2,18 +2,19 @@ part of 'home_screen.dart';
 
 final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   () => FireBaseTodosRepository(
-    authToken: user.state.token.token,
+    authToken: user.state!.token.token!,
   ),
-  param: () => '__Todos__/${user.state.userId}',
+  param: () => '__Todos__/${user.state!.userId}',
   readOnInitialization: true,
   onSetState: On.error((e, r) {
     ErrorHandler.showErrorSnackBar(e);
   }),
-  middleSnapState: (middleSnap) {
-    middleSnap.print(
-      preMessage: 'todo',
-    );
+  onInitialized: (_) {
+    Injected.debugAddRemoveListener(todos, onAaddListener: (_) {
+      print(_);
+    });
   },
+  debugPrintWhenNotifiedPreMessage: 'todos',
 );
 
 extension ListTodoX on List<Todo> {
@@ -42,12 +43,11 @@ final Injected<List<Todo>> todosFiltered = RM.inject(
     }
     return [...todos.state];
   },
-  dependsOn: DependsOn({activeFilter, todos}),
-  middleSnapState: (middleSnap) {
-    middleSnap.print(
-      preMessage: 'filterTodos',
-    );
+  onDisposed: (_) {
+    print('filter todos disposed');
   },
+  dependsOn: DependsOn({activeFilter, todos}),
+  debugPrintWhenNotifiedPreMessage: 'filterTodos',
 );
 
 final Injected<TodosStats> todosStats = RM.inject(
@@ -55,12 +55,13 @@ final Injected<TodosStats> todosStats = RM.inject(
     numCompleted: todos.state.where((t) => t.complete).length,
     numActive: todos.state.where((t) => !t.complete).length,
   ),
+  // initialState: TodosStats(numCompleted: 0, numActive: 0),
   dependsOn: DependsOn({todos}),
-  middleSnapState: (middleSnap) {
-    middleSnap.print(
-      preMessage: 'stats',
-    );
-  },
+  // middleSnapState: (middleSnap) {
+  //   middleSnap.print(
+  //     preMessage: 'stats',
+  //   );
+  // },
 );
 
 final activeTab = RM.inject(() => AppTab.todos);

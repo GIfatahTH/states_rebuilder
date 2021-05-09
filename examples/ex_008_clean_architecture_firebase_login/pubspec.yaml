@@ -15,21 +15,22 @@ version: 1.0.0+1
 publish_to: none
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   states_rebuilder:
     path: ../../states_rebuilder_package
-  firebase_auth: ^0.15.4
-  google_sign_in: ^4.1.1
-  apple_sign_in: ^0.1.0
+  firebase_auth: ^1.1.3
+  firebase_core:
+  google_sign_in: ^5.0.2
+  # apple_sign_in: ^0.1.0 # wait for null safety
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
-  hive_flutter: ^0.3.1
+  cupertino_icons: ^1.0.3
+  hive_flutter: ^1.0.0
 
 
 dev_dependencies:

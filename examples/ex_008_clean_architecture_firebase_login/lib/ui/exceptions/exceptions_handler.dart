@@ -10,7 +10,7 @@ class ExceptionsHandler {
       return ErrorMessage();
     }
     if (error is SignInException) {
-      return ErrorMessage(message: error.message, title: error.title);
+      return ErrorMessage(message: error.message!, title: error.title);
     }
 
     if (error is ValidationException) {
@@ -21,11 +21,11 @@ class ExceptionsHandler {
 
   static void showErrorDialog(dynamic error) {
     showDialog(
-      context: RM.context,
+      context: RM.context!,
       builder: (context) {
         return AlertDialog(
-          title: Text(errorMessage(error).title),
-          content: Text(errorMessage(error).message),
+          title: Text(errorMessage(error).title!),
+          content: Text(errorMessage(error).message!),
         );
       },
     );
@@ -33,8 +33,8 @@ class ExceptionsHandler {
 }
 
 class ErrorMessage {
-  final String title;
-  final String message;
+  final String? title;
+  final String? message;
 
   ErrorMessage({this.title, this.message});
 }

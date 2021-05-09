@@ -34,8 +34,8 @@ class _LoginBody extends StatelessWidget {
         _LoginHeader(controller: controller),
         On.or(
           onWaiting: () => CircularProgressIndicator(),
-          or: () => FlatButton(
-            color: Colors.white,
+          or: () => TextButton(
+            // color: Colors.white,
             child: Text(
               'Login',
               style: TextStyle(color: Colors.black),

@@ -20,6 +20,10 @@ class NullUser extends User {
 class Product {
   final String id;
   Product({required this.id});
+  @override
+  String toString() {
+    return 'Product($id)';
+  }
 }
 
 /* --- Repository --*/
@@ -120,16 +124,18 @@ final productRepository = RM.inject<IProductRepository>(
     },
   ),
   // debugPrintWhenNotifiedPreMessage: 'productRepository',
+  // toDebugString: (s) => '${s?.userId}'
   // //re-execute the compute method only if the user changes
   // shouldCompute: (productRepository) =>
   //     productRepository?.userId != authService.state.user.userId,
 );
 
 //Inject Product Service
-final productService = RM.inject(
+final productService = RM.inject<ProductService>(
   () => ProductService(productRepository.state),
-
+  dependsOn: DependsOn({productRepository}),
   // debugPrintWhenNotifiedPreMessage: '',
+  // toDebugString: (s) => '${s?.products}',
 );
 
 /* -- The UI --*/
@@ -213,14 +219,16 @@ class FakeProductRepository extends IProductRepository {
 }
 
 void main() {
-  //inject the fake implementations
-  authRepository.injectMock(() => FakeAuthRepository());
-  productRepository.injectMock(
-    () => FakeProductRepository(
-      userId: authService.state.user.userId,
-      token: authService.state.user.token,
-    ),
-  );
+  setUp(() {
+    //inject the fake implementations
+    authRepository.injectMock(() => FakeAuthRepository());
+    productRepository.injectMock(
+      () => FakeProductRepository(
+        userId: authService.state.user.userId,
+        token: authService.state.user.token,
+      ),
+    );
+  });
   //
   testWidgets('first start, app in the Auth page', (tester) async {
     await tester.pumpWidget(MaterialApp(

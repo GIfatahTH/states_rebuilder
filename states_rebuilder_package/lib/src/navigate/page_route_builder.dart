@@ -1,4 +1,4 @@
-part of '../reactive_model.dart';
+part of '../rm.dart';
 
 Widget Function(
   BuildContext context,

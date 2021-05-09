@@ -1,5 +1,3 @@
-import 'package:states_rebuilder/src/reactive_model.dart';
-
 class VanillaModel {
   VanillaModel([this.counter = 0]);
   int counter = 0;
@@ -64,14 +62,14 @@ Stream<int> getStream() {
   }).take(3);
 }
 
-class StatesRebuilderModel extends StatesRebuilder {
-  int counter = 0;
-  int numberOfDisposeCall = 0;
-  void increment() {
-    counter++;
-  }
+// class StatesRebuilderModel extends StatesRebuilder {
+//   int counter = 0;
+//   int numberOfDisposeCall = 0;
+//   void increment() {
+//     counter++;
+//   }
 
-  dispose() {
-    numberOfDisposeCall++;
-  }
-}
+//   dispose() {
+//     numberOfDisposeCall++;
+//   }
+// }

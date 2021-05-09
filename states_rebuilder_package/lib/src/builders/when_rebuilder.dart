@@ -1,4 +1,7 @@
-part of '../reactive_model.dart';
+import 'package:flutter/material.dart';
+import '../rm.dart';
+
+import 'package:collection/collection.dart';
 
 ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
 ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/reactive_model.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets('simple counter app', (tester) async {
@@ -169,7 +169,9 @@ void main() {
 class _Model {
   int count;
   _Model(this.count);
-  void incrementFuture() => Future.delayed(Duration(seconds: 1), () => count++);
+  void incrementFuture() => Future.delayed(Duration(seconds: 1), () {
+        count++;
+      });
   void incrementFutureWithError([String? error]) => Future.delayed(
       Duration(seconds: 1), () => throw Exception(error ?? 'Error Message'));
   Stream<void> incrementStream() async* {

@@ -8,10 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   currentEnv = Env.dev;
-  user.injectAuthMock(() => FakeUserRepository());
-  canSignInWithApple.injectFutureMock(
-    () => Future.delayed(Duration(seconds: 1), () => true),
-  );
+  setUp(() {
+    user.injectAuthMock(() => FakeUserRepository());
+    canSignInWithApple.injectFutureMock(
+      () => Future.delayed(Duration(seconds: 1), () => true),
+    );
+  });
 
   testWidgets('Sign in With Apple', (tester) async {
     await tester.pumpWidget(MyApp());
@@ -21,7 +23,7 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
-      return widget is RaisedButton &&
+      return widget is ElevatedButton &&
           (widget.child as Text).data == 'Sign in With Apple Account' &&
           //find active button
           widget.enabled;
@@ -59,7 +61,7 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
-      return widget is RaisedButton &&
+      return widget is ElevatedButton &&
           (widget.child as Text).data == 'Sign in With Google Account' &&
           //find active button
           widget.enabled;
@@ -86,7 +88,7 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
-      return widget is RaisedButton &&
+      return widget is ElevatedButton &&
           (widget.child as Text).data == 'Sign in anonymously' &&
           //find active button
           widget.enabled;
@@ -113,7 +115,7 @@ void main() {
     expect(find.text('Log in'), findsOneWidget);
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
-      return widget is RaisedButton &&
+      return widget is ElevatedButton &&
           (widget.child as Text).data == 'Sign in With Email and password' &&
           //find active button
           widget.enabled;
@@ -130,7 +132,7 @@ void main() {
   testWidgets('display alertDialog on SignInException', (tester) async {
     user.injectAuthMock(
       () => FakeUserRepository(
-        error: SignInException(
+        exception: SignInException(
           title: 'Sign in anonymously Alert',
           code: 'e.code',
           message: 'error message',
@@ -141,7 +143,7 @@ void main() {
     await tester.pumpAndSettle(Duration(seconds: 2));
 
     Finder signInBtn = find.byWidgetPredicate((widget) {
-      return widget is RaisedButton &&
+      return widget is ElevatedButton &&
           (widget.child as Text).data == 'Sign in anonymously' &&
           //find active button
           widget.enabled;

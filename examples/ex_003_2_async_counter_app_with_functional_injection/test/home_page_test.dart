@@ -5,9 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  //Here we override the flavor to be FakeCounterStore.
-  counterStore.injectMock(() => FakeCounterStore(0));
-  setUp(() => RM.disposeAll());
+  setUp(() {
+    RM.disposeAll();
+    //Here we override the flavor to be FakeCounterStore.
+    //
+    //We put it inside setUp method so to be applicable for all individual tests
+    counterStore.injectMock(() => FakeCounterStore(0));
+  });
   testWidgets('async counter without error (IncrByOne flavor)', (tester) async {
     //
     //We choose the flavor

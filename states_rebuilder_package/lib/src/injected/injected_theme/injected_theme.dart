@@ -1,109 +1,167 @@
-part of '../../reactive_model.dart';
+import 'package:flutter/material.dart';
+import '../../rm.dart';
 
-///Injected state that handle the app theme switching.
-class InjectedTheme<Key> extends InjectedImp<Key> {
-  InjectedTheme({
-    required Map<Key, ThemeData> themes,
-    required Map<Key, ThemeData>? darkThemes,
-    ThemeMode themeMode = ThemeMode.system,
+abstract class InjectedTheme<KEY> implements Injected<KEY> {
+  ///Get supported light themes
+  Map<KEY, ThemeData> get supportedLightThemes;
+
+  ///Get supported dark themes
+  Map<KEY, ThemeData> get supportedDarkThemes;
+
+  ///Get the current light theme.
+  ThemeData get lightTheme;
+
+  ///Get the current dark theme.
+  ThemeData? get darkTheme;
+
+  ///The current [ThemeMode]
+  late ThemeMode themeMode;
+
+  ///Wether the current mode is dark.
+  ///
+  ///If the current [ThemeMode] is system, the darkness is calculated from the
+  ///brightness of the system ([MediaQuery.platformBrightnessOf]).
+  bool get isDarkTheme;
+}
+
+class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
+  InjectedThemeImp({
+    required this.lightThemes,
+    this.darkThemes,
+    ThemeMode themeModel = ThemeMode.system,
+    String? persistKey,
     //
-    void Function(Key s)? onInitialized,
-    void Function(Key s)? onDisposed,
+    SnapState<KEY>? Function(MiddleSnapState<KEY> middleSnap)? middleSnapState,
+    void Function(KEY? s)? onInitialized,
+    void Function(KEY s)? onDisposed,
     On<void>? onSetState,
     //
-    DependsOn<Key>? dependsOn,
+    DependsOn<KEY>? dependsOn,
     int undoStackLength = 0,
-    PersistState<Key> Function()? persist,
     //
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    void Function(dynamic error, StackTrace stackTrace)? debugError,
-    SnapState<Key>? Function(MiddleSnapState<Key> middleSnap)? middleSnapState,
-
-    //
-  })  : _themes = themes,
-        _darkThemes = darkThemes,
-        _themeMode = themeMode,
+    String Function(KEY?)? toDebugString,
+  })  : _themeMode = themeModel,
         super(
-          creator: (_) => themes.keys.first,
+          creator: () => lightThemes.keys.first,
+          initialState: lightThemes.keys.first,
           onInitialized: onInitialized,
-          onDisposed: onDisposed,
 
+          //
+          middleSnapState: middleSnapState,
+          onSetState: onSetState,
+          onDisposed: onDisposed,
           //
           dependsOn: dependsOn,
           undoStackLength: undoStackLength,
-          persist: persist,
-          //
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
           isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          middleSnapState: middleSnapState,
+          toDebugString: toDebugString,
         ) {
+    final persist = persistKey == null
+        ? null
+        : PersistState(
+            key: persistKey,
+            fromJson: (json) {
+              ///json is of the form key#|#1
+              final s = json.split('#|#');
+              assert(s.length <= 2);
+              final KEY key = lightThemes.keys.firstWhere(
+                (k) => s.first == '$k',
+                orElse: () => lightThemes.keys.first,
+              );
+              //
+              if (s.last == '0') {
+                _themeMode = ThemeMode.light;
+              } else if (s.last == '1') {
+                _themeMode = ThemeMode.dark;
+              } else {
+                _themeMode = ThemeMode.system;
+              }
+              return key;
+            },
+            toJson: (key) {
+              String th = '';
+              if (_themeMode == ThemeMode.light) {
+                th = '0';
+              } else if (_themeMode == ThemeMode.dark) {
+                th = '1';
+              }
+
+              ///json is of the form key#|#1
+              return '$key#|#$th';
+            },
+            // debugPrintOperations: true,
+          );
+
+    if (undoStackLength > 0 || persist != null) {
+      undoRedoPersistState = UndoRedoPersistState<KEY>(
+        undoStackLength: undoStackLength,
+        persistanceProvider: persist,
+      );
+    }
+
     if (onSetState != null) {
       //For InjectedI18N and InjectedTheme schedule side effects
       //for the next frame.
       subscribeToRM(
         (_) {
           WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onSetState._call(snapState),
+            (_) => onSetState.call(snapState),
           );
         },
       );
     }
   }
 
-  Map<Key, ThemeData> _themes;
+  final Map<KEY, ThemeData> lightThemes;
+  final Map<KEY, ThemeData>? darkThemes;
+  ThemeMode _themeMode = ThemeMode.system;
 
-  ///Get supported light themes
-  Map<Key, ThemeData> get supportedLightThemes {
-    return {..._themes};
+  @override
+  Map<KEY, ThemeData> get supportedLightThemes {
+    return {...lightThemes};
   }
 
-  Map<Key, ThemeData>? _darkThemes;
-
-  ///Get supported dark themes
-  Map<Key, ThemeData> get supportedDarkThemes {
-    if (_darkThemes != null) {
-      return {..._darkThemes!};
+  @override
+  Map<KEY, ThemeData> get supportedDarkThemes {
+    if (darkThemes != null) {
+      return {...darkThemes!};
     }
     return {};
   }
 
-  ThemeMode _themeMode;
-
-  ///Get the current light theme.
+  @override
   ThemeData get lightTheme {
-    var theme = _themes[state];
+    var theme = lightThemes[state];
     if (theme == null) {
-      theme = _darkThemes?[state];
+      theme = darkThemes?[state];
     }
     assert(theme != null);
     return theme!;
   }
 
-  ///Get the current dark theme.
-  ThemeData? get darkTheme => _darkThemes?[state] ?? _themes[state];
+  @override
+  ThemeData? get darkTheme => darkThemes?[state] ?? lightThemes[state];
 
-  ///The current [ThemeMode]
+  @override
   ThemeMode get themeMode => _themeMode;
   set themeMode(ThemeMode mode) {
     if (_themeMode == mode) {
       return;
     }
     _themeMode = mode;
-    if (_coreRM.persistanceProvider != null) {
-      persistState();
-    }
+
+    persistState();
+
     notify();
   }
 
   bool _isDarkTheme = false;
-
-  ///Wether the current mode is dark.
-  ///
-  ///If the current [ThemeMode] is system, the darkness is calculated from the
-  ///brightness of the system ([MediaQuery.platformBrightnessOf]).
+  @override
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
       if (RM.context != null) {
@@ -124,7 +182,7 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
   ///toggle method will have no effect
   @override
   void toggle() {
-    _initialize();
+    initialize();
     if (isDarkTheme) {
       themeMode = ThemeMode.light;
     } else {
@@ -133,8 +191,8 @@ class InjectedTheme<Key> extends InjectedImp<Key> {
   }
 
   @override
-  void _onDisposeState() {
-    super._onDisposeState();
+  void dispose() {
+    super.dispose();
     _isDarkTheme = false;
     _themeMode = ThemeMode.system;
   }

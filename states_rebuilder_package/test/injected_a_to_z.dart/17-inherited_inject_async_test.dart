@@ -1,7 +1,6 @@
 //Fetching a list of counters from a backend service
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 bool _shouldThrow = false;
@@ -95,7 +94,7 @@ class _App extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   const CounterItem();
   Widget build(BuildContext context) {
-    final counter = injectedCounter(context)!;
+    final counter = injectedCounter(context);
     return Row(
       children: [
         On.or(
@@ -108,7 +107,7 @@ class CounterItem extends StatelessWidget {
             return Text('${counter.state.id}: ${counter.state.value}');
           },
         ).listenTo(counter),
-        RaisedButton(
+        ElevatedButton(
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),
           child: Text(counter.state.id),

@@ -1,4 +1,4 @@
-part of '../reactive_model.dart';
+part of '../rm.dart';
 
 extension BuildContextX on BuildContext {
   Widget get routeWidget {

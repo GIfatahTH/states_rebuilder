@@ -11,17 +11,19 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../data_source/fake_api.dart';
 
 void main() {
-  userInj.injectMock(
-    () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
-  );
-  postsInj.injectMock(
-    () => [
-      Post(id: 1, title: 'Post1 title', body: 'Post1 body', userId: 1),
-      Post(id: 2, title: 'Post2 title', body: 'Post2 body', userId: 1),
-      Post(id: 3, title: 'Post3 title', body: 'Post3 body', userId: 1),
-    ],
-  );
-  commentsInj.injectCRUDMock(() => FakeCommentRepository());
+  setUp(() {
+    userInj.injectMock(
+      () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
+    );
+    postsInj.injectMock(
+      () => [
+        Post(id: 1, title: 'Post1 title', body: 'Post1 body', userId: 1),
+        Post(id: 2, title: 'Post2 title', body: 'Post2 body', userId: 1),
+        Post(id: 3, title: 'Post3 title', body: 'Post3 body', userId: 1),
+      ],
+    );
+    commentsInj.injectCRUDMock(() => FakeCommentRepository());
+  });
 
   late Post postFromHomePage;
   Widget postPage = TopAppWidget(
