@@ -243,10 +243,8 @@ class SnapState<T> {
   }
 
   SnapState<T> copyToHasData(T? data) {
-    return _copyWith(
-      connectionState: ConnectionState.done,
-      data: data,
-      resetError: true,
+    return _copyToHasData(
+      data,
       infoMessage: '',
     );
   }

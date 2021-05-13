@@ -49,7 +49,7 @@ class ReactiveModelBase<T> {
   }
 
   ///Set the snapState and notify listeners
-  set _setSnapStateAndRebuild(SnapState<T>? snap) {
+  set setSnapStateAndRebuild(SnapState<T>? snap) {
     _completeCompleter(snap ?? _snapState);
     if (snap == null) {
       //when the state is creating, or snapState is not changed
@@ -155,7 +155,7 @@ class ReactiveModelBase<T> {
             () => call(), //used for refresh
           );
           if (!_snapState.isWaiting) {
-            _setSnapStateAndRebuild = middleState(
+            setSnapStateAndRebuild = middleState(
               _snapState._copyToIsWaiting(
                 infoMessage:
                     debugMessage ?? (result is Future ? kFuture : kStream),
@@ -180,7 +180,7 @@ class ReactiveModelBase<T> {
           result == null || result is T,
           'Type mismatch of the state: $result is not $T',
         );
-        _setSnapStateAndRebuild = middleState(
+        setSnapStateAndRebuild = middleState(
           _snapState._copyToHasData(result),
         );
 
@@ -192,7 +192,7 @@ class ReactiveModelBase<T> {
           rethrow;
         }
         //In the other hand Exception are handled
-        _setSnapStateAndRebuild = middleState(
+        setSnapStateAndRebuild = middleState(
           _snapState._copyToHasError(
             err,
             () => call(),
@@ -228,7 +228,7 @@ class ReactiveModelBase<T> {
             _endStreamCompleter?.complete(data);
           }
         } else {
-          _setSnapStateAndRebuild = middleState(
+          setSnapStateAndRebuild = middleState(
             _snapState._copyToHasData(data),
           );
         }
@@ -239,7 +239,7 @@ class ReactiveModelBase<T> {
           throw err;
         }
         //In the other hand Exception are handled
-        _setSnapStateAndRebuild = middleState(
+        setSnapStateAndRebuild = middleState(
           _snapState._copyToHasError(
             err,
             refresher,

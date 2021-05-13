@@ -111,7 +111,7 @@ class UndoRedoPersistState<T> {
           StatesRebuilerLogger.log('Write to localStorage error', e, s);
           return null;
         }
-        injected._reactiveModelState._setSnapStateAndRebuild =
+        injected._reactiveModelState.setSnapStateAndRebuild =
             injected.middleSnap(
           oldSnap!._copyToHasError(e, () {}, stackTrace: s),
         );
@@ -145,8 +145,7 @@ class UndoRedoPersistState<T> {
     try {
       await persistanceProvider!.delete();
     } catch (e, s) {
-      injected._reactiveModelState._setSnapStateAndRebuild =
-          injected.middleSnap(
+      injected._reactiveModelState.setSnapStateAndRebuild = injected.middleSnap(
         oldSnap._copyToHasError(e, () {}, stackTrace: s),
       );
       injected.onError?.call(e, s);
