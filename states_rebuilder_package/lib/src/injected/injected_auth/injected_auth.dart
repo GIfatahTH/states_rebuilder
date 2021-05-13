@@ -109,7 +109,23 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
       snapState = snapState.copyWith(infoMessage: kInitMessage);
       if (onAuthStream != null) {
         final Stream<T> stream = await onAuthStream!(getRepoAs<IAuth<T, P>>());
-        return super.middleCreator(() => stream, creatorMock);
+        onAuthStreamSubscription = stream.listen(
+          (data) {
+            reactiveModelState.setSnapStateAndRebuild = middleSnap(
+              snapState.copyToHasData(data),
+            );
+          },
+          onError: (err, s) {
+            reactiveModelState.setSnapStateAndRebuild = middleSnap(
+              snapState.copyToHasError(
+                err,
+                stackTrace: s,
+                onErrorRefresher: () {},
+              ),
+            );
+          },
+        );
+        // return super.middleCreator(() => stream, creatorMock);
       }
       return super.middleCreator(crt, creatorMock);
     }();
