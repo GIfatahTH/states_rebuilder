@@ -13,7 +13,7 @@
 </p>
 
 <p align="justify">
-`states_rebuilder` is a feature-rich state management sulution
+`states_rebuilder` is a feature-rich state management sulution:
 </p>
 
 - Performance
@@ -30,27 +30,27 @@
 
 - User Friendly
   - Built-in dependency injection system
-  - `SetState` in StatelessWidget.
-  - Hot-pluggable Stream / Futures
-  - Easily Undo / Redo
+  - `SetState` & `Animation` in StatelessWidget.
+  - Easily Undo / Redo states
+  - Hot-pluggable Streams / Futures
   - Elegant error handling and refreshing
   - Navigate, show dialogs without `BuildContext`
   - Named route with dynamic segment
   - Nested routes mapping
-  - Easily persist the state and retrieve it back
+  - Persist & retrieve the state
   - Override the state for a particular widget tree branch (widget-wise state)
 
-- development-time-saving
-  - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
-  - Easy user authentication and authorization.
-  - Easily app themes management.
-  - Simple internalization and localization.
+- Effective Production
+  - CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database
+  - User authentication and authorization
+  - App themes management
+  - Internalization and localization
 
 - Maintainable
   - Easy to test, mock the dependencies
-  - state tracker middleware
+  - State tracker middleware
   - Built-in debugging print function
-  - Capable for complex apps
+  - Capable for complex Apps
 
 
 <!-- <p align="center" >
