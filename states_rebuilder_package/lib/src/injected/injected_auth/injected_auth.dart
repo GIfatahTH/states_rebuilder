@@ -109,23 +109,32 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
       snapState = snapState.copyWith(infoMessage: kInitMessage);
       if (onAuthStream != null) {
         final Stream<T> stream = await onAuthStream!(getRepoAs<IAuth<T, P>>());
+        final future = Completer<T>();
         onAuthStreamSubscription = stream.listen(
           (data) {
-            reactiveModelState.setSnapStateAndRebuild = middleSnap(
-              snapState.copyToHasData(data),
-            );
+            if (!future.isCompleted) {
+              future.complete(data);
+            } else {
+              reactiveModelState.setSnapStateAndRebuild = middleSnap(
+                snapState.copyToHasData(data),
+              );
+            }
           },
           onError: (err, s) {
-            reactiveModelState.setSnapStateAndRebuild = middleSnap(
-              snapState.copyToHasError(
-                err,
-                stackTrace: s,
-                onErrorRefresher: () {},
-              ),
-            );
+            if (!future.isCompleted) {
+              future.completeError(err, s);
+            } else {
+              reactiveModelState.setSnapStateAndRebuild = middleSnap(
+                snapState.copyToHasError(
+                  err,
+                  stackTrace: s,
+                  onErrorRefresher: () {},
+                ),
+              );
+            }
           },
         );
-        // return super.middleCreator(() => stream, creatorMock);
+        return super.middleCreator(() => future.future, creatorMock);
       }
       return super.middleCreator(crt, creatorMock);
     }();
@@ -236,6 +245,7 @@ class _AuthService<T, P> {
 
   void _onError(void Function()? onAuthenticated) {
     final snap = injected.snapState;
+    final isSigned = injected.isSigned;
     injected.snapState = snap.copyToHasError(
       snap.error,
       onErrorRefresher: snap.onErrorRefresher,
@@ -243,7 +253,9 @@ class _AuthService<T, P> {
       data: injected.unsignedUser,
       enableNull: true,
     );
-    injected.onUnsigned?.call();
+    if (isSigned) {
+      injected.onUnsigned?.call();
+    }
   }
 
   void _onData(void Function()? onAuthenticated) {

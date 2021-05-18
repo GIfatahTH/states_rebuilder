@@ -445,7 +445,9 @@ void main() async {
     final user = RM.injectAuth(
       () => FakeAuthRepo(),
       unsignedUser: 'user0',
-      onUnsigned: () => onUnSigned++,
+      onUnsigned: () {
+        onUnSigned++;
+      },
       onSigned: (_) => onSigned++,
       onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (num) {
         if (num == 1) return 'user1';
@@ -459,16 +461,16 @@ void main() async {
     await tester.pump(Duration(seconds: 1));
     expect(user.error.message, 'Stream Error');
     expect(user.isSigned, false);
-    expect(onUnSigned, 1);
+    expect(onUnSigned, 0);
     expect(onSigned, 0);
     await tester.pump(Duration(seconds: 1));
     expect(user.isSigned, true);
-    expect(onUnSigned, 1);
+    expect(onUnSigned, 0);
     expect(onSigned, 1);
     await tester.pump(Duration(seconds: 1));
     expect(user.error.message, 'Stream Error');
     expect(user.isSigned, false);
-    expect(onUnSigned, 2);
+    expect(onUnSigned, 1);
     expect(onSigned, 1);
     user.dispose();
   });
