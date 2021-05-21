@@ -1,10 +1,24 @@
 // part of '../rm.dart';
 
+// abstract class UndoRedoState<T> implements Injected<T> {
+//   late Injected<T> _injected;
+//   late final int _undoStackLength;
+//   @override
+//   bool get canRedoState => _injected.canRedoState;
+//   @override
+//   bool get canUndoState => _injected.canUndoState;
+//   @override
+//   void clearUndoStack() => _injected.clearUndoStack();
+//   @override
+//   void redoState() => _injected.redoState();
+//   @override
+//   void undoState() => _injected.undoState();
+// }
+
 // abstract class InjectedState<T> implements Injected<T> {
 //   dynamic stateCreator();
 //   final T? _initialState;
 //   final DependsOn<T>? _dependsOn;
-//   final int _undoStackLength;
 //   final bool _isLazy;
 
 //   final String? _debugPrintWhenNotifiedPreMessage;
@@ -20,11 +34,16 @@
 //     bool autoDisposeWhenNotUsed = true,
 //   })  : _initialState = initialState,
 //         _dependsOn = dependsOn,
-//         _undoStackLength = undoStackLength,
 //         _isLazy = isLazy,
 //         _debugPrintWhenNotifiedPreMessage = debugPrintWhenNotifiedPreMessage,
 //         _toDebugString = toDebugString,
-//         _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed;
+//         _autoDisposeWhenNotUsed = autoDisposeWhenNotUsed {
+//     if (this is UndoRedoState) {
+//       (this as UndoRedoState)
+//         .._undoStackLength = undoStackLength
+//         .._injected = _injected;
+//     }
+//   }
 //   // InjectedController.future(
 //   //   Future<T> Function() creator, {
 //   //   T? initialState,
@@ -70,7 +89,8 @@
 //     onError: onError,
 //     onDisposed: onDisposed,
 //     dependsOn: _dependsOn,
-//     undoStackLength: _undoStackLength,
+//     undoStackLength:
+//         this is UndoRedoState ? (this as UndoRedoState)._undoStackLength : 0,
 //     persist: persist,
 //     middleSnapState: middleSnapState,
 //     isLazy: _isLazy,
@@ -107,15 +127,6 @@
 //   }
 
 //   @override
-//   bool get canRedoState => _injected.canRedoState;
-
-//   @override
-//   bool get canUndoState => _injected.canUndoState;
-
-//   @override
-//   void clearUndoStack() => _injected.clearUndoStack();
-
-//   @override
 //   void deletePersistState() => _injected.deletePersistState();
 
 //   @override
@@ -131,12 +142,6 @@
 
 //   @override
 //   void persistState() => _injected.persistState();
-
-//   @override
-//   void redoState() => _injected.redoState();
-
-//   @override
-//   void undoState() => _injected.undoState();
 
 //   @override
 //   Widget inherited({
@@ -188,12 +193,12 @@
 //   T? get _nullableState => _injected._nullableState;
 
 //   @override
-//   Injected<T>? call(BuildContext context, {bool defaultToGlobal = false}) {
+//   Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
 //     return _injected.call(context, defaultToGlobal: defaultToGlobal);
 //   }
 
 //   @override
-//   Future<Injected<T>> catchError(
+//   Future<InjectedBase<T>> catchError(
 //       void Function(dynamic error, StackTrace s) onError) {
 //     return _injected.catchError(onError);
 //   }
@@ -240,7 +245,7 @@
 //   }
 
 //   @override
-//   T? of(BuildContext context, {bool defaultToGlobal = false}) {
+//   T of(BuildContext context, {bool defaultToGlobal = false}) {
 //     return _injected.of(context, defaultToGlobal: defaultToGlobal);
 //   }
 

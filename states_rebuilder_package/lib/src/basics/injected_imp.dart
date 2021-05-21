@@ -373,11 +373,11 @@ class InjectedImp<T> extends Injected<T> {
           infoMessage: kDependsOn,
         );
         if (shouldRebuild) {
-          _reactiveModelState._setSnapStateAndRebuild = middleSnap(snap);
+          _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
         } else {
           _reactiveModelState
             .._snapState = middleSnap(snap) ?? snap
-            .._setSnapStateAndRebuild = null;
+            ..setSnapStateAndRebuild = null;
         }
         return;
       }
@@ -399,11 +399,11 @@ class InjectedImp<T> extends Injected<T> {
         onErrorRefresher: refresher,
       );
       if (shouldRebuild) {
-        _reactiveModelState._setSnapStateAndRebuild = middleSnap(snap);
+        _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
       } else {
         _reactiveModelState
           .._snapState = middleSnap(snap) ?? snap
-          .._setSnapStateAndRebuild = null;
+          ..setSnapStateAndRebuild = null;
       }
 
       return;
@@ -512,13 +512,13 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   void undoState() {
-    _reactiveModelState._setSnapStateAndRebuild =
+    _reactiveModelState.setSnapStateAndRebuild =
         undoRedoPersistState?.undoState();
   }
 
   @override
   void redoState() {
-    _reactiveModelState._setSnapStateAndRebuild =
+    _reactiveModelState.setSnapStateAndRebuild =
         undoRedoPersistState?.redoState();
   }
 
@@ -723,7 +723,7 @@ class InjectedImp<T> extends Injected<T> {
         inj._imp.oldSnap!._copyWith(
             debugPrintWhenNotifiedPreMessage:
                 snapState._debugPrintWhenNotifiedPreMessage);
-    _reactiveModelState._setSnapStateAndRebuild = middleSnap(newSnap?._copyWith(
+    _reactiveModelState.setSnapStateAndRebuild = middleSnap(newSnap?._copyWith(
             debugPrintWhenNotifiedPreMessage:
                 snapState._debugPrintWhenNotifiedPreMessage) ??
         inj.snapState._copyWith(

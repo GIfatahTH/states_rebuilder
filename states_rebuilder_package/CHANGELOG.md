@@ -1,3 +1,5 @@
+## 4.1.0+2 (2021-05-18)
+* Fix onAuthStream issue #170
 ## 4.1.0 (2021-05-08)
 * Solve #183 and #184 issues. (state can be nullable)
 * For `InjectedCRUD` and `InjectedAuth`, `getRepoAs` is now sync.

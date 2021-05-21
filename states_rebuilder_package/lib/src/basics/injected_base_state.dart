@@ -94,7 +94,7 @@ abstract class InjectedBaseState<T> {
     assert(T == bool);
     final snap =
         _reactiveModelState.snapState._copyToHasData(!(state as bool) as T);
-    _reactiveModelState._setSnapStateAndRebuild = snap;
+    _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
   ///Notify observers
