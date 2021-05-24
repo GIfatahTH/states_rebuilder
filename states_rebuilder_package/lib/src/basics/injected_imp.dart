@@ -164,9 +164,9 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   Future<T?> refresh() async {
-    if (_inheritedInjects.isNotEmpty) {
+    if (inheritedInjects.isNotEmpty) {
       snapState = snapState._copyWith(infoMessage: kRefreshMessage);
-      _inheritedInjects.forEach(
+      inheritedInjects.forEach(
         (e) => e._reactiveModelState._refresh(
           infoMessage: kRecomputing,
         ),
@@ -201,7 +201,7 @@ class InjectedImp<T> extends Injected<T> {
     SnapState<T> s, {
     On<void>? onSetState,
     void Function(T data)? onData,
-    void Function(dynamic? error)? onError,
+    void Function(dynamic error)? onError,
   }) {
     final middleSnap = MiddleSnapState(snapState, s);
     final snap = middleSnapState?.call(middleSnap) ?? s;
@@ -552,7 +552,7 @@ class InjectedImp<T> extends Injected<T> {
     return 'Injected#$hashCode($snapState)';
   }
 
-  final _inheritedInjects = <Injected<T>>{};
+  final inheritedInjects = <Injected<T>>{};
 
   @override
   Widget inherited({
@@ -580,13 +580,15 @@ class InjectedImp<T> extends Injected<T> {
   }) {
     final globalInjected = (context
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
-            ?.widget as _InheritedInjected<T>)
-        .globalInjected;
+            ?.widget as _InheritedInjected<T>?)
+        ?.globalInjected;
+    assert(globalInjected != null,
+        'The provided BuildContext has no Inherited state ancestor');
     return _inherited(
       key: key ?? Key('$context'),
       builder: builder,
       globalInjected: globalInjected,
-      reInheritedInject: globalInjected(context),
+      reInheritedInject: globalInjected!(context),
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
@@ -620,9 +622,11 @@ class InjectedImp<T> extends Injected<T> {
             // initialState: state,
             onInitialized: (_) {
               if (connectWithGlobal) {
-                _reactiveModelState._isInitialized = true;
-                _inheritedInjects.add(injected);
-                _setCombinedInheritedSnap(_inheritedInjects, injected);
+                _reactiveModelState
+                  .._isInitialized = true
+                  .._isDisposed = false;
+                inheritedInjects.add(injected);
+                _setCombinedInheritedSnap(inheritedInjects, injected);
               }
             },
             debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
@@ -638,32 +642,26 @@ class InjectedImp<T> extends Injected<T> {
                   setState();
                   return;
                 }
-                if (_inheritedInjects.isNotEmpty) {
-                  _setCombinedInheritedSnap(_inheritedInjects, injected);
+                if (inheritedInjects.isNotEmpty) {
+                  _setCombinedInheritedSnap(inheritedInjects, injected);
                 }
                 setState();
               },
               clean: () {
-                if (reInheritedInject == null) {
-                  //clean the created injected (because for sure it is created here)
-
-                  //Logically this is never reached if  reInheritedInject is not null,
+                if (injected.autoDisposeWhenNotUsed) {
                   injected.dispose();
+                }
+                if (injected != this) {
+                  if (autoDisposeWhenNotUsed && !hasObservers) {
+                    dispose();
+                  }
+                  inheritedInjects.remove(injected);
                 }
               },
             );
           },
           dispose: (context) {
-            if (stateOverride != null) {
-              //The injected is created here then dispose it here
-              injected.dispose();
-            }
-            //dispose the current listener
             disposer();
-            if (reInheritedInject == null) {
-              //If it in on re- inherited, than do not remove from the inherited list
-              _inheritedInjects.remove(injected);
-            }
           },
           builder: (context, widget) {
             return _InheritedInjected(
@@ -718,17 +716,23 @@ class InjectedImp<T> extends Injected<T> {
     }
 
     snapState = oldSnap?._copyWith(
-            debugPrintWhenNotifiedPreMessage:
-                snapState._debugPrintWhenNotifiedPreMessage) ??
+          debugPrintWhenNotifiedPreMessage:
+              snapState._debugPrintWhenNotifiedPreMessage,
+        ) ??
         inj._imp.oldSnap!._copyWith(
+          debugPrintWhenNotifiedPreMessage:
+              snapState._debugPrintWhenNotifiedPreMessage,
+        );
+    _reactiveModelState.setSnapStateAndRebuild = middleSnap(
+      newSnap?._copyWith(
             debugPrintWhenNotifiedPreMessage:
-                snapState._debugPrintWhenNotifiedPreMessage);
-    _reactiveModelState.setSnapStateAndRebuild = middleSnap(newSnap?._copyWith(
+                snapState._debugPrintWhenNotifiedPreMessage,
+          ) ??
+          inj.snapState._copyWith(
             debugPrintWhenNotifiedPreMessage:
-                snapState._debugPrintWhenNotifiedPreMessage) ??
-        inj.snapState._copyWith(
-            debugPrintWhenNotifiedPreMessage:
-                snapState._debugPrintWhenNotifiedPreMessage));
+                snapState._debugPrintWhenNotifiedPreMessage,
+          ),
+    );
   }
 }
 

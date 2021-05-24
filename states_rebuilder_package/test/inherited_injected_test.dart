@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -49,7 +51,7 @@ void main() {
     expect(counter2.of(context2), counter2.state);
   });
 
-  testWidgets('Mutate inhertied will mutate the globale ', (tester) async {
+  testWidgets('Mutate inherited will mutate the global ', (tester) async {
     final counter1 = RM.inject(() => 1);
     late BuildContext context1;
     final widget = counter1.inherited(
@@ -134,5 +136,218 @@ void main() {
     await tester.pump();
     expect(inherited1.hasError, true);
     expect(counter1.hasError, true);
+  });
+
+  testWidgets('reInherited works when stateOverride is defined',
+      (tester) async {
+    int disposedNum = 0;
+    final switcher = true.inj();
+    final counter = RM.inject(
+      () => 1,
+      onDisposed: (_) => disposedNum++,
+    );
+    late BuildContext context;
+    late BuildContext context1;
+    late BuildContext context2;
+    final widget1 = counter.inherited(
+      stateOverride: () => 2,
+      builder: (ctx) {
+        context = ctx;
+        return Text('Inherited: ${counter(ctx).state}');
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: On(
+          () => switcher.state ? widget1 : Container(),
+        ).listenTo(switcher),
+      ),
+    );
+
+    expect(find.text('Inherited: 2'), findsOneWidget);
+    expect(counter.state, 2);
+    expect(counter(context).state, 2);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) {
+          return counter.reInherited(
+            context: context,
+            builder: (ctx) {
+              context1 = ctx;
+              return Text('ReInherited1: ${counter(ctx).state}');
+            },
+          );
+        },
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited1: 2'), findsOneWidget);
+    expect(counter.state, 2);
+    expect(counter(context1).state, 2);
+    counter(context1).state++;
+    await tester.pump();
+    expect(find.text('ReInherited1: 3'), findsOneWidget);
+    expect(counter.state, 3);
+    expect(counter(context1).state, 3);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) {
+          return counter.reInherited(
+            context: context,
+            builder: (ctx) {
+              context2 = ctx;
+              return Text('ReInherited2: ${counter(ctx).state}');
+            },
+          );
+        },
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited2: 3'), findsOneWidget);
+    expect(counter.state, 3);
+    expect(counter(context2).state, 3);
+    counter(context2).state++;
+    await tester.pump();
+    expect(find.text('ReInherited2: 4'), findsOneWidget);
+    expect(counter.state, 4);
+    expect(counter(context2).state, 4);
+
+    Navigator.of(context2).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited1: 4'), findsOneWidget);
+    expect(counter.state, 4);
+    counter(context1).state++;
+    await tester.pump();
+    expect(find.text('ReInherited1: 5'), findsOneWidget);
+    expect(counter.state, 5);
+    //
+    Navigator.of(context1).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Inherited: 5'), findsOneWidget);
+    expect(counter.state, 5);
+    counter(context).state++;
+    await tester.pump();
+    expect(find.text('Inherited: 6'), findsOneWidget);
+    expect(counter.state, 6);
+    expect((counter as InjectedImp).inheritedInjects.length, 1);
+    switcher.toggle();
+    await tester.pump();
+    expect(disposedNum, 1);
+    expect((counter as InjectedImp).inheritedInjects.length, 0);
+  });
+
+  testWidgets('reInherited works when stateOverride is not defined',
+      (tester) async {
+    int disposedNum = 0;
+    final switcher = true.inj();
+    final counter = RM.inject(
+      () => 2,
+      onDisposed: (_) => disposedNum++,
+    );
+    late BuildContext context;
+    late BuildContext context1;
+    late BuildContext context2;
+    final widget1 = counter.inherited(
+      builder: (ctx) {
+        context = ctx;
+        return Text('Inherited: ${counter(ctx).state}');
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: On(
+          () => switcher.state ? widget1 : Container(),
+        ).listenTo(switcher),
+      ),
+    );
+
+    expect(find.text('Inherited: 2'), findsOneWidget);
+    expect(counter.state, 2);
+    expect(counter(context).state, 2);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) {
+          return counter.reInherited(
+            context: context,
+            builder: (ctx) {
+              context1 = ctx;
+              return Text('ReInherited1: ${counter(ctx).state}');
+            },
+          );
+        },
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited1: 2'), findsOneWidget);
+    expect(counter.state, 2);
+    expect(counter(context1).state, 2);
+    counter(context1).state++;
+    await tester.pump();
+    expect(find.text('ReInherited1: 3'), findsOneWidget);
+    expect(counter.state, 3);
+    expect(counter(context1).state, 3);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) {
+          return counter.reInherited(
+            context: context,
+            builder: (ctx) {
+              context2 = ctx;
+              return Text('ReInherited2: ${counter(ctx).state}');
+            },
+          );
+        },
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited2: 3'), findsOneWidget);
+    expect(counter.state, 3);
+    expect(counter(context2).state, 3);
+    counter(context2).state++;
+    await tester.pump();
+    expect(find.text('ReInherited2: 4'), findsOneWidget);
+    expect(counter.state, 4);
+    expect(counter(context2).state, 4);
+
+    Navigator.of(context2).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('ReInherited1: 4'), findsOneWidget);
+    expect(counter.state, 4);
+    counter(context1).state++;
+    await tester.pump();
+    expect(find.text('ReInherited1: 5'), findsOneWidget);
+    expect(counter.state, 5);
+    //
+    Navigator.of(context1).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Inherited: 5'), findsOneWidget);
+    expect(counter.state, 5);
+    counter(context).state++;
+    await tester.pump();
+    expect(find.text('Inherited: 6'), findsOneWidget);
+    expect(counter.state, 6);
+    expect((counter as InjectedImp).inheritedInjects.length, 0);
+    switcher.toggle();
+    await tester.pump();
+    expect(disposedNum, 1);
+    expect((counter as InjectedImp).inheritedInjects.length, 0);
   });
 }
