@@ -284,10 +284,6 @@ abstract class RM {
     String Function(T?)? toDebugString,
   }) {
     assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
-    assert(
       null is T || unsignedUser != null,
       '$T is non nullable, you have to define unsignedUser parameter.\n'
       'If you want to the unsignedUSer to be null use nullable type ($T?)',
@@ -370,10 +366,6 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(List<T>?)? toDebugString,
   }) {
-    assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
     return InjectedCRUDImp<T, P>(
       repoCreator: repository,
       param: param,
@@ -429,6 +421,10 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(KEY?)? toDebugString,
   }) {
+    assert(
+      KEY != dynamic && KEY != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
     return InjectedThemeImp<KEY>(
       lightThemes: lightThemes,
       darkThemes: darkThemes,
@@ -476,6 +472,11 @@ abstract class RM {
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
   }) {
+    assert(
+      I18N != dynamic && I18N != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
+
     return InjectedI18NImp<I18N>(
       i18Ns: i18Ns,
       persistKey: persistKey,
@@ -654,10 +655,6 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   }) {
-    assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
     return InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
