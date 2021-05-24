@@ -51,6 +51,8 @@ class PersistState<T> {
   ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
 
+  final bool? shouldRecreateTheState;
+
   ///Persistance provider that will be used to persist this state instead of
   ///the default persistance provider defined with [RM.storageInitializer].
   final IPersistStore? persistStateProvider;
@@ -72,6 +74,7 @@ class PersistState<T> {
     this.catchPersistError = false,
     this.debugPrintOperations = false,
     this.persistStateProvider,
+    this.shouldRecreateTheState,
   }) {
     fromJson ??= _getFromJsonOfPrimitive<T>();
     toJson ??= _getToJsonOfPrimitive<T>();

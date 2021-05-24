@@ -84,18 +84,39 @@ class InjectedImp<T> extends Injected<T> {
     dynamic Function()? creatorMock,
   ) {
     final creator = creatorMock == null ? crt : creatorMock;
-    final val = snapState._infoMessage == kInitMessage
-        ? undoRedoPersistState?.persistedCreator()
-        : null;
+    if (undoRedoPersistState?.persistanceProvider != null) {
+      final val = snapState._infoMessage == kInitMessage
+          ? undoRedoPersistState!.persistedCreator()
+          : null;
 
-    if (val is Future) {
-      final Function() fn = () async {
-        final r = await val;
-        return r ?? creator();
-      };
-      return fn();
+      dynamic recreate(T? val) {
+        final shouldRecreate =
+            undoRedoPersistState!.persistanceProvider!.shouldRecreateTheState;
+        if (shouldRecreate == true ||
+            (shouldRecreate == null && creator is Stream Function())) {
+          if (val != null) {
+            _reactiveModelState
+              .._initialState = val
+              .._snapState =
+                  _reactiveModelState._snapState._copyWith(data: val);
+          }
+          return creator();
+        }
+
+        return val ?? creator();
+      }
+
+      if (val is Future) {
+        final Function() fn = () async {
+          final r = await val;
+          return recreate(r);
+        };
+        return fn();
+      }
+      return recreate(val);
     }
-    return val ?? creator();
+
+    return creator();
   }
 
   ///Initialize the state

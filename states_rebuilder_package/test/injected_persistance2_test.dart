@@ -455,6 +455,7 @@ void main() async {
       counter = RM.injectStream(
         () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
         persist: () => PersistState(
+          shouldRecreateTheState: false,
           key: 'counter',
         ),
       );
