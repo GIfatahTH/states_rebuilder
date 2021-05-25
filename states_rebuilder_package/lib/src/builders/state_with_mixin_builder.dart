@@ -170,7 +170,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
     this.didChangeAppLifecycleState,
     this.didChangeLocales,
     required this.mixinWith,
-  })   : assert(builder != null || builderWithChild != null, '''
+  })  : assert(builder != null || builderWithChild != null, '''
   
   | ***Builder not defined***
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -392,7 +392,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   static StateWithMixinBuilder<WidgetsBindingObserver, R>
       widgetsBindingObserver<R>({
     Key? key,
-    dynamic? tag,
+    dynamic tag,
     InjectedBaseState<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?

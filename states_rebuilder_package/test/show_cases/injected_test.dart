@@ -373,6 +373,7 @@ void main() {
     expect(injectedInt.state, 1);
     injectedInt.state++;
     expect(injectedInt.state, 2);
+    expect(injectedInt.toString(), endsWith('SnapState<int>(hasData: 2)'));
     //
     final injectedDouble = 1.0.inj();
     expect(injectedDouble.state, 1.0);

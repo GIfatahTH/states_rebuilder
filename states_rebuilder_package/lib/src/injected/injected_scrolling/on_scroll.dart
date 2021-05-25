@@ -25,7 +25,7 @@ class OnScroll<T> {
                 setState();
                 // assert(() {
                 //   if (debugPrintWhenRebuild != null) {
-                //     print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                //     StatesRebuilerLogger.log('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                 //   }
                 //   return true;
                 // }());
@@ -34,7 +34,7 @@ class OnScroll<T> {
             );
             // assert(() {
             //   if (debugPrintWhenRebuild != null) {
-            //     print('INITIAL BUILD <' +
+            //     StatesRebuilerLogger.log('INITIAL BUILD<' +
             //         debugPrintWhenRebuild +
             //         '>: ${injected.snapState}');
             //   }
@@ -45,12 +45,12 @@ class OnScroll<T> {
             disposer();
           },
           didUpdateWidget: (context, oldWidget, newWidget) {
-            final newInj = newWidget.inject as InjectedScrollingImp;
-            final oldInj = oldWidget.inject as InjectedScrollingImp;
-            if (newInj.reactiveModelState != oldInj.reactiveModelState) {
-              newInj.reactiveModelState.dispose();
-              newInj.setReactiveModelState(oldInj.reactiveModelState);
-            }
+            // final newInj = newWidget.inject as InjectedScrollingImp;
+            // final oldInj = oldWidget.inject as InjectedScrollingImp;
+            // if (newInj.reactiveModelState != oldInj.reactiveModelState) {
+            //   newInj.reactiveModelState.dispose();
+            //   newInj.setReactiveModelState(oldInj.reactiveModelState);
+            // }
           },
           builder: (ctx, widget) {
             return widget.on.call(injected)!;

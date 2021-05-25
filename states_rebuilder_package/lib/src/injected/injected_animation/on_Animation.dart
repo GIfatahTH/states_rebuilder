@@ -59,9 +59,9 @@ class OnAnimation {
           }
 
           if (isInit) {
-            currentValue = tween.begin;
             _curvedTweens[name] = tween.chain(CurveTween(curve: inj.curve));
             _tweens[name] = tween;
+            currentValue = getValue(name);
             if (tween.begin == tween.end) {
               return tween.begin;
             }

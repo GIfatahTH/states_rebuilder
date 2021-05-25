@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -96,13 +98,13 @@ void main() {
       BoxConstraints? constraints;
       Color? color;
       Decoration? decoration;
-      final model = RM.inject(() => 0);
+
       final animation = RM.injectAnimation(
         duration: Duration(seconds: 1),
       );
 
-      await tester.pumpWidget(On(
-        () => On.animation(
+      await tester.pumpWidget(
+        On.animation(
           (animate) {
             return Container(
               padding: padding = animate(selected ? EdgeInsets.all(100) : null),
@@ -120,7 +122,7 @@ void main() {
             );
           },
         ).listenTo(animation),
-      ).listenTo(model));
+      );
 
       expect('$alignment', 'null');
       expect('$padding', 'null');
@@ -130,7 +132,7 @@ void main() {
       expect('$decoration', 'null');
 
       selected = !selected;
-      model.notify();
+      animation.refresh();
       await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
 
@@ -313,10 +315,13 @@ void main() {
     'WHEN repeats is 2'
     'THEN animation repeats two times and stop',
     (tester) async {
+      int endAnimationNum = 0;
       final animation = RM.injectAnimation(
-        duration: Duration(seconds: 1),
-        repeats: 2,
-      );
+          duration: Duration(seconds: 1),
+          repeats: 2,
+          endAnimationListener: () {
+            endAnimationNum++;
+          });
       late double width;
       final widget = On.animation(
         (animate) => Container(
@@ -335,7 +340,7 @@ void main() {
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 100.0);
       await tester.pump(Duration(milliseconds: 100));
-
+      //
       expect(width, 0.0);
       await tester.pump(Duration(milliseconds: 500));
       expect(width, 50.0);
@@ -343,6 +348,9 @@ void main() {
       expect(width, 90.0);
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 100.0);
+      expect(endAnimationNum, 0);
+      await tester.pumpAndSettle();
+      expect(endAnimationNum, 1);
     },
   );
 
@@ -350,11 +358,14 @@ void main() {
     'WHEN repeats is 2 and  shouldReverseRepeats is true'
     'THEN animation cycle two times and stop',
     (tester) async {
+      int endAnimationNum = 0;
       final animation = RM.injectAnimation(
-        duration: Duration(seconds: 1),
-        repeats: 2,
-        shouldReverseRepeats: true,
-      );
+          duration: Duration(seconds: 1),
+          repeats: 3,
+          shouldReverseRepeats: true,
+          endAnimationListener: () {
+            endAnimationNum++;
+          });
       late double width;
       final widget = On.animation(
         (animate) => Container(
@@ -381,6 +392,224 @@ void main() {
       expect(width, 9.999999999999998);
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 0.0);
+      expect(endAnimationNum, 0);
+      await tester.pump(Duration(milliseconds: 100));
+
+      expect(width, 0.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 90.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 100.0);
+      await tester.pumpAndSettle();
+      expect(endAnimationNum, 1);
+    },
+  );
+
+  testWidgets(
+    'WHEN repeats is 2, and animation starts form upper bound.'
+    'THEN animation repeats two times and stop',
+    (tester) async {
+      int endAnimationNum = 0;
+      final animation = RM.injectAnimation(
+          initialValue: 1,
+          duration: Duration(seconds: 1),
+          repeats: 2,
+          endAnimationListener: () {
+            endAnimationNum++;
+          });
+      late double width;
+      final widget = On.animation(
+        (animate) => Container(
+          width: width = animate.formTween(
+            (_) => Tween(begin: 0.0, end: 100.0),
+          )!,
+        ),
+      ).listenTo(animation);
+
+      await tester.pumpWidget(widget);
+      expect(width, 100.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 9.999999999999998);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+      //
+      expect(width, 100.0);
+      await tester.pump(Duration(milliseconds: 500));
+      expect(width, 50.0);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(width, 9.999999999999998);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 0.0);
+      expect(endAnimationNum, 0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(endAnimationNum, 1);
+    },
+  );
+
+  testWidgets(
+    'Animation can be used with per built flutter transition widget'
+    'Animation is triggered using triggerAnimation method',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      await tester.pumpWidget(
+        On.animation(
+          (_) {
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizeTransition(
+                sizeFactor: animation.curvedAnimation,
+                child: Container(
+                  width: 100,
+                ),
+              ),
+            );
+          },
+        ).listenTo(
+          animation,
+          onInitialized: () {
+            animation.triggerAnimation();
+          },
+        ),
+      );
+      expect(animation.curvedAnimation.value, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(animation.curvedAnimation.value, 0.1);
+      await tester.pumpAndSettle();
+      expect(animation.curvedAnimation.value, 1.0);
+    },
+  );
+
+  testWidgets(
+    'test various tweens'
+    'THEN',
+    (tester) async {
+      bool isSelected = true;
+
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+
+      late Offset offset;
+      late Size size;
+      late TextStyle textStyle;
+      late Rect rect;
+      late RelativeRect relativeRect;
+      late int _int;
+      late BorderRadius borderRadius;
+      late ThemeData themeData;
+      late Matrix4 matrix4;
+
+      await tester.pumpWidget(Column(
+        children: [
+          On.animation(
+            (animate) {
+              return Transform.translate(
+                offset: offset = animate(
+                  isSelected ? Offset.zero : Offset(10, 10),
+                )!,
+                child: Container(),
+              );
+            },
+          ).listenTo(animation),
+          On.animation(
+            (animate) {
+              return SizedBox.fromSize(
+                size: size = animate(
+                  isSelected ? Size.zero : Size(10, 10),
+                )!,
+              );
+            },
+          ).listenTo(animation),
+          On.animation(
+            (animate) {
+              textStyle = animate(
+                isSelected
+                    ? TextStyle(color: Colors.red)
+                    : TextStyle(color: Colors.blue),
+              )!;
+              rect = animate(
+                isSelected ? Rect.zero : Rect.fromLTRB(10, 10, 10, 10),
+              )!;
+              relativeRect = animate(
+                isSelected
+                    ? RelativeRect.fromLTRB(0, 0, 0, 0)
+                    : RelativeRect.fromLTRB(10, 10, 10, 10),
+              )!;
+
+              _int = animate(
+                isSelected ? 0 : 10,
+              )!;
+
+              borderRadius = animate(
+                isSelected ? BorderRadius.zero : BorderRadius.circular(10),
+              )!;
+
+              themeData = animate(
+                isSelected ? ThemeData.dark() : ThemeData.light(),
+              )!;
+
+              matrix4 = animate(
+                isSelected
+                    ? Matrix4.zero()
+                    : Matrix4.diagonal3Values(10, 10, 10),
+              )!;
+
+              return Container();
+            },
+          ).listenTo(animation),
+        ],
+      ));
+
+      expect(offset, Offset.zero);
+      expect(size, Size.zero);
+      expect(textStyle.color, Colors.red);
+      expect(rect, Rect.zero);
+      expect(relativeRect, RelativeRect.fromLTRB(0, 0, 0, 0));
+      expect(_int, 0);
+      expect(borderRadius, BorderRadius.zero);
+      expect(themeData.colorScheme.brightness, Brightness.dark);
+      expect(matrix4, Matrix4.zero());
+
+      //
+      isSelected = false;
+      animation.refresh();
+      await tester.pumpAndSettle();
+      expect(offset, Offset(10, 10));
+      expect(size, Size(10, 10));
+      expect(textStyle.color, Colors.blue);
+      expect(rect, Rect.fromLTRB(10, 10, 10, 10));
+      expect(relativeRect, RelativeRect.fromLTRB(10, 10, 10, 10));
+      expect(_int, 10);
+      expect(borderRadius, BorderRadius.circular(10));
+      expect(themeData.colorScheme.brightness, Brightness.light);
+      expect(matrix4, Matrix4.diagonal3Values(10, 10, 10));
+    },
+  );
+  testWidgets(
+    'Test tween can not ne inferred'
+    'THEN',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+
+      await tester.pumpWidget(
+        On.animation(
+          (animate) {
+            animate(Text(''));
+            return Container();
+          },
+        ).listenTo(animation),
+      );
+
+      expect(tester.takeException(), isUnimplementedError);
     },
   );
 }

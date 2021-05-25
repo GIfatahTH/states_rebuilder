@@ -76,6 +76,9 @@ class ReactiveModel<T> extends InjectedBase<T> {
     );
     _reactiveModelState.initializer();
   }
+  set state(T s) {
+    setState((_) => s);
+  }
 
   T? get initialState => _reactiveModelState._initialState;
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
@@ -86,7 +89,7 @@ class ReactiveModel<T> extends InjectedBase<T> {
     SnapState<T> snap, {
     On<void>? onSetState,
     void Function(T data)? onData,
-    void Function(dynamic? error)? onError,
+    void Function(dynamic error)? onError,
   }) {
     snap = middleSnap(snap) ?? snap;
     if (snap.isWaiting) {
@@ -115,6 +118,30 @@ class ReactiveModel<T> extends InjectedBase<T> {
     return snap;
   }
 
+  // @override
+  // Future<F> Function() future<F>(Future<F> Function(T s) future) {
+  //   return () async {
+  //     late F data;
+  //     await future(state).then((d) {
+  //       if (d is T) {
+  //         snapState = snapState.copyToHasData(d);
+  //       }
+  //       data = d;
+  //     }).catchError(
+  //       (e, StackTrace s) {
+  //         snapState = snapState._copyToHasError(
+  //           e,
+  //           () => this.future(future),
+  //           stackTrace: s,
+  //         );
+
+  //         throw e;
+  //       },
+  //     );
+  //     return data;
+  //   };
+  // }
+
   ConnectionState get connectionState =>
       _reactiveModelState._snapState._connectionState;
 
@@ -132,7 +159,7 @@ class ReactiveModel<T> extends InjectedBase<T> {
     required R Function() onIdle,
     required R Function() onWaiting,
     required R Function(T snapState) onData,
-    required R Function(dynamic? error) onError,
+    required R Function(dynamic error) onError,
     bool catchError = true,
   }) {
     if (isIdle) {

@@ -113,7 +113,7 @@ extension OnFutureX<F> on OnFuture<F> {
           mountedState: (_) {
             assert(() {
               if (debugPrintWhenRebuild != null) {
-                print('INITIAL BUILD <' +
+                StatesRebuilerLogger.log('INITIAL BUILD<' +
                     debugPrintWhenRebuild +
                     '>: ${inj.snapState}');
               }
@@ -129,7 +129,7 @@ extension OnFutureX<F> on OnFuture<F> {
                   if (debugPrintWhenRebuild != null) {
                     final inj = injected as InjectedImp;
 
-                    print('REBUILD <' +
+                    StatesRebuilerLogger.log('REBUILD <' +
                         debugPrintWhenRebuild +
                         '>: ${inj.snapState}');
                   }

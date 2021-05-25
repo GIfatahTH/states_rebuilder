@@ -1009,4 +1009,8 @@ class StatesRebuilder extends Injected {
 
   @override
   void undoState() {}
+  Future<F> Function() future<F>(Future<F> Function(dynamic s) future) =>
+      () async {
+        return null as F;
+      };
 }

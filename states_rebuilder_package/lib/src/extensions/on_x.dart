@@ -90,7 +90,8 @@ extension OnX on On<Widget> {
                 setState();
                 assert(() {
                   if (debugPrintWhenRebuild != null) {
-                    print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                    StatesRebuilerLogger.log(
+                        'REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                   }
                   return true;
                 }());
@@ -102,7 +103,7 @@ extension OnX on On<Widget> {
             );
             assert(() {
               if (debugPrintWhenRebuild != null) {
-                print('INITIAL BUILD <' +
+                StatesRebuilerLogger.log('INITIAL BUILD<' +
                     debugPrintWhenRebuild +
                     '>: ${inj.snapState}');
               }

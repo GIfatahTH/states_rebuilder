@@ -80,7 +80,8 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                   setState();
                   assert(() {
                     if (debugPrintWhenRebuild != null) {
-                      print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                      StatesRebuilerLogger.log(
+                          'REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                     }
                     return true;
                   }());
@@ -107,7 +108,8 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
             }
             assert(() {
               if (debugPrintWhenRebuild != null) {
-                print('INITIAL BUILD <' + debugPrintWhenRebuild + '>: $snap');
+                StatesRebuilerLogger.log(
+                    'INITIAL BUILD <' + debugPrintWhenRebuild + '>: $snap');
               }
               return true;
             }());

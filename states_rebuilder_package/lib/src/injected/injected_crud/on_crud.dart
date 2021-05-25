@@ -8,7 +8,7 @@ class OnCRUD<T> {
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresh)? onError,
     required T Function(dynamic data) onResult,
-  })   : this.onWaiting = onWaiting,
+  })  : this.onWaiting = onWaiting,
         this.onError = onError,
         this.onResult = onResult;
 
@@ -32,7 +32,8 @@ class OnCRUD<T> {
                 setState();
                 assert(() {
                   if (debugPrintWhenRebuild != null) {
-                    print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                    StatesRebuilerLogger.log(
+                        'REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                   }
                   return true;
                 }());
@@ -42,7 +43,7 @@ class OnCRUD<T> {
 
             assert(() {
               if (debugPrintWhenRebuild != null) {
-                print('INITIAL BUILD <' +
+                StatesRebuilerLogger.log('INITIAL BUILD<' +
                     debugPrintWhenRebuild +
                     '>: ${injected.snapState}');
               }

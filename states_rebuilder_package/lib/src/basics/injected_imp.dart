@@ -210,7 +210,7 @@ class InjectedImp<T> extends Injected<T> {
     SnapState<T> s, {
     On<void>? onSetState,
     void Function(T data)? onData,
-    void Function(dynamic? error)? onError,
+    void Function(dynamic error)? onError,
   }) =>
       middleSnap(
         s,
@@ -442,7 +442,7 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   @override
-  Future<F?> Function() future<F>(Future<F> Function(T s) future) {
+  Future<F> Function() future<F>(Future<F> Function(T s) future) {
     return () async {
       late F data;
       await future(state).then((d) {

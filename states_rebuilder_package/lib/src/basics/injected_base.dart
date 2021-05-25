@@ -1,7 +1,6 @@
 part of '../rm.dart';
 
 abstract class InjectedBase<T> extends InjectedBaseState<T> {
-  @override
   set state(T s) {
     setState((_) => s);
   }
@@ -61,7 +60,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   Future<T> setState(
     dynamic Function(T s) fn, {
     void Function(T data)? onData,
-    void Function(dynamic? error)? onError,
+    void Function(dynamic error)? onError,
     On<void>? onSetState,
     void Function()? onRebuildState,
     int debounceDelay = 0,
@@ -137,29 +136,6 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     return snap.data as T;
   }
 
-  Future<F?> Function() future<F>(Future<F> Function(T s) future) {
-    return () async {
-      late F data;
-      await future(state).then((d) {
-        if (d is T) {
-          snapState = snapState.copyToHasData(d);
-        }
-        data = d;
-      }).catchError(
-        (e, StackTrace s) {
-          snapState = snapState._copyToHasError(
-            e,
-            () => this.future(future),
-            stackTrace: s,
-          );
-
-          throw e;
-        },
-      );
-      return data;
-    };
-  }
-
   ///IF the state is in the hasError status, The last callback that causes the
   ///error can be reinvoked.
   void onErrorRefresher() {
@@ -179,5 +155,10 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
       onError(e, s);
     }
     return this;
+  }
+
+  @override
+  String toString() {
+    return '$hashCode: $snapState';
   }
 }

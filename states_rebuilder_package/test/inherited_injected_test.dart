@@ -47,6 +47,7 @@ void main() {
     expect(counter1.of(context1), counter1.state);
     expect(counter1.of(context2), counter1.state);
     expect(() => counter2.call(context1), throwsException);
+    expect(() => counter2.of(context1), throwsException);
     expect(counter2.of(context1, defaultToGlobal: true), counter2.state);
     expect(counter2.of(context2), counter2.state);
   });

@@ -80,27 +80,9 @@ class PersistState<T> {
     toJson ??= _getToJsonOfPrimitive<T>();
   }
   IPersistStore get _persistState {
+    _persistStateSingleton = null;
     _persistStateSingleton ??= _persistStateGlobalTest;
     _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
-
-    assert(_persistStateSingleton != null, '''
-No implementation of `IPersistStore` is provided.
-Pleas implementation the `IPersistStore` interface and Initialize it in the main 
-method.
-
-void main() async { 
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await RM.storageInitializer(YouImplementation());
-  runApp(_MyApp());
-}
-
-If you are testing the app use:
-
-await RM.storageInitializerMock();\n\n
-
-
-''');
     return _persistStateSingleton!;
   }
 
