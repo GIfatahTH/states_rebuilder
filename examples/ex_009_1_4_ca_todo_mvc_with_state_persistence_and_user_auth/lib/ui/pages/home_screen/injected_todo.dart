@@ -9,11 +9,6 @@ final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   onSetState: On.error((e, r) {
     ErrorHandler.showErrorSnackBar(e);
   }),
-  onInitialized: (_) {
-    Injected.debugAddRemoveListener(todos, onAaddListener: (_) {
-      print(_);
-    });
-  },
   debugPrintWhenNotifiedPreMessage: 'todos',
 );
 
