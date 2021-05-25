@@ -241,8 +241,8 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
+    _Navigate._transitionDuration = duration;
     return (context, animation, secondaryAnimation, child) {
-      _Navigate._transitionDuration = duration;
       positionTween ??= Tween<Offset>(
         begin: const Offset(0.0, -0.25),
         end: Offset.zero,

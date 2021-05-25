@@ -288,9 +288,44 @@ void main() {
     expect(find.text('done 3'), findsOneWidget);
   });
 
+  testWidgets('Injected.streamBuilder immutable without error', (tester) async {
+    final widget = vanillaModel.streamBuilder<VanillaModel>(
+      stream: (s, subscription) {
+        return s?.incrementStream.call().map((e) => VanillaModel(e));
+      },
+      onError: null,
+      onSetState: On.waiting(() {}),
+      onWaiting: () => Text('waiting ...'),
+      onData: (state) {
+        return Text('${state!.counter}');
+      },
+      onDone: (state) {
+        return Text('done ${state.counter}');
+      },
+      dispose: () {},
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+
+    expect(find.text('waiting ...'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+
+    expect(find.text('done 3'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('done 3'), findsOneWidget);
+  });
+
   testWidgets('Injected.streamBuilder with error', (tester) async {
     final widget = vanillaModel.streamBuilder(
       stream: (s, subscription) => s?.incrementStreamWithError(),
+      onSetState: On.waiting(() {}),
       onWaiting: null,
       onError: (e) => Text('${e.message}'),
       onData: (state) {

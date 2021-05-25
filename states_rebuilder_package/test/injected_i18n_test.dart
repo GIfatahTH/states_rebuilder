@@ -523,6 +523,7 @@ void main() async {
     'THEN  return to another translation',
     (tester) async {
       SnapState<String>? _snapState;
+      int onSetStateNum = 0; // See how to use it here and with injectedTheme
       late SnapState<String> _nextSnapState;
 
       final i18n = RM.injectI18N<String>(
@@ -543,8 +544,13 @@ void main() async {
             return middleSnap.currentSnap.copyToHasData('arabic');
           }
         },
+        onSetState: On(
+          () {
+            onSetStateNum++;
+          },
+        ),
       );
-      expect(_snapState, null);
+      // expect(_snapState, null);
 
       i18n.locale = Locale('en', 'TN');
       //
@@ -559,6 +565,7 @@ void main() async {
 
       expect(_snapState?.isWaiting, true);
       expect(_snapState?.data, 'english_US');
+
       //
       expect(_nextSnapState.hasError, true);
       expect(_nextSnapState.data, 'english_US');

@@ -418,6 +418,7 @@ void main() {
       'WHEN RM.navigate.transitionsBuilder is defined'
       'Route animation uses it'
       'CASE Widget route', (tester) async {
+    RM.disposeAll();
     RM.navigate.transitionsBuilder = RM.transitions.leftToRight(
       duration: Duration(milliseconds: 2000),
     );
@@ -459,7 +460,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Route1: data'), findsNothing);
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpAndSettle();
     expect(find.text('Route1: data'), findsOneWidget);
 
     //

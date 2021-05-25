@@ -84,7 +84,9 @@ MaterialApp(
     Widget Function(String routeName)? unknownRoute,
   }) {
     assert(routes.isNotEmpty);
-    this.transitionsBuilder = transitionsBuilder;
+    if (transitionsBuilder != null) {
+      this.transitionsBuilder = transitionsBuilder;
+    }
     _routes = routes;
     _baseUrl = '';
     pageRouteBuilder = null;
@@ -611,6 +613,11 @@ MaterialApp(
       semanticsDismissible: semanticsDismissible,
       filter: filter,
     );
+  }
+
+  void _dispose() {
+    transitionsBuilder = null;
+    pageRouteBuilder = null;
   }
 }
 

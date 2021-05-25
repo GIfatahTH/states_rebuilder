@@ -29,6 +29,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: counter.futureBuilder<void>(
           future: (s, asycS) => s?.increment(),
+          onSetState: On.waiting(() {}),
           onWaiting: () => Text('Waiting...'),
           onError: (err) => Text('Error'),
           onData: (data) => Text('data'),

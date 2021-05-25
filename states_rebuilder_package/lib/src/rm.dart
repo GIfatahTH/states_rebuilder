@@ -740,7 +740,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       inj.dispose();
     }
     injectedModels.clear();
-    _scaffold._context = null;
+    _scaffold._dispose();
+    _navigate._dispose();
   }
 
   static _Scaffold scaffold = _scaffold;
@@ -770,17 +771,17 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return RM.navigate._navigatorKey.currentState?.context;
   }
 
-  static set context(BuildContext? context) {
-    if (context == null) {
-      return;
-    }
-    _context = context;
-    WidgetsBinding.instance?.addPostFrameCallback(
-      (_) {
-        return _context = null;
-      },
-    );
-  }
+  // static set context(BuildContext? context) {
+  //   if (context == null) {
+  //     return;
+  //   }
+  //   _context = context;
+  //   WidgetsBinding.instance?.addPostFrameCallback(
+  //     (_) {
+  //       return _context = null;
+  //     },
+  //   );
+  // }
 
   //
   static ReactiveModel<T> get<T>([String? name]) {
