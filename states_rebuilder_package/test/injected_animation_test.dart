@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -319,6 +317,7 @@ void main() {
       final animation = RM.injectAnimation(
           duration: Duration(seconds: 1),
           repeats: 2,
+          shouldAutoStart: true,
           endAnimationListener: () {
             endAnimationNum++;
           });
@@ -373,9 +372,15 @@ void main() {
             (_) => Tween(begin: _ ?? 0.0, end: 100.0),
           )!,
         ),
-      ).listenTo(animation);
+      ).listenTo(
+        animation,
+        onInitialized: () {
+          animation.triggerAnimation();
+        },
+      );
 
       await tester.pumpWidget(widget);
+
       expect(width, 0.0);
       await tester.pump(Duration(milliseconds: 500));
       expect(width, 50.0);
@@ -416,6 +421,7 @@ void main() {
           initialValue: 1,
           duration: Duration(seconds: 1),
           repeats: 2,
+          shouldAutoStart: true,
           endAnimationListener: () {
             endAnimationNum++;
           });
@@ -457,6 +463,7 @@ void main() {
     (tester) async {
       final animation = RM.injectAnimation(
         duration: Duration(seconds: 1),
+        shouldAutoStart: true,
       );
       await tester.pumpWidget(
         On.animation(
@@ -473,9 +480,9 @@ void main() {
           },
         ).listenTo(
           animation,
-          onInitialized: () {
-            animation.triggerAnimation();
-          },
+          // onInitialized: () {
+          //   animation.triggerAnimation();
+          // },
         ),
       );
       expect(animation.curvedAnimation.value, 0.0);

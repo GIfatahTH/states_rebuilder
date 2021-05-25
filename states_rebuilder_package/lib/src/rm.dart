@@ -523,6 +523,7 @@ abstract class RM {
     AnimationBehavior animationBehavior = AnimationBehavior.normal,
     int? repeats,
     bool shouldReverseRepeats = false,
+    bool shouldAutoStart = false,
     void Function(InjectedAnimation)? onInitialized,
     void Function()? endAnimationListener,
   }) {
@@ -534,7 +535,8 @@ abstract class RM {
       upperBound: upperBound,
       animationBehavior: animationBehavior,
       repeats: repeats,
-      isReverse: shouldReverseRepeats,
+      shouldReverseRepeats: shouldReverseRepeats,
+      shouldAutoStart: shouldAutoStart,
       onInitialized: onInitialized,
       endAnimationListener: endAnimationListener,
       initialValue: initialValue,

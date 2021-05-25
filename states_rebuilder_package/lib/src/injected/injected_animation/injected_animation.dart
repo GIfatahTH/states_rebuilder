@@ -49,7 +49,8 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     this.lowerBound = 0.0,
     this.animationBehavior = AnimationBehavior.normal,
     this.repeats,
-    this.isReverse = false,
+    this.shouldReverseRepeats = false,
+    this.shouldAutoStart = false,
     this.onInitialized,
     this.endAnimationListener,
   }) : super(
@@ -88,7 +89,8 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///indefinitely
   final int? repeats;
 
-  final bool isReverse;
+  final bool shouldReverseRepeats;
+  final bool shouldAutoStart;
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
@@ -117,14 +119,15 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
           status != AnimationStatus.dismissed) {
         return;
       }
-      if (repeats == null) {
-        endAnimationListener?.call();
-        return;
-      }
+      // if (repeats == null) {
+      //   isAnimating = false;
+      //   endAnimationListener?.call();
+      //   return;
+      // }
       if (skipDismissStatus) {
         return;
       }
-      repeatCount ??= repeats;
+      repeatCount ??= repeats ?? 1;
 
       if (repeatCount == 1) {
         isAnimating = false;
@@ -136,7 +139,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       } else {
         if (status == AnimationStatus.completed) {
           if (repeatCount! > 1) repeatCount = repeatCount! - 1;
-          if (isReverse) {
+          if (shouldReverseRepeats) {
             _controller!.reverse();
           } else {
             skipDismissStatus = true;
@@ -146,7 +149,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
           }
         } else if (status == AnimationStatus.dismissed) {
           if (repeatCount! > 1) repeatCount = repeatCount! - 1;
-          if (isReverse) {
+          if (shouldReverseRepeats) {
             _controller!.forward();
           } else {
             skipDismissStatus = true;
@@ -165,13 +168,15 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       })
       ..addStatusListener(repeatStatusListenerListener);
     onInitialized?.call(this);
+    if (shouldAutoStart) {
+      triggerAnimation();
+    }
   }
 
   bool _isFrameScheduling = false;
   @override
   void triggerAnimation() {
     if (!isAnimating && !_isFrameScheduling) {
-      isAnimating = true;
       if (observerLength <= 1) {
         _startAnimation();
       } else {
@@ -190,7 +195,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   }
 
   void _startAnimation() {
-    _resetControllerValue();
+    isAnimating = true;
+    if (!shouldReverseRepeats) {
+      _resetControllerValue();
+    }
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {

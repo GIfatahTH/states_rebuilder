@@ -14,7 +14,6 @@ class OnAnimation {
       (_, setState, ticker) {
         final inj = injected as InjectedAnimationImp;
         late VoidCallback disposer;
-        bool isAnimating = false;
         bool? _isChanged;
         bool _isDirty = false;
         bool isInit = true;
@@ -38,7 +37,7 @@ class OnAnimation {
 
         T? _animateTween<T>(dynamic Function(T? begin) fn, String name) {
           T? currentValue = getValue(name);
-          if (isAnimating && currentValue != null) {
+          if (inj.isAnimating && currentValue != null) {
             return currentValue;
           }
           assert(() {
@@ -65,8 +64,8 @@ class OnAnimation {
             if (tween.begin == tween.end) {
               return tween.begin;
             }
-            _isChanged = true;
-            _isDirty = true;
+            // _isChanged = true;
+            // _isDirty = true;
           } else if ((cachedTween?.end != tween.end ||
                   cachedTween?.begin != tween.begin) &&
               _isDirty) {
@@ -101,16 +100,15 @@ class OnAnimation {
           if (_isDirty && _isChanged == true) {
             _isChanged = false;
             _isDirty = false;
-            isAnimating = true;
             injected.triggerAnimation();
           }
         }
 
         void didUpdateWidget() {
           inj.didUpdateWidget();
-          if (isAnimating) {
-            isAnimating = false;
-          }
+          // if (isAnimating) {
+          //   isAnimating = false;
+          // }
           _isDirty = true;
         }
 
