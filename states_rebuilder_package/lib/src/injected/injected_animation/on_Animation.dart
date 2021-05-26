@@ -35,7 +35,11 @@ class OnAnimation {
           }
         }
 
-        T? _animateTween<T>(dynamic Function(T? begin) fn, String name) {
+        T? _animateTween<T>(
+          dynamic Function(T? begin) fn,
+          Curve? curve,
+          String name,
+        ) {
           T? currentValue = getValue(name);
           if (inj.isAnimating && currentValue != null) {
             return currentValue;
@@ -58,7 +62,8 @@ class OnAnimation {
           }
 
           if (isInit) {
-            _curvedTweens[name] = tween.chain(CurveTween(curve: inj.curve));
+            _curvedTweens[name] =
+                tween.chain(CurveTween(curve: curve ?? inj.curve));
             _tweens[name] = tween;
             currentValue = getValue(name);
             if (tween.begin == tween.end) {
@@ -69,7 +74,8 @@ class OnAnimation {
           } else if ((cachedTween?.end != tween.end ||
                   cachedTween?.begin != tween.begin) &&
               _isDirty) {
-            _curvedTweens[name] = tween.chain(CurveTween(curve: inj.curve));
+            _curvedTweens[name] =
+                tween.chain(CurveTween(curve: curve ?? inj.curve));
             _tweens[name] = tween;
             _isChanged = true;
           }
@@ -82,16 +88,18 @@ class OnAnimation {
           return currentValue ?? tween.lerp(0.0);
         }
 
-        T? animateTween<T>(dynamic Function(T? begin) fn, [String name = '']) {
+        T? animateTween<T>(dynamic Function(T? begin) fn, Curve? curve,
+            [String name = '']) {
           name = 'Tween<$T>' + name + '_TwEeN_';
-          return _animateTween(fn, name);
+          return _animateTween(fn, curve, name);
         }
 
-        T? animateValue<T>(T? value, [String name = '']) {
+        T? animateValue<T>(T? value, Curve? curve, [String name = '']) {
           name = '$T' + name;
 
           return animateTween<T>(
             (begin) => _getTween(isInit ? value : begin, value),
+            curve,
             name,
           );
         }
@@ -123,7 +131,7 @@ class OnAnimation {
             onInitialized?.call();
             animate = Animate._(
               value: animateValue,
-              formTween: animateTween,
+              fromTween: animateTween,
             );
             disposer = injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {

@@ -362,19 +362,38 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
 }
 
 class Animate {
-  final T? Function<T>(T? value, [String name]) _value;
+  final T? Function<T>(T? value, Curve? curve, [String name]) _value;
+  Curve? _curve;
+  Animate setCurve(Curve curve) {
+    _curve = curve;
+    return this;
+  }
+
+  final T? Function<T>(Tween<T?> Function(T? currentValue) fn, Curve? curve,
+      [String name]) _fromTween;
+
+  Animate._({
+    required T? Function<T>(T? value, Curve? curve, [String name]) value,
+    required T? Function<T>(
+            Tween<T?> Function(T? currentValue) fn, Curve? curve,
+            [String name])
+        fromTween,
+  })  : _value = value,
+        _fromTween = fromTween;
+
+  ///Implicitly animate to the given value
+  T? call<T>(T? value, [String name = '']) {
+    final curve = _curve;
+    _curve = null;
+    return _value.call<T>(value, curve, name);
+  }
 
   ///Set animation explicitly by defining the Tween.
   ///
   ///The callback exposes the currentValue value
-  final T? Function<T>(Tween<T?> Function(T? currentValue) fn, [String name])
-      formTween;
-
-  Animate._({
-    required T? Function<T>(T? value, [String name]) value,
-    required this.formTween,
-  }) : _value = value;
-
-  ///Implicitly animate to the given value
-  T? call<T>(T? value, [String name = '']) => _value.call<T>(value, name);
+  T? formTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
+    final curve = _curve;
+    _curve = null;
+    return _fromTween(fn, curve, name ?? '');
+  }
 }

@@ -458,6 +458,123 @@ void main() {
   );
 
   testWidgets(
+    'WHEN setCurve is defined for a particular value'
+    'THEN it override the default Curve'
+    'Case animate.call',
+    (tester) async {
+      bool isSelected = true;
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      late double value0;
+      late double value1;
+      late double value2;
+      final widget = On.animation(
+        (animate) {
+          value0 = animate(isSelected ? 0 : 100)!;
+          value1 = animate.setCurve(Interval(0, 0.5)).call(
+                isSelected ? 0 : 100,
+                'value1',
+              )!;
+          value2 = animate.setCurve(Interval(0.5, 1)).call(
+                isSelected ? 0 : 100,
+                'value2',
+              )!;
+          return Container();
+        },
+      ).listenTo(animation);
+      await tester.pumpWidget(widget);
+      expect(value0, 0.0);
+      expect(value1, 0.0);
+      expect(value2, 0.0);
+      isSelected = !isSelected;
+      animation.refresh();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 100));
+      expect(value0, 10.0);
+      expect(value1, 20.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 30.0);
+      expect(value1, 60.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 50.0);
+      expect(value1, 100.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(value0, 60.0);
+      expect(value1, 100.0);
+      expect(value2, 19.999999999999996);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 80.0);
+      expect(value1, 100.0);
+      expect(value2, 60.00000000000001);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 100.0);
+      expect(value1, 100.0);
+      expect(value2, 100.0);
+    },
+  );
+
+  testWidgets(
+    'WHEN setCurve is defined for a particular value'
+    'THEN it override the default Curve'
+    'Case animate.fromTween',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        shouldAutoStart: true,
+      );
+      late double value0;
+      late double value1;
+      late double value2;
+      final widget = On.animation(
+        (animate) {
+          value0 = animate.formTween((_) => Tween(begin: 0, end: 100))!;
+          value1 = animate.setCurve(Interval(0, 0.5)).formTween(
+                (_) => Tween(begin: 0, end: 100),
+                'value1',
+              )!;
+          value2 = animate.setCurve(Interval(0.5, 1)).formTween(
+                (_) => Tween(begin: 0, end: 100),
+                'value2',
+              )!;
+          return Container();
+        },
+      ).listenTo(animation);
+      await tester.pumpWidget(widget);
+      expect(value0, 0.0);
+      expect(value1, 0.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(value0, 10.0);
+      expect(value1, 20.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 30.0);
+      expect(value1, 60.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 50.0);
+      expect(value1, 100.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(value0, 60.0);
+      expect(value1, 100.0);
+      expect(value2, 19.999999999999996);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 80.0);
+      expect(value1, 100.0);
+      expect(value2, 60.00000000000001);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value0, 100.0);
+      expect(value1, 100.0);
+      expect(value2, 100.0);
+    },
+  );
+
+  testWidgets(
     'Animation can be used with per built flutter transition widget'
     'Animation is triggered using triggerAnimation method',
     (tester) async {

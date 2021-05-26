@@ -510,6 +510,7 @@ abstract class RM {
   ///A value of zero means that the animation will repeats infinity.
   ///* **shouldReverseRepeats** When it is set to true, animation will repeat by alternating
   ///between begin and end on each repeat.
+  ///* **shouldAutoStart** When it is set to true, animation will auto start after first initialized.
   ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
   ///
   ///See [On.animation]
