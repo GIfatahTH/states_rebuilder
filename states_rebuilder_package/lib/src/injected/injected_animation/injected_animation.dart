@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../rm.dart';
@@ -29,7 +31,7 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///is dismissed (stopped at the beginning) then the animation is forwarded.
   ///
   ///You can start animation conventionally using `controller!.forward` for example.
-  void triggerAnimation();
+  Future<void>? triggerAnimation();
 
   ///Update `On.animation` widgets listening the this animation
   ///
@@ -94,6 +96,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
+  Completer<void>? animationEndFuture;
 
   bool isAnimating = false;
 
@@ -131,6 +134,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
       if (repeatCount == 1) {
         isAnimating = false;
+        if (!animationEndFuture!.isCompleted) {
+          animationEndFuture!.complete();
+          animationEndFuture = null;
+        }
         endAnimationListener?.call();
         repeatCount = null;
         WidgetsBinding.instance!.scheduleFrameCallback((_) {
@@ -175,23 +182,25 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
   bool _isFrameScheduling = false;
   @override
-  void triggerAnimation() {
+  Future<void>? triggerAnimation() {
     if (!isAnimating && !_isFrameScheduling) {
-      if (observerLength <= 1) {
-        _startAnimation();
-      } else {
-        //If there are more than one On.animation listener, postpone the reset of
-        //animation until the next frame so that all implicit values are calculated
-        //correctly.
-        _isFrameScheduling = true;
-        SchedulerBinding.instance!.scheduleFrameCallback((_) {
-          if (_controller != null) {
-            _startAnimation();
-            _isFrameScheduling = false;
-          }
-        });
-      }
+      animationEndFuture ??= Completer();
+      _startAnimation();
+      // if (observerLength <= 1) {
+      // } else {
+      //   //If there are more than one On.animation listener, postpone the reset of
+      //   //animation until the next frame so that all implicit values are calculated
+      //   //correctly.
+      //   _isFrameScheduling = true;
+      //   SchedulerBinding.instance!.scheduleFrameCallback((_) {
+      //     if (_controller != null) {
+      //       _startAnimation();
+      //       _isFrameScheduling = false;
+      //     }
+      //   });
+      // }
     }
+    return animationEndFuture?.future;
   }
 
   void _startAnimation() {
@@ -199,6 +208,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     if (!shouldReverseRepeats) {
       _resetControllerValue();
     }
+
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {
@@ -232,8 +242,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
   @override
   Future<double> refresh() async {
+    animationEndFuture ??= Completer();
     _didUpdateWidgetListeners.forEach((fn) => fn());
     notify();
+    await animationEndFuture?.future;
     return 0.0;
   }
 
@@ -391,7 +403,7 @@ class Animate {
   ///Set animation explicitly by defining the Tween.
   ///
   ///The callback exposes the currentValue value
-  T? formTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
+  T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
     final curve = _curve;
     _curve = null;
     return _fromTween(fn, curve, name ?? '');

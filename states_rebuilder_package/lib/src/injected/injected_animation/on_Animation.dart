@@ -11,12 +11,14 @@ class OnAnimation {
     Key? key,
   }) {
     return StateBuilderBaseWithTicker<_OnAnimationWidget>(
-      (_, setState, ticker) {
+      (widget, setState, ticker) {
         final inj = injected as InjectedAnimationImp;
         late VoidCallback disposer;
         bool? _isChanged;
+        bool _hasChanged = false;
         bool _isDirty = false;
         bool isInit = true;
+
         final _tweens = <String, Tween<dynamic>>{};
         final _curvedTweens = <String, Animatable<dynamic>>{};
         final assertionList = [];
@@ -37,11 +39,17 @@ class OnAnimation {
 
         T? _animateTween<T>(
           dynamic Function(T? begin) fn,
+          T? targetValue,
           Curve? curve,
           String name,
+          bool isTween,
         ) {
           T? currentValue = getValue(name);
           if (inj.isAnimating && currentValue != null) {
+            _hasChanged = true;
+            return currentValue;
+          }
+          if (!_isDirty && !isInit) {
             return currentValue;
           }
           assert(() {
@@ -54,14 +62,23 @@ class OnAnimation {
 
             return true;
           }());
-
+          _hasChanged = isTween;
           final cachedTween = _tweens[name];
-          final tween = fn(currentValue);
+          var tween;
+          if (cachedTween != null && cachedTween.end == targetValue) {
+            _hasChanged = true;
+            return currentValue;
+          } else {
+            tween = fn(currentValue);
+          }
           if (tween == null) {
             return null;
           }
 
           if (isInit) {
+            if (currentValue != null) {
+              return currentValue;
+            }
             _curvedTweens[name] =
                 tween.chain(CurveTween(curve: curve ?? inj.curve));
             _tweens[name] = tween;
@@ -69,6 +86,8 @@ class OnAnimation {
             if (tween.begin == tween.end) {
               return tween.begin;
             }
+            _hasChanged = true;
+
             // _isChanged = true;
             // _isDirty = true;
           } else if ((cachedTween?.end != tween.end ||
@@ -78,8 +97,8 @@ class OnAnimation {
                 tween.chain(CurveTween(curve: curve ?? inj.curve));
             _tweens[name] = tween;
             _isChanged = true;
+            _hasChanged = true;
           }
-
           if (tween.begin == tween.end) {
             return tween.begin;
           }
@@ -91,37 +110,59 @@ class OnAnimation {
         T? animateTween<T>(dynamic Function(T? begin) fn, Curve? curve,
             [String name = '']) {
           name = 'Tween<$T>' + name + '_TwEeN_';
-          return _animateTween(fn, curve, name);
+
+          // if (!isInit && _curvedTweens.containsKey(name)) {
+          //   return getValue(name);
+          // }
+          return _animateTween(
+            fn,
+            null,
+            curve,
+            name,
+            true,
+          );
         }
 
         T? animateValue<T>(T? value, Curve? curve, [String name = '']) {
           name = '$T' + name;
 
-          return animateTween<T>(
+          return _animateTween<T>(
             (begin) => _getTween(isInit ? value : begin, value),
+            value,
             curve,
             name,
+            false,
           );
         }
 
         void triggerAnimation() {
           if (_isDirty && _isChanged == true) {
             _isChanged = false;
-            _isDirty = false;
             injected.triggerAnimation();
           }
         }
 
-        void didUpdateWidget() {
-          inj.didUpdateWidget();
-          // if (isAnimating) {
-          //   isAnimating = false;
-          // }
+        void _didUpdateWidget() {
           _isDirty = true;
+          inj.didUpdateWidget();
+          inj._isFrameScheduling = false;
+          SchedulerBinding.instance!.addPostFrameCallback(
+            (_) {
+              assertionList.clear();
+              if (inj._controller != null) {
+                triggerAnimation();
+              }
+              _isDirty = false;
+            },
+          );
         }
 
-        final disposeDidUpdateWidget =
-            inj.addToDidUpdateWidgetListeners(didUpdateWidget);
+        final disposeDidUpdateWidget = inj.addToDidUpdateWidgetListeners(
+          () {
+            _hasChanged = true;
+            _didUpdateWidget();
+          },
+        );
 
         return LifeCycleHooks(
           mountedState: (_) {
@@ -135,9 +176,14 @@ class OnAnimation {
             );
             disposer = injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {
-              if (_curvedTweens.isNotEmpty) {
+              print(_hasChanged);
+              if (_hasChanged) {
                 setState();
               }
+            });
+            SchedulerBinding.instance!.addPostFrameCallback((_) {
+              assertionList.clear();
+              isInit = false;
             });
           },
           dispose: (_) {
@@ -148,18 +194,14 @@ class OnAnimation {
             disposeDidUpdateWidget();
           },
           didUpdateWidget: (_, __, ___) {
-            didUpdateWidget();
+            _didUpdateWidget();
           },
           builder: (_, widget) {
-            final child = widget.animate(animate);
-            assertionList.clear();
-            triggerAnimation();
-            isInit = false;
-            return child;
+            return widget.animate(animate);
           },
         );
       },
-      widget: _OnAnimationWidget(anim),
+      widget: _OnAnimationWidget(anim, injected as InjectedAnimationImp),
       injected: injected,
       key: key,
     );
@@ -168,5 +210,6 @@ class OnAnimation {
 
 class _OnAnimationWidget {
   final Widget Function(Animate animate) animate;
-  _OnAnimationWidget(this.animate);
+  final InjectedAnimationImp injected;
+  _OnAnimationWidget(this.animate, this.injected);
 }

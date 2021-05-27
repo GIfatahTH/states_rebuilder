@@ -61,6 +61,7 @@ void main() {
       selected = !selected;
       model.notify();
       await tester.pump();
+      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
       expect('$height', '50.0');
       expect('$width', '25.0');
@@ -132,6 +133,7 @@ void main() {
       selected = !selected;
       animation.refresh();
       await tester.pump();
+      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
 
       expect('$alignment', 'Alignment(-0.5, -0.5)');
@@ -194,6 +196,7 @@ void main() {
       expect(container1.constraints!.maxWidth, 200.0);
       isSelected.toggle();
       await tester.pump();
+      await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       await tester.pump(Duration(milliseconds: 400));
 
@@ -201,6 +204,7 @@ void main() {
       await tester.pump(Duration(milliseconds: 400));
       expect(container1.constraints!.maxWidth, 120.0);
       isSelected.toggle();
+      await tester.pump();
       await tester.pump();
       expect(container1.constraints!.maxWidth, 120.0);
       await tester.pump(Duration(milliseconds: 400));
@@ -241,6 +245,7 @@ void main() {
       expect(container1.constraints!.maxWidth, 200.0);
       expect(container2.constraints!.maxWidth, 200.0);
       isSelected.toggle();
+      await tester.pump();
       await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       expect(container2.constraints!.maxWidth, 200.0);
@@ -324,7 +329,7 @@ void main() {
       late double width;
       final widget = On.animation(
         (animate) => Container(
-          width: width = animate.formTween(
+          width: width = animate.fromTween(
             (_) => Tween(begin: 0.0, end: 100.0),
           )!,
         ),
@@ -368,7 +373,7 @@ void main() {
       late double width;
       final widget = On.animation(
         (animate) => Container(
-          width: width = animate.formTween(
+          width: width = animate.fromTween(
             (_) => Tween(begin: _ ?? 0.0, end: 100.0),
           )!,
         ),
@@ -428,13 +433,14 @@ void main() {
       late double width;
       final widget = On.animation(
         (animate) => Container(
-          width: width = animate.formTween(
+          width: width = animate.fromTween(
             (_) => Tween(begin: 0.0, end: 100.0),
           )!,
         ),
       ).listenTo(animation);
 
       await tester.pumpWidget(widget);
+
       expect(width, 100.0);
       await tester.pump(Duration(milliseconds: 500));
       expect(width, 50.0);
@@ -490,6 +496,7 @@ void main() {
       isSelected = !isSelected;
       animation.refresh();
       await tester.pump();
+      await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
       expect(value0, 10.0);
       expect(value1, 20.0);
@@ -531,12 +538,12 @@ void main() {
       late double value2;
       final widget = On.animation(
         (animate) {
-          value0 = animate.formTween((_) => Tween(begin: 0, end: 100))!;
-          value1 = animate.setCurve(Interval(0, 0.5)).formTween(
+          value0 = animate.fromTween((_) => Tween(begin: 0, end: 100))!;
+          value1 = animate.setCurve(Interval(0, 0.5)).fromTween(
                 (_) => Tween(begin: 0, end: 100),
                 'value1',
               )!;
-          value2 = animate.setCurve(Interval(0.5, 1)).formTween(
+          value2 = animate.setCurve(Interval(0.5, 1)).fromTween(
                 (_) => Tween(begin: 0, end: 100),
                 'value2',
               )!;
@@ -735,5 +742,142 @@ void main() {
 
       expect(tester.takeException(), isUnimplementedError);
     },
+  );
+  testWidgets(
+    'throw an ArgumentError if two animate of the same type and name'
+    'Case animate is defined inside a Builder',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              animate(1.0);
+              return ListView.builder(
+                  itemCount: 1,
+                  itemBuilder: (_, __) {
+                    animate(1.0);
+                    return Container();
+                  });
+            },
+          ).listenTo(animation),
+        ),
+      );
+
+      expect(tester.takeException(), isArgumentError);
+    },
+  );
+
+  testWidgets(
+    'Do not throw an argument error'
+    'When the animation is refreshed and in case one animate is build',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      final model = ''.inj();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              animate(1.0);
+              return On(() {
+                return ListView.builder(
+                    itemCount: 1,
+                    itemBuilder: (_, __) {
+                      animate(1.0, 'n');
+                      return Container();
+                    });
+              }).listenTo(model);
+            },
+          ).listenTo(animation),
+        ),
+      );
+      model.notify();
+      await tester.pumpAndSettle();
+      //
+      animation.refresh();
+      await tester.pumpAndSettle();
+      //
+      model.notify();
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'Nest animation inside ListView Builder works',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        repeats: 2,
+        shouldReverseRepeats: true,
+      );
+      final model = ''.inj();
+      double width = 0.0;
+      double height = 0.0;
+      bool selected = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              animate(1.0);
+              return On(() {
+                return ListView.builder(
+                  itemCount: 1,
+                  itemBuilder: (_, __) {
+                    width = animate(selected ? 0.0 : 100.0, 'n')!;
+                    return On.animation(
+                      (animate) {
+                        height = animate(selected ? 0.0 : 100.0, 'n')!;
+                        return Container();
+                      },
+                    ).listenTo(animation);
+                  },
+                );
+              }).listenTo(model);
+            },
+          ).listenTo(animation),
+        ),
+      );
+      model.notify();
+      await tester.pumpAndSettle();
+      //
+      selected = !selected;
+      animation.refresh();
+      await tester.pump();
+      expect(width, 0);
+      await tester.pump();
+      expect(width, 0);
+      expect(height, 0);
+      model.notify();
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 10);
+      expect(height, 10);
+
+      model.notify();
+      await tester.pump(Duration(milliseconds: 900));
+      expect(width, 100);
+      expect(height, 100);
+
+      model.notify();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 100));
+      print(width);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(width, 90);
+      expect(height, 90);
+      await tester.pumpAndSettle(Duration(milliseconds: 100));
+      expect(width, 0);
+      expect(height, 0);
+      //100
+    },
+  );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {},
   );
 }
