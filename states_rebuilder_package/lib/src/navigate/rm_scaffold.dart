@@ -233,4 +233,8 @@ No valid BuildContext is defined yet
     scaffoldState.openEndDrawer();
     _context = null;
   }
+
+  void _dispose() {
+    _context = null;
+  }
 }

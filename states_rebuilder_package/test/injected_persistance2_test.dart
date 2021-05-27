@@ -379,6 +379,7 @@ void main() async {
   });
 
   testWidgets('deleteAll the persistance', (tester) async {
+    store.store['counter'] = '1';
     final counter = RM.inject<int>(
       () => 0,
       persist: () => PersistState(
@@ -390,9 +391,35 @@ void main() async {
     counter.state = counter.state + 1;
     //after the first second
     await tester.pump(Duration(seconds: 1));
-    expect(store.store['counter'], '1');
+    expect(store.store['counter'], '2');
     RM.deleteAllPersistState();
     await tester.pump();
+    expect(store.store['counter'], null);
+  });
+
+  testWidgets('deleteAll the persistance with exception', (tester) async {
+    store.store['counter'] = '1';
+    final counter = RM.inject<int>(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        debugPrintOperations: true,
+      ),
+    );
+    //first increment
+    counter.state = counter.state + 1;
+    //after the first second
+    await tester.pump(Duration(seconds: 1));
+    expect(store.store['counter'], '2');
+    store.exception = Exception('DeleteAll exception');
+
+    expect(
+      () async {
+        await RM.deleteAllPersistState();
+      },
+      throwsException,
+    );
+    await tester.pumpAndSettle(Duration(seconds: 1));
   });
 
   testWidgets('read, delete , deleteAll with mock future time', (tester) async {
@@ -455,6 +482,7 @@ void main() async {
       counter = RM.injectStream(
         () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
         persist: () => PersistState(
+          shouldRecreateTheState: false,
           key: 'counter',
         ),
       );
@@ -465,6 +493,47 @@ void main() async {
       await tester.pump(Duration(seconds: 1));
       expect(counter.state, 10);
       expect(store.store['counter'], '10');
+    },
+  );
+
+  testWidgets(
+    'issue 192'
+    'When injectedStream is persisted, by default the stream subscription is re established'
+    'on each state initialization',
+    (tester) async {
+      Injected<DateTime> persistentState = RM.injectStream(
+        () =>
+            Stream.periodic(Duration(milliseconds: 10), (_) => DateTime.now()),
+        initialState: DateTime(1970),
+        persist: () => PersistState(
+          key: 'date',
+          toJson: (date) => date.toIso8601String(),
+          fromJson: DateTime.parse,
+        ),
+      );
+      // initializing persistance
+      final initialState = persistentState.state;
+      expect(initialState.isAtSameMomentAs(DateTime(1970)), isTrue);
+      await tester.pump(Duration(milliseconds: 100));
+      final earlier = persistentState.state;
+      expect(earlier.isAfter(initialState), isTrue);
+      // explicitly disposing because thats how I do it in the app
+      // probably unnecessary
+      persistentState.dispose();
+      // re-initializing state -> state is loaded from persistence
+      final fromPersistantState = persistentState.state;
+      expect(fromPersistantState.isAtSameMomentAs(earlier), isTrue);
+
+      // but with refresh, the persistence gets lost as the initial state
+      // is re-invoked too.
+      expect(persistentState.state.isAtSameMomentAs(initialState), isFalse);
+
+      await tester.pump(Duration(milliseconds: 100));
+      // now the state should listen to the stream again and the state's datetime
+      // should be later
+      final shouldBeLater = persistentState.state;
+      expect(fromPersistantState.isBefore(shouldBeLater), isTrue);
+      persistentState.dispose();
     },
   );
 }

@@ -164,7 +164,7 @@ class ReactiveModelBase<T> {
           }
 
           final data = await dataFuture;
-          if (data is Stream || data is Future) {
+          if (data is Stream) {
             return setStateFn(
               (state) => data,
               middleState: middleState,
@@ -222,7 +222,7 @@ class ReactiveModelBase<T> {
     subscription = null;
     subscription = stream.listen(
       (data) {
-        if (data is Stream || data is Future) {
+        if (data is Stream) {
           subscription!.cancel();
           if (_endStreamCompleter?.isCompleted == false) {
             _endStreamCompleter?.complete(data);

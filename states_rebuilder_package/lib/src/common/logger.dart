@@ -8,17 +8,16 @@ class StatesRebuilerLogger {
 
   ///Console log the error
   static void log(String m, [dynamic e, StackTrace? s]) {
-    String? errorMessage;
-    try {
-      errorMessage = e?.message as String?;
-      errorMessage ??= '$e';
-    } catch (_) {
-      errorMessage = '$e';
+    message = message = '[states_rebuilder]: $m';
+    if (e != null) {
+      String? errorMessage;
+      try {
+        errorMessage = e.message as String?;
+      } catch (_) {
+        errorMessage = '$e';
+      }
+      message = message + ' : $errorMessage';
     }
-    // errorMessage ??= '';
-
-    message = '[states_rebuilder]: $m' +
-        (errorMessage != 'null' ? ': $errorMessage' : '');
     if (!isTestMode) {
       print(message);
       if (s != null) {

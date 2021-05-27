@@ -122,6 +122,8 @@ abstract class Injected<T> extends InjectedBase<T> {
   ///Delete the state form the persistence store
   void deletePersistState();
 
+  Future<F> Function() future<F>(Future<F> Function(T s) future);
+
   ///{@template inherited}
   ///Provide the injected model using an [InheritedWidget] that wraps its state.
   ///
@@ -267,20 +269,6 @@ abstract class Injected<T> extends InjectedBase<T> {
 
     // return null;
   }
-
-  static void debugAddRemoveListener(
-    InjectedBaseState inj, {
-    void Function(int length)? onAaddListener,
-    void Function(int length)? onRemoveListener,
-  }) {
-    inj._reactiveModelState.listeners.onAddListener = onAaddListener;
-    inj._reactiveModelState.listeners.onRemoveListener = onRemoveListener;
-  }
-
-  @override
-  String toString() {
-    return '$hashCode: $snapState';
-  }
 }
 
 extension InjectedX1<T> on InjectedBaseState<T> {
@@ -295,13 +283,9 @@ extension InjectedX1<T> on InjectedBaseState<T> {
   }
 }
 
-class NullWidget extends Widget {
+class NullWidget {
   final List<InjectedBaseState> injects;
   NullWidget({
     required this.injects,
   });
-  @override
-  Element createElement() {
-    throw UnimplementedError();
-  }
 }

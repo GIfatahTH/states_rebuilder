@@ -37,7 +37,9 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
   ///Scrolling is happening in the negative scroll offset direction.
   bool get isScrollingReverse =>
       _controller!.position.userScrollDirection == ScrollDirection.reverse;
-  //
+
+  set state(double s);
+
   ///This scrolling list has just started scrolling.
   bool hasStartedScrolling = false;
 

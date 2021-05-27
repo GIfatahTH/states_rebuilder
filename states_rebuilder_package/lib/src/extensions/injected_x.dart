@@ -373,11 +373,11 @@ extension InjectedX<T> on InjectedBaseState<T> {
               (d) {
                 isWaiting = false;
                 setState();
-                onSetState?.call(snap._copyToHasData(data));
-                if (data is T) {
+                onSetState?.call(snap._copyToHasData(d));
+                if (d is T) {
                   inj._reactiveModelState._snapState = SnapState<T>._withData(
                     ConnectionState.done,
-                    data as T,
+                    d,
                   );
                   if (onSetState?._onData == null) {
                     inj.onData?.call(inj.state);

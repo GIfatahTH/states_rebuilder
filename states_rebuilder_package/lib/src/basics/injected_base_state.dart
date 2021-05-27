@@ -36,11 +36,6 @@ abstract class InjectedBaseState<T> {
     return s as T;
   }
 
-  set state(T s) {
-    snapState = snapState.copyToHasData(s);
-    notify();
-  }
-
   T? get _nullableState => _reactiveModelState._snapState.data;
 
   ///A snap representation of the state
@@ -157,6 +152,7 @@ class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
     );
     _reactiveModelState.initializer();
   }
+
   int get observerLength => _reactiveModelState.listeners.observerLength;
 
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;

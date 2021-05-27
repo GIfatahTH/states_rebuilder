@@ -13,7 +13,7 @@ class OnAuth<T> {
     required T Function()? onWaiting,
     required T Function() onUnsigned,
     required T Function() onSigned,
-  })   : _onInitialWaiting = onInitialWaiting,
+  })  : _onInitialWaiting = onInitialWaiting,
         _onWaiting = onWaiting,
         _onUnsigned = onUnsigned,
         _onSigned = onSigned;
@@ -36,6 +36,7 @@ class OnAuth<T> {
     inj.initialize();
     T getWidget() => inj.isSigned ? _onSigned() : _onUnsigned();
     bool isNavigated = false;
+    bool isInitialBuild = true;
     return StateBuilderBase<_OnAuthWidget<T>>(
       (widget, setState) {
         var onInitialWaiting = widget.onInitialWaiting;
@@ -65,7 +66,8 @@ class OnAuth<T> {
                   setState();
                   assert(() {
                     if (debugPrintWhenRebuild != null) {
-                      print('REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                      StatesRebuilerLogger.log(
+                          'REBUILD <' + debugPrintWhenRebuild + '>: $snap');
                     }
                     return true;
                   }());
@@ -73,14 +75,6 @@ class OnAuth<T> {
               },
               clean: null,
             );
-            assert(() {
-              if (debugPrintWhenRebuild != null) {
-                print('INITIAL BUILD <' +
-                    debugPrintWhenRebuild +
-                    '>: ${injected.snapState}');
-              }
-              return true;
-            }());
           },
           dispose: (_) {
             dispose?.call();
@@ -96,6 +90,15 @@ class OnAuth<T> {
             }
           },
           builder: (ctx, widget) {
+            assert(() {
+              if (isInitialBuild && debugPrintWhenRebuild != null) {
+                isInitialBuild = false;
+                StatesRebuilerLogger.log('INITIAL BUILD<' +
+                    debugPrintWhenRebuild +
+                    '>: ${injected.snapState}');
+              }
+              return true;
+            }());
             if (injected.isWaiting) {
               if (onInitialWaiting != null) {
                 return (widget.onInitialWaiting?.call() ?? getWidget())

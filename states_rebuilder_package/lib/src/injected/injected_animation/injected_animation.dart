@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../rm.dart';
@@ -11,15 +13,25 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///Get the `AnimationController` associated with this [InjectedAnimation]
   AnimationController? get controller => _controller;
   Animation<double>? _curvedAnimation;
+  Animation<double>? _reverseCurvedAnimation;
 
   ///Get default animation with `Tween<double>(begin:0.0, end:1.0)` and with the defined curve,
   ///Used with Flutter's widgets that end with Transition (ex SlideTransition,
   ///RotationTransition)
   Animation<double> get curvedAnimation {
     assert(_controller != null);
-    return _curvedAnimation ??= CurvedAnimation(
+    final hasReverseCurve = (this as InjectedAnimationImp).reverseCurve != null;
+    if (!hasReverseCurve) {
+      return _curvedAnimation ??= CurvedAnimation(
+        parent: _controller!,
+        curve: (this as InjectedAnimationImp).curve,
+      );
+    }
+    return _reverseCurvedAnimation ??= CurvedAnimation(
       parent: _controller!,
-      curve: (this as InjectedAnimationImp).curve,
+      curve: _controller!.status == AnimationStatus.reverse
+          ? (this as InjectedAnimationImp).reverseCurve!
+          : (this as InjectedAnimationImp).curve,
     );
   }
 
@@ -29,11 +41,15 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///is dismissed (stopped at the beginning) then the animation is forwarded.
   ///
   ///You can start animation conventionally using `controller!.forward` for example.
-  void triggerAnimation();
+  ///
+  ///It returns Future that resolves when the started animation ends.
+  Future<void>? triggerAnimation();
 
   ///Update `On.animation` widgets listening the this animation
   ///
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
+  ///
+  ///It returns Future that resolves when the started animation ends.
   Future<double> refresh();
 }
 
@@ -44,12 +60,14 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     this.duration = const Duration(milliseconds: 500),
     this.reverseDuration,
     this.curve = Curves.linear,
+    this.reverseCurve,
     this.initialValue,
     this.upperBound = 1.0,
     this.lowerBound = 0.0,
     this.animationBehavior = AnimationBehavior.normal,
     this.repeats,
-    this.isReverse = false,
+    this.shouldReverseRepeats = false,
+    this.shouldAutoStart = false,
     this.onInitialized,
     this.endAnimationListener,
   }) : super(
@@ -67,10 +85,21 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
   /// The length of time this animation should last when going in [reverse].
   ///
-  /// The value of [duration] us used if [reverseDuration] is not specified or
+  /// The value of [duration] is used if [reverseDuration] is not specified or
   /// set to null.
   Duration? reverseDuration;
+
+  /// The default curve of the animation.
+  ///
+  /// If [reverseCurve] is specified, then [curve] is only used when going
+  /// [forward]. Otherwise, it specifies the curve going in both directions.
   final Curve curve;
+
+  /// The curve of the animation when going in [reverse].
+  ///
+  /// The value of [curve] is used if [reverseCurve] is not specified or
+  /// set to null.
+  final Curve? reverseCurve;
 
   /// The value at which this animation is deemed to be dismissed.
   final double lowerBound;
@@ -88,10 +117,12 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///indefinitely
   final int? repeats;
 
-  final bool isReverse;
+  final bool shouldReverseRepeats;
+  final bool shouldAutoStart;
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
+  Completer<void>? animationEndFuture;
 
   bool isAnimating = false;
 
@@ -115,19 +146,25 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     repeatStatusListenerListener = (status) {
       if (status != AnimationStatus.completed &&
           status != AnimationStatus.dismissed) {
+        _reverseCurvedAnimation = null;
         return;
       }
-      if (repeats == null) {
-        endAnimationListener?.call();
-        return;
-      }
+      // if (repeats == null) {
+      //   isAnimating = false;
+      //   endAnimationListener?.call();
+      //   return;
+      // }
       if (skipDismissStatus) {
         return;
       }
-      repeatCount ??= repeats;
+      repeatCount ??= repeats ?? 1;
 
       if (repeatCount == 1) {
         isAnimating = false;
+        if (animationEndFuture?.isCompleted == false) {
+          animationEndFuture!.complete();
+          animationEndFuture = null;
+        }
         endAnimationListener?.call();
         repeatCount = null;
         WidgetsBinding.instance!.scheduleFrameCallback((_) {
@@ -136,7 +173,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       } else {
         if (status == AnimationStatus.completed) {
           if (repeatCount! > 1) repeatCount = repeatCount! - 1;
-          if (isReverse) {
+          if (shouldReverseRepeats) {
             _controller!.reverse();
           } else {
             skipDismissStatus = true;
@@ -146,7 +183,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
           }
         } else if (status == AnimationStatus.dismissed) {
           if (repeatCount! > 1) repeatCount = repeatCount! - 1;
-          if (isReverse) {
+          if (shouldReverseRepeats) {
             _controller!.forward();
           } else {
             skipDismissStatus = true;
@@ -165,32 +202,40 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       })
       ..addStatusListener(repeatStatusListenerListener);
     onInitialized?.call(this);
+    if (shouldAutoStart) {
+      triggerAnimation();
+    }
   }
 
   bool _isFrameScheduling = false;
   @override
-  void triggerAnimation() {
+  Future<void>? triggerAnimation() {
     if (!isAnimating && !_isFrameScheduling) {
-      isAnimating = true;
-      if (observerLength <= 1) {
-        _startAnimation();
-      } else {
-        //If there are more than one On.animation listener, postpone the reset of
-        //animation until the next frame so that all implicit values are calculated
-        //correctly.
-        _isFrameScheduling = true;
-        SchedulerBinding.instance!.scheduleFrameCallback((_) {
-          if (_controller != null) {
-            _startAnimation();
-            _isFrameScheduling = false;
-          }
-        });
-      }
+      animationEndFuture ??= Completer();
+      _startAnimation();
+      // if (observerLength <= 1) {
+      // } else {
+      //   //If there are more than one On.animation listener, postpone the reset of
+      //   //animation until the next frame so that all implicit values are calculated
+      //   //correctly.
+      //   _isFrameScheduling = true;
+      //   SchedulerBinding.instance!.scheduleFrameCallback((_) {
+      //     if (_controller != null) {
+      //       _startAnimation();
+      //       _isFrameScheduling = false;
+      //     }
+      //   });
+      // }
     }
+    return animationEndFuture?.future;
   }
 
   void _startAnimation() {
-    _resetControllerValue();
+    isAnimating = true;
+    if (!shouldReverseRepeats) {
+      _resetControllerValue();
+    }
+
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {
@@ -224,8 +269,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
   @override
   Future<double> refresh() async {
+    animationEndFuture ??= Completer();
     _didUpdateWidgetListeners.forEach((fn) => fn());
     notify();
+    await animationEndFuture?.future;
     return 0.0;
   }
 
@@ -234,6 +281,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     _controller!.dispose();
     _controller = null;
     _curvedAnimation = null;
+    _reverseCurvedAnimation = null;
     isAnimating = false;
     _isFrameScheduling = false;
     _didUpdateWidgetListeners.clear();
@@ -354,19 +402,66 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
 }
 
 class Animate {
-  final T? Function<T>(T? value, [String name]) _value;
+  final T? Function<T>(
+    T? value,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _value;
+  Curve? _curve;
+  Curve? _reserveCurve;
+  Animate setCurve(Curve curve) {
+    _curve = curve;
+    return this;
+  }
+
+  Animate setReverseCurve(Curve curve) {
+    _reserveCurve = curve;
+    return this;
+  }
+
+  final T? Function<T>(
+    Tween<T?> Function(T? currentValue) fn,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _fromTween;
+
+  Animate._({
+    required T? Function<T>(
+      T? value,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        value,
+    required T? Function<T>(
+      Tween<T?> Function(T? currentValue) fn,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        fromTween,
+  })  : _value = value,
+        _fromTween = fromTween;
+
+  ///Implicitly animate to the given value
+  T? call<T>(T? value, [String name = '']) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _value.call<T>(value, curve, reserveCurve, name);
+  }
 
   ///Set animation explicitly by defining the Tween.
   ///
   ///The callback exposes the currentValue value
-  final T? Function<T>(Tween<T?> Function(T? currentValue) fn, [String name])
-      formTween;
-
-  Animate._({
-    required T? Function<T>(T? value, [String name]) value,
-    required this.formTween,
-  }) : _value = value;
-
-  ///Implicitly animate to the given value
-  T? call<T>(T? value, [String name = '']) => _value.call<T>(value, name);
+  T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _fromTween(fn, curve, reserveCurve, name ?? '');
+  }
 }

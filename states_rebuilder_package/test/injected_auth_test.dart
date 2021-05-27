@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 String disposeMessage = '';
@@ -700,4 +701,60 @@ void main() async {
     user.refresh();
     await tester.pump();
   });
+
+  testWidgets(
+    'WHEN On.auth is rebuild, it keeps its state'
+    'Test debugPrintWhenRebuild',
+    (tester) async {
+      StatesRebuilerLogger.isTestMode = true;
+      final model = true.inj();
+      var user;
+
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: On(
+          () {
+            user = RM.injectAuth(
+              () => FakeAuthRepo(),
+              unsignedUser: 'user0',
+            );
+            return On.auth(
+              onInitialWaiting: () => Text('Initial Waiting...'),
+              onWaiting: () => Text('Waiting...'),
+              onUnsigned: () => Text('Unsigned'),
+              onSigned: () => Text('Signed'),
+            ).listenTo(
+              user,
+              debugPrintWhenRebuild: 'user',
+            );
+          },
+        ).listenTo(model),
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      expect(find.text('Unsigned'), findsOneWidget);
+
+      user.setState((s) async {
+        await Future.delayed(Duration(seconds: 1));
+        return 'user1';
+      });
+      await tester.pump();
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Signed'), findsOneWidget);
+      expect(StatesRebuilerLogger.message,
+          endsWith('REBUILD <user>: SnapState<String>(hasData: user1)'));
+      model.notify();
+      await tester.pump();
+      expect(user.state, 'user1');
+      expect(StatesRebuilerLogger.message,
+          endsWith('REBUILD <user>: SnapState<String>(hasData: user1)'));
+
+      // sign out
+      user.auth.signOut();
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Unsigned'), findsOneWidget);
+    },
+  );
 }

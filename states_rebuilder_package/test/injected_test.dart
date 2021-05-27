@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -38,6 +39,7 @@ final asyncComputed = RM.injectStream<VanillaModel>(
 );
 
 void main() {
+  StatesRebuilerLogger.isTestMode = true;
   testWidgets(
     'should not throw if async method is called from initState',
     (tester) async {
@@ -61,6 +63,11 @@ void main() {
       await tester.pump();
       await tester.pump(Duration(seconds: 1));
       expect(vanillaModel.hasError, isTrue);
+      expect(
+        vanillaModel.toString(),
+        endsWith(
+            '(SnapState<VanillaModel>(hasError: Exception: Error message))'),
+      );
     },
   );
 
@@ -281,9 +288,44 @@ void main() {
     expect(find.text('done 3'), findsOneWidget);
   });
 
+  testWidgets('Injected.streamBuilder immutable without error', (tester) async {
+    final widget = vanillaModel.streamBuilder<VanillaModel>(
+      stream: (s, subscription) {
+        return s?.incrementStream.call().map((e) => VanillaModel(e));
+      },
+      onError: null,
+      onSetState: On.waiting(() {}),
+      onWaiting: () => Text('waiting ...'),
+      onData: (state) {
+        return Text('${state!.counter}');
+      },
+      onDone: (state) {
+        return Text('done ${state.counter}');
+      },
+      dispose: () {},
+    );
+
+    await tester.pumpWidget(MaterialApp(home: widget));
+
+    expect(find.text('waiting ...'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+
+    expect(find.text('done 3'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('done 3'), findsOneWidget);
+  });
+
   testWidgets('Injected.streamBuilder with error', (tester) async {
     final widget = vanillaModel.streamBuilder(
       stream: (s, subscription) => s?.incrementStreamWithError(),
+      onSetState: On.waiting(() {}),
       onWaiting: null,
       onError: (e) => Text('${e.message}'),
       onData: (state) {
@@ -1522,6 +1564,98 @@ void main() {
       await tester.pump(Duration(seconds: 1));
       expect(injectOnSetState, 2);
       expect(setStateOnSetState, 4);
+    },
+  );
+
+  testWidgets(
+    'Injected model invoke mutable future',
+    (tester) async {
+      final model = RM.injectFuture(
+        vanillaModel.future((s) => s.incrementAsync()),
+      );
+      expect(model.isWaiting, true);
+      expect(vanillaModel.isIdle, true);
+      expect(vanillaModel.state.counter, 0);
+      await tester.pump(Duration(seconds: 1));
+      expect(model.hasData, true);
+      expect(model.state, 1);
+      expect(vanillaModel.isIdle, true);
+      expect(vanillaModel.state.counter, 1);
+
+      final model1 = RM.injectFuture(
+        vanillaModel.future((s) => s.incrementAsyncWithError()),
+      );
+      expect(model1.isWaiting, true);
+      expect(vanillaModel.isIdle, true);
+      expect(vanillaModel.state.counter, 1);
+      await tester.pump(Duration(seconds: 1));
+      expect(model1.hasError, true);
+      expect(vanillaModel.hasError, true);
+      vanillaModel.dispose();
+    },
+  );
+
+  testWidgets(
+    'Injected model invoke immutable future',
+    (tester) async {
+      final model = RM.injectFuture(
+        vanillaModel.future((s) => s.incrementAsyncImmutable()),
+      );
+      expect(model.isWaiting, true);
+      expect(vanillaModel.isIdle, true);
+      expect(vanillaModel.state.counter, 0);
+      await tester.pump(Duration(seconds: 1));
+      expect(model.hasData, true);
+      expect(model.state.counter, 1);
+      expect(vanillaModel.hasData, true);
+      expect(vanillaModel.state.counter, 1);
+      //
+
+      final model1 = RM.injectFuture(
+        vanillaModel.future((s) => s.incrementAsyncWithError()),
+      );
+      expect(model1.isWaiting, true);
+      expect(vanillaModel.hasData, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(model1.hasError, true);
+      expect(vanillaModel.hasError, true);
+    },
+  );
+
+  testWidgets(
+    'Test toDebugString ',
+    (tester) async {
+      final model = RM.inject(
+        () => [],
+        debugPrintWhenNotifiedPreMessage: 'model',
+        toDebugString: (List? s) => '${s?.length}',
+      );
+      model.state = ['1'];
+      expect(
+        StatesRebuilerLogger.message,
+        '[states_rebuilder]: <model> : isIdle : 0 ==> hasData: 1',
+      );
+      model.dispose();
+      expect(
+        StatesRebuilerLogger.message,
+        '[states_rebuilder]: <model> : hasData: 1 ==> DISPOSING...',
+      );
+    },
+  );
+
+  testWidgets(
+    'test when future return a stream',
+    (tester) async {
+      final model = RM.injectFuture(() async {
+        await Future.delayed(Duration(seconds: 1));
+        return Stream.fromFuture(
+            Future.delayed(Duration(seconds: 1), () => 'ok'));
+      });
+      expect(model.isWaiting, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(model.isWaiting, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(model.hasData, true);
     },
   );
 }

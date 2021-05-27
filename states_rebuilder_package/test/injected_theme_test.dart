@@ -349,6 +349,11 @@ void main() async {
           'theme1': lightTheme,
           'theme2': darkTheme,
         },
+        onSetState: On(
+          () {
+            // onSetStateNum++;
+          },
+        ),
         middleSnapState: (middleSnap) {
           _snapState = middleSnap.currentSnap;
           _nextSnapState = middleSnap.nextSnap;

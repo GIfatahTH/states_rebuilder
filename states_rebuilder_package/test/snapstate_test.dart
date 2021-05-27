@@ -22,6 +22,22 @@ void main() {
   );
 
   testWidgets(
+    'WHEN SnapState is created with stackTrace and no error'
+    'THEN it throws and assertion error',
+    (tester) async {
+      expect(
+        () => createSnapState(
+          ConnectionState.done,
+          0,
+          null,
+          stackTrace: StackTrace.empty,
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  testWidgets(
     'WHEN toString of a snapState is call '
     'THEN it returns a String representing the current state',
     (tester) async {
@@ -91,6 +107,25 @@ void main() {
 
       expect('$snapState', 'SnapState<int>(hasError: Exception: Error)');
       //
+    },
+  );
+
+  testWidgets(
+    'Text SnapState.error constructor ',
+    (tester) async {
+      final snap = SnapState.error('err');
+      snap.onErrorRefresher!();
+      final newSnap = snap.copyTo(isIdle: true);
+      expect(newSnap.isIdle, true);
+      final newSnap2 = snap.copyTo(isActive: false);
+      expect(newSnap2.isActive, false);
+      final newSnap3 = snap.copyToHasError('error');
+      expect(newSnap3.hasError, true);
+      expect(newSnap3.toString(), 'SnapState<dynamic>(hasError: error)');
+      //
+      final inj = RM.inject(() => '', debugPrintWhenNotifiedPreMessage: 'inj');
+      expect(
+          inj.snapState.toString(), 'SnapState<String>[inj](INITIALIZING...)');
     },
   );
 }

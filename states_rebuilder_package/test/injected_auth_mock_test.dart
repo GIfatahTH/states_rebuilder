@@ -109,6 +109,11 @@ void main() async {
     expect(user.isSigned, true);
   });
 
+  testWidgets('Mock the injected state of the user ', (tester) async {
+    user.injectMock(() => 'user10');
+    expect(user.state, 'user10');
+  });
+
   testWidgets('Sign up a user', (tester) async {
     expect(user.state, 'user0');
     await tester.pump();

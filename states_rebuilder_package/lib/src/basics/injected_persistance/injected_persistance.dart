@@ -51,6 +51,20 @@ class PersistState<T> {
   ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
 
+  ///Useful for state created using [RM.injectedStream]
+  ///
+  ///A persisted state, and while the state is initializing, it looks for
+  ///a stored value. If it founds one, the state holds the value and the creator of
+  ///the state is not invoked.
+  ///
+  ///For state created using [RM.injectedStream] the default value is true,
+  ///that is, the creator is invoked to keep the subscription to the stream.
+  ///
+  ///For states created using [RM.inject] and [RM.injectedFuture] the default value
+  ///is false.
+  ///
+  final bool? shouldRecreateTheState;
+
   ///Persistance provider that will be used to persist this state instead of
   ///the default persistance provider defined with [RM.storageInitializer].
   final IPersistStore? persistStateProvider;
@@ -72,32 +86,15 @@ class PersistState<T> {
     this.catchPersistError = false,
     this.debugPrintOperations = false,
     this.persistStateProvider,
+    this.shouldRecreateTheState,
   }) {
     fromJson ??= _getFromJsonOfPrimitive<T>();
     toJson ??= _getToJsonOfPrimitive<T>();
   }
   IPersistStore get _persistState {
+    _persistStateSingleton = null;
     _persistStateSingleton ??= _persistStateGlobalTest;
     _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
-
-    assert(_persistStateSingleton != null, '''
-No implementation of `IPersistStore` is provided.
-Pleas implementation the `IPersistStore` interface and Initialize it in the main 
-method.
-
-void main() async { 
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await RM.storageInitializer(YouImplementation());
-  runApp(_MyApp());
-}
-
-If you are testing the app use:
-
-await RM.storageInitializerMock();\n\n
-
-
-''');
     return _persistStateSingleton!;
   }
 

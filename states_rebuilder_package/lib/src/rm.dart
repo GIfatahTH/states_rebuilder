@@ -284,10 +284,6 @@ abstract class RM {
     String Function(T?)? toDebugString,
   }) {
     assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
-    assert(
       null is T || unsignedUser != null,
       '$T is non nullable, you have to define unsignedUser parameter.\n'
       'If you want to the unsignedUSer to be null use nullable type ($T?)',
@@ -370,10 +366,6 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(List<T>?)? toDebugString,
   }) {
-    assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
     return InjectedCRUDImp<T, P>(
       repoCreator: repository,
       param: param,
@@ -429,6 +421,10 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(KEY?)? toDebugString,
   }) {
+    assert(
+      KEY != dynamic && KEY != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
     return InjectedThemeImp<KEY>(
       lightThemes: lightThemes,
       darkThemes: darkThemes,
@@ -476,6 +472,11 @@ abstract class RM {
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
   }) {
+    assert(
+      I18N != dynamic && I18N != Object,
+      'Type can not inferred, please declare it explicitly',
+    );
+
     return InjectedI18NImp<I18N>(
       i18Ns: i18Ns,
       persistKey: persistKey,
@@ -500,6 +501,7 @@ abstract class RM {
   ///* **duration** Animation duration, It is required.
   ///* **reverseDuration** The length of time this animation should last when going in reverse.
   ///* **curve** Animation curve, It defaults to Curves.linear
+  ///* **reverseCurve** Animation curve to be used when the animation is going in reverse.
   ///* **initialValue** The AnimationController's value the animation start with.
   ///* **lowerBound** The value at which this animation is deemed to be dismissed.
   ///* **upperBound** The value at which this animation is deemed to be completed.
@@ -509,6 +511,7 @@ abstract class RM {
   ///A value of zero means that the animation will repeats infinity.
   ///* **shouldReverseRepeats** When it is set to true, animation will repeat by alternating
   ///between begin and end on each repeat.
+  ///* **shouldAutoStart** When it is set to true, animation will auto start after first initialized.
   ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
   ///
   ///See [On.animation]
@@ -516,12 +519,14 @@ abstract class RM {
     required Duration duration,
     Duration? reverseDuration,
     Curve curve = Curves.linear,
+    Curve? reverseCurve,
     double? initialValue,
     double lowerBound = 0.0,
     double upperBound = 1.0,
     AnimationBehavior animationBehavior = AnimationBehavior.normal,
     int? repeats,
     bool shouldReverseRepeats = false,
+    bool shouldAutoStart = false,
     void Function(InjectedAnimation)? onInitialized,
     void Function()? endAnimationListener,
   }) {
@@ -529,11 +534,13 @@ abstract class RM {
       duration: duration,
       reverseDuration: reverseDuration,
       curve: curve,
+      reverseCurve: reverseCurve,
       lowerBound: lowerBound,
       upperBound: upperBound,
       animationBehavior: animationBehavior,
       repeats: repeats,
-      isReverse: shouldReverseRepeats,
+      shouldReverseRepeats: shouldReverseRepeats,
+      shouldAutoStart: shouldAutoStart,
       onInitialized: onInitialized,
       endAnimationListener: endAnimationListener,
       initialValue: initialValue,
@@ -654,20 +661,19 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   }) {
-    assert(
-      T != dynamic && T != Object,
-      'Type can not inferred, please declare it explicitly',
-    );
     return InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null, '''
+        assert(RM.env != null,
+            '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null, '''
+        assert(impl[env] != null,
+            '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength, '''
+        assert(impl.length == _envMapLength,
+            '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
@@ -743,7 +749,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       inj.dispose();
     }
     injectedModels.clear();
-    _scaffold._context = null;
+    _scaffold._dispose();
+    _navigate._dispose();
   }
 
   static _Scaffold scaffold = _scaffold;
@@ -773,17 +780,17 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return RM.navigate._navigatorKey.currentState?.context;
   }
 
-  static set context(BuildContext? context) {
-    if (context == null) {
-      return;
-    }
-    _context = context;
-    WidgetsBinding.instance?.addPostFrameCallback(
-      (_) {
-        return _context = null;
-      },
-    );
-  }
+  // static set context(BuildContext? context) {
+  //   if (context == null) {
+  //     return;
+  //   }
+  //   _context = context;
+  //   WidgetsBinding.instance?.addPostFrameCallback(
+  //     (_) {
+  //       return _context = null;
+  //     },
+  //   );
+  // }
 
   //
   static ReactiveModel<T> get<T>([String? name]) {

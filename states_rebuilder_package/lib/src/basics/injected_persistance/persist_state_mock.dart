@@ -17,17 +17,13 @@ class _PersistStoreMock extends IPersistStore {
   ///Milliseconds to await for async operation
   int timeToWait = 0;
   @override
-  Future<void> init() {
+  Future<void> init() async {
     final oldStore = (_persistStateGlobalTest as _PersistStoreMock).store;
     if (oldStore.isNotEmpty) {
       store = oldStore;
     } else {
       store = <String, String>{};
     }
-
-    return timeToWait == 0
-        ? Future.value()
-        : Future.delayed(Duration(milliseconds: timeToWait));
   }
 
   @override
@@ -117,6 +113,7 @@ class _PersistStoreMock extends IPersistStore {
     timeToWait = 0;
   }
 
+  @override
   String toString() {
     return '$store';
   }

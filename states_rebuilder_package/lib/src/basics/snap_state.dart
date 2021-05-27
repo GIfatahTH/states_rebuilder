@@ -410,27 +410,25 @@ class MiddleSnapState<T> {
   // : currentState = currentSnap.data,
   //   nextState = nextSnap.data;
 
-  bool get isValid => nextSnap.data != null && currentSnap.data != null;
-
   String log({
     String Function(T? s)? stateToString,
     String preMessage = '',
   }) {
-    if (currentSnap.isIdle &&
-        currentSnap.data == null &&
-        currentSnap._infoMessage.isEmpty &&
-        nextSnap.isWaiting) {
-      return MiddleSnapState<T>(
-        SnapState<T>._nothing(
-          null,
-          kInitMessage,
-          nextSnap._debugPrintWhenNotifiedPreMessage,
-        ),
-        nextSnap,
-      ).log(
-        stateToString: stateToString,
-      );
-    }
+    // if (currentSnap.isIdle &&
+    //     currentSnap.data == null &&
+    //     currentSnap._infoMessage.isEmpty &&
+    //     nextSnap.isWaiting) {
+    //   return MiddleSnapState<T>(
+    //     SnapState<T>._nothing(
+    //       null,
+    //       kInitMessage,
+    //       nextSnap._debugPrintWhenNotifiedPreMessage,
+    //     ),
+    //     nextSnap,
+    //   ).log(
+    //     stateToString: stateToString,
+    //   );
+    // }
     final isMutable = nextSnap.hasData && nextSnap._isImmutable == false;
     return (preMessage.isNotEmpty ? '<$preMessage>' : '<$T>') +
         ' ' +
@@ -448,12 +446,9 @@ class MiddleSnapState<T> {
       stateToString: stateToString,
       preMessage: preMessage,
     );
-    debugPrint(l);
+
+    StatesRebuilerLogger.log(l);
 
     return l;
-  }
-
-  String toString() {
-    return '<$T> : $currentSnap => $nextSnap';
   }
 }

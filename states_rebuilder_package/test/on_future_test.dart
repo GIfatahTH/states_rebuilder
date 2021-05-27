@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_classes/models.dart';
@@ -7,7 +8,7 @@ import 'fake_classes/models.dart';
 final vanillaModel = RM.inject(() => VanillaModel());
 
 void main() {
-  testWidgets('On.futurewithout error', (tester) async {
+  testWidgets('On.future without error', (tester) async {
     final widget = On.future(
       onWaiting: () => Text('waiting ...'),
       onError: null,
@@ -277,13 +278,24 @@ void main() {
         onWaiting: () => Text('Waiting...'),
         onError: null,
         onData: (_, __) => Text('$_'),
-      ).listenTo(counter),
+      ).listenTo(
+        counter,
+        debugPrintWhenRebuild: 'future',
+      ),
     );
 
     await tester.pumpWidget(widget);
+    expect(
+        StatesRebuilerLogger.message,
+        endsWith(
+            'INITIAL BUILD<future>: SnapState<int?>[](isWaiting (FUTURE): null)'));
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('null'), findsOneWidget);
     expect(counter.hasError, isTrue);
+    expect(
+        StatesRebuilerLogger.message,
+        endsWith(
+            'REBUILD <future>: SnapState<int?>(hasError: Exception: Error)'));
   });
 }
