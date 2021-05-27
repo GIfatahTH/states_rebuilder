@@ -46,6 +46,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     this.duration = const Duration(milliseconds: 500),
     this.reverseDuration,
     this.curve = Curves.linear,
+    this.reverseCurve,
     this.initialValue,
     this.upperBound = 1.0,
     this.lowerBound = 0.0,
@@ -70,10 +71,21 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
   /// The length of time this animation should last when going in [reverse].
   ///
-  /// The value of [duration] us used if [reverseDuration] is not specified or
+  /// The value of [duration] is used if [reverseDuration] is not specified or
   /// set to null.
   Duration? reverseDuration;
+
+  /// The default curve of the animation.
+  ///
+  /// If [reverseCurve] is specified, then [curve] is only used when going
+  /// [forward]. Otherwise, it specifies the curve going in both directions.
   final Curve curve;
+
+  /// The curve of the animation when going in [reverse].
+  ///
+  /// The value of [curve] is used if [reverseCurve] is not specified or
+  /// set to null.
+  final Curve? reverseCurve;
 
   /// The value at which this animation is deemed to be dismissed.
   final double lowerBound;
@@ -374,21 +386,45 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
 }
 
 class Animate {
-  final T? Function<T>(T? value, Curve? curve, [String name]) _value;
+  final T? Function<T>(
+    T? value,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _value;
   Curve? _curve;
+  Curve? _reserveCurve;
   Animate setCurve(Curve curve) {
     _curve = curve;
     return this;
   }
 
-  final T? Function<T>(Tween<T?> Function(T? currentValue) fn, Curve? curve,
-      [String name]) _fromTween;
+  Animate setReverseCurve(Curve curve) {
+    _reserveCurve = curve;
+    return this;
+  }
+
+  final T? Function<T>(
+    Tween<T?> Function(T? currentValue) fn,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _fromTween;
 
   Animate._({
-    required T? Function<T>(T? value, Curve? curve, [String name]) value,
     required T? Function<T>(
-            Tween<T?> Function(T? currentValue) fn, Curve? curve,
-            [String name])
+      T? value,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        value,
+    required T? Function<T>(
+      Tween<T?> Function(T? currentValue) fn,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
         fromTween,
   })  : _value = value,
         _fromTween = fromTween;
@@ -396,8 +432,10 @@ class Animate {
   ///Implicitly animate to the given value
   T? call<T>(T? value, [String name = '']) {
     final curve = _curve;
+    final reserveCurve = _reserveCurve;
     _curve = null;
-    return _value.call<T>(value, curve, name);
+    _reserveCurve = null;
+    return _value.call<T>(value, curve, reserveCurve, name);
   }
 
   ///Set animation explicitly by defining the Tween.
@@ -405,7 +443,9 @@ class Animate {
   ///The callback exposes the currentValue value
   T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
     final curve = _curve;
+    final reserveCurve = _reserveCurve;
     _curve = null;
-    return _fromTween(fn, curve, name ?? '');
+    _reserveCurve = null;
+    return _fromTween(fn, curve, reserveCurve, name ?? '');
   }
 }

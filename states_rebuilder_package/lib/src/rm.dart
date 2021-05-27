@@ -501,6 +501,7 @@ abstract class RM {
   ///* **duration** Animation duration, It is required.
   ///* **reverseDuration** The length of time this animation should last when going in reverse.
   ///* **curve** Animation curve, It defaults to Curves.linear
+  ///* **reverseCurve** Animation curve to be used when the animation is going in reverse.
   ///* **initialValue** The AnimationController's value the animation start with.
   ///* **lowerBound** The value at which this animation is deemed to be dismissed.
   ///* **upperBound** The value at which this animation is deemed to be completed.
@@ -518,6 +519,7 @@ abstract class RM {
     required Duration duration,
     Duration? reverseDuration,
     Curve curve = Curves.linear,
+    Curve? reverseCurve,
     double? initialValue,
     double lowerBound = 0.0,
     double upperBound = 1.0,
@@ -532,6 +534,7 @@ abstract class RM {
       duration: duration,
       reverseDuration: reverseDuration,
       curve: curve,
+      reverseCurve: reverseCurve,
       lowerBound: lowerBound,
       upperBound: upperBound,
       animationBehavior: animationBehavior,
@@ -661,13 +664,16 @@ abstract class RM {
     return InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null, '''
+        assert(RM.env != null,
+            '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null, '''
+        assert(impl[env] != null,
+            '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength, '''
+        assert(impl.length == _envMapLength,
+            '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');

@@ -525,6 +525,78 @@ void main() {
   );
 
   testWidgets(
+    'WHEN setReversCurveCurve is defined for a particular value'
+    'THEN it override the default Curve'
+    'Case animate.call',
+    (tester) async {
+      bool isSelected = true;
+      final animation = RM.injectAnimation(
+        initialValue: 1,
+        duration: Duration(seconds: 1),
+        curve: Curves.bounceInOut,
+        reverseCurve: Curves.linear,
+      );
+      late double value0;
+      late double value1;
+      late double value2;
+      final widget = On.animation(
+        (animate) {
+          value0 = animate(isSelected ? 0 : 100)!;
+          value1 = animate.setReverseCurve(Interval(0, 0.5)).call(
+                isSelected ? 0 : 100,
+                'value1',
+              )!;
+          value2 = animate.setReverseCurve(Interval(0.5, 1)).call(
+                isSelected ? 0 : 100,
+                'value2',
+              )!;
+          return Container();
+        },
+      ).listenTo(animation);
+      await tester.pumpWidget(widget);
+      expect(value0, 0.0);
+      expect(value1, 0.0);
+      expect(value2, 0.0);
+      isSelected = !isSelected;
+      animation.refresh();
+      await tester.pump();
+      await tester.pump();
+      expect(value0, 100.0);
+      expect(value1, 100.0);
+      expect(value2, 100.0);
+      await tester.pump(Duration(milliseconds: 100));
+      expect(value0, 90.0);
+      expect(value1, 100.0);
+      expect(value2, 80.0);
+      await tester.pump(Duration(milliseconds: 200));
+
+      expect(value0, 70.0);
+      expect(value1, 100.0);
+      expect(value2, 39.99999999999999);
+      await tester.pump(Duration(milliseconds: 200));
+
+      expect(value0, 50.0);
+      expect(value1, 100.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 100));
+
+      expect(value0, 40.0);
+      expect(value1, 80.0);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+
+      expect(value0, 19.999999999999996);
+      expect(value1, 39.99999999999999);
+      expect(value2, 0.0);
+      await tester.pump(Duration(milliseconds: 200));
+
+      expect(value0, 0.0);
+      expect(value1, 0.0);
+      expect(value2, 0.0);
+    },
+  );
+
+  testWidgets(
     'WHEN setCurve is defined for a particular value'
     'THEN it override the default Curve'
     'Case animate.fromTween',
@@ -864,7 +936,6 @@ void main() {
       model.notify();
       await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
-      print(width);
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 90);
       expect(height, 90);
@@ -873,11 +944,5 @@ void main() {
       expect(height, 0);
       //100
     },
-  );
-
-  testWidgets(
-    'WHEN'
-    'THEN',
-    (tester) async {},
   );
 }

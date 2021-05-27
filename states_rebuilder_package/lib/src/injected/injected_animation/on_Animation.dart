@@ -20,7 +20,7 @@ class OnAnimation {
         bool isInit = true;
 
         final _tweens = <String, Tween<dynamic>>{};
-        final _curvedTweens = <String, Animatable<dynamic>>{};
+        final _curvedTweens = <String, EvaluateAnimation>{};
         final assertionList = [];
         late final Animate animate;
         T? getValue<T>(String name) {
@@ -41,6 +41,7 @@ class OnAnimation {
           dynamic Function(T? begin) fn,
           T? targetValue,
           Curve? curve,
+          Curve? reserveCurve,
           String name,
           bool isTween,
         ) {
@@ -79,8 +80,15 @@ class OnAnimation {
             if (currentValue != null) {
               return currentValue;
             }
-            _curvedTweens[name] =
-                tween.chain(CurveTween(curve: curve ?? inj.curve));
+            _curvedTweens[name] = EvaluateAnimation(
+              tween.chain(CurveTween(curve: curve ?? inj.curve)),
+              inj.reverseCurve != null || reserveCurve != null
+                  ? tween.chain(
+                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
+                    )
+                  : null,
+            );
+
             _tweens[name] = tween;
             currentValue = getValue(name);
             if (tween.begin == tween.end) {
@@ -93,8 +101,15 @@ class OnAnimation {
           } else if ((cachedTween?.end != tween.end ||
                   cachedTween?.begin != tween.begin) &&
               _isDirty) {
-            _curvedTweens[name] =
-                tween.chain(CurveTween(curve: curve ?? inj.curve));
+            _curvedTweens[name] = EvaluateAnimation(
+              tween.chain(CurveTween(curve: curve ?? inj.curve)),
+              inj.reverseCurve != null || reserveCurve != null
+                  ? tween.chain(
+                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
+                    )
+                  : null,
+            );
+
             _tweens[name] = tween;
             _isChanged = true;
             _hasChanged = true;
@@ -107,8 +122,12 @@ class OnAnimation {
           return currentValue ?? tween.lerp(0.0);
         }
 
-        T? animateTween<T>(dynamic Function(T? begin) fn, Curve? curve,
-            [String name = '']) {
+        T? animateTween<T>(
+          dynamic Function(T? begin) fn,
+          Curve? curve,
+          Curve? reserveCurve, [
+          String name = '',
+        ]) {
           name = 'Tween<$T>' + name + '_TwEeN_';
 
           // if (!isInit && _curvedTweens.containsKey(name)) {
@@ -118,18 +137,25 @@ class OnAnimation {
             fn,
             null,
             curve,
+            reserveCurve,
             name,
             true,
           );
         }
 
-        T? animateValue<T>(T? value, Curve? curve, [String name = '']) {
+        T? animateValue<T>(
+          T? value,
+          Curve? curve,
+          Curve? reserveCurve, [
+          String name = '',
+        ]) {
           name = '$T' + name;
 
           return _animateTween<T>(
             (begin) => _getTween(isInit ? value : begin, value),
             value,
             curve,
+            reserveCurve,
             name,
             false,
           );
@@ -176,7 +202,6 @@ class OnAnimation {
             );
             disposer = injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {
-              print(_hasChanged);
               if (_hasChanged) {
                 setState();
               }
@@ -212,4 +237,20 @@ class _OnAnimationWidget {
   final Widget Function(Animate animate) animate;
   final InjectedAnimationImp injected;
   _OnAnimationWidget(this.animate, this.injected);
+}
+
+class EvaluateAnimation {
+  final Animatable<dynamic> forwardAnimation;
+  final Animatable<dynamic>? backwardAnimation;
+
+  EvaluateAnimation(this.forwardAnimation, this.backwardAnimation);
+  dynamic evaluate(AnimationController controller) {
+    if (backwardAnimation == null) {
+      return forwardAnimation.evaluate(controller);
+    }
+    if (controller.status == AnimationStatus.reverse) {
+      return backwardAnimation!.evaluate(controller);
+    }
+    return forwardAnimation.evaluate(controller);
+  }
 }
