@@ -51,6 +51,18 @@ class PersistState<T> {
   ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
 
+  ///Useful for state created using [RM.injectedStream]
+  ///
+  ///A persisted state, and while the state is initializing, it looks for
+  ///a stored value. If it founds one, the state holds the value and the creator of
+  ///the state is not invoked.
+  ///
+  ///For state created using [RM.injectedStream] the default value is true,
+  ///that is, the creator is invoked to keep the subscription to the stream.
+  ///
+  ///For states created using [RM.inject] and [RM.injectedFuture] the default value
+  ///is false.
+  ///
   final bool? shouldRecreateTheState;
 
   ///Persistance provider that will be used to persist this state instead of
