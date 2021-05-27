@@ -146,7 +146,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
       if (repeatCount == 1) {
         isAnimating = false;
-        if (!animationEndFuture!.isCompleted) {
+        if (animationEndFuture?.isCompleted == false) {
           animationEndFuture!.complete();
           animationEndFuture = null;
         }

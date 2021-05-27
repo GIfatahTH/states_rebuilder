@@ -879,7 +879,7 @@ void main() {
   );
 
   testWidgets(
-    'Nest animation inside ListView Builder works',
+    'Nested animation inside ListView Builder works',
     (tester) async {
       final animation = RM.injectAnimation(
         duration: Duration(seconds: 1),
@@ -943,6 +943,60 @@ void main() {
       expect(width, 0);
       expect(height, 0);
       //100
+    },
+  );
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      bool select = true;
+      double width = 0.0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              width = animate(select ? 0.0 : 1.0)!;
+              print(width);
+              return Container();
+            },
+          ).listenTo(animation),
+        ),
+      );
+      bool animationIsEnded = false;
+      animation.refresh().then((value) {
+        animationIsEnded = true;
+      });
+      print(animationIsEnded);
+      await tester.pump();
+      print(animationIsEnded);
+      await tester.pump();
+      print(animationIsEnded);
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      print(animationIsEnded);
+      animationIsEnded = false;
+      select = !select;
+      animation.refresh().then((value) {
+        animationIsEnded = true;
+      });
+      print(animationIsEnded);
+      await tester.pump();
+      print(animationIsEnded);
+      await tester.pump();
+      print(animationIsEnded);
+
+      await tester.pumpAndSettle();
+      print(animationIsEnded);
+      print(width);
     },
   );
 }
