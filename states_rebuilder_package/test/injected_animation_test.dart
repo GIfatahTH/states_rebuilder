@@ -945,58 +945,40 @@ void main() {
       //100
     },
   );
+
   testWidgets(
-    'WHEN'
-    'THEN',
+    'Check curvedAnimation getter',
     (tester) async {
       final animation = RM.injectAnimation(
         duration: Duration(seconds: 1),
+        reverseCurve: Curves.bounceIn,
+        shouldReverseRepeats: true,
       );
-      bool select = true;
       double width = 0.0;
       await tester.pumpWidget(
         MaterialApp(
           home: On.animation(
             (animate) {
-              width = animate(select ? 0.0 : 1.0)!;
+              width = animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
               print(width);
               return Container();
             },
           ).listenTo(animation),
         ),
       );
-      bool animationIsEnded = false;
-      animation.refresh().then((value) {
-        animationIsEnded = true;
-      });
-      print(animationIsEnded);
+      expect(animation.curvedAnimation.toString(), endsWith('_Linear'));
+      animation.triggerAnimation();
       await tester.pump();
-      print(animationIsEnded);
-      await tester.pump();
-      print(animationIsEnded);
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      print(animationIsEnded);
-      animationIsEnded = false;
-      select = !select;
-      animation.refresh().then((value) {
-        animationIsEnded = true;
-      });
-      print(animationIsEnded);
-      await tester.pump();
-      print(animationIsEnded);
-      await tester.pump();
-      print(animationIsEnded);
-
+      await tester.pump(Duration(milliseconds: 500));
+      expect(animation.curvedAnimation.toString(), endsWith('_Linear'));
       await tester.pumpAndSettle();
-      print(animationIsEnded);
-      print(width);
+      animation.triggerAnimation();
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 500));
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+      await tester.pumpAndSettle();
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
     },
   );
 }

@@ -13,15 +13,25 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///Get the `AnimationController` associated with this [InjectedAnimation]
   AnimationController? get controller => _controller;
   Animation<double>? _curvedAnimation;
+  Animation<double>? _reverseCurvedAnimation;
 
   ///Get default animation with `Tween<double>(begin:0.0, end:1.0)` and with the defined curve,
   ///Used with Flutter's widgets that end with Transition (ex SlideTransition,
   ///RotationTransition)
   Animation<double> get curvedAnimation {
     assert(_controller != null);
-    return _curvedAnimation ??= CurvedAnimation(
+    final hasReverseCurve = (this as InjectedAnimationImp).reverseCurve != null;
+    if (!hasReverseCurve) {
+      return _curvedAnimation ??= CurvedAnimation(
+        parent: _controller!,
+        curve: (this as InjectedAnimationImp).curve,
+      );
+    }
+    return _reverseCurvedAnimation ??= CurvedAnimation(
       parent: _controller!,
-      curve: (this as InjectedAnimationImp).curve,
+      curve: _controller!.status == AnimationStatus.reverse
+          ? (this as InjectedAnimationImp).reverseCurve!
+          : (this as InjectedAnimationImp).curve,
     );
   }
 
@@ -31,11 +41,15 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///is dismissed (stopped at the beginning) then the animation is forwarded.
   ///
   ///You can start animation conventionally using `controller!.forward` for example.
+  ///
+  ///It returns Future that resolves when the started animation ends.
   Future<void>? triggerAnimation();
 
   ///Update `On.animation` widgets listening the this animation
   ///
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
+  ///
+  ///It returns Future that resolves when the started animation ends.
   Future<double> refresh();
 }
 
@@ -132,6 +146,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     repeatStatusListenerListener = (status) {
       if (status != AnimationStatus.completed &&
           status != AnimationStatus.dismissed) {
+        _reverseCurvedAnimation = null;
         return;
       }
       // if (repeats == null) {
@@ -266,6 +281,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     _controller!.dispose();
     _controller = null;
     _curvedAnimation = null;
+    _reverseCurvedAnimation = null;
     isAnimating = false;
     _isFrameScheduling = false;
     _didUpdateWidgetListeners.clear();
