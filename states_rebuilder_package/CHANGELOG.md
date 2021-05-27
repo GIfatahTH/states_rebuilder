@@ -1,10 +1,11 @@
 ## 4.2.0 (2021-05-27)
-* Add shouldAutoStart parameter to RM.injectedAnimation (See issue #186).
-* Add setCurve and setReverseCurve to the InjectedAnimation. Useful for staggered animation (See issue #186).
+* Add `shouldAutoStart` parameter to `RM.injectedAnimation` (See issue #186).
+* Add `setCurve` and `setReverseCurve` to the `InjectedAnimation`. Useful for staggered animation (See issue #186).
 * `InjectedAnimation.refresh` and `InjectedAnimation.triggerAnimation` return a future that resolves when the started animation ends.
 * Fix issue #192.
 * Internal refactor to improve performance.
 * Increase test coverage
+* Fix typo (fromTween)
 
 ## 4.1.0+2 (2021-05-18)
 * Fix onAuthStream issue #170
