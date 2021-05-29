@@ -954,13 +954,11 @@ void main() {
         reverseCurve: Curves.bounceIn,
         shouldReverseRepeats: true,
       );
-      double width = 0.0;
       await tester.pumpWidget(
         MaterialApp(
           home: On.animation(
             (animate) {
-              width = animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
-              print(width);
+              animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
               return Container();
             },
           ).listenTo(animation),

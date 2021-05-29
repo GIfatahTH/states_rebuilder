@@ -43,7 +43,7 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///You can start animation conventionally using `controller!.forward` for example.
   ///
   ///It returns Future that resolves when the started animation ends.
-  Future<void>? triggerAnimation();
+  Future<void>? triggerAnimation({bool restart = false});
 
   ///Update `On.animation` widgets listening the this animation
   ///
@@ -51,6 +51,15 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///
   ///It returns Future that resolves when the started animation ends.
   Future<double> refresh();
+
+  void resetAnimation({
+    Duration? duration,
+    Duration? reverseDuration,
+    Curve? curve,
+    Curve? reverseCurve,
+    int? repeats,
+    bool? shouldReverseRepeats,
+  });
 }
 
 ///InjectedAnimation implementation
@@ -93,13 +102,13 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///
   /// If [reverseCurve] is specified, then [curve] is only used when going
   /// [forward]. Otherwise, it specifies the curve going in both directions.
-  final Curve curve;
+  Curve curve;
 
   /// The curve of the animation when going in [reverse].
   ///
   /// The value of [curve] is used if [reverseCurve] is not specified or
   /// set to null.
-  final Curve? reverseCurve;
+  Curve? reverseCurve;
 
   /// The value at which this animation is deemed to be dismissed.
   final double lowerBound;
@@ -115,14 +124,15 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
 
   ///Number of times the animation should repeat. If 0 animation will repeat
   ///indefinitely
-  final int? repeats;
+  int? repeats;
 
-  final bool shouldReverseRepeats;
+  bool shouldReverseRepeats;
   final bool shouldAutoStart;
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
   Completer<void>? animationEndFuture;
+  bool shouldResetCurvedAnimation = false;
 
   bool isAnimating = false;
 
@@ -207,25 +217,18 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     }
   }
 
-  bool _isFrameScheduling = false;
   @override
-  Future<void>? triggerAnimation() {
-    if (!isAnimating && !_isFrameScheduling) {
+  Future<void>? triggerAnimation({bool restart = false}) {
+    if (restart) {
+      animationEndFuture ??= Completer();
+      repeatCount = null;
+      _resetControllerValue();
+      _controller!.forward();
+      return animationEndFuture?.future;
+    }
+    if (!isAnimating) {
       animationEndFuture ??= Completer();
       _startAnimation();
-      // if (observerLength <= 1) {
-      // } else {
-      //   //If there are more than one On.animation listener, postpone the reset of
-      //   //animation until the next frame so that all implicit values are calculated
-      //   //correctly.
-      //   _isFrameScheduling = true;
-      //   SchedulerBinding.instance!.scheduleFrameCallback((_) {
-      //     if (_controller != null) {
-      //       _startAnimation();
-      //       _isFrameScheduling = false;
-      //     }
-      //   });
-      // }
     }
     return animationEndFuture?.future;
   }
@@ -250,10 +253,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   }
 
   void didUpdateWidget() {
-    if (_controller?.duration != duration) {
-      _controller?.duration = duration;
-    }
-    if (isAnimating && !_isFrameScheduling) {
+    if (isAnimating) {
       isAnimating = false;
     }
   }
@@ -262,6 +262,12 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   VoidCallback addToDidUpdateWidgetListeners(VoidCallback fn) {
     _didUpdateWidgetListeners.add(fn);
     return () => _didUpdateWidgetListeners.remove(fn);
+  }
+
+  final List<VoidCallback> _resetAnimationListeners = [];
+  VoidCallback addToResetAnimationListeners(VoidCallback fn) {
+    _resetAnimationListeners.add(fn);
+    return () => _resetAnimationListeners.remove(fn);
   }
 
   ///Update `On.animation` widgets listening the this animation
@@ -276,6 +282,42 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     return 0.0;
   }
 
+  void resetAnimation({
+    Duration? duration,
+    Duration? reverseDuration,
+    Curve? curve,
+    Curve? reverseCurve,
+    int? repeats,
+    bool? shouldReverseRepeats,
+  }) {
+    if (duration != null) {
+      _controller?.duration = duration;
+    }
+    if (reverseDuration != null) {
+      _controller?.reverseDuration = duration;
+    }
+    if (repeats != null) {
+      this.repeats = repeats;
+      repeatCount = null;
+    }
+    if (shouldReverseRepeats != null) {
+      this.shouldReverseRepeats = shouldReverseRepeats;
+      repeatCount = null;
+    }
+    bool isCurveChanged = false;
+    if (curve != null) {
+      this.curve = curve;
+      isCurveChanged = true;
+    }
+    if (reverseCurve != null) {
+      this.reverseCurve = reverseCurve;
+      isCurveChanged = true;
+    }
+    if (isCurveChanged) {
+      _resetAnimationListeners.forEach((fn) => fn());
+    }
+  }
+
   @override
   void dispose() {
     _controller!.dispose();
@@ -283,7 +325,6 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     _curvedAnimation = null;
     _reverseCurvedAnimation = null;
     isAnimating = false;
-    _isFrameScheduling = false;
     _didUpdateWidgetListeners.clear();
     super.dispose();
   }

@@ -18,14 +18,29 @@ class OnAnimation {
         bool _hasChanged = false;
         bool _isDirty = false;
         bool isInit = true;
+        bool isSchedulerBinding = false;
 
         final _tweens = <String, Tween<dynamic>>{};
         final _curvedTweens = <String, EvaluateAnimation>{};
         final assertionList = [];
         late final Animate animate;
+
+        void triggerAnimation() {
+          if (_isDirty && _isChanged == true) {
+            _isChanged = false;
+            injected.triggerAnimation();
+            // SchedulerBinding.instance!.addPostFrameCallback(
+            //   (_) {
+            //     assertionList.clear();
+            //     _isDirty = false;
+            //   },
+            // );
+          }
+        }
+
         T? getValue<T>(String name) {
           try {
-            final val = _curvedTweens[name]?.evaluate(inj.controller!);
+            final val = _curvedTweens[name]?.evaluate();
             return val;
           } catch (e) {
             if (e is TypeError) {
@@ -53,6 +68,21 @@ class OnAnimation {
           if (!_isDirty && !isInit) {
             return currentValue;
           }
+          if (!isSchedulerBinding) {
+            isSchedulerBinding = true;
+            SchedulerBinding.instance!.addPostFrameCallback(
+              (_) {
+                isSchedulerBinding = false;
+                assertionList.clear();
+                if (!isInit && inj._controller != null) {
+                  triggerAnimation();
+                }
+                isInit = false;
+                _isDirty = false;
+              },
+            );
+          }
+
           assert(() {
             if (assertionList.contains(name)) {
               assertionList.clear();
@@ -77,16 +107,14 @@ class OnAnimation {
           }
 
           if (isInit) {
-            if (currentValue != null) {
-              return currentValue;
-            }
+            // if (currentValue != null) {
+            //   return currentValue;
+            // }
             _curvedTweens[name] = EvaluateAnimation(
-              tween.chain(CurveTween(curve: curve ?? inj.curve)),
-              inj.reverseCurve != null || reserveCurve != null
-                  ? tween.chain(
-                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
-                    )
-                  : null,
+              injected: inj,
+              tween: tween,
+              curve: curve,
+              reverseCurve: reserveCurve,
             );
 
             _tweens[name] = tween;
@@ -102,12 +130,10 @@ class OnAnimation {
                   cachedTween?.begin != tween.begin) &&
               _isDirty) {
             _curvedTweens[name] = EvaluateAnimation(
-              tween.chain(CurveTween(curve: curve ?? inj.curve)),
-              inj.reverseCurve != null || reserveCurve != null
-                  ? tween.chain(
-                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
-                    )
-                  : null,
+              injected: inj,
+              tween: tween,
+              curve: curve,
+              reverseCurve: reserveCurve,
             );
 
             _tweens[name] = tween;
@@ -161,32 +187,26 @@ class OnAnimation {
           );
         }
 
-        void triggerAnimation() {
-          if (_isDirty && _isChanged == true) {
-            _isChanged = false;
-            injected.triggerAnimation();
-          }
-        }
-
         void _didUpdateWidget() {
           _isDirty = true;
           inj.didUpdateWidget();
-          inj._isFrameScheduling = false;
-          SchedulerBinding.instance!.addPostFrameCallback(
-            (_) {
-              assertionList.clear();
-              if (inj._controller != null) {
-                triggerAnimation();
-              }
-              _isDirty = false;
-            },
-          );
         }
 
         final disposeDidUpdateWidget = inj.addToDidUpdateWidgetListeners(
           () {
             _hasChanged = true;
             _didUpdateWidget();
+          },
+        );
+        final disposeAnimationReset = inj.addToResetAnimationListeners(
+          () {
+            inj.shouldResetCurvedAnimation = true;
+            // if (!inj.shouldResetCurvedAnimation) {
+            //   SchedulerBinding.instance!.addPostFrameCallback(
+            //     (_) {
+            //     },
+            //   );
+            // }
           },
         );
 
@@ -206,10 +226,6 @@ class OnAnimation {
                 setState();
               }
             });
-            SchedulerBinding.instance!.addPostFrameCallback((_) {
-              assertionList.clear();
-              isInit = false;
-            });
           },
           dispose: (_) {
             if (ticker != null) {
@@ -217,6 +233,7 @@ class OnAnimation {
             }
             disposer();
             disposeDidUpdateWidget();
+            disposeAnimationReset();
           },
           didUpdateWidget: (_, __, ___) {
             _didUpdateWidget();
@@ -226,7 +243,7 @@ class OnAnimation {
           },
         );
       },
-      widget: _OnAnimationWidget(anim, injected as InjectedAnimationImp),
+      widget: _OnAnimationWidget(anim),
       injected: injected,
       key: key,
     );
@@ -235,22 +252,44 @@ class OnAnimation {
 
 class _OnAnimationWidget {
   final Widget Function(Animate animate) animate;
-  final InjectedAnimationImp injected;
-  _OnAnimationWidget(this.animate, this.injected);
+  _OnAnimationWidget(this.animate);
 }
 
 class EvaluateAnimation {
-  final Animatable<dynamic> forwardAnimation;
-  final Animatable<dynamic>? backwardAnimation;
+  final InjectedAnimationImp injected;
+  final dynamic tween;
+  final Curve? curve;
+  final Curve? reverseCurve;
 
-  EvaluateAnimation(this.forwardAnimation, this.backwardAnimation);
-  dynamic evaluate(AnimationController controller) {
-    if (backwardAnimation == null) {
-      return forwardAnimation.evaluate(controller);
+  EvaluateAnimation({
+    required this.injected,
+    required this.tween,
+    required this.curve,
+    required this.reverseCurve,
+  });
+  Animatable<dynamic>? forwardAnimation;
+  Animatable<dynamic>? backwardAnimation;
+  dynamic evaluate() {
+    if (injected.shouldResetCurvedAnimation) {
+      injected.shouldResetCurvedAnimation = false;
+      forwardAnimation = null;
+      backwardAnimation = null;
     }
-    if (controller.status == AnimationStatus.reverse) {
-      return backwardAnimation!.evaluate(controller);
+    if (injected.reverseCurve == null && reverseCurve == null) {
+      forwardAnimation ??= tween.chain(
+        CurveTween(curve: curve ?? injected.curve),
+      );
+      return forwardAnimation!.evaluate(injected.controller!);
     }
-    return forwardAnimation.evaluate(controller);
+    if (injected.controller!.status == AnimationStatus.reverse) {
+      backwardAnimation ??= tween.chain(
+        CurveTween(curve: reverseCurve ?? injected.reverseCurve!),
+      );
+      return backwardAnimation!.evaluate(injected.controller!);
+    }
+    forwardAnimation ??= tween.chain(
+      CurveTween(curve: curve ?? injected.curve),
+    );
+    return forwardAnimation!.evaluate(injected.controller!);
   }
 }
