@@ -29,12 +29,6 @@ class OnAnimation {
           if (_isDirty && _isChanged == true) {
             _isChanged = false;
             injected.triggerAnimation();
-            // SchedulerBinding.instance!.addPostFrameCallback(
-            //   (_) {
-            //     assertionList.clear();
-            //     _isDirty = false;
-            //   },
-            // );
           }
         }
 
@@ -145,7 +139,7 @@ class OnAnimation {
           }
           //At this point controller.value == 0 or 1
           // assert(controller!.value == 0.0 || controller!.value == 1.0);
-          return currentValue ?? tween.lerp(0.0);
+          return currentValue ?? tween.lerp(inj.initialValue ?? inj.lowerBound);
         }
 
         T? animateTween<T>(
@@ -201,12 +195,6 @@ class OnAnimation {
         final disposeAnimationReset = inj.addToResetAnimationListeners(
           () {
             inj.shouldResetCurvedAnimation = true;
-            // if (!inj.shouldResetCurvedAnimation) {
-            //   SchedulerBinding.instance!.addPostFrameCallback(
-            //     (_) {
-            //     },
-            //   );
-            // }
           },
         );
 
@@ -222,7 +210,7 @@ class OnAnimation {
             );
             disposer = injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {
-              if (_hasChanged) {
+              if (_hasChanged || animate.shouldAlwaysRebuild) {
                 setState();
               }
             });
@@ -253,6 +241,73 @@ class OnAnimation {
 class _OnAnimationWidget {
   final Widget Function(Animate animate) animate;
   _OnAnimationWidget(this.animate);
+}
+
+class Animate {
+  final T? Function<T>(
+    T? value,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _value;
+  Curve? _curve;
+  Curve? _reserveCurve;
+
+  bool shouldAlwaysRebuild = false;
+  Animate setCurve(Curve curve) {
+    _curve = curve;
+    return this;
+  }
+
+  Animate setReverseCurve(Curve curve) {
+    _reserveCurve = curve;
+    return this;
+  }
+
+  final T? Function<T>(
+    Tween<T?> Function(T? currentValue) fn,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _fromTween;
+
+  Animate._({
+    required T? Function<T>(
+      T? value,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        value,
+    required T? Function<T>(
+      Tween<T?> Function(T? currentValue) fn,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        fromTween,
+  })   : _value = value,
+        _fromTween = fromTween;
+
+  ///Implicitly animate to the given value
+  T? call<T>(T? value, [String name = '']) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _value.call<T>(value, curve, reserveCurve, name);
+  }
+
+  ///Set animation explicitly by defining the Tween.
+  ///
+  ///The callback exposes the currentValue value
+  T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _fromTween(fn, curve, reserveCurve, name ?? '');
+  }
 }
 
 class EvaluateAnimation {
