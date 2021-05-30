@@ -61,7 +61,6 @@ void main() {
       selected = !selected;
       model.notify();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
       expect('$height', '50.0');
       expect('$width', '25.0');
@@ -133,7 +132,6 @@ void main() {
       selected = !selected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
 
       expect('$alignment', 'Alignment(-0.5, -0.5)');
@@ -196,7 +194,6 @@ void main() {
       expect(container1.constraints!.maxWidth, 200.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       await tester.pump(Duration(milliseconds: 400));
 
@@ -205,7 +202,8 @@ void main() {
       expect(container1.constraints!.maxWidth, 120.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
+      // await tester.pump();
+
       expect(container1.constraints!.maxWidth, 120.0);
       await tester.pump(Duration(milliseconds: 400));
       expect(container1.constraints!.maxWidth, 152.0);
@@ -246,7 +244,6 @@ void main() {
       expect(container2.constraints!.maxWidth, 200.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       expect(container2.constraints!.maxWidth, 200.0);
       await tester.pump();
@@ -260,7 +257,7 @@ void main() {
       expect(container2.constraints!.maxWidth, 120.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
+
       expect(container1.constraints!.maxWidth, 120.0);
       expect(container2.constraints!.maxWidth, 120.0);
       await tester.pump(Duration(milliseconds: 400));
@@ -496,7 +493,6 @@ void main() {
       isSelected = !isSelected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
       expect(value0, 10.0);
       expect(value1, 20.0);
@@ -560,7 +556,7 @@ void main() {
       isSelected = !isSelected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
+      await tester.pump(); //Better one frame
       expect(value0, 100.0);
       expect(value1, 100.0);
       expect(value2, 100.0);
@@ -867,13 +863,9 @@ void main() {
           ).listenTo(animation),
         ),
       );
-      model.notify();
       await tester.pumpAndSettle();
       //
       animation.refresh();
-      await tester.pumpAndSettle();
-      //
-      model.notify();
       await tester.pumpAndSettle();
     },
   );
@@ -934,7 +926,6 @@ void main() {
       expect(height, 100);
 
       model.notify();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 90);
