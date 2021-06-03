@@ -132,7 +132,6 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   final void Function()? endAnimationListener;
   late Function(AnimationStatus) repeatStatusListenerListener;
   Completer<void>? animationEndFuture;
-  bool shouldResetCurvedAnimation = false;
 
   bool isAnimating = false;
 
@@ -222,28 +221,30 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     if (restart) {
       animationEndFuture ??= Completer();
       repeatCount = null;
-      _resetControllerValue();
-      _controller!.forward();
+      _startAnimation(true);
       return animationEndFuture?.future;
     }
     if (!isAnimating) {
       animationEndFuture ??= Completer();
-      _startAnimation();
+      _startAnimation(!shouldReverseRepeats);
     }
     return animationEndFuture?.future;
   }
 
-  void _startAnimation() {
-    isAnimating = true;
-    if (!shouldReverseRepeats) {
+  void _startAnimation(bool rest) {
+    if (rest) {
       _resetControllerValue();
+    } else if (repeatCount != null) {
+      return;
     }
 
+    isAnimating = true;
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {
       _controller!.forward();
     }
+    repeatCount ??= repeats ?? 1;
   }
 
   void _resetControllerValue() {
@@ -294,7 +295,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       _controller?.duration = duration;
     }
     if (reverseDuration != null) {
-      _controller?.reverseDuration = duration;
+      _controller?.reverseDuration = reverseDuration;
     }
     if (repeats != null) {
       this.repeats = repeats;
@@ -315,6 +316,8 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     }
     if (isCurveChanged) {
       _resetAnimationListeners.forEach((fn) => fn());
+      _curvedAnimation = null;
+      _reverseCurvedAnimation = null;
     }
   }
 
