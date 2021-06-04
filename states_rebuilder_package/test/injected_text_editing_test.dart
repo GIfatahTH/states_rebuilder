@@ -166,12 +166,11 @@ void main() {
       expect(find.text('Name Error'), findsNothing);
       expect(find.text('Email Error'), findsOneWidget);
       expect(form.isValid, false);
-      await tester.enterText(find.byKey(Key('Email')), 'em');
-      form.validate();
+      form.reset();
       await tester.pump();
       expect(find.text('Name Error'), findsNothing);
       expect(find.text('Email Error'), findsNothing);
-      expect(form.isValid, true);
+      expect(form.isValid, false);
     },
   );
 
@@ -283,6 +282,11 @@ void main() {
       await tester.pump();
       expect(find.text('Name Error'), findsNothing);
       expect(find.text('Email Error'), findsOneWidget);
+      form.reset();
+      await tester.pump();
+      expect(find.text('Name Error'), findsNothing);
+      expect(find.text('Email Error'), findsNothing);
+      expect(form.isValid, false);
     },
   );
 

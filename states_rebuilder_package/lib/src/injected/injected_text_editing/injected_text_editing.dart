@@ -58,6 +58,7 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
 
   ///Set the field to its initialValue
   void reset();
+
   FocusNode? _focusNode;
 
   ///Creates a focus node for this TextField
@@ -229,6 +230,16 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   @override
   void reset() {
     _controller?.text = initialValue;
+    if (form!.autovalidateMode != AutovalidateMode.always && error != null) {
+      if (validator == null) {
+        snapState = snapState.copyToHasData(this.text);
+      } else {
+        //IF there is a validator, then set with idle flag so that isValid
+        //is false unless validator is called
+        snapState = snapState.copyToIsIdle(this.text);
+      }
+      notify();
+    }
   }
 
   @override

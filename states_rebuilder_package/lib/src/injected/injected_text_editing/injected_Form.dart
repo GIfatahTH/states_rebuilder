@@ -90,6 +90,7 @@ class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
       field.reset();
     }
     _autoFocusedNode?.requestFocus();
+    notify();
   }
 
   @override
