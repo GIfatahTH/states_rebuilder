@@ -155,9 +155,7 @@ class OnAnimation {
             );
             disposer = _injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {
-              print('_hasChanged = $_hasChanged');
               if (_hasChanged || animate.shouldAlwaysRebuild) {
-                print(animate.shouldAlwaysRebuild);
                 try {
                   assert(() {
                     _assertionList.clear();

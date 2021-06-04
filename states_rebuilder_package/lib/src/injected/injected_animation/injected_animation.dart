@@ -12,6 +12,7 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
 
   ///Get the `AnimationController` associated with this [InjectedAnimation]
   AnimationController? get controller => _controller;
+
   Animation<double>? _curvedAnimation;
   Animation<double>? _reverseCurvedAnimation;
 
@@ -37,10 +38,15 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
 
   ///Start animation.
   ///
-  ///If animation is completed (stopped at the end) then the animation is reversed, and if the animation
-  ///is dismissed (stopped at the beginning) then the animation is forwarded.
+  ///If animation is completed (stopped at the upperBound) then the animation
+  ///is reversed, and if the animation is dismissed (stopped at the lowerBound)
+  ///then the animation is forwarded. IF animation is running nothing will happen.
   ///
-  ///You can start animation conventionally using `controller!.forward` for example.
+  ///You can force animation to restart from the lowerBound by setting the
+  ///[restart] parameter to true.
+  ///
+  ///You can start animation the conventional way using `controller!.forward`
+  ///for example.
   ///
   ///It returns Future that resolves when the started animation ends.
   Future<void>? triggerAnimation({bool restart = false});
@@ -52,6 +58,11 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///It returns Future that resolves when the started animation ends.
   Future<double> refresh();
 
+  ///Used to change any of the global parameters fo the animation such as
+  ///duration, reverseDuration, curve, reverseCurve, repeats and
+  ///shouldReverseRepeats.
+  ///
+  ///Change is taken instantaneously while the animation is playing
   void resetAnimation({
     Duration? duration,
     Duration? reverseDuration,
