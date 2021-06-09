@@ -161,7 +161,7 @@ class FormWidget extends StatelessWidget {
                     ),
                   ).listenTo(_form),
                 ],
-              )).listenTo(_isRegister),
+              ),).listenTo(_isRegister),
           // On(
           //   () {
           //     // Display an error message telling the user what goes wrong.
