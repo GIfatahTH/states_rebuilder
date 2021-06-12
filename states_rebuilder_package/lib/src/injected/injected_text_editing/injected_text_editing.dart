@@ -172,13 +172,14 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         selection: _selection,
         composing: _composing,
       ),
-      disposeInjected: () {
-        if (autoDispose && !hasObservers) {
-          dispose();
-          return true;
-        }
-        return false;
-      },
+      inj: this,
+      // disposeInjected: () {
+      //   if (autoDispose && !hasObservers) {
+      //     dispose();
+      //     return true;
+      //   }
+      //   return false;
+      // },
     );
 
     _controller!.addListener(() {
@@ -230,7 +231,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   @override
   void reset() {
     _controller?.text = initialValue;
-    if (form!.autovalidateMode != AutovalidateMode.always && error != null) {
+    if (form?.autovalidateMode != AutovalidateMode.always && error != null) {
       if (validator == null) {
         snapState = snapState.copyToHasData(this.text);
       } else {
@@ -248,8 +249,11 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     _removeFromInjectedList?.call();
     _controller?.dispose();
     _controller = null;
-    _focusNode?.dispose();
-    _focusNode = null;
+    SchedulerBinding.instance!.addPostFrameCallback((_) {
+      //Dispose after the associated TextField remove its listeners to _focusNode
+      _focusNode?.dispose();
+      _focusNode = null;
+    });
     _formIsSet = false;
     form = null;
     validateOnTyping = _initialValidateOnTyping;
@@ -264,11 +268,10 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
 class TextEditingControllerImp extends TextEditingController {
   TextEditingControllerImp.fromValue(
     TextEditingValue? value, {
-    required this.disposeInjected,
+    required this.inj,
   }) : super.fromValue(value);
   int _numberOfAddListener = 0;
-  bool _isDisposed = false;
-  final bool Function() disposeInjected;
+  final InjectedTextEditingImp inj;
   @override
   void addListener(listener) {
     _numberOfAddListener++;
@@ -277,13 +280,15 @@ class TextEditingControllerImp extends TextEditingController {
 
   @override
   void removeListener(listener) {
-    if (_isDisposed) {
+    if (inj._controller == null) {
       return;
     }
     _numberOfAddListener--;
     if (_numberOfAddListener < 3) {
-      _isDisposed = disposeInjected();
-      if (_isDisposed) return;
+      if (inj.autoDispose && !inj.hasObservers) {
+        inj.dispose();
+        return;
+      }
     }
 
     super.removeListener(listener);
