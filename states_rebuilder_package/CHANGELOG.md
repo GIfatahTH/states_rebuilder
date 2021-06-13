@@ -1,4 +1,4 @@
-## 4.3.0-beta+1 (2021-06-07)
+## 4.3.0 (2021-06-07)
 - Add `InjectedAnimation.resetAnimation` method reset the global duration, curve and repeats of the animation.
 - Add restart parameter to `InjectedAnimation.triggerAnimation` to force animation to restart from the lower bound.
 
