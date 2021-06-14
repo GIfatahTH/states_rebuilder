@@ -1,125 +1,81 @@
 part of 'injected_animation.dart';
 
 class OnAnimation {
-  final Widget Function(Animate animate) anim;
-  OnAnimation(this.anim);
+  final Widget Function(Animate animate) _anim;
+  OnAnimation(this._anim);
+  late InjectedAnimationImp _injected;
+  bool _isInitialized = false;
+  bool _isDirty = false;
+  bool? _isChanged;
+  bool _hasChanged = false;
+  bool _isSchedulerBinding = false;
+  final _assertionList = [];
 
   ///Listen to the [InjectedAnimation]
   Widget listenTo(
-    InjectedAnimation injected, {
+    InjectedAnimation inj, {
     void Function()? onInitialized,
     Key? key,
   }) {
+    _injected = inj as InjectedAnimationImp;
+
     return StateBuilderBaseWithTicker<_OnAnimationWidget>(
       (widget, setState, ticker) {
-        final inj = injected as InjectedAnimationImp;
         late VoidCallback disposer;
-        bool? _isChanged;
-        bool _hasChanged = false;
-        bool _isDirty = false;
-        bool isInit = true;
 
-        final _tweens = <String, Tween<dynamic>>{};
-        final _curvedTweens = <String, EvaluateAnimation>{};
-        final assertionList = [];
+        final _evaluateAnimation = <String, EvaluateAnimation>{};
         late final Animate animate;
-        T? getValue<T>(String name) {
-          try {
-            final val = _curvedTweens[name]?.evaluate(inj.controller!);
-            return val;
-          } catch (e) {
-            if (e is TypeError) {
-              //For tween that accept null value but when evaluated throw a Null
-              //is not subtype of T (where T is the type). [Tween.transform]
-              return null;
+
+        void triggerAnimation([bool restart = false]) {
+          if (_isChanged == true) {
+            _isChanged = false;
+            if (_isDirty) {
+              _injected.triggerAnimation(restart: true);
             }
-            rethrow;
           }
         }
 
         T? _animateTween<T>(
-          dynamic Function(T? begin) fn,
+          dynamic Function(T? begin, bool isInitialized) fn,
           T? targetValue,
           Curve? curve,
-          Curve? reserveCurve,
+          Curve? reverseCurve,
           String name,
           bool isTween,
         ) {
-          T? currentValue = getValue(name);
-          if (inj.isAnimating && currentValue != null) {
-            _hasChanged = true;
-            return currentValue;
-          }
-          if (!_isDirty && !isInit) {
-            return currentValue;
-          }
           assert(() {
-            if (assertionList.contains(name)) {
-              assertionList.clear();
-              throw ArgumentError('Duplication of <$T> with the same name is '
-                  'not allowed. Use distinct name');
+            if (_isInitialized && !_isDirty) return true;
+            if (_assertionList.contains(name)) {
+              if (_assertionList.isNotEmpty) {
+                _assertionList.clear();
+                throw ArgumentError('Duplication of <$T> with the same name is '
+                    'not allowed. Use distinct name');
+              }
             }
-            assertionList.add(name);
-
+            _assertionList.add(name);
             return true;
           }());
-          _hasChanged = isTween;
-          final cachedTween = _tweens[name];
-          var tween;
-          if (cachedTween != null && cachedTween.end == targetValue) {
-            _hasChanged = true;
-            return currentValue;
-          } else {
-            tween = fn(currentValue);
-          }
-          if (tween == null) {
-            return null;
-          }
-
-          if (isInit) {
-            if (currentValue != null) {
-              return currentValue;
-            }
-            _curvedTweens[name] = EvaluateAnimation(
-              tween.chain(CurveTween(curve: curve ?? inj.curve)),
-              inj.reverseCurve != null || reserveCurve != null
-                  ? tween.chain(
-                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
-                    )
-                  : null,
+          EvaluateAnimation? evaluateAnimation = _evaluateAnimation[name];
+          T? value;
+          if (evaluateAnimation == null) {
+            _evaluateAnimation[name] = evaluateAnimation = EvaluateAnimation(
+              onAnimation: this,
+              curve: curve,
+              reverseCurve: reverseCurve,
             );
-
-            _tweens[name] = tween;
-            currentValue = getValue(name);
-            if (tween.begin == tween.end) {
-              return tween.begin;
-            }
-            _hasChanged = true;
-
-            // _isChanged = true;
-            // _isDirty = true;
-          } else if ((cachedTween?.end != tween.end ||
-                  cachedTween?.begin != tween.begin) &&
-              _isDirty) {
-            _curvedTweens[name] = EvaluateAnimation(
-              tween.chain(CurveTween(curve: curve ?? inj.curve)),
-              inj.reverseCurve != null || reserveCurve != null
-                  ? tween.chain(
-                      CurveTween(curve: reserveCurve ?? inj.reverseCurve!),
-                    )
-                  : null,
-            );
-
-            _tweens[name] = tween;
-            _isChanged = true;
-            _hasChanged = true;
           }
-          if (tween.begin == tween.end) {
-            return tween.begin;
+          value = evaluateAnimation.animate<T>(
+            fn,
+            targetValue,
+            curve,
+            reverseCurve,
+            name,
+            isTween,
+          );
+          if (!_injected.isAnimating) {
+            triggerAnimation();
           }
-          //At this point controller.value == 0 or 1
-          // assert(controller!.value == 0.0 || controller!.value == 1.0);
-          return currentValue ?? tween.lerp(0.0);
+          return value;
         }
 
         T? animateTween<T>(
@@ -130,11 +86,11 @@ class OnAnimation {
         ]) {
           name = 'Tween<$T>' + name + '_TwEeN_';
 
-          // if (!isInit && _curvedTweens.containsKey(name)) {
+          // if (!isInit && _evaluateAnimation.containsKey(name)) {
           //   return getValue(name);
           // }
           return _animateTween(
-            fn,
+            (begin, _) => fn(begin),
             null,
             curve,
             reserveCurve,
@@ -152,7 +108,10 @@ class OnAnimation {
           name = '$T' + name;
 
           return _animateTween<T>(
-            (begin) => _getTween(isInit ? value : begin, value),
+            (begin, isInitialized) => _getTween(
+              isInitialized ? begin : begin ?? value,
+              value,
+            ),
             value,
             curve,
             reserveCurve,
@@ -161,62 +120,59 @@ class OnAnimation {
           );
         }
 
-        void triggerAnimation() {
-          if (_isDirty && _isChanged == true) {
-            _isChanged = false;
-            injected.triggerAnimation();
-          }
-        }
-
         void _didUpdateWidget() {
           _isDirty = true;
-          inj.didUpdateWidget();
-          inj._isFrameScheduling = false;
-          SchedulerBinding.instance!.addPostFrameCallback(
-            (_) {
-              assertionList.clear();
-              if (inj._controller != null) {
-                triggerAnimation();
-              }
-              _isDirty = false;
-            },
-          );
+          _evaluateAnimation.forEach((key, value) {
+            value._isDirty = true;
+          });
+          _injected.didUpdateWidget();
         }
 
-        final disposeDidUpdateWidget = inj.addToDidUpdateWidgetListeners(
+        final disposeDidUpdateWidget = _injected.addToDidUpdateWidgetListeners(
           () {
             _hasChanged = true;
             _didUpdateWidget();
+          },
+        );
+        final disposeAnimationReset = _injected.addToResetAnimationListeners(
+          () {
+            _evaluateAnimation.forEach((key, value) {
+              value.forwardAnimation = null;
+              value.backwardAnimation = null;
+            });
           },
         );
 
         return LifeCycleHooks(
           mountedState: (_) {
             if (ticker != null) {
-              inj.initialize(ticker);
+              _injected.initialize(ticker);
             }
             onInitialized?.call();
             animate = Animate._(
               value: animateValue,
               fromTween: animateTween,
             );
-            disposer = injected.reactiveModelState.listeners
+            disposer = _injected.reactiveModelState.listeners
                 .addListenerForRebuild((_) {
-              if (_hasChanged) {
-                setState();
+              if (_hasChanged || animate.shouldAlwaysRebuild) {
+                try {
+                  assert(() {
+                    _assertionList.clear();
+                    return true;
+                  }());
+                  setState();
+                } catch (e) {}
               }
-            });
-            SchedulerBinding.instance!.addPostFrameCallback((_) {
-              assertionList.clear();
-              isInit = false;
             });
           },
           dispose: (_) {
             if (ticker != null) {
-              inj.dispose();
+              _injected.dispose();
             }
             disposer();
             disposeDidUpdateWidget();
+            disposeAnimationReset();
           },
           didUpdateWidget: (_, __, ___) {
             _didUpdateWidget();
@@ -226,8 +182,8 @@ class OnAnimation {
           },
         );
       },
-      widget: _OnAnimationWidget(anim, injected as InjectedAnimationImp),
-      injected: injected,
+      widget: _OnAnimationWidget(_anim),
+      injected: _injected,
       key: key,
     );
   }
@@ -235,22 +191,187 @@ class OnAnimation {
 
 class _OnAnimationWidget {
   final Widget Function(Animate animate) animate;
-  final InjectedAnimationImp injected;
-  _OnAnimationWidget(this.animate, this.injected);
+  _OnAnimationWidget(this.animate);
+}
+
+class Animate {
+  final T? Function<T>(
+    T? value,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _value;
+  Curve? _curve;
+  Curve? _reserveCurve;
+
+  bool shouldAlwaysRebuild = false;
+  Animate setCurve(Curve curve) {
+    _curve = curve;
+    return this;
+  }
+
+  Animate setReverseCurve(Curve curve) {
+    _reserveCurve = curve;
+    return this;
+  }
+
+  final T? Function<T>(
+    Tween<T?> Function(T? currentValue) fn,
+    Curve? curve,
+    Curve? reserveCurve, [
+    String name,
+  ]) _fromTween;
+
+  Animate._({
+    required T? Function<T>(
+      T? value,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        value,
+    required T? Function<T>(
+      Tween<T?> Function(T? currentValue) fn,
+      Curve? curve,
+      Curve? reserveCurve, [
+      String name,
+    ])
+        fromTween,
+  })  : _value = value,
+        _fromTween = fromTween;
+
+  ///Implicitly animate to the given value
+  T? call<T>(T? value, [String name = '']) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _value.call<T>(value, curve, reserveCurve, name);
+  }
+
+  ///Set animation explicitly by defining the Tween.
+  ///
+  ///The callback exposes the currentValue value
+  T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
+    final curve = _curve;
+    final reserveCurve = _reserveCurve;
+    _curve = null;
+    _reserveCurve = null;
+    return _fromTween(fn, curve, reserveCurve, name ?? '');
+  }
 }
 
 class EvaluateAnimation {
-  final Animatable<dynamic> forwardAnimation;
-  final Animatable<dynamic>? backwardAnimation;
+  final OnAnimation onAnimation;
+  final InjectedAnimationImp injected;
+  dynamic tween;
+  final Curve? curve;
+  final Curve? reverseCurve;
 
-  EvaluateAnimation(this.forwardAnimation, this.backwardAnimation);
-  dynamic evaluate(AnimationController controller) {
-    if (backwardAnimation == null) {
-      return forwardAnimation.evaluate(controller);
+  EvaluateAnimation({
+    required this.onAnimation,
+    required this.curve,
+    required this.reverseCurve,
+  }) : injected = onAnimation._injected;
+
+  bool _isDirty = true;
+  bool _isInitialized = false;
+
+  dynamic currentValue;
+  T? animate<T>(
+    dynamic Function(T? begin, bool isInitialized) fn,
+    T? targetValue,
+    Curve? curve,
+    Curve? reserveCurve,
+    String name,
+    bool isTween,
+  ) {
+    if (!_isDirty) {
+      return currentValue = getValue(name);
     }
-    if (controller.status == AnimationStatus.reverse) {
-      return backwardAnimation!.evaluate(controller);
+    _isDirty = false;
+    onAnimation._hasChanged = true;
+    if (!onAnimation._isSchedulerBinding) {
+      onAnimation._isSchedulerBinding = true;
+
+      SchedulerBinding.instance!.addPostFrameCallback(
+        (_) {
+          onAnimation
+            .._isSchedulerBinding = false
+            .._assertionList.clear()
+            .._isInitialized = true
+            .._isDirty = false;
+        },
+      );
     }
-    return forwardAnimation.evaluate(controller);
+
+    if (tween != null && tween.end == targetValue) {
+      onAnimation._isChanged = false;
+      return currentValue = getValue(name);
+    }
+
+    var newTween = fn(currentValue, _isInitialized);
+    if (newTween == null) {
+      _isInitialized = true;
+      onAnimation._hasChanged = false;
+      return null;
+    }
+    if (!_isInitialized) {
+      _isInitialized = true;
+      tween = newTween;
+      currentValue = getValue(name);
+    } else if (tween?.begin != newTween.begin || tween?.end != newTween.end) {
+      tween = newTween;
+      if (tween.begin == tween.end) {
+        return tween.begin;
+      }
+      forwardAnimation = null;
+      backwardAnimation = null;
+      onAnimation._isChanged = true;
+    } else {
+      onAnimation._hasChanged = isTween;
+      currentValue = getValue(name);
+    }
+
+    return currentValue ??
+        tween.lerp(
+          injected.initialValue ?? injected.lowerBound,
+        );
+  }
+
+  T? getValue<T>(String name) {
+    try {
+      if (tween == null) return null;
+      final val = _evaluate();
+      return val;
+    } catch (e) {
+      if (e is TypeError) {
+        //For tween that accept null value but when evaluated throw a Null
+        //is not subtype of T (where T is the type). [Tween.transform]
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  Animatable<dynamic>? forwardAnimation;
+  Animatable<dynamic>? backwardAnimation;
+  dynamic _evaluate() {
+    if (injected.reverseCurve == null && reverseCurve == null) {
+      forwardAnimation ??= tween.chain(
+        CurveTween(curve: curve ?? injected.curve),
+      );
+      return forwardAnimation!.evaluate(injected.controller!);
+    }
+    if (injected.controller!.status == AnimationStatus.reverse) {
+      backwardAnimation ??= tween.chain(
+        CurveTween(curve: reverseCurve ?? injected.reverseCurve!),
+      );
+      return backwardAnimation!.evaluate(injected.controller!);
+    }
+    forwardAnimation ??= tween.chain(
+      CurveTween(curve: curve ?? injected.curve),
+    );
+    return forwardAnimation!.evaluate(injected.controller!);
   }
 }

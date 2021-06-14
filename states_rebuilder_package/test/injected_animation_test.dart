@@ -61,7 +61,6 @@ void main() {
       selected = !selected;
       model.notify();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
       expect('$height', '50.0');
       expect('$width', '25.0');
@@ -133,7 +132,6 @@ void main() {
       selected = !selected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 500));
 
       expect('$alignment', 'Alignment(-0.5, -0.5)');
@@ -196,7 +194,6 @@ void main() {
       expect(container1.constraints!.maxWidth, 200.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       await tester.pump(Duration(milliseconds: 400));
 
@@ -206,6 +203,7 @@ void main() {
       isSelected.toggle();
       await tester.pump();
       await tester.pump();
+
       expect(container1.constraints!.maxWidth, 120.0);
       await tester.pump(Duration(milliseconds: 400));
       expect(container1.constraints!.maxWidth, 152.0);
@@ -246,7 +244,6 @@ void main() {
       expect(container2.constraints!.maxWidth, 200.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
       expect(container1.constraints!.maxWidth, 200.0);
       expect(container2.constraints!.maxWidth, 200.0);
       await tester.pump();
@@ -260,7 +257,7 @@ void main() {
       expect(container2.constraints!.maxWidth, 120.0);
       isSelected.toggle();
       await tester.pump();
-      await tester.pump();
+
       expect(container1.constraints!.maxWidth, 120.0);
       expect(container2.constraints!.maxWidth, 120.0);
       await tester.pump(Duration(milliseconds: 400));
@@ -496,7 +493,6 @@ void main() {
       isSelected = !isSelected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
       expect(value0, 10.0);
       expect(value1, 20.0);
@@ -525,7 +521,7 @@ void main() {
   );
 
   testWidgets(
-    'WHEN setReversCurveCurve is defined for a particular value'
+    'WHEN setReversCurve is defined for a particular value'
     'THEN it override the default Curve'
     'Case animate.call',
     (tester) async {
@@ -560,7 +556,7 @@ void main() {
       isSelected = !isSelected;
       animation.refresh();
       await tester.pump();
-      await tester.pump();
+      await tester.pump(); //Better one frame
       expect(value0, 100.0);
       expect(value1, 100.0);
       expect(value2, 100.0);
@@ -795,6 +791,145 @@ void main() {
       expect(matrix4, Matrix4.diagonal3Values(10, 10, 10));
     },
   );
+
+  testWidgets(
+    'test various tweens extension',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        shouldAutoStart: true,
+      );
+      late double _double;
+      late Color color;
+      late AlignmentGeometry alignmentGeometry;
+      late EdgeInsetsGeometry edgeInsetsGeometry;
+      late Decoration decoration;
+      late BoxConstraints boxConstraints;
+      late Offset offset;
+      late Size size;
+      late TextStyle textStyle;
+      late Rect rect;
+      late RelativeRect relativeRect;
+      late int _int;
+      late BorderRadius borderRadius;
+      late ThemeData themeData;
+      late Matrix4 matrix4;
+
+      await tester.pumpWidget(Column(
+        children: [
+          On.animation(
+            (animate) {
+              return Transform.translate(
+                offset: offset = animate.fromTween(
+                  (currentValue) => Offset.zero.tweenTo(Offset(10, 10)),
+                )!,
+                child: Container(),
+              );
+            },
+          ).listenTo(animation),
+          On.animation(
+            (animate) {
+              return SizedBox.fromSize(
+                size: size = animate.fromTween(
+                  (currentValue) => Size.zero.tweenTo(Size(10, 10)),
+                )!,
+              );
+            },
+          ).listenTo(animation),
+          On.animation(
+            (animate) {
+              _double = animate.fromTween(
+                (_) => 0.0.tweenTo(10.0),
+              )!;
+              color = animate.fromTween(
+                (_) => Colors.red.tweenTo(Colors.blue),
+              )!;
+              alignmentGeometry = animate.fromTween(
+                (_) => Alignment.topLeft.tweenTo(Alignment.topRight),
+              )!;
+              edgeInsetsGeometry = animate.fromTween(
+                (_) => EdgeInsets.all(0).tweenTo(EdgeInsets.all(10)),
+              )!;
+              decoration = animate.fromTween(
+                (_) => BoxDecoration(color: Colors.red)
+                    .tweenTo(BoxDecoration(color: Colors.blue)),
+              )!;
+              boxConstraints = animate.fromTween(
+                (_) => BoxConstraints(minWidth: 0)
+                    .tweenTo(BoxConstraints(minWidth: 10)),
+              )!;
+
+              textStyle = animate.fromTween((currentValue) =>
+                  TextStyle(color: Colors.red)
+                      .tweenTo(TextStyle(color: Colors.blue)))!;
+
+              rect = animate.fromTween(
+                (_) => Rect.zero.tweenTo(Rect.fromLTRB(10, 10, 10, 10)),
+              )!;
+
+              relativeRect = animate.fromTween(
+                (_) => RelativeRect.fromLTRB(0, 0, 0, 0)
+                    .tweenTo(RelativeRect.fromLTRB(10, 10, 10, 10)),
+              )!;
+
+              _int = animate.fromTween(
+                (_) => 0.tweenTo(10),
+              )!;
+
+              borderRadius = animate.fromTween(
+                (_) => BorderRadius.zero.tweenTo(BorderRadius.circular(10)),
+              )!;
+
+              themeData = animate.fromTween(
+                (_) => ThemeData.dark().tweenTo(ThemeData.light()),
+              )!;
+
+              matrix4 = animate.fromTween(
+                (_) =>
+                    Matrix4.zero().tweenTo(Matrix4.diagonal3Values(10, 10, 10)),
+              )!;
+
+              return Container();
+            },
+          ).listenTo(animation),
+        ],
+      ));
+      expect(_double, 0.0);
+      expect(color, Colors.red);
+      expect(alignmentGeometry, Alignment.topLeft);
+      expect(edgeInsetsGeometry, EdgeInsets.zero);
+      expect(decoration, BoxDecoration(color: Colors.red));
+      expect(boxConstraints.toString(), 'BoxConstraints(unconstrained)');
+      expect(offset, Offset.zero);
+      expect(size, Size.zero);
+      expect(textStyle.color, Colors.red);
+      expect(rect, Rect.zero);
+      expect(relativeRect, RelativeRect.fromLTRB(0, 0, 0, 0));
+      expect(_int, 0);
+      expect(borderRadius, BorderRadius.zero);
+      expect(themeData.colorScheme.brightness, Brightness.dark);
+      expect(matrix4, Matrix4.zero());
+
+      //
+      await tester.pumpAndSettle();
+      expect(_double, 10);
+      expect(color, Colors.blue);
+      expect(alignmentGeometry, Alignment.topRight);
+      expect(edgeInsetsGeometry, EdgeInsets.all(10.0));
+      expect(decoration, BoxDecoration(color: Colors.blue));
+      expect(boxConstraints.toString(),
+          'BoxConstraints(10.0<=w<=Infinity, 0.0<=h<=Infinity)');
+      expect(offset, Offset(10, 10));
+      expect(size, Size(10, 10));
+      expect(textStyle.color, Colors.blue);
+      expect(rect, Rect.fromLTRB(10, 10, 10, 10));
+      expect(relativeRect, RelativeRect.fromLTRB(10, 10, 10, 10));
+      expect(_int, 10);
+      expect(borderRadius, BorderRadius.circular(10));
+      expect(themeData.colorScheme.brightness, Brightness.light);
+      expect(matrix4, Matrix4.diagonal3Values(10, 10, 10));
+    },
+  );
   testWidgets(
     'Test tween can not ne inferred'
     'THEN',
@@ -867,13 +1002,9 @@ void main() {
           ).listenTo(animation),
         ),
       );
-      model.notify();
       await tester.pumpAndSettle();
       //
       animation.refresh();
-      await tester.pumpAndSettle();
-      //
-      model.notify();
       await tester.pumpAndSettle();
     },
   );
@@ -934,7 +1065,6 @@ void main() {
       expect(height, 100);
 
       model.notify();
-      await tester.pump();
       await tester.pump(Duration(milliseconds: 100));
       await tester.pump(Duration(milliseconds: 100));
       expect(width, 90);
@@ -954,13 +1084,11 @@ void main() {
         reverseCurve: Curves.bounceIn,
         shouldReverseRepeats: true,
       );
-      double width = 0.0;
       await tester.pumpWidget(
         MaterialApp(
           home: On.animation(
             (animate) {
-              width = animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
-              print(width);
+              animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
               return Container();
             },
           ).listenTo(animation),
@@ -979,6 +1107,204 @@ void main() {
       expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
       await tester.pumpAndSettle();
       expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+    },
+  );
+
+  testWidgets(
+    'reset Duration, reverseDuration and shouldReverseRepeats',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        shouldAutoStart: true,
+      );
+      late double value;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              value = animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
+              return Container();
+            },
+          ).listenTo(animation),
+        ),
+      );
+      expect(value, 0);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value, 20);
+      await tester.pump(Duration(milliseconds: 300));
+      expect(value, 50);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value, 70);
+      await tester.pump(Duration(milliseconds: 300));
+      expect(value, 100);
+      animation.resetAnimation(duration: Duration(milliseconds: 100));
+      animation.triggerAnimation(restart: true);
+      await tester.pump();
+      expect(value, 0.0);
+      await tester.pump(Duration(milliseconds: 20));
+      expect(value, 20);
+      await tester.pump(Duration(milliseconds: 30));
+      expect(value, 50);
+      await tester.pump(Duration(milliseconds: 20));
+      expect(value, 70);
+      await tester.pump(Duration(milliseconds: 30));
+      expect(value, 100);
+      //
+      animation.resetAnimation(duration: Duration(milliseconds: 1000));
+      animation.triggerAnimation(restart: true);
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value, 20);
+      await tester.pump(Duration(milliseconds: 300));
+      animation.resetAnimation(duration: Duration(milliseconds: 100));
+      expect(value, 50);
+      await tester.pump(Duration(milliseconds: 200));
+      expect(value, 70);
+      await tester.pump(Duration(milliseconds: 300));
+      expect(value, 100);
+      animation.triggerAnimation(restart: true);
+      await tester.pump();
+      expect(value, 0.0);
+      await tester.pump(Duration(milliseconds: 20));
+      expect(value, 20);
+      await tester.pump(Duration(milliseconds: 30));
+      expect(value, 50);
+      await tester.pump(Duration(milliseconds: 20));
+      expect(value, 70);
+      await tester.pump(Duration(milliseconds: 30));
+      expect(value, 100);
+      await tester.pumpAndSettle();
+      //
+      animation.resetAnimation(
+        reverseDuration: Duration(milliseconds: 2000),
+        shouldReverseRepeats: true,
+      );
+      animation.triggerAnimation();
+      await tester.pump();
+      expect(value, 100);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(value, 80);
+      await tester.pump(Duration(milliseconds: 600));
+      expect(value, 50);
+      await tester.pump(Duration(milliseconds: 400));
+      expect(value, 30.000000000000004);
+      await tester.pump(Duration(milliseconds: 600));
+      expect(value, 0.0);
+
+      await tester.pumpAndSettle();
+    },
+  );
+  testWidgets(
+    'reset repeats count',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+        shouldAutoStart: true,
+        repeats: 3,
+        shouldReverseRepeats: true,
+      );
+      late double value;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: On.animation(
+            (animate) {
+              value = animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
+              return Container();
+            },
+          ).listenTo(animation),
+        ),
+      );
+      expect(value, 0);
+      await tester.pumpAndSettle();
+      expect(value, 100);
+      animation.triggerAnimation();
+      await tester.pumpAndSettle();
+      expect(value, 0);
+      //
+      animation.resetAnimation(repeats: 2);
+      animation.triggerAnimation();
+      await tester.pumpAndSettle();
+      expect(value, 0);
+    },
+  );
+
+  testWidgets(
+    'reset curve and reverse curve',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: Duration(seconds: 1),
+      );
+      late double value;
+      late double value2;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: [
+              On.animation(
+                (animate) {
+                  value =
+                      animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
+                  return Container();
+                },
+              ).listenTo(animation),
+              On.animation(
+                (animate) {
+                  value2 =
+                      animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
+                  return Container();
+                },
+              ).listenTo(animation),
+            ],
+          ),
+        ),
+      );
+      expect(value, 0);
+      animation.controller!.forward();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 500));
+      expect(animation.curvedAnimation.toString(), endsWith('_Linear'));
+      expect(value, 50.0);
+      expect(value2, 50.0);
+      await tester.pumpAndSettle();
+      expect(value, 100);
+      expect(value2, 100);
+      animation.resetAnimation(reverseCurve: Curves.bounceIn);
+      animation.controller!.reverse();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 500));
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+      expect(value, 23.4375);
+      expect(value2, 23.4375);
+      await tester.pumpAndSettle();
+      expect(value, 0);
+      expect(value2, 0);
+      //
+      animation.controller!.forward();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 100));
+      expect(animation.curvedAnimation.toString(), endsWith('_Linear'));
+      expect(value, 10);
+      expect(value2, 10);
+      animation.resetAnimation(curve: Curves.bounceIn);
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 100));
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+      expect(value, 6.000000000000005);
+      expect(value2, 6.000000000000005);
+      await tester.pumpAndSettle();
+      expect(value, 100);
+      expect(value2, 100);
+      expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+    },
+  );
+
+  testWidgets(
+    'Test duration extensions',
+    (tester) async {
+      expect(10.milliseconds(), Duration(milliseconds: 10));
+      expect(10.seconds(), Duration(seconds: 10));
+      expect(10.minutes(), Duration(minutes: 10));
+      expect(10.hours(), Duration(hours: 10));
     },
   );
 }

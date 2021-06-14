@@ -7,8 +7,7 @@ export 'src/builders/state_with_mixin_builder.dart'
 export 'src/builders/top_widget.dart' show TopAppWidget;
 export 'src/builders/when_rebuilder.dart' show WhenRebuilder;
 export 'src/builders/when_rebuilder_or.dart' show WhenRebuilderOr;
-export 'src/extensions/type_extension.dart'
-    show BoolX, DoubleX, IntX, ListX, MapX, SetX, StringX;
+export 'src/extensions/type_extension.dart';
 export 'src/injected/injected_animation/injected_animation.dart'
     show InjectedAnimation, OnAnimation, Animate;
 export 'src/injected/injected_auth/injected_auth.dart'

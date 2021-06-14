@@ -1,3 +1,7 @@
+## 4.3.0 (2021-06-07)
+- Add `InjectedAnimation.resetAnimation` method reset the global duration, curve and repeats of the animation.
+- Add restart parameter to `InjectedAnimation.triggerAnimation` to force animation to restart from the lower bound.
+
 ## 4.2.0 (2021-05-27)
 * Add `shouldAutoStart` parameter to `RM.injectedAnimation` (See issue #186).
 * Add `setCurve` and `setReverseCurve` to the `InjectedAnimation`. Useful for staggered animation (See issue #186).
