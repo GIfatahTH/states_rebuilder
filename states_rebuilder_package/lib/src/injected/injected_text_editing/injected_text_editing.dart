@@ -94,7 +94,7 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
           //After the first lose of focus and if field is not valid,
           // turn validateOnTyping to true and remove listener
           (this as InjectedTextEditingImp).validateOnTyping = true;
-          _focusNode!.removeListener(fn);
+          // _focusNode!.removeListener(fn);// removed (issue 187)
         }
       }
     };
@@ -173,13 +173,6 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         composing: _composing,
       ),
       inj: this,
-      // disposeInjected: () {
-      //   if (autoDispose && !hasObservers) {
-      //     dispose();
-      //     return true;
-      //   }
-      //   return false;
-      // },
     );
 
     _controller!.addListener(() {
@@ -193,7 +186,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         //If form is not null than override the autoValidate of this Injected
         validateOnTyping = form!.autovalidateMode != AutovalidateMode.disabled;
       }
-      if (validateOnTyping ?? true) {
+      if (validateOnTyping ?? !(_validateOnLoseFocus ?? false)) {
         validate();
       } else {
         if (validator == null) {
