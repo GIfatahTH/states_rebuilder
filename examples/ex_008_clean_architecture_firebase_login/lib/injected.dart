@@ -27,7 +27,7 @@ final InjectedAuth<User?, UserParam> user = RM.injectAuth<User?, UserParam>(
       if (err is EmailException || err is PasswordException) {
         return;
       }
-      RM.navigate.to(
+      RM.navigate.toDialog(
         AlertDialog(
           title: Text(ExceptionsHandler.errorMessage(err).title!),
           content: Text(ExceptionsHandler.errorMessage(err).message!),

@@ -757,4 +757,17 @@ void main() async {
       expect(find.text('Unsigned'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'WHEN the user is non nullable and the unsignedUser is null'
+    'THEN it must throw an assertion error',
+    (tester) async {
+      expect(
+        () => RM.injectAuth(
+          () => FakeAuthRepo(),
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
 }

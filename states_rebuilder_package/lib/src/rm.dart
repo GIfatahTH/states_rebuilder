@@ -286,7 +286,13 @@ abstract class RM {
     assert(
       null is T || unsignedUser != null,
       '$T is non nullable, you have to define unsignedUser parameter.\n'
-      'If you want to the unsignedUSer to be null use nullable type ($T?)',
+      'If you want the unsignedUSer to be null use nullable type ($T?)',
+    );
+    assert(
+      null is! T || unsignedUser == null,
+      'Because $T is nullable, null is considered as the unsigned user.'
+      'You can not set a non null unsignedUser\n'
+      'If you want the unsignedUSer to be non null use non nullable type ($T).',
     );
     return InjectedAuthImp<T, P>(
       repoCreator: repository,
