@@ -131,7 +131,7 @@ await RM.storageInitializerMock();\n\n
         if (snap.data == null) {
           return await persistanceProvider!.delete();
         }
-        await persistanceProvider!.write(snap.data!);
+        await persistanceProvider!.write(snap.data as T);
       } catch (e, s) {
         if (persistanceProvider!.catchPersistError) {
           StatesRebuilerLogger.log('Write to localStorage error', e, s);

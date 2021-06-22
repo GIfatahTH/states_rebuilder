@@ -7,7 +7,12 @@ void main() {
   testWidgets(
     'Nullable sync state',
     (tester) async {
-      final counter = RM.inject<int?>(() => null);
+      final counter = RM.inject<int?>(
+        () => null,
+        onData: (_) {
+          //issue 203.
+        },
+      );
       expect(counter.state, null);
       counter.state = 0;
       expect(counter.state, 0);

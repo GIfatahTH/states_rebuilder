@@ -269,9 +269,9 @@ class InjectedImp<T> extends Injected<T> {
       }
 
       if (onData != null) {
-        onData.call(snap.data!);
+        onData.call(snap.data as T);
       } else {
-        this.onData?.call(snap.data!);
+        this.onData?.call(snap.data as T);
       }
       undoRedoPersistState?.call(snap, this);
     } else if (snap.isIdle) {

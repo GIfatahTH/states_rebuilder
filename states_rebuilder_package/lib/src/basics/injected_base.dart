@@ -127,7 +127,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
       return stateAsync.then(
         (_) async {
           final snap = await call();
-          return snap.data!;
+          return snap.data as T;
         },
       );
     }
