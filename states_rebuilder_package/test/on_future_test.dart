@@ -241,7 +241,7 @@ void main() {
     //
     counter.state++;
     counter.setState(
-      (s) => throw Exception(), /*catchError: true*/
+      (s) => throw Exception(),
     );
     await tester.pump();
     expect(find.text('3-3'), findsOneWidget);
