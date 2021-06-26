@@ -51,18 +51,26 @@ class PersistState<T> {
   ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
 
-  ///Useful for state created using [RM.injectedStream]
+  ///Determines whether the state builder function should be invoked after the
+  ///persistant state has been loaded or not.
   ///
-  ///A persisted state, and while the state is initializing, it looks for
-  ///a stored value. If it founds one, the state holds the value and the creator of
-  ///the state is not invoked.
+  ///If no persistant state has been found, the builder function is re-invoked
+  ///in any case. Upon completing to load the persistant state, the states
+  ///`isWaiting` value is `true` which indicates that the builder function is
+  ///re-invoked and the state waits for data. Use `hasData` to verify if
+  ///persistant data exists.
   ///
-  ///For state created using [RM.injectedStream] the default value is true,
-  ///that is, the creator is invoked to keep the subscription to the stream.
+  ///The default value is `false` except for [RM.injectedStream] which is `true`.
   ///
-  ///For states created using [RM.inject] and [RM.injectedFuture] the default value
-  ///is false.
-  ///
+  ///Re-invoking the builder function upon loading the persistant state is
+  ///especially useful for async states. Imagine you are developing an IoT app:
+  ///You have a state that streams data from the IoT devices and displays them
+  ///in the app. The streamed state should be persistant to show previous data
+  ///of the IoT devices upon re-opening the app (re-initializing the state).
+  ///The persistant state ensures that the user does not see "no data" from the
+  ///devices or a loading spinner until the current data has ben retrieved.
+  ///However, after loading the persistant state, the stream (builder function)
+  ///should be re-invoked to start listening to the current data from the IoT devices.
   final bool? shouldRecreateTheState;
 
   ///Persistance provider that will be used to persist this state instead of
