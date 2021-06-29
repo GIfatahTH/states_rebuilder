@@ -50,7 +50,7 @@ class InjectedImp<T> extends Injected<T> {
   final String? debugPrintWhenNotifiedPreMessage;
   final String Function(T?)? toDebugString;
 
-  final void Function(T? s)? onInitialized;
+  void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
   final void Function()? onWaiting;
   final void Function(T s)? onData;
@@ -95,10 +95,15 @@ class InjectedImp<T> extends Injected<T> {
         if (shouldRecreate == true ||
             (shouldRecreate == null && creator is Stream Function())) {
           if (val != null) {
-            _reactiveModelState
-              .._initialState = val
-              .._snapState =
-                  _reactiveModelState._snapState._copyWith(data: val);
+            _reactiveModelState._initialState = val;
+            //See issue 192
+            final old = onInitialized;
+            onInitialized = (_) {
+              //Force hasData flag to be true.
+              _reactiveModelState._snapState =
+                  _reactiveModelState._snapState._copyToHasData(val);
+              old?.call(_);
+            };
           }
           return creator();
         }
