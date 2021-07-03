@@ -248,7 +248,6 @@ void main() {
       //async task with error
       reactiveModel.setState(
         (s) => s.incrementAsyncWithError(),
-        /*catchError: true*/
       );
       await tester.pump();
       expect(find.text('waiting'), findsOneWidget);

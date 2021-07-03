@@ -25,7 +25,8 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
   }
 
   ///Whether the a user is signed or not
-  bool get isSigned => state != (this as InjectedAuthImp<T, P>).unsignedUser;
+  bool get isSigned =>
+      state != null && state != (this as InjectedAuthImp<T, P>).unsignedUser;
   //
   _AuthService<T, P>? _auth;
 

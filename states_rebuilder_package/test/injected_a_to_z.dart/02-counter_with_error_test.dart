@@ -114,7 +114,7 @@ void main() {
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
     counter.setState(
-      (s) => s.increment(), /*catchError: true*/
+      (s) => s.increment(),
     );
     await tester.pump();
     expect(errorFromInjection, 'Counter Error');

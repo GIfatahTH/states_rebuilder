@@ -113,7 +113,7 @@ class ReactiveModel<T> extends InjectedBase<T> {
         return null;
       }
       onSetState?.call(snap);
-      onData?.call(snap.data!);
+      onData?.call(snap.data as T);
     }
     return snap;
   }

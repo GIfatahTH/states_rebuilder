@@ -210,7 +210,6 @@ void main() {
         Duration(seconds: 1),
         () => throw Exception('Error'),
       ),
-      /*catchError: true*/
     );
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
@@ -289,7 +288,6 @@ void main() {
         Duration(seconds: 1),
         () => throw Exception('Error'),
       ),
-      /*catchError: true*/
     );
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
@@ -335,7 +333,6 @@ void main() {
         Duration(seconds: 1),
         () => throw Exception('Error'),
       ),
-      /*catchError: true*/
     );
     await tester.pump();
     expect(find.text('1'), findsOneWidget);

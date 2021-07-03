@@ -1,3 +1,5 @@
+## 4.4.0.dev (2021-07-03)
+* Add `InjectedTab`
 ## 4.3.0 (2021-06-07)
 - Add `InjectedAnimation.resetAnimation` method reset the global duration, curve and repeats of the animation.
 - Add restart parameter to `InjectedAnimation.triggerAnimation` to force animation to restart from the lower bound.

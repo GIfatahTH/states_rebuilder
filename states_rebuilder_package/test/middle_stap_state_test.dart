@@ -38,7 +38,7 @@ void main() {
       expect(model.state, 1);
       //
       model.setState(
-        (s) => throw Exception('Error'), /*catchError: true*/
+        (s) => throw Exception('Error'),
       );
       expect(_snapState!.hasData, true);
       expect(_snapState!.data, 1);

@@ -183,7 +183,7 @@ class OnAnimation {
         );
       },
       widget: _OnAnimationWidget(_anim),
-      injected: _injected,
+      withTicker: () => _injected.controller == null,
       key: key,
     );
   }

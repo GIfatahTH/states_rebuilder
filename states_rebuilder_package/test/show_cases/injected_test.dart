@@ -177,7 +177,6 @@ void main() {
             }
             return newUsername;
           },
-          /*catchError: true*/
         );
       }
 
@@ -194,7 +193,6 @@ void main() {
             }
             return newPassword;
           },
-          /*catchError: true*/
         );
       }
 

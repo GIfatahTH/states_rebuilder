@@ -536,6 +536,37 @@ void main() async {
       persistentState.dispose();
     },
   );
+
+  test('shouldRecreateState: true // issue 192', () async {
+    await RM.storageInitializerMock();
+    Injected<int?> injected = RM.injectStream(
+      () => Stream.fromFuture(
+          Future.delayed(Duration(milliseconds: 100), () => 1)),
+      initialState: 0,
+      onInitialized: (_, __) {},
+      persist: () => PersistState(
+        shouldRecreateTheState: true,
+        key: 'injected',
+        fromJson: int.parse,
+        toJson: (s) => s.toString(),
+      ),
+    );
+    // first initialization -> store value as persitant state
+    expect(injected.state, equals(0));
+    await Future.delayed(Duration(milliseconds: 200));
+    expect(injected.state, equals(1));
+    injected.setState((_) => 2);
+
+    // re-initializing the state. the last stores value has been 2.
+    // therefore, expect value 2
+    injected.dispose();
+    expect(injected.state, equals(2));
+    // the state has a value, therefore (I) would not expect it to have data
+    expect(injected.hasData, isTrue);
+    await Future.delayed(Duration(milliseconds: 200));
+    // re-invoke the builder function which returns 1 after 100 milliseconds
+    expect(injected.state, equals(1));
+  });
 }
 
 class PersistStoreMockImp extends IPersistStore {

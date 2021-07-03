@@ -95,17 +95,17 @@ class StateBuilderBaseWithTicker<T> extends StatefulWidget {
   ) initState;
 
   final T widget;
-  final InjectedAnimation injected;
+  final bool Function() withTicker;
   const StateBuilderBaseWithTicker(
     this.initState, {
     Key? key,
     required this.widget,
-    required this.injected,
+    required this.withTicker,
   }) : super(key: key);
 
   @override
   State<StateBuilderBaseWithTicker<T>> createState() {
-    return injected.controller == null
+    return withTicker()
         ? _StateBuilderBaseWithTickerState<T>()
         : _StateBuilderBaseWithOutTicker<T>();
   }

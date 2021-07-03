@@ -16,6 +16,7 @@ import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
 import 'injected/injected_scrolling/injected_scrolling.dart';
+import 'injected/injected_tab/injected_tab.dart';
 import 'injected/injected_text_editing/injected_text_editing.dart';
 import 'injected/injected_theme/injected_theme.dart';
 import 'legacy/injector.dart';
@@ -286,7 +287,13 @@ abstract class RM {
     assert(
       null is T || unsignedUser != null,
       '$T is non nullable, you have to define unsignedUser parameter.\n'
-      'If you want to the unsignedUSer to be null use nullable type ($T?)',
+      'If you want the unsignedUSer to be null use nullable type ($T?)',
+    );
+    assert(
+      null is! T || unsignedUser == null,
+      'Because $T is nullable, null is considered as the unsigned user.'
+      'You can not set a non null unsignedUser\n'
+      'If you want the unsignedUSer to be non null use non nullable type ($T).',
     );
     return InjectedAuthImp<T, P>(
       repoCreator: repository,
@@ -627,6 +634,16 @@ abstract class RM {
       keepScrollOffset: keepScrollOffset,
       onScroll: onScrolling != null ? OnScroll<void>(onScrolling) : null,
       onScrollEndedDelay: endScrollDelay,
+    );
+  }
+
+  static InjectedTab injectTab({
+    int initialIndex = 0,
+    required int length,
+  }) {
+    return InjectedTabImp(
+      initialIndex: initialIndex,
+      length: length,
     );
   }
 
