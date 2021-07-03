@@ -37,7 +37,7 @@ class On<T> {
     required T Function(dynamic err, void Function() refresh)? onError,
     required T Function()? onData,
     // required _OnType onType,
-  })   : _onIdle = onIdle,
+  })  : _onIdle = onIdle,
         _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;
@@ -338,6 +338,12 @@ class On<T> {
     T Function(InjectedScrolling scroll) builder,
   ) {
     return OnScroll<T>(builder);
+  }
+
+  static OnTab tab(
+    Widget Function() builder,
+  ) {
+    return OnTab(builder);
   }
 }
 

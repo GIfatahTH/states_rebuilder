@@ -20,6 +20,7 @@ export 'src/injected/injected_scrolling/injected_scrolling.dart'
     show InjectedScrolling;
 export 'src/injected/injected_text_editing/injected_text_editing.dart'
     show InjectedTextEditing, InjectedForm;
+export 'src/injected/injected_tab/injected_tab.dart' show InjectedTab;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;
 export 'src/legacy/inject.dart' show Inject, Injectable;
 export 'src/legacy/injector.dart' show IN, Injector;
