@@ -63,7 +63,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     this.onUnsigned,
     this.autoSignOut,
     this.onAuthStream,
-    this.on,
+    this.onSetAuthState,
     //
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s)? onInitialized,
@@ -90,7 +90,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
   final P Function()? param;
   final void Function(T s)? onSigned;
   final void Function()? onUnsigned;
-  final On<void>? on;
+  final On<void>? onSetAuthState;
   final Duration Function(T auth)? autoSignOut;
   final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
   StreamSubscription<T>? onAuthStreamSubscription;
@@ -180,7 +180,7 @@ class _AuthService<T, P> {
       } else if (snap.hasError) {
         _onError(_onSignInOut);
       }
-      injected.on?.call(snap);
+      injected.onSetAuthState?.call(snap);
     });
   }
 
