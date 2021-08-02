@@ -263,7 +263,7 @@ extension InjectedX<T> on InjectedBaseState<T> {
                   d as T,
                 );
                 if (onSetState?._onData == null) {
-                  inj.onData?.call(inj.state);
+                  inj.onDataForSideEffect?.call(inj.state);
                 }
                 disposer?.call();
                 disposer = null;
@@ -380,7 +380,7 @@ extension InjectedX<T> on InjectedBaseState<T> {
                     d,
                   );
                   if (onSetState?._onData == null) {
-                    inj.onData?.call(inj.state);
+                    inj.onDataForSideEffect?.call(inj.state);
                   }
                 }
                 data = d;
