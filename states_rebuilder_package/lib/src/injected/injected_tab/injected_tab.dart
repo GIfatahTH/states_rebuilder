@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../builders/state_with_mixin_builder.dart';
 import '../../rm.dart';
 
 part 'on_tab.dart';
