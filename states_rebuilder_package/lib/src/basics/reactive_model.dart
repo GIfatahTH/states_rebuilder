@@ -1,25 +1,57 @@
 part of '../rm.dart';
 
 ///A lightweight version of InjectedImp
-class ReactiveModel<T> extends InjectedBase<T> {
-  final Function() creator;
+abstract class ReactiveModel<T> extends InjectedBase<T> {
   factory ReactiveModel.create(T state) {
-    return ReactiveModel(creator: () => state, initialState: state);
+    return ReactiveModelImp(creator: () => state, initialState: state);
   }
 
   factory ReactiveModel.future(
     Future<T> Function() creator, {
     T? initialState,
   }) {
-    return ReactiveModel(creator: creator, initialState: initialState);
+    return ReactiveModelImp(creator: creator, initialState: initialState);
   }
   factory ReactiveModel.stream(
     Stream<T> Function() creator, {
     T? initialState,
   }) {
-    return ReactiveModel(creator: creator, initialState: initialState);
+    return ReactiveModelImp(creator: creator, initialState: initialState);
   }
-  ReactiveModel({
+
+  ReactiveModel();
+
+  ConnectionState get connectionState =>
+      _reactiveModelState._snapState._connectionState;
+
+  ///Exhaustively switch over all the possible statuses of [connectionState].
+  ///Used mostly to return [Widget]s.
+  R whenConnectionState<R>({
+    required R Function() onIdle,
+    required R Function() onWaiting,
+    required R Function(T snapState) onData,
+    required R Function(dynamic error) onError,
+    bool catchError = true,
+  }) {
+    if (isIdle) {
+      return onIdle.call();
+    }
+    if (hasError) {
+      return onError.call(error);
+    }
+    if (isWaiting) {
+      return onWaiting.call();
+    }
+    return onData.call(state);
+  }
+
+  int get observerLength => _reactiveModelState.listeners.observerLength;
+}
+
+class ReactiveModelImp<T> extends ReactiveModel<T> {
+  final Function() creator;
+
+  ReactiveModelImp({
     required this.creator,
     T? initialState,
     bool autoDisposeWhenNotUsed = true,
@@ -76,13 +108,12 @@ class ReactiveModel<T> extends InjectedBase<T> {
     );
     _reactiveModelState.initializer();
   }
-  set state(T s) {
-    setState((_) => s);
-  }
 
   T? get initialState => _reactiveModelState._initialState;
+
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
-  SnapState<T>? middleSnap(SnapState<T> snap) {}
+
+  // SnapState<T>? middleSnap(SnapState<T> snap) {}
 
   @override
   SnapState<T>? _middleSnap(
@@ -91,7 +122,7 @@ class ReactiveModel<T> extends InjectedBase<T> {
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {
-    snap = middleSnap(snap) ?? snap;
+    // snap = middleSnap(snap) ?? snap;
     if (snap.isWaiting) {
       if (snapState.isWaiting) {
         return null;
@@ -142,9 +173,6 @@ class ReactiveModel<T> extends InjectedBase<T> {
   //   };
   // }
 
-  ConnectionState get connectionState =>
-      _reactiveModelState._snapState._connectionState;
-
   VoidCallback observeForRebuild(void Function(ReactiveModel<T>? rm) fn) {
     return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));
   }
@@ -152,27 +180,4 @@ class ReactiveModel<T> extends InjectedBase<T> {
   void addCleaner(VoidCallback fn) {
     _reactiveModelState.listeners.addCleaner(fn);
   }
-
-  ///Exhaustively switch over all the possible statuses of [connectionState].
-  ///Used mostly to return [Widget]s.
-  R whenConnectionState<R>({
-    required R Function() onIdle,
-    required R Function() onWaiting,
-    required R Function(T snapState) onData,
-    required R Function(dynamic error) onError,
-    bool catchError = true,
-  }) {
-    if (isIdle) {
-      return onIdle.call();
-    }
-    if (hasError) {
-      return onError.call(error);
-    }
-    if (isWaiting) {
-      return onWaiting.call();
-    }
-    return onData.call(state);
-  }
-
-  int get observerLength => _reactiveModelState.listeners.observerLength;
 }

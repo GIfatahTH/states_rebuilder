@@ -76,7 +76,7 @@ extension OnFutureX<F> on OnFuture<F> {
         late InjectedBaseState<F> inj;
         VoidCallback? disposer;
         if (future != null) {
-          inj = ReactiveModel(creator: () => future());
+          inj = ReactiveModelImp(creator: () => future());
         } else {
           // bool _isAlreadyNotified = false;
           inj = InjectedImp<T>(

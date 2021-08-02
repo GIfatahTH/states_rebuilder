@@ -41,7 +41,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                 inj.initialize();
                 rm = inj._reactiveModelState;
               } else if (inj is ReactiveModel) {
-                rm = inj.reactiveModelState;
+                rm = (inj as ReactiveModelImp).reactiveModelState;
               }
               final disposer = rm.listeners.addListenerForRebuild(
                 (s) {

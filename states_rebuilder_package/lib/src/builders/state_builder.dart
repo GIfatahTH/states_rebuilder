@@ -262,7 +262,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
             rm = observeMany.first as ReactiveModel<T>;
           }
         }
-        observe = ReactiveModel(creator: () {});
+        observe = ReactiveModelImp(creator: () {});
       }
       observeMany.forEach(
         (m) {

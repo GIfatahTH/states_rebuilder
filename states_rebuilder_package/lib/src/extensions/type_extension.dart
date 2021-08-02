@@ -4,7 +4,7 @@ import '../rm.dart';
 
 extension IntX on int {
   InjectedBase<int> inj() {
-    return ReactiveModel(creator: () => this, initialState: 0);
+    return ReactiveModelImp(creator: () => this, initialState: 0);
   }
 
   IntTween tweenTo(int end) {
@@ -30,7 +30,7 @@ extension IntX on int {
 
 extension DoubleX on double {
   InjectedBase<double> inj() {
-    return ReactiveModel(creator: () => this, initialState: 0.0);
+    return ReactiveModelImp(creator: () => this, initialState: 0.0);
   }
 
   Tween<double> tweenTo(double end) {
@@ -40,31 +40,31 @@ extension DoubleX on double {
 
 extension StringX on String {
   InjectedBase<String> inj() {
-    return ReactiveModel(creator: () => this, initialState: '');
+    return ReactiveModelImp(creator: () => this, initialState: '');
   }
 }
 
 extension BoolX on bool {
   InjectedBase<bool> inj() {
-    return ReactiveModel(creator: () => this, initialState: false);
+    return ReactiveModelImp(creator: () => this, initialState: false);
   }
 }
 
 extension ListX<T> on List<T> {
   InjectedBase<List<T>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T>[]);
+    return ReactiveModelImp(creator: () => this, initialState: <T>[]);
   }
 }
 
 extension SetX<T> on Set<T> {
   InjectedBase<Set<T>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T>{});
+    return ReactiveModelImp(creator: () => this, initialState: <T>{});
   }
 }
 
 extension MapX<T, D> on Map<T, D> {
   InjectedBase<Map<T, D>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T, D>{});
+    return ReactiveModelImp(creator: () => this, initialState: <T, D>{});
   }
 }
 
