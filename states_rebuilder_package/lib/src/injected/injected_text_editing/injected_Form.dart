@@ -40,7 +40,7 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
+class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,

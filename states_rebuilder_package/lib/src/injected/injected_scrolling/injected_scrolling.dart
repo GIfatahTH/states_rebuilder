@@ -103,7 +103,7 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
 }
 
 ///Implementation of InjectedScrolling
-class InjectedScrollingImp extends ReactiveModel<double>
+class InjectedScrollingImp extends ReactiveModelImp<double>
     with InjectedScrolling {
   InjectedScrollingImp({
     this.initialScrollOffset = 0.0,
