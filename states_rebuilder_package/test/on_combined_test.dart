@@ -6,9 +6,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   testWidgets('many simple counters app', (tester) async {
-    final rm1 = ReactiveModel(creator: () => 0, initialState: 0);
-    final rm2 = ReactiveModel(creator: () => 0, initialState: 0);
-    final rm3 = ReactiveModel(creator: () => 0, initialState: 0);
+    final rm1 = ReactiveModelImp(creator: () => 0, initialState: 0);
+    final rm2 = ReactiveModelImp(creator: () => 0, initialState: 0);
+    final rm3 = ReactiveModelImp(creator: () => 0, initialState: 0);
     final widget = OnCombined.data(
       (_) => Directionality(
         textDirection: TextDirection.ltr,
@@ -33,11 +33,11 @@ void main() {
 
   testWidgets('many async counters app', (tester) async {
     final rm1 =
-        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
+        ReactiveModelImp(creator: () => _Model(0), initialState: _Model(0));
     final rm2 =
-        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
+        ReactiveModelImp(creator: () => _Model(0), initialState: _Model(0));
     final rm3 =
-        ReactiveModel(creator: () => _Model(0), initialState: _Model(0));
+        ReactiveModelImp(creator: () => _Model(0), initialState: _Model(0));
     String onWaitngSideEffect = '';
     final widget = Directionality(
       textDirection: TextDirection.ltr,

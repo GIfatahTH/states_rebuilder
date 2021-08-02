@@ -368,18 +368,29 @@ void main() {
             endAnimationNum++;
           });
       late double width;
-      final widget = On.animation(
+      final widget = animation.onAnimation(
         (animate) => Container(
           width: width = animate.fromTween(
             (_) => Tween(begin: _ ?? 0.0, end: 100.0),
           )!,
         ),
-      ).listenTo(
-        animation,
         onInitialized: () {
           animation.triggerAnimation();
         },
       );
+
+      // On.animation(
+      //   (animate) => Container(
+      //     width: width = animate.fromTween(
+      //       (_) => Tween(begin: _ ?? 0.0, end: 100.0),
+      //     )!,
+      //   ),
+      // ).listenTo(
+      //   animation,
+      //   onInitialized: () {
+      //     animation.triggerAnimation();
+      //   },
+      // );
 
       await tester.pumpWidget(widget);
 

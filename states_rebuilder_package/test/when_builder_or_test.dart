@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -8,7 +9,7 @@ void main() {
     'WhenRebuilderOr widget, synchronous task, case onIdle is not defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: WhenRebuilderOr<Model1>(
@@ -32,7 +33,7 @@ void main() {
     'WhenRebuilderOr widget, synchronous task, case only onData is defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -56,7 +57,7 @@ void main() {
     'WhenRebuilderOr widget, synchronous task, case all parameters are defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -82,7 +83,7 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task, case all parameters are defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -118,7 +119,7 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task, case onWaiting is not defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -155,7 +156,7 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task, case only builder is defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -183,7 +184,7 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task with error , case en error is defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -221,7 +222,7 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task with error , case en error is not defined',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -260,10 +261,10 @@ void main() {
     'WhenRebuilderOr widget, asynchronous task with error, case two reactive models',
     (tester) async {
       final reactiveModel1 =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final reactiveModel2 =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,

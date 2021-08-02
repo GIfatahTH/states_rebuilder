@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -7,7 +8,7 @@ void main() {
     'WhenRebuilder widget, synchronous task, case one reactive model',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: WhenRebuilder<Model1>(
@@ -32,9 +33,9 @@ void main() {
     'WhenRebuilder widget, synchronous task, case two reactive models',
     (tester) async {
       final reactiveModel1 =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
       final reactiveModel2 =
-          ReactiveModel(creator: () => Model2(), initialState: Model2());
+          ReactiveModelImp(creator: () => Model2(), initialState: Model2());
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: WhenRebuilder<Model1>(
@@ -63,7 +64,7 @@ void main() {
     'WhenRebuilder widget, asynchronous task, case one reactive model',
     (tester) async {
       final reactiveModel =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
@@ -99,9 +100,9 @@ void main() {
     'WhenRebuilder widget, asynchronous task without error, case two reactive models',
     (tester) async {
       final reactiveModel1 =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
       final reactiveModel2 =
-          ReactiveModel(creator: () => Model2(), initialState: Model2());
+          ReactiveModelImp(creator: () => Model2(), initialState: Model2());
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: WhenRebuilder<Model1>(
@@ -136,9 +137,9 @@ void main() {
     'WhenRebuilder widget, asynchronous task with error, case two reactive models',
     (tester) async {
       final reactiveModel1 =
-          ReactiveModel(creator: () => Model1(), initialState: Model1());
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
       final reactiveModel2 =
-          ReactiveModel(creator: () => Model2(), initialState: Model2());
+          ReactiveModelImp(creator: () => Model2(), initialState: Model2());
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
