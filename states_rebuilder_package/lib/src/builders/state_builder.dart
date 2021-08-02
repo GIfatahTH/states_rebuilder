@@ -30,7 +30,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
-  final InjectedBaseState<T> Function()? observe;
+  final InjectedBase<T> Function()? observe;
 
   ///List of observable classes to which you want [StateBuilder] to subscribe.
   ///```dart
@@ -43,7 +43,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///Observable classes are classes that extends [StatesRebuilder].
   ///[ReactiveModel] is one of them.
-  final List<InjectedBaseState Function()>? observeMany;
+  final List<InjectedBase Function()>? observeMany;
 
   ///A tag or list of tags you want this [StateBuilder] to register with.
   ///
@@ -165,7 +165,8 @@ class StateBuilder<T> extends StatefulWidget {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.afterInitialBuild,
-  })  : assert(builder != null || builderWithChild != null, '''
+  })  : assert(builder != null || builderWithChild != null,
+            '''
   
   | ***Builder not defined*** 
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -173,7 +174,8 @@ class StateBuilder<T> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
-        assert(builderWithChild == null || child != null, '''
+        assert(builderWithChild == null || child != null,
+            '''
   | ***child is null***
   | You have defined the 'builderWithChild' parameter without defining the child parameter.
   | Use 'builderWithChild' with 'child' parameter. 
@@ -195,7 +197,7 @@ class StateBuilder<T> extends StatefulWidget {
 class StateBuilderState<T> extends State<StateBuilder<T>> {
   ReactiveModel<T>? rm;
   ReactiveModel<T>? exposedModelFromInitState;
-  InjectedBaseState<T>? observe;
+  InjectedBase<T>? observe;
   late Widget _widget;
 
   @override
@@ -243,7 +245,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
   }
 
   void resolveObservers() {
-    final observeMany = <InjectedBaseState>[];
+    final observeMany = <InjectedBase>[];
 
     if (widget.observe != null) {
       observe = widget.observe!.call();

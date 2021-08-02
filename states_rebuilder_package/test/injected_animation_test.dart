@@ -102,7 +102,7 @@ void main() {
       );
 
       await tester.pumpWidget(
-        On.animation(
+        animation.rebuild.onAnimation(
           (animate) {
             return Container(
               padding: padding = animate(selected ? EdgeInsets.all(100) : null),
@@ -119,7 +119,7 @@ void main() {
               child: Container(),
             );
           },
-        ).listenTo(animation),
+        ),
       );
 
       expect('$alignment', 'null');
@@ -368,7 +368,7 @@ void main() {
             endAnimationNum++;
           });
       late double width;
-      final widget = animation.onAnimation(
+      final widget = animation.rebuild.onAnimation(
         (animate) => Container(
           width: width = animate.fromTween(
             (_) => Tween(begin: _ ?? 0.0, end: 100.0),

@@ -271,7 +271,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
   }
 }
 
-extension InjectedX1<T> on InjectedBaseState<T> {
+extension InjectedBaseStateX1<T> on InjectedBaseState<T> {
   ///Add observer for rebuild
   VoidCallback observeForRebuild(void Function(InjectedBaseState<T>? rm) fn) {
     return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));

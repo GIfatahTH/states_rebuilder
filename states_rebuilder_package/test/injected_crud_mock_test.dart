@@ -427,11 +427,11 @@ void main() {
   testWidgets('On.crud Peissimisally', (tester) async {
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.crud(
+      child: products.rebuild.onCRUD(
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
-      ).listenTo(products),
+      ),
     );
 
     ///READ
@@ -732,24 +732,24 @@ void main() {
       final model = true.inj();
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On(
+        child: model.rebuild(
           () {
             products = RM.injectCRUD<Product, Object>(
               () => _repo,
               readOnInitialization: true,
             );
-            return On.crud(
+            return products.rebuild.onCRUD(
               onWaiting: () => Text('Waiting...'),
               onError: (_, refresh) {
                 return Text(_.message);
               },
               onResult: (r) => Text('Result: $r'),
-            ).listenTo(
-              products,
+              onSetState: On(() {}),
+              dispose: () {},
               debugPrintWhenRebuild: 'products',
             );
           },
-        ).listenTo(model),
+        ),
       );
       await tester.pumpWidget(widget);
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/src/rm.dart';
 
 void main() {
   bool isTop = false;
@@ -48,11 +49,11 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: On.scroll(
+            title: scroll.rebuild.onScroll(
               (scroll) {
                 return Text('offset: ${scroll.offset}');
               },
-            ).listenTo(scroll),
+            ),
           ),
           body: ListView.builder(
             controller: scroll.controller,

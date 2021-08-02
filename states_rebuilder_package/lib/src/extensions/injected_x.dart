@@ -1,6 +1,6 @@
 part of '../rm.dart';
 
-extension InjectedX<T> on InjectedBaseState<T> {
+extension InjectedX<T> on InjectedBase<T> {
   /// {@template injected.rebuilder}
   ///Listen to the injected Model and ***rebuild only when the model emits a
   ///notification with new data***.

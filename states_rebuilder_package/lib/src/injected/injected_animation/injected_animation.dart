@@ -6,8 +6,30 @@ import '../../rm.dart';
 
 part 'on_Animation.dart';
 
+class _RebuildAnimation {
+  final InjectedAnimation _injected;
+  _RebuildAnimation(this._injected);
+
+  Widget call(Widget Function() builder) {
+    return On(builder).listenTo(_injected);
+  }
+
+  Widget onAnimation(
+    Widget Function(Animate) anim, {
+    void Function()? onInitialized,
+    Key? key,
+  }) {
+    return On.animation(anim).listenTo(
+      _injected,
+      onInitialized: onInitialized,
+      key: key,
+    );
+  }
+}
+
 ///Inject an animation
 abstract class InjectedAnimation implements InjectedBaseState<double> {
+  late final rebuild = _RebuildAnimation(this);
   AnimationController? _controller;
 
   ///Get the `AnimationController` associated with this [InjectedAnimation]

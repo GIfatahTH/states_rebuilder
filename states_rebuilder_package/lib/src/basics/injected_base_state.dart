@@ -71,30 +71,23 @@ abstract class InjectedBaseState<T> {
   ///The error
   dynamic get error => _reactiveModelState._snapState.error;
 
-  ///It is not null if the state is waiting for a Future or is subscribed to a
-  ///Stream
-  StreamSubscription? get subscription => _reactiveModelState.subscription;
-  bool get autoDisposeWhenNotUsed => _reactiveModelState.autoDisposeWhenNotUsed;
-
-  ///Custom status of the state. Set manually to mark the state with a particular
-  ///tag to be used in your logic.
-  Object? customStatus;
-
-  ///If the state is bool, toggle it and notify listeners
-  ///
-  ///This is a shortcut of:
-  ///
-  ///If the state is not bool, it will throw an assertion error.
-  void toggle() {
-    assert(T == bool);
-    final snap =
-        _reactiveModelState.snapState._copyToHasData(!(state as bool) as T);
-    _reactiveModelState.setSnapStateAndRebuild = snap;
-  }
+  ///Whether the state has observers
+  bool get hasObservers => _reactiveModelState.listeners._listeners.isNotEmpty;
 
   ///Notify observers
   void notify() {
     _reactiveModelState.listeners.rebuildState(snapState);
+  }
+
+  ///Dispose the state.
+  void dispose() {
+    _reactiveModelState.dispose();
+  }
+}
+
+extension InjectedBaseX<T> on InjectedBaseState<T> {
+  void setReactiveModelState(ReactiveModelBase<T> rm) {
+    _reactiveModelState = rm;
   }
 
   ///Subscribe to the state
@@ -102,14 +95,6 @@ abstract class InjectedBaseState<T> {
     _reactiveModelState.listeners._sideEffectListeners.add(fn);
     return () =>
         () => _reactiveModelState.listeners._sideEffectListeners.remove(fn);
-  }
-
-  ///Whether the state has observers
-  bool get hasObservers => _reactiveModelState.listeners._listeners.isNotEmpty;
-
-  ///Dispose the state.
-  void dispose() {
-    _reactiveModelState.dispose();
   }
 }
 
@@ -156,10 +141,4 @@ class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
   int get observerLength => _reactiveModelState.listeners.observerLength;
 
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
-}
-
-extension InjectedBaseX<T> on InjectedBaseState<T> {
-  void setReactiveModelState(ReactiveModelBase<T> rm) {
-    _reactiveModelState = rm;
-  }
 }

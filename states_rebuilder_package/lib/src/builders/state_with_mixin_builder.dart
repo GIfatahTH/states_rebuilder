@@ -57,7 +57,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   // final List<Injected> models;
 
   ///an observable to which you want [StateWithMixinBuilder] to subscribe.
-  final InjectedBaseState<R> Function()? observe;
+  final InjectedBase<R> Function()? observe;
 
   // ///List of observables to which you want [StateWithMixinBuilder] to subscribe.
   // final List<Injected Function()>? observeMany;
@@ -170,7 +170,8 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
     this.didChangeAppLifecycleState,
     this.didChangeLocales,
     required this.mixinWith,
-  })  : assert(builder != null || builderWithChild != null, '''
+  })  : assert(builder != null || builderWithChild != null,
+            '''
   
   | ***Builder not defined***
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -178,7 +179,8 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
-        assert(builderWithChild == null || child != null, '''
+        assert(builderWithChild == null || child != null,
+            '''
   | ***child is null***
   | You have defined the 'builderWithChild' parameter without defining the child parameter.
   | Use 'builderWithChild' with 'child' parameter. 
@@ -211,7 +213,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
     Widget? child,
-    InjectedBaseState<R> Function()? observe,
+    InjectedBase<R> Function()? observe,
     void Function(BuildContext context, Injected<R>? rm,
             TickerProviderStateMixin? ticker)?
         initState,
@@ -267,7 +269,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       singleTickerProvider<R>({
     Key? key,
     dynamic tag,
-    InjectedBaseState<R> Function()? observe,
+    InjectedBase<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -328,7 +330,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       automaticKeepAlive<R>({
     Key? key,
     dynamic tag,
-    InjectedBaseState<R> Function()? observe,
+    InjectedBase<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -393,7 +395,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       widgetsBindingObserver<R>({
     Key? key,
     dynamic tag,
-    InjectedBaseState<R> Function()? observe,
+    InjectedBase<R> Function()? observe,
     Widget Function(BuildContext context, Injected<R>? rm)? builder,
     Widget Function(BuildContext context, Injected<R>? rm, Widget? child)?
         builderWithChild,
@@ -469,7 +471,7 @@ and you are supposed to to instantiate your controllers in the initState() and d
 class _State<T, R> extends State<StateWithMixinBuilder<T, R>> {
   T? _mixin;
   Injected<R>? rm;
-  InjectedBaseState? observe;
+  InjectedBase? observe;
   late Widget _widget;
   late bool _isDisposed;
 

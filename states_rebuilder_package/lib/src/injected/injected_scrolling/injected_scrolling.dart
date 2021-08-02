@@ -7,8 +7,29 @@ import 'package:flutter/widgets.dart';
 import '../../rm.dart';
 part 'on_scroll.dart';
 
+class _RebuildScrolling {
+  final InjectedScrolling _injected;
+  _RebuildScrolling(this._injected);
+
+  Widget call(Widget Function() builder) {
+    return On(builder).listenTo(_injected);
+  }
+
+  Widget onScroll(
+    Widget Function(InjectedScrolling) builder, {
+    Key? key,
+  }) {
+    return On.scroll(builder).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+}
+
 ///Injected a ScrollController
 abstract class InjectedScrolling implements InjectedBaseState<double> {
+  late final rebuild = _RebuildScrolling(this);
+
   ScrollController? _controller;
 
   ///The created [ScrollController]
@@ -103,7 +124,7 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
 }
 
 ///Implementation of InjectedScrolling
-class InjectedScrollingImp extends ReactiveModelImp<double>
+class InjectedScrollingImp extends InjectedBaseBaseImp<double>
     with InjectedScrolling {
   InjectedScrollingImp({
     this.initialScrollOffset = 0.0,
@@ -111,8 +132,7 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
     this.onScroll,
     this.onScrollEndedDelay = 300,
   }) : super(
-          creator: () => 0.0,
-          initialState: initialScrollOffset,
+          creator: () => initialScrollOffset,
         );
 
   ///Initial scroll offset
@@ -136,7 +156,7 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
     );
     _removeFromInjectedList = addToInjectedModels(this);
     Timer? _timer;
-    hasReachedMinExtent = initialState == 0;
+    hasReachedMinExtent = initialScrollOffset == 0.0;
     void setFlags() {
       hasStartedScrolling = false;
       hasStartedScrollingForward = false;

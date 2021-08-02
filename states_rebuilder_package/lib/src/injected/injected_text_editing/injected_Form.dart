@@ -1,9 +1,30 @@
 part of 'injected_text_editing.dart';
 
+class _RebuildForm {
+  final InjectedForm _injected;
+  _RebuildForm(this._injected);
+
+  Widget call(Widget Function() builder) {
+    return On(builder).listenTo(_injected);
+  }
+
+  Widget onForm(
+    Widget Function() builder, {
+    Key? key,
+  }) {
+    return On.form(builder).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+}
+
 ///Inject a Form state.
 ///
 ///Used in conjunction with [On.form].
 abstract class InjectedForm implements InjectedBaseState<bool?> {
+  // late final rebuild = _RebuildForm(this);
+
   ///Validate the text fields and return true if they are all valid
   bool validate();
 

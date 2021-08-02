@@ -2,6 +2,8 @@ part of '../rm.dart';
 
 ///A lightweight version of InjectedImp
 abstract class ReactiveModel<T> extends InjectedBase<T> {
+  late final rebuild = _Rebuild(this);
+
   factory ReactiveModel.create(T state) {
     return ReactiveModelImp(creator: () => state, initialState: state);
   }
