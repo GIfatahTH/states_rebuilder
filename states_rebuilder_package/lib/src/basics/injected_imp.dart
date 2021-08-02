@@ -1,6 +1,9 @@
 part of '../rm.dart';
 
 class InjectedImp<T> extends Injected<T> {
+  factory InjectedImp.inst() {
+    return InjectedImp(creator: null);
+  }
   InjectedImp({
     required dynamic Function()? creator,
     T? initialState,
@@ -8,7 +11,7 @@ class InjectedImp<T> extends Injected<T> {
     this.onDisposed,
     this.onSetState,
     this.onWaiting,
-    this.onData,
+    this.onDataForSideEffect,
     this.onError,
     bool isAsyncInjected = false,
     this.dependsOn,
@@ -53,7 +56,7 @@ class InjectedImp<T> extends Injected<T> {
   void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
   final void Function()? onWaiting;
-  final void Function(T s)? onData;
+  final void Function(T s)? onDataForSideEffect;
   // final On<void>? onSetState;
   final void Function(dynamic e, StackTrace? s)? onError;
 
@@ -276,7 +279,7 @@ class InjectedImp<T> extends Injected<T> {
       if (onData != null) {
         onData.call(snap.data as T);
       } else {
-        this.onData?.call(snap.data as T);
+        this.onDataForSideEffect?.call(snap.data as T);
       }
       undoRedoPersistState?.call(snap, this);
     } else if (snap.isIdle) {
@@ -454,7 +457,7 @@ class InjectedImp<T> extends Injected<T> {
         if (d is T) {
           snapState = snapState.copyToHasData(d);
           onSetState?.call(snapState);
-          onData?.call(state);
+          onDataForSideEffect?.call(state);
         }
         data = d;
       }).catchError((e, StackTrace s) {

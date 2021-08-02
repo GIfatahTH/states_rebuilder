@@ -80,7 +80,7 @@ part of '../rm.dart';
 ///or [Injected.injectStreamMock].
 ///
 ///
-abstract class Injected<T> extends InjectedBase<T> {
+abstract class Injected<T> extends ReactiveModel<T> {
   InjectedImp<T> get _imp => this as InjectedImp<T>;
 
   ///Inject a fake implementation of this injected model.
