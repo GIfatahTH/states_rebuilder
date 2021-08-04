@@ -81,7 +81,7 @@ void main() async {
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.dark);
     //use system theme
-    await tester.tap(find.byType(OutlineButton));
+    await tester.tap(find.byType(OutlinedButton));
     await tester.pumpAndSettle();
     expect(Theme.of(RM.context).primaryColor, Colors.green);
     expect(Theme.of(RM.context).brightness, Brightness.light);
@@ -129,7 +129,7 @@ void main() async {
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.dark);
     //use system theme
-    await tester.tap(find.byType(OutlineButton));
+    await tester.tap(find.byType(OutlinedButton));
     await tester.pumpAndSettle();
     expect(Theme.of(RM.context).primaryColor, Colors.blue);
     expect(Theme.of(RM.context).brightness, Brightness.light);

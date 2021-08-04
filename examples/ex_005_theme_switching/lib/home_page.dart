@@ -27,7 +27,7 @@ class HomePage extends StatelessWidget {
           child: On(
             () => Text(
               i18n.of(context).counterTimes(counter.state),
-              style: Theme.of(context).textTheme.display1,
+              style: Theme.of(context).textTheme.headline4,
             ),
           ).listenTo(counter),
         ),

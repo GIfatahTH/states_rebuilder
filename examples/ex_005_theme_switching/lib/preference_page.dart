@@ -90,7 +90,7 @@ class PreferencePage extends StatelessWidget {
             ).listenTo(theme),
             Row(
               children: [
-                OutlineButton(
+                OutlinedButton(
                   child: Text(i18n.of(context).useSystemMode),
                   onPressed: () {
                     theme.themeMode = ThemeMode.system;
