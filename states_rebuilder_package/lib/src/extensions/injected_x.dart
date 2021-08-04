@@ -1,7 +1,10 @@
 part of '../rm.dart';
 
-extension InjectedX<T> on InjectedBase<T> {
+extension InjectedX<T> on ReactiveModel<T> {
   /// {@template injected.rebuilder}
+  /// ### This method is deprecated.
+  /// ### Instead of `injectedFoo.rebuilder` use `injectedFoo.rebuild`
+  ///
   ///Listen to the injected Model and ***rebuild only when the model emits a
   ///notification with new data***.
   ///
@@ -37,6 +40,7 @@ extension InjectedX<T> on InjectedBase<T> {
   ///
   ///Use [ReactiveModelBuilder.listen] if you want to have more options
   /// {@endtemplate}
+  @Deprecated('Use rebuild instead')
   Widget rebuilder(
     Widget Function() builder, {
     void Function()? initState,
@@ -45,16 +49,26 @@ extension InjectedX<T> on InjectedBase<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) {
-    return On.data(builder).listenTo<T>(
-      this,
-      initState: initState != null ? () => initState() : null,
-      dispose: dispose != null ? () => dispose() : null,
-      shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-      watch: watch,
-    );
+    return this.rebuild.call(
+          builder,
+          initState: initState != null ? () => initState() : null,
+          dispose: dispose != null ? () => dispose() : null,
+          shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+          watch: watch,
+        );
+    // return On.data(builder).listenTo<T>(
+    //   this,
+    //   initState: initState != null ? () => initState() : null,
+    //   dispose: dispose != null ? () => dispose() : null,
+    //   shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+    //   watch: watch,
+    // );
   }
 
   /// {@template injected.whenRebuilder}
+  /// ### This method is deprecated.
+  /// ### Instead of `injectedFoo.whenRebuilder` use `injectedFoo.rebuild.onAll`
+  ///
   ///Listen to the injected Model and rebuild when it emits a notification.
   ///
   /// * Required parameters:
@@ -90,6 +104,7 @@ extension InjectedX<T> on InjectedBase<T> {
   ///
   ///Use [ReactiveModelBuilder.listen] if you want to have more options
   /// {@endtemplate}
+  @Deprecated('Use rebuild.onAll instead')
   Widget whenRebuilder({
     required Widget Function() onIdle,
     required Widget Function() onWaiting,
@@ -100,19 +115,21 @@ extension InjectedX<T> on InjectedBase<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      On.all(
-        onIdle: onIdle,
-        onWaiting: onWaiting,
-        onError: (err, _) => onError(err),
-        onData: onData,
-      ).listenTo<T>(
-        this,
-        initState: initState != null ? () => initState() : null,
-        dispose: dispose != null ? () => dispose() : null,
-        shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-      );
+      this.rebuild.onAll(
+            onIdle: onIdle,
+            onWaiting: onWaiting,
+            onError: (err, _) => onError(err),
+            onData: onData,
+            initState: initState != null ? () => initState() : null,
+            dispose: dispose != null ? () => dispose() : null,
+            shouldRebuild:
+                shouldRebuild != null ? (_) => shouldRebuild() : null,
+          );
 
   /// {@template injected.whenRebuilderOr}
+  /// ### This method is deprecated.
+  /// ### Instead of `injectedFoo.whenRebuilderOr` use `injectedFoo.rebuild.onOr`
+  ///
   ///Listen to the injected Model and rebuild when it emits a notification.
   ///
   /// * Required parameters:
@@ -155,6 +172,7 @@ extension InjectedX<T> on InjectedBase<T> {
   ///
   ///Use [ReactiveModelBuilder.listen] if you want to have more options
   /// {@endtemplate}
+  @Deprecated('Use rebuild.onOr instead')
   Widget whenRebuilderOr({
     Widget Function()? onIdle,
     Widget Function()? onWaiting,
@@ -167,19 +185,18 @@ extension InjectedX<T> on InjectedBase<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      On.or(
-        onIdle: onIdle,
-        onWaiting: onWaiting,
-        onError: onError != null ? (err, _) => onError(err) : null,
-        onData: onData,
-        or: builder,
-      ).listenTo<T>(
-        this,
-        initState: initState != null ? () => initState() : null,
-        dispose: dispose != null ? () => dispose() : null,
-        shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
-        watch: watch,
-      );
+      this.rebuild.onOr(
+            onIdle: onIdle,
+            onWaiting: onWaiting,
+            onError: onError != null ? (err, _) => onError(err) : null,
+            onData: onData,
+            or: builder,
+            initState: initState != null ? () => initState() : null,
+            dispose: dispose != null ? () => dispose() : null,
+            shouldRebuild:
+                shouldRebuild != null ? (_) => shouldRebuild() : null,
+            watch: watch,
+          );
 
   ///Listen to a future from the injected model and rebuild this widget when it
   ///resolves.
