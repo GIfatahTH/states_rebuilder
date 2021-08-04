@@ -88,20 +88,20 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.tab(
+          body: injectedTab.rebuild.onTab(
             () {
               return TabBarView(
                 controller: injectedTab.controller,
                 children: screens,
               );
             },
-          ).listenTo(injectedTab),
-          bottomNavigationBar: On.tab(
+          ),
+          bottomNavigationBar: injectedTab.rebuild.onTab(
             () => TabBar(
               controller: injectedTab.controller,
               tabs: tabs,
             ),
-          ).listenTo(injectedTab),
+          ),
         ),
       );
 

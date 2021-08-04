@@ -4,7 +4,25 @@ import '../../rm.dart';
 
 part 'on_tab.dart';
 
+class _RebuildTab {
+  final InjectedTab _injected;
+  _RebuildTab(this._injected);
+
+  ///Listen to the [InjectedTab] and rebuild when tab index is changed.
+  Widget onTab(
+    Widget Function() builder, {
+    Key? key,
+  }) {
+    return On.tab(builder).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+}
+
 abstract class InjectedTab implements InjectedBaseState<int> {
+  ///Listen to the [InjectedTab] and rebuild when tab index is changed.
+  late final rebuild = _RebuildTab(this);
   TabController? _controller;
 
   TabController get controller {

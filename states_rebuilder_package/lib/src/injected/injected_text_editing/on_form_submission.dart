@@ -65,7 +65,7 @@ class OnFormSubmission {
             }
             if (inj.hasError && widget.on.onSubmissionError != null) {
               return widget.on.onSubmissionError!(
-                  inj.error, inj.onErrorRefresher);
+                  inj.error, inj.snapState.onErrorRefresher!);
             }
             return widget.on.child;
             // // return widget.on.builder();

@@ -37,27 +37,13 @@ class On<T> {
     required T Function(dynamic err, void Function() refresh)? onError,
     required T Function()? onData,
     // required _OnType onType,
-  })  : _onIdle = onIdle,
+  })   : _onIdle = onIdle,
         _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;
 
   ///The callback is always invoked when the [Injected] model emits a
-  // ///notification.
-  // factory On.any(
-  //   T Function() builder,
-  // ) {
-  //   return On._(
-  //     onIdle: builder,
-  //     onWaiting: builder,
-  //     onError: (dynamic _) => builder(),
-  //     onData: builder,
-  //     // onType: _OnType.when,
-  //   );
-  // }
-
-  ///The callback is always invoked when the [Injected] model emits a
-  // notification.
+  /// notification.
   factory On(
     T Function() builder,
   ) {

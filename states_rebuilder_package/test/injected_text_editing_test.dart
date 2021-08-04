@@ -612,7 +612,7 @@ void main() {
         home: Scaffold(
           body: Column(
             children: [
-              On.form(
+              form.rebuild.onForm(
                 () {
                   return Column(
                     children: [
@@ -628,7 +628,7 @@ void main() {
                         focusNode: email.focusNode,
                         decoration: InputDecoration(errorText: email.error),
                       ),
-                      On.formSubmission(
+                      form.rebuild.onFormSubmission(
                         onSubmitting: () => Text('Submitting...'),
                         onSubmissionError: (error, ref) {
                           refresher = ref;
@@ -640,11 +640,11 @@ void main() {
                           },
                           child: Text('Submit1'),
                         ),
-                      ).listenTo(form),
+                      ),
                     ],
                   );
                 },
-              ).listenTo(form),
+              ),
               On.formSubmission(
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(

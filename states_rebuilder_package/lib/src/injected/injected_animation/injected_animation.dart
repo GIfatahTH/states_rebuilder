@@ -10,10 +10,16 @@ class _RebuildAnimation {
   final InjectedAnimation _injected;
   _RebuildAnimation(this._injected);
 
+  ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   Widget call(Widget Function() builder) {
     return On(builder).listenTo(_injected);
   }
 
+  ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
+  ///
+  ///The first positional argument is a callback that exposes and [Animate] object.
+  ///
+  ///The [Animate] object is used to set explicit or implicit animation tweens.
   Widget onAnimation(
     Widget Function(Animate) anim, {
     void Function()? onInitialized,
@@ -29,6 +35,9 @@ class _RebuildAnimation {
 
 ///Inject an animation
 abstract class InjectedAnimation implements InjectedBaseState<double> {
+  ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
+  ///
+  ///See [_RebuildAnimation.onAnimation]
   late final rebuild = _RebuildAnimation(this);
   AnimationController? _controller;
 

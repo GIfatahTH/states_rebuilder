@@ -11,10 +11,7 @@ class _RebuildScrolling {
   final InjectedScrolling _injected;
   _RebuildScrolling(this._injected);
 
-  Widget call(Widget Function() builder) {
-    return On(builder).listenTo(_injected);
-  }
-
+  ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
   Widget onScroll(
     Widget Function(InjectedScrolling) builder, {
     Key? key,
@@ -28,6 +25,7 @@ class _RebuildScrolling {
 
 ///Injected a ScrollController
 abstract class InjectedScrolling implements InjectedBaseState<double> {
+  ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
   late final rebuild = _RebuildScrolling(this);
 
   ScrollController? _controller;
