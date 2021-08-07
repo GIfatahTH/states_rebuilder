@@ -184,6 +184,76 @@ void main() {
       expect(find.text('error message'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'WhenRebuilder get the notified model',
+    (tester) async {
+      final reactiveModel1 =
+          ReactiveModelImp(creator: () => Model1(), initialState: Model1());
+      final reactiveModel2 =
+          ReactiveModelImp(creator: () => Model2(), initialState: Model2());
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: WhenRebuilder(
+          observeMany: [() => reactiveModel1, () => reactiveModel2],
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('waiting'),
+          onError: (error) => Text(error.message),
+          onData: (data) => Text('data'),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+
+      //final status is onError because reactiveModel1 is on error state
+      reactiveModel1.setState((s) => s.incrementAsyncWithError());
+      await tester.pump();
+      expect(find.text('waiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('error message'), findsOneWidget);
+
+      //final status is onError because reactiveModel1 is still on error state
+      reactiveModel2.setState((s) => s.incrementAsync());
+      await tester.pump();
+      expect(find.text('waiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('error message'), findsOneWidget);
+
+      //final status is data
+      reactiveModel1.setState((s) => s.incrementAsync());
+      await tester.pump();
+      expect(find.text('waiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('data'), findsOneWidget);
+
+      //final status is onError because reactiveModel2 is  on error state
+      reactiveModel2.setState((s) => s.incrementAsyncWithError());
+      await tester.pump();
+      expect(find.text('waiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('error message'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'throw when observer and observeMany are not defined',
+    (tester) async {
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: WhenRebuilder<Model1>(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('waiting'),
+          onError: (error) => Text(error.message),
+          onData: (data) => Text('data'),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isArgumentError);
+    },
+  );
 }
 
 class Model1 {

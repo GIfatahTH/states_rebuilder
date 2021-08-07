@@ -780,7 +780,7 @@ void main() {
       final model = RM.inject(() => 0);
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: model.whenRebuilderOr(
+        child: [model].whenRebuilderOr(
           onIdle: () => Text('onIdle'),
           onWaiting: () => Text('onWaiting'),
           onError: (err) => Text('onError'),

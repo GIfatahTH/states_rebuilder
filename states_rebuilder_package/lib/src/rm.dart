@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'common/consts.dart';
-import 'common/deep_equality.dart';
+import 'common/helper_method.dart';
 import 'common/logger.dart';
 import 'injected/injected_animation/injected_animation.dart';
 import 'injected/injected_auth/injected_auth.dart';
