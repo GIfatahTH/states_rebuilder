@@ -74,7 +74,8 @@ extension OnFutureX<F> on OnFuture<F> {
       (widget, setState) {
         assert(injected != null || future != null);
         late InjectedBase<F> inj;
-        VoidCallback? disposer;
+        VoidCallback? disposer1;
+        VoidCallback? disposer2;
         if (future != null) {
           inj = ReactiveModelImp(creator: () => future());
         } else {
@@ -98,7 +99,7 @@ extension OnFutureX<F> on OnFuture<F> {
             debugPrintWhenNotifiedPreMessage: '',
           ) as Injected<F>;
 
-          disposer =
+          disposer1 =
               injected._reactiveModelState.listeners.addListenerForRebuild(
             (_) {},
             clean: injected is InjectedImp &&
@@ -121,7 +122,7 @@ extension OnFutureX<F> on OnFuture<F> {
             }());
 
             initState?.call();
-            inj.subscribeToRM(
+            disposer2 = inj.subscribeToRM(
               (snap) {
                 setState();
                 onSetState?.call(snap!);
@@ -141,7 +142,8 @@ extension OnFutureX<F> on OnFuture<F> {
           dispose: (_) {
             dispose?.call();
             inj.dispose();
-            disposer?.call();
+            disposer1?.call();
+            disposer2?.call();
           },
           builder: (ctx, widget) {
             final _refresher = () {

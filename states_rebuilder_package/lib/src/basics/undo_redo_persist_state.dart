@@ -13,9 +13,7 @@ class UndoRedoPersistState<T> {
     if (persistanceProvider == null) {
       return;
     }
-    persistanceProvider!._persistStateSingleton ??= _persistStateGlobalTest;
-    persistanceProvider!._persistStateSingleton ??=
-        (persistanceProvider!.persistStateProvider ?? _persistStateGlobal);
+    persistanceProvider!.setPersistStateSingleton();
 
     assert(persistanceProvider!._persistStateSingleton != null, '''
 No implementation of `IPersistStore` is provided.

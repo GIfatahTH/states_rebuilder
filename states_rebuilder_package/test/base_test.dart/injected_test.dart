@@ -604,4 +604,24 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'ReactiveModel : inject futures throw argument error if getting a non initialized state while waiting',
+    (tester) async {
+      final model = RM.injectFuture(
+          () => Future.delayed(Duration(seconds: 1), () => 0),
+          debugPrintWhenNotifiedPreMessage: 'model');
+      expect(model.stateAsync, isA<Future<int>>());
+
+      expect(() => model.state, throwsArgumentError);
+      expect(model.isWaiting, isTrue);
+      await tester.pump(Duration(seconds: 1));
+      expect(model.state, 0);
+      expect(model.hasData, isTrue);
+      expect((await model.stateAsync), 0);
+      //
+      expect(model.isActive, true);
+      expect(model.isDone, true);
+    },
+  );
 }

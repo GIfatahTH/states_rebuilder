@@ -143,6 +143,8 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
   late ReactiveModel<T> rm;
 
   late Widget _widget;
+  final _disposers = <VoidCallback>[];
+
   @override
   void initState() {
     super.initState();
@@ -171,10 +173,11 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
         //3- take the first model of observeMany
         rm = _models.first as ReactiveModel<T>;
         _models.forEach((m) {
-          m.subscribeToRM((r) {
+          final disposer = m.subscribeToRM((r) {
             //4- the model is that is emitting a notification
             rm = r as ReactiveModel<T>;
           });
+          _disposers.add(disposer);
         });
       }
     }
@@ -191,6 +194,12 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
     );
+  }
+
+  @override
+  void dispose() {
+    _disposers.forEach((disposer) => disposer());
+    super.dispose();
   }
 
   @override

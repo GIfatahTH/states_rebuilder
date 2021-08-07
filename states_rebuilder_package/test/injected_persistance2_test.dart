@@ -204,9 +204,10 @@ void main() async {
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
         persistStateProvider: PersistStoreMockImp(),
+        debugPrintOperations: true,
       ),
     );
-    store.store.addAll({'Future_counter': '10'});
+
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -242,6 +243,30 @@ void main() async {
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
     expect(StatesRebuilerLogger.message.contains('Delete Error'), isTrue);
+    //
+  });
+
+  testWidgets('Test try catch of PersistState (debugPrintOperations)',
+      (tester) async {
+    counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        debugPrintOperations: true,
+      ),
+    );
+
+    store.exception = Exception('Read Error');
+    await tester.pumpWidget(App());
+    expect(StatesRebuilerLogger.message.contains('Read Error'), isTrue);
+
+    // store.exception = Exception('Write Error');
+    // await tester.pump();
+    // await tester.pump(Duration(seconds: 1));
+    // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+
     //
   });
 
@@ -573,7 +598,7 @@ class PersistStoreMockImp extends IPersistStore {
   late Map<dynamic, dynamic> store;
   @override
   Future<void> init() {
-    store = {};
+    store = {'Future_counter': '10'};
     return Future.value();
   }
 
@@ -583,13 +608,11 @@ class PersistStoreMockImp extends IPersistStore {
   }
 
   @override
-  Future<void> deleteAll() {
-    throw Exception('Delete All Error');
-  }
+  Future<void> deleteAll() async {}
 
   @override
   Object read(String key) {
-    throw Exception('Read Error');
+    return store[key];
   }
 
   @override

@@ -16,22 +16,21 @@ abstract class InjectedBaseState<T> {
   T get state {
     final s = _reactiveModelState.snapState.data;
     if (!snapState._isNullable && s == null) {
+      var m = '$T';
       if (this is InjectedImp) {
         final inj = this as InjectedImp;
-        final m = inj.debugPrintWhenNotifiedPreMessage?.isNotEmpty == true
-            ? inj.debugPrintWhenNotifiedPreMessage
-            : '$T';
-
-        throw ArgumentError.notNull(
-          '\n[$m] is NON-NULLABLE STATE!\n'
-          'The non-nullable state [$m] has null value which is not accepted\n'
-          'To fix:\n'
-          '1- Define an initial value to injected state.\n'
-          '2- Handle onWaiting or onError state.\n'
-          '3- Make the state nullable. ($T?).\n',
-        );
+        if (inj.debugPrintWhenNotifiedPreMessage?.isNotEmpty == true) {
+          m = inj.debugPrintWhenNotifiedPreMessage!;
+        }
       }
-      throw ArgumentError();
+      throw ArgumentError.notNull(
+        '\n[$m] is NON-NULLABLE STATE!\n'
+        'The non-nullable state [$m] has null value which is not accepted\n'
+        'To fix:\n'
+        '1- Define an initial value to injected state.\n'
+        '2- Handle onWaiting or onError state.\n'
+        '3- Make the state nullable. ($T?).\n',
+      );
     }
     return s as T;
   }
@@ -86,9 +85,9 @@ abstract class InjectedBaseState<T> {
 }
 
 extension InjectedBaseX<T> on InjectedBaseState<T> {
-  void setReactiveModelState(ReactiveModelBase<T> rm) {
-    _reactiveModelState = rm;
-  }
+  // void setReactiveModelState(ReactiveModelBase<T> rm) {
+  //   _reactiveModelState = rm;
+  // }
 
   ///Subscribe to the state
   VoidCallback subscribeToRM(void Function(SnapState<T>? snap) fn) {
@@ -138,7 +137,7 @@ class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
     _reactiveModelState.initializer();
   }
 
-  int get observerLength => _reactiveModelState.listeners.observerLength;
+  // int get observerLength => _reactiveModelState.listeners.observerLength;
 
   ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
 }

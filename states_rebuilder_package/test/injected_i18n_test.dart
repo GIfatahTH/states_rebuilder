@@ -418,6 +418,7 @@ void main() async {
         () async {
           store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': '#|#'});
+          print(store);
         }()
       ],
       onWaiting: () => CircularProgressIndicator(),

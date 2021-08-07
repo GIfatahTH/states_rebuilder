@@ -189,7 +189,7 @@ void main() {
       expect(find.text('hasStartedDown'), findsNothing);
       expect(find.text('hasEnded'), findsNothing);
       //
-      animation.subscribeToRM((snap) async {
+      final disposer = animation.subscribeToRM((snap) async {
         await tester.drag(find.byType(ListView), Offset(0, -1));
       });
       animation.controller!.forward();
@@ -294,6 +294,7 @@ void main() {
       expect(find.text('isScrollingDown'), findsNothing);
       expect(find.text('isScrolling'), findsNothing);
       expect(find.text('hasEnded'), findsOneWidget);
+      disposer();
     },
   );
 

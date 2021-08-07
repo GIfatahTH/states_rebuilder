@@ -1,9 +1,6 @@
 part of '../rm.dart';
 
 class InjectedImp<T> extends Injected<T> {
-  factory InjectedImp.inst() {
-    return InjectedImp(creator: null);
-  }
   InjectedImp({
     required dynamic Function()? creator,
     T? initialState,
@@ -356,33 +353,31 @@ class InjectedImp<T> extends Injected<T> {
         _dependentDisposers.add(disposer);
       }
 
-      if (!hasObservers) {
-        // var disposer;
-        // bool _isDisposed = false;
+      // if (!hasObservers) {
 
-        final disposer =
-            depend._reactiveModelState.listeners.addListenerForSideEffect(
-          fn,
-          clean: () {
-            if (depend._imp.autoDisposeWhenNotUsed) {
-              depend.dispose();
-            }
-          },
-        );
-        _reactiveModelState.listeners.onFirstListerAdded = () {
-          _reactiveModelState.listeners._sideEffectListeners.remove(fn);
-          _dependentDisposers.remove(disposer);
-          addListenerForRebuild();
-        };
-        depend._reactiveModelState.listeners.addCleaner(() {
-          if (!hasObservers && _imp.autoDisposeWhenNotUsed) {
-            dispose();
+      final disposer =
+          depend._reactiveModelState.listeners.addListenerForSideEffect(
+        fn,
+        clean: () {
+          if (depend._imp.autoDisposeWhenNotUsed) {
+            depend.dispose();
           }
-        });
-        _dependentDisposers.add(disposer);
-      } else {
+        },
+      );
+      _reactiveModelState.listeners.onFirstListerAdded = () {
+        _reactiveModelState.listeners._sideEffectListeners.remove(fn);
+        _dependentDisposers.remove(disposer);
         addListenerForRebuild();
-      }
+      };
+      depend._reactiveModelState.listeners.addCleaner(() {
+        if (!hasObservers && _imp.autoDisposeWhenNotUsed) {
+          dispose();
+        }
+      });
+      _dependentDisposers.add(disposer);
+      // } else {
+      //   addListenerForRebuild();
+      // }
     }
   }
 
@@ -422,10 +417,10 @@ class InjectedImp<T> extends Injected<T> {
     }
 
     if (error != null) {
-      final snap = _reactiveModelState._snapState.copyToHasError(
+      final snap = _reactiveModelState._snapState._copyToHasError(
         error,
+        refresher,
         stackTrace: stackTrace,
-        onErrorRefresher: refresher,
       );
       if (shouldRebuild) {
         _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);

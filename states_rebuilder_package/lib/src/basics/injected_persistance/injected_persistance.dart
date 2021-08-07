@@ -76,13 +76,12 @@ class PersistState<T> {
   ///Persistance provider that will be used to persist this state instead of
   ///the default persistance provider defined with [RM.storageInitializer].
   final IPersistStore? persistStateProvider;
+  IPersistStore? _persistStateSingleton;
+  bool _isInitialized = false;
 
   Timer? _throttleTimer;
   T? _valueForThrottle;
   String? cachedJson;
-
-  IPersistStore? _persistStateSingleton;
-  bool _isInitialized = false;
 
   ///State persistence setting.
   PersistState({
@@ -99,25 +98,25 @@ class PersistState<T> {
     fromJson ??= _getFromJsonOfPrimitive<T>();
     toJson ??= _getToJsonOfPrimitive<T>();
   }
-  IPersistStore get _persistState {
-    _persistStateSingleton = null;
-    _persistStateSingleton ??= _persistStateGlobalTest;
-    _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
-    return _persistStateSingleton!;
+
+  void setPersistStateSingleton() {
+    _persistStateSingleton = (persistStateProvider ?? _persistStateGlobalTest);
+    _persistStateSingleton ??= _persistStateGlobal;
   }
 
   ///Get the persisted state
   Object? read() {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     if (persistStateProvider != null && !_isInitialized) {
       _isInitialized = true;
-      return persistState.init().then(
+      return _persistStateSingleton!.init().then(
             (_) => () => read(),
           );
     }
 
     try {
-      final dynamic r = cachedJson ?? persistState.read(key) as dynamic;
+      final dynamic r =
+          cachedJson ?? _persistStateSingleton!.read(key) as dynamic;
       if (r == null) {
         return null;
       }
@@ -138,6 +137,10 @@ class PersistState<T> {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Read form localStorage error', e, s);
         return null;
+      } else if (debugPrintOperations) {
+        StatesRebuilerLogger.log(
+          'PersistState: Read Error ($key) :$e',
+        );
       }
       rethrow;
     }
@@ -157,7 +160,7 @@ class PersistState<T> {
 
   ///persist the state
   Future<void> write(T value) async {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     // try {
     if (throttleDelay != null) {
       _valueForThrottle = value;
@@ -166,8 +169,8 @@ class PersistState<T> {
       }
       _throttleTimer = Timer(Duration(milliseconds: throttleDelay!), () async {
         _throttleTimer = null;
-        final r =
-            await persistState.write<String>(key, toJson!(_valueForThrottle!));
+        final r = await _persistStateSingleton!
+            .write<String>(key, toJson!(_valueForThrottle!));
         if (debugPrintOperations) {
           StatesRebuilerLogger.log(
             'PersistState: write($key, $_valueForThrottle)',
@@ -183,7 +186,7 @@ class PersistState<T> {
       return;
     }
     cachedJson = json;
-    await persistState.write<String>(key, json);
+    await _persistStateSingleton!.write<String>(key, json);
     if (debugPrintOperations) {
       StatesRebuilerLogger.log(
         'PersistState: write($key, $json)',
@@ -193,16 +196,23 @@ class PersistState<T> {
 
   ///Delete the persisted state
   Future<void> delete() async {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     try {
-      final r = await persistState.delete(key);
+      final r = await _persistStateSingleton!.delete(key);
       cachedJson = null;
-      StatesRebuilerLogger.log('PersistState: delete($key)');
+      if (debugPrintOperations) {
+        StatesRebuilerLogger.log('PersistState: delete($key)');
+      }
       return r;
     } catch (e, s) {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Delete from localStorage error', e, s);
         return null;
+      }
+      if (debugPrintOperations) {
+        StatesRebuilerLogger.log(
+          'PersistState: Delete Error ($key) :$e',
+        );
       }
       rethrow;
     }

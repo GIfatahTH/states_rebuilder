@@ -1215,19 +1215,31 @@ void main() {
         shouldReverseRepeats: true,
       );
       late double value;
+      late double valueOfController;
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
-              value = animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
-              return Container();
-            },
-          ).listenTo(animation),
+          home: Column(
+            children: [
+              animation.rebuild.onAnimation(
+                (animate) {
+                  value =
+                      animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
+                  return Container();
+                },
+              ),
+              animation.rebuild(() {
+                valueOfController = animation.controller!.value;
+                return Container();
+              })
+            ],
+          ),
         ),
       );
       expect(value, 0);
+      expect(valueOfController, 0);
       await tester.pumpAndSettle();
       expect(value, 100);
+      expect(valueOfController, 1);
       animation.triggerAnimation();
       await tester.pumpAndSettle();
       expect(value, 0);
@@ -1236,6 +1248,12 @@ void main() {
       animation.triggerAnimation();
       await tester.pumpAndSettle();
       expect(value, 0);
+
+      final myService = RM.inject(
+        () => MyService(),
+        autoDisposeWhenNotUsed: true, //Default to true,
+        isLazy: true, // Default to true
+      );
     },
   );
 
