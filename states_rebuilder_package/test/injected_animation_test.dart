@@ -1248,12 +1248,6 @@ void main() {
       animation.triggerAnimation();
       await tester.pumpAndSettle();
       expect(value, 0);
-
-      final myService = RM.inject(
-        () => MyService(),
-        autoDisposeWhenNotUsed: true, //Default to true,
-        isLazy: true, // Default to true
-      );
     },
   );
 
