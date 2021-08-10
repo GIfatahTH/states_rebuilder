@@ -122,7 +122,7 @@ void main() {
   );
 
   testWidgets(
-    'InjectedTab works when swiping tab view',
+    'OnTabBuilder',
     (tester) async {
       final injectedTab = RM.injectTab(
         length: 5,
@@ -136,23 +136,25 @@ void main() {
               () => Text('Tab ${injectedTab.index} is displayed'),
             ).listenTo(injectedTab),
           ),
-          body: On.tab(
-            () {
+          body: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: () {
               return TabBarView(
                 controller: injectedTab.controller,
                 children: screens,
               );
             },
-          ).listenTo(injectedTab),
-          bottomNavigationBar: On.tab(
-            () {
+          ),
+          bottomNavigationBar: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: () {
               currentIndex = injectedTab.index;
               return TabBar(
                 controller: injectedTab.controller,
                 tabs: tabs,
               );
             },
-          ).listenTo(injectedTab),
+          ),
         ),
       );
 

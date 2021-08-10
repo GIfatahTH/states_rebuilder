@@ -11,19 +11,19 @@ extension IntX on int {
     return IntTween(begin: this, end: end);
   }
 
-  Duration milliseconds() {
+  Duration get milliseconds {
     return Duration(milliseconds: this);
   }
 
-  Duration seconds() {
+  Duration get seconds {
     return Duration(seconds: this);
   }
 
-  Duration minutes() {
+  Duration get minutes {
     return Duration(minutes: this);
   }
 
-  Duration hours() {
+  Duration get hours {
     return Duration(hours: this);
   }
 }

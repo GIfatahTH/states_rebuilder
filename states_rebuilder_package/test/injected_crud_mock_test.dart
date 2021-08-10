@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
+import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -739,6 +740,61 @@ void main() {
               readOnInitialization: true,
             );
             return products.rebuild.onCRUD(
+              onWaiting: () => Text('Waiting...'),
+              onError: (_, refresh) {
+                return Text(_.message);
+              },
+              onResult: (r) => Text('Result: $r'),
+              onSetState: On(() {}),
+              dispose: () {},
+              debugPrintWhenRebuild: 'products',
+            );
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      await tester.pump(Duration(seconds: 1));
+
+      products.crud.update(
+        where: (p) => p.id == 1,
+        set: (p) => p.copyWith(name: 'prod2'),
+      );
+      await tester.pump();
+      expect(
+          StatesRebuilerLogger.message,
+          endsWith(
+              'REBUILD <products>: SnapState<dynamic>(isWaiting (): null)'));
+      await tester.pump(Duration(seconds: 1));
+      expect(products.state.first.name, 'prod2');
+
+      model.notify();
+      await tester.pump();
+      expect(products.state.first.name, 'prod2');
+      expect(
+          StatesRebuilerLogger.message,
+          endsWith(
+              'REBUILD <products>: SnapState<dynamic>(hasData: 1 items updated)'));
+    },
+  );
+
+  testWidgets(
+    'OnBuilder.crud',
+    (tester) async {
+      StatesRebuilerLogger.isTestMode = true;
+      late InjectedCRUD<Product, Object> products;
+
+      final model = true.inj();
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: model.rebuild(
+          () {
+            products = RM.injectCRUD<Product, Object>(
+              () => _repo,
+              readOnInitialization: true,
+            );
+            return OnCRUDBuilder(
+              listenTo: products,
               onWaiting: () => Text('Waiting...'),
               onError: (_, refresh) {
                 return Text(_.message);

@@ -53,6 +53,7 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
+part 'builders/on_builder.dart';
 
 abstract class RM {
   RM._();

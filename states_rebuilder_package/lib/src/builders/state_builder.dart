@@ -165,8 +165,7 @@ class StateBuilder<T> extends StatefulWidget {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.afterInitialBuild,
-  })  : assert(builder != null || builderWithChild != null,
-            '''
+  })  : assert(builder != null || builderWithChild != null, '''
   
   | ***Builder not defined*** 
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -174,8 +173,7 @@ class StateBuilder<T> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
-        assert(builderWithChild == null || child != null,
-            '''
+        assert(builderWithChild == null || child != null, '''
   | ***child is null***
   | You have defined the 'builderWithChild' parameter without defining the child parameter.
   | Use 'builderWithChild' with 'child' parameter. 
@@ -183,6 +181,46 @@ class StateBuilder<T> extends StatefulWidget {
   
         '''),
         super(key: key);
+
+  factory StateBuilder.onData(
+    ReactiveModel<T> Function() observe,
+    Widget Function(BuildContext context, T data) builder,
+  ) {
+    return StateBuilder(
+      observe: observe,
+      builder: (context, reactiveModel) => On.data(
+        () => builder(context, reactiveModel!.state),
+      ).listenTo(reactiveModel!),
+    );
+  }
+
+  factory StateBuilder.all(
+    ReactiveModel<T> Function() observe,
+    Widget Function() onIdle,
+    Widget Function() onWaiting,
+    Widget Function(dynamic err, VoidCallback refreshError) onError,
+    Widget Function(T data) onData,
+  ) {
+    return StateBuilder(
+      observe: observe,
+      builder: (context, reactiveModel) => On.all(
+        onIdle: onIdle,
+        onWaiting: onWaiting,
+        onError: onError,
+        onData: () => onData(reactiveModel!.state),
+      ).listenTo(reactiveModel!),
+    );
+  }
+
+  factory StateBuilder.on(
+    InjectedBase<T> Function() observe,
+    On<Widget> child,
+  ) {
+    return StateBuilder(
+      observe: observe,
+      builder: (context, reactiveModel) => child.listenTo(reactiveModel!),
+    );
+  }
 
   @override
   State<StateBuilder<T>> createState() {

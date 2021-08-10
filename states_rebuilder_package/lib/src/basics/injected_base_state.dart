@@ -39,6 +39,7 @@ abstract class InjectedBaseState<T> {
 
   ///A snap representation of the state
   SnapState<T> get snapState => _reactiveModelState._snapState;
+  SnapState<T> get oldSnapState => _reactiveModelState._oldSnapState;
   set snapState(SnapState<T> snap) => _reactiveModelState._snapState = snap;
 
   ///It is a future of the state. The future is active if the state is on the

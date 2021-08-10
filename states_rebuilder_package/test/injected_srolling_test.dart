@@ -119,8 +119,9 @@ void main() {
         home: Scaffold(
           appBar: AppBar(
             leading: On.animation((animate) => Container()).listenTo(animation),
-            title: On.scroll(
-              (scroll) {
+            title: OnScrollBuilder(
+              listenTo: scroll,
+              builder: (scroll) {
                 if (scroll.hasReachedMinExtent) {
                   return Text('isTop');
                 }
@@ -156,7 +157,7 @@ void main() {
                 }
                 return Text('NAN');
               },
-            ).listenTo(scroll),
+            ),
           ),
           body: ListView.builder(
             controller: scroll.controller,

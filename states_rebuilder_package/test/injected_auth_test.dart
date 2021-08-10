@@ -818,4 +818,46 @@ void main() async {
       await tester.pump(Duration(seconds: 1));
     },
   );
+
+  testWidgets(
+    'test OnAuthBuilder',
+    (tester) async {
+      store.store.addAll({'__user__': 'user1'});
+      final InjectedAuth<String, String> user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        persist: () => PersistState(
+          key: '__user__',
+        ),
+      );
+
+      final widget = MaterialApp(
+        home: OnAuthBuilder(
+          listenTo: user,
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onWaiting: () => Text('Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+          useRouteNavigation: true,
+          dispose: () {},
+          onSetState: On(() {}),
+          debugPrintWhenRebuild: '',
+        ),
+        navigatorKey: RM.navigate.navigatorKey,
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+      expect(find.text('Signed'), findsOneWidget);
+
+      //
+      user.auth.signOut();
+
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsNothing);
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
 }

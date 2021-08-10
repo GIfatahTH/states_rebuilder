@@ -23,7 +23,7 @@ class ReactiveModelBase<T> {
     //If the initial state is not be defined in the here,
     //it will be defined in the creator method.(The first valid value (onData))
 
-    _snapState = SnapState._nothing(
+    __snapState = _oldSnapState = SnapState._nothing(
       _initialState,
       kInitMessage,
       debugPrintWhenNotifiedPreMessage,
@@ -38,7 +38,19 @@ class ReactiveModelBase<T> {
   final VoidCallback initializer;
   final bool autoDisposeWhenNotUsed;
 
-  late SnapState<T> _snapState;
+  late SnapState<T> __snapState;
+  SnapState<T> get _snapState {
+    return __snapState;
+  }
+
+  set _snapState(SnapState<T> snap) {
+    if (snap != __snapState) {
+      _oldSnapState = __snapState;
+    }
+    __snapState = snap;
+  }
+
+  late SnapState<T> _oldSnapState;
 
   VoidCallback? _removeFromInjectedList;
 

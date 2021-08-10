@@ -1,6 +1,6 @@
 part of 'injected_animation.dart';
 
-class OnAnimation {
+class OnAnimation implements OnWidget {
   final Widget Function(Animate animate) _anim;
   OnAnimation(this._anim);
   late InjectedAnimationImp _injected;
@@ -237,7 +237,7 @@ class Animate {
       String name,
     ])
         fromTween,
-  })  : _value = value,
+  })   : _value = value,
         _fromTween = fromTween;
 
   ///Implicitly animate to the given value

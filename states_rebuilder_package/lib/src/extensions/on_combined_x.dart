@@ -45,6 +45,21 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
               }
               final disposer = rm.listeners.addListenerForRebuild(
                 (s) {
+                  var snapFormType = injects.firstWhereOrNull(
+                    (e) {
+                      if (e.snapState.type() == T) {
+                        _notifiedInject = e;
+                        return true;
+                      }
+                      return false;
+                    },
+                  )?.snapState;
+                  if (snapFormType == null) {
+                    snapFormType = s;
+                    _notifiedInject = injects.firstWhereOrNull(
+                      (e) => e.snapState == s,
+                    );
+                  }
                   if (shouldRebuild != null && !shouldRebuild()) {
                     return;
                   }
@@ -56,14 +71,6 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                     previousWatch = currentWatch;
                   }
 
-                  var snapFormType = injects.firstWhereOrNull(
-                    (e) {
-                      return e.snapState.type() == T;
-                    },
-                  )?.snapState;
-                  if (snapFormType == null) {
-                    snapFormType = s;
-                  }
                   snap = _getCombinedSnap(widget.injects, snapFormType!);
 
                   if (!_canRebuild(snap!)) {
@@ -94,10 +101,15 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
             }
 
             var snapFormType = injects.firstWhereOrNull((e) {
-              return e.snapState.type() == T;
+              if (e.snapState.type() == T) {
+                _notifiedInject = e;
+                return true;
+              }
+              return false;
             })?.snapState;
             if (snapFormType == null) {
               snapFormType = injects.first.snapState;
+              _notifiedInject = injects.first;
             }
             snap = _getCombinedSnap(widget.injects, snapFormType);
 

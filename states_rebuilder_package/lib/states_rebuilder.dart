@@ -47,4 +47,12 @@ export 'src/rm.dart'
         BuildContextX,
         RouteData,
         OnFuture,
-        OnFutureX;
+        OnFutureX,
+        OnBuilder,
+        OnAnimationBuilder,
+        OnAuthBuilder,
+        OnScrollBuilder,
+        OnFormBuilder,
+        OnFormSubmissionBuilder,
+        OnTabBuilder,
+        SideEffect;

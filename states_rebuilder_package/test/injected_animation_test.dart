@@ -1324,10 +1324,10 @@ void main() {
   testWidgets(
     'Test duration extensions',
     (tester) async {
-      expect(10.milliseconds(), Duration(milliseconds: 10));
-      expect(10.seconds(), Duration(seconds: 10));
-      expect(10.minutes(), Duration(minutes: 10));
-      expect(10.hours(), Duration(hours: 10));
+      expect(10.milliseconds, Duration(milliseconds: 10));
+      expect(10.seconds, Duration(seconds: 10));
+      expect(10.minutes, Duration(minutes: 10));
+      expect(10.hours, Duration(hours: 10));
     },
   );
 }

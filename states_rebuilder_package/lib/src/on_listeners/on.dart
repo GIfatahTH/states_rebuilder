@@ -1,5 +1,7 @@
 part of '../rm.dart';
 
+abstract class OnWidget {}
+
 ///{@template on}
 ///Callbacks to be invoked depending on the state status of an [Injected] model
 ///
@@ -13,7 +15,7 @@ part of '../rm.dart';
 ///
 ///See also:  **[On.all]**, **[On.or]**.
 ///{@endtemplate}
-class On<T> {
+class On<T> implements OnWidget {
   ///Callback to be called when first the model is initialized.
   final T Function()? _onIdle;
 
