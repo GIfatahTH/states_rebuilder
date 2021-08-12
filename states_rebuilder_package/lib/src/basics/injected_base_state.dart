@@ -32,8 +32,14 @@ abstract class InjectedBaseState<T> {
         '3- Make the state nullable. ($T?).\n',
       );
     }
+    OnObsState.addToObs?.call(this);
     return s as T;
   }
+
+  // T get stateObs {
+  //  OnObsState.addToObs?.call(this);
+  //   return state;
+  // }
 
   T? get _nullableState => _reactiveModelState._snapState.data;
 
@@ -51,25 +57,82 @@ abstract class InjectedBaseState<T> {
   }
 
   ///The state is initialized and never mutated.
-  bool get isIdle => _reactiveModelState._snapState.isIdle;
+  bool get isIdle {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.isIdle;
+  }
 
   ///The state is waiting for and asynchronous task to end.
-  bool get isWaiting => _reactiveModelState._snapState.isWaiting;
+  bool get isWaiting {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.isWaiting;
+  }
 
   ///The state is mutated successfully.
-  bool get hasData => _reactiveModelState._snapState.hasData;
+  bool get hasData {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.hasData;
+  }
 
   ///The state is mutated using a stream and the stream is done.
-  bool get isDone => _reactiveModelState._snapState.isDone;
+  bool get isDone {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.isDone;
+  }
 
   ///The stats has error
-  bool get hasError => _reactiveModelState._snapState.hasError;
+  bool get hasError {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.hasError;
+  }
 
   ///The state is Active
-  bool get isActive => _reactiveModelState._snapState.isActive;
+  bool get isActive {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.isActive;
+  }
 
   ///The error
-  dynamic get error => _reactiveModelState._snapState.error;
+  dynamic get error {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState._snapState.error;
+  }
+
+  Widget onOr({
+    Widget Function()? onIdle,
+    Widget Function()? onWaiting,
+    Widget Function(dynamic error, VoidCallback refreshError)? onError,
+    Widget Function(T data)? onData,
+    required Widget Function(T data) or,
+  }) {
+    if (isIdle) {
+      return onIdle?.call() ?? or(state);
+    }
+    if (isWaiting) {
+      return onWaiting?.call() ?? or(state);
+    }
+    if (hasError) {
+      return onError?.call(error, snapState.onErrorRefresher!) ?? or(state);
+    }
+    if (hasData) {
+      return onData?.call(state) ?? or(state);
+    }
+    return or(state);
+  }
+
+  Widget onAll({
+    Widget Function()? onIdle,
+    required Widget Function() onWaiting,
+    required Widget Function(dynamic error, VoidCallback refreshError) onError,
+    required Widget Function(T data) onData,
+  }) {
+    return onOr(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      or: onData,
+    );
+  }
 
   ///Whether the state has observers
   bool get hasObservers => _reactiveModelState.listeners._listeners.isNotEmpty;

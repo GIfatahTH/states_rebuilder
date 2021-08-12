@@ -58,17 +58,41 @@ class InjectedImp<T> extends Injected<T> {
   final void Function(dynamic e, StackTrace? s)? onError;
 
   @override
-  bool get isIdle => _reactiveModelState.snapState.isIdle;
+  bool get isIdle {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isIdle;
+  }
+
   @override
-  bool get isWaiting => _reactiveModelState.snapState.isWaiting;
+  bool get isWaiting {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isWaiting;
+  }
+
   @override
-  bool get hasData => _reactiveModelState.snapState.hasData;
+  bool get hasData {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.hasData;
+  }
+
   @override
-  bool get isDone => _reactiveModelState.snapState.isDone;
+  bool get isDone {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isDone;
+  }
+
   @override
-  bool get hasError => _reactiveModelState.snapState.hasError;
+  bool get hasError {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.hasError;
+  }
+
   @override
-  dynamic get error => _reactiveModelState.snapState.error;
+  dynamic get error {
+    OnObsState.addToObs?.call(this);
+    return _reactiveModelState.snapState.error;
+  }
+
   SnapState<T>? oldSnap;
 
   bool _isAsyncInjected;

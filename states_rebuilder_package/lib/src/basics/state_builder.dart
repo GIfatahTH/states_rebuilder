@@ -3,7 +3,7 @@ part of '../rm.dart';
 typedef SetState = bool Function();
 
 ///Custom StateFullWidget
-class StateBuilderBase<T> extends StatefulWidget {
+class StateBuilderBase<T> extends MyStatefulWidget {
   final LifeCycleHooks<T> Function(
     T widget,
     SetState setState,
@@ -22,7 +22,7 @@ class StateBuilderBase<T> extends StatefulWidget {
   }
 }
 
-class _StateBuilderBaseState<T> extends State<StateBuilderBase<T>> {
+class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
   late LifeCycleHooks<T> _builder;
   bool _isMounted = false;
   bool isDirty = false;
@@ -72,6 +72,7 @@ class _StateBuilderBaseState<T> extends State<StateBuilderBase<T>> {
 
 class LifeCycleHooks<T> {
   final void Function(BuildContext context)? mountedState;
+  final void Function(BuildContext context)? afterBuild;
   final void Function(BuildContext context)? dispose;
   final void Function(BuildContext context)? didChangeDependencies;
   final void Function(BuildContext context, T oldWidget, T newWidget)?
@@ -81,13 +82,14 @@ class LifeCycleHooks<T> {
   LifeCycleHooks({
     required this.builder,
     this.mountedState,
+    this.afterBuild,
     this.dispose,
     this.didUpdateWidget,
     this.didChangeDependencies,
   });
 }
 
-class StateBuilderBaseWithTicker<T> extends StatefulWidget {
+class StateBuilderBaseWithTicker<T> extends MyStatefulWidget {
   final LifeCycleHooks<T> Function(
     T widget,
     SetState setState,
@@ -183,4 +185,32 @@ class _StateBuilderBaseWithTickerState<T> extends _StateBuilderBase<T>
     _builder.dispose?.call(context);
     super.dispose();
   }
+}
+
+abstract class MyStatefulWidget extends StatefulWidget {
+  const MyStatefulWidget({Key? key}) : super(key: key);
+
+  @override
+  StatefulElement createElement() {
+    return MyElement(this);
+  }
+}
+
+class MyElement extends StatefulElement {
+  MyElement(StatefulWidget widget) : super(widget);
+
+  @override
+  void performRebuild() {
+    print('before');
+
+    super.performRebuild();
+    if (state is ExtendedState) {
+      (state as ExtendedState).afterBuild();
+    }
+    print('after');
+  }
+}
+
+abstract class ExtendedState<T extends StatefulWidget> extends State<T> {
+  void afterBuild() {}
 }
