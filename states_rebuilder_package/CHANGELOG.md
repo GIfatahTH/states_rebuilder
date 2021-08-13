@@ -1,3 +1,17 @@
+## 4.4.0.dev-1 (2021-08-13)
+* Add `OnReactive` widget for implicit subscription:
+```dart
+final counter = 0.inj();
+// inWidget tree
+OnReactive(
+  () => Text(counter.state.toString()); // will rebuild if the state of counter changes
+)
+```
+
+* Add `OnBuilder`, `OnAuthBuilder`, `OnCRUDBuilder`, `OnAnimationBuilder`,`OnScrollBuilder` ,`OnFormBuilder`, `OnFormSubscriptionBuilder`, `OnTabBuilder` widget and their method equivalent: `myState.rebuild`, `myState.rebuild.onAuth`, `myState.rebuild.onCRUD`, `myState.rebuild.onAnimation`, `myState.rebuild.onScroll`, `myState.rebuild.onForm`, `myState.rebuild.onFormSubscription`, `myState.rebuild.onTab`,
+
+* `myState.rebuilder`,`myState.whenRebuilder`, `myState.whenRebuilderOr` are deprecated in favor to `myState.rebuild`, `myState.rebuild.onAll`, `myState.rebuild.onOr`,  
+
 ## 4.4.0.dev (2021-07-03)
 * Add `InjectedTab`
 ## 4.3.0 (2021-06-07)
