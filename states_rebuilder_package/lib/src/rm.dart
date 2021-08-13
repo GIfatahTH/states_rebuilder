@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:states_rebuilder/src/builders/on_obs.dart';
+import 'builders/on_reactive.dart';
 
 import 'common/consts.dart';
 import 'common/helper_method.dart';
