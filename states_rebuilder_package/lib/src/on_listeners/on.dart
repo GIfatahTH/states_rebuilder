@@ -2,6 +2,18 @@ part of '../rm.dart';
 
 abstract class OnWidget {}
 
+// extension OnVoidX on On<void> {
+//   On<void> debounce(int debounceDelay) {
+//     _debounceDelay = debounceDelay;
+//     return this;
+//   }
+
+//   On<void> throttle(int throttleDelay) {
+//     _throttleDelay = throttleDelay;
+//     return this;
+//   }
+// }
+
 ///{@template on}
 ///Callbacks to be invoked depending on the state status of an [Injected] model
 ///
@@ -137,8 +149,37 @@ class On<T> implements OnWidget {
       // onType: _OnType.when,
     );
   }
+  // Timer? _debounceTimer;
+  // int _debounceDelay = 0;
+  // int _throttleDelay = 0;
 
   T? call(SnapState snapState, [bool isSideEffect = true]) {
+    // if (isSideEffect) {
+    //   if (_debounceDelay > 0) {
+    //     _debounceTimer?.cancel();
+    //     _debounceTimer = Timer(
+    //       Duration(milliseconds: _debounceDelay),
+    //       () {
+    //         _debounceTimer = null;
+    //         final cachedDelay = _debounceDelay;
+    //         _debounceDelay = 0;
+    //         call(snapState, true);
+    //         _debounceDelay = cachedDelay;
+    //       },
+    //     );
+    //     return null;
+    //   } else if (_throttleDelay > 0) {
+    //     if (_debounceTimer != null) {
+    //       return null;
+    //     }
+    //     _debounceTimer = Timer(
+    //       Duration(milliseconds: _throttleDelay),
+    //       () {
+    //         _debounceTimer = null;
+    //       },
+    //     );
+    //   }
+    // }
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return _onWaiting!.call();

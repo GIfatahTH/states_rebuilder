@@ -201,13 +201,10 @@ class MyElement extends StatefulElement {
 
   @override
   void performRebuild() {
-    print('before');
-
     super.performRebuild();
     if (state is ExtendedState) {
       (state as ExtendedState).afterBuild();
     }
-    print('after');
   }
 }
 
