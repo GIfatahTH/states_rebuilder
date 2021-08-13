@@ -59,37 +59,37 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   bool get isIdle {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.isIdle;
   }
 
   @override
   bool get isWaiting {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.isWaiting;
   }
 
   @override
   bool get hasData {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.hasData;
   }
 
   @override
   bool get isDone {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.isDone;
   }
 
   @override
   bool get hasError {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.hasError;
   }
 
   @override
   dynamic get error {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState.snapState.error;
   }
 

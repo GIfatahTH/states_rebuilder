@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -14,7 +16,7 @@ void main() {
       final counter5 = 0.inj();
       final counter6 =
           RM.inject(() => 0, debugPrintWhenNotifiedPreMessage: 'counter6');
-      final widget = OnObs(
+      final widget = OnReactive(
         () {
           return Column(
             children: [
@@ -42,7 +44,7 @@ void main() {
                   itemBuilder: (_, __) {
                     return Column(
                       children: [
-                        OnObs(() {
+                        OnReactive(() {
                           return Text(counter3.state.toString());
                         }),
                         Builder(
@@ -56,7 +58,7 @@ void main() {
                   },
                 ),
               ),
-              OnObs(() {
+              OnReactive(() {
                 return Text(counter4.state.toString());
               }),
               Builder(builder: (context) {
@@ -103,7 +105,7 @@ void main() {
       final counter = 0.inj();
       final counter2 = RM.inject(() => 0);
 
-      final widget = OnObs(
+      final widget = OnReactive(
         () {
           return Column(
             children: [
@@ -162,7 +164,7 @@ void main() {
       final counter = 0.inj();
       final counter2 = RM.inject(() => 0);
 
-      final widget = OnObs(
+      final widget = OnReactive(
         () {
           return Column(
             children: [
@@ -216,7 +218,7 @@ void main() {
       final counter = 0.inj();
       final counter2 = RM.inject(() => 0);
 
-      final widget = OnObs(
+      final widget = OnReactive(
         () {
           return Column(
             children: [
@@ -233,7 +235,6 @@ void main() {
               Builder(
                 builder: (_) {
                   return counter2.onOr(
-                    onIdle: () => Text('isIdle'),
                     onWaiting: () => Text('isWaiting'),
                     onError: (_, __) => Text('error'),
                     or: (data) => Text(data.toString()),
@@ -248,21 +249,88 @@ void main() {
         textDirection: TextDirection.ltr,
         child: widget,
       ));
-      expect(find.text('isIdle'), findsNWidgets(2));
+      expect(find.text('isIdle'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
       counter.setState((s) => Future.delayed(1.seconds, () => 1));
       await tester.pump();
       expect(find.text('isWaiting'), findsNWidgets(1));
-      expect(find.text('isIdle'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
       await tester.pump(1.seconds);
       expect(find.text('1'), findsNWidgets(1));
-      expect(find.text('isIdle'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
       //
-      counter2.setState((s) => Future.delayed(1.seconds, () => 1));
+      counter2.setState((s) => Future.delayed(1.seconds, () => throw 'error'));
       await tester.pump();
       expect(find.text('1'), findsNWidgets(1));
       expect(find.text('isWaiting'), findsNWidgets(1));
       await tester.pump(1.seconds);
-      expect(find.text('1'), findsNWidgets(2));
+      expect(find.text('error'), findsNWidgets(1));
+    },
+  );
+
+  testWidgets(
+    'Check onSetState',
+    (tester) async {
+      final counter1 = RM.inject(
+        () => 0,
+      );
+      final counter2 = RM.injectFuture<int?>(
+        () => Future.delayed(1.seconds, () => 10),
+      );
+      String onSetStateCounter1 = '';
+      String onSetStateCounter2 = '';
+      final widget = OnReactive(
+        () {
+          return Column(
+            children: [
+              Builder(builder: (_) {
+                counter1.isDone;
+                counter1.isActive;
+                counter2.isActive;
+                counter2.isDone;
+                return Container();
+              }),
+              Text(counter1.state.toString()),
+              Text(counter2.state.toString()),
+            ],
+          );
+        },
+        initState: () {},
+        dispose: () {},
+        onSetState: (snap) {
+          if (snap == counter1.snapState) {
+            onSetStateCounter1 = 'counter1';
+          } else if (snap == counter2.snapState) {
+            onSetStateCounter2 = 'counter2';
+          }
+        },
+        shouldRebuild: (old, nex) {
+          if (nex == counter1.snapState) {
+            if (counter1.state > 1) {
+              return false;
+            }
+            return true;
+          }
+          return true;
+        },
+      );
+
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: widget),
+      );
+
+      await tester.pump(1.seconds);
+      expect(onSetStateCounter2, 'counter2');
+      counter1.state++;
+      await tester.pump();
+      expect(onSetStateCounter1, 'counter1');
+      expect(find.text('1'), findsNWidgets(1));
+      expect(find.text('10'), findsNWidgets(1));
+      //
+      counter1.state++;
+      await tester.pump();
+      expect(find.text('1'), findsNWidgets(1));
+      expect(find.text('10'), findsNWidgets(1));
     },
   );
 }

@@ -32,7 +32,7 @@ abstract class InjectedBaseState<T> {
         '3- Make the state nullable. ($T?).\n',
       );
     }
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return s as T;
   }
 
@@ -58,75 +58,73 @@ abstract class InjectedBaseState<T> {
 
   ///The state is initialized and never mutated.
   bool get isIdle {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.isIdle;
   }
 
   ///The state is waiting for and asynchronous task to end.
   bool get isWaiting {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.isWaiting;
   }
 
   ///The state is mutated successfully.
   bool get hasData {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.hasData;
   }
 
   ///The state is mutated using a stream and the stream is done.
   bool get isDone {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.isDone;
   }
 
   ///The stats has error
   bool get hasError {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.hasError;
   }
 
   ///The state is Active
   bool get isActive {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.isActive;
   }
 
   ///The error
   dynamic get error {
-    OnObsState.addToObs?.call(this);
+    OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.error;
   }
 
-  Widget onOr({
-    Widget Function()? onIdle,
-    Widget Function()? onWaiting,
-    Widget Function(dynamic error, VoidCallback refreshError)? onError,
-    Widget Function(T data)? onData,
-    required Widget Function(T data) or,
+  R onOr<R>({
+    R Function()? onIdle,
+    R Function()? onWaiting,
+    R Function(dynamic error, VoidCallback refreshError)? onError,
+    R Function(T data)? onData,
+    required R Function(T data) or,
   }) {
+    R? r;
     if (isIdle) {
-      return onIdle?.call() ?? or(state);
+      r = onIdle?.call();
+    } else if (isWaiting) {
+      r = onWaiting?.call();
+    } else if (hasError) {
+      r = onError?.call(error, snapState.onErrorRefresher!);
+    } else if (hasData) {
+      r = onData?.call(state);
     }
-    if (isWaiting) {
-      return onWaiting?.call() ?? or(state);
-    }
-    if (hasError) {
-      return onError?.call(error, snapState.onErrorRefresher!) ?? or(state);
-    }
-    if (hasData) {
-      return onData?.call(state) ?? or(state);
-    }
-    return or(state);
+    return r ?? or(state);
   }
 
-  Widget onAll({
-    Widget Function()? onIdle,
-    required Widget Function() onWaiting,
-    required Widget Function(dynamic error, VoidCallback refreshError) onError,
-    required Widget Function(T data) onData,
+  R onAll<R>({
+    R Function()? onIdle,
+    required R Function() onWaiting,
+    required R Function(dynamic error, VoidCallback refreshError) onError,
+    required R Function(T data) onData,
   }) {
-    return onOr(
+    return onOr<R>(
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
