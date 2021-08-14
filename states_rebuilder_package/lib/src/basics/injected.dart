@@ -273,8 +273,14 @@ abstract class Injected<T> extends ReactiveModel<T> {
 
 extension InjectedBaseStateX1<T> on InjectedBaseState<T> {
   ///Add observer for rebuild
-  VoidCallback observeForRebuild(void Function(InjectedBaseState<T>? rm) fn) {
-    return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));
+  VoidCallback observeForRebuild(
+    void Function(InjectedBaseState<T>? rm) fn, {
+    void Function()? clean,
+  }) {
+    return _reactiveModelState.listeners.addListenerForRebuild(
+      (_) => fn(this),
+      clean: clean,
+    );
   }
 
   ///Add callback to be executed when model is disposed

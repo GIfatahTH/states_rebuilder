@@ -56,4 +56,4 @@ export 'src/rm.dart'
         OnFormBuilder,
         OnFormSubmissionBuilder,
         OnTabBuilder,
-        SideEffect;
+        SideEffects;

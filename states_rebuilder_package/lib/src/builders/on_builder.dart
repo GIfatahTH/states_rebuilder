@@ -5,8 +5,8 @@ class OnBuilder<T> extends StatelessWidget {
     Key? key,
     this.listenTo,
     this.listenToMany,
-    required this.builder,
-    this.sideEffect,
+    required this.onBuilder,
+    this.sideEffects,
     this.shouldRebuild,
     this.watch,
     this.debugPrintWhenRebuild,
@@ -14,8 +14,8 @@ class OnBuilder<T> extends StatelessWidget {
 
   final InjectedBaseState<T>? listenTo;
   final List<InjectedBaseState<dynamic>>? listenToMany;
-  final On<Widget> builder;
-  final SideEffect? sideEffect;
+  final On<Widget> onBuilder;
+  final SideEffects<T>? sideEffects;
   final Function(SnapState<T> oldSnap, SnapState<T> newSnap)? shouldRebuild;
   final Object? Function()? watch;
   final String? debugPrintWhenRebuild;
@@ -23,31 +23,25 @@ class OnBuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (listenToMany != null) {
+      assert(listenTo == null);
       final on = OnCombined.or(
-        onIdle: builder._onIdle,
-        onWaiting: builder._onWaiting,
-        onError: builder._onError,
-        or: (_) => builder._onData!(),
+        onIdle: onBuilder._onIdle,
+        onWaiting: onBuilder._onWaiting,
+        onError: onBuilder._onError,
+        or: (_) => onBuilder._onData!(),
       );
       return on.listenTo(
         listenToMany!,
-        initState: sideEffect?.initState,
-        dispose: sideEffect?.dispose,
-        onSetState: sideEffect?.onSetState != null
-            ? OnCombined.or(
-                onIdle: sideEffect!.onSetState!._onIdle,
-                onWaiting: sideEffect!.onSetState!._onWaiting,
-                onError: sideEffect!.onSetState!._onError,
-                or: (_) => sideEffect!.onSetState!._onData!(),
+        initState: sideEffects?.initState,
+        dispose: sideEffects?.dispose,
+        onSetState: sideEffects?.onSetState != null
+            ? OnCombined(
+                (_) =>
+                    sideEffects!.onSetState!(on._combinedSnap as SnapState<T>),
               )
             : null,
-        onAfterBuild: sideEffect?.onAfterBuild != null
-            ? OnCombined.or(
-                onIdle: sideEffect!.onAfterBuild!._onIdle,
-                onWaiting: sideEffect!.onAfterBuild!._onWaiting,
-                onError: sideEffect!.onAfterBuild!._onError,
-                or: (_) => sideEffect!.onAfterBuild!._onData!(),
-              )
+        onAfterBuild: sideEffects?.onAfterBuild != null
+            ? OnCombined((_) => sideEffects!.onAfterBuild!())
             : null,
         shouldRebuild: shouldRebuild != null
             ? () => shouldRebuild!(
@@ -60,12 +54,16 @@ class OnBuilder<T> extends StatelessWidget {
     }
     assert(listenTo != null);
 
-    return builder.listenTo(
+    return onBuilder.listenTo(
       listenTo!,
-      initState: sideEffect?.initState,
-      dispose: sideEffect?.dispose,
-      onSetState: sideEffect?.onSetState,
-      onAfterBuild: sideEffect?.onAfterBuild,
+      initState: sideEffects?.initState,
+      dispose: sideEffects?.dispose,
+      onSetState: sideEffects?.onSetState != null
+          ? On(() => sideEffects!.onSetState!(listenTo!.snapState))
+          : null,
+      onAfterBuild: sideEffects?.onAfterBuild != null
+          ? On(() => sideEffects?.onAfterBuild!())
+          : null,
       shouldRebuild: shouldRebuild != null
           ? (snap) =>
               shouldRebuild!(listenTo!.oldSnapState, listenTo!.snapState)
@@ -73,6 +71,19 @@ class OnBuilder<T> extends StatelessWidget {
       key: key,
     );
   }
+}
+
+class SideEffects<T> {
+  final void Function()? initState;
+  final void Function()? dispose;
+  final void Function(SnapState<T>)? onSetState;
+  final void Function()? onAfterBuild;
+  SideEffects({
+    this.initState,
+    this.dispose,
+    this.onSetState,
+    this.onAfterBuild,
+  });
 }
 
 class OnAnimationBuilder extends StatelessWidget {
@@ -243,17 +254,4 @@ class OnTabBuilder extends StatelessWidget {
       key: key,
     );
   }
-}
-
-class SideEffect {
-  final void Function()? initState;
-  final void Function()? dispose;
-  final On<void>? onSetState;
-  final On<void>? onAfterBuild;
-  SideEffect({
-    this.initState,
-    this.dispose,
-    this.onSetState,
-    this.onAfterBuild,
-  });
 }

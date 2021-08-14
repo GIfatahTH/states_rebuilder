@@ -12,25 +12,21 @@ void main() {
         child: OnBuilder(
           listenTo: model,
           debugPrintWhenRebuild: '',
-          builder: On(
+          onBuilder: On(
             () => Text(
               model.state.toString(),
             ),
           ),
-          sideEffect: SideEffect(
+          sideEffects: SideEffects(
             initState: () {
               print('initState');
             },
-            onSetState: On(
-              () {
-                print('onSetState');
-              },
-            ),
-            onAfterBuild: On(
-              () {
-                print('onAfterBuild');
-              },
-            ),
+            onSetState: (_) {
+              print('onSetState');
+            },
+            onAfterBuild: () {
+              print('onAfterBuild');
+            },
             dispose: () {
               print('dispose');
             },
@@ -54,25 +50,21 @@ void main() {
         child: OnBuilder(
           listenToMany: [model],
           debugPrintWhenRebuild: '',
-          builder: On(
+          onBuilder: On(
             () => Text(
               model.state.toString(),
             ),
           ),
-          sideEffect: SideEffect(
+          sideEffects: SideEffects(
             initState: () {
               print('initState');
             },
-            onSetState: On(
-              () {
-                print('onSetState');
-              },
-            ),
-            onAfterBuild: On(
-              () {
-                print('onAfterBuild');
-              },
-            ),
+            onSetState: (_) {
+              print('onSetState');
+            },
+            onAfterBuild: () {
+              print('onAfterBuild');
+            },
             dispose: () {
               print('dispose');
             },
@@ -95,16 +87,16 @@ void main() {
         textDirection: TextDirection.ltr,
         child: OnBuilder(
           listenTo: myState,
-          builder: On.all(
+          onBuilder: On.all(
             onIdle: () => Text('onIdle'),
             onWaiting: () => Text('onWaiting'),
             onError: (err, refreshError) => Text('onError'),
             onData: () => Text(myState.state.toString()),
           ),
-          sideEffect: SideEffect(
+          sideEffects: SideEffects(
             initState: () => print('initState'),
-            onSetState: On(() => print('onSetState')),
-            onAfterBuild: On(() => print('onAfterBuild')),
+            onSetState: (_) => print('onSetState'),
+            onAfterBuild: () => print('onAfterBuild'),
             dispose: () => print('dispose'),
           ),
           shouldRebuild: (oldSnap, newSnap) {
@@ -132,19 +124,21 @@ void main() {
         textDirection: TextDirection.ltr,
         child: OnBuilder(
           listenToMany: [myState1, myState2],
-          builder: On.or(
+          onBuilder: On.or(
             onIdle: () => Text('onIdle'),
             onWaiting: () => Text('onWaiting'),
             onError: (err, refreshError) => Text('$err'),
             or: () => Text('or'),
           ),
-          sideEffect: SideEffect(
-            onSetState: On.or(
-              onIdle: () => onSetState = 'onIdle',
-              onWaiting: () => onSetState = 'onWaiting',
-              onError: (err, refreshError) => onSetState = err,
-              or: () => onSetState = 'or',
-            ),
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              snap.onOr(
+                onIdle: () => onSetState = 'onIdle',
+                onWaiting: () => onSetState = 'onWaiting',
+                onError: (err, refreshError) => onSetState = err,
+                or: (_) => onSetState = 'or',
+              );
+            },
           ),
           shouldRebuild: (oldSnap, newSnap) {
             shouldRebuild = newSnap;
@@ -207,7 +201,7 @@ void main() {
           print(value);
           return OnBuilder(
             listenTo: animation,
-            builder: On(
+            onBuilder: On(
               () {
                 print('on');
                 return Container();

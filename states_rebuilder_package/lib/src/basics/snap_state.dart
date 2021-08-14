@@ -311,6 +311,43 @@ class SnapState<T> {
   final bool isDone;
   final bool isActive;
   Type type() => T;
+
+  R onOr<R>({
+    R Function()? onIdle,
+    R Function()? onWaiting,
+    R Function(dynamic error, VoidCallback refreshError)? onError,
+    R Function(T data)? onData,
+    required R Function(T data) or,
+  }) {
+    if (isIdle && onIdle != null) {
+      return onIdle();
+    }
+    if (isWaiting && onWaiting != null) {
+      return onWaiting();
+    }
+    if (hasError && onError != null) {
+      return onError(error, onErrorRefresher!);
+    }
+    if (hasData && onData != null) {
+      return onData(data as T);
+    }
+    return or(data as T);
+  }
+
+  R onAll<R>({
+    R Function()? onIdle,
+    required R Function() onWaiting,
+    required R Function(dynamic error, VoidCallback refreshError) onError,
+    required R Function(T data) onData,
+  }) {
+    return onOr<R>(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      or: onData,
+    );
+  }
+
   @override
   String toString() {
     if (_debugPrintWhenNotifiedPreMessage != null) {

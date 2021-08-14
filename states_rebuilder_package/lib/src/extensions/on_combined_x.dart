@@ -32,7 +32,6 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
       (widget, setState) {
         List<VoidCallback> disposers = [];
         var previousWatch = watch?.call();
-        SnapState<dynamic>? snap;
         return LifeCycleHooks(
           mountedState: (_) {
             for (var inj in injects) {
@@ -71,24 +70,27 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                     previousWatch = currentWatch;
                   }
 
-                  snap = _getCombinedSnap(widget.injects, snapFormType!);
+                  _combinedSnap =
+                      _getCombinedSnap(widget.injects, snapFormType!);
 
-                  if (!_canRebuild(snap!)) {
+                  if (!_canRebuild(_combinedSnap!)) {
                     return;
                   }
 
-                  onSetState?._call(snap!, snap!.data);
+                  onSetState?._call(_combinedSnap!, _combinedSnap!.data);
 
                   if (onAfterBuild != null) {
                     WidgetsBinding.instance?.addPostFrameCallback(
-                      (_) => onAfterBuild._call(snap!, snap!.data),
+                      (_) => onAfterBuild._call(
+                          _combinedSnap!, _combinedSnap!.data),
                     );
                   }
                   setState();
                   assert(() {
                     if (debugPrintWhenRebuild != null) {
-                      StatesRebuilerLogger.log(
-                          'REBUILD <' + debugPrintWhenRebuild + '>: $snap');
+                      StatesRebuilerLogger.log('REBUILD <' +
+                          debugPrintWhenRebuild +
+                          '>: $_combinedSnap');
                     }
                     return true;
                   }());
@@ -111,17 +113,18 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
               snapFormType = injects.first.snapState;
               _notifiedInject = injects.first;
             }
-            snap = _getCombinedSnap(widget.injects, snapFormType);
+            _combinedSnap = _getCombinedSnap(widget.injects, snapFormType);
 
             if (onAfterBuild != null) {
               WidgetsBinding.instance?.addPostFrameCallback(
-                (_) => onAfterBuild._call(snap!, snap!.data),
+                (_) => onAfterBuild._call(_combinedSnap!, _combinedSnap!.data),
               );
             }
             assert(() {
               if (debugPrintWhenRebuild != null) {
-                StatesRebuilerLogger.log(
-                    'INITIAL BUILD <' + debugPrintWhenRebuild + '>: $snap');
+                StatesRebuilerLogger.log('INITIAL BUILD <' +
+                    debugPrintWhenRebuild +
+                    '>: $_combinedSnap');
               }
               return true;
             }());
@@ -149,8 +152,8 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
           },
           builder: (ctx, widget) {
             return widget.on._call(
-              snap!,
-              snap!.data,
+              _combinedSnap!,
+              _combinedSnap!.data,
               false,
             )!;
           },

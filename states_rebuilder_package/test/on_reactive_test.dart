@@ -1,13 +1,111 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+class Counter {
+  final counter1 = 0.inj();
+  final counter2 = 0.inj();
+  int get sum => counter1.state + counter2.state;
+  void incrementCounter1() => counter1.state++;
+  void incrementCounter2() => counter2.state++;
+}
+
+final counterState = Counter();
+
 void main() {
   testWidgets(
-    'OnObs get injected model from state and listens to them',
+    'OnReactive get implicit subscribe to observer via state getter',
+    (tester) async {
+      late int counter1Value;
+      late int counter2Value;
+      late int sumValue;
+      final widget = Column(
+        children: [
+          OnReactive(
+            () {
+              counter1Value = counterState.counter1.state;
+              return Container();
+            },
+          ),
+          OnReactive(
+            () {
+              counter2Value = counterState.counter2.state;
+              return Container();
+            },
+          ),
+          OnReactive(
+            () {
+              sumValue = counterState.sum;
+              return Container();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+      expect(counter1Value, 0);
+      expect(counter2Value, 0);
+      expect(sumValue, 0);
+      counterState.incrementCounter1();
+      await tester.pump();
+      expect(counter1Value, 1);
+      expect(counter2Value, 0);
+      expect(sumValue, 1);
+      counterState.incrementCounter2();
+      await tester.pump();
+      expect(counter1Value, 1);
+      expect(counter2Value, 1);
+      expect(sumValue, 2);
+    },
+  );
+  testWidgets(
+    'OnReactive get implicit subscribe to observer via state getter (run test All)',
+    (tester) async {
+      late int counter1Value;
+      late int counter2Value;
+      late int sumValue;
+      final widget = Column(
+        children: [
+          OnReactive(
+            () {
+              counter1Value = counterState.counter1.state;
+              return Container();
+            },
+          ),
+          OnReactive(
+            () {
+              counter2Value = counterState.counter2.state;
+              return Container();
+            },
+          ),
+          OnReactive(
+            () {
+              sumValue = counterState.sum;
+              return Container();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(widget);
+      expect(counter1Value, 0);
+      expect(counter2Value, 0);
+      expect(sumValue, 0);
+      counterState.incrementCounter1();
+      await tester.pump();
+      expect(counter1Value, 1);
+      expect(counter2Value, 0);
+      expect(sumValue, 1);
+      counterState.incrementCounter2();
+      await tester.pump();
+      expect(counter1Value, 1);
+      expect(counter2Value, 1);
+      expect(sumValue, 2);
+    },
+  );
+  testWidgets(
+    'OnReactive get injected model from state and listens to them',
     (tester) async {
       final counter = RM.inject(() => 0);
       final counter2 = 0.inj();
@@ -99,7 +197,7 @@ void main() {
   );
 
   testWidgets(
-    'OnObs with isWaiting can get observers'
+    'OnReactive with isWaiting can get observers'
     'THEN',
     (tester) async {
       final counter = 0.inj();
@@ -158,7 +256,7 @@ void main() {
   );
 
   testWidgets(
-    'OnObs with hasError can get observers'
+    'OnReactive with hasError can get observers'
     'THEN',
     (tester) async {
       final counter = 0.inj();
@@ -212,8 +310,7 @@ void main() {
   );
 
   testWidgets(
-    'OnObs with onAll can get observers'
-    'THEN',
+    'OnReactive with onAll can get observers',
     (tester) async {
       final counter = 0.inj();
       final counter2 = RM.inject(() => 0);
@@ -229,6 +326,63 @@ void main() {
                     onWaiting: () => Text('isWaiting'),
                     onError: (_, __) => Text('error'),
                     onData: (data) => Text(data.toString()),
+                  );
+                },
+              ),
+              Builder(
+                builder: (_) {
+                  // print(counter2.state);
+                  return counter2.onOr(
+                    onWaiting: () => Text('isWaiting'),
+                    onError: (_, __) => Text('error'),
+                    or: (data) => Text(data.toString()),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: widget,
+      ));
+      expect(find.text('isIdle'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
+      counter.setState((s) => Future.delayed(1.seconds, () => 1));
+      await tester.pump();
+      expect(find.text('isWaiting'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
+      await tester.pump(1.seconds);
+      expect(find.text('1'), findsNWidgets(1));
+      expect(find.text('0'), findsNWidgets(1));
+      //
+      counter2.setState((s) => Future.delayed(1.seconds, () => throw 'error'));
+      await tester.pump();
+      expect(find.text('1'), findsNWidgets(1));
+      expect(find.text('isWaiting'), findsNWidgets(1));
+      await tester.pump(1.seconds);
+      expect(find.text('error'), findsNWidgets(1));
+    },
+  );
+
+  testWidgets(
+    'OnReactive with onOr can get observers',
+    (tester) async {
+      final counter = 0.inj();
+      final counter2 = RM.inject(() => 0);
+
+      final widget = OnReactive(
+        () {
+          return Column(
+            children: [
+              Builder(
+                builder: (_) {
+                  return counter.onOr(
+                    onIdle: () => Text('isIdle'),
+                    onWaiting: () => Text('isWaiting'),
+                    onError: (_, __) => Text('error'),
+                    or: (data) => Text(data.toString()),
                   );
                 },
               ),
@@ -295,15 +449,17 @@ void main() {
             ],
           );
         },
-        initState: () {},
-        dispose: () {},
-        onSetState: (snap) {
-          if (snap == counter1.snapState) {
-            onSetStateCounter1 = 'counter1';
-          } else if (snap == counter2.snapState) {
-            onSetStateCounter2 = 'counter2';
-          }
-        },
+        sideEffects: SideEffects(
+          initState: () {},
+          dispose: () {},
+          onSetState: (snap) {
+            if (snap == counter1.snapState) {
+              onSetStateCounter1 = 'counter1';
+            } else if (snap == counter2.snapState) {
+              onSetStateCounter2 = 'counter2';
+            }
+          },
+        ),
         shouldRebuild: (old, nex) {
           if (nex == counter1.snapState) {
             if (counter1.state > 1) {

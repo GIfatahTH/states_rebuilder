@@ -105,17 +105,13 @@ abstract class InjectedBaseState<T> {
     R Function(T data)? onData,
     required R Function(T data) or,
   }) {
-    R? r;
-    if (isIdle) {
-      r = onIdle?.call();
-    } else if (isWaiting) {
-      r = onWaiting?.call();
-    } else if (hasError) {
-      r = onError?.call(error, snapState.onErrorRefresher!);
-    } else if (hasData) {
-      r = onData?.call(state);
-    }
-    return r ?? or(state);
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.onOr<R>(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      or: or,
+    );
   }
 
   R onAll<R>({
@@ -124,11 +120,12 @@ abstract class InjectedBaseState<T> {
     required R Function(dynamic error, VoidCallback refreshError) onError,
     required R Function(T data) onData,
   }) {
-    return onOr<R>(
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.onAll<R>(
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
-      or: onData,
+      onData: onData,
     );
   }
 
