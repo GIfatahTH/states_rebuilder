@@ -27,30 +27,32 @@ class _LoginBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _LoginHeader(controller: controller),
-        On.or(
-          onWaiting: () => CircularProgressIndicator(),
-          or: () => TextButton(
-            // color: Colors.white,
-            child: Text(
-              'Login',
-              style: TextStyle(color: Colors.black),
+    return OnReactive(
+      () => Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _LoginHeader(controller: controller),
+          userInj.onOrElse(
+            onWaiting: () => CircularProgressIndicator(),
+            orElse: (data) => TextButton(
+              // color: Colors.white,
+              child: Text(
+                'Login',
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () {
+                userInj.auth.signIn(
+                  (_) => InputParser.parse(controller.text),
+                );
+              },
             ),
-            onPressed: () {
-              userInj.auth.signIn(
-                (_) => InputParser.parse(controller.text),
-              );
-            },
           ),
-        ).listenTo(
-          userInj,
-          dispose: () => controller.dispose(),
-        ),
-      ],
+        ],
+      ),
+      sideEffects: SideEffects(
+        dispose: () => controller.dispose(),
+      ),
     );
   }
 }

@@ -97,15 +97,15 @@ class TimerView extends StatelessWidget {
           Expanded(
             //subscription to duration, each time a new duration is yield,
             //this rebuilder will rebuild.
-            child: On(
+            child: OnReactive(
               () => TimerDigit(
                 timer.duration.state,
               ),
-            ).listenTo(timer.duration),
+            ),
           ),
           Expanded(
             //subscription to timerStatus
-            child: timer.timerStatus.rebuilder(
+            child: OnReactive(
               () {
                 if (timer.timerStatus.state == TimerStatus.ready) {
                   return ReadyStatus();

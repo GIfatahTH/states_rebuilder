@@ -28,12 +28,12 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //subscribe to counter injected model
-            On(
+            OnReactive(
               () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ).listenTo(counter),
+            ),
           ],
         ),
       ),

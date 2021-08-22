@@ -23,12 +23,11 @@ class MyApp extends StatelessWidget {
         home: SplashScreen(),
       ),
       builder: (_) => MaterialApp(
-        home: On.auth(
+        home: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => SplashScreen(),
           onUnsigned: () => SignInPage(),
           onSigned: () => HomePage(),
-        ).listenTo(
-          user,
           useRouteNavigation: true,
         ),
         navigatorKey: RM.navigate.navigatorKey,

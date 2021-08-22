@@ -10,6 +10,12 @@ import '../../../ui/exceptions/error_handler.dart';
 
 part 'injected_user.dart';
 
+final RegExp _passwordRegExp = RegExp(
+  r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$',
+);
+final RegExp _emailRegExp = RegExp(
+  r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
+);
 final _email = RM.injectTextEditing(
   validator: (email) {
     if (!_emailRegExp.hasMatch(email!)) {
@@ -63,13 +69,6 @@ final _form = RM.injectForm(
   },
 );
 
-final RegExp _passwordRegExp = RegExp(
-  r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$',
-);
-final RegExp _emailRegExp = RegExp(
-  r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
-);
-
 class AuthPage extends StatelessWidget {
   const AuthPage({Key? key}) : super(key: key);
   static final routeName = '/AuthPage';
@@ -79,9 +78,9 @@ class AuthPage extends StatelessWidget {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: On(
+        child: OnReactive(
           () => AuthFormWidget(),
-        ).listenTo(_isRegister),
+        ),
       ),
     );
   }
@@ -91,8 +90,9 @@ class AuthFormWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _i18n = i18n.of(context);
-    return On.form(
-      () => Column(
+    return OnFormBuilder(
+      listenTo: _form,
+      builder: () => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -158,7 +158,8 @@ class AuthFormWidget extends StatelessWidget {
               Text(_i18n.doNotHaveAnAccount)
             ],
           ),
-          On.formSubmission(
+          OnFormSubmissionBuilder(
+            listenTo: _form,
             onSubmitting: () => const Center(
               child: CircularProgressIndicator(),
             ),
@@ -166,11 +167,13 @@ class AuthFormWidget extends StatelessWidget {
               focusNode: _form.submitFocusNode,
               child:
                   _isRegister.state ? Text(_i18n.signUp) : Text(_i18n.signIn),
-              onPressed: _form.submit,
+              onPressed: () {
+                _form.submit();
+              },
             ),
-          ).listenTo(_form),
+          ),
         ],
       ),
-    ).listenTo(_form);
+    );
   }
 }

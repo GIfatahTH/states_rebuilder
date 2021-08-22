@@ -9,8 +9,6 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/c
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/auth_page/auth_page.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
-import 'fake_auth_repository.dart';
-import 'fake_todos_repository.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();

@@ -6,9 +6,14 @@ final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   ),
   param: () => '__Todos__/${user.state!.userId}',
   readOnInitialization: true,
-  onSetState: On.error((e, r) {
-    ErrorHandler.showErrorSnackBar(e);
-  }),
+  onSetState: On.error(
+    (e, r) {
+      ErrorHandler.showErrorSnackBar(e);
+    },
+  ),
+  onDisposed: (_) {
+    print('dispoed');
+  },
   debugPrintWhenNotifiedPreMessage: 'todos',
 );
 
@@ -59,4 +64,4 @@ final Injected<TodosStats> todosStats = RM.inject(
   // },
 );
 
-final activeTab = RM.inject(() => AppTab.todos);
+// final activeTab = RM.inject(() => AppTab.todos);

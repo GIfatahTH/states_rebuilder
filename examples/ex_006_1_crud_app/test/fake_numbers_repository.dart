@@ -1,12 +1,10 @@
-import 'dart:math';
+import 'package:ex_006_crud_app/number.dart';
+import 'package:ex_006_crud_app/numbers_repository.dart';
 
-import 'package:states_rebuilder/states_rebuilder.dart';
-
-import 'number.dart';
-
-class NumbersRepository implements ICRUD<Number, NumberParam> {
+class FakeNumbersRepository implements NumbersRepository {
   late Map<String, List<Number>> _numbersStore = {};
-
+  dynamic exception;
+  late int idToCreate;
   @override
   Future<void> init() async {
     await Future.delayed(Duration(seconds: 1));
@@ -18,12 +16,12 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future<Number> create(Number number, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('Error');
+    if (exception != null) {
+      throw exception;
     }
     final userNumbers = _numbersStore[param!.userId] ?? [];
     final numberToAdd = Number(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: idToCreate.toString(),
       number: number.number,
     );
     _numbersStore[param.userId] = [...userNumbers, numberToAdd];
@@ -34,8 +32,8 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future<List<Number>> read(NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('Error');
+    if (exception != null) {
+      throw exception;
     }
     final userNumbers = _numbersStore[param!.userId] ?? [];
 
@@ -51,8 +49,8 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
   @override
   Future update(List<Number> numbers, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('Error');
+    if (exception != null) {
+      throw exception;
     }
     final userNumbers = _numbersStore[param!.userId] ?? [];
     for (var number in numbers) {
@@ -63,14 +61,13 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
       userNumbers[index] = number;
     }
     _numbersStore[param.userId] = [...userNumbers];
-    print(_numbersStore);
   }
 
   @override
   Future delete(List<Number> numbers, NumberParam? param) async {
     await Future.delayed(Duration(seconds: 1));
-    if (Random().nextBool()) {
-      throw Exception('Error');
+    if (exception != null) {
+      throw exception;
     }
     final userNumbers = _numbersStore[param!.userId] ?? [];
     for (var number in numbers) {

@@ -71,4 +71,5 @@ class AR extends EN {
   final String invalidPassword = 'كلمة السر غير صالحة';
   final String pageNotFound = 'الصفحة غير موجودة';
   final String networkFailure = 'خلل في الشبكة';
+  final errorInRetrievingTodos = 'خطأ في الحصول على الواجبات';
 }

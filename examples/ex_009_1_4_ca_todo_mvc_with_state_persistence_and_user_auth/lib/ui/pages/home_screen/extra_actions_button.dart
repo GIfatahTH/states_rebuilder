@@ -1,15 +1,13 @@
 part of 'home_screen.dart';
 
-final _extraAction = RM.inject(
-  () => ExtraAction.clearCompleted,
-);
-
 class ExtraActionsButton extends StatelessWidget {
   const ExtraActionsButton({Key? key}) : super(key: key);
-
+  static final _extraAction = RM.inject(
+    () => ExtraAction.clearCompleted,
+  );
   @override
   Widget build(BuildContext context) {
-    return On.data(
+    return OnReactive(
       () {
         return PopupMenuButton<ExtraAction>(
           onSelected: (action) {
@@ -65,6 +63,6 @@ class ExtraActionsButton extends StatelessWidget {
           },
         );
       },
-    ).listenTo(_extraAction);
+    );
   }
 }

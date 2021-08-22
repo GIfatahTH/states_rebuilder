@@ -64,26 +64,28 @@ class GitHubSearchDelegate extends SearchDelegate<GitHubUser> {
   }
 
   Widget buildMatchingSuggestions(BuildContext context) {
-    // subscribe to fetchedGitHubUser using whenRebuilder
-    return On.all(
-      onIdle: () => Text('Idle'),
-      onWaiting: () => Center(child: CircularProgressIndicator()),
-      onData: () => GridView.builder(
-        itemCount: fetchedGitHubUser.state.length,
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 200,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.8,
+    // subscribe to fetchedGitHubUser
+    return OnReactive(
+      () => fetchedGitHubUser.onAll(
+        onIdle: () => Text('Idle'),
+        onWaiting: () => Center(child: CircularProgressIndicator()),
+        onData: (data) => GridView.builder(
+          itemCount: data.length,
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 0.8,
+          ),
+          itemBuilder: (context, index) {
+            return GitHubUserSearchResultTile(
+              user: data[index],
+              onSelected: (value) => close(context, value),
+            );
+          },
         ),
-        itemBuilder: (context, index) {
-          return GitHubUserSearchResultTile(
-            user: fetchedGitHubUser.state[index],
-            onSelected: (value) => close(context, value),
-          );
-        },
+        onError: (error, refresh) => SearchPlaceholder(title: '$error'),
       ),
-      onError: (error, refresh) => SearchPlaceholder(title: '$error'),
-    ).listenTo(fetchedGitHubUser);
+    );
   }
 }

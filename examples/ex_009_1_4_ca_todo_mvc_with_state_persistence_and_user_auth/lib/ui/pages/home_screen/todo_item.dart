@@ -9,7 +9,7 @@ class TodoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final todo = todos.item(context)!;
-    return On.data(
+    return OnReactive(
       () => Dismissible(
         key: Key('__${todo.state.id}__'),
         onDismissed: (direction) {
@@ -50,7 +50,7 @@ class TodoItem extends StatelessWidget {
           ),
         ),
       ),
-    ).listenTo(todo);
+    );
   }
 
   void removeTodo(Todo todo) {

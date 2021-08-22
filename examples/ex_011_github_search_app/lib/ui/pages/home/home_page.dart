@@ -11,8 +11,8 @@ class HomePage extends StatelessWidget {
         title: Text('GitHub Search'),
       ),
       body: Center(
-        child: RaisedButton(
-          color: Theme.of(context).primaryColor,
+        child: ElevatedButton(
+          // color: Theme.of(context).primaryColor,
           child: Text('Search',
               style: Theme.of(context)
                   .textTheme

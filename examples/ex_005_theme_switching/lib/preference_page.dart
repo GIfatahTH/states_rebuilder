@@ -10,7 +10,7 @@ class PreferencePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(i18n.state.preferences),
+        title: Text(i18n.of(context).preferences),
         actions: [
           PopupMenuButton<Locale>(
             key: Key('_ChangeLanguage_'),
@@ -25,7 +25,7 @@ class PreferencePage extends StatelessWidget {
                     i18n.of(context).systemLanguage,
                     style: TextStyle(
                       fontWeight: i18n.locale is SystemLocale
-                          ? FontWeight.bold
+                          ? FontWeight.w900
                           : FontWeight.normal,
                     ),
                   ),
@@ -37,7 +37,7 @@ class PreferencePage extends StatelessWidget {
                       '$e',
                       style: TextStyle(
                         fontWeight: i18n.locale == e
-                            ? FontWeight.bold
+                            ? FontWeight.w900
                             : FontWeight.normal,
                       ),
                     ),
@@ -50,33 +50,33 @@ class PreferencePage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Card(
-              color: theme.supportedLightThemes[AppTheme.Green].primaryColor,
-              child: ListTile(
-                title: Text(
-                  i18n.of(context).greenTheme,
-                  style: theme
-                      .supportedLightThemes[AppTheme.Green].textTheme.bodyText2,
+        child: OnReactive(
+          () => Column(
+            children: [
+              Card(
+                color: theme.supportedLightThemes[AppTheme.Green].primaryColor,
+                child: ListTile(
+                  title: Text(
+                    i18n.of(context).greenTheme,
+                    style: theme.supportedLightThemes[AppTheme.Green].textTheme
+                        .bodyText2,
+                  ),
+                  onTap: () => theme.state = AppTheme.Green,
                 ),
-                onTap: () => theme.state = AppTheme.Green,
               ),
-            ),
-            Card(
-              color: theme.supportedLightThemes[AppTheme.Blue].primaryColor,
-              child: ListTile(
-                key: Key('BlueThemeListTile'),
-                title: Text(
-                  i18n.of(context).blueTheme,
-                  style: theme
-                      .supportedLightThemes[AppTheme.Blue].textTheme.bodyText2,
+              Card(
+                color: theme.supportedLightThemes[AppTheme.Blue].primaryColor,
+                child: ListTile(
+                  key: Key('BlueThemeListTile'),
+                  title: Text(
+                    i18n.of(context).blueTheme,
+                    style: theme.supportedLightThemes[AppTheme.Blue].textTheme
+                        .bodyText2,
+                  ),
+                  onTap: () => theme.state = AppTheme.Blue,
                 ),
-                onTap: () => theme.state = AppTheme.Blue,
               ),
-            ),
-            On(
-              () => Row(
+              Row(
                 children: [
                   Text(i18n.of(context).toggleDarkMode),
                   SizedBox(width: 8),
@@ -87,37 +87,27 @@ class PreferencePage extends StatelessWidget {
                 ],
                 mainAxisAlignment: MainAxisAlignment.center,
               ),
-            ).listenTo(theme),
-            Row(
-              children: [
-                OutlinedButton(
-                  child: Text(i18n.of(context).useSystemMode),
-                  onPressed: () {
-                    theme.themeMode = ThemeMode.system;
-                  },
-                ),
-                SizedBox(width: 8),
-                On(
-                  () => Switch(
+              Row(
+                children: [
+                  OutlinedButton(
+                    child: Text(i18n.of(context).useSystemMode),
+                    onPressed: () {
+                      theme.themeMode = ThemeMode.system;
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  Switch(
                     value: theme.isDarkTheme,
                     onChanged: (_) => theme.toggle(),
                   ),
-                ).listenTo(theme),
-              ],
-              mainAxisAlignment: MainAxisAlignment.center,
-            )
-          ],
+                ],
+                mainAxisAlignment: MainAxisAlignment.center,
+              )
+            ],
+          ),
+          debugPrintWhenObserverAdd: '',
         ),
       ),
-
-      // ListView.builder(
-      //   padding: EdgeInsets.all(8),
-      //   itemCount: AppTheme.values.length,
-      //   itemBuilder: (context, index) {
-      //     final itemAppTheme = AppTheme.values[index];
-      //     return ;
-      //   },
-      // ),
     );
   }
 }

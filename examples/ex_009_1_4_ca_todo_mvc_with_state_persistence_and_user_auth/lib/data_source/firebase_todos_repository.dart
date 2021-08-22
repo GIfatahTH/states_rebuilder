@@ -45,7 +45,7 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
     }
     try {
       // await Future.delayed(Duration(seconds: 5));
-
+      // throw 'ReadError';
       final response = await http.get(
         Uri.parse('$baseUrl/$userId.json?auth=$authToken'),
       );
@@ -78,8 +78,8 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
     }
     try {
       assert(items.isNotEmpty);
-      // await Future.delayed(Duration(seconds: 0));
-      // throw PersistanceException('Write failure');
+      // await Future.delayed(Duration(seconds: 1));
+      // throw 'Update failure';
       for (var item in items) {
         final response = await http.put(
           Uri.parse('$baseUrl/$userId/${item.id}.json?auth=$authToken'),
@@ -101,8 +101,8 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
       return item;
     }
     try {
-      // await Future.delayed(Duration(seconds: 0));
-      // throw PersistanceException('Write failure');
+      // await Future.delayed(Duration(seconds: 1));
+      // throw 'Write failure';
       final response = await http.post(
         Uri.parse('$baseUrl/$userId.json?auth=$authToken'),
         body: convert.json.encode(item.toJson()),
@@ -124,8 +124,8 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
       return null;
     }
     try {
-      // await Future.delayed(Duration(seconds: 0));
-      // throw PersistanceException('Write failure');
+      // await Future.delayed(Duration(seconds: 1));
+      // throw CRUDTodosException.netWorkFailure();
       final response = await http.delete(
         Uri.parse('$baseUrl/$userId/${item.first.id}.json?auth=$authToken'),
       );
@@ -134,6 +134,9 @@ class FireBaseTodosRepository implements ICRUD<Todo, String> {
       }
       return true;
     } catch (e) {
+      if (e is CRUDTodosException) {
+        rethrow;
+      }
       throw CRUDTodosException.netWorkFailure();
     }
   }

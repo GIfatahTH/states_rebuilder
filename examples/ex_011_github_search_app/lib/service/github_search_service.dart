@@ -9,6 +9,9 @@ class GitHubSearchService {
   GitHubSearchService({@required this.gitHubSearchRepository});
 
   Future<List<GitHubUser>> searchUser(String userName) async {
+    if (userName.isEmpty) {
+      return [];
+    }
     return gitHubSearchRepository.searchUser(userName);
   }
 }

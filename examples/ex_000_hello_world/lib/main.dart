@@ -90,6 +90,7 @@ final streamedHelloName = RM.injectStream<String>(
       yield n += letter;
     }
   },
+  initialState: '',
   onInitialized: (state, subscription) {
     // As the stream will start automatically on creation,
     // we use the onInitialized hook to pause it.
@@ -137,45 +138,43 @@ class MyApp extends StatelessWidget {
               },
             ),
             Spacer(),
-            Row(
-              children: [
-                On.data(
-                  () => IconButton(
+            OnReactive(
+              () => Row(
+                children: [
+                  IconButton(
                     icon: Icon(Icons.arrow_left_rounded, size: 40),
                     onPressed: helloName.canUndoState
                         ? () => helloName.undoState()
                         : null,
                   ),
-                ).listenTo(helloName),
-                Spacer(),
-                Center(
-                  child: On.all(
-                    // This part will be re-rendered each time the helloName
-                    // emits notification of any kind of status (idle, waiting,
-                    // error, data).
-                    onIdle: () => Text('Enter your name'),
-                    onWaiting: () => CircularProgressIndicator(),
-                    onError: (err, refresh) => Row(
-                      children: [
-                        Text('${err.message}'),
-                        IconButton(
-                            icon: Icon(Icons.refresh),
-                            onPressed: () => refresh()),
-                      ],
+                  Spacer(),
+                  Center(
+                    child: helloName.onAll(
+                      // This part will be re-rendered each time the helloName
+                      // emits notification of any kind of status (idle, waiting,
+                      // error, data).
+                      onIdle: () => Text('Enter your name'),
+                      onWaiting: () => CircularProgressIndicator(),
+                      onError: (err, refresh) => Row(
+                        children: [
+                          Text('${err.message}'),
+                          IconButton(
+                              icon: Icon(Icons.refresh),
+                              onPressed: () => refresh()),
+                        ],
+                      ),
+                      onData: (data) => Text(data),
                     ),
-                    onData: () => Text(helloName.state),
-                  ).listenTo(helloName),
-                ),
-                Spacer(),
-                On.data(
-                  () => IconButton(
+                  ),
+                  Spacer(),
+                  IconButton(
                     icon: Icon(Icons.arrow_right_rounded, size: 40),
                     onPressed: helloName.canRedoState
                         ? () => helloName.redoState()
                         : null,
                   ),
-                ).listenTo(helloName),
-              ],
+                ],
+              ),
             ),
             Spacer(),
             ElevatedButton(
@@ -187,10 +186,10 @@ class MyApp extends StatelessWidget {
               },
             ),
             SizedBox(height: 20),
-            On.data(
+            OnReactive(
               //This will rebuild if the stream emits valid data only
               () => Text('${streamedHelloName.state}'),
-            ).listenTo(streamedHelloName),
+            ),
             Spacer(),
           ],
         ),

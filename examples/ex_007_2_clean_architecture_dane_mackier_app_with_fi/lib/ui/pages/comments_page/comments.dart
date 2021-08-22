@@ -6,26 +6,32 @@ class _Comments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return On.all(
-      onIdle: () => Container(),
-      onWaiting: () => Center(child: CircularProgressIndicator()),
-      onError: (err, refresh) => Center(
-        child: Text('${err.message}'),
+    return OnReactive(
+      () => commentsInj.onAll(
+        onWaiting: () => Center(child: CircularProgressIndicator()),
+        onError: (err, refresh) => Center(
+          child: Text('${err.message}'),
+        ),
+        onData: (comments) {
+          return Expanded(
+            child: ListView(
+              children: comments
+                  .map(
+                    (comment) => _CommentItem(comment),
+                  )
+                  .toList(),
+            ),
+          );
+        },
       ),
-      onData: () {
-        return Expanded(
-          child: ListView(
-            children: commentsInj.state
-                .map((comment) => _CommentItem(comment))
-                .toList(),
-          ),
-        );
-      },
-    ).listenTo(
-      commentsInj,
-      initState: () => commentsInj.crud.read(param: (_) => postId),
-      onSetState: On.error(
-        (err, refresh) => ExceptionHandler.showErrorDialog(err),
+      sideEffects: SideEffects(
+        initState: () => commentsInj.crud.read(param: (_) => postId),
+        onSetState: (snap) {
+          snap.onOrElse(
+            onError: (err, refresh) => ExceptionHandler.showErrorDialog(err),
+            orElse: (_) {},
+          );
+        },
       ),
     );
   }

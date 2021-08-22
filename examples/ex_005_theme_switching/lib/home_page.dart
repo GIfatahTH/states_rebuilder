@@ -24,12 +24,12 @@ class HomePage extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          child: On(
+          child: OnReactive(
             () => Text(
               i18n.of(context).counterTimes(counter.state),
               style: Theme.of(context).textTheme.headline4,
             ),
-          ).listenTo(counter),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
