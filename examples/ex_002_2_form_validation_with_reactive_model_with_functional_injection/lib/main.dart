@@ -106,10 +106,12 @@ class MyHomePage extends StatelessWidget {
                   errorText: password.error?.message,
                 ),
               ),
-              [email, password].rebuild(
-                //See documentation to understand more about the exposed model
-                //(in the wiki / widget listeners / The exposed state)
-                (exposedModel) {
+              OnBuilder.data(
+                listenToMany: [email, password],
+                builder:
+                    //See documentation to understand more about the exposed model
+                    //(in the wiki / widget listeners / The exposed state)
+                    (exposedModel) {
                   return Column(
                     children: <Widget>[
                       ElevatedButton(
@@ -122,25 +124,19 @@ class MyHomePage extends StatelessWidget {
                             : null,
                       ),
                       Text('exposedModel is :'),
-                      Builder(
-                        builder: (_) {
-                          if (exposedModel is Email) {
-                            return Text('Email : '
-                                '${email.hasError ? email.error.message : email.state.email}');
-                          }
-                          if (exposedModel is Password) {
-                            return Text('password : '
-                                '${password.hasError ? password.error.message : password.state.password}');
-                          }
-                          return Container();
-                        },
-                      )
+                      if (exposedModel is Email)
+                        Text('Email : '
+                            '${email.hasError ? email.error.message : email.state.email}'),
+                      if (exposedModel is Password)
+                        Text('password : '
+                            '${password.hasError ? password.error.message : password.state.password}'),
                     ],
                   );
                 },
               ),
             ],
           ),
+          debugPrintWhenObserverAdd: '',
         ),
       ),
     );

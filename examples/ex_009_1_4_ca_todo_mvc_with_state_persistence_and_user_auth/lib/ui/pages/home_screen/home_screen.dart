@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({Key? key}) : super(key: key);
 
-  static final appTab = RM.injectTab(length: 2);
+  static final appTab = RM.injectTabPage(length: 2);
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +67,8 @@ class HomeScreen extends StatelessWidget {
             orElse: (data) {
               return OnTabBuilder(
                 listenTo: appTab,
-                builder: (_) => TabBarView(
-                  controller: appTab.controller,
+                builder: (_) => PageView(
+                  controller: appTab.pageController,
                   children: [const TodoList(), const StatsCounter()],
                 ),
               );
@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {
             return SizedBox(
               height: 50,
               child: TabBar(
-                controller: appTab.controller,
+                controller: appTab.tabController,
                 tabs: [
                   Transform.scale(
                     scale: index == 0 ? 1.2 : 1.0,
