@@ -113,7 +113,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   }
 
   static InjectedFormImp? _currentInitializedForm;
-  FocusNode? _autoFocusedNode;
+  FocusNode? autoFocusedNode;
   @override
   bool get isValid => _textFields.every((e) => e.hasData);
 
@@ -136,8 +136,12 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     for (var field in _textFields) {
       field.reset();
     }
-    _autoFocusedNode?.requestFocus();
-    notify();
+    autoFocusedNode?.requestFocus();
+    if (autovalidateMode == AutovalidateMode.always) {
+      validate();
+    } else {
+      notify();
+    }
   }
 
   @override

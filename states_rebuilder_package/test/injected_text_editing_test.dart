@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/injected/injected_text_editing/injected_text_editing.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -892,6 +893,142 @@ void main() {
       isRegister.toggle();
       await tester.pump();
       expect(form.isValid, true);
+    },
+  );
+
+  testWidgets(
+    'WHEN a field is autoFocused'
+    'THEN the it is assigned to the form autoFocusedNode'
+    'AND it is auto validated when lost focus',
+    (tester) async {
+      final text = RM.injectTextEditing(
+          text: '',
+          validateOnLoseFocus: true,
+          validator: (txt) {
+            if (txt!.length < 3) {
+              return 'not allowed';
+            }
+          });
+      final form = RM.injectForm();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  OnReactive(
+                    () => TextField(
+                      focusNode: text.focusNode,
+                      controller: text.controller,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        errorText: text.error,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    focusNode: form.submitFocusNode,
+                    onPressed: () {},
+                    child: Text('Submit'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect((form as InjectedFormImp).autoFocusedNode, isNotNull);
+      expect(find.text('not allowed'), findsNothing);
+      form.submitFocusNode.requestFocus();
+      await tester.pump();
+      expect(find.text('not allowed'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+      expect(find.text('not allowed'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, '12');
+      await tester.pump();
+      expect(find.text('not allowed'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, '123');
+      await tester.pump();
+      expect(find.text('123'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, '');
+      await tester.pump();
+      expect(find.text('not allowed'), findsOneWidget);
+      //
+      form.reset();
+      await tester.pump();
+      expect(find.text('not allowed'), findsNothing);
+      //
+      form.submitFocusNode.requestFocus();
+      await tester.pump();
+      expect(find.text('not allowed'), findsOneWidget);
+      //
+      text.reset();
+      await tester.pump();
+      expect(find.text('not allowed'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Check TextField validation and reset without form',
+    (tester) async {
+      final text1 =
+          RM.injectTextEditing(text: 'initial text1', validateOnTyping: false);
+      final text2 = RM.injectTextEditing(
+          text: 'initial text2',
+          validator: (txt) {
+            if (txt!.length < 3) return 'not allowed';
+          });
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnReactive(
+            () => Column(
+              children: [
+                Text(text1.text),
+                Text(text2.text),
+                TextField(
+                  controller: text1.controller,
+                ),
+                TextField(
+                  controller: text2.controller,
+                  decoration: InputDecoration(
+                    errorText: text2.error,
+                  ),
+                ),
+              ],
+            ),
+            debugPrintWhenObserverAdd: '',
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('initial text1'), findsNWidgets(2));
+      expect(find.text('initial text2'), findsNWidgets(2));
+      //
+      expect(text1.isValid, true);
+      await tester.enterText(find.byType(TextField).first, 'new text1');
+      await tester.pump();
+      expect(find.text('new text1'), findsNWidgets(2));
+      expect(text1.isValid, true);
+      text1.reset();
+      await tester.pump();
+      expect(find.text('initial text1'), findsNWidgets(2));
+      expect(text1.isValid, true);
+      //
+      expect(text2.isValid, false);
+      await tester.enterText(find.byType(TextField).last, 'ne');
+      await tester.pump();
+      expect(find.text('ne'), findsNWidgets(2));
+      expect(find.text('not allowed'), findsOneWidget);
+      expect(text2.isValid, false);
+      text2.reset();
+      await tester.pump();
+      expect(find.text('initial text1'), findsNWidgets(2));
+      expect(find.text('initial text2'), findsNWidgets(2));
+      expect(text2.isValid, false);
     },
   );
 }
