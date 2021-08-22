@@ -364,8 +364,8 @@ void main() {
       onWaiting: () => Text('waiting ...'),
       onError: (e, _) => Text('${e.message}'),
       dispose: () => null,
-      shouldRebuild: (_) => true,
-      onData: () {
+      shouldRebuild: (_, __) => true,
+      onData: (_) {
         return Text('data');
       },
     );
@@ -389,12 +389,12 @@ void main() {
       dependsOn: DependsOn({vanillaModel, model2}),
     );
     //
-    final widget = computed.rebuild.onOr(
+    final widget = computed.rebuild.onOrElse(
       onWaiting: () => Text('waiting ...'),
       onError: (e, __) => Text('${e.message}'),
       initState: () => null,
       dispose: () => null,
-      or: () {
+      orElse: (_) {
         return Text('${computed.state}');
       },
     );
@@ -463,12 +463,12 @@ void main() {
     'Injector : should not throw when using whenRebuilderOr',
     (WidgetTester tester) async {
       await tester.pumpWidget(
-        vanillaModel.rebuild.onOr(
+        vanillaModel.rebuild.onOrElse(
           onError: (e, _) => Directionality(
             textDirection: TextDirection.ltr,
             child: Text(e.message),
           ),
-          or: () => Container(),
+          orElse: (_) => Container(),
         ),
       );
       vanillaModel.setState(
@@ -755,15 +755,15 @@ void main() {
               counter2.rebuild(
                 () => Text('counter2: ${counter2.state}'),
               ),
-              counter2.rebuild.onOr(
-                shouldRebuild: (_) => true,
-                or: () => Column(
+              counter2.rebuild.onOrElse(
+                shouldRebuild: (_, __) => true,
+                orElse: (_) => Column(
                   children: [
                     Text('whenRebuilderOr counter2: ${counter2.state}'),
                     counter2.rebuild.onAll(
                       onIdle: () => Text('idle'),
                       onWaiting: () => Text('Waiting'),
-                      onData: () =>
+                      onData: (_) =>
                           Text('whenRebuilder counter2: ${counter2.state}'),
                       onError: (_, __) => Text('Error'),
                     )
@@ -828,14 +828,14 @@ void main() {
             child: Column(
               children: [
                 Text('counter1: ${counter1.state}'),
-                counter2.rebuild.onOr(
-                  or: () => Column(
+                counter2.rebuild.onOrElse(
+                  orElse: (_) => Column(
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),
                       counter2.rebuild.onAll(
                         onIdle: () => Text('idle'),
                         onWaiting: () => Text('Waiting'),
-                        onData: () =>
+                        onData: (_) =>
                             Text('whenRebuilder counter2: ${counter2.state}'),
                         onError: (_, __) => Text('Error'),
                       )
@@ -908,11 +908,11 @@ void main() {
                   onIdle: () => Text('idle'),
                   onWaiting: () => Text('Waiting'),
                   onError: (_, __) => Text('Error'),
-                  onData: () => Column(
+                  onData: (_) => Column(
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),
-                      counter2.rebuild.onOr(
-                        or: () =>
+                      counter2.rebuild.onOrElse(
+                        orElse: (_) =>
                             Text('whenRebuilder counter2: ${counter2.state}'),
                       )
                     ],
@@ -1151,7 +1151,7 @@ void main() {
     final counter2 = RM.inject(() => 10);
 
     final widget = [counter1, counter2].rebuild(
-      () => Directionality(
+      (_) => Directionality(
         textDirection: TextDirection.ltr,
         child: Column(
           children: [
@@ -1185,7 +1185,7 @@ void main() {
       () {
         counter2 = RM.inject(() => 10);
         return [counter1, counter2].rebuild(
-          () => Directionality(
+          (_) => Directionality(
             textDirection: TextDirection.ltr,
             child: Column(
               children: [
@@ -1233,7 +1233,7 @@ void main() {
           child: [counter1, counter2].rebuild.onAll(
                 onIdle: () => Text('Idle'),
                 onWaiting: () => Text('onWaiting'),
-                onData: () => Column(
+                onData: (_) => Column(
                   children: [
                     Text('${counter1.state.counter}'),
                     Text('${counter2.state.counter}'),
@@ -1285,9 +1285,9 @@ void main() {
         counter2 = RM.inject(() => VanillaModel(10));
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: [counter1, counter2].rebuild.onOr(
+          child: [counter1, counter2].rebuild.onOrElse(
                 onWaiting: () => Text('onWaiting'),
-                builder: () => Column(
+                orElse: (_) => Column(
                   children: [
                     Text('${counter1.state.counter}'),
                     Text('${counter2.state.counter}'),

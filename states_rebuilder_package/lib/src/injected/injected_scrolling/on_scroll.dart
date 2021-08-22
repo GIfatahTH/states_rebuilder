@@ -74,3 +74,20 @@ class _OnScrollWidget<T> {
     required this.on,
   });
 }
+
+class OnScrollBuilder extends StatelessWidget {
+  const OnScrollBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.builder,
+  }) : super(key: key);
+  final InjectedScrolling listenTo;
+  final Widget Function(InjectedScrolling) builder;
+  @override
+  Widget build(BuildContext context) {
+    return On.scroll(builder).listenTo(
+      listenTo,
+      key: key,
+    );
+  }
+}

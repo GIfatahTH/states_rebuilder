@@ -46,12 +46,12 @@ class On<T> implements OnWidget {
   bool get _hasOnIdle => _onIdle != null;
   bool get _hasOnData => _onData != null;
   On._({
-    required T Function()? onIdle,
+    T Function()? onIdle,
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresh)? onError,
     required T Function()? onData,
     // required _OnType onType,
-  })   : _onIdle = onIdle,
+  })  : _onIdle = onIdle,
         _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;
@@ -136,7 +136,7 @@ class On<T> implements OnWidget {
   ///
   ///For optional callbacks use [On.or].
   factory On.all({
-    required T Function() onIdle,
+    T Function()? onIdle,
     required T Function() onWaiting,
     required T Function(dynamic err, void Function() refresh) onError,
     required T Function() onData,
@@ -369,11 +369,11 @@ class On<T> implements OnWidget {
     return OnScroll<T>(builder);
   }
 
-  static OnTab tab(
-    Widget Function() builder,
-  ) {
-    return OnTab(builder);
-  }
+  // static OnTab tab(
+  //   Widget Function(int index) builder,
+  // ) {
+  //   return OnTab(builder);
+  // }
 }
 
 ////Used in tests

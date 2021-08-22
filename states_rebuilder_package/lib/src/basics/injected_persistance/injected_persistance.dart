@@ -102,6 +102,24 @@ class PersistState<T> {
   void setPersistStateSingleton() {
     _persistStateSingleton = (persistStateProvider ?? _persistStateGlobalTest);
     _persistStateSingleton ??= _persistStateGlobal;
+    assert(_persistStateSingleton != null, '''
+No implementation of `IPersistStore` is provided.
+Pleas implementation the `IPersistStore` interface and Initialize it in the main 
+method.
+
+void main() async { 
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await RM.storageInitializer(YouImplementation());
+  runApp(_MyApp());
+}
+
+If you are testing the app use:
+
+await RM.storageInitializerMock();\n\n
+
+
+''');
   }
 
   ///Get the persisted state

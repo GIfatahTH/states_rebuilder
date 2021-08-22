@@ -28,25 +28,28 @@ class _Rebuild<T> {
   /// {@endtemplate}
   Widget call(
     Widget Function() builder, {
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
+    void Function(SnapState<T>)? onSetState,
+    void Function()? onAfterBuild,
     void Function()? initState,
     void Function()? dispose,
-    bool Function(SnapState<T>? snapState)? shouldRebuild,
     Object? Function()? watch,
+    bool Function(SnapState<T>, SnapState<T>)? shouldRebuild,
     String? debugPrintWhenRebuild,
     Key? key,
   }) {
-    return On(builder).listenTo(
-      _injected,
-      onSetState: onSetState,
-      onAfterBuild: onAfterBuild,
-      initState: initState,
-      dispose: dispose,
+    return OnBuilder(
+      listenTo: _injected,
+      sideEffects: SideEffects<T>(
+        onSetState: onSetState,
+        onAfterBuild: onAfterBuild,
+        initState: initState,
+        dispose: dispose,
+      ),
       shouldRebuild: shouldRebuild,
-      watch: watch,
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
+      watch: watch,
+      builder: builder,
     );
   }
 
@@ -72,26 +75,29 @@ class _Rebuild<T> {
   ///    * [debugPrintWhenRebuild] : Print state transition log.
   /// {@endtemplate}
   Widget onData(
-    Widget Function() builder, {
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
+    Widget Function(T data) builder, {
+    void Function(SnapState<T>)? onSetState,
+    void Function()? onAfterBuild,
     void Function()? initState,
     void Function()? dispose,
     Object? Function()? watch,
-    bool Function(SnapState<T>? snapState)? shouldRebuild,
+    bool Function(SnapState<T>, SnapState<T>)? shouldRebuild,
     String? debugPrintWhenRebuild,
     Key? key,
   }) {
-    return On.data(builder).listenTo(
-      _injected,
-      onSetState: onSetState,
-      onAfterBuild: onAfterBuild,
-      initState: initState,
-      dispose: dispose,
+    return OnBuilder.data(
+      listenTo: _injected,
+      sideEffects: SideEffects<T>(
+        onSetState: onSetState,
+        onAfterBuild: onAfterBuild,
+        initState: initState,
+        dispose: dispose,
+      ),
       shouldRebuild: shouldRebuild,
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
       watch: watch,
+      builder: builder,
     );
   }
 
@@ -117,32 +123,35 @@ class _Rebuild<T> {
   ///    * [debugPrintWhenRebuild] : Print state transition log.
   /// {@endtemplate}
   Widget onAll({
-    required Widget Function() onIdle,
+    Widget Function()? onIdle,
     required Widget Function() onWaiting,
     required Widget Function(dynamic err, void Function() refreshError) onError,
-    required Widget Function() onData,
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
+    required Widget Function(T data) onData,
+    void Function(SnapState<T>)? onSetState,
+    void Function()? onAfterBuild,
     void Function()? initState,
     void Function()? dispose,
-    bool Function(SnapState<T>? snapState)? shouldRebuild,
+    Object? Function()? watch,
+    bool Function(SnapState<T>, SnapState<T>)? shouldRebuild,
     String? debugPrintWhenRebuild,
     Key? key,
   }) {
-    return On.all(
+    return OnBuilder.all(
+      listenTo: _injected,
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
       onData: onData,
-    ).listenTo(
-      _injected,
-      onSetState: onSetState,
-      onAfterBuild: onAfterBuild,
-      initState: initState,
-      dispose: dispose,
+      sideEffects: SideEffects<T>(
+        onSetState: onSetState,
+        onAfterBuild: onAfterBuild,
+        initState: initState,
+        dispose: dispose,
+      ),
       shouldRebuild: shouldRebuild,
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
+      watch: watch,
     );
   }
 
@@ -173,37 +182,38 @@ class _Rebuild<T> {
   ///    * [onAfterBuild] :For side effects after rebuilding the widget tree.
   ///    * [debugPrintWhenRebuild] : Print state transition log.
   /// {@endtemplate}
-  Widget onOr({
+  Widget onOrElse({
     Widget Function()? onIdle,
     Widget Function()? onWaiting,
     Widget Function(dynamic err, void Function() refreshError)? onError,
-    Widget Function()? onData,
-    required Widget Function() or,
-    On<void>? onSetState,
-    On<void>? onAfterBuild,
+    Widget Function(T data)? onData,
+    required Widget Function(T data) orElse,
+    void Function(SnapState<T>)? onSetState,
+    void Function()? onAfterBuild,
     void Function()? initState,
     void Function()? dispose,
-    bool Function(SnapState<T>? snapState)? shouldRebuild,
     Object? Function()? watch,
-    Key? key,
+    bool Function(SnapState<T>, SnapState<T>)? shouldRebuild,
     String? debugPrintWhenRebuild,
+    Key? key,
   }) {
-    return On.or(
+    return OnBuilder.orElse(
+      listenTo: _injected,
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
       onData: onData,
-      or: or,
-    ).listenTo(
-      _injected,
-      onSetState: onSetState,
-      onAfterBuild: onAfterBuild,
-      initState: initState,
-      dispose: dispose,
+      orElse: orElse,
+      sideEffects: SideEffects<T>(
+        onSetState: onSetState,
+        onAfterBuild: onAfterBuild,
+        initState: initState,
+        dispose: dispose,
+      ),
       shouldRebuild: shouldRebuild,
-      watch: watch,
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
+      watch: watch,
     );
   }
 
@@ -323,21 +333,38 @@ abstract class ReactiveModel<T> extends InjectedBase<T> {
   /// where foo is a reactive (injected) model.
   late final rebuild = _Rebuild(this);
 
-  factory ReactiveModel.create(T state) {
-    return ReactiveModelImp(creator: () => state, initialState: state);
+  factory ReactiveModel.create(
+    T state, {
+    bool autoDisposeWhenNotUsed = true,
+  }) {
+    return ReactiveModelImp(
+      creator: () => state,
+      initialState: state,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 
   factory ReactiveModel.future(
     Future<T> Function() creator, {
     T? initialState,
+    bool autoDisposeWhenNotUsed = true,
   }) {
-    return ReactiveModelImp(creator: creator, initialState: initialState);
+    return ReactiveModelImp(
+      creator: creator,
+      initialState: initialState,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
   factory ReactiveModel.stream(
     Stream<T> Function() creator, {
     T? initialState,
+    bool autoDisposeWhenNotUsed = true,
   }) {
-    return ReactiveModelImp(creator: creator, initialState: initialState);
+    return ReactiveModelImp(
+      creator: creator,
+      initialState: initialState,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 
   ReactiveModel();
@@ -363,7 +390,7 @@ abstract class ReactiveModel<T> extends InjectedBase<T> {
     if (isWaiting) {
       return onWaiting.call();
     }
-    return onData.call(state);
+    return onData.call(_state);
   }
 
   int get observerLength => _reactiveModelState.listeners.observerLength;
@@ -385,6 +412,9 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         if (_reactiveModelState._isInitialized) {
           return;
         }
+        final cachedAddToObs = OnReactiveState.addToObs;
+        OnReactiveState.addToObs = null;
+
         _reactiveModelState
           .._isInitialized = true
           .._isDisposed = false
@@ -411,7 +441,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
             // _reactiveModelState._initialState ??= snap.data;
 
             if (snapState._infoMessage == kInitMessage) {
-              snap = snap._copyToIsIdle();
+              snap = snap._copyToIsIdle(isActive: false);
               _reactiveModelState._snapState = snap;
               return null; //Return null so do not rebuild
             }
@@ -425,6 +455,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           },
         );
         _reactiveModelState._initialStateCreator!();
+        OnReactiveState.addToObs = cachedAddToObs;
       },
     );
     _reactiveModelState.initializer();

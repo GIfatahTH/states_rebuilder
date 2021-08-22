@@ -10,6 +10,9 @@ abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
+  @override
+  I18N get state => getInjectedState(this);
+
   ///The current locale
   Locale? locale;
 

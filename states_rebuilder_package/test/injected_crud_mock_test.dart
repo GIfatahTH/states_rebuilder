@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
-import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -360,7 +359,7 @@ void main() {
     expect(products.state.length, 2);
     expect(_repo._products.length, 1);
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     expect(numberOfonStateMutationCall, 2);
@@ -389,7 +388,7 @@ void main() {
     expect(products.state[0], Product(id: 1, name: 'product 1_new'));
     expect(_repo._products[0], Product(id: 1, name: 'product 1'));
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state[0], Product(id: 1, name: 'product 1'));
     expect(_repo._products[0], Product(id: 1, name: 'product 1'));
     expect(numberOfonStateMutationCall, 2);
@@ -416,7 +415,7 @@ void main() {
     expect(products.state.length, 0);
     expect(_repo._products.length, 1);
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     expect(numberOfonStateMutationCall, 2);

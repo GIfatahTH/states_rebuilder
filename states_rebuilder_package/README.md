@@ -54,8 +54,21 @@
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
 - [A Quick Tour of states_rebuilder API](#A-Quick-Tour-of-states_rebuilder-API)
-  - [Business logic](#business-logic)
-  - [UI logic](#ui-logic)
+  - [Business logic and state injection](#Business-logic-and-state-injection)
+  - [State change and notification](#State-change-and-notification)
+  - [State subscription and widget rebuild](#State-subscription-and-widget-rebuild)
+  - [State persistence](#State-persistence)
+  - [Undo and redo immutable state](#Undo-and-redo-immutable-state)
+  - [Route management](#Route-management)
+  - [Create, Read, Update and Delete items from backend service](#Create,-Read,-Update-and-Delete-items-from-backend-service)
+  - [Authentication and authorization](#Authentication-and-authorization)
+  - [Dynamic theme switching](#Dynamic-theme-switching)
+  - [App internationalization](#App-internationalization)
+  - [Implicit and explicit animation](#Implicit-and-explicit-animation)
+  - [Working with TextFields and Form validation](#Working-with-TextFields-and-Form-validation)
+  - [Working with scrollable view](#Working-with-scrollable-view)
+  - [Working with tab views](#Working-with-tab-views)
+  - [Test and injected state mocking](#test-and-injected-state-mocking)
 - [Examples:](#examples)
   <!-- - [Basics:](#basics)
   - [Advanced:](#advanced)
@@ -120,9 +133,9 @@ class CounterApp extends StatelessWidget {
                 child: const Text('⏱️ Undo'),
                 onPressed: () => model.undoState(),
             ),
-            On(
+            OnReactive(
               () => Text('🏁Result: ${model.state.counter}'),
-            ).listenTo(model),
+            ),
         ],
     );
   }  
@@ -140,7 +153,7 @@ class CounterApp extends StatelessWidget {
 
 # A Quick Tour of states_rebuilder API
 
-## Business logic
+## Business logic and state injection
 
 >The business logic classes are independent from any external library. They are independent even from `states_rebuilder` itself.
 
@@ -173,9 +186,9 @@ class Foo { //don't extend any other library specific class
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p> -->
 
-<p align="center">
+<!-- <p align="center">
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
-</p>
+</p> -->
 
 To make the `Foo` object reactive, we simply inject it using global functional injection:
 
@@ -238,6 +251,7 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
   [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
 
+## State change and notification
 
 To mutate the state and notify listener:
 ```dart
@@ -264,6 +278,120 @@ The state when mutated emits a notification to its registered listeners. The emi
   - `isWaiting`: the state is waiting for an async task to end.
   - `hasError`: the state mutation has ended with an error.
   - `hasData`: the state mutation has ended with valid data.
+  - `isActive`: the state had data at least one time.
+
+
+  [🗎 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+
+You can notify listeners without changing the state using :
+```dart
+foo.notify();
+```
+You can also refresh the state to its initial state and reinvoke the creation function then notify listeners using:
+
+```dart
+foo.refresh();
+```
+
+`refresh` is useful to re-execute async data fetching to get the updated data from a server. Typical use is the refresh a ListView display.
+
+If the state is persisted, calling `refresh` will delete the persisted state and replace it with the newly created one.
+
+Calling `refresh` will cancel any pending async task from the state before refreshing.
+
+ [🗎 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+
+
+## State subscription and widget rebuild
+
+To listen to an injected state and rebuild a part of the widget tree, just wrap that part of the widget tree inside `OnReactive` widget:
+
+```dart
+final counter1 = RM.inject(()=> 0) // Or just use extension: 0.inj()
+final counter2 = 0.inj();
+int get sum => counter1.state + counter2.state;
+
+//In the widget tree:
+Column(
+    children: [
+        OnReactive( // Will listen to counter1
+            ()=> Text('${counter1.state}');
+        ),
+        OnReactive( // Will listen to counter2
+            ()=> Text('${counter2.state}');
+        ),
+        OnReactive(// Will listen to both counter1 and counter2
+            ()=> Text('$sum');
+        )
+    ]
+)
+```
+Inside `OnReactive `you can call any of the available state status flags (`isWaiting`, `hasError`, `hasData`, ...) or just use `onAll` and `onOrElse` methods:
+```dart
+OnReactive(
+    ()=> {
+        if(myModel.isWaiting){
+            return WaitingWidget();
+        }
+        if(myModel.hasError){
+            return ErrorWidget();
+        }
+        return DataWidget();
+    }
+)
+//Or use onAll method:
+OnReactive(
+    ()=> myModel.onAll(
+            onWaiting: ()=> WaitingWidget(),
+            onError: (err, refreshErr)=> ErrorWidget(),
+            onDate: (data)=> DataWidget(),
+        );
+)
+
+//Or use onOr method:
+OnReactive(
+    ()=> myModel.onOrElse(
+            onWaiting: ()=> WaitingWidget(),
+            orElse: (data)=> DataWidget(),
+        );
+)
+```
+
+  [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+
+In most cases `OnReactive` do the job. Nevertheless, if you want to explicitly specify the listeners you want to listen to, use `OnBuilder` widget.
+
+```dart
+OnBuilder(
+    listenTo: myState,
+    //called whenever myState emits a notification
+    builder: () => Text('${counter.state}'),
+    sideEffect: SideEffect(
+        initState: () => print('initState'),
+        onSetState: On(() => print('onSetState')),
+        onAfterBuild: On(() => print('onAfterBuild')),
+        dispose: () => print('dispose'),
+    ),
+    shouldRebuild: (oldSnap, newSnap) {
+      return true;
+    },
+    debugPrintWhenRebuild: 'myState',
+),
+```
+If you want to listen to many injected states use `listenToMany` parameter.
+
+In this case `onBuilder` will react to a combined state of all injected states.
+```dart
+OnBuilder.all(
+    listenToMany: [myState1, myState2],
+    onWaiting: () => Text('onWaiting'), // Will be invoked if at least one state iwaiting
+    onError: (err, refreshError) => Text('onError'), // Will be invoked if at least onstate has error
+    onData: (data) => Text(myState.state.toString()), // Will be invoked if all states have data.
+),
+```
+
+  [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
+
 
 states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
 ```dart
@@ -289,186 +417,91 @@ On.or(
   onData:  ()=> print('Data'),
   or: () =>  print('or')
 )
-
-//Used to listen to a future.
-On.future<F>(
-    onWaiting: ()=> Text('Waiting..'),
-    onError: (error, refresher) => Text('Error'),//Future can be reinvoked
-    onData: (data)=> MyWidget(),
-).future(()=> anyKindOfFuture);
-
-//This widget subscribes to the `stateAsync` of the injected model.
-//This is a one-time subscription of the `onWaiting` and `onError` and 
-//ongoing subscription of `onData`
-On.future<F>(
-    onWaiting: ()=> Text('Waiting..'),//One-time subscription
-    //On error, future can be reinvoked
-    onError: (error, refresher) => Text('Error'),//One-time subscription
-    onData: (data)=> MyWidget(),//Ongoing subscription
-).listenTo(model);
-
-///Used with injectedCRUD. It watches the state of the backend service
-On.crud(
-    onWaiting: ()=> Text('Waiting..'),//The querying is ongoing
-    onError: (error, refresh) => Text('Error'),// The querying fails
-    onResult: (result)=> MyWidget(),// The querying succeeds
-).listenTo(injectedCRUD);
-
-///Used with injectedAuth. It displays the right page depending on the signed user
-On.auth(
-    onWaiting: ()=> Text('Waiting..'),
-    onUnsigned: ()=> AuthPage(),
-    onSigned: ()=> HomeUserPage(),
-).listenTo(injectedAuth);
-
-///Listen to an injectedAnimation and set the animation tween implicitly of explicitly
-On.animation(
-    (animate) => Container(
-        width: animate.call(selected ? 200.0 : 100.0),
-        color: animate(selected ? Colors.red : Colors.blue),
-        alignment: animate(selected ? Alignment.center : AlignmentDirectional.topCenter),
-        child: const FlutterLogo(size: 75),
-    ),
-).listenTo(animation)
-
-///List to an InjectedForm and control TextField inside its callback
-On.form(
-  () => Column(
-    children: <Widget>[
-        TextField(
-            focusNode: email.focusNode,
-            controller: email.controller,
-            onSubmitted: (_) {
-              password.focusNode.requestFocus();
-            },
-        ),
-        TextField(
-            focusNode: password.focusNode,
-            controller: password.controller,
-            onSubmitted: (_) {
-              form.submitFocusNode.requestFocus();
-            },
-        ),    
-    ],
-  ),
-).listenTo(form),
-
-///Listen to an InjectedScrolling
-On.scroll(
-  (scroll) {
-    if (scroll.isScrolling) {
-      //While scrolling return an empty container
-      return Container();
-    }
-    return FloatingActionButton(
-      onPressed: () {},
-    );
-  },
-).listenTo(scroll),
 ```
 
 > All onError callbacks expose a refresher. It can be use to refresh the error; that is recalling the last  function that caused the error.
 
-
-  [🗎 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
-
-You can notify listeners without changing the state using :
-```dart
-foo.notify();
-```
-You can also refresh the state to its initial state and reinvoke the creation function then notify listeners using:
+If you want to optimize widget rebuild and prevent some part of the child widget tree from unnecessary rebuilding, use `Child`, `Child2`, `Child3` widget.
 
 ```dart
-foo.refresh();
+Child(
+  (child) => OnReactive(
+      () => Colum(
+          children: [
+              Text('model.state'), // This part will rebuild
+              child, //This part will not rebuild
+          ],
+      ),
+  ),
+  child: WidgetNotToRebuild(),
+);
 ```
 
-`refresh` is useful to re-execute async data fetching to get the updated data from a server. Typical use is the refresh a ListView display.
+You can make your state widget-wise and override it to present different branches of the widget tree.
 
-If the state is persisted, calling `refresh` will delete the persisted state and replace it with the newly created one.
+```dart
+final items = [1,2,3];
 
-Calling `refresh` will cancel any pending async task from the state before refreshing.
+final item = RM.inject(()=>null);
 
- [🗎 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+class App extends StatelessWidget{
+  build (context){
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, int index) {
+        return item.inherited( //inherited uses the InheritedWidget concept
+          stateOverride: () => items[index],
+          builder: () {
 
+            return const ItemWidget();
+            //Inside ItemWidget you can use the buildContext to get 
+            //the right state for each widget branch using:
+            item.of(context); //the Element owner of context is registered to item model.
+            //or
+            item(context) //the Element owner of context is not registered to item model.
+          }
+        );
+      },
+    );
+  }
+}
+```
+  [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
 
+## State persistence
 
-## UI logic
-
-* To listen to an injected state from the User Interface:
-  - For general use and full options use:
-    ````dart
-    On.all(
-        onIdle: ()=> Text('Idle'),
-        onWaiting: ()=> Text('Waiting'),
-        onError: (err, refresh)=> Text('Error'),
-        onData:  ()=> Text('Data'),
-    ).listenTo(
-      foo, //Listen to foo state
-      //called once the widget is inserted
-      initState: ()=> print('initState'),
-      //called once the widget is removed
-      dispose: ()=> print('dispose'),
-      //called after notification and before rebuild
-      onSetState: On.error((err) => print('error')),
-      //called after notification and rebuild
-      onAfterBuild: On(()=> print('After build')),
-    )
-    ```
-  - Rebuild when model has data only:
-    ```dart
-    // Equivalent to On.data
-    foo.rebuilder(()=> Text('${model.state}')); 
-    ```
-  - Handle all possible async status:
-    ```dart
-    // Equivalent to On.all
-    foo.whenRebuilder(
-        isIdle: ()=> Text('Idle'),
-        isWaiting: ()=> Text('Waiting'),
-        hasError: ()=> Text('Error'),
-        hasData: ()=> Text('Data'),
-    )
-    ```
-  - Listen to a future from `foo` and notify this widget only.
-    ```dart
-      foo.futureBuilder<T>(
-        future: (state, stateAsync)=> state.fetchSomeThing(),
-        onWaiting: ()=> Text('Waiting..'),
-        onError: (err) => Text('Error'),
-        onData: (T data) => Text(data),
-      )
-    ```
-  - Listen to a stream from `foo` and notify this widget only.
-    ```dart
-      foo.streamBuilder<T>(
-        stream: (state, subscription)=> state.streamSomeThing(),
-        onWaiting: ()=> Text('Waiting..'),
-        onError: (err) => Text('Error'),
-        onData: (T data) => Text(data),
-        onDone: ()=> Text('Done'),
-      )
-    ```
-
-* To listen to many injected models and expose a merged state:
+To Persist the state and retrieve it when the app restarts,
   ```dart
-    OnCombined.all(
-        isWaiting: ()=> Text('Waiting'),//If any is waiting
-        hasError: (err, refresh)=> Text('Error'),//If any has error
-        isIdle: ()=> Text('Idle'),//If any is Idle
-        hasData: (data)=> Text('Data'),//If all have Data
-    ).listenTo([model1, model1 ..., modelN]);
+  final model = RM.inject<MyModel>(
+      ()=>MyModel(),
+    persist:() => PersistState(
+      key: 'modelKey',
+      toJson: (MyModel s) => s.toJson(),
+      fromJson: (String json) => MyModel.fromJson(json),
+      //Optionally, throttle the state persistance
+      throttleDelay: 1000,
+    ),
+  );
   ```
-  [🗎 See more detailed information about the widget listeners](https://github.com/GIfatahTH/states_rebuilder/wiki/widget_listener_api).
+  You can manually persist or delete the state
+  ```dart
+  model.persistState();
+  model.deletePersistState();
+  ```
+  [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
 
-* To undo and redo immutable state:
+## Undo and redo immutable state
+
+To undo and redo immutable state:
   ```dart
   model.undoState();
   model.redoState();
   ```
   [🗎 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
 
+## Route management
 
-* To navigate, show dialogs and snackBars without `BuildContext`:
+To navigate, show dialogs and snackBars without `BuildContext`:
   ```dart
   RM.navigate.to(HomePage());
 
@@ -482,7 +515,7 @@ Calling `refresh` will cancel any pending async task from the state before refre
 
   You can use dynamic segments with named routing
 
-    ```dart
+  ```dart
     return MaterialApp(
         navigatorKey: RM.navigate.navigatorKey,
         onGenerateRoute: RM.navigate.onGenerateRoute({
@@ -509,9 +542,9 @@ Calling `refresh` will cancel any pending async task from the state before refre
           '/settings': (_) => SettingsPage(),
         }),
       );
-    ```
+  ```
     In the UI:
-    ```dart
+  ```dart
     RM.navigate.to('/'); // => renders LoginPage()
     RM.navigate.to('/posts'); // => 404 error
     RM.navigate.to('/posts/foo'); // =>  renders AuthorWidget(), with pathParams = {'author' : 'foo' }
@@ -519,29 +552,11 @@ Calling `refresh` will cancel any pending async task from the state before refre
     //If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
     RM.navigate.to('postDetails'); // =>  renders PostDetailsWidget(),
     RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // =>  renders PostDetailsWidget(),
-    ```
+  ```
     
   [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
-* To Persist the state and retrieve it when the app restarts,
-  ```dart
-  final model = RM.inject<MyModel>(
-      ()=>MyModel(),
-    persist:() => PersistState(
-      key: 'modelKey',
-      toJson: (MyModel s) => s.toJson(),
-      fromJson: (String json) => MyModel.fromJson(json),
-      //Optionally, throttle the state persistance
-      throttleDelay: 1000,
-    ),
-  );
-  ```
-  You can manually persist or delete the state
-  ```dart
-  model.persistState();
-  model.deletePersistState();
-  ```
-  [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+## Create, Read, Update and Delete items from backend service
 
 * To Create, Read, Update and Delete (CRUD) from backend or DataBase,
   ```dart
@@ -570,7 +585,9 @@ Calling `refresh` will cancel any pending async task from the state before refre
 
   [🗎 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
 
-* To authenticate and authorize users,
+## Authentication and authorization
+
+To authenticate and authorize users,
   ```dart
   final user = RM.injectAuth<User, Param>(
       ()=> MyAuthRepository(),//Implements IAuth<User, Param>
@@ -593,37 +610,8 @@ Calling `refresh` will cancel any pending async task from the state before refre
   [🗎 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
 
-* Widget-wise state (overriding the state):
-```dart
-final items = [1,2,3];
-
-final item = RM.inject(()=>null);
-
-class App extends StatelessWidget{
-  build (context){
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (BuildContext context, int index) {
-        return item.inherited( //inherited uses the InheritedWidget concept
-          stateOverride: () => items[index],
-          builder: () {
-
-            return const ItemWidget();
-            //Inside ItemWidget you can use the buildContext to get 
-            //the right state for each widget branch using:
-            item.of(context); //the Element owner of context is registered to item model.
-            //or
-            item(context) //the Element owner of context is not registered to item model.
-          }
-        );
-      },
-    );
-  }
-}
-```
-  [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api).
-
-* To dynamically switch themes,
+## Dynamic theme switching
+To dynamically switch themes,
   ```dart
   final theme = RM.injectTheme<String>(
       lightThemes : {
@@ -648,7 +636,9 @@ class App extends StatelessWidget{
 
   [🗎 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
 
-* To internationalize and localize your app:
+## App internationalization
+
+To internationalize and localize your app:
   ```dart
   //US english
   class EnUS {
@@ -682,7 +672,8 @@ class App extends StatelessWidget{
 
   [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
 
-  * To set an animation:
+To set an animation:
+## Implicit and explicit animation
   ```dart
   final animation = RM.injectAnimation(
     duration: const Duration(seconds: 1),
@@ -694,8 +685,9 @@ class App extends StatelessWidget{
   For Implicit animation
   ```dart
   Center(
-    child: On.animation(
-        (animate) => Container(
+    child: OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) => Container(
             // Animate is a callable class
             width: animate.call(selected ? 200.0 : 100.0),
             height: animate(selected ? 100.0 : 200.0, 'height'),
@@ -703,24 +695,27 @@ class App extends StatelessWidget{
             alignment: animate(selected ? Alignment.center : AlignmentDirectional.topCenter),
             child: const FlutterLogo(size: 75),
         ),
-    ).listenTo(animation),
+    ),
   ),
   ```
   For explicit animation
   ```dart
-  On.animation(
-    (animate) => Transform.rotate(
+  OnAnimationBuilder(
+    listenTo: animation,
+    builder: (animate) => Transform.rotate(
     angle: animate.formTween(
         (currentValue) => Tween(begin: 0, end: 2 * 3.14),
     )!,
     child: const FlutterLogo(size: 75),
     ),
-  ).listenTo(animation),
+  ),
   ```
 
   [🗎 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
 
-  * To deal with TextFields and Form validation
+## Working with TextFields and Form validation
+
+To deal with TextFields and Form validation
   ```dart
   final email =  RM.injectTextEditing():
 
@@ -764,8 +759,9 @@ class App extends StatelessWidget{
 
   In the UI:
   ```dart
-    On.form(
-      () => Column(
+    OnFormBuilder(
+      listenTo: form,
+      builder: () => Column(
         children: <Widget>[
             TextField(
                 focusNode: email.focusNode,
@@ -789,7 +785,8 @@ class App extends StatelessWidget{
                   form.submitFocusNode.requestFocus();
                 },
             ),
-            On.submission(
+            OnFormSubmissionBuilder(
+              listenTo: form,
               onSubmitting: () => CircularProgressIndicator(),
               child : ElevatedButton(
                 focusNode: form.submitFocusNode,
@@ -798,13 +795,15 @@ class App extends StatelessWidget{
                 },
                 child: Text('Submit'),
               ),
-            ).listenTo(form),     
+            ),     
         ],
       ),
-  ).listenTo(form),
+  ),
   ```
 
   [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
+
+## Working with scrollable view
 
   * To work with scrolling list:
   ```dart
@@ -838,16 +837,18 @@ class App extends StatelessWidget{
 
   [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
 
-* To mock it in test:
+## Working with tab views
+  <!-- //TODO to ba added -->
+
+## Test and injected state mocking
+
+All Injected state can be mocked for test.
+To mock it in test:
   ```dart
-    // You can even mock the mocked implementation
     model.injectMock(()=> MyMockModel());
-  ```
-  Similar to `RM.inject` there are:
-  ```dart
-  RM.injectFuture  // For Future, 
-  RM.injectStream, // For Stream,
-  RM.injectFlavor  // For flavor and development environment
+    model.injectFutureMock(()=> MyMockModel());
+    products.injectCRUDMock(()=> MockRepository())
+    user.injectAuthMock(()=> MockAuthRepository())
   ```
 
 And many more features.

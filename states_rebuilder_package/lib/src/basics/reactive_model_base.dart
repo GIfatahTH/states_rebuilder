@@ -96,7 +96,7 @@ class ReactiveModelBase<T> {
   Completer<dynamic>? _endStreamCompleter;
 
   ///SnapState listeners
-  final listeners = ReactiveModelListener<T>();
+  late final listeners = ReactiveModelListener<T>();
   final String? debugPrintWhenNotifiedPreMessage;
 
   ///Used to refresh the state
@@ -108,11 +108,17 @@ class ReactiveModelBase<T> {
     required SnapState<T>? Function(SnapState<T> snap) middleState,
     required SnapState<T>? Function(SnapState<T> snap) onDone,
   }) {
-    _initialStateCreator = setStateFn(
-      (_) => middleCreator(creator),
-      middleState: middleState,
-      onDone: onDone,
-    );
+    _initialStateCreator = () {
+      final cachedAddToObs = OnReactiveState.addToObs;
+      OnReactiveState.addToObs = null;
+      final r = setStateFn(
+        (_) => middleCreator(creator),
+        middleState: middleState,
+        onDone: onDone,
+      )();
+      OnReactiveState.addToObs = cachedAddToObs;
+      return r;
+    };
   }
 
   void _cancelSubscription() {
@@ -200,7 +206,7 @@ class ReactiveModelBase<T> {
       } catch (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
-
+          StatesRebuilerLogger.log('', err, s);
           rethrow;
         }
         //In the other hand Exception are handled
@@ -309,6 +315,10 @@ class ReactiveModelBase<T> {
     );
     listeners.cleanState();
   }
+}
+
+void resetReactiveModelBase(ReactiveModelBase rm) {
+  rm._isInitialized = false;
 }
 
 T? _getPrimitiveNullState<T>() {

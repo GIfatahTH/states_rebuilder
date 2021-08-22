@@ -4,20 +4,23 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() async {
   StatesRebuilerLogger.isTestMode = true;
-  testWidgets('throw if not localStorage provider is given', (tester) async {
-    expect(
-      () {
-        RM.inject<int>(
-          () => 0,
-          persist: () => PersistState(
-            key: 'counter',
-            catchPersistError: true,
-          ),
-        );
-      },
-      throwsAssertionError,
-    );
-  });
+  // testWidgets('throw if not localStorage provider is given', (tester) async {
+  //   final rm = RM.inject<int>(
+  //     () => 0,
+  //     persist: () => PersistState(
+  //       key: 'counter',
+  //       catchPersistError: true,
+  //     ),
+  //   );
+  //   expect(
+  //     () {
+  //       try {
+  //         return rm.state;
+  //       } catch (e) {}
+  //     },
+  //     throwsAssertionError,
+  //   );
+  // });
 
   testWidgets(
     'test toString',

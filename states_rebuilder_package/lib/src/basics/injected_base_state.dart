@@ -1,7 +1,10 @@
 part of '../rm.dart';
 
+T getInjectedState<T>(InjectedBaseState<T> inj) => inj._state;
+
 abstract class InjectedBaseState<T> {
   late ReactiveModelBase<T> _reactiveModelState;
+  bool get autoDisposeWhenNotUsed => _reactiveModelState.autoDisposeWhenNotUsed;
 
   ///Get the current state.
   ///
@@ -13,7 +16,7 @@ abstract class InjectedBaseState<T> {
   ///do not define an initial state, it will throw an Argument Error. So,
   ///make sure to define an initial state, or to wait until the Future or
   ///Stream has data.
-  T get state {
+  T get _state {
     final s = _reactiveModelState.snapState.data;
     if (!snapState._isNullable && s == null) {
       var m = '$T';
@@ -32,8 +35,13 @@ abstract class InjectedBaseState<T> {
         '3- Make the state nullable. ($T?).\n',
       );
     }
-    OnReactiveState.addToObs?.call(this);
     return s as T;
+  }
+
+  T get state {
+    final s = _state;
+    OnReactiveState.addToObs?.call(this);
+    return s;
   }
 
   // T get stateObs {
@@ -86,7 +94,44 @@ abstract class InjectedBaseState<T> {
     return _reactiveModelState._snapState.hasError;
   }
 
-  ///The state is Active
+  ///Whether the state is active or not.
+  ///
+  ///Active state means the the state had data at least once.
+  ///
+  ///By default the state starts with isActive=false, and after the first mutation
+  ///with data the isActive becomes true, and remains in this state until the
+  ///state is disposed.
+  ///
+  ///Useful if you want to call onWaiting only one time during initialization.
+  ///
+  ///Example refresh fetched list of products using RefreshIndicator:
+  ///```dart
+  ///class App extends StatelessWidget {
+  ///  @override
+  ///  Widget build(BuildContext context) {
+  ///    return RefreshIndicator(
+  ///      onRefresh: () => products.refresh(),
+  ///      child: OnReactive(
+  ///        () => products.onOrElse(
+  ///          // show a CircularProgressIndicator
+  ///          //for the first fetch of products
+  ///          onWaiting: !products.isActive ?
+  ///                       () => CircularProgressIndicator()
+  ///                       : null,
+  ///          orElse: (_) {
+  ///            return ListView.builder(
+  ///              itemCount: products.state.length,
+  ///              itemBuilder: (context, index) {
+  ///                return Text(products.state[index]);
+  ///              },
+  ///            );
+  ///          },
+  ///        ),
+  ///      ),
+  ///    );
+  ///  }
+  ///}
+  ///```
   bool get isActive {
     OnReactiveState.addToObs?.call(this);
     return _reactiveModelState._snapState.isActive;
@@ -98,26 +143,26 @@ abstract class InjectedBaseState<T> {
     return _reactiveModelState._snapState.error;
   }
 
-  R onOr<R>({
+  R onOrElse<R>({
     R Function()? onIdle,
     R Function()? onWaiting,
     R Function(dynamic error, VoidCallback refreshError)? onError,
     R Function(T data)? onData,
-    required R Function(T data) or,
+    required R Function(T data) orElse,
   }) {
     OnReactiveState.addToObs?.call(this);
-    return _reactiveModelState.snapState.onOr<R>(
+    return _reactiveModelState.snapState.onOrElse<R>(
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
-      or: or,
+      orElse: orElse,
     );
   }
 
   R onAll<R>({
     R Function()? onIdle,
-    required R Function() onWaiting,
-    required R Function(dynamic error, VoidCallback refreshError) onError,
+    required R Function()? onWaiting,
+    required R Function(dynamic error, VoidCallback refreshError)? onError,
     required R Function(T data) onData,
   }) {
     OnReactiveState.addToObs?.call(this);

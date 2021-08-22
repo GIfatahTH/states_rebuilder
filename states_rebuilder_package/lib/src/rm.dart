@@ -639,13 +639,43 @@ abstract class RM {
     );
   }
 
-  static InjectedTab injectTab({
+  ///Injected a TabController and/or a PageController
+  ///
+  ///It combines both controller to use the best of them.
+  ///
+  ///* **initialIndex** The initial index the app start with.
+  ///
+  ///* **length** The total number of tabs
+  ///Typically greater than one. Must match [TabBar.tabs]'s and
+  ///[TabBarView.children]'s length.
+  ///
+  ///* **duration** The duration the page/tab transition takes. Defaults to
+  ///Duration(milliseconds: 300)
+  ///
+  ///* **curve** The curve the page/tab animation transition takes. Defaults to
+  ///Curves.ease
+  ///
+  ///* **keepPage** Save the current [page] with [PageStorage] and restore it if this
+  ///controller's scrollable is recreated. See [PageController.keepPage]
+  ///
+  ///* **viewportFraction** The fraction of the viewport that each page should occupy.
+  ///Defaults to 1.0, which means each page fills the viewport in the
+  ///scrolling direction. See [PageController.viewportFraction]
+  static InjectedTab injectTabPage({
     int initialIndex = 0,
     required int length,
+    Duration duration = kTabScrollDuration,
+    Curve curve = Curves.ease,
+    bool keepPage = true,
+    double viewportFraction = 1.0,
   }) {
     return InjectedTabImp(
       initialIndex: initialIndex,
       length: length,
+      curve: curve,
+      duration: duration,
+      keepPage: keepPage,
+      viewportFraction: viewportFraction,
     );
   }
 

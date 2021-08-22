@@ -17,13 +17,13 @@ void main() {
             print('initState');
           },
           dispose: () {},
-          onAfterBuild: On(() {
+          onAfterBuild: () {
             print('onAfterBuild');
-          }),
+          },
           onSetState: On(() {
             print('onSetState');
           }),
-          shouldRebuild: (_) {
+          shouldRebuild: (_, __) {
             return true;
           },
           // watch: () {},
@@ -44,20 +44,20 @@ void main() {
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: model.rebuild.onData(
-          () {
-            return Text(model.state.toString());
+          (data) {
+            return Text(data.toString());
           },
           initState: () {
             print('initState');
           },
           dispose: () {},
-          onAfterBuild: On(() {
+          onAfterBuild: () {
             print('onAfterBuild');
-          }),
-          onSetState: On(() {
+          },
+          onSetState: (_) {
             print('onSetState');
-          }),
-          shouldRebuild: (_) {
+          },
+          shouldRebuild: (_, __) {
             return true;
           },
           // watch: () {},
@@ -83,18 +83,18 @@ void main() {
           onIdle: () => Text('onIdle'),
           onWaiting: () => Text('onWaiting'),
           onError: (err, refresh) => Text('onError'),
-          onData: () => Text('onData'),
+          onData: (_) => Text('onData'),
           initState: () {
             print('initState');
           },
           dispose: () {},
-          onAfterBuild: On(() {
+          onAfterBuild: () {
             print('onAfterBuild');
-          }),
-          onSetState: On(() {
+          },
+          onSetState: (_) {
             print('onSetState');
-          }),
-          shouldRebuild: (_) {
+          },
+          shouldRebuild: (_, __) {
             return true;
           },
           // watch: () {},
@@ -117,22 +117,22 @@ void main() {
       final model = RM.inject(() => 0);
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: model.rebuild.onOr(
+        child: model.rebuild.onOrElse(
           onIdle: () => Text('onIdle'),
           onWaiting: () => Text('onWaiting'),
           onError: (err, refresh) => Text('onError'),
-          or: () => Text('onData'),
+          orElse: (_) => Text('onData'),
           initState: () {
             print('initState');
           },
           dispose: () {},
-          onAfterBuild: On(() {
+          onAfterBuild: () {
             print('onAfterBuild');
-          }),
-          onSetState: On(() {
+          },
+          onSetState: (_) {
             print('onSetState');
-          }),
-          shouldRebuild: (_) {
+          },
+          shouldRebuild: (_, __) {
             return true;
           },
           // watch: () {},

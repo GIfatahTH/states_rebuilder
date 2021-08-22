@@ -11,6 +11,8 @@ part 'on_auth.dart';
 abstract class InjectedAuth<T, P> implements Injected<T> {
   IAuth<T, P>? _repo;
 
+  T get _state => getInjectedState(this);
+
   ///Get the auth repository
   R getRepoAs<R extends IAuth<T, P>>() {
     if (_repo != null) {
@@ -213,7 +215,7 @@ class _AuthService<T, P> {
       onSetState: onError != null ? On.error(onError) : null,
     );
     _onSignInOut = null;
-    return injected.state;
+    return injected._state;
   }
 
   ///Sign up
@@ -242,7 +244,7 @@ class _AuthService<T, P> {
       onSetState: onError != null ? On.error(onError) : null,
     );
     _onSignInOut = null;
-    return injected.state;
+    return injected._state;
   }
 
   void _onError(void Function()? onAuthenticated) {
@@ -262,7 +264,7 @@ class _AuthService<T, P> {
 
   void _onData(void Function()? onAuthenticated) {
     onAuthenticated?.call();
-    if (injected.state == injected.unsignedUser) {
+    if (injected._state == injected.unsignedUser) {
       _cancelTimer();
       if (onAuthenticated == null) {
         injected.onUnsigned?.call();
@@ -271,7 +273,7 @@ class _AuthService<T, P> {
       _persist();
       _autoSignOut();
       if (onAuthenticated == null) {
-        injected.onSigned?.call(injected.state);
+        injected.onSigned?.call(injected._state);
       }
     }
     _onSignInOut = null;
@@ -285,7 +287,7 @@ class _AuthService<T, P> {
     if (injected.autoSignOut != null) {
       _cancelTimer();
       _authTimer = Timer(
-        injected.autoSignOut!(injected.state),
+        injected.autoSignOut!(injected._state),
         () => signOut(),
       );
     }

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/src/builders/on_reactive.dart';
 
 import '../../rm.dart';
 
@@ -10,12 +13,12 @@ class _RebuildTab {
 
   ///Listen to the [InjectedTab] and rebuild when tab index is changed.
   Widget onTab(
-    Widget Function() builder, {
+    Widget Function(int index) builder, {
     Key? key,
   }) {
-    return On.tab(builder).listenTo(
-      _injected,
-      key: key,
+    return OnTabBuilder(
+      listenTo: _injected,
+      builder: builder,
     );
   }
 }
@@ -23,27 +26,63 @@ class _RebuildTab {
 abstract class InjectedTab implements InjectedBaseState<int> {
   ///Listen to the [InjectedTab] and rebuild when tab index is changed.
   late final rebuild = _RebuildTab(this);
-  TabController? _controller;
+  TabController? _tabController;
+  PageController? _pageController;
 
-  TabController get controller {
-    assert(_controller != null);
-    return _controller!;
+  TabController get tabController {
+    assert(
+        _tabController != null,
+        'TabController is not initialized yet. '
+        'You have to wrap the TabBarView or TabBar widget with the OnTabBuilder widget');
+    return _tabController!;
   }
 
+  PageController get pageController;
+  int? get _page => _pageController?.page?.round();
+
   ///The index of the currently selected tab.
-  int get index => _controller!.index;
+  int get index {
+    return state;
+    // if (_tabController != null) {
+    //   return _tabController!.index;
+    // }
+    // assert(_pageController != null);
+    // if (_pageController!.positions.isNotEmpty) {
+    //   return _page!;
+    // }
+    // return (this as InjectedTabImp).initialIndex;
+  }
+
   set index(int i) {
     if (i == snapState.data) {
       return;
     }
-    _controller!.index = i;
+    if (_tabController != null) {
+      _tabController!.animateTo(
+        i,
+        duration: (this as InjectedTabImp).duration,
+        curve: (this as InjectedTabImp).curve,
+      );
+    } else {
+      assert(_pageController != null);
+      _pageController!.animateToPage(
+        i,
+        duration: (this as InjectedTabImp).duration,
+        curve: (this as InjectedTabImp).curve,
+      );
+    }
   }
 
+  late int length;
+
+  bool _pageIndexIsChanging = false;
+
   ///The index of the previously selected tab.
-  int get previousIndex => _controller!.previousIndex;
+  int get previousIndex => _tabController!.previousIndex;
 
   ///True while we're animating from [previousIndex] to [index] as a consequence of calling [animateTo].
-  bool get indexIsChanging => _controller!.indexIsChanging;
+  bool get indexIsChanging =>
+      _tabController?.indexIsChanging == true || _pageIndexIsChanging;
 
   ///Immediately sets [index] and [previousIndex] and then plays the animation from its current value to [index].
   void animateTo(
@@ -51,45 +90,273 @@ abstract class InjectedTab implements InjectedBaseState<int> {
     Duration duration = kTabScrollDuration,
     Curve curve = Curves.ease,
   }) {
-    _controller!.animateTo(
-      value,
-      duration: duration,
-      curve: curve,
-    );
+    if (_tabController != null) {
+      _tabController!.animateTo(
+        value,
+        duration: duration,
+        curve: curve,
+      );
+    } else {
+      assert(_pageController != null);
+      if (duration == Duration.zero) {
+        _pageController?.jumpToPage(value);
+      } else {
+        _pageController?.animateToPage(
+          value,
+          duration: duration,
+          curve: curve,
+        );
+      }
+    }
   }
+
+  /// Animates the controlled pages/tabs to the next page/tab.
+  ///
+  /// The animation lasts for the default duration and follows the default curve.
+  /// The returned [Future] resolves when the animation completes.
+  ///
+  Future<void> nextPage() async {
+    if (indexIsChanging) {
+      return;
+    }
+    if (_tabController != null) {
+      if (index + 1 < _tabController!.length) {
+        final future = Completer();
+        _tabController!.animateTo(
+          index + 1,
+          duration: (this as InjectedTabImp).duration,
+          curve: (this as InjectedTabImp).curve,
+        );
+        if ((this as InjectedTabImp).duration == Duration.zero) {
+          return;
+        }
+        var listener;
+        listener = (status) {
+          if (status == AnimationStatus.completed) {
+            future.complete();
+            _tabController!.animation?.removeStatusListener(listener);
+          }
+        };
+        _tabController!.animation?.addStatusListener(listener);
+        return future.future;
+      }
+    } else {
+      assert(_pageController != null);
+      return _pageController!.nextPage(
+        duration: (this as InjectedTabImp).duration,
+        curve: (this as InjectedTabImp).curve,
+      );
+    }
+  }
+
+  /// Animates the controlled pages/tabs to the previous page/tab.
+  ///
+  /// The animation lasts for the default duration and follows the default curve.
+  /// The returned [Future] resolves when the animation completes.
+  ///
+  Future<void> previousPage() async {
+    if (indexIsChanging) {
+      return;
+    }
+    if (_tabController != null) {
+      if (index - 1 >= 0) {
+        final future = Completer();
+        _tabController!.animateTo(
+          index - 1,
+          duration: (this as InjectedTabImp).duration,
+          curve: (this as InjectedTabImp).curve,
+        );
+        if ((this as InjectedTabImp).duration == Duration.zero) {
+          return;
+        }
+        var listener;
+        listener = (status) {
+          if (status == AnimationStatus.completed) {
+            future.complete();
+            _tabController!.animation?.removeStatusListener(listener);
+          }
+        };
+        _tabController!.animation?.addStatusListener(listener);
+        return future.future;
+      }
+    } else {
+      assert(_pageController != null);
+      return _pageController!.previousPage(
+        duration: (this as InjectedTabImp).duration,
+        curve: (this as InjectedTabImp).curve,
+      );
+    }
+  }
+
+  // Future<void> toLastPage() async {
+  //   animateTo(length - 1);
+  // }
+
+  // Future<void> toFirstPage() async {
+  //   animateTo(0);
+  // }
 }
 
 class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
   InjectedTabImp({
     this.initialIndex = 0,
-    required this.length,
-  }) : super(creator: () => initialIndex);
+    required int length,
+    this.duration: kTabScrollDuration,
+    this.curve: Curves.ease,
+    this.viewportFraction = 1.0,
+    this.keepPage = true,
+  })  : this._length = length,
+        _initialLength = length,
+        _initialIndex = initialIndex,
+        super(creator: () => initialIndex);
 
-  final int initialIndex;
-  final int length;
+  ///The initial index the app start with.
+  int initialIndex;
+  final int _initialIndex;
 
-  void initialize(TickerProvider ticker) {
-    if (_controller != null) {
+  ///The total number of tabs.
+  ///
+  ///Typically greater than one. Must match [TabBar.tabs]'s and
+  ///[TabBarView.children]'s length.
+  late int _length;
+  final int _initialLength;
+
+  @override
+  int get length {
+    OnReactiveState.addToObs?.call(this);
+    return _length;
+  }
+
+  @override
+  set length(int l) {
+    assert(l > 1);
+    if (_length == l) {
       return;
     }
-    _controller = TabController(
-      vsync: ticker,
+    _length = l;
+    initialIndex = _page ?? index;
+    if (initialIndex > l - 1) {
+      initialIndex = l - 1;
+    }
+    if (_tabController != null) {
+      _tabController!.index = initialIndex;
+      _tabController!.dispose();
+      _tabController = null;
+      initialize();
+    }
+    index = initialIndex;
+    snapState = SnapState.data(initialIndex);
+    notify();
+  }
+
+  ///The duration the page/tab transition takes.
+  final Duration duration;
+
+  ///The curve the page/tab animation transition takes.
+  final Curve curve;
+
+  ///ONLY for PageView
+  ///
+  ///The fraction of the viewport that each page should occupy.
+  ///Defaults to 1.0, which means each page fills the viewport in the
+  ///scrolling direction.
+  ///
+  ///See [PageController.viewportFraction]
+  final double viewportFraction;
+
+  ///ONLY for PageView
+  ///
+  ///Save the current [page] with [PageStorage] and restore it if this
+  ///controller's scrollable is recreated.
+  ///
+  ///See [PageController.keepPage]
+  final bool keepPage;
+
+  TickerProvider? _ticker;
+  void initialize([TickerProvider? ticker]) {
+    _ticker ??= ticker;
+    if (_tabController != null) {
+      return;
+    }
+    assert(length > 0, 'The length must be defined and greater than one');
+    _tabController = TabController(
+      vsync: _ticker!,
       length: length,
       initialIndex: initialIndex,
     );
-    _controller!.addListener(() {
-      if (snapState.data == _controller!.index) {
+    snapState = SnapState.data(initialIndex);
+
+    _tabController!.addListener(() {
+      if (snapState.data == _tabController!.index) {
         return;
       }
-      snapState = SnapState.data(_controller!.index);
+      snapState = SnapState.data(_tabController!.index);
+      if (!_pageIndexIsChanging) {
+        if (duration == Duration.zero) {
+          _pageController?.jumpToPage(
+            _tabController!.index,
+          );
+        } else {
+          _pageController?.animateToPage(
+            _tabController!.index,
+            duration: duration,
+            curve: curve,
+          );
+        }
+      }
       notify();
     });
   }
 
   @override
+  PageController get pageController {
+    if (_pageController != null) {
+      return _pageController!;
+    }
+
+    _pageController = PageController(
+      initialPage: initialIndex,
+      keepPage: keepPage,
+      viewportFraction: viewportFraction,
+    );
+
+    _pageController!.addListener(() {
+      if (snapState.data == _page!) {
+        return;
+      }
+      if (_tabController?.indexIsChanging == true) {
+        return;
+      }
+      if (_tabController != null) {
+        _pageIndexIsChanging = true;
+        if (_page! >= _tabController!.length) {
+          return;
+        }
+        _tabController?.animateTo(
+          _page!,
+          duration: duration,
+          curve: curve,
+        );
+        _pageIndexIsChanging = false;
+      } else {
+        snapState = SnapState.data(_page!);
+        notify();
+      }
+    });
+
+    return _pageController!;
+  }
+
+  @override
   void dispose() {
     super.dispose();
-    controller.dispose();
-    _controller = null;
+    _tabController?.dispose();
+    _tabController = null;
+    _pageController?.dispose();
+    _pageController = null;
+    _pageIndexIsChanging = false;
+    _ticker = null;
+    _length = _initialLength;
+    initialIndex = _initialIndex;
   }
 }

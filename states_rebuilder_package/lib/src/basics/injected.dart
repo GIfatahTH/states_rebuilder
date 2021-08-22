@@ -221,7 +221,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
 
     if (_inheritedInjected != null) {
       if (_inheritedInjected.globalInjected == this) {
-        return _inheritedInjected.injected.state;
+        return _inheritedInjected.injected._state;
       } else {
         return of(
           _inheritedInjected.context,
@@ -230,7 +230,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
       }
     }
     if (defaultToGlobal) {
-      return state;
+      return _state;
     }
     throw Exception('No InheritedWidget of type $T is found');
     // return null;

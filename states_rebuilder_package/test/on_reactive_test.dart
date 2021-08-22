@@ -332,10 +332,10 @@ void main() {
               Builder(
                 builder: (_) {
                   // print(counter2.state);
-                  return counter2.onOr(
+                  return counter2.onOrElse(
                     onWaiting: () => Text('isWaiting'),
                     onError: (_, __) => Text('error'),
-                    or: (data) => Text(data.toString()),
+                    orElse: (data) => Text(data.toString()),
                   );
                 },
               ),
@@ -378,20 +378,20 @@ void main() {
             children: [
               Builder(
                 builder: (_) {
-                  return counter.onOr(
+                  return counter.onOrElse(
                     onIdle: () => Text('isIdle'),
                     onWaiting: () => Text('isWaiting'),
                     onError: (_, __) => Text('error'),
-                    or: (data) => Text(data.toString()),
+                    orElse: (data) => Text(data.toString()),
                   );
                 },
               ),
               Builder(
                 builder: (_) {
-                  return counter2.onOr(
+                  return counter2.onOrElse(
                     onWaiting: () => Text('isWaiting'),
                     onError: (_, __) => Text('error'),
-                    or: (data) => Text(data.toString()),
+                    orElse: (data) => Text(data.toString()),
                   );
                 },
               ),
@@ -487,6 +487,68 @@ void main() {
       await tester.pump();
       expect(find.text('1'), findsNWidgets(1));
       expect(find.text('10'), findsNWidgets(1));
+    },
+  );
+
+  testWidgets(
+    'WHEN a state is removed inside OnReactive'
+    'THEN it will be removed from listener and disposed if has no observers',
+    (tester) async {
+      bool isDisposed1 = false;
+      bool isDisposed2 = false;
+      final switcher = true.inj();
+      final counter1 = RM.inject(
+        () => 0,
+        onDisposed: (_) {
+          isDisposed1 = true;
+        },
+      );
+      final counter2 = RM.inject(
+        () => 0,
+        onDisposed: (_) {
+          isDisposed2 = true;
+        },
+      );
+      final counter3 = 0.inj();
+      //
+      final widget = OnReactive(() {
+        return Column(
+          children: [
+            if (switcher.state) Text('${counter1.state}'),
+            if (switcher.state) Text('${counter2.state}'),
+            Text('${counter3.state}'),
+          ],
+        );
+      });
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: [
+            widget,
+            OnReactive(() => Text('${counter2.state}')),
+          ],
+        ),
+      ));
+      expect(find.text('0'), findsNWidgets(4));
+      expect(isDisposed1, false);
+      expect(isDisposed2, false);
+
+      //
+      switcher.toggle();
+      await tester.pump();
+      expect(find.text('0'), findsNWidgets(2));
+      expect(isDisposed1, true);
+      expect(isDisposed2, false);
+      counter3.state++;
+      await tester.pump();
+      expect(find.text('1'), findsNWidgets(1));
+      counter2.state++;
+      await tester.pump();
+      expect(find.text('1'), findsNWidgets(2));
+      counter1.state++;
+      await tester.pump();
+      expect(find.text('1'), findsNWidgets(2));
+      //
     },
   );
 }

@@ -1591,7 +1591,7 @@ void main() {
       () => 0,
       onData: (_) => numberOfOnData++,
     );
-    final widget = counter.rebuild.onOr(or: () {
+    final widget = counter.rebuild.onOrElse(orElse: (_) {
       numberOfRebuild++;
       return Container();
     });

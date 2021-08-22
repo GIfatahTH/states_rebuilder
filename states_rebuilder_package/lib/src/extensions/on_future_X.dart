@@ -159,19 +159,19 @@ extension OnFutureX<F> on OnFuture<F> {
 
             return On(() {
               if (inj.snapState.isWaiting) {
-                return _onWaiting?.call() ?? _onData(inj.state, _refresher);
+                return _onWaiting?.call() ?? _onData(inj._state, _refresher);
               }
               if (inj.snapState.hasError) {
                 return _onError?.call(
                       inj.error,
                       _refresher,
                     ) ??
-                    _onData(inj.state, _refresher);
+                    _onData(inj._state, _refresher);
               }
               return injected != null
-                  ? On.data(() => _onData(inj.state, _refresher))
+                  ? On.data(() => _onData(inj._state, _refresher))
                       .listenTo(injected)
-                  : _onData(inj.state, _refresher);
+                  : _onData(inj._state, _refresher);
             }).listenTo<F>(
               inj,
               onSetState: onSetState,

@@ -9,7 +9,7 @@ class _InjectedListXBuilder {
 
   /// {@macro injected.rebuild.call}
   Widget call(
-    Widget Function() builder, {
+    Widget Function(dynamic data) builder, {
     void Function()? initState,
     void Function()? dispose,
     Object Function()? watch,
@@ -17,7 +17,7 @@ class _InjectedListXBuilder {
     Key? key,
   }) {
     return OnCombined.data(
-      (_) => builder(),
+      (_) => builder(_),
     ).listenTo<dynamic>(
       injects,
       initState: initState != null ? () => initState() : null,
@@ -31,7 +31,7 @@ class _InjectedListXBuilder {
   Widget onAll({
     required Widget Function() onIdle,
     required Widget Function() onWaiting,
-    required Widget Function() onData,
+    required Widget Function(dynamic data) onData,
     required Widget Function(dynamic) onError,
     void Function()? initState,
     void Function()? dispose,
@@ -42,7 +42,7 @@ class _InjectedListXBuilder {
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: (err, _) => onError(err),
-      onData: (_) => onData(),
+      onData: (_) => onData(_),
     ).listenTo<dynamic>(
       injects,
       initState: initState != null ? () => initState() : null,
@@ -52,12 +52,12 @@ class _InjectedListXBuilder {
   }
 
   /// {@macro injected.rebuild.onOr}
-  Widget onOr({
+  Widget onOrElse({
     Widget Function()? onIdle,
     Widget Function()? onWaiting,
     Widget Function(dynamic)? onError,
-    Widget Function()? onData,
-    required Widget Function() builder,
+    Widget Function(dynamic data)? onData,
+    required Widget Function(dynamic data) orElse,
     void Function()? initState,
     void Function()? dispose,
     Object Function()? watch,
@@ -68,8 +68,8 @@ class _InjectedListXBuilder {
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError != null ? (err, _) => onError(err) : null,
-      onData: onData == null ? null : (_) => onData(),
-      or: (_) => builder(),
+      onData: onData == null ? null : (_) => onData(_),
+      or: (_) => orElse(_),
     ).listenTo<dynamic>(
       injects,
       initState: initState != null ? () => initState() : null,

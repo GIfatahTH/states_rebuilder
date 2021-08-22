@@ -46,16 +46,24 @@ class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     if (!_isMounted) {
       removeFromContextSet = addToContextSet(context);
       _builder.mountedState?.call(context);
+      OnReactiveState.addToObs = cachedAddToObs;
       _isMounted = true;
     }
+    _builder.didChangeDependencies?.call(context);
+    OnReactiveState.addToObs = cachedAddToObs;
   }
 
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     _builder.didUpdateWidget?.call(context, oldWidget.widget, widget.widget);
+    OnReactiveState.addToObs = cachedAddToObs;
   }
 
   void dispose() {
@@ -121,14 +129,21 @@ class _StateBuilderBase<T> extends State<StateBuilderBaseWithTicker<T>> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     if (!_isMounted) {
       _builder.mountedState?.call(context);
       _isMounted = true;
     }
+    _builder.didChangeDependencies?.call(context);
+    OnReactiveState.addToObs = cachedAddToObs;
   }
 
   void didUpdateWidget(oldWidget) {
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     super.didUpdateWidget(oldWidget);
+    OnReactiveState.addToObs = cachedAddToObs;
     _builder.didUpdateWidget?.call(context, oldWidget.widget, widget.widget);
   }
 
@@ -163,7 +178,7 @@ class _StateBuilderBaseWithOutTicker<T> extends _StateBuilderBase<T> {
 }
 
 class _StateBuilderBaseWithTickerState<T> extends _StateBuilderBase<T>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();

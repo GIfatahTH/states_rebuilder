@@ -53,7 +53,8 @@ extension InjectedX<T> on ReactiveModel<T> {
           builder,
           initState: initState != null ? () => initState() : null,
           dispose: dispose != null ? () => dispose() : null,
-          shouldRebuild: shouldRebuild != null ? (_) => shouldRebuild() : null,
+          shouldRebuild:
+              shouldRebuild != null ? (_, __) => shouldRebuild() : null,
           watch: watch,
         );
     // return On.data(builder).listenTo<T>(
@@ -119,11 +120,11 @@ extension InjectedX<T> on ReactiveModel<T> {
             onIdle: onIdle,
             onWaiting: onWaiting,
             onError: (err, _) => onError(err),
-            onData: onData,
+            onData: (_) => onData(),
             initState: initState != null ? () => initState() : null,
             dispose: dispose != null ? () => dispose() : null,
             shouldRebuild:
-                shouldRebuild != null ? (_) => shouldRebuild() : null,
+                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
           );
 
   /// {@template injected.whenRebuilderOr}
@@ -185,16 +186,16 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      this.rebuild.onOr(
+      this.rebuild.onOrElse(
             onIdle: onIdle,
             onWaiting: onWaiting,
             onError: onError != null ? (err, _) => onError(err) : null,
-            onData: onData,
-            or: builder,
+            onData: onData != null ? (_) => onData() : null,
+            orElse: (_) => builder(),
             initState: initState != null ? () => initState() : null,
             dispose: dispose != null ? () => dispose() : null,
             shouldRebuild:
-                shouldRebuild != null ? (_) => shouldRebuild() : null,
+                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
             watch: watch,
           );
 
@@ -280,7 +281,7 @@ extension InjectedX<T> on ReactiveModel<T> {
                   d as T,
                 );
                 if (onSetState?._onData == null) {
-                  inj.onDataForSideEffect?.call(inj.state);
+                  inj.onDataForSideEffect?.call(inj._state);
                 }
                 disposer?.call();
                 disposer = null;
@@ -397,7 +398,7 @@ extension InjectedX<T> on ReactiveModel<T> {
                     d,
                   );
                   if (onSetState?._onData == null) {
-                    inj.onDataForSideEffect?.call(inj.state);
+                    inj.onDataForSideEffect?.call(inj._state);
                   }
                 }
                 data = d;

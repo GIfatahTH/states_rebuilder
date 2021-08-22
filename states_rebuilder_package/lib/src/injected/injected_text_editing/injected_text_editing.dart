@@ -10,6 +10,8 @@ part 'on_form_submission.dart';
 abstract class InjectedTextEditing implements InjectedBaseState<String> {
   TextEditingControllerImp? _controller;
 
+  String get _state => getInjectedState(this);
+
   ///A controller for an editable text field.
   TextEditingControllerImp get controller;
 
@@ -174,10 +176,20 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       ),
       inj: this,
     );
+    if (_validator == null) {
+      //If the field is not validate then set its snapshot to hasData, so that
+      //in the [InjectedForm.isValid] consider it as a valid field
+      snapState = snapState.copyToHasData(text);
+    }
 
+    // else {
+    //   //IF there is a validator, then set with idle flag so that isValid
+    //   //is false unless validator is called
+    //   snapState = snapState.copyToIsIdle(this.text);
+    // }
     _controller!.addListener(() {
       onTextEditing?.call(this);
-      if (state == this.text) {
+      if (_state == this.text) {
         //if only selection is changed notify and return
         notify();
         return;
@@ -188,23 +200,20 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       }
       if (validateOnTyping ?? !(_validateOnLoseFocus ?? false)) {
         validate();
-      } else {
-        if (validator == null) {
-          snapState = snapState.copyToHasData(this.text);
-        } else {
-          //IF there is a validator, then set with idle flag so that isValid
-          //is false unless validator is called
-          snapState = snapState.copyToIsIdle(this.text);
-        }
-        notify();
       }
+
+      // else {
+      //   // if (_validator == null) {
+      //   //   snapState = snapState.copyToHasData(this.text);
+      //   // } else {
+      //   //   //IF there is a validator, then set with idle flag so that isValid
+      //   //   //is false unless validator is called
+      //   //   snapState = snapState.copyToIsIdle(this.text);
+      //   // }
+      //   // notify();
+      // }
     });
 
-    if (validator == null) {
-      //If the field is not validate then set its snapshot to hasData, so that
-      //in the [InjectedForm.isValid] consider it as a valid field
-      snapState = snapState.copyToHasData(text);
-    }
     return _controller!;
   }
 
@@ -278,7 +287,7 @@ class TextEditingControllerImp extends TextEditingController {
     }
     _numberOfAddListener--;
     if (_numberOfAddListener < 3) {
-      if (inj.autoDispose && !inj.hasObservers) {
+      if (inj.autoDispose) {
         inj.dispose();
         return;
       }

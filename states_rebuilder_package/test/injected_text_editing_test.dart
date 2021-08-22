@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  final textEditing = RM.injectTextEditing(text: 'text');
+  final InjectedTextEditing textEditing = RM.injectTextEditing(text: 'text');
 
   testWidgets(
     'WHEN an injected text editing is initialized with a non empty string'
@@ -104,7 +104,7 @@ void main() {
     },
   );
 
-  final form = RM.injectForm();
+  final InjectedForm form = RM.injectForm();
   final name = RM.injectTextEditing(
     validator: (v) => v!.length > 3 ? null : 'Name Error',
   );
@@ -847,6 +847,51 @@ void main() {
       expect(find.text('Submit1'), findsOneWidget);
       expect(find.text('Submit2'), findsOneWidget);
       expect(find.text('Submitting...'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN  TextField is removed'
+    'THEN it will be removed from form text fields list',
+    (tester) async {
+      final form = RM.injectForm();
+      final password = RM.injectTextEditing(text: '12');
+      final confirmPassword = RM.injectTextEditing(
+        validator: (text) {
+          if (text != password.state) {
+            return 'Password do not match';
+          }
+        },
+      );
+
+      final isRegister = true.inj();
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnReactive(
+            () => OnFormBuilder(
+              listenTo: form,
+              builder: () {
+                return Column(children: [
+                  TextField(
+                    controller: password.controller,
+                  ),
+                  if (isRegister.state)
+                    TextField(
+                      controller: confirmPassword.controller,
+                    ),
+                ]);
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(form.isValid, false);
+      isRegister.toggle();
+      await tester.pump();
+      expect(form.isValid, true);
     },
   );
 }

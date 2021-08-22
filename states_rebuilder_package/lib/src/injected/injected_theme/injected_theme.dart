@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+
+import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
 abstract class InjectedTheme<KEY> implements Injected<KEY> {
+  @override
+  KEY get state => getInjectedState(this);
+
   ///Get supported light themes
   Map<KEY, ThemeData> get supportedLightThemes;
 
@@ -173,6 +178,7 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     } else {
       _isDarkTheme = _themeMode == ThemeMode.dark;
     }
+    OnReactiveState.addToObs?.call(this);
     return _isDarkTheme;
   }
 

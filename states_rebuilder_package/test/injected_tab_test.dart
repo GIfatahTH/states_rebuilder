@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/rm.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  final injectedTab = RM.injectTab(
+  final injectedTab = RM.injectTabPage(
     initialIndex: 2,
     length: 5,
   );
@@ -29,22 +29,24 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.tab(
-            () {
+          body: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: (index) {
               numberOfRebuild++;
-              currentIndex = injectedTab.index;
+              currentIndex = index;
               return TabBarView(
-                controller: injectedTab.controller,
+                controller: injectedTab.tabController,
                 children: screens,
               );
             },
-          ).listenTo(injectedTab),
-          bottomNavigationBar: On.tab(
-            () => TabBar(
-              controller: injectedTab.controller,
+          ),
+          bottomNavigationBar: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: (index) => TabBar(
+              controller: injectedTab.tabController,
               tabs: tabs,
             ),
-          ).listenTo(injectedTab),
+          ),
         ),
       );
       //
@@ -89,16 +91,16 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           body: injectedTab.rebuild.onTab(
-            () {
+            (index) {
               return TabBarView(
-                controller: injectedTab.controller,
+                controller: injectedTab.tabController,
                 children: screens,
               );
             },
           ),
           bottomNavigationBar: injectedTab.rebuild.onTab(
-            () => TabBar(
-              controller: injectedTab.controller,
+            (index) => TabBar(
+              controller: injectedTab.tabController,
               tabs: tabs,
             ),
           ),
@@ -124,7 +126,7 @@ void main() {
   testWidgets(
     'OnTabBuilder',
     (tester) async {
-      final injectedTab = RM.injectTab(
+      final injectedTab = RM.injectTabPage(
         length: 5,
       );
       late int currentIndex;
@@ -132,25 +134,26 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: On.tab(
-              () => Text('Tab ${injectedTab.index} is displayed'),
-            ).listenTo(injectedTab),
+            title: OnTabBuilder(
+              listenTo: injectedTab,
+              builder: (index) => Text('Tab $index is displayed'),
+            ),
           ),
           body: OnTabBuilder(
             listenTo: injectedTab,
-            builder: () {
+            builder: (_) {
               return TabBarView(
-                controller: injectedTab.controller,
+                controller: injectedTab.tabController,
                 children: screens,
               );
             },
           ),
           bottomNavigationBar: OnTabBuilder(
             listenTo: injectedTab,
-            builder: () {
+            builder: (_) {
               currentIndex = injectedTab.index;
               return TabBar(
-                controller: injectedTab.controller,
+                controller: injectedTab.tabController,
                 tabs: tabs,
               );
             },
@@ -170,6 +173,463 @@ void main() {
       expect(find.text('Tab1'), findsOneWidget);
       expect(find.text('Tab 1 is displayed'), findsOneWidget);
       expect(currentIndex, 1);
+    },
+  );
+
+  testWidgets(
+    'Test when only PageController is defined',
+    (tester) async {
+      final widget = MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: OnBuilder(
+              listenTo: injectedTab,
+              builder: () => Text('Tab ${injectedTab.index} is displayed'),
+            ),
+          ),
+          body: OnReactive(
+            () => PageView(
+              controller: injectedTab.pageController,
+              children: screens.getRange(0, injectedTab.length).toList(),
+            ),
+          ),
+          bottomNavigationBar: OnReactive(
+            () => Row(
+              children: tabs
+                  .getRange(0, injectedTab.length)
+                  .toList()
+                  .asMap()
+                  .map(
+                    (i, e) => MapEntry(
+                      i,
+                      InkWell(
+                        onTap: () {
+                          injectedTab.index = i;
+                        },
+                        child: injectedTab.index == i
+                            ? Text('Selected tab: $i')
+                            : e,
+                      ),
+                    ),
+                  )
+                  .values
+                  .toList(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      //
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+
+      //
+      await tester.tap(find.text('Tab0'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pump();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+
+      //
+      injectedTab.animateTo(1, duration: Duration.zero);
+      await tester.pump();
+      expect(find.text('TabView1'), findsOneWidget);
+      expect(find.text('Selected tab: 1'), findsOneWidget);
+      expect(find.text('Tab 1 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(3, duration: Duration.zero);
+      await tester.pump();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.length = 4;
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      await tester.tap(find.text('Tab2'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+
+      //
+      //
+      injectedTab.length = 5;
+      await tester.pump();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      await tester.tap(find.text('Tab2'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test when only TabController is defined',
+    (tester) async {
+      final widget = MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: OnBuilder(
+              listenTo: injectedTab,
+              builder: () => Text('Tab ${injectedTab.index} is displayed'),
+            ),
+          ),
+          body: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: (_) {
+              return TabBarView(
+                controller: injectedTab.tabController,
+                children: screens.getRange(0, injectedTab.length).toList(),
+              );
+            },
+          ),
+          bottomNavigationBar: OnReactive(
+            () => TabBar(
+              controller: injectedTab.tabController,
+              tabs: tabs
+                  .getRange(0, injectedTab.length)
+                  .toList()
+                  .asMap()
+                  .map(
+                    (i, e) => MapEntry(
+                      i,
+                      injectedTab.index == i ? Text('Selected tab: $i') : e,
+                    ),
+                  )
+                  .values
+                  .toList(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      //
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+
+      //
+      await tester.tap(find.text('Tab0'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pump();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+
+      //
+      injectedTab.animateTo(1, duration: Duration.zero);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView1'), findsOneWidget);
+      expect(find.text('Selected tab: 1'), findsOneWidget);
+      expect(find.text('Tab 1 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(3, duration: Duration.zero);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.length = 4;
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      expect(find.text('Tab4'), findsNothing);
+      // await tester.tap(find.text('Tab2'));
+      // await tester.pumpAndSettle();
+      // expect(find.text('TabView2'), findsOneWidget);
+      // expect(find.text('Selected tab: 2'), findsOneWidget);
+      // expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      // await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      // await tester.pumpAndSettle();
+      // expect(find.text('TabView3'), findsOneWidget);
+      // expect(find.text('Selected tab: 3'), findsOneWidget);
+      // expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+      injectedTab.length = 5;
+      await tester.pumpAndSettle();
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      expect(find.text('TabView3'), findsOneWidget);
+
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      expect(find.text('TabView4'), findsOneWidget);
+      //
+      await tester.tap(find.text('Tab2'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test when both PageController and TabController are defined',
+    (tester) async {
+      final widget = MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: OnBuilder(
+              listenTo: injectedTab,
+              builder: () => Text('Tab ${injectedTab.index} is displayed'),
+            ),
+          ),
+          body: OnReactive(
+            () {
+              return PageView(
+                controller: injectedTab.pageController,
+                children: screens.getRange(0, injectedTab.length).toList(),
+              );
+            },
+          ),
+          bottomNavigationBar: OnTabBuilder(
+            listenTo: injectedTab,
+            builder: (index) => TabBar(
+              controller: injectedTab.tabController,
+              tabs: tabs
+                  .getRange(0, injectedTab.length)
+                  .toList()
+                  .asMap()
+                  .map(
+                    (i, e) => MapEntry(
+                      i,
+                      index == i ? Text('Selected tab: $i') : e,
+                    ),
+                  )
+                  .values
+                  .toList(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      //
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+
+      //
+      await tester.tap(find.text('Tab0'));
+      await tester.pumpAndSettle();
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      expect(find.text('TabView0'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(4);
+      await tester.pump();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+
+      //
+      injectedTab.animateTo(1);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView1'), findsOneWidget);
+      expect(find.text('Selected tab: 1'), findsOneWidget);
+      expect(find.text('Tab 1 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      injectedTab.previousPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('Selected tab: 0'), findsOneWidget);
+      expect(find.text('Tab 0 is displayed'), findsOneWidget);
+      //
+      injectedTab.animateTo(3);
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      //
+      injectedTab.length = 4;
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      expect(find.text('Tab4'), findsNothing);
+      // await tester.tap(find.text('Tab2'));
+      // await tester.pumpAndSettle();
+      // expect(find.text('TabView2'), findsOneWidget);
+      // expect(find.text('Selected tab: 2'), findsOneWidget);
+      // expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      // await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      // await tester.pumpAndSettle();
+      // expect(find.text('TabView3'), findsOneWidget);
+      // expect(find.text('Selected tab: 3'), findsOneWidget);
+      // expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      //
+      injectedTab.length = 5;
+      await tester.pumpAndSettle();
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
+      expect(find.text('TabView3'), findsOneWidget);
+
+      injectedTab.nextPage();
+      await tester.pumpAndSettle();
+      expect(find.text('Selected tab: 4'), findsOneWidget);
+      expect(find.text('Tab 4 is displayed'), findsOneWidget);
+      expect(find.text('TabView4'), findsOneWidget);
+      //
+      await tester.tap(find.text('Tab2'));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('Selected tab: 2'), findsOneWidget);
+      expect(find.text('Tab 2 is displayed'), findsOneWidget);
+      await tester.drag(find.text('TabView2'), Offset(-400, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('Selected tab: 3'), findsOneWidget);
+      expect(find.text('Tab 3 is displayed'), findsOneWidget);
     },
   );
 }

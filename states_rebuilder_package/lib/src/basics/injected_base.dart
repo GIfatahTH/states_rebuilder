@@ -8,7 +8,6 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///It is not null if the state is waiting for a Future or is subscribed to a
   ///Stream
   StreamSubscription? get subscription => _reactiveModelState.subscription;
-  bool get autoDisposeWhenNotUsed => _reactiveModelState.autoDisposeWhenNotUsed;
 
   ///Custom status of the state. Set manually to mark the state with a particular
   ///tag to be used in your logic.
@@ -22,7 +21,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   void toggle() {
     assert(T == bool);
     final snap =
-        _reactiveModelState.snapState._copyToHasData(!(state as bool) as T);
+        _reactiveModelState.snapState._copyToHasData(!(_state as bool) as T);
     _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
@@ -46,7 +45,11 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     try {
       return await stateAsync;
     } catch (_) {
-      return state;
+      try {
+        return _state;
+      } catch (_) {
+        return null;
+      }
     }
   }
 
@@ -138,10 +141,10 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
           _debounceTimer = null;
         },
       );
-      return Future.value(state);
+      return Future.value(_state);
     } else if (throttleDelay > 0) {
       if (_debounceTimer != null) {
-        return Future.value(state);
+        return Future.value(_state);
       }
       _debounceTimer = Timer(
         Duration(milliseconds: throttleDelay),

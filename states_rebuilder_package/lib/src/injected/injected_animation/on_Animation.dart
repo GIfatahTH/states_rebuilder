@@ -237,7 +237,7 @@ class Animate {
       String name,
     ])
         fromTween,
-  })   : _value = value,
+  })  : _value = value,
         _fromTween = fromTween;
 
   ///Implicitly animate to the given value
@@ -373,5 +373,24 @@ class EvaluateAnimation {
       CurveTween(curve: curve ?? injected.curve),
     );
     return forwardAnimation!.evaluate(injected.controller!);
+  }
+}
+
+class OnAnimationBuilder extends StatelessWidget {
+  const OnAnimationBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.builder,
+    this.onInitialized,
+  }) : super(key: key);
+  final InjectedAnimation listenTo;
+  final Widget Function(Animate) builder;
+  final void Function()? onInitialized;
+  @override
+  Widget build(BuildContext context) {
+    return On.animation(builder).listenTo(
+      listenTo,
+      onInitialized: onInitialized,
+    );
   }
 }
