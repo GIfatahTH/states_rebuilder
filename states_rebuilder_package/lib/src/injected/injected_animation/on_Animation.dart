@@ -310,7 +310,7 @@ class EvaluateAnimation {
       //just return the value;
       // print(injected.isAnimating);
       // print(currentValue);
-      if (!isTween && tween.begin != tween.end) {
+      if (tween.begin != tween.end) {
         //Reset the tween to the target value
         tween = _getTween(
           targetValue,
