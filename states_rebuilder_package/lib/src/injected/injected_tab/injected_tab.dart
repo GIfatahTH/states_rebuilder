@@ -116,9 +116,6 @@ abstract class InjectedTab implements InjectedBaseState<int> {
   /// The returned [Future] resolves when the animation completes.
   ///
   Future<void> nextView() async {
-    if (indexIsChanging) {
-      return;
-    }
     if (_tabController != null) {
       if (index + 1 < _tabController!.length) {
         final future = Completer();
@@ -155,9 +152,6 @@ abstract class InjectedTab implements InjectedBaseState<int> {
   /// The returned [Future] resolves when the animation completes.
   ///
   Future<void> previousView() async {
-    if (indexIsChanging) {
-      return;
-    }
     if (_tabController != null) {
       if (index - 1 >= 0) {
         final future = Completer();
