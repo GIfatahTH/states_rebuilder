@@ -8,7 +8,7 @@ part of '../../rm.dart';
 ///## SharedPreferences:
 ///```dart
 ///class SharedPreferencesImp implements IPersistStore {
-///  SharedPreferences _sharedPreferences;
+///  late SharedPreferences _sharedPreferences;
 ///
 ///  @override
 ///  Future<void> init() async {
@@ -17,23 +17,23 @@ part of '../../rm.dart';
 ///  }
 ///
 ///  @override
-///  Object read(String key) {
+///  Object? read(String key) {
 ///      return _sharedPreferences.getString(key);
 ///  }
 ///
 ///  @override
 ///  Future<void> write<T>(String key, T value) async {
-///      return _sharedPreferences.setString(key, value as String);
+///      await _sharedPreferences.setString(key, value as String);
 ///  }
 ///
 ///  @override
 ///  Future<void> delete(String key) async {
-///    return _sharedPreferences.remove(key);
+///    await _sharedPreferences.remove(key);
 ///  }
 ///
 ///  @override
-///  Future<void> deleteAll() {
-///    return _sharedPreferences.clear();
+///  Future<void> deleteAll() async {
+///    await _sharedPreferences.clear();
 ///  }
 ///}
 ///```
@@ -41,7 +41,7 @@ part of '../../rm.dart';
 ///## Hive:
 ///```dart
 ///class HiveImp implements IPersistStore {
-///  Box box;
+///  late Box box;
 ///
 ///  @override
 ///  Future<void> init() async {
@@ -50,23 +50,23 @@ part of '../../rm.dart';
 ///  }
 ///
 ///  @override
-///  Object read(String key) {
+///  Object? read(String key) async {
 ///      return box.get(key);
 ///  }
 ///
 ///  @override
 ///  Future<void> write<T>(String key, T value) async {
-///      return box.put(key, value);
+///      await box.put(key, value);
 ///  }
 ///
 ///  @override
 ///  Future<void> delete(String key) async {
-///    return box.delete(key);
+///    await box.delete(key);
 ///  }
 ///
 ///  @override
 ///  Future<void> deleteAll() async {
-///    return box.clear();
+///    await box.clear();
 ///  }
 ///}
 ///```

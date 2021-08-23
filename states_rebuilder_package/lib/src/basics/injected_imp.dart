@@ -579,11 +579,13 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   bool get canRedoState {
+    OnReactiveState.addToObs?.call(this);
     return undoRedoPersistState?.canRedoState ?? false;
   }
 
   @override
   bool get canUndoState {
+    OnReactiveState.addToObs?.call(this);
     return undoRedoPersistState?.canUndoState ?? false;
   }
 
@@ -708,7 +710,6 @@ class InjectedImp<T> extends Injected<T> {
             );
           },
           dispose: (context) {
-            
             // if (injected != this) {
             //   print(inheritedInjects);
             //   inheritedInjects.remove(injected);
