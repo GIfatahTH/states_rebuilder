@@ -357,7 +357,9 @@ OnReactive(
 )
 ```
 
-  [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+
+  * [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection). 
 
 In most cases `OnReactive` do the job. Nevertheless, if you want to explicitly specify the listeners you want to listen to, use `OnBuilder` widget.
 
@@ -390,7 +392,7 @@ OnBuilder.all(
 ),
 ```
 
-  [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
+  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
 
 states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
@@ -466,7 +468,7 @@ class App extends StatelessWidget{
   }
 }
 ```
-  [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
+  * [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
 
 ## State persistence
 
@@ -488,7 +490,10 @@ To Persist the state and retrieve it when the app restarts,
   model.persistState();
   model.deletePersistState();
   ```
-  [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+  * [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+
+  * [**Here is an example of state persistence**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_3_state_persistence).
+
 
 ## Undo and redo immutable state
 
@@ -498,6 +503,10 @@ To undo and redo immutable state:
   model.redoState();
   ```
   [🗎 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
+
+  * [**Here is an example on how to undo and redo the state**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_4_undo_redo_state).
+
+
 
 ## Route management
 
@@ -554,7 +563,7 @@ To navigate, show dialogs and snackBars without `BuildContext`:
     RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // =>  renders PostDetailsWidget(),
   ```
     
-  [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+  * [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
 ## Create, Read, Update and Delete items from backend service
 
@@ -583,7 +592,9 @@ To navigate, show dialogs and snackBars without `BuildContext`:
   );
   ```
 
-  [🗎 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+  * [🗎 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+
+  * [**Here is a working example of a CRUD app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_1_crud_app).
 
 ## Authentication and authorization
 
@@ -607,8 +618,9 @@ To authenticate and authorize users,
   user.auth.signOut();
   ```
 
-  [🗎 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
+  * [🗎 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
+  * [**Here is a typical auth app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_008_clean_architecture_firebase_login).
 
 ## Dynamic theme switching
 To dynamically switch themes,
@@ -634,7 +646,9 @@ To dynamically switch themes,
   theme.toggle();
   ```
 
-  [🗎 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
+  * [🗎 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
+
+  * [**Here is an example on dynamic theming**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
 ## App internationalization
 
@@ -670,7 +684,9 @@ To internationalize and localize your app:
   i18n.locale = SystemLocale();
   ```
 
-  [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
+  * [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
+
+  * [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
 To set an animation:
 ## Implicit and explicit animation
@@ -711,7 +727,9 @@ To set an animation:
   ),
   ```
 
-  [🗎 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
+  * [🗎 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
+
+  * [**Here are many show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
 
 ## Working with TextFields and Form validation
 
@@ -801,7 +819,7 @@ To deal with TextFields and Form validation
   ),
   ```
 
-  [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
+  * [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
 
 ## Working with scrollable view
 
@@ -835,10 +853,12 @@ To deal with TextFields and Form validation
   )
   ```
 
-  [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
+  * [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
+
 
 ## Working with tab views
   <!-- //TODO to ba added -->
+
 
 ## Test and injected state mocking
 
