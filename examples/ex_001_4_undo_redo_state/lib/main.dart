@@ -5,19 +5,18 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //It can be easily mocked and tested.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  onSetState: On(() {
-    //show snackBar
-    //any current snackBar is hidden.
-
-    //This call of snackBar is independent of BuildContext
-    //Can be called any where
-    RM.scaffold.showSnackBar(
-      SnackBar(
-        content: Text('${counter.state}'),
-      ),
-    );
-  }),
+  undoStackLength: 8,
 );
+
+void main() async {
+  return runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(primaryColor: Colors.greenAccent),
+    home: MyHomePage(
+      title: 'Undo and Redo state',
+    ),
+  ));
+}
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -28,6 +27,26 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        actions: [
+          OnReactive(
+            () => OutlinedButton.icon(
+              onPressed:
+                  counter.canUndoState ? () => counter.undoState() : null,
+              icon: Icon(Icons.undo),
+              label: Text('Undo'),
+            ),
+          ),
+          OnReactive(
+            () => OutlinedButton.icon(
+              onPressed:
+                  counter.canRedoState ? () => counter.redoState() : null,
+              icon: Icon(
+                Icons.redo,
+              ),
+              label: Text('Redo'),
+            ),
+          ),
+        ],
       ),
       body: Center(
         child: Column(

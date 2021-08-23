@@ -1,23 +1,46 @@
+import 'package:ex_001_3_state_persistence/hive_imp.dart';
+import 'package:ex_001_3_state_persistence/shared_prefrences.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+
+import 'fake_imp.dart';
+
+enum Env { fake, hive, sharedPreferences }
+
+final env = Env.hive;
+
+final localStore = RM.inject(
+  () => {
+    Env.fake: FakeStore(),
+    Env.hive: HiveStorage(),
+    Env.sharedPreferences: SharedPreferencesStore(),
+  }[env]!,
+);
 
 //counter is a global variable but the state of the counter is not.
 //It can be easily mocked and tested.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  onSetState: On(() {
-    //show snackBar
-    //any current snackBar is hidden.
+  persist: () => PersistState(
+    key: 'counter',
+    debugPrintOperations: true,
 
-    //This call of snackBar is independent of BuildContext
-    //Can be called any where
-    RM.scaffold.showSnackBar(
-      SnackBar(
-        content: Text('${counter.state}'),
-      ),
-    );
-  }),
+    //For primitive state (String, double, int , bool) you don't need to define fromJson and to Joson
+    // fromJson: (j) => int.parse(j),
+    // toJson: (s) => '$s',
+
+    throttleDelay: 500,
+  ),
 );
+
+void main() async {
+  await RM.storageInitializer(localStore.state);
+  return runApp(MaterialApp(
+    home: MyHomePage(
+      title: 'Persisted Counter',
+    ),
+  ));
+}
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({Key? key, required this.title}) : super(key: key);

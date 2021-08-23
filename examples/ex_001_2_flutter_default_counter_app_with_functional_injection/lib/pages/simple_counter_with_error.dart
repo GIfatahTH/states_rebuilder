@@ -10,13 +10,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 final Injected<int> counter = RM.inject<int>(
   () => 0,
   middleSnapState: (middleSnap) {
-    middleSnap.print();
-
     if (middleSnap.nextSnap.hasData) {
       //Multiply the state by 10
       return middleSnap.nextSnap.copyToHasData(middleSnap.nextSnap.data! * 10);
     }
   },
+  debugPrintWhenNotifiedPreMessage: 'counter',
 );
 
 class MyHomePage extends StatelessWidget {
