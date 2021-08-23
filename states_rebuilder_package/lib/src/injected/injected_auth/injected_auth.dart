@@ -86,7 +86,16 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           toDebugString: toDebugString,
           autoDisposeWhenNotUsed: false,
-        );
+        ) {
+    _resetDefaultState = () {
+      _repo = null;
+      _auth = null;
+      _isInitialized = false;
+      onAuthStreamSubscription?.cancel();
+      onAuthStreamSubscription = null;
+    };
+    _resetDefaultState();
+  }
   final IAuth<T, P> Function() repoCreator;
 
   final P Function()? param;
@@ -95,8 +104,12 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
   final On<void>? onSetAuthState;
   final Duration Function(T auth)? autoSignOut;
   final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
+  final T? unsignedUser;
+  //
+  late bool _isInitialized;
   StreamSubscription<T>? onAuthStreamSubscription;
-  T? unsignedUser;
+
+  late final VoidCallback _resetDefaultState;
 
   @override
   dynamic middleCreator(
@@ -152,20 +165,15 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     _isInitialized = true;
   }
 
-  bool _isInitialized = false;
-
   @override
   void dispose() {
     _auth?._dispose();
-    onAuthStreamSubscription?.cancel();
-    onAuthStreamSubscription = null;
+
     if (_cachedRepoMocks.length > 1) {
       _cachedRepoMocks.removeLast();
     }
+    _resetDefaultState();
     super.dispose();
-    _repo = null;
-    _auth = null;
-    _isInitialized = false;
   }
 }
 

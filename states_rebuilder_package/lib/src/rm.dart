@@ -523,7 +523,53 @@ abstract class RM {
   ///* **shouldAutoStart** When it is set to true, animation will auto start after first initialized.
   ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
   ///
-  ///See [On.animation]
+  ///See [OnAnimationBuilder]
+  ///
+  ///Example of Implicit Animated Container
+  ///
+  ///```dart
+  /// final animation = RM.injectAnimation(
+  ///   duration: Duration(seconds: 2),
+  ///   curve: Curves.fastOutSlowIn,
+  /// );
+  ///
+  /// class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  ///   bool selected = false;
+  ///
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     return GestureDetector(
+  ///       onTap: () {
+  ///         setState(() {
+  ///           selected = !selected;
+  ///         });
+  ///       },
+  ///       child: Center(
+  ///         child: OnAnimationBuilder(
+  ///           listenTo: animation,
+  ///           builder: (animate) {
+  ///             final width = animate(selected ? 200.0 : 100.0);
+  ///             final height = animate(selected ? 100.0 : 200.0, 'height');
+  ///             final alignment = animate(
+  ///               selected ? Alignment.center : AlignmentDirectional.topCenter,
+  ///             );
+  ///             final Color? color = animate(
+  ///               selected ? Colors.red : Colors.blue,
+  ///             );
+  ///             return Container(
+  ///               width: width,
+  ///               height: height,
+  ///               color: color,
+  ///               alignment: alignment,
+  ///               child: const FlutterLogo(size: 75),
+  ///             );
+  ///           },
+  ///         ),
+  ///       ),
+  ///     );
+  ///   }
+  /// }
+  ///````
   static InjectedAnimation injectAnimation({
     required Duration duration,
     Duration? reverseDuration,

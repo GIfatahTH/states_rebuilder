@@ -38,7 +38,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
     return _repo as R;
   }
 
-  bool _isOnCRUD = false;
+  late bool _isOnCRUD;
 
   ///Whether the state is waiting for a CRUD operation to finish
   bool get isOnCRUD => _isOnCRUD;
@@ -93,16 +93,29 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           toDebugString: toDebugString,
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-        );
+        ) {
+    _resetDefaultState = () {
+      _isInitialized = false;
+      onCrudSnap = SnapState.none();
+      _item?.dispose();
+      _item = null;
+      _repo = null;
+      _crud = null;
+      _isOnCRUD = false;
+      onCRUDListeners = ReactiveModelListener();
+    };
+    _resetDefaultState();
+  }
 
-  ICRUD<T, P> Function() repoCreator;
-
+  final ICRUD<T, P> Function() repoCreator;
   final P Function()? param;
   final bool readOnInitialization;
-
-  OnCRUD<void>? onCRUD;
-
-  bool _isInitialized = false;
+  final OnCRUD<void>? onCRUD;
+  //
+  late bool _isInitialized;
+  late SnapState<dynamic> onCrudSnap;
+  late ReactiveModelListener onCRUDListeners;
+  late final VoidCallback _resetDefaultState;
   @override
   dynamic middleCreator(
     dynamic Function() crt,
@@ -141,7 +154,6 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }();
   }
 
-  late SnapState<dynamic> onCrudSnap;
   void onMiddleCRUD(SnapState<dynamic> snap) {
     onCrudSnap = snap;
     onCRUDListeners.rebuildState(snap);
@@ -157,8 +169,6 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }
   }
 
-  ReactiveModelListener onCRUDListeners = ReactiveModelListener();
-
   Future<void> _init() async {
     if (_isInitialized) {
       return;
@@ -173,12 +183,8 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     if (_cachedRepoMocks.length > 1) {
       _cachedRepoMocks.removeLast();
     }
+    _resetDefaultState();
     super.dispose();
-    _isInitialized = false;
-    _item?.dispose();
-    _item = null;
-    _repo = null;
-    _crud = null;
   }
 }
 

@@ -205,6 +205,8 @@ class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
   InjectedBaseBaseImp({
     required T Function() creator,
     bool autoDisposeWhenNotUsed = true,
+    VoidCallback? onInitialized,
+    VoidCallback? onDisposed,
   }) {
     _reactiveModelState = ReactiveModelBase<T>(
       creator: creator,

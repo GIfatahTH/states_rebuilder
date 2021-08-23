@@ -75,7 +75,7 @@ abstract class InjectedTab implements InjectedBaseState<int> {
 
   late int length;
 
-  bool _pageIndexIsChanging = false;
+  late bool _pageIndexIsChanging;
 
   ///The index of the previously selected tab.
   int get previousIndex => _tabController!.previousIndex;
@@ -193,28 +193,59 @@ abstract class InjectedTab implements InjectedBaseState<int> {
 
 class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
   InjectedTabImp({
-    this.initialIndex = 0,
+    int initialIndex = 0,
     required int length,
     this.duration: kTabScrollDuration,
     this.curve: Curves.ease,
     this.viewportFraction = 1.0,
     this.keepPage = true,
-  })  : this._length = length,
-        _initialLength = length,
-        _initialIndex = initialIndex,
-        super(creator: () => initialIndex);
+  }) : super(creator: () => initialIndex) {
+    _resetDefaultState = () {
+      _tabController = null;
+      _pageController = null;
+      _pageIndexIsChanging = false;
+
+      this.initialIndex = initialIndex;
+      _length = length;
+      _ticker = null;
+    };
+    _resetDefaultState();
+  }
+
+  ///The duration the page/tab transition takes.
+  final Duration duration;
+
+  ///The curve the page/tab animation transition takes.
+  final Curve curve;
+
+  ///ONLY for PageView
+  ///
+  ///The fraction of the viewport that each page should occupy.
+  ///Defaults to 1.0, which means each page fills the viewport in the
+  ///scrolling direction.
+  ///
+  ///See [PageController.viewportFraction]
+  final double viewportFraction;
+
+  ///ONLY for PageView
+  ///
+  ///Save the current [page] with [PageStorage] and restore it if this
+  ///controller's scrollable is recreated.
+  ///
+  ///See [PageController.keepPage]
+  final bool keepPage;
 
   ///The initial index the app start with.
-  int initialIndex;
-  final int _initialIndex;
+  late int initialIndex;
+  late int _length;
+
+  late TickerProvider? _ticker;
+  late final VoidCallback _resetDefaultState;
 
   ///The total number of tabs.
   ///
   ///Typically greater than one. Must match [TabBar.tabs]'s and
   ///[TabBarView.children]'s length.
-  late int _length;
-  final int _initialLength;
-
   @override
   int get length {
     OnReactiveState.addToObs?.call(this);
@@ -243,30 +274,6 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
     notify();
   }
 
-  ///The duration the page/tab transition takes.
-  final Duration duration;
-
-  ///The curve the page/tab animation transition takes.
-  final Curve curve;
-
-  ///ONLY for PageView
-  ///
-  ///The fraction of the viewport that each page should occupy.
-  ///Defaults to 1.0, which means each page fills the viewport in the
-  ///scrolling direction.
-  ///
-  ///See [PageController.viewportFraction]
-  final double viewportFraction;
-
-  ///ONLY for PageView
-  ///
-  ///Save the current [page] with [PageStorage] and restore it if this
-  ///controller's scrollable is recreated.
-  ///
-  ///See [PageController.keepPage]
-  final bool keepPage;
-
-  TickerProvider? _ticker;
   void initialize([TickerProvider? ticker]) {
     _ticker ??= ticker;
     if (_tabController != null) {
@@ -343,14 +350,9 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
 
   @override
   void dispose() {
-    super.dispose();
     _tabController?.dispose();
-    _tabController = null;
     _pageController?.dispose();
-    _pageController = null;
-    _pageIndexIsChanging = false;
-    _ticker = null;
-    _length = _initialLength;
-    initialIndex = _initialIndex;
+    _resetDefaultState();
+    super.dispose();
   }
 }

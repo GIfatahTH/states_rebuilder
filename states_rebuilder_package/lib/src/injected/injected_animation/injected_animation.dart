@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../rm.dart';
 
 part 'on_Animation.dart';
@@ -108,49 +109,45 @@ abstract class InjectedAnimation implements InjectedBaseState<double> {
 class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     with InjectedAnimation {
   InjectedAnimationImp({
-    this.duration = const Duration(milliseconds: 500),
-    this.reverseDuration,
-    this.curve = Curves.linear,
-    this.reverseCurve,
+    Duration duration = const Duration(milliseconds: 500),
+    Duration? reverseDuration,
+    Curve curve = Curves.linear,
+    Curve? reverseCurve,
     this.initialValue,
     this.upperBound = 1.0,
     this.lowerBound = 0.0,
     this.animationBehavior = AnimationBehavior.normal,
-    this.repeats,
-    this.shouldReverseRepeats = false,
+    int? repeats,
+    bool shouldReverseRepeats = false,
     this.shouldAutoStart = false,
     this.onInitialized,
     this.endAnimationListener,
   }) : super(
           creator: () => 0.0,
-        );
+        ) {
+    _resetDefaultState = () {
+      this.duration = duration;
+      this.reverseDuration = reverseDuration;
+      this.curve = curve;
+      this.reverseCurve = reverseCurve;
+      this.repeats = repeats;
+      this.shouldReverseRepeats = shouldReverseRepeats;
+      animationEndFuture = null;
+      isAnimating = false;
+      skipDismissStatus = false;
+      repeatCount = null;
+      _didUpdateWidgetListeners.clear();
+      _resetAnimationListeners.clear();
+      _controller = null;
+      //
+      _curvedAnimation = null;
+      _reverseCurvedAnimation = null;
+    };
+    _resetDefaultState();
+  }
 
   ///The AnimationController's value the animation start with.
   final double? initialValue;
-
-  /// The length of time this animation should last.
-  ///
-  /// If [reverseDuration] is specified, then [duration] is only used when going
-  /// [forward]. Otherwise, it specifies the duration going in both directions.
-  Duration duration;
-
-  /// The length of time this animation should last when going in [reverse].
-  ///
-  /// The value of [duration] is used if [reverseDuration] is not specified or
-  /// set to null.
-  Duration? reverseDuration;
-
-  /// The default curve of the animation.
-  ///
-  /// If [reverseCurve] is specified, then [curve] is only used when going
-  /// [forward]. Otherwise, it specifies the curve going in both directions.
-  Curve curve;
-
-  /// The curve of the animation when going in [reverse].
-  ///
-  /// The value of [curve] is used if [reverseCurve] is not specified or
-  /// set to null.
-  Curve? reverseCurve;
 
   /// The value at which this animation is deemed to be dismissed.
   final double lowerBound;
@@ -163,23 +160,48 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   ///
   /// Defaults to [AnimationBehavior.normal].
   final AnimationBehavior animationBehavior;
-
-  ///Number of times the animation should repeat. If 0 animation will repeat
-  ///indefinitely
-  int? repeats;
-
-  bool shouldReverseRepeats;
   final bool shouldAutoStart;
   final void Function(InjectedAnimation)? onInitialized;
   final void Function()? endAnimationListener;
+
+  /// The length of time this animation should last.
+  ///
+  /// If [reverseDuration] is specified, then [duration] is only used when going
+  /// [forward]. Otherwise, it specifies the duration going in both directions.
+  late Duration duration;
+
+  /// The length of time this animation should last when going in [reverse].
+  ///
+  /// The value of [duration] is used if [reverseDuration] is not specified or
+  /// set to null.
+  Duration? reverseDuration;
+
+  /// The default curve of the animation.
+  ///
+  /// If [reverseCurve] is specified, then [curve] is only used when going
+  /// [forward]. Otherwise, it specifies the curve going in both directions.
+  late Curve curve;
+
+  /// The curve of the animation when going in [reverse].
+  ///
+  /// The value of [curve] is used if [reverseCurve] is not specified or
+  /// set to null.
+  late Curve? reverseCurve;
+
+  ///Number of times the animation should repeat. If 0 animation will repeat
+  ///indefinitely
+  late int? repeats;
+  late bool shouldReverseRepeats;
+  late Completer<void>? animationEndFuture;
+  late bool isAnimating;
+  late bool skipDismissStatus;
+  late int? repeatCount;
+  final List<VoidCallback> _didUpdateWidgetListeners = [];
+  final List<VoidCallback> _resetAnimationListeners = [];
+  //
+  late final VoidCallback _resetDefaultState;
+  //
   late Function(AnimationStatus) repeatStatusListenerListener;
-  Completer<void>? animationEndFuture;
-
-  bool isAnimating = false;
-  bool isAnimationFirstStartingFrame = false;
-
-  bool skipDismissStatus = false;
-  int? repeatCount;
 
   void initialize(TickerProvider ticker) {
     if (_controller != null) {
@@ -282,10 +304,6 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     }
 
     isAnimating = true;
-    isAnimationFirstStartingFrame = true;
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      isAnimationFirstStartingFrame = false;
-    });
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {
@@ -306,13 +324,11 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     }
   }
 
-  final List<VoidCallback> _didUpdateWidgetListeners = [];
   VoidCallback addToDidUpdateWidgetListeners(VoidCallback fn) {
     _didUpdateWidgetListeners.add(fn);
     return () => _didUpdateWidgetListeners.remove(fn);
   }
 
-  final List<VoidCallback> _resetAnimationListeners = [];
   VoidCallback addToResetAnimationListeners(VoidCallback fn) {
     _resetAnimationListeners.add(fn);
     return () => _resetAnimationListeners.remove(fn);
@@ -371,11 +387,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   @override
   void dispose() {
     _controller!.dispose();
-    _controller = null;
-    _curvedAnimation = null;
-    _reverseCurvedAnimation = null;
-    isAnimating = false;
-    _didUpdateWidgetListeners.clear();
+    _resetDefaultState();
     super.dispose();
   }
 }
