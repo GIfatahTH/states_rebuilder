@@ -255,12 +255,12 @@ void main() {
       expect(find.text('TabView1'), findsOneWidget);
       expect(find.text('Selected tab: 1'), findsOneWidget);
       expect(find.text('Tab 1 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
       expect(find.text('Tab 0 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
@@ -272,12 +272,12 @@ void main() {
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
       //
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
       expect(find.text('Tab 4 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
@@ -298,7 +298,7 @@ void main() {
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
@@ -312,7 +312,7 @@ void main() {
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
@@ -407,12 +407,12 @@ void main() {
       expect(find.text('TabView1'), findsOneWidget);
       expect(find.text('Selected tab: 1'), findsOneWidget);
       expect(find.text('Tab 1 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
       expect(find.text('Tab 0 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
@@ -424,12 +424,12 @@ void main() {
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
       //
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
       expect(find.text('Tab 4 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
@@ -451,7 +451,7 @@ void main() {
       // expect(find.text('TabView3'), findsOneWidget);
       // expect(find.text('Selected tab: 3'), findsOneWidget);
       // expect(find.text('Tab 3 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
@@ -463,7 +463,7 @@ void main() {
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
       expect(find.text('TabView3'), findsOneWidget);
 
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('Selected tab: 4'), findsOneWidget);
       expect(find.text('Tab 4 is displayed'), findsOneWidget);
@@ -558,12 +558,12 @@ void main() {
       expect(find.text('TabView1'), findsOneWidget);
       expect(find.text('Selected tab: 1'), findsOneWidget);
       expect(find.text('Tab 1 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
       expect(find.text('Tab 0 is displayed'), findsOneWidget);
-      injectedTab.previousPage();
+      injectedTab.previousView();
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
       expect(find.text('Selected tab: 0'), findsOneWidget);
@@ -575,12 +575,12 @@ void main() {
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
       //
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
       expect(find.text('Tab 4 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
       expect(find.text('Selected tab: 4'), findsOneWidget);
@@ -602,7 +602,7 @@ void main() {
       // expect(find.text('TabView3'), findsOneWidget);
       // expect(find.text('Selected tab: 3'), findsOneWidget);
       // expect(find.text('Tab 3 is displayed'), findsOneWidget);
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
@@ -614,7 +614,7 @@ void main() {
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
       expect(find.text('TabView3'), findsOneWidget);
 
-      injectedTab.nextPage();
+      injectedTab.nextView();
       await tester.pumpAndSettle();
       expect(find.text('Selected tab: 4'), findsOneWidget);
       expect(find.text('Tab 4 is displayed'), findsOneWidget);
