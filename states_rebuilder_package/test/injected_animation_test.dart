@@ -1044,7 +1044,11 @@ void main() {
                     width = animate(selected ? 0.0 : 100.0, 'n')!;
                     return On.animation(
                       (animate) {
-                        height = animate(selected ? 0.0 : 100.0, 'n')!;
+                        height = selected
+                            ? animate.fromTween(
+                                (_) => Tween(begin: 0, end: 100.0), 'n')!
+                            : animate.fromTween(
+                                (_) => Tween(begin: 0.0, end: 100.0), 'n')!;
                         return Container();
                       },
                     ).listenTo(animation);
@@ -1318,6 +1322,129 @@ void main() {
       expect(value, 100);
       expect(value2, 100);
       expect(animation.curvedAnimation.toString(), endsWith('_BounceInCurve'));
+    },
+  );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      final animation = RM.injectAnimation(duration: 1.seconds);
+      double? value1;
+      double? value2;
+      double? value3;
+      double? value4;
+      final index = 1.inj();
+      final widget = OnReactive(
+        () => OnAnimationBuilder(
+          listenTo: animation,
+          builder: (animate) {
+            value1 = animate(index.state == 1 ? 100 : 0, '1');
+            value2 = animate(index.state == 2 ? 100 : 0, '2');
+            value3 = animate(index.state == 3 ? 100 : 0, '3');
+            value4 = animate(index.state == 4 ? 100 : 0, '4');
+            return Container();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(value1, 100);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 0);
+      //
+      index.state = 2;
+      await tester.pump();
+      expect(value1, 100);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 0);
+      //
+      await tester.pump(200.milliseconds);
+      expect(value1, 80);
+      expect(value2, 20);
+      expect(value3, 0);
+      expect(value4, 0);
+      await tester.pump(600.milliseconds);
+      expect(value1, 20);
+      expect(value2, 80);
+      expect(value3, 0);
+      expect(value4, 0);
+      await tester.pumpAndSettle();
+      expect(value1, 0);
+      expect(value2, 100);
+      expect(value3, 0);
+      expect(value4, 0);
+      //
+      index.state = 3;
+      await tester.pump();
+      // await tester.pump();
+      expect(value1, 0);
+      expect(value2, 100);
+      expect(value3, 0);
+      expect(value4, 0);
+      //
+      await tester.pump(200.milliseconds);
+      expect(value1, 0);
+      expect(value2, 80);
+      expect(value3, 20);
+      expect(value4, 0);
+      await tester.pump(600.milliseconds);
+      expect(value1, 0);
+      expect(value2, 20);
+      expect(value3, 80);
+      expect(value4, 0);
+      await tester.pumpAndSettle();
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 100);
+      expect(value4, 0);
+      //
+      index.state = 4;
+      await tester.pump();
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 100);
+      expect(value4, 0);
+      //
+      await tester.pump(200.milliseconds);
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 80);
+      expect(value4, 20);
+      await tester.pump(600.milliseconds);
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 20);
+      expect(value4, 80);
+      await tester.pumpAndSettle();
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 100);
+      //
+      index.state = 1;
+      await tester.pump();
+      expect(value1, 0);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 100);
+      //
+      await tester.pump(200.milliseconds);
+      expect(value1, 20);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 80);
+      await tester.pump(600.milliseconds);
+      expect(value1, 80);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 20);
+      await tester.pumpAndSettle();
+      expect(value1, 100);
+      expect(value2, 0);
+      expect(value3, 0);
+      expect(value4, 0);
     },
   );
 

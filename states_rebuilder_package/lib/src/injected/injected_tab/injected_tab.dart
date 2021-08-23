@@ -115,7 +115,7 @@ abstract class InjectedTab implements InjectedBaseState<int> {
   /// The animation lasts for the default duration and follows the default curve.
   /// The returned [Future] resolves when the animation completes.
   ///
-  Future<void> nextPage() async {
+  Future<void> nextView() async {
     if (indexIsChanging) {
       return;
     }
@@ -154,7 +154,7 @@ abstract class InjectedTab implements InjectedBaseState<int> {
   /// The animation lasts for the default duration and follows the default curve.
   /// The returned [Future] resolves when the animation completes.
   ///
-  Future<void> previousPage() async {
+  Future<void> previousView() async {
     if (indexIsChanging) {
       return;
     }
@@ -229,7 +229,7 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
 
   @override
   set length(int l) {
-    assert(l > 1);
+    assert(l > 0);
     if (_length == l) {
       return;
     }

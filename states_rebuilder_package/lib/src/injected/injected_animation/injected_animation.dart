@@ -176,6 +176,7 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   Completer<void>? animationEndFuture;
 
   bool isAnimating = false;
+  bool isAnimationFirstStartingFrame = false;
 
   bool skipDismissStatus = false;
   int? repeatCount;
@@ -281,6 +282,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     }
 
     isAnimating = true;
+    isAnimationFirstStartingFrame = true;
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      isAnimationFirstStartingFrame = false;
+    });
     if (_controller?.status == AnimationStatus.completed) {
       _controller!.reverse();
     } else {

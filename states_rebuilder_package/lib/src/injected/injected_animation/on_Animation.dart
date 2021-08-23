@@ -306,9 +306,25 @@ class EvaluateAnimation {
     }
 
     if (tween != null && tween.end == targetValue) {
+      //If the new target value equal to end value of the last tween,
+      //just return the value;
+      // print(injected.isAnimating);
+      // print(currentValue);
+      if (!isTween && tween.begin != tween.end) {
+        //Reset the tween to the target value
+        tween = _getTween(
+          targetValue,
+          targetValue,
+        );
+        //set forwardAnimation and backwardAnimation to null to reset animation
+        //to take into account the new tween
+        forwardAnimation = null;
+        backwardAnimation = null;
+      }
       onAnimation._isChanged = false;
       return currentValue = getValue(name);
     }
+    //Calculate the new tween
 
     var newTween = fn(currentValue, _isInitialized);
     if (newTween == null) {
