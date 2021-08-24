@@ -122,7 +122,7 @@ class HomeWidget extends StatelessWidget {
       appBar: AppBar(
         title: Text(i18n.of(context).helloWorldExample),
         actions: [
-          On(
+          OnReactive(
             () => DropdownButton<Locale>(
               value: i18n.locale,
               onChanged: (Locale locale) {
@@ -137,22 +137,27 @@ class HomeWidget extends StatelessWidget {
                   )
                   .toList(),
             ),
-          ).listenTo(i18n),
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          //For demo purpose, App is fractured to smaller widget.
-          //Notes that widget are const,
-          const TextFieldWidget(),
-          const Spacer(),
-          const HelloNameWidget(),
-          const Spacer(),
-          const RaisedButtonWidget(),
-          const SizedBox(height: 20),
-          const StreamNameWidget(),
-          const Spacer(),
-        ],
+      body: OnReactive(
+        //One OnReactiveModel on top can detects all states it depends on, even
+        //deeply nested in the widget tree provided that the widget is not loaded lazily
+        //as inside the builder of ListView.builder.
+        () => Column(
+          children: [
+            //For demo purpose, App is fractured to smaller widget.
+            //Notes that widget are const,
+            const TextFieldWidget(),
+            const Spacer(),
+            HelloNameWidget(), // Not const to make it rebuildable
+            const Spacer(),
+            const RaisedButtonWidget(),
+            const SizedBox(height: 20),
+            StreamNameWidget(),
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
@@ -185,33 +190,29 @@ class HelloNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        On.data(
-          () => IconButton(
-            icon: Icon(Icons.arrow_left_rounded, size: 40),
-            onPressed:
-                helloName.canUndoState ? () => helloName.undoState() : null,
-          ),
-        ).listenTo(helloName),
+        IconButton(
+          icon: Icon(Icons.arrow_left_rounded, size: 40),
+          onPressed:
+              helloName.canUndoState ? () => helloName.undoState() : null,
+        ),
         Spacer(),
         Center(
-          child: On.all(
+          child: helloName.onAll(
             // This part will be re-rendered each time the helloName
             // emits notification of any kind of status (idle, waiting,
             // error, data).
             onIdle: () => Text(i18n.of(context).enterYourName),
             onWaiting: () => CircularProgressIndicator(),
             onError: (err, refresh) => Text('${err.message}'),
-            onData: () => Text(helloName.state),
-          ).listenTo(helloName),
+            onData: (data) => Text(data),
+          ),
         ),
         Spacer(),
-        On.data(
-          () => IconButton(
-            icon: Icon(Icons.arrow_right_rounded, size: 40),
-            onPressed:
-                helloName.canRedoState ? () => helloName.redoState() : null,
-          ),
-        ).listenTo(helloName)
+        IconButton(
+          icon: Icon(Icons.arrow_right_rounded, size: 40),
+          onPressed:
+              helloName.canRedoState ? () => helloName.redoState() : null,
+        ),
       ],
     );
   }
@@ -249,14 +250,14 @@ class StreamNameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return On.or(
+    return streamedHelloName.onOrElse(
       onError: (err, refresh) => Text(
         err.message,
         style: TextStyle(color: Colors.red),
       ),
       //This will rebuild if the stream emits valid data only
-      or: () => Text('${streamedHelloName.state}'),
-    ).listenTo(streamedHelloName);
+      orElse: (data) => Text('$data'),
+    );
   }
 }
 
@@ -277,14 +278,12 @@ class App extends StatelessWidget {
         onWaiting: () => CircularProgressIndicator(),
         onError: (err) => Text('error : $err'),
         onData: (_) {
-          return On.data(
-            () => ListView.builder(
-              itemCount: products.state.length,
-              itemBuilder: (context, index) {
-                return Text(products.state[index]);
-              },
-            ),
-          ).listenTo(products);
+          return ListView.builder(
+            itemCount: products.state.length,
+            itemBuilder: (context, index) {
+              return Text(products.state[index]);
+            },
+          );
         },
       ),
     );
