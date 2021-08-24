@@ -8,6 +8,21 @@ OnReactive(
 )
 ```
 
+* Add `ReactiveStatelessWidget`  abstract widget for implicit subscription:
+```dart
+///All states consumed in a descendant widget of this widget will be listened to.
+class MyWidget extends ReactiveStatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context){
+        return Text(counter.state.toString());
+      }
+    );
+  }
+}
+```
+
 * Add `OnBuilder`, `OnAuthBuilder`, `OnCRUDBuilder`, `OnAnimationBuilder`,`OnScrollBuilder` ,`OnFormBuilder`, `OnFormSubscriptionBuilder`, `OnTabBuilder` widget and their method equivalent: `myState.rebuild`, `myState.rebuild.onAuth`, `myState.rebuild.onCRUD`, `myState.rebuild.onAnimation`, `myState.rebuild.onScroll`, `myState.rebuild.onForm`, `myState.rebuild.onFormSubscription`, `myState.rebuild.onTab`,
 
 * `myState.rebuilder`,`myState.whenRebuilder`, `myState.whenRebuilderOr` are deprecated in favor to `myState.rebuild`, `myState.rebuild.onAll`, `myState.rebuild.onOr`,  

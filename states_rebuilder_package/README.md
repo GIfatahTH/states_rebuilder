@@ -67,7 +67,7 @@
   - [Implicit and explicit animation](#implicit-and-explicit-animation)
   - [Working with TextFields and Form validation](#working-with-textfields-and-form-validation)
   - [Working with scrollable view](#working-with-scrollable-view)
-  - [Working with tab views](#working-with-tab-views)
+  - [Working with page and tab views](#working-with-page-and-tab-views)
   - [Test and injected state mocking](#test-and-injected-state-mocking)
 - [Examples:](#examples)
   <!-- - [Basics:](#basics)
@@ -355,6 +355,23 @@ OnReactive(
             orElse: (data)=> DataWidget(),
         );
 )
+```
+
+Similar to `OnReactive` widget there is the abstract widget `ReactiveStatelessWidget`. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners no matter how deep in the widget tree they are provided that the widget is not loaded lazily such as inside the `builder` method of the `ListView.builder` widget:
+
+```dart
+class MyWidget extends ReactiveStatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+          Text('${counter1.state}'),
+          Text('${counter2.state}'),
+          Text('$sum'),
+      ]
+    );
+  }
+}
 ```
 
   * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
@@ -856,7 +873,7 @@ To deal with TextFields and Form validation
   * [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
 
 
-## Working with tab views
+## Working with page and tab views
   <!-- //TODO to ba added -->
 
 
