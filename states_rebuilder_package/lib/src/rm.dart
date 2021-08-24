@@ -17,7 +17,7 @@ import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
 import 'injected/injected_scrolling/injected_scrolling.dart';
-import 'injected/injected_tab/injected_tab.dart';
+import 'injected/injected_tab/injected_page_tab.dart';
 import 'injected/injected_text_editing/injected_text_editing.dart';
 import 'injected/injected_theme/injected_theme.dart';
 import 'legacy/injector.dart';
@@ -685,7 +685,7 @@ abstract class RM {
     );
   }
 
-  ///Injected a TabController and/or a PageController
+  ///Injected a PageController and/or a TabController
   ///
   ///It combines both controller to use the best of them.
   ///
@@ -707,7 +707,7 @@ abstract class RM {
   ///* **viewportFraction** The fraction of the viewport that each page should occupy.
   ///Defaults to 1.0, which means each page fills the viewport in the
   ///scrolling direction. See [PageController.viewportFraction]
-  static InjectedTab injectTabPage({
+  static InjectedPageTab injectPageTab({
     int initialIndex = 0,
     required int length,
     Duration duration = kTabScrollDuration,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/diagnostics.dart';
 import 'package:states_rebuilder/src/builders/on_reactive.dart';
 
 import '../../rm.dart';
@@ -8,10 +9,10 @@ import '../../rm.dart';
 part 'on_tab.dart';
 
 class _RebuildTab {
-  final InjectedTab _injected;
+  final InjectedPageTab _injected;
   _RebuildTab(this._injected);
 
-  ///Listen to the [InjectedTab] and rebuild when tab index is changed.
+  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
   Widget onTab(
     Widget Function(int index) builder, {
     Key? key,
@@ -23,8 +24,8 @@ class _RebuildTab {
   }
 }
 
-abstract class InjectedTab implements InjectedBaseState<int> {
-  ///Listen to the [InjectedTab] and rebuild when tab index is changed.
+abstract class InjectedPageTab implements InjectedBaseState<int> {
+  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
   late final rebuild = _RebuildTab(this);
   TabController? _tabController;
   PageController? _pageController;
@@ -191,7 +192,7 @@ abstract class InjectedTab implements InjectedBaseState<int> {
   // }
 }
 
-class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedTab {
+class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
   InjectedTabImp({
     int initialIndex = 0,
     required int length,

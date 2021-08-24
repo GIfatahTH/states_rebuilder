@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  final injectedTab = RM.injectTabPage(
+  final injectedTab = RM.injectPageTab(
     initialIndex: 2,
     length: 5,
   );
@@ -126,7 +126,7 @@ void main() {
   testWidgets(
     'OnTabBuilder',
     (tester) async {
-      final injectedTab = RM.injectTabPage(
+      final injectedTab = RM.injectPageTab(
         length: 5,
       );
       late int currentIndex;

@@ -1,4 +1,4 @@
-part of 'injected_tab.dart';
+part of 'injected_page_tab.dart';
 
 // class OnTab {
 //   final Widget Function(int index) _on;
@@ -83,7 +83,7 @@ class OnTabBuilder extends StatefulWidget {
     required this.listenTo,
     required this.builder,
   }) : super(key: key);
-  final InjectedTab listenTo;
+  final InjectedPageTab listenTo;
   final Widget Function(int index) builder;
 
   @override
