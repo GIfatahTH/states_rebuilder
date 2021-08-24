@@ -9,13 +9,22 @@ final Injected<int> counter = RM.inject<int>(
 );
 
 void main() async {
-  return runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(primaryColor: Colors.greenAccent),
-    home: MyHomePage(
-      title: 'Undo and Redo state',
-    ),
-  ));
+  return runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primaryColor: Colors.greenAccent),
+      home: MyHomePage(
+        title: 'Undo and Redo state',
+      ),
+    );
+  }
 }
 
 class MyHomePage extends StatelessWidget {

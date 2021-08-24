@@ -7,7 +7,7 @@ import 'fake_imp.dart';
 
 enum Env { fake, hive, sharedPreferences }
 
-final env = Env.hive;
+late Env env;
 
 final localStore = RM.inject(
   () => {
@@ -34,12 +34,22 @@ final Injected<int> counter = RM.inject<int>(
 );
 
 void main() async {
+  env = Env.hive;
   await RM.storageInitializer(localStore.state);
-  return runApp(MaterialApp(
-    home: MyHomePage(
-      title: 'Persisted Counter',
-    ),
-  ));
+  return runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyHomePage(
+        title: 'Persisted Counter',
+      ),
+    );
+  }
 }
 
 class MyHomePage extends StatelessWidget {

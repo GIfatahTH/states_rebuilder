@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({Key? key}) : super(key: key);
 
-  static final appTab = RM.injectTabPage(length: 2);
+  static final appTab = RM.injectPageTab(length: 2);
 
   @override
   Widget build(BuildContext context) {
