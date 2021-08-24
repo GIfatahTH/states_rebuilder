@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
 
 import '../rm.dart';
+import 'reactive_state_less_widget.dart';
 
 typedef AddObsCallback = void Function(InjectedBaseState);
 
@@ -33,7 +34,7 @@ typedef AddObsCallback = void Function(InjectedBaseState);
 /// )
 /// ```
 /// {@endtemplate}
-class OnReactive extends MyStatefulWidget {
+class OnReactive extends ReactiveStatelessWidget {
   ///{@macro OnReactive}
   const OnReactive(
     this.builder, {
@@ -64,91 +65,61 @@ class OnReactive extends MyStatefulWidget {
   ///Debug print an informative message when a state is added to the
   ///list of subscription.
   final String? debugPrintWhenObserverAdd;
-  @override
-  OnReactiveState createState() => OnReactiveState();
-}
-
-class OnReactiveState extends ExtendedState<OnReactive> {
-  static AddObsCallback? addToObs;
-  AddObsCallback? cachedAddToObs;
-  late VoidCallback removeFromContextSet;
-  Map<InjectedBaseState, VoidCallback> _obs1 = {};
-  Map<InjectedBaseState, VoidCallback>? _obs2 = {};
-
-  late final AddObsCallback _addToObs = (InjectedBaseState inj) {
-    final value = _obs1.remove(inj);
-    if (value != null) {
-      _obs2![inj] = value;
-      return;
-    }
-    if (!_obs2!.containsKey(inj)) {
-      _obs2![inj] = inj.observeForRebuild(
-        (rm) {
-          if (widget.shouldRebuild?.call(rm!.oldSnapState, rm.snapState) ==
-              false) {
-            return;
-          }
-          setState(() {
-            assert(() {
-              if (widget.debugPrintWhenRebuild != null) {
-                StatesRebuilerLogger.log('REBUILD <' +
-                    widget.debugPrintWhenRebuild! +
-                    '>: ${inj.snapState.toString()}');
-              }
-              return true;
-            }());
-            widget.sideEffects?.onSetState?.call(rm!.snapState);
-          });
-        },
-        clean: inj.autoDisposeWhenNotUsed ? () => inj.dispose() : null,
-      );
-      assert(() {
-        if (widget.debugPrintWhenObserverAdd != null) {
-          StatesRebuilerLogger.log(widget.debugPrintWhenObserverAdd! +
-              ': ${_obs2!.length} observers : ${_obs2!.keys}');
-        }
-        return true;
-      }());
-    }
-  };
 
   @override
-  void initState() {
+  void didMountWidget() {
     assert(() {
-      if (widget.debugPrintWhenRebuild != null) {
+      if (debugPrintWhenRebuild != null) {
         StatesRebuilerLogger.log(
-          'INITIAL BUILD <' + widget.debugPrintWhenRebuild! + '>',
+          'INITIAL BUILD <' + debugPrintWhenRebuild! + '>',
         );
       }
       return true;
     }());
-    removeFromContextSet = addToContextSet(context);
-    widget.sideEffects?.initState?.call();
-    super.initState();
+    sideEffects?.initState?.call();
   }
 
   @override
-  void dispose() {
-    widget.sideEffects?.dispose?.call();
-    _obs1.values.forEach((disposer) => disposer());
-    removeFromContextSet();
-    super.dispose();
+  void didUnmountWidget() {
+    sideEffects?.dispose?.call();
   }
 
   @override
-  void afterBuild() {
-    _obs1.values.forEach((disposer) => disposer());
-    _obs1 = _obs2 ?? {};
-    _obs2 = null;
-    _obs2 = {};
-    OnReactiveState.addToObs = cachedAddToObs;
-    widget.sideEffects?.onAfterBuild?.call();
+  void didNotifyWidget(SnapState snap) {
+    sideEffects?.onSetState?.call(snap);
+    if (sideEffects?.onSetState != null) {
+      WidgetsBinding.instance?.addPostFrameCallback(
+        (_) => sideEffects?.onAfterBuild?.call(),
+      );
+    }
+    assert(() {
+      if (debugPrintWhenRebuild != null) {
+        StatesRebuilerLogger.log(
+            'REBUILD <' + debugPrintWhenRebuild! + '>: $snap');
+      }
+      return true;
+    }());
+  }
+
+  @override
+  bool shouldRebuildWidget(SnapState oldSnap, SnapState newSnap) {
+    return shouldRebuild?.call(oldSnap, newSnap) ?? true;
+  }
+
+  @override
+  void didAddObserverForDebug(obs) {
+    if (debugPrintWhenObserverAdd != null) {
+      StatesRebuilerLogger.log(
+          debugPrintWhenObserverAdd! + ': ${obs.length} observers : $obs');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    cachedAddToObs = OnReactiveState.addToObs;
-    OnReactiveState.addToObs = _addToObs;
-    return widget.builder();
+    return builder();
   }
+}
+
+class OnReactiveState {
+  static AddObsCallback? addToObs;
 }

@@ -24,12 +24,14 @@ export 'src/injected/injected_text_editing/injected_text_editing.dart'
         InjectedForm,
         OnFormBuilder,
         OnFormSubmissionBuilder;
-export 'src/injected/injected_tab/injected_tab.dart'
-    show InjectedTab, OnTabBuilder;
+export 'src/injected/injected_tab/injected_page_tab.dart'
+    show InjectedPageTab, OnTabBuilder;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;
 export 'src/legacy/inject.dart' show Inject, Injectable;
 export 'src/legacy/injector.dart' show IN, Injector;
 export 'src/builders/on_reactive.dart' show OnReactive;
+export 'src/builders/reactive_state_less_widget.dart'
+    show ReactiveStatelessWidget;
 export 'src/rm.dart'
     show
         ReactiveModel,

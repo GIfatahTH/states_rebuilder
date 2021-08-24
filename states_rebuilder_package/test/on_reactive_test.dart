@@ -525,7 +525,11 @@ void main() {
         child: Column(
           children: [
             widget,
-            OnReactive(() => Text('${counter2.state}')),
+            OnReactive(
+              () => Text('${counter2.state}'),
+              debugPrintWhenRebuild: '',
+              debugPrintWhenObserverAdd: '',
+            ),
           ],
         ),
       ));
@@ -551,4 +555,76 @@ void main() {
       //
     },
   );
+
+  testWidgets(
+    'ReactiveStatelessWidget get implicit subscribe to observer via state getter',
+    (tester) async {
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: _ParentWidget(),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsNWidgets(3));
+
+      counterState.incrementCounter1();
+      await tester.pump();
+      expect(find.text('0'), findsNWidgets(1));
+      expect(find.text('1'), findsNWidgets(2));
+
+      counterState.incrementCounter2();
+      await tester.pump();
+      expect(find.text('0'), findsNWidgets(0));
+      expect(find.text('1'), findsNWidgets(2));
+      expect(find.text('2'), findsNWidgets(1));
+    },
+  );
+}
+
+class _ParentWidget extends ReactiveStatelessWidget {
+  const _ParentWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _Widget1(),
+        _Widget2(),
+        _Widget3(),
+      ],
+    );
+  }
+}
+
+class _Widget1 extends StatelessWidget {
+  const _Widget1({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(counterState.counter1.state.toString());
+  }
+}
+
+class _Widget2 extends StatelessWidget {
+  const _Widget2({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(counterState.counter2.state.toString());
+  }
+}
+
+class _Widget3 extends StatelessWidget {
+  const _Widget3({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(counterState.sum.toString());
+  }
 }
