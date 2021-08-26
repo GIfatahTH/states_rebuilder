@@ -23,7 +23,7 @@
   - Built-in dependency injection system
   - `SetState` in StatelessWidget.
   - Hot-pluggable Stream / Futures
-  - Easily Undo / Redo
+  - Easy Undo / Redo
   - Elegant error handling and refreshing
   - Navigate, show dialogs without `BuildContext`
   - Named route with dynamic segmenet
@@ -34,17 +34,18 @@
 - development-time-saving
   - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
   - Easy user authentication and authorization.
-  - Easily app themes management.
+  - Easily app theme management.
   - Simple internalization and localization.
   - Work with TextFields and Form validation, both in client and server side.
   - Implicit animation with the power of explicit animation.
-  - Easy and user friendly interface for ScrollControllers
+  - Easy and user-friendly interface for ScrollControllers
+  - Working with tabs and pages.
 
 - Maintainable
-  - Easy to test, mock the dependencies
+  - Easy to test and mock the dependencies
   - state tracker middleware
   - Built-in debugging print function
-  - Capable for complex apps
+  - Capable of complex apps
 
 <!-- <p align="center" >
     <image src="../assets/Poster-Simple.png" width="1280"  alt=''/>
@@ -86,59 +87,110 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 3. Basic use case:
 ```dart
 // 🗄️Plain Data Class
-class Model {
-  int counter;
-
-  Model(this.counter);
-}  
-
-// 🤔Business Logic - Service Layer
-extension ModelX on Model {
-  increment() => this.counter++;  
+class Counter2 {
+  final int counter;
+  Counter2(this.counter);
+  @override
+  String toString() {
+    return 'Counter2($counter)';
+  }
 }
 
-// 🚀Global Functional Injection 
-// This state will be auto-disposed when no longer used, and also testable and mockable.
-final model = RM.inject<Model>(
-  () => Model(0), 
-  undoStackLength: 8,
-  //Called after new state calculation and just before state mutation
-  middleSnapState: (MiddleSnapState middleSnap){
-    //Log all state transition.
-    print(middleSnap.currentSnap);
-    print(middleSnap.nextSnap);
+// 🤔Business Logic
+//Notice it is immutable
+@immutable
+class ModelView {
+  //Inject a reactive state of type int.
+  //Works for all primitives, List, Map and Set
+  final counter1 = 0.inj();
 
-    middleSnap.print()//Build-in logger
+  // For non primitives and for more options
+  final counter2 = RM.inject<Counter2>(
+    () => Counter2(0),
+    //the state will be redone and undone
+    undoStackLength: 8,
+    //Build-in logger
+    debugPrintWhenNotifiedPreMessage: 'counter2',
+  );
 
-    //Can return another state
+  //A getter that uses the state of the injected counters
+  int get sum => counter1.state + counter2.state.counter;
+
+  incrementCounter1() {
+    counter1.state++;
   }
-);
 
-// 👀UI  
-class CounterApp extends StatelessWidget {
+  incrementCounter2() {
+    counter2.state = Counter2(counter2.state.counter + 1);
+  }
+}
+
+//🚀 As ModelView is immutable and final, it is safe to globally instantiate it.
+//🚀 The state of counter1 and counter2 will be auto-disposed when no longer in use.
+//They are testable and mockable.
+final modelView = ModelView();
+
+// 👀UI
+
+//🚀 Just use ReactiveStatelessWidget widget instead of StatelessWidget.
+
+//CounterApp will automatically register in any state consumed in its 
+//widget child branch, regardless of its depth, provided the widget is 
+//not lazily loaded as in the builder method of the ListView.builder widget.
+class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
-  
+
   @override
   Widget build(BuildContext context) {
-    return Column (
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-            ElevatedButton(
-                child: const Text('🏎️ Counter ++'),
-                onPressed: () => model.setState(
-                    (s) => s.increment(),
-                ),
-            ),
-            RaisedButton(
-                child: const Text('⏱️ Undo'),
-                onPressed: () => model.undoState(),
-            ),
-            OnReactive(
-              () => Text('🏁Result: ${model.state.counter}'),
-            ),
-        ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Counter1View(),
+        Counter2View(),
+        Text('🏁Result: ${modelView.sum}'), //Will be updated when sum changes
+      ],
     );
-  }  
+  }
+}
+
+//Simple StatelessWidget
+class Counter1View extends StatelessWidget {
+  const Counter1View({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ElevatedButton(
+          child: const Text('🏎️ Counter1 ++'),
+          onPressed: () => modelView.incrementCounter1(),
+        ),
+        Text('Counter1 value: ${modelView.counter1.state}'),
+      ],
+    );
+  }
+}
+
+//Simple StatelessWidget
+class Counter2View extends StatelessWidget {
+  const Counter2View({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ElevatedButton(
+          child: const Text('🏎️ Counter2 ++'),
+          onPressed: () => modelView.incrementCounter2(),
+        ),
+        ElevatedButton(
+          child: const Text('⏱️ Undo'),
+          onPressed: () => modelView.counter2.undoState(),
+        ),
+        Text('Counter2 value: ${modelView.counter2.state.counter}'),
+      ],
+    );
+  }
 }
 ```
 
@@ -155,10 +207,10 @@ class CounterApp extends StatelessWidget {
 
 ## Business logic and state injection
 
->The business logic classes are independent from any external library. They are independent even from `states_rebuilder` itself.
+>Business logic classes are independent from any external library. They are independent even from `states_rebuilder` itself.
 
 
-The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point that you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
+The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point where you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
 
 >With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
 
@@ -243,11 +295,11 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 >To inject a state, you use `RM.inject`, `RM.injectFuture`, `RM.injectStream` or `RM.injectFlavor`.
 
-**The injected state even if it is injected globally it has a lifecycle**. It is created when first used and destroyed when no longer used. Between the creation and the destruction of the state, it can be listened to and mutated to notify its registered listeners.
+**The injected state even if it is injected globally, it has a lifecycle**. It is created when first used and destroyed when no longer used. Between the creation and the destruction of the state, it can be listened to and mutated to notify its registered listeners.
 
 **When the state is disposed of, its list of listeners is cleared**, and if the state is waiting for a Future or subscribed to a Stream, it will cancel them to free resources.
 
-**Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its of the Inject model that it depends on emits a notification.
+**Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its Inject model that it depends on emits a notification.
 
   [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
 
@@ -274,7 +326,7 @@ foo.toggle();
 </p> -->
 
 The state when mutated emits a notification to its registered listeners. The emitted notification has a boolean flag to describe is status :
-  - `isIdle` : the state is first created and no notification is emitted yet.
+  - `isIdle` : the state was first created and no notification has been emitted yet.
   - `isWaiting`: the state is waiting for an async task to end.
   - `hasError`: the state mutation has ended with an error.
   - `hasData`: the state mutation has ended with valid data.
@@ -438,7 +490,7 @@ On.or(
 )
 ```
 
-> All onError callbacks expose a refresher. It can be use to refresh the error; that is recalling the last  function that caused the error.
+> All onError callbacks expose a refresher. It can be used to refresh the error; that is recalling the last function that caused the error.
 
 If you want to optimize widget rebuild and prevent some part of the child widget tree from unnecessary rebuilding, use `Child`, `Child2`, `Child3` widget.
 
@@ -874,7 +926,7 @@ To deal with TextFields and Form validation
 
 
 ## Working with page and tab views
-  <!-- //TODO to ba added -->
+  <!-- //TODO to be added -->
 
 
 ## Test and injected state mocking
@@ -952,6 +1004,3 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 
 </br>
 Note that all of the above examples are tested. With `states_rebuilder`, testing your business logic is the simplest part of your coding time as it is made up of simple dart classes. On the other hand, testing widgets is no less easy, because with `states_rebuilder` you can isolate the widget under test and mock its dependencies.**
-
-
-
