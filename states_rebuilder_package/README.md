@@ -97,11 +97,11 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 ```dart
 /* -------------  🗄️ Plain Data Class ------------- */
 class Counter {
-  final int count;
-  Counter(this.count);
+  final int value;
+  Counter(this.value);
   @override
   String toString() {
-    return 'Counter($count)';
+    return 'Counter($value)';
   }
 }
 
@@ -124,14 +124,14 @@ class ViewModel {
   );
 
   //A getter that uses the state of the injected counters
-  int get sum => counter1.state + counter2.state.count;
+  int get sum => counter1.state + counter2.state.value;
 
   incrementCounter1() {
     counter1.state++;
   }
 
   incrementCounter2() {
-    counter2.state = Counter(counter2.state.count + 1);
+    counter2.state = Counter(counter2.state.value + 1);
   }
 }
 
@@ -199,7 +199,7 @@ class Counter2View extends StatelessWidget {
           child: const Text('⏱️ Undo'),
           onPressed: () => viewModel.counter2.undoState(),
         ),
-        Text('Counter2 value: ${viewModel.counter2.state.count}'),
+        Text('Counter2 value: ${viewModel.counter2.state.value}'),
       ],
     );
   }
