@@ -52,8 +52,13 @@
 </p> -->
 
 # Table of Contents
+- [`states_rebuilder`](#states_rebuilder)
+- [Table of Contents](#table-of-contents)
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
+    - [Since 4.0: &nbsp; Here](#since-40--here)
+    - [Since 3.0: &nbsp; Here](#since-30--here)
+    - [Since 2.0: &nbsp; Here](#since-20--here)
 - [A Quick Tour of states_rebuilder API](#a-quick-tour-of-states_rebuilder-api)
   - [Business logic and state injection](#business-logic-and-state-injection)
   - [State change and notification](#state-change-and-notification)
@@ -71,6 +76,10 @@
   - [Working with page and tab views](#working-with-page-and-tab-views)
   - [Test and injected state mocking](#test-and-injected-state-mocking)
 - [Examples:](#examples)
+  - [Basics:](#basics)
+  - [Advanced:](#advanced)
+    - [Firebase Series:](#firebase-series)
+    - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
   <!-- - [Basics:](#basics)
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
@@ -86,57 +95,60 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 3. Basic use case:
 ```dart
-// 🗄️Plain Data Class
-class Counter2 {
-  final int counter;
-  Counter2(this.counter);
+/* -------------  🗄️ Plain Data Class ------------- */
+class Counter {
+  final int count;
+  Counter(this.count);
   @override
   String toString() {
-    return 'Counter2($counter)';
+    return 'Counter($count)';
   }
 }
 
-// 🤔Business Logic
-//Notice it is immutable
+
+/* --------------  🤔 Business Logic -------------- */
+//🚀 it is immutable
 @immutable
-class ModelView {
+class ViewModel {
   //Inject a reactive state of type int.
   //Works for all primitives, List, Map and Set
   final counter1 = 0.inj();
 
-  // For non primitives and for more options
-  final counter2 = RM.inject<Counter2>(
-    () => Counter2(0),
-    //the state will be redone and undone
+  //For non primitives and for more options
+  final counter2 = RM.inject<Counter>(
+    () => Counter(0),
+    //State will be redone and undone
     undoStackLength: 8,
     //Build-in logger
     debugPrintWhenNotifiedPreMessage: 'counter2',
   );
 
   //A getter that uses the state of the injected counters
-  int get sum => counter1.state + counter2.state.counter;
+  int get sum => counter1.state + counter2.state.count;
 
   incrementCounter1() {
     counter1.state++;
   }
 
   incrementCounter2() {
-    counter2.state = Counter2(counter2.state.counter + 1);
+    counter2.state = Counter(counter2.state.count + 1);
   }
 }
 
-//🚀 As ModelView is immutable and final, it is safe to globally instantiate it.
+
+/* ------------------- 👍 Setup ------------------- */
+//NOTE: As ViewModel is immutable and final, it is safe to globally instantiate it.
 //🚀 The state of counter1 and counter2 will be auto-disposed when no longer in use.
 //They are testable and mockable.
-final modelView = ModelView();
+final viewModel = ViewModel();
 
-// 👀UI
 
+/* --------------------  👀 UI -------------------- */
 //🚀 Just use ReactiveStatelessWidget widget instead of StatelessWidget.
 
-//CounterApp will automatically register in any state consumed in its 
-//widget child branch, regardless of its depth, provided the widget is 
-//not lazily loaded as in the builder method of the ListView.builder widget.
+//CounterApp will automatically register in any state consumed in its widget 
+//child branch, regardless of its depth, provided the widget is not lazily 
+//loaded as in the builder method of the ListView.builder widget.
 class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
 
@@ -145,15 +157,15 @@ class CounterApp extends ReactiveStatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Counter1View(),
-        Counter2View(),
-        Text('🏁Result: ${modelView.sum}'), //Will be updated when sum changes
+        const Counter1View(),
+        const Counter2View(),
+        Text('🏁 Result: ${viewModel.sum}'), //Will be updated when sum changes
       ],
     );
   }
 }
 
-//Simple StatelessWidget
+// Child 1 - Plain StatelessWidget
 class Counter1View extends StatelessWidget {
   const Counter1View({Key? key}) : super(key: key);
 
@@ -163,15 +175,15 @@ class Counter1View extends StatelessWidget {
       children: [
         ElevatedButton(
           child: const Text('🏎️ Counter1 ++'),
-          onPressed: () => modelView.incrementCounter1(),
+          onPressed: () => viewModel.incrementCounter1(),
         ),
-        Text('Counter1 value: ${modelView.counter1.state}'),
+        Text('Counter1 value: ${viewModel.counter1.state}'),
       ],
     );
   }
 }
 
-//Simple StatelessWidget
+// Child 2 - Plain StatelessWidget
 class Counter2View extends StatelessWidget {
   const Counter2View({Key? key}) : super(key: key);
 
@@ -181,13 +193,13 @@ class Counter2View extends StatelessWidget {
       children: [
         ElevatedButton(
           child: const Text('🏎️ Counter2 ++'),
-          onPressed: () => modelView.incrementCounter2(),
+          onPressed: () => viewModel.incrementCounter2(),
         ),
         ElevatedButton(
           child: const Text('⏱️ Undo'),
-          onPressed: () => modelView.counter2.undoState(),
+          onPressed: () => viewModel.counter2.undoState(),
         ),
-        Text('Counter2 value: ${modelView.counter2.state.counter}'),
+        Text('Counter2 value: ${viewModel.counter2.state.count}'),
       ],
     );
   }
