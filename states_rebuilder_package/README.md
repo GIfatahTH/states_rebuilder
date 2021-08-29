@@ -52,8 +52,13 @@
 </p> -->
 
 # Table of Contents
+- [`states_rebuilder`](#states_rebuilder)
+- [Table of Contents](#table-of-contents)
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
+    - [Since 4.0: &nbsp; Here](#since-40--here)
+    - [Since 3.0: &nbsp; Here](#since-30--here)
+    - [Since 2.0: &nbsp; Here](#since-20--here)
 - [A Quick Tour of states_rebuilder API](#a-quick-tour-of-states_rebuilder-api)
   - [Business logic and state injection](#business-logic-and-state-injection)
   - [State change and notification](#state-change-and-notification)
@@ -71,6 +76,10 @@
   - [Working with page and tab views](#working-with-page-and-tab-views)
   - [Test and injected state mocking](#test-and-injected-state-mocking)
 - [Examples:](#examples)
+  - [Basics:](#basics)
+  - [Advanced:](#advanced)
+    - [Firebase Series:](#firebase-series)
+    - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
   <!-- - [Basics:](#basics)
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
@@ -86,57 +95,62 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 3. Basic use case:
 ```dart
-// 🗄️Plain Data Class
-class Counter2 {
-  final int counter;
-  Counter2(this.counter);
+/* -------------  🗄️ Plain Data Class ------------- */
+class Counter {
+  final int value;
+  Counter(this.value);
   @override
   String toString() {
-    return 'Counter2($counter)';
+    return 'Counter($value)';
   }
 }
 
-// 🤔Business Logic
-//Notice it is immutable
+
+/* --------------  🤔 Business Logic -------------- */
+//🚀 It is immutable
 @immutable
-class ModelView {
-  //Inject a reactive state of type int.
-  //Works for all primitives, List, Map and Set
+class ViewModel {
+  // Inject a reactive state of type int.
+  // Works for all primitives, List, Map and Set
   final counter1 = 0.inj();
 
   // For non primitives and for more options
-  final counter2 = RM.inject<Counter2>(
-    () => Counter2(0),
-    //the state will be redone and undone
+  final counter2 = RM.inject<Counter>(
+    () => Counter(0),
+    // State will be redone and undone
     undoStackLength: 8,
-    //Build-in logger
+    // Build-in logger
     debugPrintWhenNotifiedPreMessage: 'counter2',
   );
 
   //A getter that uses the state of the injected counters
-  int get sum => counter1.state + counter2.state.counter;
+  int get sum => counter1.state + counter2.state.value;
 
   incrementCounter1() {
     counter1.state++;
   }
 
   incrementCounter2() {
-    counter2.state = Counter2(counter2.state.counter + 1);
+    counter2.state = Counter(counter2.state.value + 1);
   }
 }
 
-//🚀 As ModelView is immutable and final, it is safe to globally instantiate it.
+
+/* ------------------- 👍 Setup ------------------- */
+// NOTE: As ViewModel is immutable and final, it is safe to globally instantiate it.
+
 //🚀 The state of counter1 and counter2 will be auto-disposed when no longer in use.
-//They are testable and mockable.
-final modelView = ModelView();
+// They are testable and mockable.
+final viewModel = ViewModel();
 
-// 👀UI
 
+/* --------------------  👀 UI -------------------- */
 //🚀 Just use ReactiveStatelessWidget widget instead of StatelessWidget.
 
-//CounterApp will automatically register in any state consumed in its 
-//widget child branch, regardless of its depth, provided the widget is 
-//not lazily loaded as in the builder method of the ListView.builder widget.
+// CounterApp will automatically register in any state consumed in its widget child 
+// branch, regardless of its depth, provided the widget is not lazily loaded as in 
+// the builder method of the ListView.builder widget. */
+
 class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
 
@@ -145,15 +159,15 @@ class CounterApp extends ReactiveStatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Counter1View(),
-        Counter2View(),
-        Text('🏁Result: ${modelView.sum}'), //Will be updated when sum changes
+        const Counter1View(),
+        const Counter2View(),
+        Text('🏁 Result: ${viewModel.sum}'), //Will be updated when sum changes
       ],
     );
   }
 }
 
-//Simple StatelessWidget
+// Child 1 - Plain StatelessWidget
 class Counter1View extends StatelessWidget {
   const Counter1View({Key? key}) : super(key: key);
 
@@ -163,15 +177,15 @@ class Counter1View extends StatelessWidget {
       children: [
         ElevatedButton(
           child: const Text('🏎️ Counter1 ++'),
-          onPressed: () => modelView.incrementCounter1(),
+          onPressed: () => viewModel.incrementCounter1(),
         ),
-        Text('Counter1 value: ${modelView.counter1.state}'),
+        Text('Counter1 value: ${viewModel.counter1.state}'),
       ],
     );
   }
 }
 
-//Simple StatelessWidget
+// Child 2 - Plain StatelessWidget
 class Counter2View extends StatelessWidget {
   const Counter2View({Key? key}) : super(key: key);
 
@@ -181,13 +195,13 @@ class Counter2View extends StatelessWidget {
       children: [
         ElevatedButton(
           child: const Text('🏎️ Counter2 ++'),
-          onPressed: () => modelView.incrementCounter2(),
+          onPressed: () => viewModel.incrementCounter2(),
         ),
         ElevatedButton(
           child: const Text('⏱️ Undo'),
-          onPressed: () => modelView.counter2.undoState(),
+          onPressed: () => viewModel.counter2.undoState(),
         ),
-        Text('Counter2 value: ${modelView.counter2.state.counter}'),
+        Text('Counter2 value: ${viewModel.counter2.state.value}'),
       ],
     );
   }
@@ -216,21 +230,20 @@ The specificity of `states_rebuilder` is that it has practically no boilerplate.
 
 This is a typical simple business logic class:
 ```dart
-class Foo { //don't extend any other library specific class
-  int mutableState = 0; // the state can be mutable
-  //Or
+class Foo { // Don't extend any other library specific class
+  int mutableState = 0; // The state can be mutable 
   final int immutableState; // Or it can be immutable (no difference)
   Foo(this.immutableState);
 
   Future<int> fetchSomeThing async(){
-    //No need for any kind of async state tracking variables
+    // No need for any kind of async state tracking variables
     return repository.fetchSomeThing();
-    //No need for any kind of notification
+    // No need for any kind of notification
   }
 
   Stream<int> streamSomeThing async*(){
-    //Methods can return stream, future, or simple sync objects,
-    //states_rebuilder treats them equally
+    // Methods can return stream, future, or simple sync objects,
+    // states_rebuilder treats them equally
   }
 }
 ```
@@ -282,7 +295,7 @@ final Injected<Foo> foo = RM.inject<Foo>(
     }
   },
 );
-//For simple injection you can use `inj()` extension:
+// For simple injection you can use `inj()` extension:
 final foo = Foo().inj<Foo>();
 final isBool = false.inj();
 final string = 'str'.inj();
@@ -305,19 +318,20 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 ## State change and notification
 
-To mutate the state and notify listener:
+To mutate the state and notify to listener(s):
 ```dart
-//Inside any callback: 
-foo.state= newFoo;
-//Or for more options
+// Set state inside any callback: 
+foo.state = newFoo;
 
+// For more options
 foo.setState(
   (s) => s.fetchSomeThing(),
-  onSetState: On.waiting(()=> showSnackBar() ),
+  // Run side-effect during setState
+  onSetState: On.waiting(()=> showSnackBar()),
   debounceDelay : 400,
-)
+);
 
-//if state is bool
+// If state is bool
 foo.toggle();
 ```
 
@@ -359,11 +373,12 @@ Calling `refresh` will cancel any pending async task from the state before refre
 To listen to an injected state and rebuild a part of the widget tree, just wrap that part of the widget tree inside `OnReactive` widget:
 
 ```dart
-final counter1 = RM.inject(()=> 0) // Or just use extension: 0.inj()
-final counter2 = 0.inj();
+final counter1 = RM.inject(()=> 0) // Equivalent to 0.inj();
+final counter2 = 0.inj();          // Handly extension style
+
 int get sum => counter1.state + counter2.state;
 
-//In the widget tree:
+// In the widget tree:
 Column(
     children: [
         OnReactive( // Will listen to counter1
@@ -372,14 +387,15 @@ Column(
         OnReactive( // Will listen to counter2
             ()=> Text('${counter2.state}');
         ),
-        OnReactive(// Will listen to both counter1 and counter2
+        OnReactive( // Will listen to both counter1 and counter2
             ()=> Text('$sum');
         )
     ]
 )
 ```
-Inside `OnReactive `you can call any of the available state status flags (`isWaiting`, `hasError`, `hasData`, ...) or just use `onAll` and `onOrElse` methods:
+Inside `OnReactive` you can call any of the available state status flags (`isWaiting`, `hasError`, `hasData`, ...) or just simply use `onAll` and `onOrElse` methods:
 ```dart
+// Option 1: I do it by myself!
 OnReactive(
     ()=> {
         if(myModel.isWaiting){
@@ -391,7 +407,7 @@ OnReactive(
         return DataWidget();
     }
 )
-//Or use onAll method:
+// Option 2: use handly onAll method:
 OnReactive(
     ()=> myModel.onAll(
             onWaiting: ()=> WaitingWidget(),
@@ -400,7 +416,7 @@ OnReactive(
         );
 )
 
-//Or use onOr method:
+// Option 3: use onOrElse method:
 OnReactive(
     ()=> myModel.onOrElse(
             onWaiting: ()=> WaitingWidget(),
@@ -435,7 +451,7 @@ In most cases `OnReactive` do the job. Nevertheless, if you want to explicitly s
 ```dart
 OnBuilder(
     listenTo: myState,
-    //called whenever myState emits a notification
+    // called whenever myState emits a notification
     builder: () => Text('${counter.state}'),
     sideEffect: SideEffect(
         initState: () => print('initState'),
@@ -525,10 +541,10 @@ class App extends StatelessWidget{
           builder: () {
 
             return const ItemWidget();
-            //Inside ItemWidget you can use the buildContext to get 
-            //the right state for each widget branch using:
+            // Inside ItemWidget you can use the buildContext to get 
+            // the right state for each widget branch using:
             item.of(context); //the Element owner of context is registered to item model.
-            //or
+            // Or:
             item(context) //the Element owner of context is not registered to item model.
           }
         );
@@ -549,7 +565,7 @@ To Persist the state and retrieve it when the app restarts,
       key: 'modelKey',
       toJson: (MyModel s) => s.toJson(),
       fromJson: (String json) => MyModel.fromJson(json),
-      //Optionally, throttle the state persistance
+      // Optionally, throttle the state persistance
       throttleDelay: 1000,
     ),
   );
@@ -604,13 +620,14 @@ To navigate, show dialogs and snackBars without `BuildContext`:
                       final queryParams = data.queryParams;
                       final pathParams = data.pathParams;
                       final arguments = data.arguments;
-
-                      //OR
-                      //Inside a child widget of AuthorWidget :
+                      
+                      // Or:
+                      // Inside a child widget of AuthorWidget :
                       //
-                      //context.routeQueryParams;
-                      //context.routePathParams;
-                      //context.routeArguments;
+                      // context.routeQueryParams;
+                      // context.routePathParams;
+                      // context.routeArguments;
+                      
                       return  AuthorWidget();
 
                   },
@@ -625,11 +642,11 @@ To navigate, show dialogs and snackBars without `BuildContext`:
   ```dart
     RM.navigate.to('/'); // => renders LoginPage()
     RM.navigate.to('/posts'); // => 404 error
-    RM.navigate.to('/posts/foo'); // =>  renders AuthorWidget(), with pathParams = {'author' : 'foo' }
-    RM.navigate.to('/posts/postDetails'); // =>  renders PostDetailsWidget(),
+    RM.navigate.to('/posts/foo'); // => renders AuthorWidget(), with pathParams = {'author' : 'foo' }
+    RM.navigate.to('/posts/postDetails'); // => renders PostDetailsWidget(),
     //If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
-    RM.navigate.to('postDetails'); // =>  renders PostDetailsWidget(),
-    RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // =>  renders PostDetailsWidget(),
+    RM.navigate.to('postDetails'); // => renders PostDetailsWidget(),
+    RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // => renders PostDetailsWidget(),
   ```
     
   * [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
@@ -639,22 +656,22 @@ To navigate, show dialogs and snackBars without `BuildContext`:
 * To Create, Read, Update and Delete (CRUD) from backend or DataBase,
   ```dart
   final products = RM.injectCRUD<Product, Param>(
-      ()=> MyProductRepository(),//Implements ICRUD<Product, Param>
+      ()=> MyProductRepository(),// Implements ICRUD<Product, Param>
       readOnInitialization: true,// Optional (Default is false)
   );
   ```
 
   ```dart
-  //READ
+  // READ
   products.crud.read(param: (param)=> NewParam());
-  //CREATE
+  // CREATE
   products.crud.create(NewProduct());
-  //UPDATE
+  // UPDATE
   products.crud.update(
     where: (product) => product.id == 1,
     set: (product)=> product.copyWith(...),
   );
-  //DELETE
+  // DELETE
   products.crud.delete(
     where: (product) => product.id == 1,
     isOptimistic: false, // Optional (Default is true)
@@ -670,20 +687,20 @@ To navigate, show dialogs and snackBars without `BuildContext`:
 To authenticate and authorize users,
   ```dart
   final user = RM.injectAuth<User, Param>(
-      ()=> MyAuthRepository(),//Implements IAuth<User, Param>
+      ()=> MyAuthRepository(),// Implements IAuth<User, Param>
       unSignedUser: UnsignedUser(),
-      onSigned: (user)=> //Navigate to home page,
-      onUnsigned: ()=> //navigate to Auth Page,
+      onSigned: (user)=> // Navigate to home page,
+      onUnsigned: ()=> // Navigate to Auth Page,
       autoSignOut: (user)=> Duration(seconds: user.tokenExpiryDate)
   );
   ```
 
   ```dart
-  //Sign up
+  // Sign up
   user.auth.signUp((param)=> Param());
-  //Sign in
+  // Sign in
   user.auth.signIn((param)=> Param());
-  //Sign out
+  // Sign out
   user.auth.signOut();
   ```
 
@@ -709,9 +726,9 @@ To dynamically switch themes,
   ```
 
   ```dart
-  //choose the theme
+  // Choose the theme
   theme.state = 'solarized'
-  //toggle between dark and light mode of the chosen them
+  // Toggle between dark and light mode of the chosen them
   theme.toggle();
   ```
 
@@ -723,11 +740,11 @@ To dynamically switch themes,
 
 To internationalize and localize your app:
   ```dart
-  //US english
+  // US english
   class EnUS {
     final helloWorld = 'Hello world';
   }
-  //Spanish
+  // Spanish
   class EsEs implements EnUs{
     final helloWorld = 'Hola Mondo';
   }
@@ -735,10 +752,10 @@ To internationalize and localize your app:
   ```dart
   final i18n = RM.injectI18N<EnUS>(
       {
-        Local('en', 'US'): ()=> EnUS();//can be async
+        Local('en', 'US'): ()=> EnUS();// can be async
         Local('es', 'ES'): ()=> EsES();
       };
-      persistKey: '__lang__', //local persistance of language 
+      persistKey: '__lang__', // local persistance of language 
   );
   ```
   In the UI:
@@ -747,9 +764,9 @@ To internationalize and localize your app:
   ```
 
   ```dart
-  //choose the language
+  // Choose the language
   i18n.locale = Local('es', 'Es');
-  //Or choose the system language
+  // Or: choose the system language
   i18n.locale = SystemLocale();
   ```
 
@@ -819,14 +836,14 @@ To deal with TextFields and Form validation
     autovalidateMode: AutovalidateMode.disable,
     autoFocusOnFirstError: true,
     submit: () async {
-      //This is the default submission logic,
-      //It may be override when calling form.submit( () async { });
-      //It may contains server validation.
+      // This is the default submission logic,
+      // It may be override when calling form.submit( () async { });
+      // It may contains server validation.
       await serverError =  authRepository.signInWithEmailAndPassword(
           email: email.text,
           password: password.text,
         );
-        //after server validation
+        // After server validation
         if(serverError == 'Invalid-Email'){
           email.error = 'Invalid email';
         }
@@ -835,11 +852,11 @@ To deal with TextFields and Form validation
         }
     },
     onSubmitting: () {
-      // called while waiting for form submission,
+      // Called while waiting for form submission,
     },
     onSubmitted: () {
-      // called after form is successfully submitted
-      // For example navigation to user page
+      // Called after form is successfully submitted
+      // for example: navigation to user page
     }
   );
   ```
@@ -857,7 +874,7 @@ To deal with TextFields and Form validation
                   errorText: email.error,
                 ),
                 onSubmitted: (_) {
-                  //request the password node
+                  // Request the password node
                   password.focusNode.requestFocus();
                 },
             ),
@@ -868,7 +885,7 @@ To deal with TextFields and Form validation
                   errorText: password.error,
                 ),
                 onSubmitted: (_) {
-                  //request the submit button node
+                  // Request the submit button node
                   form.submitFocusNode.requestFocus();
                 },
             ),
@@ -907,7 +924,7 @@ To deal with TextFields and Form validation
       }
 
       if (scroll.hasStartedScrolling) {
-        //Called only one time.
+        // Called only one time.
         print('User has just start scrolling');
       }
     }
