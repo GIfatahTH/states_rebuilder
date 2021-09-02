@@ -210,7 +210,7 @@ class Counter2View extends StatelessWidget {
 | **3.0**          | Legacy (2020-09-04) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) |
 | **2.0**          | Legacy (2020-06-02) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) |
 
-* It's suggested that using modern version in order to get maximum performance & development experience with **flutter 2.0**.
+* Use of modern version is recommended for getting maximum performance & development experience with **flutter 2.0**.
 
 </br>
 
