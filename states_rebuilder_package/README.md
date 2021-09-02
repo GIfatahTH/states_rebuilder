@@ -1,59 +1,34 @@
-# `states_rebuilder`
+
+
+<h1> States_rebuilder </h1>
+
 
 [![pub package](https://img.shields.io/pub/v/states_rebuilder.svg)](https://pub.dev/packages/states_rebuilder)
 ![actions workflow](https://github.com/GIfatahTH/states_rebuilder/actions/workflows/config.yml/badge.svg)
 [![codecov](https://codecov.io/gh/GIfatahTH/states_rebuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/GIfatahTH/states_rebuilder)
 
 <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="600" alt=''/>
+    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="570" alt=''/>
 </p>
-- Performance
-  - Predictable and controllable state mutation
-  - Immutable / Mutable states support
-  - Strictly rebuild control
-  - Auto clean state when not used
 
-- Code Clean
-  - Zero Boilerplate
-  - No annotation & code-generation
-  - Separation of UI & business logic
-  - Achieve business logic in pure Dart.
 
-- User Friendly
-  - Built-in dependency injection system
-  - `SetState` in StatelessWidget.
-  - Hot-pluggable Stream / Futures
-  - Easy Undo / Redo
-  - Elegant error handling and refreshing
-  - Navigate, show dialogs without `BuildContext`
-  - Named route with dynamic segmenet
-  - Nested routes mapping
-  - Easily persist the state and retrieve it back
-  - Override the state for a particular widget tree branch (widget-wise state)
+| Code Clean                                                          | Performance                             |
+| ------------------------------------------------------------------- | --------------------------------------- |
+| - Separation of UI & business logic                                 | - Support for immutable / mutable state |
+| - Coding business logic in pure Dart                                | - Predictable and controllable          |
+| - Zero Boilerplate without code-generation &nbsp;&nbsp;&nbsp;&nbsp; | - Strictly rebuild control              |
 
-- development-time-saving
-  - Easily CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database.
-  - Easy user authentication and authorization.
-  - Easily app theme management.
-  - Simple internalization and localization.
-  - Work with TextFields and Form validation, both in client and server side.
-  - Implicit animation with the power of explicit animation.
-  - Easy and user-friendly interface for ScrollControllers
-  - Working with tabs and pages.
+| User-friendly                                 | Effective Production                    |
+| --------------------------------------------- | --------------------------------------- |
+| - Elegant and lightweight syntax              | - Super easy for CRUD development       |
+| - `SetState` & `Animation` in StatelessWidget | - User authentication and authorization |
+| - Navigation without `BuildContext`           | - App themes, multi-langs management    |
+| - Built-in dependency injection system        | - Easy to test, mock the dependencies   |
 
-- Maintainable
-  - Easy to test and mock the dependencies
-  - state tracker middleware
-  - Built-in debugging print function
-  - Capable of complex apps
+</br>
 
-<!-- <p align="center" >
-    <image src="../assets/Poster-Simple.png" width="1280"  alt=''/>
-</p> -->
+<h1> Table of Contents </h1>
 
-# Table of Contents
-- [`states_rebuilder`](#states_rebuilder)
-- [Table of Contents](#table-of-contents)
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
     - [Since 4.0: &nbsp; Here](#since-40--here)
@@ -63,6 +38,8 @@
   - [Business logic and state injection](#business-logic-and-state-injection)
   - [State change and notification](#state-change-and-notification)
   - [State subscription and widget rebuild](#state-subscription-and-widget-rebuild)
+    - [OnReactive Builder](#onreactive-builder)
+    - [OnBuilder Builder](#onbuilder-builder)
   - [State persistence](#state-persistence)
   - [Undo and redo immutable state](#undo-and-redo-immutable-state)
   - [Route management](#route-management)
@@ -70,7 +47,8 @@
   - [Authentication and authorization](#authentication-and-authorization)
   - [Dynamic theme switching](#dynamic-theme-switching)
   - [App internationalization](#app-internationalization)
-  - [Implicit and explicit animation](#implicit-and-explicit-animation)
+  - [Animation in StatelessWidget:](#animation-in-statelesswidget)
+    - [Implicit and explicit animation](#implicit-and-explicit-animation)
   - [Working with TextFields and Form validation](#working-with-textfields-and-form-validation)
   - [Working with scrollable view](#working-with-scrollable-view)
   - [Working with page and tab views](#working-with-page-and-tab-views)
@@ -80,15 +58,28 @@
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app)
+
   <!-- - [Basics:](#basics)
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app) -->
 
-# Getting Started with States_rebuilder
-1. Add the latest version to your package's pubspec.yaml file.
+</br>
 
-2. Import it in any Dart code:
+# Getting Started with States_rebuilder
+1. Install this package:
+With Flutter:
+```
+ $ flutter pub add states_rebuilder
+```
+
+```yaml
+  # Or: Add the latest version to your package's pubspec.yaml file.   
+  dependencies:
+    states_rebuilder: ... 
+```
+
+1. Import it in any Dart code:
 ```dart
 import 'package:states_rebuilder/states_rebuilder.dart';
 ```
@@ -149,8 +140,7 @@ final viewModel = ViewModel();
 
 // CounterApp will automatically register in any state consumed in its widget child 
 // branch, regardless of its depth, provided the widget is not lazily loaded as in 
-// the builder method of the ListView.builder widget. */
-
+// the builder method of the ListView.builder widget. 
 class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
 
@@ -161,7 +151,7 @@ class CounterApp extends ReactiveStatelessWidget {
       children: [
         const Counter1View(),
         const Counter2View(),
-        Text('🏁 Result: ${viewModel.sum}'), //Will be updated when sum changes
+        Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
       ],
     );
   }
@@ -179,6 +169,7 @@ class Counter1View extends StatelessWidget {
           child: const Text('🏎️ Counter1 ++'),
           onPressed: () => viewModel.incrementCounter1(),
         ),
+        // Listen the state from parent
         Text('Counter1 value: ${viewModel.counter1.state}'),
       ],
     );
@@ -216,6 +207,7 @@ class Counter2View extends StatelessWidget {
 
 ### Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) 
 
+</br>
 
 # A Quick Tour of states_rebuilder API
 
@@ -227,8 +219,10 @@ class Counter2View extends StatelessWidget {
 The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point where you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,` isWaiting`, `hasError` and` hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
 
 >With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
+</br>
 
 This is a typical simple business logic class:
+
 ```dart
 class Foo { // Don't extend any other library specific class
   int mutableState = 0; // The state can be mutable 
@@ -251,9 +245,6 @@ class Foo { // Don't extend any other library specific class
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
 </p> -->
 
-<!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
-</p> -->
 
 To make the `Foo` object reactive, we simply inject it using global functional injection:
 
@@ -278,10 +269,11 @@ final Injected<Foo> foo = RM.inject<Foo>(
       // Optionally, throttle the state persistance
       throttleDelay: 1000,
   ),
-  // middleSnapState as a middleWare place
-  // Used to track and log state lifecycle and transitions.
-  // It can also be used to return another state created from 
-  // the current state and the next state.
+
+  // middleSnapState as a middleWare place used to 
+  // track and log state lifecycle and transitions.
+  // It can also be used to return another state created 
+  // from the current state and the next state.
   middleSnapState: (middleSnap) {
      middleSnap.print(); //Build-in logger
     
@@ -326,12 +318,12 @@ foo.state = newFoo;
 // For more options
 foo.setState(
   (s) => s.fetchSomeThing(),
-  // Run side-effect during setState
+  // Run `side-effect` during setState
   onSetState: On.waiting(()=> showSnackBar()),
   debounceDelay : 400,
 );
 
-// If state is bool
+// For boolean type state
 foo.toggle();
 ```
 
@@ -369,12 +361,20 @@ Calling `refresh` will cancel any pending async task from the state before refre
 
 
 ## State subscription and widget rebuild
+There are <font color='#20a844'>**two ways**</font> to for get your widget rebuilds by state:
+| Widget Builders | Style                       | Link                                              |
+| --------------- | --------------------------- | ------------------------------------------------- |
+| `OnReactive`    | 👩🏻‍💻Ï By default               | [Finish him!](#onreactive-builder-default-option) |
+| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder-option-2)     |
 
+</br>
+
+### OnReactive Builder
 To listen to an injected state and rebuild a part of the widget tree, just wrap that part of the widget tree inside `OnReactive` widget:
 
 ```dart
-final counter1 = RM.inject(()=> 0) // Equivalent to 0.inj();
-final counter2 = 0.inj();          // Handly extension style
+final counter1 = RM.inject<int>(()=> 0) // Equivalent to 0.inj();
+final counter2 = 0.inj();          // Or: using extension style
 
 int get sum => counter1.state + counter2.state;
 
@@ -395,7 +395,7 @@ Column(
 ```
 Inside `OnReactive` you can call any of the available state status flags (`isWaiting`, `hasError`, `hasData`, ...) or just simply use `onAll` and `onOrElse` methods:
 ```dart
-// Option 1: I do it by myself!
+// Option 1: I do it by myself! 😤
 OnReactive(
     ()=> {
         if(myModel.isWaiting){
@@ -407,25 +407,25 @@ OnReactive(
         return DataWidget();
     }
 )
-// Option 2: use handly onAll method:
+// Option 2: use onAll method:   (defined all status)
 OnReactive(
     ()=> myModel.onAll(
             onWaiting: ()=> WaitingWidget(),
             onError: (err, refreshErr)=> ErrorWidget(),
-            onDate: (data)=> DataWidget(),
+            onData: (data)=> DataWidget(),
         );
 )
 
-// Option 3: use onOrElse method:
+// Option 3: use onOrElse method: (expected or undefined status)
 OnReactive(
     ()=> myModel.onOrElse(
-            onWaiting: ()=> WaitingWidget(),
-            orElse: (data)=> DataWidget(),
+            onData: (data)=> DataWidget(),
+            orElse: ()=> IndicatorWidget(),
         );
 )
 ```
 
-Similar to `OnReactive` widget there is the abstract widget `ReactiveStatelessWidget`. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners no matter how deep in the widget tree they are provided that the widget is not loaded lazily such as inside the `builder` method of the `ListView.builder` widget:
+Similar to `OnReactive` widget there is the abstract widget **`ReactiveStatelessWidget`**. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners <font color='#20a844'>**no matter how deep**</font> in the widget tree they are provided that the widget <font color='#c70000'>**is not loaded lazily**</font> such as inside the `builder` method of the `ListView.builder` widget:
 
 ```dart
 class MyWidget extends ReactiveStatelessWidget {
@@ -446,12 +446,16 @@ class MyWidget extends ReactiveStatelessWidget {
 
   * [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection). 
 
+</br>
+
+###  OnBuilder Builder
+
 In most cases `OnReactive` do the job. Nevertheless, if you want to explicitly specify the listeners you want to listen to, use `OnBuilder` widget.
 
 ```dart
 OnBuilder(
     listenTo: myState,
-    // called whenever myState emits a notification
+    // Called whenever myState emits a notification
     builder: () => Text('${counter.state}'),
     sideEffect: SideEffect(
         initState: () => print('initState'),
@@ -471,14 +475,15 @@ In this case `onBuilder` will react to a combined state of all injected states.
 ```dart
 OnBuilder.all(
     listenToMany: [myState1, myState2],
-    onWaiting: () => Text('onWaiting'), // Will be invoked if at least one state iwaiting
-    onError: (err, refreshError) => Text('onError'), // Will be invoked if at least onstate has error
+    onWaiting: () => Text('onWaiting'), // Will be invoked if at least one state is waiting
+    onError: (err, refreshError) => Text('onError'), // Will be invoked if at least on state has error
     onData: (data) => Text(myState.state.toString()), // Will be invoked if all states have data.
 ),
 ```
 
   * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
+</br>
 
 states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
 ```dart
@@ -516,7 +521,7 @@ Child(
       () => Colum(
           children: [
               Text('model.state'), // This part will rebuild
-              child, //This part will not rebuild
+              child, // This part will not rebuild
           ],
       ),
   ),
@@ -536,16 +541,19 @@ class App extends StatelessWidget{
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        return item.inherited( //inherited uses the InheritedWidget concept
+        return item.inherited( // Inherited uses the `InheritedWidget` concept
           stateOverride: () => items[index],
           builder: () {
 
             return const ItemWidget();
             // Inside ItemWidget you can use the buildContext to get 
             // the right state for each widget branch using:
-            item.of(context); //the Element owner of context is registered to item model.
-            // Or:
-            item(context) //the Element owner of context is not registered to item model.
+
+            // This Element owner of context is registered to item model.
+            item.of(context);
+
+            // Or: this Element owner of context is not registered to item model.
+            item(context); 
           }
         );
       },
@@ -579,10 +587,11 @@ To Persist the state and retrieve it when the app restarts,
 
   * [**Here is an example of state persistence**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_3_state_persistence).
 
+</br>
 
 ## Undo and redo immutable state
 
-To undo and redo immutable state:
+Note: you should first set `undoStackLength:` from RM.inject
   ```dart
   model.undoState();
   model.redoState();
@@ -591,7 +600,7 @@ To undo and redo immutable state:
 
   * [**Here is an example on how to undo and redo the state**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_4_undo_redo_state).
 
-
+</br>
 
 ## Route management
 
@@ -638,13 +647,15 @@ To navigate, show dialogs and snackBars without `BuildContext`:
         }),
       );
   ```
-    In the UI:
+
+  In the UI:
   ```dart
     RM.navigate.to('/'); // => renders LoginPage()
     RM.navigate.to('/posts'); // => 404 error
     RM.navigate.to('/posts/foo'); // => renders AuthorWidget(), with pathParams = {'author' : 'foo' }
     RM.navigate.to('/posts/postDetails'); // => renders PostDetailsWidget(),
-    //If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
+
+    // If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
     RM.navigate.to('postDetails'); // => renders PostDetailsWidget(),
     RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // => renders PostDetailsWidget(),
   ```
@@ -656,8 +667,8 @@ To navigate, show dialogs and snackBars without `BuildContext`:
 * To Create, Read, Update and Delete (CRUD) from backend or DataBase,
   ```dart
   final products = RM.injectCRUD<Product, Param>(
-      ()=> MyProductRepository(),// Implements ICRUD<Product, Param>
-      readOnInitialization: true,// Optional (Default is false)
+      ()=> MyProductRepository(), // Implements ICRUD<Product, Param>
+      readOnInitialization: true, // Optional (Default is false)
   );
   ```
 
@@ -688,7 +699,7 @@ To authenticate and authorize users,
   ```dart
   final user = RM.injectAuth<User, Param>(
       ()=> MyAuthRepository(),// Implements IAuth<User, Param>
-      unSignedUser: UnsignedUser(),
+      unSignedUser: UnsignedUser(), // If null-safety it's `null`
       onSigned: (user)=> // Navigate to home page,
       onUnsigned: ()=> // Navigate to Auth Page,
       autoSignOut: (user)=> Duration(seconds: user.tokenExpiryDate)
@@ -740,7 +751,7 @@ To dynamically switch themes,
 
 To internationalize and localize your app:
   ```dart
-  // US english
+  // U.S. English
   class EnUS {
     final helloWorld = 'Hello world';
   }
@@ -752,10 +763,10 @@ To internationalize and localize your app:
   ```dart
   final i18n = RM.injectI18N<EnUS>(
       {
-        Local('en', 'US'): ()=> EnUS();// can be async
+        Local('en', 'US'): ()=> EnUS(); // Can be async
         Local('es', 'ES'): ()=> EsES();
       };
-      persistKey: '__lang__', // local persistance of language 
+      persistKey: '__lang__', // Local persistance of language 
   );
   ```
   In the UI:
@@ -774,8 +785,10 @@ To internationalize and localize your app:
 
   * [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
-To set an animation:
-## Implicit and explicit animation
+</br>
+
+## Animation in StatelessWidget:
+### Implicit and explicit animation
   ```dart
   final animation = RM.injectAnimation(
     duration: const Duration(seconds: 1),
@@ -817,6 +830,8 @@ To set an animation:
 
   * [**Here are many show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
 
+</br>
+
 ## Working with TextFields and Form validation
 
 To deal with TextFields and Form validation
@@ -836,9 +851,9 @@ To deal with TextFields and Form validation
     autovalidateMode: AutovalidateMode.disable,
     autoFocusOnFirstError: true,
     submit: () async {
-      // This is the default submission logic,
-      // It may be override when calling form.submit( () async { });
-      // It may contains server validation.
+      // This is the default submission logic:
+      //  1. it may be override when calling form.submit( () async { });
+      //  2. it may contains server validation.
       await serverError =  authRepository.signInWithEmailAndPassword(
           email: email.text,
           password: password.text,
@@ -907,6 +922,8 @@ To deal with TextFields and Form validation
 
   * [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
 
+</br>
+
 ## Working with scrollable view
 
   * To work with scrolling list:
@@ -917,7 +934,7 @@ To deal with TextFields and Form validation
     endScrollDelay: 300,
     onScrolling: (scroll){
       if (scroll.hasReachedMinExtent) {
-      print('Scrolling vertical list is in its top position');
+        print('Scrolling vertical list is in its top position');
       }
       if (scroll.hasReachedMaxExtent) {
         print('Scrolling vertical list is in its bottom position');
@@ -934,9 +951,9 @@ To deal with TextFields and Form validation
   In the UI:
   ```dart
   ListView(
-      controller: scroll.controller,
+      controller: scroll.controller, // Ready to go 🏃‍♀️ 🏃
       children: <Widget>[],
-  )
+  );
   ```
 
   * [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
