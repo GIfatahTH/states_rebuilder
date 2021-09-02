@@ -11,6 +11,7 @@
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="570" alt=''/>
 </p>
 
+<center>
 
 | Code Clean                                                          | Performance                             |
 | ------------------------------------------------------------------- | --------------------------------------- |
@@ -24,6 +25,8 @@
 | ◦ `SetState` & `Animation` in StatelessWidget | • User authentication and authorization |
 | ◦ Navigation without `BuildContext`           | • App themes, multi-langs management    |
 | ◦ Built-in dependency injection system        | • Easy to test, mock the dependencies   |
+
+</center>
 
 </br>
 
