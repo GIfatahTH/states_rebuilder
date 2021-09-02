@@ -364,8 +364,8 @@ Calling `refresh` will cancel any pending async task from the state before refre
 There are <font color='#20a844'>**two ways**</font> to for get your widget rebuilds by state:
 | Widget Builders | Style                       | Link                                              |
 | --------------- | --------------------------- | ------------------------------------------------- |
-| `OnReactive`    | 👩🏻‍💻Ï By default               | [Finish him!](#onreactive-builder-default-option) |
-| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder-option-2)     |
+| `OnReactive`    | 👩🏻‍💻Ï By default               | [Finish him!](#onreactive-builder) |
+| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder)     |
 
 </br>
 
