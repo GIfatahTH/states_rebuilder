@@ -11,13 +11,17 @@
     <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="570" alt=''/>
 </p>
 
-<center>
+<div align="center">
 
 | Code Clean                                                          | Performance                             |
 | ------------------------------------------------------------------- | --------------------------------------- |
 | • Separation of UI & business logic                                 | ◦ Support for immutable / mutable state |
 | • Coding business logic in pure Dart                                | ◦ Predictable and controllable          |
 | • Zero Boilerplate without code-generation &nbsp;&nbsp;&nbsp;&nbsp; | ◦ Strictly rebuild control              |
+
+</div>
+
+<div align="center">
 
 | User-friendly                                 | Effective Production                    |
 | --------------------------------------------- | --------------------------------------- |
@@ -26,7 +30,7 @@
 | ◦ Navigation without `BuildContext`           | • App themes, multi-langs management    |
 | ◦ Built-in dependency injection system        | • Easy to test, mock the dependencies   |
 
-</center>
+</div>
 
 </br>
 
