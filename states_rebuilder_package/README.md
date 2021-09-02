@@ -14,16 +14,16 @@
 
 | Code Clean                                                          | Performance                             |
 | ------------------------------------------------------------------- | --------------------------------------- |
-| •• Separation of UI & business logic                                 | •◦ Support for immutable / mutable state |
-| •• Coding business logic in pure Dart                                | •◦ Predictable and controllable          |
-| •• Zero Boilerplate without code-generation &nbsp;&nbsp;&nbsp;&nbsp; | •◦ Strictly rebuild control              |
+| • Separation of UI & business logic                                 | ◦ Support for immutable / mutable state |
+| • Coding business logic in pure Dart                                | ◦ Predictable and controllable          |
+| • Zero Boilerplate without code-generation &nbsp;&nbsp;&nbsp;&nbsp; | ◦ Strictly rebuild control              |
 
 | User-friendly                                 | Effective Production                    |
 | --------------------------------------------- | --------------------------------------- |
-| ◦• Elegant and lightweight syntax              | •• Super easy for CRUD development       |
-| ◦• `SetState` & `Animation` in StatelessWidget | •• User authentication and authorization |
-| ◦• Navigation without `BuildContext`           | •• App themes, multi-langs management    |
-| ◦• Built-in dependency injection system        | •• Easy to test, mock the dependencies   |
+| ◦ Elegant and lightweight syntax              | • Super easy for CRUD development       |
+| ◦ `SetState` & `Animation` in StatelessWidget | • User authentication and authorization |
+| ◦ Navigation without `BuildContext`           | • App themes, multi-langs management    |
+| ◦ Built-in dependency injection system        | • Easy to test, mock the dependencies   |
 
 </br>
 
