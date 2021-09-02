@@ -32,7 +32,6 @@
 
 </div>
 
-</br>
 
 <h1> Table of Contents </h1>
 
