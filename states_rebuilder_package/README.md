@@ -37,13 +37,10 @@
 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
-    - [Since 4.0: &nbsp; Here](#since-40--here)
-    - [Since 3.0: &nbsp; Here](#since-30--here)
-    - [Since 2.0: &nbsp; Here](#since-20--here)
 - [A Quick Tour of states_rebuilder API](#a-quick-tour-of-states_rebuilder-api)
   - [Business logic and state injection](#business-logic-and-state-injection)
   - [State change and notification](#state-change-and-notification)
-  - [State subscription and widget rebuild](#state-subscription-and-widget-rebuild)
+  - [State subscription and Reactive Builders](#state-subscription-and-reactive-builders)
     - [OnReactive Builder](#onreactive-builder)
     - [OnBuilder Builder](#onbuilder-builder)
   - [State persistence](#state-persistence)
@@ -207,11 +204,13 @@ class Counter2View extends StatelessWidget {
 
 # Breaking Changes 
 
-### Since 4.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md) 
+| Breaking Version | Support             | Link                                                                                                           |
+| ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **4.0**          | ✅  Least version    | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md) |
+| **3.0**          | Legacy (2020-09-04) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) |
+| **2.0**          | Legacy (2020-06-02) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) |
 
-### Since 3.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) 
-
-### Since 2.0: &nbsp; [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) 
+* It's suggested that using modern version in order to get maximum performance & development experience with **flutter 2.0**.
 
 </br>
 
@@ -366,12 +365,12 @@ Calling `refresh` will cancel any pending async task from the state before refre
  [🗎 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
 
 
-## State subscription and widget rebuild
-There are <font color='#20a844'>**two ways**</font> to for get your widget rebuilds by state:
-| Widget Builders | Style                       | Link                                              |
-| --------------- | --------------------------- | ------------------------------------------------- |
-| `OnReactive`    | 👩🏻‍💻Ï By default               | [Finish him!](#onreactive-builder) |
-| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder)     |
+## State subscription and Reactive Builders
+There are <span style="color:#20a844">**two ways**</span> to for get your widget rebuilds by state:
+| Widget Builders | Style                       | Link                                 |
+| --------------- | --------------------------- | ------------------------------------ |
+| `OnReactive`    | 👩🏻‍💻 By default                | [Finish him!](#onreactive-builder)   |
+| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder) |
 
 </br>
 
@@ -431,7 +430,7 @@ OnReactive(
 )
 ```
 
-Similar to `OnReactive` widget there is the abstract widget **`ReactiveStatelessWidget`**. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners <font color='#20a844'>**no matter how deep**</font> in the widget tree they are provided that the widget <font color='#c70000'>**is not loaded lazily**</font> such as inside the `builder` method of the `ListView.builder` widget:
+Similar to `OnReactive` widget there is the abstract widget **`ReactiveStatelessWidget`**. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners <span style="color:#20a844">**no matter how deep**</span> in the widget tree they are provided that the widget <span style="color:#c70000">**is not loaded lazily**</span> such as inside the `builder` method of the `ListView.builder` widget:
 
 ```dart
 class MyWidget extends ReactiveStatelessWidget {
