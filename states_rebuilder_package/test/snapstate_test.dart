@@ -131,7 +131,38 @@ void main() {
   testWidgets(
     'test isActive',
     (tester) async {
-      final counter = 0.inj();
+      var counter = 0.inj();
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, false);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, false);
+      counter.state++;
+      await tester.pump();
+      expect(counter.hasData, true);
+      expect(counter.isActive, true);
+      //
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, true);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, true);
+      //
+      counter.refresh();
+      await tester.pump();
+      expect(counter.isIdle, true);
+      expect(counter.isActive, true);
+      counter.dispose();
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      //
+      counter = RM.inject(() => 0);
       expect(counter.isActive, false);
       expect(counter.isIdle, true);
       counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));

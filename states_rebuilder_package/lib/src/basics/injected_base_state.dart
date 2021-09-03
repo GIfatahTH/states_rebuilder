@@ -229,7 +229,7 @@ class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
             return crt();
           },
           middleState: (snap) {
-            snap = snap._copyToIsIdle();
+            snap = snap._copyToIsIdle(isActive: false);
             _reactiveModelState._snapState = snap;
             return null; //Return null so do not rebuild
           },

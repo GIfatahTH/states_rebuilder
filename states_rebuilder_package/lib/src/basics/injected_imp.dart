@@ -181,7 +181,8 @@ class InjectedImp<T> extends Injected<T> {
             return middleSnap(snap);
           }
           if (snap.hasData) {
-            snap = _isAsyncInjected ? snap : snap._copyToIsIdle();
+            snap =
+                _isAsyncInjected ? snap : snap._copyToIsIdle(isActive: false);
           }
           _reactiveModelState._snapState = middleSnap(snap) ?? snap;
           return null;
