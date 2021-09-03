@@ -372,7 +372,7 @@ There are <span style="color:#20a844">**two ways**</span> to for get your widget
 
 </br>
 
-### OnReactive Builder
+### OnReactive widget and ReactiveStatelessWidget
 To listen to an injected state and rebuild a part of the widget tree, just wrap that part of the widget tree inside `OnReactive` widget:
 
 ```dart
@@ -462,8 +462,8 @@ OnBuilder(
     builder: () => Text('${counter.state}'),
     sideEffect: SideEffect(
         initState: () => print('initState'),
-        onSetState: On(() => print('onSetState')),
-        onAfterBuild: On(() => print('onAfterBuild')),
+        onSetState: (snapState) => print('onSetState'),
+        onAfterBuild: () => print('onAfterBuild'),
         dispose: () => print('dispose'),
     ),
     shouldRebuild: (oldSnap, newSnap) {
@@ -487,32 +487,6 @@ OnBuilder.all(
   * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
 </br>
-
-states_rebuilder offers callbacks to handle the state status change. The state status callbacks are conveniently defined using the `On` class with its named constructor alternatives: 
-```dart
-// Called when notified regardless of state status of the notification
-On(()=> print('on'));
-// Called when notified with data status
-On.data(()=> print('data'));
-// Called when notified with waiting status
-On.waiting(()=> print('waiting'));
-// Called when notified with error status
-On.error((err, refresh)=> print('error'));
-// Exhaustively handle all four status
-On.all(
-  onIdle: ()=> print('Idle'), // If is Idle
-  onWaiting: ()=> print('Waiting'), // If is waiting
-  onError: (err, refresh)=> print('Error'), // If has error 
-  onData:  ()=> print('Data'), // If has Data
-)
-// Optionally handle the four status
-On.or(
-  onWaiting: ()=> print('Waiting'),
-  onError: (err, refresh)=> print('Error'),
-  onData:  ()=> print('Data'),
-  or: () =>  print('or')
-)
-```
 
 > All onError callbacks expose a refresher. It can be used to refresh the error; that is recalling the last function that caused the error.
 
