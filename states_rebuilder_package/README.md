@@ -71,13 +71,12 @@
 
 # Getting Started with States_rebuilder
 1. Install this package:
-With Flutter:
+* With Flutter:
 ```
  $ flutter pub add states_rebuilder
 ```
-
-```yaml
-  # Or: Add the latest version to your package's pubspec.yaml file.   
+* Or: add to your package's pubspec.yaml:
+```yaml 
   dependencies:
     states_rebuilder: ... 
 ```
@@ -129,7 +128,6 @@ class ViewModel {
   }
 }
 
-
 /* ------------------- 👍 Setup ------------------- */
 // NOTE: As ViewModel is immutable and final, it is safe to globally instantiate it.
 
@@ -172,7 +170,7 @@ class Counter1View extends StatelessWidget {
           child: const Text('🏎️ Counter1 ++'),
           onPressed: () => viewModel.incrementCounter1(),
         ),
-        // Listen the state from parent
+        // Listen to the state from parent
         Text('Counter1 value: ${viewModel.counter1.state}'),
       ],
     );
