@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -55,7 +54,7 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            onSetState: On.or(
+            sideEffects: SideEffects.onAll(
               onError: (dynamic error, void Function() refresh) {
                 RM.navigate.toDialog(
                   AlertDialog(
@@ -75,16 +74,16 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-              onData: () {
+              onData: (data) {
                 //show snackBar
                 //any current snackBar is hidden.
                 RM.scaffold.showSnackBar(
                   SnackBar(
-                    content: Text('${counter.state}'),
+                    content: Text('$data'),
                   ),
                 );
               },
-              or: () {},
+              onWaiting: null,
             ),
           );
         },

@@ -230,17 +230,123 @@ class OnBuilder<T> extends StatelessWidget {
   }
 }
 
+///Side effect to be called when the state is initialized, mutated and disposed of
+///
+///See named constructor [SideEffects.onData], [SideEffects.onError], [SideEffects.onWaiting]
+///[SideEffects.onAll], and [SideEffects.onOrElse]
 class SideEffects<T> {
+  ///Side effect to be called when the state is first initialized
   final void Function()? initState;
+
+  ///Side effect to be called when the state is disposed of,
   final void Function()? dispose;
+
+  ///Side effect to be called when the state is mutated
   final void Function(SnapState<T>)? onSetState;
+
+  ///Side effect to be called when the state is mutated and after listening widgets
+  ///have rebuilt.
   final void Function()? onAfterBuild;
+
+  ///Side effect to be called when the state is initialized, mutated and disposed of
+  ///
+  ///See named constructor [SideEffects.onData], [SideEffects.onError], [SideEffects.onWaiting]
+  ///[SideEffects.onAll], and [SideEffects.onOrElse]
   SideEffects({
     this.initState,
     this.dispose,
     this.onSetState,
     this.onAfterBuild,
   });
+
+  ///Side effect to be called when he state is mutated successfully with data
+  factory SideEffects.onData(
+    void Function(T data) data,
+  ) {
+    return SideEffects(
+      onSetState: (snap) {
+        if (snap.hasData) {
+          data(snap.data as T);
+        }
+      },
+    );
+  }
+
+  ///Side effect to be called while waiting for the state to resolve
+  factory SideEffects.onWaiting(
+    void Function() onWaiting,
+  ) {
+    return SideEffects(
+      onSetState: (snap) {
+        if (snap.isWaiting) {
+          onWaiting();
+        }
+      },
+    );
+  }
+
+  ///Side effect to be called when the state has error.
+  factory SideEffects.onError(
+    void Function(dynamic err, VoidCallback refresh) onError,
+  ) {
+    return SideEffects(
+      onSetState: (snap) {
+        if (snap.hasError) {
+          onError(snap.error, snap.onErrorRefresher!);
+        }
+      },
+    );
+  }
+
+  ///Handle all possible for state status. Null argument will be ignored.
+  factory SideEffects.onAll({
+    required void Function()? onWaiting,
+    required void Function(dynamic err, VoidCallback refresh)? onError,
+    required void Function(T data)? onData,
+  }) {
+    return SideEffects(
+      onSetState: (snap) {
+        if (snap.isWaiting) {
+          onWaiting?.call();
+          return;
+        }
+        if (snap.hasError) {
+          onError?.call(snap.error, snap.onErrorRefresher!);
+          return;
+        }
+        onData?.call(snap.data as T);
+      },
+    );
+  }
+
+  ///Handle the three state status with one required fallback callback.
+  factory SideEffects.onOrElse({
+    void Function()? onWaiting,
+    void Function(dynamic err, VoidCallback refresh)? onError,
+    void Function(T data)? onData,
+    required void Function(T data) orElse,
+  }) {
+    return SideEffects(
+      onSetState: (snap) {
+        if (snap.isWaiting && onWaiting != null) {
+          onWaiting();
+          return;
+        }
+
+        if (snap.hasError && onError != null) {
+          onError(snap.error, snap.onErrorRefresher!);
+
+          return;
+        }
+
+        if (snap.hasData && onData != null) {
+          onData(snap.data as T);
+          return;
+        }
+        orElse(snap.data as T);
+      },
+    );
+  }
 }
 
 class _On<T> {

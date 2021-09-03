@@ -243,18 +243,21 @@ class InjectedImp<T> extends Injected<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) =>
       middleSnap(
         s,
         onSetState: onSetState,
+        shouldOverrideGlobalSideEffects: shouldOverrideGlobalSideEffects,
         onData: onData,
         onError: onError,
       );
   SnapState<T>? middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {
@@ -269,9 +272,10 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnWaiting) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
       onWaiting?.call();
@@ -280,9 +284,10 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnError) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
 
@@ -296,9 +301,10 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnData) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
 

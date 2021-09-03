@@ -506,7 +506,7 @@ void main() {
   );
 
   testWidgets('Injector.interface should work Env.prod', (tester) async {
-    Injector.env = Env.prod;
+    RM.env = Env.prod;
     late ReactiveModel<IModelInterface> model;
     Widget widget = Injector(
       inject: [
@@ -537,7 +537,7 @@ void main() {
   });
 
   testWidgets('Injector.interface should work Env.test', (tester) async {
-    Injector.env = Env.test;
+    RM.env = Env.test;
     late ReactiveModel<IModelInterface> model;
     Widget widget = Injector(
       inject: [

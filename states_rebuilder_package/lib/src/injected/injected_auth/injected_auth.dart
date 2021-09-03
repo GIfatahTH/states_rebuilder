@@ -220,7 +220,8 @@ class _AuthService<T, P> {
         await injected._init();
         return _repository.signIn(_param ?? injected.param?.call());
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideGlobalSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
     return injected._state;
@@ -249,7 +250,8 @@ class _AuthService<T, P> {
 
         return _repository.signUp(_param ?? injected.param?.call());
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideGlobalSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
     return injected._state;
@@ -326,7 +328,8 @@ class _AuthService<T, P> {
               _param,
         );
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideGlobalSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
 

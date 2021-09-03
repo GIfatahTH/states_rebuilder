@@ -471,6 +471,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> snap, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {

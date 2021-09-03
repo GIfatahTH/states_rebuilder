@@ -225,7 +225,8 @@ class _CRUDService<T, P> {
   ///```
   Future<List<T>> read({
     P Function(P? param)? param,
-    On<void>? onSetState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     List<T> Function(List<T> state, List<T> nextState)? middleState,
   }) async {
     injected.debugMessage = kReading;
@@ -240,16 +241,15 @@ class _CRUDService<T, P> {
         injected.onMiddleCRUD(SnapState.data());
         return result;
       },
-      onSetState: onSetState,
-      onError: (err) {
-        injected.onMiddleCRUD(
-          SnapState.error(
-            err,
-            injected.snapState.stackTrace,
-            injected.onErrorRefresher,
-          ),
-        );
-      },
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          onSetState?.call(snap);
+          sideEffects?.onSetState?.call(snap);
+          if (snap.hasError) {
+            injected.onMiddleCRUD(snap);
+          }
+        },
+      ),
     );
     return injected._state;
   }
@@ -277,7 +277,8 @@ class _CRUDService<T, P> {
     T item, {
     P Function(P? param)? param,
     void Function(dynamic result)? onResult,
-    On<void>? onSetState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     bool isOptimistic = true,
   }) async {
     T? addedItem;
@@ -309,7 +310,12 @@ class _CRUDService<T, P> {
               yield <T>[...s, addedItem!];
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
           skipWaiting: isOptimistic,
         );
     await call();
@@ -344,7 +350,8 @@ class _CRUDService<T, P> {
     required bool Function(T item) where,
     required T Function(T item) set,
     P Function(P? param)? param,
-    On<void>? onSetState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
   }) async {
@@ -397,7 +404,12 @@ class _CRUDService<T, P> {
               yield newState;
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
           skipWaiting: isOptimistic,
         );
     await call();
@@ -428,7 +440,8 @@ class _CRUDService<T, P> {
   Future<void> delete({
     required bool Function(T item) where,
     P Function(P? param)? param,
-    On<void>? onSetState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
   }) async {
@@ -475,7 +488,12 @@ class _CRUDService<T, P> {
               yield newState;
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
         );
     await call();
     if (injected.hasError) {
@@ -498,8 +516,8 @@ class _Item<T, P> {
   _Item(this.injectedList) {
     injected = RM.inject(
       () => injectedList._state.first,
-      onSetState: On.data(
-        () async {
+      sideEffects: SideEffects.onData(
+        (_) async {
           if (_isRefreshing) {
             return;
           }

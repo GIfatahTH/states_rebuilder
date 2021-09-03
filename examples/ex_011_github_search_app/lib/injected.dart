@@ -26,7 +26,9 @@ final Injected<String> userNameQuery = RM.inject(
   //OnData is invoked when the userNameQuery is changed without error
   //Each time the state of userNameQuery is changed we refresh the fetchedGitHubUser,
   //so the current future is canceled and a new fetch request is established.
-  onData: (_) => fetchedGitHubUser.refresh(),
+  sideEffects: SideEffects.onData(
+    (_) => fetchedGitHubUser.refresh(),
+  ),
 );
 
 //Inject The fetched list of github user. it is the result of calling

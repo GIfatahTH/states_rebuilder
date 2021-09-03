@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //It can be easily mocked and tested.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  onSetState: On(() {
+  sideEffects: SideEffects(onSetState: (snap) {
     //show snackBar
     //any current snackBar is hidden.
 

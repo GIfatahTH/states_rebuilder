@@ -155,8 +155,19 @@ void main() {
     expect(_repo._products.length, 1);
     //
     _repo.error = null;
-    products.crud.read();
+    late SnapState snapState;
+    products.crud.read(
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          snapState = snap;
+        },
+      ),
+    );
+    await tester.pump();
+    expect(snapState.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
+    expect(snapState.hasData, true);
+
     _repo.error = Exception('CRUD error');
 
     products.crud.update(

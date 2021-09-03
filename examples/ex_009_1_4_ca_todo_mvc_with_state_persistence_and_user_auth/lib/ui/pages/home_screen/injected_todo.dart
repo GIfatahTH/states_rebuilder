@@ -43,9 +43,11 @@ final Injected<List<Todo>> todosFiltered = RM.inject(
     }
     return [...todos.state];
   },
-  onDisposed: (_) {
-    print('filter todos disposed');
-  },
+  sideEffects: SideEffects(
+    dispose: () {
+      print('filter todos disposed');
+    },
+  ),
   dependsOn: DependsOn({activeFilter, todos}),
   debugPrintWhenNotifiedPreMessage: 'filterTodos',
 );

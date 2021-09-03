@@ -38,23 +38,27 @@ final helloName = RM.inject<String>(
   //
   // It take on On objects, it has many named constructor: On.data, On.error,
   // On.waiting, On.all and On.or
-  onSetState: On.or(
-    onWaiting: () => RM.scaffold.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Text('Waiting ...'),
-            Spacer(),
-            CircularProgressIndicator(),
-          ],
+  sideEffects: SideEffects(
+    onSetState: (snapState) {
+      snapState.onOrElse(
+        onWaiting: () => RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Text('Waiting ...'),
+                Spacer(),
+                CircularProgressIndicator(),
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
-    onError: (err, refresh) => RM.scaffold.showSnackBar(
-      SnackBar(content: Text('${err.message}')),
-    ),
-    // the default case. hide the snackbar
-    or: () => RM.scaffold.hideCurrentSnackBar(),
+        onError: (err, refresh) => RM.scaffold.showSnackBar(
+          SnackBar(content: Text('${err.message}')),
+        ),
+        // the other case. hide the snackbar
+        orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
+      );
+    },
   ),
   //Set the undoStackLength to 5. This will automatically
   // enable doing and undoing of the  state
@@ -63,7 +67,7 @@ final helloName = RM.inject<String>(
 //Stream that emits the entered name letter by letter
 final streamedHelloName = RM.injectStream<String>(
   () async* {
-    if (name.state.isEmpty) {
+    if (name.isActive && name.state.isEmpty) {
       throw Exception(i18n.state.enterYourName);
     }
     final letters = name.state.trim().split('');
@@ -257,35 +261,6 @@ class StreamNameWidget extends StatelessWidget {
       ),
       //This will rebuild if the stream emits valid data only
       orElse: (data) => Text('$data'),
-    );
-  }
-}
-
-List<String> _products = [];
-Future<List<String>> _fetchProduct() async {
-  await Future.delayed(Duration(seconds: 1));
-  return _products..add('Product ${_products.length}');
-}
-
-final products = RM.injectFuture(() => _fetchProduct());
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => products.refresh(),
-      child: products.futureBuilder(
-        onWaiting: () => CircularProgressIndicator(),
-        onError: (err) => Text('error : $err'),
-        onData: (_) {
-          return ListView.builder(
-            itemCount: products.state.length,
-            itemBuilder: (context, index) {
-              return Text(products.state[index]);
-            },
-          );
-        },
-      ),
     );
   }
 }

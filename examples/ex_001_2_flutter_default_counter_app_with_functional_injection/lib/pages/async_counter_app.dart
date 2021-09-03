@@ -7,16 +7,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //It can be easily mocked and tested.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  //Here we defined a global onData handling
-  //Notice that setState has anData callback.
-  //As for this simple example there is no difference between the two.
-  //For more complicated scenarios, onData here is global and will be executed any
-  //time the model has data, whereas is onData in setState is local to that call
-  //of setState.
+  //Here we defined a global Side effect handling
+  //Notice that setState has sideEffects parameter.
   //
-  //If both are defined, the onData of setState override this global onData here
-  onSetState: On.or(
-      onData: () {
+  //You can override this global side effect when calling setState
+  sideEffects: SideEffects.onOrElse(
+      onData: (_) {
         //show snackBar
         //any current snackBar is hidden.
         RM.scaffold.showSnackBar(
@@ -34,7 +30,7 @@ final Injected<int> counter = RM.inject<int>(
           ),
         );
       },
-      or: () {}),
+      orElse: (_) {}),
 
   middleSnapState: (middleSnap) {
     middleSnap.print();
@@ -84,9 +80,8 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            //This onSetState if defined will override the global onData
-            onSetState: On.or(
-              onData: () {
+            sideEffects: SideEffects.onAll(
+              onData: (_) {
                 RM.scaffold.hideCurrentSnackBar();
                 print('OnData from setState');
               },
@@ -109,8 +104,11 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-              or: () {},
+              onWaiting: null,
             ),
+            //You can override the global side effects
+            //Default to false
+            shouldOverrideGlobalSideEffects: (snap) => true,
           );
         },
         tooltip: 'Increment',

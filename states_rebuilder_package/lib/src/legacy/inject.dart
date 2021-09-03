@@ -2,8 +2,6 @@ import 'dart:async';
 
 import '../rm.dart';
 
-import 'injector.dart';
-
 abstract class Injectable {}
 
 ///Base class for [Inject]
@@ -64,7 +62,6 @@ class Inject<T> extends Injectable {
     T? initialValue,
   }) {
     // ignore: deprecated_member_use_from_same_package
-    RM.env = Injector.env;
     return Inject._(
       ReactiveModelImp(creator: () {
         return RM

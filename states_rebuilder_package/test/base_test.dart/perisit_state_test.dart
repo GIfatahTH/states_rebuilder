@@ -356,16 +356,18 @@ void main() async {
       'WHEN catchPersistError is true'
       'THEN persisted exceptions are caught and a print message is logged',
       (tester) async {
-    final counter = RM.inject(() => 0,
-        persist: () => PersistState(
-              key: 'counter',
-              fromJson: (json) => int.parse(json),
-              toJson: (s) => '$s',
-              catchPersistError: true,
-            ),
-        onError: (e, s) {
-          // error = e.message;
-        });
+    final counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        catchPersistError: true,
+      ),
+      sideEffects: SideEffects.onError((e, s) {
+        // error = e.message;
+      }),
+    );
 
     store.exception = Exception('Read Error');
     expect(counter.state, 0);

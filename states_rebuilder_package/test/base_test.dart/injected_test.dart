@@ -23,12 +23,15 @@ void main() {
         onInitialized: (state) {
           onInitializedValue = state;
         },
-        onData: (state) {
-          onDataValue = state;
-        },
-        onError: (err, s) {
-          onErrorValue = err;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: null,
+          onError: (err, s) {
+            onErrorValue = err;
+          },
+          onData: ((state) {
+            onDataValue = state;
+          }),
+        ),
       );
       expect(model.isIdle, true);
       expect(model.state, 1);
@@ -69,15 +72,17 @@ void main() {
       dynamic onErrorValue;
       final model = RM.inject<int>(
         () => 1,
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onData: (state) {
-          onDataValue = state;
-        },
-        onError: (err, s) {
-          onErrorValue = err;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: (err, s) {
+            onErrorValue = err;
+          },
+          onData: (state) {
+            onDataValue = state;
+          },
+        ),
       );
       expect(model.isIdle, true);
       expect(model.state, 1);
@@ -174,12 +179,15 @@ void main() {
       int? onDataValue;
       final model = RM.injectFuture<int?>(
         () => future(1),
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onData: (state) {
-          onDataValue = state;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: null,
+          onData: ((state) {
+            onDataValue = state;
+          }),
+        ),
       );
       //
       expect(model.isWaiting, true);
@@ -216,12 +224,15 @@ void main() {
       dynamic onErrorValue;
       final model = RM.injectFuture<int>(
         () => future(1, Exception('Error')),
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onError: (err, s) {
-          onErrorValue = err;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: (err, s) {
+            onErrorValue = err;
+          },
+          onData: null,
+        ),
         initialState: 0,
       );
       expect(model.isWaiting, true);
@@ -260,12 +271,15 @@ void main() {
       int? onDataValue;
       final model = RM.injectStream<int>(
         () => stream(3),
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onData: (state) {
-          onDataValue = state;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: null,
+          onData: ((state) {
+            onDataValue = state;
+          }),
+        ),
         initialState: 0,
       );
       expect(model.isWaiting, true);
@@ -331,15 +345,17 @@ void main() {
       dynamic onErrorValue;
       final model = RM.injectStream<int>(
         () => stream(3, Exception('Error')),
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onData: (state) {
-          onDataValue = state;
-        },
-        onError: (err, s) {
-          onErrorValue = err;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: (err, s) {
+            onErrorValue = err;
+          },
+          onData: ((state) {
+            onDataValue = state;
+          }),
+        ),
       );
       expect(model.isWaiting, true);
 
@@ -398,12 +414,15 @@ void main() {
       int? onDataValue;
       final model = RM.injectStream<int>(
         () => stream(3),
-        onWaiting: () {
-          onWaitingValue = 'Waiting...';
-        },
-        onData: (state) {
-          onDataValue = state;
-        },
+        sideEffects: SideEffects.onAll(
+          onWaiting: () {
+            onWaitingValue = 'Waiting...';
+          },
+          onError: null,
+          onData: ((state) {
+            onDataValue = state;
+          }),
+        ),
         initialState: 0,
       );
       expect(model.isWaiting, true);

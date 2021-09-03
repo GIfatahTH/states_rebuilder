@@ -194,7 +194,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On(() => ++onSetState),
+      sideEffects: SideEffects(onSetState: (_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -233,7 +233,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.data(() => ++onSetState),
+      sideEffects: SideEffects.onData((_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -272,7 +272,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.waiting(() => ++onSetState),
+      sideEffects: SideEffects.onWaiting(() => ++onSetState),
     );
 
     final widget = Directionality(
@@ -316,7 +316,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.error((_, __) => ++onSetState),
+      sideEffects: SideEffects.onError((_, __) => ++onSetState),
     );
 
     final widget = Directionality(

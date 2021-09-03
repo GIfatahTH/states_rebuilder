@@ -223,9 +223,9 @@ void main() async {
               toJson: (s) => '$s',
               catchPersistError: true,
             ),
-        onError: (e, s) {
+        sideEffects: SideEffects.onError((e, s) {
           error = e.message;
-        });
+        }));
 
     store.exception = Exception('Read Error');
     await tester.pumpWidget(App());
@@ -279,7 +279,7 @@ void main() async {
               toJson: (s) => '$s',
               // catchPersistError: true,
             ),
-        onError: (e, s) {});
+        sideEffects: SideEffects.onError((e, s) {}));
 
     await tester.pumpWidget(App());
 

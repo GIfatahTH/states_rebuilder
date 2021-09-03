@@ -240,8 +240,8 @@ extension InjectedX<T> on ReactiveModel<T> {
     required Widget Function(dynamic)? onError,
     required Widget Function(F? data) onData,
     void Function()? dispose,
-    On<void>? onSetState,
     Key? key,
+    On<void>? onSetState,
   }) {
     return StateBuilderBase<_OnAsyncWidget<F>>(
       (widget, setState) {
@@ -281,7 +281,11 @@ extension InjectedX<T> on ReactiveModel<T> {
                   d as T,
                 );
                 if (onSetState?._onData == null) {
-                  inj.onDataForSideEffect?.call(inj._state);
+                  if (inj.onSetState?._onData == null) {
+                    inj.onDataForSideEffect?.call(inj._state);
+                  } else {
+                    inj.onSetState?.call(inj.snapState);
+                  }
                 }
                 disposer?.call();
                 disposer = null;
@@ -292,8 +296,12 @@ extension InjectedX<T> on ReactiveModel<T> {
               setState();
               onSetState?.call(snap._copyToHasError(e, () {}, stackTrace: s));
               if (e != inj.error) {
+                inj._reactiveModelState._snapState = inj
+                    ._reactiveModelState._snapState
+                    ._copyToHasError(e, () {});
                 if (onSetState?._onError == null) {
                   inj.onError?.call(e, s);
+                  inj.onSetState?.call(inj.snapState);
                 }
               }
               error = e;

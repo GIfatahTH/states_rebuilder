@@ -15,21 +15,23 @@ final Injected<int> timer = RM.injectStream<int>(
 
 final timerStatus = RM.inject<TimerStatus>(
   () => TimerStatus.none,
-  onData: (timerStatus) {
-    switch (timerStatus) {
-      case TimerStatus.running:
-        timer.subscription?.resume();
-        break;
-      case TimerStatus.ready:
-      case TimerStatus.paused:
-      default:
-        if (timer.subscription?.isPaused == false) {
-          //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
-          timer.subscription?.pause();
-        }
-        break;
-    }
-  },
+  sideEffects: SideEffects.onData(
+    ((timerStatus) {
+      switch (timerStatus) {
+        case TimerStatus.running:
+          timer.subscription?.resume();
+          break;
+        case TimerStatus.ready:
+        case TimerStatus.paused:
+        default:
+          if (timer.subscription?.isPaused == false) {
+            //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
+            timer.subscription?.pause();
+          }
+          break;
+      }
+    }),
+  ),
 );
 
 // the initial timer value
