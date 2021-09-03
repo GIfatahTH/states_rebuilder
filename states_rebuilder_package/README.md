@@ -444,7 +444,7 @@ class MyWidget extends ReactiveStatelessWidget {
 }
 ```
 
-  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+  * [🗎 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
 
   * [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection). 
 
@@ -483,7 +483,7 @@ OnBuilder.all(
 ),
 ```
 
-  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
+  * [🗎 See more detailed information about OnBuilder API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
 </br>
 
