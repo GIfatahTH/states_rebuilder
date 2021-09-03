@@ -296,7 +296,7 @@ void main() {
         return s?.incrementStream.call().map((e) => VanillaModel(e));
       },
       onError: null,
-      onSetState: On.waiting(() {}),
+      sideEffects: SideEffects.onWaiting(() {}),
       onWaiting: () => Text('waiting ...'),
       onData: (state) {
         return Text('${state!.counter}');
@@ -325,9 +325,12 @@ void main() {
   });
 
   testWidgets('Injected.streamBuilder with error', (tester) async {
-    final widget = vanillaModel.streamBuilder(
+    late SnapState sideSnap;
+    final widget = vanillaModel.streamBuilder<int>(
       stream: (s, subscription) => s?.incrementStreamWithError(),
-      onSetState: On.waiting(() {}),
+      sideEffects: SideEffects(onSetState: (snap) {
+        sideSnap = snap;
+      }),
       onWaiting: null,
       onError: (e) => Text('${e.message}'),
       onData: (state) {
@@ -336,20 +339,25 @@ void main() {
     );
 
     await tester.pumpWidget(MaterialApp(home: widget));
-
+    expect(sideSnap.isWaiting, true);
     expect(find.text('0'), findsOneWidget);
 
     await tester.pump(Duration(seconds: 1));
     expect(find.text('1'), findsOneWidget);
+    expect(sideSnap.data, 1);
 
     await tester.pump(Duration(seconds: 1));
     expect(find.text('2'), findsOneWidget);
+    expect(sideSnap.data, 2);
 
     await tester.pump(Duration(seconds: 1));
 
     expect(find.text('Error message'), findsOneWidget);
+    expect(sideSnap.hasError, true);
+
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Error message'), findsOneWidget);
+    expect(sideSnap.hasError, true);
   });
 
   testWidgets('Injected.whenRebuilder', (tester) async {

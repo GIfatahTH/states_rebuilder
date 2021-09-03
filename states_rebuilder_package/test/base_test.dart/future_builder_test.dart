@@ -25,11 +25,17 @@ void main() {
     'WHEN'
     'THEN',
     (tester) async {
+      var message = '';
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: counter.futureBuilder<void>(
           future: (s, asycS) => s?.increment(),
-          onSetState: On.waiting(() {}),
+          sideEffects: SideEffects(onSetState: (snap) {
+            if (snap.isWaiting)
+              message = 'isWaiting';
+            else
+              message = 'hasData';
+          }),
           onWaiting: () => Text('Waiting...'),
           onError: (err) => Text('Error'),
           onData: (data) => Text('data'),
@@ -38,8 +44,10 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(find.text('Waiting...'), findsOneWidget);
+      expect(message, 'isWaiting');
       await tester.pump(Duration(seconds: 1));
       expect(find.text('data'), findsOneWidget);
+      expect(message, 'hasData');
     },
   );
 

@@ -241,7 +241,8 @@ extension InjectedX<T> on ReactiveModel<T> {
     required Widget Function(F? data) onData,
     void Function()? dispose,
     Key? key,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects only') On<void>? onSetState,
+    SideEffects<F>? sideEffects,
   }) {
     return StateBuilderBase<_OnAsyncWidget<F>>(
       (widget, setState) {
@@ -253,7 +254,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         F? data = _getPrimitiveNullState<F>();
         dynamic error;
         Future<F?>? f;
-        SnapState<F?> snap = SnapState._nothing(null, '', '');
+        SnapState<F> snap = SnapState._nothing(null, '', '');
         VoidCallback? disposer;
         if (future != null) {
           f = future(inj._nullableState, inj.stateAsync);
@@ -274,7 +275,9 @@ extension InjectedX<T> on ReactiveModel<T> {
             subscription = f?.asStream().listen.call((d) {
               isWaiting = false;
               setState();
-              onSetState?.call(snap._copyToHasData(d));
+              snap = snap._copyToHasData(d);
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
               if (d is T) {
                 inj._reactiveModelState._snapState = SnapState<T>._withData(
                   ConnectionState.done,
@@ -294,7 +297,9 @@ extension InjectedX<T> on ReactiveModel<T> {
             }, onError: (e, s) {
               isWaiting = false;
               setState();
-              onSetState?.call(snap._copyToHasError(e, () {}, stackTrace: s));
+              snap = snap._copyToHasError(e, () {}, stackTrace: s);
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
               if (e != inj.error) {
                 inj._reactiveModelState._snapState = inj
                     ._reactiveModelState._snapState
@@ -306,7 +311,9 @@ extension InjectedX<T> on ReactiveModel<T> {
               }
               error = e;
             });
-            onSetState?.call(snap._copyToIsWaiting());
+            snap = snap._copyToIsWaiting();
+            onSetState?.call(snap);
+            sideEffects?.onSetState?.call(snap);
           },
           dispose: (_) {
             disposer?.call();
@@ -377,7 +384,8 @@ extension InjectedX<T> on ReactiveModel<T> {
     required Widget Function(S? data) onData,
     Widget Function(S data)? onDone,
     void Function()? dispose,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects only') On<void>? onSetState,
+    SideEffects<S>? sideEffects,
     Key? key,
   }) {
     return StateBuilderBase<_OnAsyncWidget<S>>(
@@ -390,7 +398,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         bool isDone = false;
         S? data = _getPrimitiveNullState<S>();
         dynamic error;
-        SnapState<S?> snap = SnapState._nothing(null, '', '');
+        SnapState<S> snap = SnapState._nothing(null, '', '');
 
         return LifeCycleHooks(
           mountedState: (_) {
@@ -399,7 +407,11 @@ extension InjectedX<T> on ReactiveModel<T> {
               (d) {
                 isWaiting = false;
                 setState();
-                onSetState?.call(snap._copyToHasData(d));
+
+                snap = snap._copyToHasData(d);
+                onSetState?.call(snap);
+                sideEffects?.onSetState?.call(snap);
+
                 if (d is T) {
                   inj._reactiveModelState._snapState = SnapState<T>._withData(
                     ConnectionState.done,
@@ -414,7 +426,9 @@ extension InjectedX<T> on ReactiveModel<T> {
               onError: (e, s) {
                 isWaiting = false;
                 setState();
-                onSetState?.call(snap._copyToHasError(e, () {}, stackTrace: s));
+                snap = snap._copyToHasError(e, () {}, stackTrace: s);
+                onSetState?.call(snap);
+                sideEffects?.onSetState?.call(snap);
                 if (e != inj.error) {
                   if (onSetState?._onError == null) {
                     inj.onError?.call(e, s);
@@ -426,7 +440,9 @@ extension InjectedX<T> on ReactiveModel<T> {
                 isDone = true;
               },
             );
-            onSetState?.call(snap._copyToIsWaiting());
+            snap = snap._copyToIsWaiting();
+            onSetState?.call(snap);
+            sideEffects?.onSetState?.call(snap);
           },
           dispose: (_) {
             dispose?.call();
