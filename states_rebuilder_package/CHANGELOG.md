@@ -1,4 +1,4 @@
-## 5.0.0-dev (2021-08-24)
+## 4.4.0 (2021-09-04)
 * Add `OnReactive` widget for implicit subscription:
 ```dart
 final counter = 0.inj();
