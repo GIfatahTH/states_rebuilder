@@ -134,7 +134,7 @@ void main() {
       (s) => s.increment(),
       sideEffects:
           SideEffects.onError((error, _) => _errorMessage = error.message),
-      shouldOverrideGlobalSideEffects: (_) => true,
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     await tester.pump();
     expect(_errorMessage, 'Counter Error');

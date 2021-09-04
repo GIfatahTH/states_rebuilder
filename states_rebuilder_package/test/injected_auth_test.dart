@@ -84,7 +84,7 @@ InjectedAuth<String, String> persistedUser = RM.injectAuth(
   onUnsigned: () {
     RM.navigate.to(AuthPage(persistedUser));
   },
-  onSetState: On.error(
+  sideEffects: SideEffects.onError(
     (err, _) {
       RM.navigate.to(
         AlertDialog(

@@ -246,7 +246,8 @@ class SideEffects<T> {
 
   ///Side effect to be called when the state is mutated and after listening widgets
   ///have rebuilt.
-  final void Function()? onAfterBuild;
+  void Function()? _onAfterBuild;
+  void Function()? get onAfterBuild => _onAfterBuild;
 
   ///Side effect to be called when the state is initialized, mutated and disposed of
   ///
@@ -256,8 +257,14 @@ class SideEffects<T> {
     this.initState,
     this.dispose,
     this.onSetState,
-    this.onAfterBuild,
-  });
+    VoidCallback? onAfterBuild,
+  }) {
+    if (onAfterBuild != null) {
+      _onAfterBuild = () => WidgetsBinding.instance!.addPostFrameCallback(
+            (_) => onAfterBuild(),
+          );
+    }
+  }
 
   ///Side effect to be called when he state is mutated successfully with data
   factory SideEffects.onData(

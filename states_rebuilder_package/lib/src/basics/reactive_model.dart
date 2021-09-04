@@ -274,11 +274,13 @@ class _Rebuild<T> {
       onWaiting: onWaiting,
       onUnsigned: onUnsigned,
       onSigned: onSigned,
-    ).listenTo(
-      _injected as InjectedAuth,
+    ).listenTo<T>(
+      _injected as InjectedAuth<T, dynamic>,
       useRouteNavigation: useRouteNavigation,
-      onSetState: onSetState,
-      dispose: dispose,
+      sideEffects: SideEffects<T>(
+        onSetState: onSetState != null ? (snap) => onSetState.call(snap) : null,
+        dispose: dispose,
+      ),
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
     );

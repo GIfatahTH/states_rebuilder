@@ -103,7 +103,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     bool shouldAwait = false,
     bool skipWaiting = false,
     BuildContext? context,
-    bool Function(SnapState<T> snap)? shouldOverrideGlobalSideEffects,
+    bool Function(SnapState<T> snap)? shouldOverrideDefaultSideEffects,
   }) async {
     final debugMessage = this.debugMessage;
     this.debugMessage = null;
@@ -119,7 +119,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
           onError: onError,
           onData: onData,
           shouldOverrideGlobalSideEffects:
-              shouldOverrideGlobalSideEffects?.call(s) ?? false,
+              shouldOverrideDefaultSideEffects?.call(s) ?? false,
           onSetState: sideEffects?.onSetState != null
               ? On(() {
                   sideEffects!.onSetState!(s);
@@ -131,9 +131,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
         }
         if (snap != null && snap.hasData) {
           if (sideEffects?.onAfterBuild != null) {
-            WidgetsBinding.instance?.addPostFrameCallback(
-              (_) => sideEffects?.onAfterBuild!(),
-            );
+            sideEffects!.onAfterBuild!();
           } else if (onRebuildState != null) {
             WidgetsBinding.instance?.addPostFrameCallback(
               (_) => onRebuildState(),

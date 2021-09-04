@@ -1137,7 +1137,7 @@ void main() {
     model.setState(
       (s) => s.increment(),
       sideEffects: SideEffects.onData((_) => data = 'Data from setState'),
-      shouldOverrideGlobalSideEffects: (_) => true,
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     expect(data, 'Data from setState');
 
@@ -1150,7 +1150,7 @@ void main() {
       sideEffects: SideEffects.onError(
         (_, __) => error = 'Error from setState',
       ),
-      shouldOverrideGlobalSideEffects: (_) => true,
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     expect(error, 'Error from setState');
   });
@@ -1428,7 +1428,7 @@ void main() {
       counter.setState(
         (s) => s + 1,
         sideEffects: SideEffects.onData((_) => setStateOnSetState++),
-        shouldOverrideGlobalSideEffects: (_) => true,
+        shouldOverrideDefaultSideEffects: (_) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1437,7 +1437,7 @@ void main() {
       counter.setState(
         (s) => s + 1,
         sideEffects: SideEffects.onOrElse(orElse: (_) => setStateOnSetState++),
-        shouldOverrideGlobalSideEffects: (_) => true,
+        shouldOverrideDefaultSideEffects: (_) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1467,7 +1467,7 @@ void main() {
             setStateOnSetState++;
           },
         ),
-        shouldOverrideGlobalSideEffects: (snap) => snap.hasData,
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasData,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1481,7 +1481,7 @@ void main() {
         sideEffects: SideEffects.onData((_) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => snap.hasData,
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasData,
       );
       await tester.pump();
       expect(injectOnSetState, 2);
@@ -1495,7 +1495,7 @@ void main() {
         sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => true,
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1524,7 +1524,7 @@ void main() {
         sideEffects: SideEffects.onError((err, _) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => snap.hasError,
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasError,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1538,7 +1538,7 @@ void main() {
         sideEffects: SideEffects.onError((err, _) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => snap.hasError,
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasError,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1552,7 +1552,7 @@ void main() {
         sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => true,
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1581,7 +1581,7 @@ void main() {
         sideEffects: SideEffects.onWaiting(() {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => snap.isWaiting,
+        shouldOverrideDefaultSideEffects: (snap) => snap.isWaiting,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1595,7 +1595,7 @@ void main() {
         sideEffects: SideEffects.onWaiting(() {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => snap.isWaiting,
+        shouldOverrideDefaultSideEffects: (snap) => snap.isWaiting,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1609,7 +1609,7 @@ void main() {
         sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
-        shouldOverrideGlobalSideEffects: (snap) => true,
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 2);
