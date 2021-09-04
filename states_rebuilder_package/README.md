@@ -75,7 +75,7 @@
 ```
  $ flutter pub add states_rebuilder
 ```
-* Or: add to your package's pubspec.yaml:
+* Or: add into your pubspec.yaml:
 ```yaml 
   dependencies:
     states_rebuilder: ... 
@@ -97,7 +97,6 @@ class Counter {
     return 'Counter($value)';
   }
 }
-
 
 /* --------------  🤔 Business Logic -------------- */
 //🚀 It is immutable
@@ -129,7 +128,7 @@ class ViewModel {
 }
 
 /* ------------------- 👍 Setup ------------------- */
-// NOTE: As ViewModel is immutable and final, it is safe to globally instantiate it.
+/// NOTE: As [ViewModel] is immutable and final, it is safe to globally instantiate it.
 
 //🚀 The state of counter1 and counter2 will be auto-disposed when no longer in use.
 // They are testable and mockable.
@@ -137,11 +136,11 @@ final viewModel = ViewModel();
 
 
 /* --------------------  👀 UI -------------------- */
-//🚀 Just use ReactiveStatelessWidget widget instead of StatelessWidget.
+///🚀 Just use [ReactiveStatelessWidget] widget instead of StatelessWidget.
 
 // CounterApp will automatically register in any state consumed in its widget child 
-// branch, regardless of its depth, provided the widget is not lazily loaded as in 
-// the builder method of the ListView.builder widget. 
+// branch, regardless of its depth, provided the widget is not lazily loaded as 
+// in the builder method of the ListView.builder widget. 
 class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
 
@@ -445,7 +444,7 @@ class MyWidget extends ReactiveStatelessWidget {
 }
 ```
 
-  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+  * [🗎 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
 
   * [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection). 
 
@@ -484,7 +483,7 @@ OnBuilder.all(
 ),
 ```
 
-  * [🗎 See more detailed information about  OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
+  * [🗎 See more detailed information about OnBuilder API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
 </br>
 
@@ -638,6 +637,8 @@ To navigate, show dialogs and snackBars without `BuildContext`:
   ```
     
   * [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+
+</br>
 
 ## Create, Read, Update and Delete items from backend service
 
@@ -896,7 +897,6 @@ To deal with TextFields and Form validation
       ),
   ),
   ```
-
   * [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
 
 </br>

@@ -16,10 +16,10 @@
 * ### [**Official Documentation**](states_rebuilder_package#readme)
 </br>
 
-<p align="center">
+<!-- <p align="center">
     <image src="./assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat sheet'/>
 </p>
-
+ -->
 
 <p align="justify">
 `states_rebuilder` is a feature-rich state management sulution:
