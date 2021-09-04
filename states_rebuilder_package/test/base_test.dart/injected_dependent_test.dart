@@ -32,10 +32,14 @@ void main() {
       modelA.setState((s) => future(20, Exception('Error')));
       expect(modelB.isWaiting, true);
       expect(modelB.state, 40);
+      expect(modelB.snapState.stackTrace, null);
       await tester.pump(Duration(seconds: 1));
       expect(modelB.state, 40);
       expect(modelB.hasError, true);
       expect(modelB.error.message, 'Error');
+      expect(modelB.snapState.stackTrace, modelA.snapState.stackTrace);
+      expect(
+          modelB.snapState.onErrorRefresher, modelA.snapState.onErrorRefresher);
     },
   );
 

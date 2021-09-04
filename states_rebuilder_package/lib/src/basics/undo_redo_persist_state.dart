@@ -9,33 +9,8 @@ class UndoRedoPersistState<T> {
   UndoRedoPersistState({
     required this.undoStackLength,
     required this.persistanceProvider,
-  }) {
-    if (persistanceProvider == null) {
-      return;
-    }
-    persistanceProvider!._persistStateSingleton ??= _persistStateGlobalTest;
-    persistanceProvider!._persistStateSingleton ??=
-        (persistanceProvider!.persistStateProvider ?? _persistStateGlobal);
+  });
 
-    assert(persistanceProvider!._persistStateSingleton != null, '''
-No implementation of `IPersistStore` is provided.
-Pleas implementation the `IPersistStore` interface and Initialize it in the main 
-method.
-
-void main() async { 
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await RM.storageInitializer(YouImplementation());
-  runApp(_MyApp());
-}
-
-If you are testing the app use:
-
-await RM.storageInitializerMock();\n\n
-
-
-''');
-  }
   final Queue<SnapState<T>> _undoQueue = ListQueue();
   final Queue<SnapState<T>> _redoQueue = ListQueue();
   static final Set<PersistState> storageProviders = {};
@@ -131,7 +106,7 @@ await RM.storageInitializerMock();\n\n
         if (snap.data == null) {
           return await persistanceProvider!.delete();
         }
-        await persistanceProvider!.write(snap.data!);
+        await persistanceProvider!.write(snap.data as T);
       } catch (e, s) {
         if (persistanceProvider!.catchPersistError) {
           StatesRebuilerLogger.log('Write to localStorage error', e, s);

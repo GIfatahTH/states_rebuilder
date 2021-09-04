@@ -10,9 +10,9 @@ class _LikeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        On.data(
+        OnReactive(
           () => Text('Likes ${postsInj.state.getPostLikes(postId)}'),
-        ).listenTo(postsInj),
+        ),
         MaterialButton(
           color: Colors.white,
           child: Icon(Icons.thumb_up),

@@ -688,4 +688,18 @@ void main() async {
     user.refresh();
     await tester.pump();
   });
+
+  testWidgets(
+    'WHEN the user is nullable and the unsignedUser is non null'
+    'THEN it must throw an assertion error',
+    (tester) async {
+      expect(
+        () => RM.injectAuth(
+          () => FakeAuthRepo(),
+          unsignedUser: 'user0',
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
 }

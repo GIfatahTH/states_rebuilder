@@ -5,6 +5,33 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     setState((_) => s);
   }
 
+  ///It is not null if the state is waiting for a Future or is subscribed to a
+  ///Stream
+  StreamSubscription? get subscription => _reactiveModelState.subscription;
+
+  ///Custom status of the state. Set manually to mark the state with a particular
+  ///tag to be used in your logic.
+  Object? customStatus;
+
+  ///If the state is bool, toggle it and notify listeners
+  ///
+  ///This is a shortcut of:
+  ///
+  ///If the state is not bool, it will throw an assertion error.
+  void toggle() {
+    assert(T == bool);
+    final snap =
+        _reactiveModelState.snapState._copyToHasData(!(_state as bool) as T);
+    _reactiveModelState.setSnapStateAndRebuild = snap;
+  }
+
+  ///Subscribe to the state
+  VoidCallback subscribeToRM(void Function(SnapState<T>? snap) fn) {
+    _reactiveModelState.listeners._sideEffectListeners.add(fn);
+    return () =>
+        () => _reactiveModelState.listeners._sideEffectListeners.remove(fn);
+  }
+
   ///Refresh the [Injected] state. Refreshing the state means reinitialize
   ///it and reinvoke its creation function and notify its listeners.
   ///
@@ -18,7 +45,11 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     try {
       return await stateAsync;
     } catch (_) {
-      return state;
+      try {
+        return _state;
+      } catch (_) {
+        return null;
+      }
     }
   }
 
@@ -110,10 +141,10 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
           _debounceTimer = null;
         },
       );
-      return Future.value(state);
+      return Future.value(_state);
     } else if (throttleDelay > 0) {
       if (_debounceTimer != null) {
-        return Future.value(state);
+        return Future.value(_state);
       }
       _debounceTimer = Timer(
         Duration(milliseconds: throttleDelay),
@@ -127,7 +158,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
       return stateAsync.then(
         (_) async {
           final snap = await call();
-          return snap.data!;
+          return snap.data as T;
         },
       );
     }

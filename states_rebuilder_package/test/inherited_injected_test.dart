@@ -76,7 +76,7 @@ void main() {
     expect(counter1.state, 12);
     //
     inherited1.setState(
-      (s) => throw Exception(), /*catchError: true*/
+      (s) => throw Exception(),
     );
     await tester.pump();
     expect(counter1.hasError, true);

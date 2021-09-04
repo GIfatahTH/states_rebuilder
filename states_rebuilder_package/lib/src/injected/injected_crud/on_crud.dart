@@ -71,9 +71,19 @@ class OnCRUD<T> {
                   widget.onResult(injected.onCrudSnap.data)) as Widget;
             }
             if (injected.onCrudSnap.hasError) {
-              return (widget.onError
-                      ?.call(injected.error, injected.onErrorRefresher) ??
-                  widget.onResult(injected.onCrudSnap.data)) as Widget;
+              Widget? w;
+              if (injected.hasError) {
+                w = widget.onError?.call(
+                  injected.error,
+                  injected.onErrorRefresher,
+                ) as Widget?;
+              } else {
+                w = widget.onError?.call(
+                  injected.onCrudSnap.error,
+                  injected.onCrudSnap.onErrorRefresher!,
+                ) as Widget?;
+              }
+              return w ?? widget.onResult(injected.onCrudSnap.data) as Widget;
             }
             return (widget.onResult(injected.onCrudSnap.data)) as Widget;
           },
@@ -102,4 +112,51 @@ class _OnCRUDWidget<T> {
     this.onError,
     required this.onResult,
   });
+}
+
+class OnCRUDBuilder extends StatelessWidget {
+  const OnCRUDBuilder({
+    Key? key,
+    required this.listenTo,
+    this.onWaiting,
+    this.onError,
+    required this.onResult,
+    this.dispose,
+    this.onSetState,
+    this.debugPrintWhenRebuild,
+  }) : super(key: key);
+  final InjectedCRUD listenTo;
+
+  ///Widget to display while waiting for any CRUD operation
+  final Widget Function()? onWaiting;
+
+  ///Widget to display if a CRUD operation fails
+  final Widget Function(dynamic, void Function())? onError;
+
+  ///Widget to display if a CRUD operation ends successfully. It exposes the
+  ///result of the CRUD operation
+  final Widget Function(dynamic) onResult;
+
+  ///Side effects to call when this widget is disposed.
+  final void Function()? dispose;
+
+  ///Side effects to call InjectedAuth emits notification.
+  final On<void>? onSetState;
+
+  ///Debug print informative message when this widget is rebuilt
+  final String? debugPrintWhenRebuild;
+  @override
+  Widget build(BuildContext context) {
+    return On.crud(
+      onWaiting: onWaiting,
+      onError: onError,
+      onResult: onResult,
+    ).listenTo(
+      listenTo,
+      onSetState: onSetState,
+      dispose: dispose,
+      key: key,
+      debugPrintWhenRebuild: debugPrintWhenRebuild,
+    );
+  }
 }

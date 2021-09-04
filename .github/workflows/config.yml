@@ -37,6 +37,9 @@ jobs:
           cd ex_005_theme_switching && flutter test
         working-directory: ./examples
       - run: |
+          cd ex_006_1_crud_app && flutter test
+        working-directory: ./examples
+      - run: |
           cd ex_007_2_clean_architecture_dane_mackier_app_with_fi && flutter test
         working-directory: ./examples
       - run: |

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/src/rm.dart';
 
 void main() {
   bool isTop = false;
@@ -48,11 +49,11 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: On.scroll(
+            title: scroll.rebuild.onScroll(
               (scroll) {
                 return Text('offset: ${scroll.offset}');
               },
-            ).listenTo(scroll),
+            ),
           ),
           body: ListView.builder(
             controller: scroll.controller,
@@ -118,8 +119,9 @@ void main() {
         home: Scaffold(
           appBar: AppBar(
             leading: On.animation((animate) => Container()).listenTo(animation),
-            title: On.scroll(
-              (scroll) {
+            title: OnScrollBuilder(
+              listenTo: scroll,
+              builder: (scroll) {
                 if (scroll.hasReachedMinExtent) {
                   return Text('isTop');
                 }
@@ -155,7 +157,7 @@ void main() {
                 }
                 return Text('NAN');
               },
-            ).listenTo(scroll),
+            ),
           ),
           body: ListView.builder(
             controller: scroll.controller,
@@ -188,7 +190,7 @@ void main() {
       expect(find.text('hasStartedDown'), findsNothing);
       expect(find.text('hasEnded'), findsNothing);
       //
-      animation.subscribeToRM((snap) async {
+      final disposer = animation.subscribeToRM((snap) async {
         await tester.drag(find.byType(ListView), Offset(0, -1));
       });
       animation.controller!.forward();
@@ -293,6 +295,7 @@ void main() {
       expect(find.text('isScrollingDown'), findsNothing);
       expect(find.text('isScrolling'), findsNothing);
       expect(find.text('hasEnded'), findsOneWidget);
+      disposer();
     },
   );
 

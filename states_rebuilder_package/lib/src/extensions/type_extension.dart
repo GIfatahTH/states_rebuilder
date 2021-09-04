@@ -3,34 +3,42 @@ import 'package:flutter/material.dart';
 import '../rm.dart';
 
 extension IntX on int {
-  InjectedBase<int> inj() {
-    return ReactiveModel(creator: () => this, initialState: 0);
+  ReactiveModel<int> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: 0,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 
   IntTween tweenTo(int end) {
     return IntTween(begin: this, end: end);
   }
 
-  Duration milliseconds() {
+  Duration get milliseconds {
     return Duration(milliseconds: this);
   }
 
-  Duration seconds() {
+  Duration get seconds {
     return Duration(seconds: this);
   }
 
-  Duration minutes() {
+  Duration get minutes {
     return Duration(minutes: this);
   }
 
-  Duration hours() {
+  Duration get hours {
     return Duration(hours: this);
   }
 }
 
 extension DoubleX on double {
-  InjectedBase<double> inj() {
-    return ReactiveModel(creator: () => this, initialState: 0.0);
+  ReactiveModel<double> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: 0.0,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 
   Tween<double> tweenTo(double end) {
@@ -39,32 +47,52 @@ extension DoubleX on double {
 }
 
 extension StringX on String {
-  InjectedBase<String> inj() {
-    return ReactiveModel(creator: () => this, initialState: '');
+  ReactiveModel<String> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: '',
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 }
 
 extension BoolX on bool {
-  InjectedBase<bool> inj() {
-    return ReactiveModel(creator: () => this, initialState: false);
+  ReactiveModel<bool> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: false,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 }
 
 extension ListX<T> on List<T> {
-  InjectedBase<List<T>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T>[]);
+  ReactiveModel<List<T>> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: <T>[],
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 }
 
 extension SetX<T> on Set<T> {
-  InjectedBase<Set<T>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T>{});
+  ReactiveModel<Set<T>> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: <T>{},
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 }
 
 extension MapX<T, D> on Map<T, D> {
-  InjectedBase<Map<T, D>> inj() {
-    return ReactiveModel(creator: () => this, initialState: <T, D>{});
+  ReactiveModel<Map<T, D>> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp(
+      creator: () => this,
+      initialState: <T, D>{},
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
   }
 }
 

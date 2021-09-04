@@ -1,6 +1,6 @@
 part of 'injected_animation.dart';
 
-class OnAnimation {
+class OnAnimation implements OnWidget {
   final Widget Function(Animate animate) _anim;
   OnAnimation(this._anim);
   late InjectedAnimationImp _injected;
@@ -183,7 +183,7 @@ class OnAnimation {
         );
       },
       widget: _OnAnimationWidget(_anim),
-      injected: _injected,
+      withTicker: () => _injected.controller == null,
       key: key,
     );
   }
@@ -306,9 +306,25 @@ class EvaluateAnimation {
     }
 
     if (tween != null && tween.end == targetValue) {
+      //If the new target value equal to end value of the last tween,
+      //just return the value;
+      // print(injected.isAnimating);
+      // print(currentValue);
+      if (tween.begin != tween.end) {
+        //Reset the tween to the target value
+        tween = _getTween(
+          targetValue,
+          targetValue,
+        );
+        //set forwardAnimation and backwardAnimation to null to reset animation
+        //to take into account the new tween
+        forwardAnimation = null;
+        backwardAnimation = null;
+      }
       onAnimation._isChanged = false;
       return currentValue = getValue(name);
     }
+    //Calculate the new tween
 
     var newTween = fn(currentValue, _isInitialized);
     if (newTween == null) {
@@ -373,5 +389,24 @@ class EvaluateAnimation {
       CurveTween(curve: curve ?? injected.curve),
     );
     return forwardAnimation!.evaluate(injected.controller!);
+  }
+}
+
+class OnAnimationBuilder extends StatelessWidget {
+  const OnAnimationBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.builder,
+    this.onInitialized,
+  }) : super(key: key);
+  final InjectedAnimation listenTo;
+  final Widget Function(Animate) builder;
+  final void Function()? onInitialized;
+  @override
+  Widget build(BuildContext context) {
+    return On.animation(builder).listenTo(
+      listenTo,
+      onInitialized: onInitialized,
+    );
   }
 }

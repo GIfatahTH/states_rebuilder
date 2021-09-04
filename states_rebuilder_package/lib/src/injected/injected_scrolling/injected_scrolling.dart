@@ -7,9 +7,28 @@ import 'package:flutter/widgets.dart';
 import '../../rm.dart';
 part 'on_scroll.dart';
 
+class _RebuildScrolling {
+  final InjectedScrolling _injected;
+  _RebuildScrolling(this._injected);
+
+  ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
+  Widget onScroll(
+    Widget Function(InjectedScrolling) builder, {
+    Key? key,
+  }) {
+    return On.scroll(builder).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+}
+
 ///Injected a ScrollController
 abstract class InjectedScrolling implements InjectedBaseState<double> {
-  ScrollController? _controller;
+  ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
+  late final rebuild = _RebuildScrolling(this);
+
+  late ScrollController? _controller;
 
   ///The created [ScrollController]
   ScrollController get controller;
@@ -28,7 +47,7 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
   double get minScrollExtent => _controller!.position.minScrollExtent;
 
   ///Whether the associates Scroll view is scrolling.
-  bool isScrolling = false;
+  late bool isScrolling;
 
   ///Scrolling is happening in the positive scroll offset direction.
   bool get isScrollingForward =>
@@ -41,24 +60,24 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
   set state(double s);
 
   ///This scrolling list has just started scrolling.
-  bool hasStartedScrolling = false;
+  late bool hasStartedScrolling;
 
   ///The scrolling list has just started scrolling in the forward direction.
-  bool hasStartedScrollingForward = false;
+  late bool hasStartedScrollingForward;
 
   ///The scrolling list has just started scrolling in the reverse direction.
-  bool hasStartedScrollingReverse = false;
+  late bool hasStartedScrollingReverse;
 
   ///The scrolling list has just ended scrolling.
-  bool hasEndedScrolling = false;
+  late bool hasEndedScrolling;
   //
   ///The scroll list has reached its top (the current offset is less or equal then
   ///minScrollExtent)
-  bool hasReachedMinExtent = false;
+  late bool hasReachedMinExtent;
 
   ///The scroll list has reached its bottom (the current offset is greater or equal then
   ///maxScrollExtent)
-  bool hasReachedMaxExtent = false;
+  late bool hasReachedMaxExtent;
 
   ///Calls [ScrollPosition.jumpTo] if duration is null or [Duration.zero],
   ///otherwise [ScrollPosition.animateTo] is called.
@@ -103,7 +122,7 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
 }
 
 ///Implementation of InjectedScrolling
-class InjectedScrollingImp extends ReactiveModel<double>
+class InjectedScrollingImp extends InjectedBaseBaseImp<double>
     with InjectedScrolling {
   InjectedScrollingImp({
     this.initialScrollOffset = 0.0,
@@ -111,9 +130,23 @@ class InjectedScrollingImp extends ReactiveModel<double>
     this.onScroll,
     this.onScrollEndedDelay = 300,
   }) : super(
-          creator: () => 0.0,
-          initialState: initialScrollOffset,
-        );
+          creator: () => initialScrollOffset,
+        ) {
+    _resetDefaultState = () {
+      _controller = null;
+      _maxScrollExtent = null;
+      _userScrollDirection = null;
+      _removeFromInjectedList = null;
+      hasStartedScrolling = false;
+      hasStartedScrollingForward = false;
+      hasStartedScrollingReverse = false;
+      hasEndedScrolling = false;
+      hasReachedMinExtent = false;
+      hasReachedMaxExtent = false;
+      isScrolling = false;
+    };
+    _resetDefaultState();
+  }
 
   ///Initial scroll offset
   final double initialScrollOffset;
@@ -122,10 +155,12 @@ class InjectedScrollingImp extends ReactiveModel<double>
   final bool keepScrollOffset;
   final OnScroll? onScroll;
   final int onScrollEndedDelay;
-  double? _maxScrollExtent;
-  ScrollDirection? _userScrollDirection;
+  late double? _maxScrollExtent;
+  late VoidCallback? _removeFromInjectedList;
+  late ScrollDirection? _userScrollDirection;
+  late final VoidCallback _resetDefaultState;
+  //
   ScrollPosition get position => _controller!.position;
-
   ScrollController get controller {
     if (_controller != null) {
       return _controller!;
@@ -136,7 +171,7 @@ class InjectedScrollingImp extends ReactiveModel<double>
     );
     _removeFromInjectedList = addToInjectedModels(this);
     Timer? _timer;
-    hasReachedMinExtent = initialState == 0;
+    hasReachedMinExtent = initialScrollOffset == 0.0;
     void setFlags() {
       hasStartedScrolling = false;
       hasStartedScrollingForward = false;
@@ -211,8 +246,6 @@ class InjectedScrollingImp extends ReactiveModel<double>
     return _controller!;
   }
 
-  VoidCallback? _removeFromInjectedList;
-
   @override
   set state(double s) {
     assert(s >= 0 && s <= 1);
@@ -228,9 +261,9 @@ class InjectedScrollingImp extends ReactiveModel<double>
 
   @override
   void dispose() {
-    super.dispose();
-    _removeFromInjectedList?.call();
     _controller?.dispose();
-    _controller = null;
+    _removeFromInjectedList?.call();
+    _resetDefaultState();
+    super.dispose();
   }
 }

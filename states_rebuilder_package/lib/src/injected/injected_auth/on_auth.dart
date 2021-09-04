@@ -125,9 +125,17 @@ class OnAuth<T> {
 
 class _OnAuthWidget<T> {
   final Injected inject;
+
+  ///Widget to display while waiting for the first signing when app starts
   final T Function()? onInitialWaiting;
+
+  ///Widget to display while waiting for signing
   final T Function()? onWaiting;
+
+  ///Widget to display if use is signed
   final T Function() onUnsigned;
+
+  ///Widget to display if use is unsigned
   final T Function() onSigned;
   _OnAuthWidget({
     required this.inject,
@@ -136,4 +144,61 @@ class _OnAuthWidget<T> {
     required this.onUnsigned,
     required this.onSigned,
   });
+}
+
+class OnAuthBuilder extends StatelessWidget {
+  const OnAuthBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.onUnsigned,
+    required this.onSigned,
+    this.onInitialWaiting,
+    this.useRouteNavigation = false,
+    this.onWaiting,
+    this.dispose,
+    this.onSetState,
+    this.debugPrintWhenRebuild,
+  }) : super(key: key);
+  final InjectedAuth listenTo;
+
+  ///Widget to display while waiting for the first signing when app starts
+  final Widget Function()? onInitialWaiting;
+
+  ///Widget to display while waiting for signing
+  final Widget Function()? onWaiting;
+
+  ///Widget to display if use is signed
+  final Widget Function() onUnsigned;
+
+  ///Widget to display if use is unsigned
+  final Widget Function() onSigned;
+
+  ///Whether to use navigation transition between onSigned and onUnsigned
+  ///widgets or simply use widget replacement
+  final bool useRouteNavigation;
+
+  ///Side effects to call when this widget is disposed.
+  final void Function()? dispose;
+
+  ///Side effects to call InjectedAuth emits notification.
+  final On<void>? onSetState;
+
+  ///Debug print informative message when this widget is rebuilt
+  final String? debugPrintWhenRebuild;
+  @override
+  Widget build(BuildContext context) {
+    return On.auth(
+      onInitialWaiting: onInitialWaiting,
+      onWaiting: onWaiting,
+      onUnsigned: onUnsigned,
+      onSigned: onSigned,
+    ).listenTo(
+      listenTo,
+      useRouteNavigation: useRouteNavigation,
+      onSetState: onSetState,
+      dispose: dispose,
+      key: key,
+      debugPrintWhenRebuild: debugPrintWhenRebuild,
+    );
+  }
 }

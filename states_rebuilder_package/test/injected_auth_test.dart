@@ -708,7 +708,7 @@ void main() async {
     (tester) async {
       StatesRebuilerLogger.isTestMode = true;
       final model = true.inj();
-      var user;
+      late InjectedAuth<String, String> user;
 
       final widget = Directionality(
         textDirection: TextDirection.rtl,
@@ -718,15 +718,22 @@ void main() async {
               () => FakeAuthRepo(),
               unsignedUser: 'user0',
             );
-            return On.auth(
+            return user.rebuild.onAuth(
               onInitialWaiting: () => Text('Initial Waiting...'),
               onWaiting: () => Text('Waiting...'),
               onUnsigned: () => Text('Unsigned'),
               onSigned: () => Text('Signed'),
-            ).listenTo(
-              user,
               debugPrintWhenRebuild: 'user',
             );
+            // return On.auth(
+            //   onInitialWaiting: () => Text('Initial Waiting...'),
+            //   onWaiting: () => Text('Waiting...'),
+            //   onUnsigned: () => Text('Unsigned'),
+            //   onSigned: () => Text('Signed'),
+            // ).listenTo(
+            //   user,
+            //   debugPrintWhenRebuild: 'user',
+            // );
           },
         ).listenTo(model),
       );
@@ -755,6 +762,102 @@ void main() async {
       user.auth.signOut();
       await tester.pump(Duration(seconds: 1));
       expect(find.text('Unsigned'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN the user is non nullable and the unsignedUser is null'
+    'THEN it must throw an assertion error',
+    (tester) async {
+      expect(
+        () => RM.injectAuth(
+          () => FakeAuthRepo(),
+        ),
+        throwsAssertionError,
+      );
+    },
+  );
+
+  testWidgets(
+    'test rebuild.onAuth method',
+    (tester) async {
+      store.store.addAll({'__user__': 'user1'});
+      final InjectedAuth<String, String> user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        persist: () => PersistState(
+          key: '__user__',
+        ),
+      );
+
+      final widget = MaterialApp(
+        home: user.rebuild.onAuth(
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onWaiting: () => Text('Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+          useRouteNavigation: true,
+          dispose: () {},
+          onSetState: On(() {}),
+          debugPrintWhenRebuild: '',
+        ),
+        navigatorKey: RM.navigate.navigatorKey,
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+      expect(find.text('Signed'), findsOneWidget);
+
+      //
+      user.auth.signOut();
+
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsNothing);
+      await tester.pump(Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'test OnAuthBuilder',
+    (tester) async {
+      store.store.addAll({'__user__': 'user1'});
+      final InjectedAuth<String, String> user = RM.injectAuth(
+        () => FakeAuthRepo(),
+        unsignedUser: 'user0',
+        persist: () => PersistState(
+          key: '__user__',
+        ),
+      );
+
+      final widget = MaterialApp(
+        home: OnAuthBuilder(
+          listenTo: user,
+          onInitialWaiting: () => Text('Initial Waiting...'),
+          onWaiting: () => Text('Waiting...'),
+          onUnsigned: () => Text('Unsigned'),
+          onSigned: () => Text('Signed'),
+          useRouteNavigation: true,
+          dispose: () {},
+          onSetState: On(() {}),
+          debugPrintWhenRebuild: '',
+        ),
+        navigatorKey: RM.navigate.navigatorKey,
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+      expect(find.text('Signed'), findsOneWidget);
+
+      //
+      user.auth.signOut();
+
+      expect(find.text('Signed'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Unsigned'), findsOneWidget);
+      expect(find.text('Signed'), findsNothing);
+      await tester.pump(Duration(seconds: 1));
     },
   );
 }

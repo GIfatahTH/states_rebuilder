@@ -21,7 +21,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
         textDirection: TextDirection.ltr,
-        child: counter.rebuilder(
+        child: counter.rebuild(
           () => Text('counter: ${counter.state}'),
         ));
   }
@@ -204,9 +204,10 @@ void main() async {
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
         persistStateProvider: PersistStoreMockImp(),
+        debugPrintOperations: true,
       ),
     );
-    store.store.addAll({'Future_counter': '10'});
+
     expect(counter.state, null);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
@@ -242,6 +243,30 @@ void main() async {
     await tester.pump();
     await tester.pump(Duration(seconds: 1));
     expect(StatesRebuilerLogger.message.contains('Delete Error'), isTrue);
+    //
+  });
+
+  testWidgets('Test try catch of PersistState (debugPrintOperations)',
+      (tester) async {
+    counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        debugPrintOperations: true,
+      ),
+    );
+
+    store.exception = Exception('Read Error');
+    await tester.pumpWidget(App());
+    expect(StatesRebuilerLogger.message.contains('Read Error'), isTrue);
+
+    // store.exception = Exception('Write Error');
+    // await tester.pump();
+    // await tester.pump(Duration(seconds: 1));
+    // expect(StatesRebuilerLogger.message.contains('Write Error'), isTrue);
+
     //
   });
 
@@ -536,13 +561,44 @@ void main() async {
       persistentState.dispose();
     },
   );
+
+  test('shouldRecreateState: true // issue 192', () async {
+    await RM.storageInitializerMock();
+    Injected<int?> injected = RM.injectStream(
+      () => Stream.fromFuture(
+          Future.delayed(Duration(milliseconds: 100), () => 1)),
+      initialState: 0,
+      onInitialized: (_, __) {},
+      persist: () => PersistState(
+        shouldRecreateTheState: true,
+        key: 'injected',
+        fromJson: int.parse,
+        toJson: (s) => s.toString(),
+      ),
+    );
+    // first initialization -> store value as persitant state
+    expect(injected.state, equals(0));
+    await Future.delayed(Duration(milliseconds: 200));
+    expect(injected.state, equals(1));
+    injected.setState((_) => 2);
+
+    // re-initializing the state. the last stores value has been 2.
+    // therefore, expect value 2
+    injected.dispose();
+    expect(injected.state, equals(2));
+    // the state has a value, therefore (I) would not expect it to have data
+    expect(injected.hasData, isTrue);
+    await Future.delayed(Duration(milliseconds: 200));
+    // re-invoke the builder function which returns 1 after 100 milliseconds
+    expect(injected.state, equals(1));
+  });
 }
 
 class PersistStoreMockImp extends IPersistStore {
   late Map<dynamic, dynamic> store;
   @override
   Future<void> init() {
-    store = {};
+    store = {'Future_counter': '10'};
     return Future.value();
   }
 
@@ -552,13 +608,11 @@ class PersistStoreMockImp extends IPersistStore {
   }
 
   @override
-  Future<void> deleteAll() {
-    throw Exception('Delete All Error');
-  }
+  Future<void> deleteAll() async {}
 
   @override
   Object read(String key) {
-    throw Exception('Read Error');
+    return store[key];
   }
 
   @override

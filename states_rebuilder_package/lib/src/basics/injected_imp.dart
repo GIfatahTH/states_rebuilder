@@ -8,7 +8,7 @@ class InjectedImp<T> extends Injected<T> {
     this.onDisposed,
     this.onSetState,
     this.onWaiting,
-    this.onData,
+    this.onDataForSideEffect,
     this.onError,
     bool isAsyncInjected = false,
     this.dependsOn,
@@ -50,25 +50,49 @@ class InjectedImp<T> extends Injected<T> {
   final String? debugPrintWhenNotifiedPreMessage;
   final String Function(T?)? toDebugString;
 
-  final void Function(T? s)? onInitialized;
+  void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
   final void Function()? onWaiting;
-  final void Function(T s)? onData;
+  final void Function(T s)? onDataForSideEffect;
   // final On<void>? onSetState;
   final void Function(dynamic e, StackTrace? s)? onError;
 
   @override
-  bool get isIdle => _reactiveModelState.snapState.isIdle;
+  bool get isIdle {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isIdle;
+  }
+
   @override
-  bool get isWaiting => _reactiveModelState.snapState.isWaiting;
+  bool get isWaiting {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isWaiting;
+  }
+
   @override
-  bool get hasData => _reactiveModelState.snapState.hasData;
+  bool get hasData {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.hasData;
+  }
+
   @override
-  bool get isDone => _reactiveModelState.snapState.isDone;
+  bool get isDone {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.isDone;
+  }
+
   @override
-  bool get hasError => _reactiveModelState.snapState.hasError;
+  bool get hasError {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.hasError;
+  }
+
   @override
-  dynamic get error => _reactiveModelState.snapState.error;
+  dynamic get error {
+    OnReactiveState.addToObs?.call(this);
+    return _reactiveModelState.snapState.error;
+  }
+
   SnapState<T>? oldSnap;
 
   bool _isAsyncInjected;
@@ -95,10 +119,15 @@ class InjectedImp<T> extends Injected<T> {
         if (shouldRecreate == true ||
             (shouldRecreate == null && creator is Stream Function())) {
           if (val != null) {
-            _reactiveModelState
-              .._initialState = val
-              .._snapState =
-                  _reactiveModelState._snapState._copyWith(data: val);
+            _reactiveModelState._initialState = val;
+            //See issue 192
+            final old = onInitialized;
+            onInitialized = (_) {
+              //Force hasData flag to be true.
+              _reactiveModelState._snapState =
+                  _reactiveModelState._snapState._copyToHasData(val);
+              old?.call(_);
+            };
           }
           return creator();
         }
@@ -124,9 +153,9 @@ class InjectedImp<T> extends Injected<T> {
     if (_reactiveModelState._isInitialized) {
       return;
     }
-    _reactiveModelState
-      .._isInitialized = true
-      .._isDisposed = false;
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
+    _reactiveModelState._isInitialized = true;
     final creatorMock = cachedCreatorMocks.last;
     bool isInitializing = true;
 
@@ -152,7 +181,8 @@ class InjectedImp<T> extends Injected<T> {
             return middleSnap(snap);
           }
           if (snap.hasData) {
-            snap = _isAsyncInjected ? snap : snap._copyToIsIdle();
+            snap =
+                _isAsyncInjected ? snap : snap._copyToIsIdle(isActive: false);
           }
           _reactiveModelState._snapState = middleSnap(snap) ?? snap;
           return null;
@@ -169,6 +199,7 @@ class InjectedImp<T> extends Injected<T> {
         dependsOn!.injected,
         shouldRebuild: false,
       );
+
       _subscribeForCombinedSnap(dependsOn!.injected);
       // if (hasObservers) {
       // } else {
@@ -179,8 +210,11 @@ class InjectedImp<T> extends Injected<T> {
     } else {
       _reactiveModelState._initialStateCreator!();
     }
-
-    onInitialized?.call(_reactiveModelState._snapState.data);
+    if (_reactiveModelState._isDisposed) {
+      _reactiveModelState._isDisposed = false;
+      onInitialized?.call(_reactiveModelState._snapState.data);
+    }
+    OnReactiveState.addToObs = cachedAddToObs;
   }
 
   @override
@@ -269,9 +303,9 @@ class InjectedImp<T> extends Injected<T> {
       }
 
       if (onData != null) {
-        onData.call(snap.data!);
+        onData.call(snap.data as T);
       } else {
-        this.onData?.call(snap.data!);
+        this.onDataForSideEffect?.call(snap.data as T);
       }
       undoRedoPersistState?.call(snap, this);
     } else if (snap.isIdle) {
@@ -340,41 +374,35 @@ class InjectedImp<T> extends Injected<T> {
             depend._reactiveModelState.listeners.addListenerForRebuild(
           fn,
           clean: () {
-            if (depend._imp.autoDisposeWhenNotUsed) {
-              depend.dispose();
-            }
+            depend.dispose();
           },
         );
         _dependentDisposers.add(disposer);
       }
 
-      if (!hasObservers) {
-        // var disposer;
-        // bool _isDisposed = false;
+      // if (!hasObservers) {
 
-        final disposer =
-            depend._reactiveModelState.listeners.addListenerForSideEffect(
-          fn,
-          clean: () {
-            if (depend._imp.autoDisposeWhenNotUsed) {
-              depend.dispose();
-            }
-          },
-        );
-        _reactiveModelState.listeners.onFirstListerAdded = () {
-          _reactiveModelState.listeners._sideEffectListeners.remove(fn);
-          _dependentDisposers.remove(disposer);
-          addListenerForRebuild();
-        };
-        depend._reactiveModelState.listeners.addCleaner(() {
-          if (!hasObservers && _imp.autoDisposeWhenNotUsed) {
-            dispose();
-          }
-        });
-        _dependentDisposers.add(disposer);
-      } else {
+      final disposer =
+          depend._reactiveModelState.listeners.addListenerForSideEffect(
+        fn,
+        clean: () {
+          depend.dispose();
+        },
+      );
+      _reactiveModelState.listeners.onFirstListerAdded = () {
+        _reactiveModelState.listeners._sideEffectListeners.remove(fn);
+        _dependentDisposers.remove(disposer);
         addListenerForRebuild();
-      }
+      };
+      depend._reactiveModelState.listeners.addCleaner(() {
+        if (!hasObservers && _imp.autoDisposeWhenNotUsed) {
+          dispose();
+        }
+      });
+      _dependentDisposers.add(disposer);
+      // } else {
+      //   addListenerForRebuild();
+      // }
     }
   }
 
@@ -385,8 +413,11 @@ class InjectedImp<T> extends Injected<T> {
     dynamic error;
     late StackTrace stackTrace;
     late VoidCallback refresher;
+
     for (var depend in depends) {
-      if (depend.isWaiting) {
+      //Use _reactiveModelState.snapState.isWaiting instead of depend.isWaiting
+      //to avoid dependent state to subscribe to OnReactive
+      if (depend._reactiveModelState.snapState.isWaiting) {
         final snap = _reactiveModelState._snapState._copyToIsWaiting(
           data: depend._imp.oldSnap?._infoMessage == kRefreshMessage
               ? _reactiveModelState._initialState
@@ -402,22 +433,22 @@ class InjectedImp<T> extends Injected<T> {
         }
         return;
       }
-      if (depend.hasError) {
-        error = depend.error;
+      if (depend._reactiveModelState.snapState.hasError) {
+        error = depend._reactiveModelState.snapState.error;
         stackTrace = depend._reactiveModelState._snapState.stackTrace!;
         refresher = depend._reactiveModelState._snapState.onErrorRefresher!;
       }
 
-      if (depend.isIdle) {
+      if (depend._reactiveModelState.snapState.isIdle) {
         isIdle = true;
       }
     }
 
     if (error != null) {
-      final snap = _reactiveModelState._snapState.copyToHasError(
+      final snap = _reactiveModelState._snapState._copyToHasError(
         error,
+        refresher,
         stackTrace: stackTrace,
-        onErrorRefresher: refresher,
       );
       if (shouldRebuild) {
         _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
@@ -434,7 +465,6 @@ class InjectedImp<T> extends Injected<T> {
       _reactiveModelState._refresh(
         infoMessage: shouldRebuild ? kRecomputing : kInitMessage,
       );
-
       return;
     }
 
@@ -445,11 +475,11 @@ class InjectedImp<T> extends Injected<T> {
   Future<F> Function() future<F>(Future<F> Function(T s) future) {
     return () async {
       late F data;
-      await future(state).then((d) {
+      await future(_state).then((d) {
         if (d is T) {
           snapState = snapState.copyToHasData(d);
           onSetState?.call(snapState);
-          onData?.call(state);
+          onDataForSideEffect?.call(_state);
         }
         data = d;
       }).catchError((e, StackTrace s) {
@@ -469,12 +499,12 @@ class InjectedImp<T> extends Injected<T> {
   @override
   void dispose() {
     if (!_reactiveModelState._isDisposed) {
-      onDisposed?.call(state);
+      onDisposed?.call(_state);
       if (cachedCreatorMocks.length > 1) {
         cachedCreatorMocks.removeLast();
       }
       undoRedoPersistState?.clearUndoStack();
-      undoRedoPersistState?.persistOnDispose(state);
+      undoRedoPersistState?.persistOnDispose(_state);
       final middleSnap = MiddleSnapState(
         snapState,
         SnapState._nothing(
@@ -550,17 +580,19 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   bool get canRedoState {
+    OnReactiveState.addToObs?.call(this);
     return undoRedoPersistState?.canRedoState ?? false;
   }
 
   @override
   bool get canUndoState {
+    OnReactiveState.addToObs?.call(this);
     return undoRedoPersistState?.canUndoState ?? false;
   }
 
   @override
   void persistState() {
-    undoRedoPersistState?.persistanceProvider?.write(state);
+    undoRedoPersistState?.persistanceProvider?.write(_state);
   }
 
   @override
@@ -636,10 +668,7 @@ class InjectedImp<T> extends Injected<T> {
           injected = reInheritedInject ?? this;
         } else {
           injected = InjectedImp<T>(
-            creator: () {
-              final s = stateOverride();
-              return s;
-            },
+            creator: stateOverride,
             // initialState: state,
             onInitialized: (_) {
               if (connectWithGlobal) {
@@ -669,19 +698,24 @@ class InjectedImp<T> extends Injected<T> {
                 setState();
               },
               clean: () {
-                if (injected.autoDisposeWhenNotUsed) {
-                  injected.dispose();
-                }
                 if (injected != this) {
                   if (autoDisposeWhenNotUsed && !hasObservers) {
                     dispose();
                   }
                   inheritedInjects.remove(injected);
                 }
+                if (injected.autoDisposeWhenNotUsed) {
+                  injected.dispose();
+                }
               },
             );
           },
           dispose: (context) {
+            // if (injected != this) {
+            //   print(inheritedInjects);
+            //   inheritedInjects.remove(injected);
+            //   print(inheritedInjects);
+            // }
             disposer();
           },
           builder: (context, widget) {
@@ -710,6 +744,8 @@ class InjectedImp<T> extends Injected<T> {
     late VoidCallback refresher;
     SnapState<T>? oldSnap;
     SnapState<T>? newSnap;
+    final cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     for (var state in inheritStates) {
       if (state.isWaiting) {
         isWaiting = true;
@@ -754,6 +790,7 @@ class InjectedImp<T> extends Injected<T> {
                 snapState._debugPrintWhenNotifiedPreMessage,
           ),
     );
+    OnReactiveState.addToObs = cachedAddToObs;
   }
 }
 

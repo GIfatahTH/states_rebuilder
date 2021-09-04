@@ -128,4 +128,99 @@ void main() {
           inj.snapState.toString(), 'SnapState<String>[inj](INITIALIZING...)');
     },
   );
+  testWidgets(
+    'test isActive',
+    (tester) async {
+      var counter = 0.inj();
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, false);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, false);
+      counter.state++;
+      await tester.pump();
+      expect(counter.hasData, true);
+      expect(counter.isActive, true);
+      //
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, true);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, true);
+      //
+      counter.refresh();
+      await tester.pump();
+      expect(counter.isIdle, true);
+      expect(counter.isActive, true);
+      counter.dispose();
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      //
+      counter = RM.inject(() => 0);
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, false);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, false);
+      counter.state++;
+      await tester.pump();
+      expect(counter.hasData, true);
+      expect(counter.isActive, true);
+      //
+      counter.setState((s) => Future.delayed(1.seconds, () => throw 'Error'));
+      await tester.pump();
+      expect(counter.isActive, true);
+      expect(counter.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(counter.hasError, true);
+      expect(counter.isActive, true);
+      //
+      counter.refresh();
+      await tester.pump();
+      expect(counter.isIdle, true);
+      expect(counter.isActive, true);
+      counter.dispose();
+      expect(counter.isActive, false);
+      expect(counter.isIdle, true);
+      //
+      bool shouldThrow = true;
+      final futureCounter = RM.injectFuture(
+        () => Future.delayed(1.seconds, () => shouldThrow ? throw 'error' : 1),
+      );
+      expect(futureCounter.isWaiting, true);
+      expect(futureCounter.isActive, false);
+      await tester.pump(1.seconds);
+      expect(futureCounter.hasError, true);
+      expect(futureCounter.isActive, false);
+      futureCounter.refresh();
+      expect(futureCounter.isWaiting, true);
+      expect(futureCounter.isActive, false);
+      await tester.pump(1.seconds);
+      expect(futureCounter.hasError, true);
+      expect(futureCounter.isActive, false);
+      shouldThrow = false;
+      futureCounter.refresh();
+      expect(futureCounter.isWaiting, true);
+      expect(futureCounter.isActive, false);
+      await tester.pump(1.seconds);
+      expect(futureCounter.hasData, true);
+      expect(futureCounter.hasData, true);
+      futureCounter.refresh();
+      expect(futureCounter.isWaiting, true);
+      expect(futureCounter.isActive, true);
+      await tester.pump(1.seconds);
+      expect(futureCounter.hasData, true);
+      expect(futureCounter.hasData, true);
+    },
+  );
 }

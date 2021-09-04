@@ -59,15 +59,17 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //Subscribing to the counterRM using On.all
-            On.all(
-              onIdle: () => Text('Tap on the FAB to increment the counter'),
-              onWaiting: () => CircularProgressIndicator(),
-              onError: (error, refresh) => Text(counter.error.message),
-              onData: () => Text(
-                '${counter.state}',
-                style: Theme.of(context).textTheme.headline5,
+            OnReactive(
+              () => counter.onAll(
+                onIdle: () => Text('Tap on the FAB to increment the counter'),
+                onWaiting: () => CircularProgressIndicator(),
+                onError: (error, refresh) => Text(counter.error.message),
+                onData: (data) => Text(
+                  '$data',
+                  style: Theme.of(context).textTheme.headline5,
+                ),
               ),
-            ).listenTo(counter),
+            ),
           ],
         ),
       ),

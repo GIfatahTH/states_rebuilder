@@ -14,7 +14,7 @@ class SnapState<T> {
     this.onErrorRefresher, [
     this._infoMessage = '',
     this.isDone = false,
-    this.isActive = true,
+    this.isActive = false,
     this._isImmutable,
     this._debugPrintWhenNotifiedPreMessage,
   ])  : assert(stackTrace == null || error != null),
@@ -33,19 +33,19 @@ class SnapState<T> {
           null,
           _infoMessage,
           false,
-          true,
+          false,
           null,
           debugPrintWhenNotifiedPreMessage,
         );
-  // const SnapState.none()
-  //     : this._(
-  //         ConnectionState.none,
-  //         null,
-  //         null,
-  //         null,
-  //         null,
-  //         '',
-  //       );
+  const SnapState.none()
+      : this._(
+          ConnectionState.none,
+          null,
+          null,
+          null,
+          null,
+          '',
+        );
   const SnapState.data([T? data])
       : this._(
           ConnectionState.done,
@@ -54,13 +54,17 @@ class SnapState<T> {
           null,
           null,
           '',
+          false,
+          true,
         );
-  factory SnapState.error(dynamic err, [StackTrace? s]) => SnapState._(
+  factory SnapState.error(dynamic err,
+          [StackTrace? s, VoidCallback? refresher]) =>
+      SnapState._(
         ConnectionState.done,
         null,
         err,
         s,
-        () {},
+        refresher ?? () {},
         '',
       );
   const SnapState.waiting()
@@ -260,7 +264,7 @@ class SnapState<T> {
       null,
       infoMessage ?? '',
       false,
-      this.isActive,
+      true,
       isImmutable,
       _debugPrintWhenNotifiedPreMessage,
     );
@@ -278,12 +282,14 @@ class SnapState<T> {
   SnapState<T> _copyToIsIdle({
     T? data,
     String? infoMessage,
+    bool? isActive,
   }) {
     return _copyWith(
       connectionState: ConnectionState.none,
       data: data,
       resetError: true,
       infoMessage: infoMessage ?? '',
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -306,11 +312,48 @@ class SnapState<T> {
   ///It is a shortcut of : this.connectionState == ConnectionState.waiting
   bool get isWaiting => _connectionState == ConnectionState.waiting;
 
-  bool get isReady => data != null;
+  // bool get isReady => data != null;
 
   final bool isDone;
   final bool isActive;
   Type type() => T;
+
+  R onOrElse<R>({
+    R Function()? onIdle,
+    R Function()? onWaiting,
+    R Function(dynamic error, VoidCallback refreshError)? onError,
+    R Function(T data)? onData,
+    required R Function(T data) orElse,
+  }) {
+    if (isIdle && onIdle != null) {
+      return onIdle();
+    }
+    if (isWaiting && onWaiting != null) {
+      return onWaiting();
+    }
+    if (hasError && onError != null) {
+      return onError(error, onErrorRefresher!);
+    }
+    if (hasData && onData != null) {
+      return onData(data as T);
+    }
+    return orElse(data as T);
+  }
+
+  R onAll<R>({
+    R Function()? onIdle,
+    required R Function()? onWaiting,
+    required R Function(dynamic error, VoidCallback refreshError)? onError,
+    required R Function(T data) onData,
+  }) {
+    return onOrElse<R>(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError,
+      orElse: onData,
+    );
+  }
+
   @override
   String toString() {
     if (_debugPrintWhenNotifiedPreMessage != null) {

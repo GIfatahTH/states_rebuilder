@@ -359,7 +359,7 @@ void main() {
     expect(products.state.length, 2);
     expect(_repo._products.length, 1);
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     expect(numberOfonStateMutationCall, 2);
@@ -388,7 +388,7 @@ void main() {
     expect(products.state[0], Product(id: 1, name: 'product 1_new'));
     expect(_repo._products[0], Product(id: 1, name: 'product 1'));
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state[0], Product(id: 1, name: 'product 1'));
     expect(_repo._products[0], Product(id: 1, name: 'product 1'));
     expect(numberOfonStateMutationCall, 2);
@@ -415,7 +415,7 @@ void main() {
     expect(products.state.length, 0);
     expect(_repo._products.length, 1);
     await tester.pump(Duration(seconds: 1));
-    expect(products.hasError, true);
+    expect(products.hasData, true);
     expect(products.state.length, 1);
     expect(_repo._products.length, 1);
     expect(numberOfonStateMutationCall, 2);
@@ -427,11 +427,11 @@ void main() {
   testWidgets('On.crud Peissimisally', (tester) async {
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.crud(
+      child: products.rebuild.onCRUD(
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
-      ).listenTo(products),
+      ),
     );
 
     ///READ
@@ -732,24 +732,79 @@ void main() {
       final model = true.inj();
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On(
+        child: model.rebuild(
           () {
             products = RM.injectCRUD<Product, Object>(
               () => _repo,
               readOnInitialization: true,
             );
-            return On.crud(
+            return products.rebuild.onCRUD(
               onWaiting: () => Text('Waiting...'),
               onError: (_, refresh) {
                 return Text(_.message);
               },
               onResult: (r) => Text('Result: $r'),
-            ).listenTo(
-              products,
+              onSetState: On(() {}),
+              dispose: () {},
               debugPrintWhenRebuild: 'products',
             );
           },
-        ).listenTo(model),
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      await tester.pump(Duration(seconds: 1));
+
+      products.crud.update(
+        where: (p) => p.id == 1,
+        set: (p) => p.copyWith(name: 'prod2'),
+      );
+      await tester.pump();
+      expect(
+          StatesRebuilerLogger.message,
+          endsWith(
+              'REBUILD <products>: SnapState<dynamic>(isWaiting (): null)'));
+      await tester.pump(Duration(seconds: 1));
+      expect(products.state.first.name, 'prod2');
+
+      model.notify();
+      await tester.pump();
+      expect(products.state.first.name, 'prod2');
+      expect(
+          StatesRebuilerLogger.message,
+          endsWith(
+              'REBUILD <products>: SnapState<dynamic>(hasData: 1 items updated)'));
+    },
+  );
+
+  testWidgets(
+    'OnBuilder.crud',
+    (tester) async {
+      StatesRebuilerLogger.isTestMode = true;
+      late InjectedCRUD<Product, Object> products;
+
+      final model = true.inj();
+      final widget = Directionality(
+        textDirection: TextDirection.rtl,
+        child: model.rebuild(
+          () {
+            products = RM.injectCRUD<Product, Object>(
+              () => _repo,
+              readOnInitialization: true,
+            );
+            return OnCRUDBuilder(
+              listenTo: products,
+              onWaiting: () => Text('Waiting...'),
+              onError: (_, refresh) {
+                return Text(_.message);
+              },
+              onResult: (r) => Text('Result: $r'),
+              onSetState: On(() {}),
+              dispose: () {},
+              debugPrintWhenRebuild: 'products',
+            );
+          },
+        ),
       );
       await tester.pumpWidget(widget);
 

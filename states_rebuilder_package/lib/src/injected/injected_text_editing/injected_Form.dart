@@ -1,9 +1,56 @@
 part of 'injected_text_editing.dart';
 
+class _RebuildForm {
+  final InjectedForm _injected;
+  _RebuildForm(this._injected);
+
+  ///Listen to the [InjectedForm] and rebuild when it is notified.
+  ///
+  ///The first positional parameter is a callback the return a widget that must
+  ///contains all the [TextField] related to this form associated with their
+  ///[InjectedTextEditing].
+  Widget onForm(
+    Widget Function() builder, {
+    Key? key,
+  }) {
+    return On.form(builder).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+
+  ///Listen to the [InjectedForm] and rebuild when it is submitted.
+  ///
+  ///[onSubmitting] defined the widget to display when the form is waiting for
+  ///submission
+  ///
+  ///[onSubmissionError] defines the widget to display when the form submission
+  ///fails. It exposes the error and a callback to resubmit the form again with
+  ///the last valid data.
+  Widget onFormSubmission({
+    required Widget Function() onSubmitting,
+    Widget Function(dynamic, void Function())? onSubmissionError,
+    required Widget child,
+    Key? key,
+  }) {
+    return On.formSubmission(
+      onSubmitting: onSubmitting,
+      onSubmissionError: onSubmissionError,
+      child: child,
+    ).listenTo(
+      _injected,
+      key: key,
+    );
+  }
+}
+
 ///Inject a Form state.
 ///
 ///Used in conjunction with [On.form].
 abstract class InjectedForm implements InjectedBaseState<bool?> {
+  ///Listen to the [InjectedForm] and rebuild when it is notified.
+  late final rebuild = _RebuildForm(this);
+
   ///Validate the text fields and return true if they are all valid
   bool validate();
 
@@ -40,7 +87,7 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 }
 
 ///Implementation of [InjectedForm]
-class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
+class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   InjectedFormImp({
     this.autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
@@ -66,7 +113,7 @@ class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
   }
 
   static InjectedFormImp? _currentInitializedForm;
-  FocusNode? _autoFocusedNode;
+  FocusNode? autoFocusedNode;
   @override
   bool get isValid => _textFields.every((e) => e.hasData);
 
@@ -89,8 +136,12 @@ class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
     for (var field in _textFields) {
       field.reset();
     }
-    _autoFocusedNode?.requestFocus();
-    notify();
+    autoFocusedNode?.requestFocus();
+    if (autovalidateMode == AutovalidateMode.always) {
+      validate();
+    } else {
+      notify();
+    }
   }
 
   @override
@@ -98,24 +149,39 @@ class InjectedFormImp extends ReactiveModel<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
-
-    await setState(
-      (s) => fn == null ? _submit?.call() : fn(),
-      onSetState: onSubmitted != null ? On.data(onSubmitted!) : null,
-    );
-
-    if (autoFocusOnFirstError) {
-      InjectedTextEditingImp? firstErrorField;
-      for (var field in _textFields) {
-        if (field.hasError) {
-          firstErrorField = field;
-          break;
+    Future<void> setState(Function()? call) async {
+      dynamic result = call?.call();
+      try {
+        if (result is Future) {
+          snapState = snapState.copyToIsWaiting();
+          notify();
+          await result;
         }
-      }
-      if (firstErrorField != null) {
-        firstErrorField._focusNode?.requestFocus();
+        snapState = snapState.copyToHasData(null);
+        onSubmitted?.call();
+        if (autoFocusOnFirstError) {
+          InjectedTextEditingImp? firstErrorField;
+          for (var field in _textFields) {
+            if (field.hasError) {
+              firstErrorField = field;
+              break;
+            }
+          }
+          if (firstErrorField != null) {
+            firstErrorField._focusNode?.requestFocus();
+          }
+        }
+        notify();
+      } catch (e, s) {
+        snapState = snapState.copyToHasError(e,
+            stackTrace: s, onErrorRefresher: () => submit(fn));
+        notify();
       }
     }
+
+    await setState(
+      () => fn == null ? _submit?.call() : fn(),
+    );
 
     // Future<void> Function() call;
     // call = () async {

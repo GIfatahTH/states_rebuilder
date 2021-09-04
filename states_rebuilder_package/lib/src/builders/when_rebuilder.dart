@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import '../rm.dart';
-
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+
+import '../common/helper_method.dart';
+import '../rm.dart';
 
 ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
 ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
@@ -143,6 +144,8 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
   late ReactiveModel<T> rm;
 
   late Widget _widget;
+  final _disposers = <VoidCallback>[];
+
   @override
   void initState() {
     super.initState();
@@ -162,7 +165,7 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       //1- rm is the model of the observer
       rm = _models.first as ReactiveModel<T>;
     } else if (widget.observeMany != null && widget.observeMany!.isNotEmpty) {
-      if (T != dynamic && T != Object) {
+      if (T != dynamic && !isObjectOrNull<T>()) {
         //Ensure T is not dynamic or Object
         //2- RM is the first model of observeMany that is of type T
         final r = _models.firstWhereOrNull((e) => e is ReactiveModel<T>);
@@ -171,10 +174,12 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
         //3- take the first model of observeMany
         rm = _models.first as ReactiveModel<T>;
         _models.forEach((m) {
-          m.subscribeToRM((r) {
+          final disposer = m.subscribeToRM((snap) {
             //4- the model is that is emitting a notification
+            final r = _models.firstWhereOrNull((e) => e.snapState == snap);
             rm = r as ReactiveModel<T>;
           });
+          _disposers.add(disposer);
         });
       }
     }
@@ -191,6 +196,12 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       initState: () => widget.initState?.call(context, rm),
       dispose: () => widget.dispose?.call(context, rm),
     );
+  }
+
+  @override
+  void dispose() {
+    _disposers.forEach((disposer) => disposer());
+    super.dispose();
   }
 
   @override

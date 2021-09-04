@@ -19,76 +19,67 @@ class App extends StatelessWidget {
   }
 }
 
-final _controller = ScrollController();
-
 class PostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return On.or(
-      onError: (err, refresh) => Center(
-        child: Row(
-          children: [
-            Text('failed to fetch posts'),
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () => refresh(),
-            ),
-          ],
-          mainAxisAlignment: MainAxisAlignment.center,
-        ),
-      ),
-      or: () {
+    return OnReactive(
+      () {
         if (posts.state.isEmpty) {
           if (posts.isWaiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           return const Center(child: Text('no posts'));
         }
 
-        return ListView.builder(
-          itemBuilder: (BuildContext context, int index) {
-            return index < posts.state.length
-                ? ListTile(
-                    leading: Text('${posts.state[index].id}'),
-                    title: Text(posts.state[index].title),
-                    subtitle: Text(posts.state[index].body),
-                  )
-                : posts.customStatus != 'hasReachedMax'
-                    ? On.or(
-                        onError: (err, refresh) => ElevatedButton(
-                          onPressed: () => refresh(),
-                          child: Text('Refresh Error'),
-                        ),
-                        or: () => Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ).listenTo(posts)
-                    : ElevatedButton(
-                        onPressed: () {
-                          posts.customStatus = null;
-                          posts.refresh();
-                        },
-                        child: Text('Refresh Posts'),
-                      );
+        return posts.onOrElse(
+          onError: (err, refresh) => Center(
+            child: Row(
+              children: [
+                Text('failed to fetch posts'),
+                IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: () => refresh(),
+                ),
+              ],
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ),
+          orElse: (data) {
+            return ListView.builder(
+              controller: scroll.controller,
+              itemCount: data.length + 1,
+              itemBuilder: (BuildContext context, int index) {
+                return index < data.length
+                    ? ListTile(
+                        leading: Text('${data[index].id}'),
+                        title: Text(data[index].title),
+                        subtitle: Text(data[index].body),
+                      )
+                    : posts.customStatus != 'hasReachedMax'
+                        ? posts.onOrElse(
+                            onError: (err, refresh) => ElevatedButton(
+                              onPressed: () => refresh(),
+                              child: Text('Refresh Error'),
+                            ),
+                            orElse: (_) => Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : ElevatedButton(
+                            onPressed: () {
+                              posts.customStatus = null;
+                              posts.refresh();
+                            },
+                            child: Text('Refresh Posts'),
+                          );
+              },
+            );
           },
-          itemCount: posts.state.length + 1,
-          controller: _controller,
         );
       },
-    ).listenTo(
-      posts,
-      initState: () => _controller.addListener(_onScroll),
-      dispose: () => _controller.dispose(),
+      sideEffects: SideEffects(
+        dispose: () => scroll.dispose(),
+      ),
     );
-  }
-
-  void _onScroll() {
-    if (posts.customStatus == 'hasReachedMax' || posts.isWaiting) {
-      return;
-    }
-    if (_controller.offset >= _controller.position.maxScrollExtent) {
-      posts.state.fetchMorePosts();
-    }
   }
 }

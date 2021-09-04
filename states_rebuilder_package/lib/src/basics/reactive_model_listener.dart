@@ -49,11 +49,7 @@ class ReactiveModelListener<T> {
     VoidCallback? clean,
   }) {
     _sideEffectListeners.add(setState);
-    final cleanDisposer = addCleaner(
-      () => _sideEffectListeners.remove(setState),
-    );
     return () {
-      cleanDisposer();
       if (_sideEffectListeners.isEmpty) {
         return;
       }

@@ -24,6 +24,7 @@ final user = RM.injectAuth<User?, UserParam>(
       if (e is AuthException) {
         ErrorHandler.showErrorSnackBar(e);
       }
+      throw e;
     },
   ),
   // debugPrintWhenNotifiedPreMessage: '',

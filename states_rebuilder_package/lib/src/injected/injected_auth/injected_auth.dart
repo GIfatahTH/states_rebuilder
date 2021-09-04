@@ -11,6 +11,8 @@ part 'on_auth.dart';
 abstract class InjectedAuth<T, P> implements Injected<T> {
   IAuth<T, P>? _repo;
 
+  T get _state => getInjectedState(this);
+
   ///Get the auth repository
   R getRepoAs<R extends IAuth<T, P>>() {
     if (_repo != null) {
@@ -25,7 +27,8 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
   }
 
   ///Whether the a user is signed or not
-  bool get isSigned => state != (this as InjectedAuthImp<T, P>).unsignedUser;
+  bool get isSigned =>
+      state != null && state != (this as InjectedAuthImp<T, P>).unsignedUser;
   //
   _AuthService<T, P>? _auth;
 
@@ -62,7 +65,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     this.onUnsigned,
     this.autoSignOut,
     this.onAuthStream,
-    this.on,
+    this.onSetAuthState,
     //
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s)? onInitialized,
@@ -83,17 +86,30 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           toDebugString: toDebugString,
           autoDisposeWhenNotUsed: false,
-        );
+        ) {
+    _resetDefaultState = () {
+      _repo = null;
+      _auth = null;
+      _isInitialized = false;
+      onAuthStreamSubscription?.cancel();
+      onAuthStreamSubscription = null;
+    };
+    _resetDefaultState();
+  }
   final IAuth<T, P> Function() repoCreator;
 
   final P Function()? param;
   final void Function(T s)? onSigned;
   final void Function()? onUnsigned;
-  final On<void>? on;
+  final On<void>? onSetAuthState;
   final Duration Function(T auth)? autoSignOut;
   final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
+  final T? unsignedUser;
+  //
+  late bool _isInitialized;
   StreamSubscription<T>? onAuthStreamSubscription;
-  T? unsignedUser;
+
+  late final VoidCallback _resetDefaultState;
 
   @override
   dynamic middleCreator(
@@ -149,20 +165,15 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     _isInitialized = true;
   }
 
-  bool _isInitialized = false;
-
   @override
   void dispose() {
     _auth?._dispose();
-    onAuthStreamSubscription?.cancel();
-    onAuthStreamSubscription = null;
+
     if (_cachedRepoMocks.length > 1) {
       _cachedRepoMocks.removeLast();
     }
+    _resetDefaultState();
     super.dispose();
-    _repo = null;
-    _auth = null;
-    _isInitialized = false;
   }
 }
 
@@ -179,7 +190,7 @@ class _AuthService<T, P> {
       } else if (snap.hasError) {
         _onError(_onSignInOut);
       }
-      injected.on?.call(snap);
+      injected.onSetAuthState?.call(snap);
     });
   }
 
@@ -212,7 +223,7 @@ class _AuthService<T, P> {
       onSetState: onError != null ? On.error(onError) : null,
     );
     _onSignInOut = null;
-    return injected.state;
+    return injected._state;
   }
 
   ///Sign up
@@ -241,7 +252,7 @@ class _AuthService<T, P> {
       onSetState: onError != null ? On.error(onError) : null,
     );
     _onSignInOut = null;
-    return injected.state;
+    return injected._state;
   }
 
   void _onError(void Function()? onAuthenticated) {
@@ -261,7 +272,7 @@ class _AuthService<T, P> {
 
   void _onData(void Function()? onAuthenticated) {
     onAuthenticated?.call();
-    if (injected.state == injected.unsignedUser) {
+    if (injected._state == injected.unsignedUser) {
       _cancelTimer();
       if (onAuthenticated == null) {
         injected.onUnsigned?.call();
@@ -270,7 +281,7 @@ class _AuthService<T, P> {
       _persist();
       _autoSignOut();
       if (onAuthenticated == null) {
-        injected.onSigned?.call(injected.state);
+        injected.onSigned?.call(injected._state);
       }
     }
     _onSignInOut = null;
@@ -284,7 +295,7 @@ class _AuthService<T, P> {
     if (injected.autoSignOut != null) {
       _cancelTimer();
       _authTimer = Timer(
-        injected.autoSignOut!(injected.state),
+        injected.autoSignOut!(injected._state),
         () => signOut(),
       );
     }

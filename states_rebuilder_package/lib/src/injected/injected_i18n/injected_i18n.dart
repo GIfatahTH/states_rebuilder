@@ -10,6 +10,9 @@ abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
+  @override
+  I18N get state => getInjectedState(this);
+
   ///The current locale
   Locale? locale;
 
@@ -56,6 +59,11 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
           // isLazy: isLazy,
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
         ) {
+    _resetDefaultState = () {
+      _locale = null;
+      _resolvedLocale = null;
+    };
+    _resetDefaultState();
     final persist = persistKey == null
         ? null
         : PersistState<I18N>(
@@ -125,6 +133,8 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   //_locale may be equal SystemLocale which is not a recognized locale
   //_resolvedLocale is a valid locale from the supported locale list
   Locale? _resolvedLocale;
+
+  late final VoidCallback _resetDefaultState;
 
   @override
   List<Locale> get supportedLocales => i18Ns.keys.toList();
@@ -205,8 +215,7 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   @override
   void dispose() {
     super.dispose();
-    _locale = null;
-    _resolvedLocale = null;
+    _resetDefaultState();
   }
 }
 

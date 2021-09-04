@@ -45,4 +45,5 @@ class EN {
   final String invalidPassword = 'Password is invalid';
   final String pageNotFound = 'Page not found';
   final String networkFailure = 'Network failure';
+  final String errorInRetrievingTodos = 'Error in Retrieving todos';
 }

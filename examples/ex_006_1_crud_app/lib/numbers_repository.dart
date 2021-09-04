@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'number.dart';
 
 class NumbersRepository implements ICRUD<Number, NumberParam> {
-  late Map<String, List<Number>> _numbersStore;
+  late Map<String, List<Number>> _numbersStore = {};
 
   @override
   Future<void> init() async {
@@ -22,9 +22,13 @@ class NumbersRepository implements ICRUD<Number, NumberParam> {
       throw Exception('Error');
     }
     final userNumbers = _numbersStore[param!.userId] ?? [];
-    _numbersStore[param.userId] = [...userNumbers, number];
+    final numberToAdd = Number(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      number: number.number,
+    );
+    _numbersStore[param.userId] = [...userNumbers, numberToAdd];
     print(_numbersStore);
-    return number;
+    return numberToAdd;
   }
 
   @override

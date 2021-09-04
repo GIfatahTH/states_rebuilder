@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         body: Center(
           child: Column(
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Simplest counter app'),
                 onPressed: () {
                   RM.navigate.to(
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
                   );
                 },
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Simplest counter with error'),
                 onPressed: () {
                   RM.navigate.to(
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
                   );
                 },
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('async counter app'),
                 onPressed: () {
                   RM.navigate.to(

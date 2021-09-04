@@ -89,3 +89,20 @@ class _OnFormWidget<T> {
     required this.on,
   });
 }
+
+class OnFormBuilder extends StatelessWidget {
+  const OnFormBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.builder,
+  }) : super(key: key);
+  final InjectedForm listenTo;
+  final Widget Function() builder;
+  @override
+  Widget build(BuildContext context) {
+    return On.form(builder).listenTo(
+      listenTo,
+      key: key,
+    );
+  }
+}

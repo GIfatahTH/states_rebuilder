@@ -192,4 +192,31 @@ void main() {
     expect(counter.canUndoState, false);
     expect(counter.canRedoState, false);
   });
+
+  testWidgets(
+    'WHEN state mutation exceeds the undoStackLent'
+    'THEN the first in state is popped out',
+    (tester) async {
+      final counter = RM.inject<int>(
+        () => 0,
+        undoStackLength: 2,
+      );
+      expect(counter.canUndoState, false);
+      expect(counter.canRedoState, false);
+      counter.state++;
+      expect(counter.canUndoState, true);
+      expect(counter.canRedoState, false);
+      counter.state++;
+      expect(counter.canUndoState, true);
+      expect(counter.canRedoState, false);
+      counter.state++;
+      expect(counter.canUndoState, true);
+      expect(counter.canRedoState, false);
+      expect(counter.state, 3);
+      counter.undoState();
+      expect(counter.canUndoState, false);
+      expect(counter.canRedoState, true);
+      expect(counter.state, 2);
+    },
+  );
 }

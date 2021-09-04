@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_classes/models.dart';
@@ -10,7 +11,7 @@ void main() {
   setUp(() {
     // final inject = Inject(() => VanillaModel());
     // modelRM = inject.getReactive()..listenToRM((rm) {});
-    modelRM = ReactiveModel(
+    modelRM = ReactiveModelImp(
         creator: () => VanillaModel(), initialState: VanillaModel());
   });
 
@@ -143,6 +144,7 @@ void main() {
       expect(message, 'Error message');
     },
   );
+
   // test('ReactiveModel: Check default null state', () {
   //   var intRM = ReactiveModel<int>(creator: () => 1);
   //   expect(intRM.initialState, 0);
@@ -490,7 +492,7 @@ void main() {
       final modelRM0 = ReactiveModel.future(
         () => Future.delayed(Duration(seconds: 1), () => 1),
         initialState: 0,
-      );
+      ) as ReactiveModelImp<int>;
 
       expect(modelRM0.state, 0);
       expect(modelRM0.isWaiting, isTrue);
@@ -541,7 +543,7 @@ void main() {
       final modelRM0 = ReactiveModel<int?>.future(
         () => Future.delayed(Duration(seconds: 1), () => 1),
         // initialState: 0,
-      );
+      ) as ReactiveModelImp<int?>;
 
       expect(modelRM0.state, null);
       expect(modelRM0.isWaiting, isTrue);
@@ -1296,7 +1298,7 @@ void main() {
 //   );
 
   testWidgets('debounce positive should work', (tester) async {
-    final rm = ReactiveModel(creator: () => 0, initialState: 0);
+    final rm = ReactiveModelImp(creator: () => 0, initialState: 0);
 
     // rm.subscribeToRM((_,__) {});
 
@@ -1339,7 +1341,7 @@ void main() {
   });
 
   testWidgets('throttleDelay should work', (tester) async {
-    final rm = ReactiveModel(creator: () => 0, initialState: 0);
+    final rm = ReactiveModelImp(creator: () => 0, initialState: 0);
 
     // rm.subscribeToRM((_,__) {});
 
@@ -1486,7 +1488,7 @@ void main() {
 
   testWidgets('refresh a reactive model', (tester) async {
     int x = 0;
-    ReactiveModel<int> rm = ReactiveModel(creator: () => x, initialState: 0);
+    ReactiveModel<int> rm = ReactiveModelImp(creator: () => x, initialState: 0);
     final widget = StateBuilder(
       observe: () => rm,
       builder: (_, __) {
@@ -1589,7 +1591,7 @@ void main() {
       () => 0,
       onData: (_) => numberOfOnData++,
     );
-    final widget = counter.whenRebuilderOr(builder: () {
+    final widget = counter.rebuild.onOrElse(orElse: (_) {
       numberOfRebuild++;
       return Container();
     });

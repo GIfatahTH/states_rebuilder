@@ -18,7 +18,7 @@ void main() {
     'initial build',
     (tester) async {
       await tester.pumpWidget(MyApp());
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
       expect(find.byKey(Key('__Container__')), findsOneWidget);
     },
@@ -28,7 +28,7 @@ void main() {
     'search is works',
     (tester) async {
       await tester.pumpWidget(MyApp());
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'D');
       expect(find.byKey(Key('__Container__')), findsOneWidget);
@@ -52,7 +52,7 @@ void main() {
     'search is debounced',
     (tester) async {
       await tester.pumpWidget(MyApp());
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'J');
       expect(find.byKey(Key('__Container__')), findsOneWidget);

@@ -7,15 +7,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'builders/on_reactive.dart';
 
 import 'common/consts.dart';
-import 'common/deep_equality.dart';
+import 'common/helper_method.dart';
 import 'common/logger.dart';
 import 'injected/injected_animation/injected_animation.dart';
 import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
 import 'injected/injected_scrolling/injected_scrolling.dart';
+import 'injected/injected_tab/injected_page_tab.dart';
 import 'injected/injected_text_editing/injected_text_editing.dart';
 import 'injected/injected_theme/injected_theme.dart';
 import 'legacy/injector.dart';
@@ -52,6 +54,7 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
+part 'builders/on_builder.dart';
 
 abstract class RM {
   RM._();
@@ -121,7 +124,7 @@ abstract class RM {
       onInitialized: onInitialized,
       onSetState: onSetState,
       onWaiting: onWaiting,
-      onData: onData,
+      onDataForSideEffect: onData,
       onError: onError,
       onDisposed: onDisposed,
       dependsOn: dependsOn,
@@ -164,7 +167,7 @@ abstract class RM {
       initialState: initialState,
       onInitialized: onInitialized,
       onWaiting: onWaiting,
-      onData: onData,
+      onDataForSideEffect: onData,
       onError: onError,
       onDisposed: onDisposed,
       dependsOn: dependsOn,
@@ -215,7 +218,7 @@ abstract class RM {
           ? (s) => onInitialized(s, inj.subscription!)
           : null,
       onWaiting: onWaiting,
-      onData: onData,
+      onDataForSideEffect: onData,
       onError: onError,
       onSetState: onSetState,
       onDisposed: onDisposed,
@@ -286,7 +289,13 @@ abstract class RM {
     assert(
       null is T || unsignedUser != null,
       '$T is non nullable, you have to define unsignedUser parameter.\n'
-      'If you want to the unsignedUSer to be null use nullable type ($T?)',
+      'If you want the unsignedUSer to be null use nullable type ($T?)',
+    );
+    assert(
+      null is! T || unsignedUser == null,
+      'Because $T is nullable, null is considered as the unsigned user.'
+      'You can not set a non null unsignedUser\n'
+      'If you want the unsignedUSer to be non null use non nullable type ($T).',
     );
     return InjectedAuthImp<T, P>(
       repoCreator: repository,
@@ -300,7 +309,7 @@ abstract class RM {
       middleSnapState: middleSnapState,
       onInitialized: onInitialized,
       onDisposed: onDisposed,
-      on: onSetState,
+      onSetAuthState: onSetState,
       //
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
@@ -514,7 +523,53 @@ abstract class RM {
   ///* **shouldAutoStart** When it is set to true, animation will auto start after first initialized.
   ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
   ///
-  ///See [On.animation]
+  ///See [OnAnimationBuilder]
+  ///
+  ///Example of Implicit Animated Container
+  ///
+  ///```dart
+  /// final animation = RM.injectAnimation(
+  ///   duration: Duration(seconds: 2),
+  ///   curve: Curves.fastOutSlowIn,
+  /// );
+  ///
+  /// class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  ///   bool selected = false;
+  ///
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     return GestureDetector(
+  ///       onTap: () {
+  ///         setState(() {
+  ///           selected = !selected;
+  ///         });
+  ///       },
+  ///       child: Center(
+  ///         child: OnAnimationBuilder(
+  ///           listenTo: animation,
+  ///           builder: (animate) {
+  ///             final width = animate(selected ? 200.0 : 100.0);
+  ///             final height = animate(selected ? 100.0 : 200.0, 'height');
+  ///             final alignment = animate(
+  ///               selected ? Alignment.center : AlignmentDirectional.topCenter,
+  ///             );
+  ///             final Color? color = animate(
+  ///               selected ? Colors.red : Colors.blue,
+  ///             );
+  ///             return Container(
+  ///               width: width,
+  ///               height: height,
+  ///               color: color,
+  ///               alignment: alignment,
+  ///               child: const FlutterLogo(size: 75),
+  ///             );
+  ///           },
+  ///         ),
+  ///       ),
+  ///     );
+  ///   }
+  /// }
+  ///````
   static InjectedAnimation injectAnimation({
     required Duration duration,
     Duration? reverseDuration,
@@ -630,6 +685,46 @@ abstract class RM {
     );
   }
 
+  ///Injected a PageController and/or a TabController
+  ///
+  ///It combines both controller to use the best of them.
+  ///
+  ///* **initialIndex** The initial index the app start with.
+  ///
+  ///* **length** The total number of tabs
+  ///Typically greater than one. Must match [TabBar.tabs]'s and
+  ///[TabBarView.children]'s length.
+  ///
+  ///* **duration** The duration the page/tab transition takes. Defaults to
+  ///Duration(milliseconds: 300)
+  ///
+  ///* **curve** The curve the page/tab animation transition takes. Defaults to
+  ///Curves.ease
+  ///
+  ///* **keepPage** Save the current [page] with [PageStorage] and restore it if this
+  ///controller's scrollable is recreated. See [PageController.keepPage]
+  ///
+  ///* **viewportFraction** The fraction of the viewport that each page should occupy.
+  ///Defaults to 1.0, which means each page fills the viewport in the
+  ///scrolling direction. See [PageController.viewportFraction]
+  static InjectedPageTab injectPageTab({
+    int initialIndex = 0,
+    required int length,
+    Duration duration = kTabScrollDuration,
+    Curve curve = Curves.ease,
+    bool keepPage = true,
+    double viewportFraction = 1.0,
+  }) {
+    return InjectedTabImp(
+      initialIndex: initialIndex,
+      length: length,
+      curve: curve,
+      duration: duration,
+      keepPage: keepPage,
+      viewportFraction: viewportFraction,
+    );
+  }
+
   ///Static variable the holds the chosen working environment or flavour.
   static dynamic env;
   static int? _envMapLength;
@@ -678,7 +773,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       },
       initialState: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-      onData: onData,
+      onDataForSideEffect: onData,
       onError: onError,
       onWaiting: onWaiting,
       onSetState: onSetState,

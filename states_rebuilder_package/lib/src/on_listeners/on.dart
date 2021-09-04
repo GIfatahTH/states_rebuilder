@@ -1,5 +1,19 @@
 part of '../rm.dart';
 
+abstract class OnWidget {}
+
+// extension OnVoidX on On<void> {
+//   On<void> debounce(int debounceDelay) {
+//     _debounceDelay = debounceDelay;
+//     return this;
+//   }
+
+//   On<void> throttle(int throttleDelay) {
+//     _throttleDelay = throttleDelay;
+//     return this;
+//   }
+// }
+
 ///{@template on}
 ///Callbacks to be invoked depending on the state status of an [Injected] model
 ///
@@ -13,7 +27,7 @@ part of '../rm.dart';
 ///
 ///See also:  **[On.all]**, **[On.or]**.
 ///{@endtemplate}
-class On<T> {
+class On<T> implements OnWidget {
   ///Callback to be called when first the model is initialized.
   final T Function()? _onIdle;
 
@@ -32,32 +46,18 @@ class On<T> {
   bool get _hasOnIdle => _onIdle != null;
   bool get _hasOnData => _onData != null;
   On._({
-    required T Function()? onIdle,
+    T Function()? onIdle,
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresh)? onError,
     required T Function()? onData,
     // required _OnType onType,
-  })   : _onIdle = onIdle,
+  })  : _onIdle = onIdle,
         _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;
 
   ///The callback is always invoked when the [Injected] model emits a
-  // ///notification.
-  // factory On.any(
-  //   T Function() builder,
-  // ) {
-  //   return On._(
-  //     onIdle: builder,
-  //     onWaiting: builder,
-  //     onError: (dynamic _) => builder(),
-  //     onData: builder,
-  //     // onType: _OnType.when,
-  //   );
-  // }
-
-  ///The callback is always invoked when the [Injected] model emits a
-  // notification.
+  /// notification.
   factory On(
     T Function() builder,
   ) {
@@ -136,7 +136,7 @@ class On<T> {
   ///
   ///For optional callbacks use [On.or].
   factory On.all({
-    required T Function() onIdle,
+    T Function()? onIdle,
     required T Function() onWaiting,
     required T Function(dynamic err, void Function() refresh) onError,
     required T Function() onData,
@@ -149,8 +149,37 @@ class On<T> {
       // onType: _OnType.when,
     );
   }
+  // Timer? _debounceTimer;
+  // int _debounceDelay = 0;
+  // int _throttleDelay = 0;
 
   T? call(SnapState snapState, [bool isSideEffect = true]) {
+    // if (isSideEffect) {
+    //   if (_debounceDelay > 0) {
+    //     _debounceTimer?.cancel();
+    //     _debounceTimer = Timer(
+    //       Duration(milliseconds: _debounceDelay),
+    //       () {
+    //         _debounceTimer = null;
+    //         final cachedDelay = _debounceDelay;
+    //         _debounceDelay = 0;
+    //         call(snapState, true);
+    //         _debounceDelay = cachedDelay;
+    //       },
+    //     );
+    //     return null;
+    //   } else if (_throttleDelay > 0) {
+    //     if (_debounceTimer != null) {
+    //       return null;
+    //     }
+    //     _debounceTimer = Timer(
+    //       Duration(milliseconds: _throttleDelay),
+    //       () {
+    //         _debounceTimer = null;
+    //       },
+    //     );
+    //   }
+    // }
     if (snapState.isWaiting) {
       if (_hasOnWaiting) {
         return _onWaiting!.call();
@@ -339,6 +368,12 @@ class On<T> {
   ) {
     return OnScroll<T>(builder);
   }
+
+  // static OnTab tab(
+  //   Widget Function(int index) builder,
+  // ) {
+  //   return OnTab(builder);
+  // }
 }
 
 ////Used in tests

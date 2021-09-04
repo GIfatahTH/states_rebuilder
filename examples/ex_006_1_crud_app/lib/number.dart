@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 class Number {
-  final String id;
+  final String? id;
   final int number;
   Number({
-    required this.id,
+    this.id,
     required this.number,
   });
 

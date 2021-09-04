@@ -73,10 +73,11 @@ extension OnFutureX<F> on OnFuture<F> {
     return StateBuilderBase<OnFutureWidget>(
       (widget, setState) {
         assert(injected != null || future != null);
-        late InjectedBaseState<F> inj;
-        VoidCallback? disposer;
+        late InjectedBase<F> inj;
+        VoidCallback? disposer1;
+        VoidCallback? disposer2;
         if (future != null) {
-          inj = ReactiveModel(creator: () => future());
+          inj = ReactiveModelImp(creator: () => future());
         } else {
           // bool _isAlreadyNotified = false;
           inj = InjectedImp<T>(
@@ -98,7 +99,7 @@ extension OnFutureX<F> on OnFuture<F> {
             debugPrintWhenNotifiedPreMessage: '',
           ) as Injected<F>;
 
-          disposer =
+          disposer1 =
               injected._reactiveModelState.listeners.addListenerForRebuild(
             (_) {},
             clean: injected is InjectedImp &&
@@ -121,7 +122,7 @@ extension OnFutureX<F> on OnFuture<F> {
             }());
 
             initState?.call();
-            inj.subscribeToRM(
+            disposer2 = inj.subscribeToRM(
               (snap) {
                 setState();
                 onSetState?.call(snap!);
@@ -141,7 +142,8 @@ extension OnFutureX<F> on OnFuture<F> {
           dispose: (_) {
             dispose?.call();
             inj.dispose();
-            disposer?.call();
+            disposer1?.call();
+            disposer2?.call();
           },
           builder: (ctx, widget) {
             final _refresher = () {
@@ -157,19 +159,19 @@ extension OnFutureX<F> on OnFuture<F> {
 
             return On(() {
               if (inj.snapState.isWaiting) {
-                return _onWaiting?.call() ?? _onData(inj.state, _refresher);
+                return _onWaiting?.call() ?? _onData(inj._state, _refresher);
               }
               if (inj.snapState.hasError) {
                 return _onError?.call(
                       inj.error,
                       _refresher,
                     ) ??
-                    _onData(inj.state, _refresher);
+                    _onData(inj._state, _refresher);
               }
               return injected != null
-                  ? On.data(() => _onData(inj.state, _refresher))
+                  ? On.data(() => _onData(inj._state, _refresher))
                       .listenTo(injected)
-                  : _onData(inj.state, _refresher);
+                  : _onData(inj._state, _refresher);
             }).listenTo<F>(
               inj,
               onSetState: onSetState,

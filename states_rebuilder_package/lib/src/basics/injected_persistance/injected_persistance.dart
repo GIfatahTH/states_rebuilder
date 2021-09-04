@@ -51,30 +51,37 @@ class PersistState<T> {
   ///Whether to catch error of read, delete and deleteAll methods.
   final bool catchPersistError;
 
-  ///Useful for state created using [RM.injectedStream]
+  ///Determines whether the state builder function should be invoked after the
+  ///persistant state has been loaded or not.
   ///
-  ///A persisted state, and while the state is initializing, it looks for
-  ///a stored value. If it founds one, the state holds the value and the creator of
-  ///the state is not invoked.
+  ///If no persistant state has been found, the builder function is re-invoked
+  ///in any case. Upon completing to load the persistant state, the states
+  ///`isWaiting` value is `true` which indicates that the builder function is
+  ///re-invoked and the state waits for data. Use `hasData` to verify if
+  ///persistant data exists.
   ///
-  ///For state created using [RM.injectedStream] the default value is true,
-  ///that is, the creator is invoked to keep the subscription to the stream.
+  ///The default value is `false` except for [RM.injectedStream] which is `true`.
   ///
-  ///For states created using [RM.inject] and [RM.injectedFuture] the default value
-  ///is false.
-  ///
+  ///Re-invoking the builder function upon loading the persistant state is
+  ///especially useful for async states. Imagine you are developing an IoT app:
+  ///You have a state that streams data from the IoT devices and displays them
+  ///in the app. The streamed state should be persistant to show previous data
+  ///of the IoT devices upon re-opening the app (re-initializing the state).
+  ///The persistant state ensures that the user does not see "no data" from the
+  ///devices or a loading spinner until the current data has ben retrieved.
+  ///However, after loading the persistant state, the stream (builder function)
+  ///should be re-invoked to start listening to the current data from the IoT devices.
   final bool? shouldRecreateTheState;
 
   ///Persistance provider that will be used to persist this state instead of
   ///the default persistance provider defined with [RM.storageInitializer].
   final IPersistStore? persistStateProvider;
+  IPersistStore? _persistStateSingleton;
+  bool _isInitialized = false;
 
   Timer? _throttleTimer;
   T? _valueForThrottle;
   String? cachedJson;
-
-  IPersistStore? _persistStateSingleton;
-  bool _isInitialized = false;
 
   ///State persistence setting.
   PersistState({
@@ -91,25 +98,43 @@ class PersistState<T> {
     fromJson ??= _getFromJsonOfPrimitive<T>();
     toJson ??= _getToJsonOfPrimitive<T>();
   }
-  IPersistStore get _persistState {
-    _persistStateSingleton = null;
-    _persistStateSingleton ??= _persistStateGlobalTest;
-    _persistStateSingleton ??= (persistStateProvider ?? _persistStateGlobal);
-    return _persistStateSingleton!;
+
+  void setPersistStateSingleton() {
+    _persistStateSingleton = (persistStateProvider ?? _persistStateGlobalTest);
+    _persistStateSingleton ??= _persistStateGlobal;
+    assert(_persistStateSingleton != null, '''
+No implementation of `IPersistStore` is provided.
+Pleas implementation the `IPersistStore` interface and Initialize it in the main 
+method.
+
+void main() async { 
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await RM.storageInitializer(YouImplementation());
+  runApp(_MyApp());
+}
+
+If you are testing the app use:
+
+await RM.storageInitializerMock();\n\n
+
+
+''');
   }
 
   ///Get the persisted state
   Object? read() {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     if (persistStateProvider != null && !_isInitialized) {
       _isInitialized = true;
-      return persistState.init().then(
+      return _persistStateSingleton!.init().then(
             (_) => () => read(),
           );
     }
 
     try {
-      final dynamic r = cachedJson ?? persistState.read(key) as dynamic;
+      final dynamic r =
+          cachedJson ?? _persistStateSingleton!.read(key) as dynamic;
       if (r == null) {
         return null;
       }
@@ -130,6 +155,10 @@ class PersistState<T> {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Read form localStorage error', e, s);
         return null;
+      } else if (debugPrintOperations) {
+        StatesRebuilerLogger.log(
+          'PersistState: Read Error ($key) :$e',
+        );
       }
       rethrow;
     }
@@ -149,7 +178,7 @@ class PersistState<T> {
 
   ///persist the state
   Future<void> write(T value) async {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     // try {
     if (throttleDelay != null) {
       _valueForThrottle = value;
@@ -158,8 +187,8 @@ class PersistState<T> {
       }
       _throttleTimer = Timer(Duration(milliseconds: throttleDelay!), () async {
         _throttleTimer = null;
-        final r =
-            await persistState.write<String>(key, toJson!(_valueForThrottle!));
+        final r = await _persistStateSingleton!
+            .write<String>(key, toJson!(_valueForThrottle!));
         if (debugPrintOperations) {
           StatesRebuilerLogger.log(
             'PersistState: write($key, $_valueForThrottle)',
@@ -175,7 +204,7 @@ class PersistState<T> {
       return;
     }
     cachedJson = json;
-    await persistState.write<String>(key, json);
+    await _persistStateSingleton!.write<String>(key, json);
     if (debugPrintOperations) {
       StatesRebuilerLogger.log(
         'PersistState: write($key, $json)',
@@ -185,16 +214,23 @@ class PersistState<T> {
 
   ///Delete the persisted state
   Future<void> delete() async {
-    final persistState = _persistState;
+    setPersistStateSingleton();
     try {
-      final r = await persistState.delete(key);
+      final r = await _persistStateSingleton!.delete(key);
       cachedJson = null;
-      StatesRebuilerLogger.log('PersistState: delete($key)');
+      if (debugPrintOperations) {
+        StatesRebuilerLogger.log('PersistState: delete($key)');
+      }
       return r;
     } catch (e, s) {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Delete from localStorage error', e, s);
         return null;
+      }
+      if (debugPrintOperations) {
+        StatesRebuilerLogger.log(
+          'PersistState: Delete Error ($key) :$e',
+        );
       }
       rethrow;
     }

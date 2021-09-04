@@ -43,7 +43,7 @@ void main() {
   testWidgets(
     'should not throw if async method is called from initState',
     (tester) async {
-      final widget = vanillaModel.rebuilder(
+      final widget = vanillaModel.rebuild(
         () {
           return Column(
             children: <Widget>[
@@ -76,9 +76,9 @@ void main() {
     (tester) async {
       final switcherRM = RM.inject(() => true);
 
-      final widget = switcherRM.rebuilder(() {
+      final widget = switcherRM.rebuild(() {
         if (switcherRM.state) {
-          return streamVanillaModel.rebuilder(
+          return streamVanillaModel.rebuild(
             () => Directionality(
               textDirection: TextDirection.ltr,
               child: Text(streamVanillaModel.state.counter.toString()),
@@ -114,7 +114,7 @@ void main() {
       (WidgetTester tester) async {
     int numberOfRebuild = 0;
     await tester.pumpWidget(
-      streamVanillaModel.rebuilder(
+      streamVanillaModel.rebuild(
         () {
           numberOfRebuild++;
           return Container();
@@ -142,7 +142,7 @@ void main() {
 
   testWidgets('RM.injectFuture', (WidgetTester tester) async {
     await tester.pumpWidget(
-      futureModel.rebuilder(
+      futureModel.rebuild(
         () {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -163,7 +163,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      futureModel.rebuilder(
+      futureModel.rebuild(
         () {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -180,7 +180,7 @@ void main() {
   testWidgets(
     'Injector : should not throw when onError is defined',
     (WidgetTester tester) async {
-      await tester.pumpWidget(vanillaModel.rebuilder(() => Container()));
+      await tester.pumpWidget(vanillaModel.rebuild(() => Container()));
       String? errorMessage;
       vanillaModel.setState(
         (state) => state.incrementAsyncWithError(),
@@ -196,7 +196,7 @@ void main() {
   testWidgets('Injector.interface should work Env.prod', (tester) async {
     RM.env = Env.prod;
 
-    Widget widget = interface.rebuilder(() {
+    Widget widget = interface.rebuild(() {
       return Directionality(
         textDirection: TextDirection.ltr,
         child: Text(interface.state.counter.toString()),
@@ -213,7 +213,7 @@ void main() {
 
   testWidgets('Injector.interface should work Env.test', (tester) async {
     RM.env = Env.test;
-    Widget widget = interface.rebuilder(() {
+    Widget widget = interface.rebuild(() {
       return Directionality(
         textDirection: TextDirection.ltr,
         child: Text(interface.state.counter.toString()),
@@ -351,7 +351,7 @@ void main() {
   });
 
   testWidgets('Injected.whenRebuilder', (tester) async {
-    final widget = vanillaModel.whenRebuilder(
+    final widget = vanillaModel.rebuild.onAll(
       initState: () => vanillaModel.setState(
         (s) => s.incrementAsyncWithError().then(
               (_) => Future.delayed(
@@ -362,10 +362,10 @@ void main() {
       ),
       onIdle: () => Text('Idle'),
       onWaiting: () => Text('waiting ...'),
-      onError: (e) => Text('${e.message}'),
+      onError: (e, _) => Text('${e.message}'),
       dispose: () => null,
-      shouldRebuild: () => true,
-      onData: () {
+      shouldRebuild: (_, __) => true,
+      onData: (_) {
         return Text('data');
       },
     );
@@ -389,12 +389,12 @@ void main() {
       dependsOn: DependsOn({vanillaModel, model2}),
     );
     //
-    final widget = computed.whenRebuilderOr(
+    final widget = computed.rebuild.onOrElse(
       onWaiting: () => Text('waiting ...'),
-      onError: (e) => Text('${e.message}'),
+      onError: (e, __) => Text('${e.message}'),
       initState: () => null,
       dispose: () => null,
-      builder: () {
+      orElse: (_) {
         return Text('${computed.state}');
       },
     );
@@ -455,7 +455,7 @@ void main() {
       expect(future2.state, 8);
 
       //Ensure injected models are disposed;
-      await tester.pumpWidget(future2.rebuilder(() => Container()));
+      await tester.pumpWidget(future2.rebuild(() => Container()));
     },
   );
 
@@ -463,12 +463,12 @@ void main() {
     'Injector : should not throw when using whenRebuilderOr',
     (WidgetTester tester) async {
       await tester.pumpWidget(
-        vanillaModel.whenRebuilderOr(
-          onError: (e) => Directionality(
+        vanillaModel.rebuild.onOrElse(
+          onError: (e, _) => Directionality(
             textDirection: TextDirection.ltr,
             child: Text(e.message),
           ),
-          builder: () => Container(),
+          orElse: (_) => Container(),
         ),
       );
       vanillaModel.setState(
@@ -500,9 +500,9 @@ void main() {
       onDisposed: (_) => counter3IsDisposed = true,
     );
     final switcher = RM.inject(() => true);
-    await tester.pumpWidget(switcher.rebuilder(() {
+    await tester.pumpWidget(switcher.rebuild(() {
       if (switcher.state) {
-        return counter3.rebuilder(() => Container());
+        return counter3.rebuild(() => Container());
       }
       return Container();
     }));
@@ -542,9 +542,9 @@ void main() {
     );
 
     final switcher = RM.inject(() => true);
-    await tester.pumpWidget(switcher.rebuilder(() {
+    await tester.pumpWidget(switcher.rebuild(() {
       if (switcher.state) {
-        return counter3.rebuilder(() => Container());
+        return counter3.rebuild(() => Container());
       }
       return Container();
     }));
@@ -581,10 +581,10 @@ void main() {
       onDisposed: (_) => counter3IsDisposed = true,
     );
     final switcher = RM.inject(() => true);
-    await tester.pumpWidget(switcher.rebuilder(() {
+    await tester.pumpWidget(switcher.rebuild(() {
       counter2.state;
       if (switcher.state) {
-        return counter3.rebuilder(() => Container());
+        return counter3.rebuild(() => Container());
       }
       return Container();
     }));
@@ -625,14 +625,14 @@ void main() {
     expect(counter3.state, 3);
 
     //Ensure injected models are disposed;
-    await tester.pumpWidget(counter3.rebuilder(() => Container()));
+    await tester.pumpWidget(counter3.rebuild(() => Container()));
   });
 
   testWidgets('compute async works', (WidgetTester tester) async {
     vanillaModel.injectMock(() => VanillaModel(10));
 
     await tester.pumpWidget(
-      asyncComputed.rebuilder(
+      asyncComputed.rebuild(
         () {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -662,7 +662,7 @@ void main() {
       ).take(6),
     );
     await tester.pumpWidget(
-      streamVanillaModel.rebuilder(
+      streamVanillaModel.rebuild(
         () {
           return Directionality(
               textDirection: TextDirection.ltr,
@@ -687,7 +687,7 @@ void main() {
       () => Future.delayed(Duration(seconds: 1), () => 100),
     );
     await tester.pumpWidget(
-      futureModel.rebuilder(
+      futureModel.rebuild(
         () {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -715,7 +715,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      asyncComputed.rebuilder(
+      asyncComputed.rebuild(
         () {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -742,7 +742,7 @@ void main() {
     final counter1 = RM.inject(() => 0);
     late Injected<int> counter2;
     await tester.pumpWidget(
-      counter1.rebuilder(() {
+      counter1.rebuild(() {
         counter2 = RM.inject(
           () => 0,
           // debugPrintWhenNotifiedPreMessage: 'counter2',
@@ -752,20 +752,20 @@ void main() {
           child: Column(
             children: [
               Text('counter1: ${counter1.state}'),
-              counter2.rebuilder(
+              counter2.rebuild(
                 () => Text('counter2: ${counter2.state}'),
               ),
-              counter2.whenRebuilderOr(
-                shouldRebuild: () => true,
-                builder: () => Column(
+              counter2.rebuild.onOrElse(
+                shouldRebuild: (_, __) => true,
+                orElse: (_) => Column(
                   children: [
                     Text('whenRebuilderOr counter2: ${counter2.state}'),
-                    counter2.whenRebuilder(
+                    counter2.rebuild.onAll(
                       onIdle: () => Text('idle'),
                       onWaiting: () => Text('Waiting'),
-                      onData: () =>
+                      onData: (_) =>
                           Text('whenRebuilder counter2: ${counter2.state}'),
-                      onError: (_) => Text('Error'),
+                      onError: (_, __) => Text('Error'),
                     )
                   ],
                 ),
@@ -817,7 +817,7 @@ void main() {
     final counter1 = RM.inject(() => 0);
     late Injected<int> counter2;
     await tester.pumpWidget(
-      counter1.rebuilder(
+      counter1.rebuild(
         () {
           counter2 = RM.inject(
             () => 0,
@@ -828,21 +828,21 @@ void main() {
             child: Column(
               children: [
                 Text('counter1: ${counter1.state}'),
-                counter2.whenRebuilderOr(
-                  builder: () => Column(
+                counter2.rebuild.onOrElse(
+                  orElse: (_) => Column(
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),
-                      counter2.whenRebuilder(
+                      counter2.rebuild.onAll(
                         onIdle: () => Text('idle'),
                         onWaiting: () => Text('Waiting'),
-                        onData: () =>
+                        onData: (_) =>
                             Text('whenRebuilder counter2: ${counter2.state}'),
-                        onError: (_) => Text('Error'),
+                        onError: (_, __) => Text('Error'),
                       )
                     ],
                   ),
                 ),
-                counter2.rebuilder(
+                counter2.rebuild(
                   () => Text('counter2: ${counter2.state}'),
                 ),
               ],
@@ -893,7 +893,7 @@ void main() {
     final counter1 = RM.inject(() => 0);
     late Injected<int> counter2;
     await tester.pumpWidget(
-      counter1.rebuilder(
+      counter1.rebuild(
         () {
           counter2 = RM.inject(
             () => 0,
@@ -904,21 +904,21 @@ void main() {
             child: Column(
               children: [
                 Text('counter1: ${counter1.state}'),
-                counter2.whenRebuilder(
+                counter2.rebuild.onAll(
                   onIdle: () => Text('idle'),
                   onWaiting: () => Text('Waiting'),
-                  onError: (_) => Text('Error'),
-                  onData: () => Column(
+                  onError: (_, __) => Text('Error'),
+                  onData: (_) => Column(
                     children: [
                       Text('whenRebuilderOr counter2: ${counter2.state}'),
-                      counter2.whenRebuilderOr(
-                        builder: () =>
+                      counter2.rebuild.onOrElse(
+                        orElse: (_) =>
                             Text('whenRebuilder counter2: ${counter2.state}'),
                       )
                     ],
                   ),
                 ),
-                counter2.rebuilder(
+                counter2.rebuild(
                   () => Text('counter2: ${counter2.state}'),
                 ),
               ],
@@ -972,7 +972,7 @@ void main() {
     int numberOfOnInitialized = 0;
     int numberOfOnDisposed = 0;
     await tester.pumpWidget(
-      counter1.rebuilder(
+      counter1.rebuild(
         () {
           counter2 = RM.injectStream<int?>(
             () {
@@ -993,7 +993,7 @@ void main() {
             child: Column(
               children: [
                 Text('counter1: ${counter1.state}'),
-                counter2.rebuilder(
+                counter2.rebuild(
                   () => Text('counter2: ${counter2.state}'),
                 ),
               ],
@@ -1035,7 +1035,7 @@ void main() {
     late Injected<int> counter1;
     late Injected<int> counter2;
     await tester.pumpWidget(
-      counter0.rebuilder(
+      counter0.rebuild(
         () {
           counter1 = RM.inject(() => 0);
           counter2 = RM.inject<int>(
@@ -1047,10 +1047,10 @@ void main() {
             textDirection: TextDirection.ltr,
             child: Column(
               children: [
-                counter1.rebuilder(
+                counter1.rebuild(
                   () => Text('counter1: ${counter1.state}'),
                 ),
-                counter2.rebuilder(
+                counter2.rebuild(
                   () => Text('counter2: ${counter2.state}'),
                 ),
               ],
@@ -1150,8 +1150,8 @@ void main() {
     final counter1 = RM.inject(() => 0);
     final counter2 = RM.inject(() => 10);
 
-    final widget = [counter1, counter2].rebuilder(
-      () => Directionality(
+    final widget = [counter1, counter2].rebuild(
+      (_) => Directionality(
         textDirection: TextDirection.ltr,
         child: Column(
           children: [
@@ -1181,11 +1181,11 @@ void main() {
   testWidgets('rebuilder with many observers preserve state', (tester) async {
     final counter1 = RM.inject(() => 0);
     late Injected<int> counter2;
-    final widget = counter1.rebuilder(
+    final widget = counter1.rebuild(
       () {
         counter2 = RM.inject(() => 10);
-        return [counter1, counter2].rebuilder(
-          () => Directionality(
+        return [counter1, counter2].rebuild(
+          (_) => Directionality(
             textDirection: TextDirection.ltr,
             child: Column(
               children: [
@@ -1225,25 +1225,25 @@ void main() {
       // debugPrintWhenNotifiedPreMessage: 'counter1',
     );
     late Injected<VanillaModel> counter2;
-    final widget = counter1.rebuilder(
+    final widget = counter1.rebuild(
       () {
         counter2 = RM.inject(() => VanillaModel(10));
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: [counter1, counter2].whenRebuilder(
-            onIdle: () => Text('Idle'),
-            onWaiting: () => Text('onWaiting'),
-            onData: () => Column(
-              children: [
-                Text('${counter1.state.counter}'),
-                Text('${counter2.state.counter}'),
-              ],
-            ),
-            onError: (e) => Text('${e.message}'),
-            initState: () {},
-            dispose: () {},
-            shouldRebuild: () => true,
-          ),
+          child: [counter1, counter2].rebuild.onAll(
+                onIdle: () => Text('Idle'),
+                onWaiting: () => Text('onWaiting'),
+                onData: (_) => Column(
+                  children: [
+                    Text('${counter1.state.counter}'),
+                    Text('${counter2.state.counter}'),
+                  ],
+                ),
+                onError: (e) => Text('${e.message}'),
+                initState: () {},
+                dispose: () {},
+                shouldRebuild: () => true,
+              ),
         );
       },
     );
@@ -1280,25 +1280,25 @@ void main() {
       // debugPrintWhenNotifiedPreMessage: 'counter1',
     );
     late Injected<VanillaModel> counter2;
-    final widget = counter1.rebuilder(
+    final widget = counter1.rebuild(
       () {
         counter2 = RM.inject(() => VanillaModel(10));
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: [counter1, counter2].whenRebuilderOr(
-            onWaiting: () => Text('onWaiting'),
-            builder: () => Column(
-              children: [
-                Text('${counter1.state.counter}'),
-                Text('${counter2.state.counter}'),
-              ],
-            ),
-            onIdle: () => Text('Idle'),
-            onError: (e) => Text('${e.message}'),
-            initState: () {},
-            dispose: () {},
-            shouldRebuild: () => true,
-          ),
+          child: [counter1, counter2].rebuild.onOrElse(
+                onWaiting: () => Text('onWaiting'),
+                orElse: (_) => Column(
+                  children: [
+                    Text('${counter1.state.counter}'),
+                    Text('${counter2.state.counter}'),
+                  ],
+                ),
+                onIdle: () => Text('Idle'),
+                onError: (e) => Text('${e.message}'),
+                initState: () {},
+                dispose: () {},
+                shouldRebuild: () => true,
+              ),
         );
       },
     );

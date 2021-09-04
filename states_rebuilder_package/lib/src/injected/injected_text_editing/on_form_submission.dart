@@ -65,7 +65,7 @@ class OnFormSubmission {
             }
             if (inj.hasError && widget.on.onSubmissionError != null) {
               return widget.on.onSubmissionError!(
-                  inj.error, inj.onErrorRefresher);
+                  inj.error, inj.snapState.onErrorRefresher!);
             }
             return widget.on.child;
             // // return widget.on.builder();
@@ -98,4 +98,36 @@ class _OnFormSubmissionWidget<T> {
     required this.inject,
     required this.on,
   });
+}
+
+class OnFormSubmissionBuilder extends StatelessWidget {
+  const OnFormSubmissionBuilder({
+    Key? key,
+    required this.listenTo,
+    required this.onSubmitting,
+    this.onSubmissionError,
+    required this.child,
+  }) : super(key: key);
+  final InjectedForm listenTo;
+
+  ///Widget to display while waiting for submission
+  final Widget Function() onSubmitting;
+
+  ///Widget to display if submission fails, you can resubmit with the last valid
+  ///parameters using the onRefresh callback
+
+  final Widget Function(dynamic error, VoidCallback onRefresh)?
+      onSubmissionError;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    return On.formSubmission(
+      onSubmitting: onSubmitting,
+      onSubmissionError: onSubmissionError,
+      child: child,
+    ).listenTo(
+      listenTo,
+      key: key,
+    );
+  }
 }

@@ -42,8 +42,9 @@ class AddEditPage extends StatelessWidget {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: On.form(
-          () => ListView(
+        child: OnFormBuilder(
+          listenTo: _form,
+          builder: () => ListView(
             children: [
               TextField(
                 key: Key('__TaskField'),
@@ -70,7 +71,7 @@ class AddEditPage extends StatelessWidget {
               )
             ],
           ),
-        ).listenTo(_form),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: isEditing ? _i18n.saveChanges : _i18n.addTodo,

@@ -13,13 +13,13 @@ class _LoginHeader extends StatelessWidget {
         UIHelper.verticalSpaceMedium(),
         Text('Enter a number between 1 - 10', style: subHeaderStyle),
         LoginTextField(controller),
-        On.or(
+        userInj.onOrElse(
           onError: (error, refresh) => Text(
             ExceptionHandler.errorMessage(error),
             style: TextStyle(color: Colors.red),
           ),
-          or: () => Container(),
-        ).listenTo(userInj),
+          orElse: (_) => const SizedBox.shrink(),
+        ),
       ],
     );
   }
@@ -40,8 +40,9 @@ class LoginTextField extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(10.0)),
       child: TextField(
-          decoration: InputDecoration.collapsed(hintText: 'User Id'),
-          controller: controller),
+        decoration: InputDecoration.collapsed(hintText: 'User Id'),
+        controller: controller,
+      ),
     );
   }
 }

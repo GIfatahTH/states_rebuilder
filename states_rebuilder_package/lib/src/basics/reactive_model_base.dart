@@ -23,7 +23,7 @@ class ReactiveModelBase<T> {
     //If the initial state is not be defined in the here,
     //it will be defined in the creator method.(The first valid value (onData))
 
-    _snapState = SnapState._nothing(
+    __snapState = _oldSnapState = SnapState._nothing(
       _initialState,
       kInitMessage,
       debugPrintWhenNotifiedPreMessage,
@@ -38,7 +38,19 @@ class ReactiveModelBase<T> {
   final VoidCallback initializer;
   final bool autoDisposeWhenNotUsed;
 
-  late SnapState<T> _snapState;
+  late SnapState<T> __snapState;
+  SnapState<T> get _snapState {
+    return __snapState;
+  }
+
+  set _snapState(SnapState<T> snap) {
+    if (snap != __snapState) {
+      _oldSnapState = __snapState;
+    }
+    __snapState = snap;
+  }
+
+  late SnapState<T> _oldSnapState;
 
   VoidCallback? _removeFromInjectedList;
 
@@ -84,7 +96,7 @@ class ReactiveModelBase<T> {
   Completer<dynamic>? _endStreamCompleter;
 
   ///SnapState listeners
-  final listeners = ReactiveModelListener<T>();
+  late final listeners = ReactiveModelListener<T>();
   final String? debugPrintWhenNotifiedPreMessage;
 
   ///Used to refresh the state
@@ -96,11 +108,17 @@ class ReactiveModelBase<T> {
     required SnapState<T>? Function(SnapState<T> snap) middleState,
     required SnapState<T>? Function(SnapState<T> snap) onDone,
   }) {
-    _initialStateCreator = setStateFn(
-      (_) => middleCreator(creator),
-      middleState: middleState,
-      onDone: onDone,
-    );
+    _initialStateCreator = () {
+      final cachedAddToObs = OnReactiveState.addToObs;
+      OnReactiveState.addToObs = null;
+      final r = setStateFn(
+        (_) => middleCreator(creator),
+        middleState: middleState,
+        onDone: onDone,
+      )();
+      OnReactiveState.addToObs = cachedAddToObs;
+      return r;
+    };
   }
 
   void _cancelSubscription() {
@@ -188,7 +206,7 @@ class ReactiveModelBase<T> {
       } catch (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
-
+          StatesRebuilerLogger.log('', err, s);
           rethrow;
         }
         //In the other hand Exception are handled
@@ -297,6 +315,10 @@ class ReactiveModelBase<T> {
     );
     listeners.cleanState();
   }
+}
+
+void resetReactiveModelBase(ReactiveModelBase rm) {
+  rm._isInitialized = false;
 }
 
 T? _getPrimitiveNullState<T>() {

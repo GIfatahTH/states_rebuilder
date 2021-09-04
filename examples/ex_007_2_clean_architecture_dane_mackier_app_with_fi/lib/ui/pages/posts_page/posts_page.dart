@@ -18,28 +18,30 @@ class PostsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: On.or(
-        onWaiting: () => Center(child: CircularProgressIndicator()),
-        or: () => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            UIHelper.verticalSpaceLarge(),
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Welcome ${user.name}',
-                style: headerStyle,
+      body: OnReactive(
+        () => postsInj.onOrElse(
+          onWaiting: () => Center(child: CircularProgressIndicator()),
+          orElse: (posts) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              UIHelper.verticalSpaceLarge(),
+              Padding(
+                padding: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Welcome ${user.name}',
+                  style: headerStyle,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Text('Here are all your posts', style: subHeaderStyle),
-            ),
-            UIHelper.verticalSpaceSmall(),
-            Expanded(child: getPostsUi(postsInj.state)),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(left: 20.0),
+                child: Text('Here are all your posts', style: subHeaderStyle),
+              ),
+              UIHelper.verticalSpaceSmall(),
+              Expanded(child: getPostsUi(posts)),
+            ],
+          ),
         ),
-      ).listenTo(postsInj),
+      ),
     );
   }
 

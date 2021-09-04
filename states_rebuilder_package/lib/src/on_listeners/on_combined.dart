@@ -34,7 +34,8 @@ class OnCombined<T, R> {
   bool get _hasOnError => _onError != null;
   bool get _hasOnIdle => _onIdle != null;
   bool get _hasOnData => _onData != null;
-
+  InjectedBaseState<dynamic>? _notifiedInject;
+  SnapState<dynamic>? _combinedSnap;
   OnCombined._({
     required R Function(T data)? onIdle,
     required R Function(T data)? onWaiting,

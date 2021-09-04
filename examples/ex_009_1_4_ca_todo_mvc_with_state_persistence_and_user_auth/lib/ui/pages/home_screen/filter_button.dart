@@ -18,16 +18,16 @@ class FilterButton extends StatelessWidget {
       defaultStyle: defaultStyle!,
     );
 
-    return On.data(
-      () {
-        final _isActive = activeTab.state == AppTab.todos;
+    return OnTabBuilder(
+      listenTo: HomeScreen.appTab,
+      builder: (index) {
         return AnimatedOpacity(
-          opacity: _isActive ? 1.0 : 0.0,
+          opacity: index == 0 ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 150),
-          child: _isActive ? button : IgnorePointer(child: button),
+          child: index == 0 ? button : IgnorePointer(child: button),
         );
       },
-    ).listenTo(activeTab);
+    );
   }
 }
 
@@ -44,49 +44,44 @@ class _Button extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //This is an example of Local ReactiveModel
-    return On.data(
-      () {
-        return PopupMenuButton<VisibilityFilter>(
-          tooltip: i18n.of(context).filterTodos,
-          onSelected: (filter) {
-            activeFilter.state = filter;
-          },
-          itemBuilder: (BuildContext context) =>
-              <PopupMenuItem<VisibilityFilter>>[
-            PopupMenuItem<VisibilityFilter>(
-              key: Key('__Filter_All__'),
-              value: VisibilityFilter.all,
-              child: Text(
-                i18n.of(context).showAll,
-                style: activeFilter.state == VisibilityFilter.all
-                    ? activeStyle
-                    : defaultStyle,
-              ),
-            ),
-            PopupMenuItem<VisibilityFilter>(
-              key: Key('__Filter_Active__'),
-              value: VisibilityFilter.active,
-              child: Text(
-                i18n.of(context).showActive,
-                style: activeFilter.state == VisibilityFilter.active
-                    ? activeStyle
-                    : defaultStyle,
-              ),
-            ),
-            PopupMenuItem<VisibilityFilter>(
-              key: Key('__Filter_Completed__'),
-              value: VisibilityFilter.completed,
-              child: Text(
-                i18n.of(context).showCompleted,
-                style: activeFilter.state == VisibilityFilter.completed
-                    ? activeStyle
-                    : defaultStyle,
-              ),
-            ),
-          ],
-          icon: const Icon(Icons.filter_list),
-        );
+    return PopupMenuButton<VisibilityFilter>(
+      tooltip: i18n.of(context).filterTodos,
+      onSelected: (filter) {
+        activeFilter.state = filter;
       },
-    ).listenTo(activeFilter);
+      itemBuilder: (BuildContext context) => <PopupMenuItem<VisibilityFilter>>[
+        PopupMenuItem<VisibilityFilter>(
+          key: Key('__Filter_All__'),
+          value: VisibilityFilter.all,
+          child: Text(
+            i18n.of(context).showAll,
+            style: activeFilter.state == VisibilityFilter.all
+                ? activeStyle
+                : defaultStyle,
+          ),
+        ),
+        PopupMenuItem<VisibilityFilter>(
+          key: Key('__Filter_Active__'),
+          value: VisibilityFilter.active,
+          child: Text(
+            i18n.of(context).showActive,
+            style: activeFilter.state == VisibilityFilter.active
+                ? activeStyle
+                : defaultStyle,
+          ),
+        ),
+        PopupMenuItem<VisibilityFilter>(
+          key: Key('__Filter_Completed__'),
+          value: VisibilityFilter.completed,
+          child: Text(
+            i18n.of(context).showCompleted,
+            style: activeFilter.state == VisibilityFilter.completed
+                ? activeStyle
+                : defaultStyle,
+          ),
+        ),
+      ],
+      icon: const Icon(Icons.filter_list),
+    );
   }
 }

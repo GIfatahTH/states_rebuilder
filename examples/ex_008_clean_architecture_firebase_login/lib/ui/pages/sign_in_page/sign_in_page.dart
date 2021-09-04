@@ -12,7 +12,7 @@ class SignInPage extends StatelessWidget {
       appBar: AppBar(title: Text('Log in')),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: On(
+        child: OnReactive(
           () {
             bool isLoading = user.isWaiting;
             return Column(
@@ -60,15 +60,7 @@ class SignInPage extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                //Display form screen
-                                return SignInRegisterFormPage();
-                              },
-                            ),
-                          );
+                          RM.navigate.to(SignInRegisterFormPage());
                         },
                 ),
                 SizedBox(height: 8),
@@ -84,7 +76,7 @@ class SignInPage extends StatelessWidget {
               ],
             );
           },
-        ).listenTo(user),
+        ),
       ),
     );
   }

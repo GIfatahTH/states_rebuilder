@@ -177,7 +177,6 @@ void main() {
             }
             return newUsername;
           },
-          /*catchError: true*/
         );
       }
 
@@ -194,7 +193,6 @@ void main() {
             }
             return newPassword;
           },
-          /*catchError: true*/
         );
       }
 
@@ -614,6 +612,196 @@ void main() {
     expect(counter.hasError, true);
     expect(dependentCounter.hasError, true);
   });
+
+  testWidgets('depend on ', (tester) async {
+    final counter = RM.inject<int>(() => 0);
+    final dependentCounter = RM.inject<int>(
+      () => counter.state + 1,
+      dependsOn: DependsOn({counter}),
+    );
+    // print(dependentCounter.state);
+    await tester.pumpWidget(dependentCounter.rebuild(() => Container()));
+  });
+
+  testWidgets(
+    'test rebuilder (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.rebuilder(
+          () {
+            return Text(model.state.toString());
+          },
+          initState: () {
+            print('initState');
+          },
+          dispose: () {},
+          shouldRebuild: () {
+            return true;
+          },
+          watch: () {
+            return model.state;
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      model.state++;
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'test whenRebuilder (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.whenRebuilder(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err) => Text('onError'),
+          onData: () => Text('onData'),
+          initState: () {},
+          dispose: () {},
+          shouldRebuild: () {
+            return true;
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test whenRebuilderOr (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.whenRebuilderOr(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err) => Text('onError'),
+          builder: () => Text('onData'),
+          initState: () {},
+          dispose: () {},
+
+          shouldRebuild: () {
+            return true;
+          },
+          // watch: () {},
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test rebuilder for list (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: [model].rebuilder(
+          () {
+            return Text(model.state.toString());
+          },
+          initState: () {
+            print('initState');
+          },
+          dispose: () {},
+          shouldRebuild: () {
+            return true;
+          },
+          watch: () {
+            return model.state;
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      model.state++;
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test whenRebuilder for list (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: [model].whenRebuilder(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err) => Text('onError'),
+          onData: () => Text('onData'),
+          initState: () {},
+          dispose: () {},
+          shouldRebuild: () {
+            return true;
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test whenRebuilderOr for list (Deprecated)'
+    'THEN',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: [model].whenRebuilderOr(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err) => Text('onError'),
+          builder: () => Text('onData'),
+          initState: () {},
+          dispose: () {},
+          shouldRebuild: () {
+            return true;
+          },
+          // watch: () {},
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
 }
 
 class _Model {

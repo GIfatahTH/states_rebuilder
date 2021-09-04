@@ -20,7 +20,7 @@ class Inject<T> extends Injectable {
     bool isLazy = true,
   }) {
     return Inject._(
-      ReactiveModel(creator: creationFunction),
+      ReactiveModelImp(creator: creationFunction),
       name,
     );
   }
@@ -66,7 +66,7 @@ class Inject<T> extends Injectable {
     // ignore: deprecated_member_use_from_same_package
     RM.env = Injector.env;
     return Inject._(
-      ReactiveModel(creator: () {
+      ReactiveModelImp(creator: () {
         return RM
             .injectFlavor(
               impl,

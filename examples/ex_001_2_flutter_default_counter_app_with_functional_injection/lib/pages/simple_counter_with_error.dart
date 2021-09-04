@@ -10,13 +10,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 final Injected<int> counter = RM.inject<int>(
   () => 0,
   middleSnapState: (middleSnap) {
-    middleSnap.print();
-
     if (middleSnap.nextSnap.hasData) {
       //Multiply the state by 10
       return middleSnap.nextSnap.copyToHasData(middleSnap.nextSnap.data! * 10);
     }
   },
+  debugPrintWhenNotifiedPreMessage: 'counter',
 );
 
 class MyHomePage extends StatelessWidget {
@@ -37,12 +36,12 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //subscribe to counter injected model
-            On(
+            OnReactive(
               () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ).listenTo(counter),
+            ),
           ],
         ),
       ),

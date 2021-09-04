@@ -5,9 +5,18 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //It can be easily mocked and tested.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  middleSnapState: (middleSnap) {
-    middleSnap.print();
-  },
+  onSetState: On(() {
+    //show snackBar
+    //any current snackBar is hidden.
+
+    //This call of snackBar is independent of BuildContext
+    //Can be called any where
+    RM.scaffold.showSnackBar(
+      SnackBar(
+        content: Text('${counter.state}'),
+      ),
+    );
+  }),
 );
 
 class MyHomePage extends StatelessWidget {
@@ -28,40 +37,19 @@ class MyHomePage extends StatelessWidget {
               'You have pushed the button this many times:',
             ),
             //subscribe to counter injected model
-            On(
+            OnReactive(
               () => Text(
                 '${counter.state}',
                 style: Theme.of(context).textTheme.headline5,
               ),
-            ).listenTo(counter),
+            ),
           ],
         ),
       ),
       floatingActionButton: Builder(
         builder: (context) => FloatingActionButton(
           onPressed: () {
-            counter.setState(
-              (counter) => counter + 1,
-              //onSetState callback is invoked after counterRM emits a notification and before rebuild
-              //context to be used to shw snackBar
-
-              onSetState: On(() {
-                //show snackBar
-                //any current snackBar is hidden.
-
-                //This call of snackBar is independent of BuildContext
-                //Can be called any where
-                RM.scaffold.showSnackBar(
-                  SnackBar(
-                    content: Text('${counter.state}'),
-                  ),
-                );
-              }),
-              //onRebuildState is called after rebuilding the observer widget
-              onRebuildState: () {
-                //
-              },
-            );
+            counter.state++;
           },
           tooltip: 'Increment',
           child: Icon(Icons.add),

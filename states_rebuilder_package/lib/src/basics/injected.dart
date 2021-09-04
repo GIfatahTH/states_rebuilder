@@ -80,7 +80,7 @@ part of '../rm.dart';
 ///or [Injected.injectStreamMock].
 ///
 ///
-abstract class Injected<T> extends InjectedBase<T> {
+abstract class Injected<T> extends ReactiveModel<T> {
   InjectedImp<T> get _imp => this as InjectedImp<T>;
 
   ///Inject a fake implementation of this injected model.
@@ -221,7 +221,7 @@ abstract class Injected<T> extends InjectedBase<T> {
 
     if (_inheritedInjected != null) {
       if (_inheritedInjected.globalInjected == this) {
-        return _inheritedInjected.injected.state;
+        return _inheritedInjected.injected._state;
       } else {
         return of(
           _inheritedInjected.context,
@@ -230,7 +230,7 @@ abstract class Injected<T> extends InjectedBase<T> {
       }
     }
     if (defaultToGlobal) {
-      return state;
+      return _state;
     }
     throw Exception('No InheritedWidget of type $T is found');
     // return null;
@@ -271,10 +271,16 @@ abstract class Injected<T> extends InjectedBase<T> {
   }
 }
 
-extension InjectedX1<T> on InjectedBaseState<T> {
+extension InjectedBaseStateX1<T> on InjectedBaseState<T> {
   ///Add observer for rebuild
-  VoidCallback observeForRebuild(void Function(InjectedBaseState<T>? rm) fn) {
-    return _reactiveModelState.listeners.addListenerForRebuild((_) => fn(this));
+  VoidCallback observeForRebuild(
+    void Function(InjectedBaseState<T>? rm) fn, {
+    void Function()? clean,
+  }) {
+    return _reactiveModelState.listeners.addListenerForRebuild(
+      (_) => fn(this),
+      clean: clean,
+    );
   }
 
   ///Add callback to be executed when model is disposed

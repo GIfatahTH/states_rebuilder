@@ -340,14 +340,15 @@ void main() async {
         key: 'Future_counter',
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
-        persistStateProvider: PersistStoreMockImp(),
+        persistStateProvider: MockPersistStoreAsync(),
       ),
       initialState: 0,
     );
-    store.store.addAll({'Future_counter': '10'});
+
     expect(counter.state, 0);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);
+
     counter.state++;
   });
   StatesRebuilerLogger.isTestMode = true;
@@ -500,10 +501,36 @@ void main() async {
     expect(store.store['counter'], '1');
     expect(counter.state, 1);
   });
+
+  testWidgets(
+      'WHEN catchPersistError is false'
+      'THEN persisted exceptions are thrown', (tester) async {
+    final counter = RM.inject<int?>(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        persistStateProvider: MockPersistStoreAsync(),
+        debugPrintOperations: true,
+      ),
+      debugPrintWhenNotifiedPreMessage: '',
+    );
+    expect(counter.state, null);
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    expect(counter.state, 0);
+
+    counter.deletePersistState();
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    expect(counter.hasError, true);
+    //
+  });
 }
 
-class PersistStoreMockImp extends IPersistStore {
-  late Map<dynamic, dynamic> store;
+class MockPersistStore extends IPersistStore {
+  late Map<dynamic, dynamic> store = {};
   @override
   Future<void> init() {
     store = {};
@@ -528,5 +555,34 @@ class PersistStoreMockImp extends IPersistStore {
   @override
   Future<void> write<T>(String key, T value) {
     throw Exception('Write Error');
+  }
+}
+
+class MockPersistStoreAsync extends IPersistStore {
+  late Map<dynamic, dynamic> store;
+  @override
+  Future<void> init() {
+    store = {'Future_counter': '10'};
+    return Future.value();
+  }
+
+  @override
+  Future<void> delete(String key) {
+    throw Exception('Delete Error');
+  }
+
+  @override
+  Future<void> deleteAll() {
+    throw Exception('Delete All Error');
+  }
+
+  @override
+  Object read(String key) async {
+    return store[key];
+  }
+
+  @override
+  Future<void> write<T>(String key, T value) async {
+    store[key] = value;
   }
 }

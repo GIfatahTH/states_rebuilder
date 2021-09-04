@@ -1,3 +1,34 @@
+## 4.4.0 (2021-09-04)
+* Add `OnReactive` widget for implicit subscription:
+```dart
+final counter = 0.inj();
+// inWidget tree
+OnReactive(
+  () => Text(counter.state.toString()); // will rebuild if the state of counter changes
+)
+```
+
+* Add `ReactiveStatelessWidget`  abstract widget for implicit subscription:
+```dart
+///All states consumed in a descendant widget of this widget will be listened to.
+class MyWidget extends ReactiveStatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context){
+        return Text(counter.state.toString());
+      }
+    );
+  }
+}
+```
+
+* Add `OnBuilder`, `OnAuthBuilder`, `OnCRUDBuilder`, `OnAnimationBuilder`,`OnScrollBuilder` ,`OnFormBuilder`, `OnFormSubscriptionBuilder`, `OnTabBuilder` widget and their method equivalent: `myState.rebuild`, `myState.rebuild.onAuth`, `myState.rebuild.onCRUD`, `myState.rebuild.onAnimation`, `myState.rebuild.onScroll`, `myState.rebuild.onForm`, `myState.rebuild.onFormSubscription`, `myState.rebuild.onTab`,
+
+* `myState.rebuilder`,`myState.whenRebuilder`, `myState.whenRebuilderOr` are deprecated in favor to `myState.rebuild`, `myState.rebuild.onAll`, `myState.rebuild.onOr`,  
+* Add `InjectedPageTab` to easily deal with page and tab views.
+
+
 ## 4.3.0 (2021-06-07)
 - Add `InjectedAnimation.resetAnimation` method reset the global duration, curve and repeats of the animation.
 - Add restart parameter to `InjectedAnimation.triggerAnimation` to force animation to restart from the lower bound.

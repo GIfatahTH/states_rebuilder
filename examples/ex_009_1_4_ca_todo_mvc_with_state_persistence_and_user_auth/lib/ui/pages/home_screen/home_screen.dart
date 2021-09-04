@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -28,69 +26,110 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({Key? key}) : super(key: key);
 
+  static final appTab = RM.injectPageTab(length: 2);
+
   @override
   Widget build(BuildContext context) {
     final _i18n = i18n.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_i18n.appTitle),
-        actions: [
-          const FilterButton(),
-          const ExtraActionsButton(),
-          const Languages(),
-        ],
-      ),
-      body: On.future(
-        onWaiting: () => const Center(
-          child: const CircularProgressIndicator(),
-        ),
-        onError: (err, refresh) => Center(
-          child: Column(
-            children: [
-              Text('Error in Retrieving todos'),
-              IconButton(
-                icon: Icon(Icons.refresh),
-                onPressed: () {
-                  refresh();
-                },
-              ),
-            ],
-            mainAxisAlignment: MainAxisAlignment.center,
-          ),
-        ),
-        onData: (_, __) {
-          return On.data(
-            () => activeTab.state == AppTab.todos ? TodoList() : StatsCounter(),
-          ).listenTo(activeTab);
-        },
-      ).listenTo(
-        todosFiltered,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          RM.navigate.toNamed(AddEditPage.routeName);
-        },
-        child: const Icon(Icons.add),
-        tooltip: _i18n.addTodo,
-      ),
-      bottomNavigationBar: On.data(
-        () => BottomNavigationBar(
-          currentIndex: AppTab.values.indexOf(activeTab.state),
-          onTap: (index) {
-            activeTab.state = AppTab.values[index];
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list),
-              label: _i18n.stats,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart),
-              label: _i18n.todos,
-            ),
+        appBar: AppBar(
+          title: Text(_i18n.appTitle),
+          actions: [
+            const FilterButton(),
+            const ExtraActionsButton(),
+            const Languages(),
           ],
         ),
-      ).listenTo(activeTab),
-    );
+        body: OnReactive(
+          () => todos.onOrElse(
+            onWaiting: todos.state.isEmpty
+                ? () => const Center(
+                      child: const CircularProgressIndicator(),
+                    )
+                : null,
+            onError: todos.state.isEmpty
+                ? (err, refresh) => Center(
+                      child: Column(
+                        children: [
+                          Text(_i18n.errorInRetrievingTodos),
+                          IconButton(
+                            icon: Icon(Icons.refresh),
+                            onPressed: () {
+                              todos.refresh();
+                              refresh();
+                            },
+                          ),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.center,
+                      ),
+                    )
+                : null,
+            orElse: (data) {
+              return OnTabBuilder(
+                listenTo: appTab,
+                builder: (_) => PageView(
+                  controller: appTab.pageController,
+                  children: [const TodoList(), const StatsCounter()],
+                ),
+              );
+            },
+          ),
+          debugPrintWhenRebuild: 'todosHomePage',
+          debugPrintWhenObserverAdd: 'todosHomePage',
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            RM.navigate.toNamed(AddEditPage.routeName);
+          },
+          child: const Icon(Icons.add),
+          tooltip: _i18n.addTodo,
+        ),
+        bottomNavigationBar: OnTabBuilder(
+          listenTo: appTab,
+          builder: (index) {
+            return SizedBox(
+              height: 50,
+              child: TabBar(
+                controller: appTab.tabController,
+                tabs: [
+                  Transform.scale(
+                    scale: index == 0 ? 1.2 : 1.0,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.show_chart,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        Text(
+                          _i18n.todos,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: index == 1 ? 1.2 : 1.0,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.list,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        Text(
+                          _i18n.stats,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ));
   }
 }

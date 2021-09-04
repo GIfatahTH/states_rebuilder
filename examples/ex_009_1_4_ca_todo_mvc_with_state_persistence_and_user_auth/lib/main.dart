@@ -54,14 +54,12 @@ class App extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          home: On.auth(
+          home: OnAuthBuilder(
+            listenTo: user,
             onInitialWaiting: () => Center(child: CircularProgressIndicator()),
             onUnsigned: () => AuthPage(),
             onSigned: () => HomeScreen(),
-          ).listenTo(
-            user,
             useRouteNavigation: true,
-            // debugPrintWhenRebuild: 'On.auth',
           ),
           navigatorKey: RM.navigate.navigatorKey,
           onGenerateRoute: RM.navigate.onGenerateRoute(

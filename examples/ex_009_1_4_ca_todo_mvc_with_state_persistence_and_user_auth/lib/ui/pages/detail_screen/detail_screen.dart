@@ -32,7 +32,7 @@ class DetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            On.data(
+            OnReactive(
               () => Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -71,7 +71,7 @@ class DetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ).listenTo(todo),
+            ),
           ],
         ),
       ),

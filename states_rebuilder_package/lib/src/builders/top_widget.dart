@@ -26,9 +26,78 @@ class TopAppWidget extends StatefulWidget {
   final Widget Function(BuildContext) builder;
 
   ///Provide and listen to the [InjectedTheme].
+  ///
+  ///```dart
+  /// void main() {
+  ///   runApp(MyApp());
+  /// }
+  ///
+  /// class MyApp extends StatelessWidget {
+  ///   // This widget is the root of your application.
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     return TopAppWidget(//Use TopAppWidget
+  ///       injectedTheme: theme, //Set te injectedTheme
+  ///       builder: (context) {
+  ///         return MaterialApp(
+  ///           theme: theme.lightTheme, //light theme
+  ///           darkTheme: theme.darkTheme, //dark theme
+  ///           themeMode: theme.themeMode, //theme mode
+  ///           home: HomePage(),
+  ///         );
+  ///       },
+  ///     );
+  ///   }
+  /// }
+  /// ```
   final InjectedTheme? injectedTheme;
 
   ///Provide and listen to the [InjectedI18N].
+  ///Example:
+  ///```dart
+  ///import 'package:flutter_localizations/flutter_localizations.dart';
+  ///
+  ///class MyApp extends StatelessWidget {
+  ///  // This widget is the root of your application.
+  ///  @override
+  ///  Widget build(BuildContext context) {
+  ///    return TopAppWidget(
+  ///      //Provide and listen to i18n state
+  ///      injectedI18N: i18n,
+  ///      //If the translation is obtained asynchronously, we must define
+  ///      //the onWaiting widget.
+  ///      onWaiting: () => MaterialApp(
+  ///        home: Scaffold(
+  ///          body: Center(
+  ///            child: CircularProgressIndicator(),
+  ///          ),
+  ///        ),
+  ///      ),
+  ///      builder: (context) {
+  ///        return MaterialApp(
+  ///          //Defining locale and localeResolutionCallback is more than
+  ///          //enough for the app to get the right locale.
+  ///          locale: i18n.locale,
+  ///          localeResolutionCallback: i18n.localeResolutionCallback,
+  ///
+  ///          //For more elaborate locale resolution algorithm use
+  ///          //supportedLocales and localeListResolutionCallback.
+  ///          // supportedLocales: i18n.supportedLocales,
+  ///          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
+  ///          //   //your algorithm
+  ///          //   } ,
+  ///          localizationsDelegates: [
+  ///            GlobalMaterialLocalizations.delegate,
+  ///            GlobalWidgetsLocalizations.delegate,
+  ///            GlobalCupertinoLocalizations.delegate,
+  ///          ],
+  ///          home: const HomePage(),//Notice const here
+  ///        );
+  ///      },
+  ///    );
+  ///  }
+  ///}
+  ///```
   final InjectedI18N? injectedI18N;
   final InjectedAuth? injectedAuth;
 
@@ -55,7 +124,7 @@ class TopAppWidget extends StatefulWidget {
     this.onError,
     this.injectedAuth,
     required this.builder,
-  })   : assert(
+  })  : assert(
           ensureInitialization == null || onWaiting != null,
           'You have to define a waiting splash screen '
           'using onWaiting parameter',

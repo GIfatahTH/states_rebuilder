@@ -182,6 +182,46 @@ class StateBuilder<T> extends StatefulWidget {
         '''),
         super(key: key);
 
+  // factory StateBuilder.onData(
+  //   ReactiveModel<T> Function() observe,
+  //   Widget Function(BuildContext context, T data) builder,
+  // ) {
+  //   return StateBuilder(
+  //     observe: observe,
+  //     builder: (context, reactiveModel) => On.data(
+  //       () => builder(context, getInjectedState(reactiveModel!)),
+  //     ).listenTo(reactiveModel!),
+  //   );
+  // }
+
+  // factory StateBuilder.all(
+  //   ReactiveModel<T> Function() observe,
+  //   Widget Function() onIdle,
+  //   Widget Function() onWaiting,
+  //   Widget Function(dynamic err, VoidCallback refreshError) onError,
+  //   Widget Function(T data) onData,
+  // ) {
+  //   return StateBuilder(
+  //     observe: observe,
+  //     builder: (context, reactiveModel) => On.all(
+  //       onIdle: onIdle,
+  //       onWaiting: onWaiting,
+  //       onError: onError,
+  //       onData: () => onData(getInjectedState(reactiveModel!)),
+  //     ).listenTo(reactiveModel!),
+  //   );
+  // }
+
+  // factory StateBuilder.on(
+  //   InjectedBase<T> Function() observe,
+  //   On<Widget> child,
+  // ) {
+  //   return StateBuilder(
+  //     observe: observe,
+  //     builder: (context, reactiveModel) => child.listenTo(reactiveModel!),
+  //   );
+  // }
+
   @override
   State<StateBuilder<T>> createState() {
     // if (observeMany == null && observe != null) {
@@ -262,7 +302,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
             rm = observeMany.first as ReactiveModel<T>;
           }
         }
-        observe = ReactiveModel(creator: () {});
+        observe = ReactiveModelImp(creator: () {});
       }
       observeMany.forEach(
         (m) {
