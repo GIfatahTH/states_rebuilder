@@ -56,9 +56,9 @@ void main() {
       (tester) async {
     String? data;
 
-    final modelFuture = RM.inject(
+    final modelFuture = RM.inject<VanillaModel>(
       () => VanillaModel(),
-      onData: (_) => data = 'Data from global $_',
+      sideEffects: SideEffects.onData((_) => data = 'Data from global $_'),
     );
     await tester.pumpWidget(modelFuture.futureBuilder(
       future: (s, __) => s?.incrementAsync(), //return int
@@ -77,9 +77,12 @@ void main() {
       (tester) async {
     String? data;
 
-    final modelFuture = RM.inject(
+    final modelFuture = RM.inject<VanillaModel>(
       () => VanillaModel(),
-      onData: (_) => data = 'Data from global $_',
+      // onData: (_) {
+      //   data = 'Data from global $_';
+      // },
+      sideEffects: SideEffects.onData((_) => data = 'Data from global $_'),
     );
     await tester.pumpWidget(modelFuture.futureBuilder(
       future: (s, __) => s?.incrementAsyncImmutable(),
@@ -90,7 +93,7 @@ void main() {
 
     await tester.pump(Duration(seconds: 1));
     expect(data,
-        'Data from global VanillaModel(1)'); //mutable and future return different type
+        'Data from global VanillaModel(1)'); //immutable and future return the same type
     //
   });
 
@@ -99,7 +102,9 @@ void main() {
 
     final modelFuture = RM.inject(
       () => VanillaModel(),
-      onError: (_, __) => error = 'Error from global $_',
+      sideEffects: SideEffects.onError(
+        (_, __) => error = 'Error from global $_',
+      ),
     );
     await tester.pumpWidget(modelFuture.futureBuilder(
       future: (s, __) => s?.incrementAsyncWithError(),

@@ -130,7 +130,7 @@ void main() {
     products.crud.create(
       Product(id: 2, name: 'product 2'),
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     expect(numberOfonStateMutationCall, 0);
@@ -154,7 +154,7 @@ void main() {
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     await tester.pump();
@@ -178,7 +178,7 @@ void main() {
     products.crud.delete(
       where: (product) => product.id == 2,
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     await tester.pump();
@@ -259,7 +259,7 @@ void main() {
     onCRUDMessage = '';
     products.crud.create(
       Product(id: 2, name: 'product 2'),
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -286,7 +286,7 @@ void main() {
     products.crud.update(
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -309,7 +309,7 @@ void main() {
     onResult = null;
     products.crud.delete(
       where: (product) => product.id == 2,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -345,10 +345,10 @@ void main() {
     //
     products.crud.create(
       Product(id: 2, name: 'product 2'),
-      onSetState: On.or(
+      sideEffects: SideEffects.onAll(
           onError: (_, __) => errorMessage = _.message,
-          onData: () => numberOfonStateMutationCall++,
-          or: () {}),
+          onData: (_) => numberOfonStateMutationCall++,
+          onWaiting: null),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -373,10 +373,10 @@ void main() {
     products.crud.update(
       where: (product) => product.id == 1,
       set: (product) => product.copyWith(name: 'product 1_new'),
-      onSetState: On.or(
+      sideEffects: SideEffects.onAll(
         onError: (_, __) => errorMessage = _.message,
-        onData: () => numberOfonStateMutationCall++,
-        or: () {},
+        onData: (_) => numberOfonStateMutationCall++,
+        onWaiting: null,
       ),
       onResult: (_) => onResult = _,
     );
@@ -400,10 +400,10 @@ void main() {
     errorMessage = null;
     products.crud.delete(
       where: (product) => product.id == 1,
-      onSetState: On.or(
+      sideEffects: SideEffects.onOrElse(
         onError: (err, _) => errorMessage = err.message,
-        onData: () => numberOfonStateMutationCall++,
-        or: () {},
+        onData: (_) => numberOfonStateMutationCall++,
+        orElse: (_) {},
       ),
       onResult: (_) => onResult = _,
     );

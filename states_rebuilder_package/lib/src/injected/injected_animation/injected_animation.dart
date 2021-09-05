@@ -13,7 +13,10 @@ class _RebuildAnimation {
 
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   Widget call(Widget Function() builder) {
-    return On(builder).listenTo(_injected);
+    return OnBuilder(
+      listenTo: _injected,
+      builder: builder,
+    );
   }
 
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.

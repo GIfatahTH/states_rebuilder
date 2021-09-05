@@ -24,11 +24,14 @@ class Counter {
 int? dataFromInjection;
 String? errorFromInjection;
 
-final counter = RM.inject(
+final counter = RM.inject<Counter>(
   () => Counter(),
   initialState: Counter(),
-  onData: (counter) => dataFromInjection = counter.count,
-  onError: (e, s) => errorFromInjection = e.message,
+  sideEffects: SideEffects.onAll(
+    onWaiting: null,
+    onError: (e, s) => errorFromInjection = e.message,
+    onData: (counter) => dataFromInjection = counter.count,
+  ),
 );
 
 class CounterApp extends StatelessWidget {
@@ -129,7 +132,9 @@ void main() {
     expect(find.text('0'), findsOneWidget);
     counter.setState(
       (s) => s.increment(),
-      onError: (error) => _errorMessage = error.message,
+      sideEffects:
+          SideEffects.onError((error, _) => _errorMessage = error.message),
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     await tester.pump();
     expect(_errorMessage, 'Counter Error');

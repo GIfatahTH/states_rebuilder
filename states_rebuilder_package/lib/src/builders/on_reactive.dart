@@ -86,12 +86,7 @@ class OnReactive extends ReactiveStatelessWidget {
 
   @override
   void didNotifyWidget(SnapState snap) {
-    sideEffects?.onSetState?.call(snap);
-    if (sideEffects?.onSetState != null) {
-      WidgetsBinding.instance?.addPostFrameCallback(
-        (_) => sideEffects?.onAfterBuild?.call(),
-      );
-    }
+    sideEffects?..onSetState?.call(snap)..onAfterBuild?.call();
     assert(() {
       if (debugPrintWhenRebuild != null) {
         StatesRebuilerLogger.log(

@@ -9,6 +9,7 @@ part 'i_auth.dart';
 part 'on_auth.dart';
 
 abstract class InjectedAuth<T, P> implements Injected<T> {
+  InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
   IAuth<T, P>? _repo;
 
   T get _state => getInjectedState(this);
@@ -65,11 +66,12 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     this.onUnsigned,
     this.autoSignOut,
     this.onAuthStream,
-    this.onSetAuthState,
     //
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
-    void Function(T? s)? onInitialized,
-    void Function(T s)? onDisposed,
+    this.sideEffects,
+    // this.onSetAuthState,
+    // void Function(T? s)? onInitialized,
+    // void Function(T s)? onDisposed,
 
     //
     PersistState<T> Function()? persist,
@@ -78,8 +80,12 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
   }) : super(
           creator: () => unsignedUser,
           initialState: unsignedUser,
-          onInitialized: onInitialized,
-          onDisposed: onDisposed,
+          onInitialized: sideEffects?.initState != null
+              ? (_) => sideEffects!.initState!()
+              : null,
+          onDisposed: sideEffects?.dispose != null
+              ? (_) => sideEffects!.dispose!()
+              : null,
           middleSnapState: middleSnapState,
           persist: persist,
           isLazy: true,
@@ -101,7 +107,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
   final P Function()? param;
   final void Function(T s)? onSigned;
   final void Function()? onUnsigned;
-  final On<void>? onSetAuthState;
+  final SideEffects<T>? sideEffects;
   final Duration Function(T auth)? autoSignOut;
   final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
   final T? unsignedUser;
@@ -190,7 +196,8 @@ class _AuthService<T, P> {
       } else if (snap.hasError) {
         _onError(_onSignInOut);
       }
-      injected.onSetAuthState?.call(snap);
+
+      injected.sideEffects?..onSetState?.call(snap)..onAfterBuild?.call();
     });
   }
 
@@ -220,7 +227,8 @@ class _AuthService<T, P> {
         await injected._init();
         return _repository.signIn(_param ?? injected.param?.call());
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideDefaultSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
     return injected._state;
@@ -249,7 +257,8 @@ class _AuthService<T, P> {
 
         return _repository.signUp(_param ?? injected.param?.call());
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideDefaultSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
     return injected._state;
@@ -326,7 +335,8 @@ class _AuthService<T, P> {
               _param,
         );
       },
-      onSetState: onError != null ? On.error(onError) : null,
+      sideEffects: onError != null ? SideEffects.onError(onError) : null,
+      shouldOverrideDefaultSideEffects: (_) => onError != null,
     );
     _onSignInOut = null;
 

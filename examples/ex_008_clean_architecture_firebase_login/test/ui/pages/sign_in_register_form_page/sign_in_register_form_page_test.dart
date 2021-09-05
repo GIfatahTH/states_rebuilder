@@ -2,10 +2,8 @@ import 'package:clean_architecture_firebase_login/data_source/fake_user_reposito
 import 'package:clean_architecture_firebase_login/injected.dart';
 import 'package:clean_architecture_firebase_login/main.dart';
 import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
-import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   currentEnv = Env.dev;

@@ -56,6 +56,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects,
     void Function(T)? onData,
     void Function(dynamic)? onError,
   });
@@ -90,16 +91,19 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   /// obtained from the last added [StateBuilder] will be used.
   Future<T> setState(
     dynamic Function(T s) fn, {
-    void Function(T data)? onData,
-    void Function(dynamic error)? onError,
-    On<void>? onSetState,
-    void Function()? onRebuildState,
+    @Deprecated('User sideEffects.onData instead')
+        void Function(T data)? onData,
+    @Deprecated('User sideEffects.onError instead')
+        void Function(dynamic error)? onError,
+    @Deprecated('User sideEffects instead') On<void>? onSetState,
+    @Deprecated('User sideEffects instead') void Function()? onRebuildState,
+    SideEffects<T>? sideEffects,
     int debounceDelay = 0,
     int throttleDelay = 0,
     bool shouldAwait = false,
-    // bool silent = false,
     bool skipWaiting = false,
     BuildContext? context,
+    bool Function(SnapState<T> snap)? shouldOverrideDefaultSideEffects,
   }) async {
     final debugMessage = this.debugMessage;
     this.debugMessage = null;
@@ -114,15 +118,25 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
           s,
           onError: onError,
           onData: onData,
-          onSetState: onSetState,
+          shouldOverrideGlobalSideEffects:
+              shouldOverrideDefaultSideEffects?.call(s) ?? false,
+          onSetState: sideEffects?.onSetState != null
+              ? On(() {
+                  sideEffects!.onSetState!(s);
+                })
+              : onSetState,
         );
         if (skipWaiting && snap != null && snap.isWaiting) {
           return null;
         }
-        if (onRebuildState != null && snap != null && snap.hasData) {
-          WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onRebuildState(),
-          );
+        if (snap != null && snap.hasData) {
+          if (sideEffects?.onAfterBuild != null) {
+            sideEffects!.onAfterBuild!();
+          } else if (onRebuildState != null) {
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onRebuildState(),
+            );
+          }
         }
         return snap;
       },

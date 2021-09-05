@@ -102,10 +102,11 @@ abstract class RM {
     T? initialState,
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s)? onInitialized,
-    void Function(T s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(T s)? onData,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SideEffects<T>? sideEffects,
     void Function(dynamic e, StackTrace? s)? onError,
     DependsOn<T>? dependsOn,
     //
@@ -118,15 +119,26 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   }) {
-    return InjectedImp<T>(
+    late final InjectedImp<T> inj;
+
+    inj = InjectedImp<T>(
       creator: creator,
       initialState: initialState,
-      onInitialized: onInitialized,
-      onSetState: onSetState,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized,
+      onSetState: On(
+        () {
+          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          onSetState?.call(inj.snapState);
+        },
+      ),
       onWaiting: onWaiting,
       onDataForSideEffect: onData,
       onError: onError,
-      onDisposed: onDisposed,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
       persist: persist,
@@ -136,6 +148,7 @@ abstract class RM {
       toDebugString: toDebugString,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
+    return inj;
   }
 
   ///Functional injection of a [Future].
@@ -148,11 +161,13 @@ abstract class RM {
     T? initialState,
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s)? onInitialized,
-    void Function(T s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
     // On<void>? onSetState,
-    void Function(dynamic e, StackTrace? s)? onError,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
+    SideEffects<T>? sideEffects,
     DependsOn<T>? dependsOn,
     int undoStackLength = 0,
     PersistState<T> Function()? persist,
@@ -162,14 +177,25 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   }) {
-    return InjectedImp<T>(
+    late final InjectedImp<T> inj;
+    inj = InjectedImp<T>(
       creator: creator,
       initialState: initialState,
-      onInitialized: onInitialized,
+      // onInitialized: onInitialized,
       onWaiting: onWaiting,
       onDataForSideEffect: onData,
       onError: onError,
-      onDisposed: onDisposed,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized,
+      onSetState: On(
+        () {
+          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+        },
+      ),
       dependsOn: dependsOn,
       isAsyncInjected: true,
       undoStackLength: undoStackLength,
@@ -180,6 +206,7 @@ abstract class RM {
       toDebugString: toDebugString,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
+    return inj;
   }
 
   ///Functional injection of a [Stream].
@@ -194,13 +221,15 @@ abstract class RM {
     T? initialState,
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s, StreamSubscription subscription)? onInitialized,
-    void Function(T s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(T s)? onData,
-    On<void>? onSetState,
-    PersistState<T> Function()? persist,
-    void Function(dynamic e, StackTrace? s)? onError,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
+    SideEffects<T>? sideEffects,
     DependsOn<T>? dependsOn,
+    PersistState<T> Function()? persist,
     int undoStackLength = 0,
     //
     bool isLazy = true,
@@ -210,18 +239,30 @@ abstract class RM {
     //
     Object? Function(T? s)? watch,
   }) {
-    late InjectedImp<T> inj;
+    late final InjectedImp<T> inj;
     inj = InjectedImp<T>(
       creator: creator,
       initialState: initialState,
-      onInitialized: onInitialized != null
-          ? (s) => onInitialized(s, inj.subscription!)
-          : null,
+      // onInitialized: onInitialized != null
+      //     ? (s) => onInitialized(s, inj.subscription!)
+      //     : null,
       onWaiting: onWaiting,
       onDataForSideEffect: onData,
       onError: onError,
-      onSetState: onSetState,
-      onDisposed: onDisposed,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized != null
+              ? (s) => onInitialized(s, inj.subscription!)
+              : null,
+      onSetState: On(
+        () {
+          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          onSetState?.call(inj.snapState);
+        },
+      ),
       dependsOn: dependsOn,
       isAsyncInjected: true,
       undoStackLength: undoStackLength,
@@ -278,9 +319,10 @@ abstract class RM {
     FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
     //
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
-    void Function(T? s)? onInitialized,
-    void Function(T s)? onDisposed,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SideEffects<T>? sideEffects,
     //
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
@@ -297,7 +339,8 @@ abstract class RM {
       'You can not set a non null unsignedUser\n'
       'If you want the unsignedUSer to be non null use non nullable type ($T).',
     );
-    return InjectedAuthImp<T, P>(
+    late final InjectedAuthImp<T, P> inj;
+    inj = InjectedAuthImp<T, P>(
       repoCreator: repository,
       unsignedUser: unsignedUser,
       param: param,
@@ -307,14 +350,35 @@ abstract class RM {
       onAuthStream: onAuthStream,
       //
       middleSnapState: middleSnapState,
-      onInitialized: onInitialized,
-      onDisposed: onDisposed,
-      onSetAuthState: onSetState,
+      sideEffects: SideEffects<T>(
+        initState: () {
+          if (sideEffects?.initState != null) {
+            sideEffects?.initState?.call();
+          } else {
+            onInitialized?.call(inj.state);
+          }
+        },
+        onSetState: (snap) {
+          if (sideEffects?.onSetState != null) {
+            sideEffects?.onSetState?.call(snap);
+          } else {
+            onSetState?.call(snap);
+          }
+        },
+        dispose: () {
+          if (sideEffects?.dispose != null) {
+            sideEffects?.dispose?.call();
+          } else {
+            onDisposed?.call(inj.state);
+          }
+        },
+      ),
       //
       persist: persist,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
+    return inj;
   }
 
   ///Functional injection of a state that can create, read, update and
@@ -362,9 +426,11 @@ abstract class RM {
     //
     SnapState<List<T>>? Function(MiddleSnapState<List<T>> middleSnap)?
         middleSnapState,
-    void Function(List<T>? s)? onInitialized,
-    void Function(List<T> s)? onDisposed,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(List<T>? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(List<T> s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     //
     DependsOn<List<T>>? dependsOn,
     int undoStackLength = 0,
@@ -375,16 +441,31 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(List<T>?)? toDebugString,
   }) {
-    return InjectedCRUDImp<T, P>(
+    late final InjectedCRUDImp<T, P> inj;
+    inj = InjectedCRUDImp<T, P>(
       repoCreator: repository,
       param: param,
       readOnInitialization: readOnInitialization,
       onCRUD: onCRUD,
       //
       middleSnapState: middleSnapState,
-      onInitialized: onInitialized,
-      onDisposed: onDisposed,
-      onSetState: onSetState,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onSetState: On(
+        () {
+          if (sideEffects?.onSetState != null) {
+            sideEffects!.onSetState!(inj.snapState);
+          } else {
+            onSetState?.call(inj.snapState);
+          }
+          sideEffects?.onAfterBuild?.call();
+        },
+      ),
+
       //
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
@@ -393,6 +474,7 @@ abstract class RM {
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
+    return inj;
   }
 
   ///{@template injectedTheme}
@@ -418,9 +500,10 @@ abstract class RM {
     String? persistKey,
     //
     SnapState<KEY>? Function(MiddleSnapState<KEY> middleSnap)? middleSnapState,
-    void Function(KEY? s)? onInitialized,
-    void Function(KEY s)? onDisposed,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead') void Function(KEY? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(KEY s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SideEffects<KEY>? sideEffects,
     //
     DependsOn<KEY>? dependsOn,
     int undoStackLength = 0,
@@ -434,16 +517,30 @@ abstract class RM {
       KEY != dynamic && KEY != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    return InjectedThemeImp<KEY>(
+    late final InjectedThemeImp<KEY> inj;
+    inj = InjectedThemeImp<KEY>(
       lightThemes: lightThemes,
       darkThemes: darkThemes,
       themeModel: themeMode,
       persistKey: persistKey,
       //
       middleSnapState: middleSnapState,
-      onInitialized: onInitialized,
-      onDisposed: onDisposed,
-      onSetState: onSetState,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onSetState: On(
+        () {
+          if (sideEffects?.onSetState != null) {
+            sideEffects!.onSetState!(inj.snapState);
+          } else {
+            onSetState?.call(inj.snapState);
+          }
+          sideEffects?.onAfterBuild?.call();
+        },
+      ),
       //
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
@@ -453,6 +550,7 @@ abstract class RM {
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
+    return inj;
   }
 
   ///Functional injection of a state that handle app internationalization
@@ -471,9 +569,11 @@ abstract class RM {
     //
     SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
         middleSnapState,
-    void Function(I18N? s)? onInitialized,
-    void Function(I18N s)? onDisposed,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(I18N? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(I18N s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SideEffects<I18N>? sideEffects,
     //
     DependsOn<I18N>? dependsOn,
     int undoStackLength = 0,
@@ -485,15 +585,28 @@ abstract class RM {
       I18N != dynamic && I18N != Object,
       'Type can not inferred, please declare it explicitly',
     );
-
-    return InjectedI18NImp<I18N>(
+    late final InjectedI18NImp<I18N> inj;
+    inj = InjectedI18NImp<I18N>(
       i18Ns: i18Ns,
       persistKey: persistKey,
       //
       middleSnapState: middleSnapState,
-      onInitialized: onInitialized,
-      onDisposed: onDisposed,
-      onSetState: onSetState,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized,
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onSetState: On(
+        () {
+          if (sideEffects?.onSetState != null) {
+            sideEffects!.onSetState!(inj.snapState);
+          } else {
+            onSetState?.call(inj.snapState);
+          }
+          sideEffects?.onAfterBuild?.call();
+        },
+      ),
       //
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
@@ -501,6 +614,7 @@ abstract class RM {
       // isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
+    return inj;
   }
 
   ///Inject an animation. It works for both implicit and explicit animation.
@@ -740,11 +854,13 @@ abstract class RM {
     T? initialState,
     SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     void Function(T? s)? onInitialized,
-    void Function(T s)? onDisposed,
-    void Function()? onWaiting,
-    void Function(T s)? onData,
-    void Function(dynamic e, StackTrace? s)? onError,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
+    SideEffects<T>? sideEffects,
 
     //
     DependsOn<T>? dependsOn,
@@ -756,7 +872,8 @@ abstract class RM {
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   }) {
-    return InjectedImp<T>(
+    late final InjectedImp<T> inj;
+    inj = InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
         assert(RM.env != null, '''
@@ -773,12 +890,26 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       },
       initialState: initialState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+
+      onDisposed: sideEffects?.dispose != null
+          ? (_) => sideEffects!.dispose!()
+          : onDisposed,
+      onInitialized: sideEffects?.initState != null
+          ? (_) => sideEffects!.initState!()
+          : onInitialized != null
+              ? (s) => onInitialized(s)
+              : null,
+      onSetState: On(
+        () {
+          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          onSetState?.call(inj.snapState);
+        },
+      ),
+
       onDataForSideEffect: onData,
       onError: onError,
       onWaiting: onWaiting,
-      onSetState: onSetState,
-      onInitialized: onInitialized,
-      onDisposed: onDisposed,
+
       // watch: watch,
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
@@ -788,6 +919,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       middleSnapState: middleSnapState,
       isLazy: isLazy,
     );
+    return inj;
   }
 
   ///Initialize the default persistance provider to be used.

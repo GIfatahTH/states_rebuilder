@@ -499,15 +499,15 @@ void main() {
       final switcher = true.inj();
       final counter1 = RM.inject(
         () => 0,
-        onDisposed: (_) {
-          isDisposed1 = true;
-        },
+        sideEffects: SideEffects(
+          dispose: () => isDisposed1 = true,
+        ),
       );
       final counter2 = RM.inject(
         () => 0,
-        onDisposed: (_) {
-          isDisposed2 = true;
-        },
+        sideEffects: SideEffects(
+          dispose: () => isDisposed2 = true,
+        ),
       );
       final counter3 = 0.inj();
       //

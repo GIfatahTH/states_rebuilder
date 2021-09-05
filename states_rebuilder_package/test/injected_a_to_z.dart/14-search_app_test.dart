@@ -35,7 +35,9 @@ final Injected<String> query = RM.inject(
   //fetchedData is refresh which means :
   // - any pending future will be canceled.
   // - a new search request is called
-  onData: (_) => fetchedUsers.refresh(),
+  sideEffects: SideEffects.onData(
+    (_) => fetchedUsers.refresh(),
+  ),
 );
 
 //Inject the list of fetched user

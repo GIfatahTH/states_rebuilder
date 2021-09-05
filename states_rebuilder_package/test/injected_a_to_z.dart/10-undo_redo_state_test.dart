@@ -4,7 +4,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter = RM.inject<int>(
   () => 0,
-  onData: (_) {},
+  sideEffects: SideEffects.onData(
+    (_) {},
+  ),
   undoStackLength: 8,
 );
 

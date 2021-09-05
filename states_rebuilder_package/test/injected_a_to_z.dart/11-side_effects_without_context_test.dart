@@ -15,27 +15,29 @@ NavigatorState? navigatorStateFromOnData;
 
 final model = RM.inject<int>(
   () => 0,
-  onData: (data) {
-    //Here is the right place to call side effects that uses the BuildContext
-    contextFromOnData = RM.context;
-    navigatorStateFromOnData = RM.navigate.navigatorState;
+  sideEffects: SideEffects.onAll(
+    onWaiting: null,
+    onError: (e, s) {
+      RM.scaffold.showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    },
+    onData: (data) {
+      //Here is the right place to call side effects that uses the BuildContext
+      contextFromOnData = RM.context;
+      navigatorStateFromOnData = RM.navigate.navigatorState;
 
-    //Navigation
-    // RM.navigate.to(Page1());
+      //Navigation
+      // RM.navigate.to(Page1());
 
-    //show Alert Dialog
-    RM.navigate.toDialog(
-      AlertDialog(
-        content: Text('Alert'),
-      ),
-    );
-  },
-
-  onError: (e, s) {
-    RM.scaffold.showSnackBar(
-      SnackBar(content: Text(e.message)),
-    );
-  },
+      //show Alert Dialog
+      RM.navigate.toDialog(
+        AlertDialog(
+          content: Text('Alert'),
+        ),
+      );
+    },
+  ),
 
   //valid for onError, onWaiting, onDisposed and onInitialized
 );

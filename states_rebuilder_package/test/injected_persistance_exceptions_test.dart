@@ -81,17 +81,18 @@ void main() async {
   testWidgets('persistStateProvider, catchPersistError and onError',
       (tester) async {
     counter = RM.injectFuture<int>(
-      () => Future.delayed(Duration(seconds: 1), () => 10),
-      persist: () => PersistState(
-        key: 'Future_counter',
-        persistStateProvider: PersistStoreMockImp(),
-        catchPersistError: true,
-      ),
-      onError: (e, s) {
-        StatesRebuilerLogger.log('', e);
-      },
-      // debugPrintWhenNotifiedPreMessage: '',
-    );
+        () => Future.delayed(Duration(seconds: 1), () => 10),
+        persist: () => PersistState(
+              key: 'Future_counter',
+              persistStateProvider: PersistStoreMockImp(),
+              catchPersistError: true,
+            ),
+        sideEffects: SideEffects.onError(
+          (e, s) {
+            StatesRebuilerLogger.log('', e);
+          },
+          // debugPrintWhenNotifiedPreMessage: '',
+        ));
     expect(counter.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);

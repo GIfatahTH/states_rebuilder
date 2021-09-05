@@ -145,7 +145,9 @@ void main() {
     final switcher = true.inj();
     final counter = RM.inject(
       () => 1,
-      onDisposed: (_) => disposedNum++,
+      sideEffects: SideEffects(
+        dispose: () => disposedNum++,
+      ),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -243,7 +245,7 @@ void main() {
     switcher.toggle();
     await tester.pump();
     expect(disposedNum, 1);
-    expect((counter as InjectedImp).inheritedInjects.length, 0);
+    expect((counter).inheritedInjects.length, 0);
   });
 
   testWidgets('reInherited works when stateOverride is not defined',
@@ -252,7 +254,9 @@ void main() {
     final switcher = true.inj();
     final counter = RM.inject(
       () => 2,
-      onDisposed: (_) => disposedNum++,
+      sideEffects: SideEffects(
+        dispose: () => disposedNum++,
+      ),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -349,6 +353,6 @@ void main() {
     switcher.toggle();
     await tester.pump();
     expect(disposedNum, 1);
-    expect((counter as InjectedImp).inheritedInjects.length, 0);
+    expect((counter).inheritedInjects.length, 0);
   });
 }
