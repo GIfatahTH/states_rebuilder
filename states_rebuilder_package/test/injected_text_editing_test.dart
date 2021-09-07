@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injected/injected_text_editing/injected_text_editing.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -70,11 +71,13 @@ void main() {
     'THEN input is validated',
     (tester) async {
       final textEditing = RM.injectTextEditing(
-        validator: (val) {
-          if (val?.contains('@') != true) {
-            return 'Must contain @';
+        validators: [
+          (val) {
+            if (val?.contains('@') != true) {
+              return 'Must contain @';
+            }
           }
-        },
+        ],
       );
 
       final widget = MaterialApp(
@@ -107,10 +110,10 @@ void main() {
 
   final InjectedForm form = RM.injectForm();
   final name = RM.injectTextEditing(
-    validator: (v) => v!.length > 3 ? null : 'Name Error',
+    validators: [(v) => v!.length > 3 ? null : 'Name Error'],
   );
   final email = RM.injectTextEditing(
-    validator: (v) => v!.length > 3 ? 'Email Error' : null,
+    validators: [(v) => v!.length > 3 ? 'Email Error' : null],
   );
   testWidgets(
     'WHEN InjectedForm is used'
@@ -508,10 +511,10 @@ void main() {
       );
 
       final textField1 = RM.injectTextEditing(
-        validator: (_) => 'TextField1 Error',
+        validators: [(_) => 'TextField1 Error'],
       );
       final textField2 = RM.injectTextEditing(
-        validator: (_) => 'TextField2 Error',
+        validators: [(_) => 'TextField2 Error'],
       );
       final widget = MaterialApp(
         home: Scaffold(
@@ -525,13 +528,15 @@ void main() {
                     return Builder(
                       builder: (_) {
                         return On.form(
-                          () => TextField(
-                            key: Key('TextField1'),
-                            controller: textField1.controller,
-                            decoration: InputDecoration(
-                              errorText: textField1.error,
-                            ),
-                          ),
+                          () {
+                            return TextField(
+                              key: Key('TextField1'),
+                              controller: textField1.controller,
+                              decoration: InputDecoration(
+                                errorText: textField1.error,
+                              ),
+                            );
+                          },
                         ).listenTo(form1);
                       },
                     );
@@ -628,6 +633,148 @@ void main() {
                         controller: email.controller,
                         focusNode: email.focusNode,
                         decoration: InputDecoration(errorText: email.error),
+                      ),
+                      form.rebuild.onFormSubmission(
+                        onSubmitting: () => Text('Submitting...'),
+                        onSubmissionError: (error, ref) {
+                          refresher = ref;
+                          return Text(error);
+                        },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            form.submit();
+                          },
+                          child: Text('Submit1'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              On.formSubmission(
+                onSubmitting: () => Text('Submitting...'),
+                child: ElevatedButton(
+                  onPressed: () {
+                    form.submit(
+                      () async {
+                        await Future.delayed(Duration(seconds: 1));
+                        if (serverError != null) throw serverError;
+                      },
+                    );
+                  },
+                  child: Text('Submit2'),
+                ),
+              ).listenTo(form),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(submitMessage, '');
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      //
+      await tester.tap(find.text('Submit1'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(submitMessage, 'Submitted');
+      expect(find.text('Submitting...'), findsNothing);
+      //
+      await tester.tap(find.text('Submit2'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+      serverError = null;
+      refresher();
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'On.formSubmission widget and side effects work for OnFormFieldBuilder',
+    (tester) async {
+      final name = RM.injectFormField<String>(
+        '',
+        validateOnLoseFocus: false,
+      );
+      final email = RM.injectFormField<String>(
+        '',
+        validateOnLoseFocus: false,
+      );
+      String submitMessage = '';
+      String? serverError = 'Server Error';
+      late void Function() refresher;
+      final form = RM.injectForm(
+        // autoFocusOnFirstError: false,
+        submit: () async {
+          await Future.delayed(Duration(seconds: 1));
+          email.error = 'Email Server Error';
+        },
+        onSubmitting: () => submitMessage = 'Submitting...',
+        onSubmitted: () => submitMessage = 'Submitted',
+      );
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              OnFormBuilder(
+                listenTo: form,
+                builder: () {
+                  return Column(
+                    children: [
+                      OnFormFieldBuilder<String>(
+                        listenTo: name,
+                        builder: (value) {
+                          return TextFormField(
+                            key: Key('Name'),
+                            initialValue: value,
+                            onChanged: name.onChanged,
+                          );
+                        },
+                      ),
+                      OnFormFieldBuilder<String>(
+                        listenTo: email,
+                        builder: (value) {
+                          return TextFormField(
+                            key: Key('Email'),
+                            initialValue: value,
+                            onChanged: name.onChanged,
+                          );
+                        },
                       ),
                       form.rebuild.onFormSubmission(
                         onSubmitting: () => Text('Submitting...'),
@@ -858,11 +1005,13 @@ void main() {
       final form = RM.injectForm();
       final password = RM.injectTextEditing(text: '12');
       final confirmPassword = RM.injectTextEditing(
-        validator: (text) {
-          if (text != password.state) {
-            return 'Password do not match';
+        validators: [
+          (text) {
+            if (text != password.state) {
+              return 'Password do not match';
+            }
           }
-        },
+        ],
       );
 
       final isRegister = true.inj();
@@ -873,15 +1022,17 @@ void main() {
             () => OnFormBuilder(
               listenTo: form,
               builder: () {
-                return Column(children: [
-                  TextField(
-                    controller: password.controller,
-                  ),
-                  if (isRegister.state)
+                return Column(
+                  children: [
                     TextField(
-                      controller: confirmPassword.controller,
+                      controller: password.controller,
                     ),
-                ]);
+                    if (isRegister.state)
+                      TextField(
+                        controller: confirmPassword.controller,
+                      ),
+                  ],
+                );
               },
             ),
           ),
@@ -901,14 +1052,14 @@ void main() {
     'THEN the it is assigned to the form autoFocusedNode'
     'AND it is auto validated when lost focus',
     (tester) async {
-      final text = RM.injectTextEditing(
-          text: '',
-          validateOnLoseFocus: true,
-          validator: (txt) {
-            if (txt!.length < 3) {
-              return 'not allowed';
-            }
-          });
+      final text = RM
+          .injectTextEditing(text: '', validateOnLoseFocus: true, validators: [
+        (txt) {
+          if (txt!.length < 3) {
+            return 'not allowed';
+          }
+        }
+      ]);
       final form = RM.injectForm();
       final widget = MaterialApp(
         home: Scaffold(
@@ -977,11 +1128,11 @@ void main() {
     (tester) async {
       final text1 =
           RM.injectTextEditing(text: 'initial text1', validateOnTyping: false);
-      final text2 = RM.injectTextEditing(
-          text: 'initial text2',
-          validator: (txt) {
-            if (txt!.length < 3) return 'not allowed';
-          });
+      final text2 = RM.injectTextEditing(text: 'initial text2', validators: [
+        (txt) {
+          if (txt!.length < 3) return 'not allowed';
+        }
+      ]);
       final widget = MaterialApp(
         home: Scaffold(
           body: OnReactive(
@@ -1029,6 +1180,187 @@ void main() {
       expect(find.text('initial text1'), findsNWidgets(2));
       expect(find.text('initial text2'), findsNWidgets(2));
       expect(text2.isValid, false);
+    },
+  );
+
+  testWidgets(
+    'Check when the field is focused and unfocused'
+    'THEN the decorator get the right state',
+    (tester) async {
+      final form = RM.injectForm();
+      final checkBox = RM.injectFormField<bool?>(null);
+      bool? value;
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  OnFormFieldBuilder<bool?>(
+                    listenTo: checkBox,
+                    autofocus: true,
+                    inputDecoration: InputDecoration(
+                      hintText: 'Hint text',
+                      labelText: 'Label text',
+                      helperText: 'Helper text',
+                    ),
+                    builder: (v) {
+                      value = v;
+                      return CheckboxListTile(
+                        tristate: true,
+                        value: v,
+                        onChanged: checkBox.onChanged,
+                        title: Text('Text'),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      expect(value, null);
+      expect(find.byType(InputDecorator), findsOneWidget);
+
+      final isFocused = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.isFocused,
+      );
+
+      expect(isFocused, findsOneWidget);
+      // expect(isCheckBoxFocused, findsOneWidget);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      checkBox.focusNode.unfocus();
+      await tester.pump();
+      await tester.pump();
+      expect(isFocused, findsNothing);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      checkBox.focusNode.requestFocus();
+      await tester.pump();
+      expect(isFocused, findsOneWidget);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(value, false);
+    },
+  );
+
+  testWidgets(
+    'WHEN initial value of injectedForm is null'
+    'THEN the label text is displayed'
+    'AND WHEN the value is set to non null'
+    'THEN label and hint text '
+    'THEN',
+    (tester) async {
+      final form = RM.injectForm();
+      final checkBox = RM.injectFormField<bool?>(
+        null,
+        validators: [
+          (value) {
+            if (value == null || !value) {
+              return 'You must check me';
+            }
+          },
+        ],
+      );
+      bool? value;
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  OnFormFieldBuilder<bool?>(
+                    listenTo: checkBox,
+                    inputDecoration: InputDecoration(
+                      hintText: 'Hint text',
+                      labelText: 'Label text',
+                      helperText: 'Helper text',
+                    ),
+                    builder: (v) {
+                      value = v;
+                      return Checkbox(
+                        tristate: true,
+                        value: v,
+                        onChanged: checkBox.onChanged,
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(value, null);
+      expect(find.byType(InputDecorator), findsOneWidget);
+      final isEmptyInput = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.isEmpty,
+      );
+      final isFocused = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.isFocused,
+      );
+      expect(isEmptyInput, findsOneWidget);
+      expect(isFocused, findsNothing);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+
+      checkBox.focusNode.requestFocus();
+      await tester.pump();
+      expect(isEmptyInput, findsOneWidget);
+      expect(isFocused, findsOneWidget);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      checkBox.focusNode.unfocus();
+      await tester.pump();
+      expect(isEmptyInput, findsOneWidget);
+      expect(isFocused, findsNothing);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      checkBox.value = true;
+      await tester.pump();
+      expect(value, true);
+      expect(isEmptyInput, findsNothing);
+      expect(find.text('Label text'), findsOneWidget);
+      expect(find.text('Hint text'), findsOneWidget);
+      expect(find.text('Helper text'), findsOneWidget);
+      //
+      form.reset();
+      await tester.pump();
+      expect(value, null);
+      expect(form.validate(), false);
+      await tester.pump();
+      expect(find.text('You must check me'), findsOneWidget);
+      //
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(value, false);
+      expect(form.validate(), false);
+      //
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(value, true);
+      expect(form.validate(), true);
+      //
     },
   );
 }

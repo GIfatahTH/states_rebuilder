@@ -734,7 +734,9 @@ abstract class RM {
     String text = '',
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
-    String? Function(String? text)? validator,
+    @Deprecated('Use validators instead')
+        String? Function(String? text)? validator,
+    List<String? Function(String? text)>? validators,
     bool? validateOnTyping,
     bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
@@ -744,7 +746,11 @@ abstract class RM {
       text: text,
       selection: selection,
       composing: composing,
-      validator: validator,
+      validator: validators != null
+          ? validators
+          : validator != null
+              ? [validator]
+              : null,
       validateOnTyping: validateOnTyping,
       validateOnLoseFocus: validateOnLoseFocus,
       autoDispose: autoDispose,
@@ -774,6 +780,24 @@ abstract class RM {
       onSubmitting: onSubmitting,
       onSubmitted: onSubmitted,
       submit: submit,
+    );
+  }
+
+  static InjectedFormField<T> injectFormField<T>(
+    T initialValue, {
+    List<String? Function(T value)>? validators,
+    bool? validateOnValueChange,
+    bool? validateOnLoseFocus,
+    void Function(InjectedFormField formField)? onValueChange,
+    bool autoDispose = true,
+  }) {
+    return InjectedFormFieldImp<T>(
+      initialValue,
+      validator: validators,
+      validateOnValueChange: validateOnValueChange,
+      validateOnLoseFocus: validateOnLoseFocus,
+      autoDispose: autoDispose,
+      onValueChange: onValueChange,
     );
   }
 

@@ -23,7 +23,9 @@ export 'src/injected/injected_text_editing/injected_text_editing.dart'
         InjectedTextEditing,
         InjectedForm,
         OnFormBuilder,
-        OnFormSubmissionBuilder;
+        OnFormSubmissionBuilder,
+        OnFormFieldBuilder,
+        InjectedFormField;
 export 'src/injected/injected_tab/injected_page_tab.dart'
     show InjectedPageTab, OnTabBuilder;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;

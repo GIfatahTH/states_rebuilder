@@ -106,8 +106,8 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
 
   ///After form is validate, get focused on the first non valid TextField, if any.
   final bool autoFocusOnFirstError;
-  final List<InjectedTextEditingImp> _textFields = [];
-  VoidCallback addTextFieldToForm(InjectedTextEditingImp field) {
+  final List<_BaseFormField> _textFields = [];
+  VoidCallback addTextFieldToForm(_BaseFormField field) {
     _textFields.add(field);
     return () => _textFields.remove(field);
   }
@@ -120,7 +120,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   @override
   bool validate() {
     bool isNotValid = false;
-    InjectedTextEditingImp? firstErrorField;
+    _BaseFormField? firstErrorField;
     for (var field in _textFields) {
       isNotValid = !field.validate() || isNotValid;
       firstErrorField ??= isNotValid ? field : null;
@@ -134,7 +134,11 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   @override
   void reset() {
     for (var field in _textFields) {
-      field.reset();
+      if (field is InjectedTextEditing) {
+        (field as InjectedTextEditing).reset();
+      } else {
+        field.resetField();
+      }
     }
     autoFocusedNode?.requestFocus();
     if (autovalidateMode == AutovalidateMode.always) {
@@ -160,7 +164,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
         snapState = snapState.copyToHasData(null);
         onSubmitted?.call();
         if (autoFocusOnFirstError) {
-          InjectedTextEditingImp? firstErrorField;
+          _BaseFormField? firstErrorField;
           for (var field in _textFields) {
             if (field.hasError) {
               firstErrorField = field;
@@ -173,8 +177,11 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
         }
         notify();
       } catch (e, s) {
-        snapState = snapState.copyToHasError(e,
-            stackTrace: s, onErrorRefresher: () => submit(fn));
+        snapState = snapState.copyToHasError(
+          e,
+          stackTrace: s,
+          onErrorRefresher: () => submit(fn),
+        );
         notify();
       }
     }

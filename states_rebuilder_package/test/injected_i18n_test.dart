@@ -544,8 +544,8 @@ void main() async {
             return middleSnap.currentSnap.copyToHasData('arabic');
           }
         },
-        onSetState: On(
-          () {
+        sideEffects: SideEffects(
+          onSetState: (_) {
             onSetStateNum++;
           },
         ),

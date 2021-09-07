@@ -197,6 +197,7 @@ class OnBuilder<T> extends StatelessWidget {
                 )
             : null,
         key: key,
+        debugPrintWhenRebuild: debugPrintWhenRebuild,
       );
     }
     assert(listenTo != null);
@@ -226,6 +227,7 @@ class OnBuilder<T> extends StatelessWidget {
               shouldRebuild!(listenTo!.oldSnapState, listenTo!.snapState)
           : null,
       key: key,
+      debugPrintWhenRebuild: debugPrintWhenRebuild,
     );
   }
 }

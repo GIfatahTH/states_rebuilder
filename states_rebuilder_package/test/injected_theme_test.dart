@@ -349,8 +349,8 @@ void main() async {
           'theme1': lightTheme,
           'theme2': darkTheme,
         },
-        onSetState: On(
-          () {
+        sideEffects: SideEffects(
+          onSetState: (_) {
             // onSetStateNum++;
           },
         ),
