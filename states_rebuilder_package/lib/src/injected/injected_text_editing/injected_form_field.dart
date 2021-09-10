@@ -6,14 +6,12 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
   T get _state => getInjectedState(this);
 
   ///Whether it passes the validation test
-  bool get isValid => _baseFormField.isValid;
+  bool get isValid;
 
   T get value => state;
   set value(T v);
 
-  set error(dynamic error) {
-    _baseFormField.error = error;
-  }
+  set error(dynamic error);
 
   void reset() {
     _baseFormField.resetField();
@@ -37,7 +35,7 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
 class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     with InjectedFormField<T>, _BaseFormField<T> {
   InjectedFormFieldImp(
-    this.initialValue, {
+    T initialValue, {
     List<String? Function(T value)>? validator,
     bool? validateOnValueChange,
     bool? validateOnLoseFocus,
@@ -48,16 +46,21 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
           autoDisposeWhenNotUsed: autoDispose,
         ) {
     _resetDefaultState = () {
-      _formIsSet = false;
+      this.initialValue = initialValue;
       form = null;
-      formTextFieldDisposer = null;
+      _formIsSet = false;
       _removeFromInjectedList = null;
+      formTextFieldDisposer = null;
+      _validateOnLoseFocus = validateOnLoseFocus;
+      _isValidOnLoseFocusDefined = false;
+      _validator = validator;
       _validateOnValueChange = validateOnValueChange;
+      _focusNode = null;
+      _hasFocus = null;
     };
     _resetDefaultState();
     _validator = validator;
   }
-  final T initialValue;
   final bool autoDispose;
   final void Function(InjectedFormField formField)? onValueChange;
   late bool _formIsSet;
@@ -70,7 +73,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   late VoidCallback? _removeFromInjectedList;
 
   late final VoidCallback _resetDefaultState;
-
+  late bool? _hasFocus;
   void linkToForm() {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;
@@ -92,9 +95,9 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
             //If the TextField is inside a On.form, set _validateOnLoseFocus to
             //true if it is not
             _validateOnLoseFocus = true;
-            // if (_focusNode != null) {
-            //   _listenToFocusNode();
-            // }
+            if (!_isValidOnLoseFocusDefined) {
+              _listenToFocusNodeForValidation();
+            }
           }
         }
       }
@@ -125,17 +128,6 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     } else {
       notify();
     }
-  }
-
-  @override
-  void reset() {
-    snapState = snapState.copyToHasData(initialValue);
-    if (_validator != null) {
-      //IF there is a validator, then set with idle flag so that isValid
-      //is false unless validator is called
-      snapState = snapState.copyToIsIdle(initialValue);
-    }
-    notify();
   }
 
   @override

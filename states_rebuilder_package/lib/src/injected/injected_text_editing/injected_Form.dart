@@ -115,7 +115,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   static InjectedFormImp? _currentInitializedForm;
   FocusNode? autoFocusedNode;
   @override
-  bool get isValid => _textFields.every((e) => e.hasData);
+  bool get isValid => _textFields.every((e) => e.isValid);
 
   @override
   bool validate() {
