@@ -108,7 +108,7 @@ class MyHomePage extends StatelessWidget {
             ),
             //You can override the global side effects
             //Default to false
-            shouldOverrideGlobalSideEffects: (snap) => true,
+            shouldOverrideDefaultSideEffects: (snap) => true,
           );
         },
         tooltip: 'Increment',

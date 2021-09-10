@@ -19,7 +19,7 @@ final user = RM.injectAuth<User?, UserParam>(
         .inSeconds;
     return Duration(seconds: timeToExpiry);
   },
-  onSetState: On.error(
+  sideEffects: SideEffects.onError(
     (e, r) {
       if (e is AuthException) {
         ErrorHandler.showErrorSnackBar(e);

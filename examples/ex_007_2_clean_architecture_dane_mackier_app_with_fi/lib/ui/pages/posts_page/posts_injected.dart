@@ -4,7 +4,7 @@ final postsInj = RM.injectCRUD(
   () => PostRepository(),
   param: () => userInj.state!.id,
   readOnInitialization: true,
-  onSetState: On.error(
+  sideEffects: SideEffects<List<Post>>.onError(
     (err, refresh) => ExceptionHandler.showErrorDialog(err),
   ),
   // debugPrintWhenNotifiedPreMessage: '',

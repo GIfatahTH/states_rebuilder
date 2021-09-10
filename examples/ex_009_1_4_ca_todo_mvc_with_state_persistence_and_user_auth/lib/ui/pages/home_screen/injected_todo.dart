@@ -6,14 +6,11 @@ final InjectedCRUD<Todo, String> todos = RM.injectCRUD<Todo, String>(
   ),
   param: () => '__Todos__/${user.state!.userId}',
   readOnInitialization: true,
-  onSetState: On.error(
+  sideEffects: SideEffects.onError(
     (e, r) {
       ErrorHandler.showErrorSnackBar(e);
     },
   ),
-  onDisposed: (_) {
-    print('dispoed');
-  },
   debugPrintWhenNotifiedPreMessage: 'todos',
 );
 

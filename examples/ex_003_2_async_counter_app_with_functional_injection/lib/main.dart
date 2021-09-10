@@ -108,7 +108,7 @@ final config = RM.injectFlavor(
   // debugPrintWhenNotifiedPreMessage: '',
 );
 
-final counterStore = RM.injectFlavor(
+final counterStore = RM.injectFlavor<ICounterStore>(
   {
     Flavor.IncrByOne: () => CounterStoreByOne(0),
     Flavor.IncrByTwo: () => CounterStoreByTwo(0),
@@ -116,7 +116,9 @@ final counterStore = RM.injectFlavor(
   //As config model have any observer, it can not be disposed automatically,
   //we have to Dispose it Manually.
   //For this example here is the appropriate place
-  onDisposed: (_) => config.dispose(),
+  sideEffects: SideEffects(
+    dispose: () => config.dispose(),
+  ),
   // debugPrintWhenNotifiedPreMessage: '',
 );
 

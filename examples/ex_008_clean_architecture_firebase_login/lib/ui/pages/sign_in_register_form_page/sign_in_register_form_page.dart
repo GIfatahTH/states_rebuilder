@@ -9,27 +9,33 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../injected.dart';
 
 final _email = RM.injectTextEditing(
-  validator: (String? val) {
-    if (!Validators.isValidEmail(val!)) {
-      return 'Enter a valid email';
+  validators: [
+    (String? val) {
+      if (!Validators.isValidEmail(val!)) {
+        return 'Enter a valid email';
+      }
     }
-  },
+  ],
 );
 final _password = RM.injectTextEditing(
-  validator: (String? val) {
-    if (!Validators.isValidPassword(val!)) {
-      return 'Enter a valid password';
+  validators: [
+    (String? val) {
+      if (!Validators.isValidPassword(val!)) {
+        return 'Enter a valid password';
+      }
     }
-  },
+  ],
   validateOnTyping: true,
 );
 
 final _confirmationPassword = RM.injectTextEditing(
-  validator: (String? val) {
-    if (_password.text != val) {
-      return 'Passwords do not match';
+  validators: [
+    (String? val) {
+      if (_password.text != val) {
+        return 'Passwords do not match';
+      }
     }
-  },
+  ],
   validateOnTyping: true,
 );
 

@@ -22,7 +22,7 @@ final InjectedAuth<User?, UserParam> user = RM.injectAuth<User?, UserParam>(
     }[currentEnv]!();
   },
   onAuthStream: (repo) => (repo as UserRepository).currentUser().asStream(),
-  onSetState: On.error(
+  sideEffects: SideEffects.onError(
     (err, refresh) {
       if (err is EmailException || err is PasswordException) {
         return;

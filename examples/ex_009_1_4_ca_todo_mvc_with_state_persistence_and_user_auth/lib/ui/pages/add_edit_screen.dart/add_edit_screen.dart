@@ -12,11 +12,13 @@ import '../home_screen/home_screen.dart';
 
 final _task = RM.injectTextEditing(
   text: 'hhhhhhh',
-  validator: (val) {
-    if (val!.trim().isEmpty) {
-      return i18n.of(RM.context!).emptyTodoError;
+  validators: [
+    (val) {
+      if (val!.trim().isEmpty) {
+        return i18n.of(RM.context!).emptyTodoError;
+      }
     }
-  },
+  ],
 );
 final _note = RM.injectTextEditing();
 final _form = RM.injectForm();

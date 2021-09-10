@@ -17,28 +17,34 @@ final RegExp _emailRegExp = RegExp(
   r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
 );
 final _email = RM.injectTextEditing(
-  validator: (email) {
-    if (!_emailRegExp.hasMatch(email!)) {
-      return i18n.state.enterValidEmail;
+  validators: [
+    (email) {
+      if (!_emailRegExp.hasMatch(email!)) {
+        return i18n.state.enterValidEmail;
+      }
     }
-  },
+  ],
 );
 final _password = RM.injectTextEditing(
   validateOnTyping: true,
-  validator: (password) {
-    if (!_passwordRegExp.hasMatch(password!)) {
-      return i18n.state.enterValidPassword;
+  validators: [
+    (password) {
+      if (!_passwordRegExp.hasMatch(password!)) {
+        return i18n.state.enterValidPassword;
+      }
     }
-  },
+  ],
 );
 
 final _confirmPassword = RM.injectTextEditing(
   validateOnTyping: true,
-  validator: (value) {
-    if (_password.text != value) {
-      return 'Passwords do not match';
+  validators: [
+    (value) {
+      if (_password.text != value) {
+        return 'Passwords do not match';
+      }
     }
-  },
+  ],
 );
 final _isRegister = false.inj();
 
