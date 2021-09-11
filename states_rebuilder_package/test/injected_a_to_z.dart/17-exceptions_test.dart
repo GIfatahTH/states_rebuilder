@@ -44,18 +44,18 @@ void main() {
   // );
 }
 
-final x = RM.inject<int>(() => x.state, initialState: 0);
-final arrayWithoutNullState =
+final Injected<int> x = RM.inject<int>(() => x.state, initialState: 0);
+final Injected<List> arrayWithoutNullState =
     RM.inject<List>(() => arrayWithoutNullState.state);
-final arrayWithNullState =
+final Injected<List> arrayWithNullState =
     RM.inject<List>(() => arrayWithNullState.state, initialState: []);
 //
-final y1 = RM.inject<int?>(() => y2.state, initialState: 0);
-final y2 = RM.inject<int?>(() => y1.state, initialState: 0);
+final Injected<int?> y1 = RM.inject<int?>(() => y2.state, initialState: 0);
+final Injected<int?> y2 = RM.inject<int?>(() => y1.state, initialState: 0);
 
 //
 
-final z1 = RM.inject<int>(
+final Injected<int> z1 = RM.inject<int>(
   () => z2.state,
   dependsOn: DependsOn({z2}),
 );

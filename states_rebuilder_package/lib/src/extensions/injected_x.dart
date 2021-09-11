@@ -281,7 +281,7 @@ extension InjectedX<T> on ReactiveModel<T> {
               if (d is T) {
                 inj._reactiveModelState._snapState = SnapState<T>._withData(
                   ConnectionState.done,
-                  d as T,
+                  d,
                 );
                 if (onSetState?._onData == null) {
                   if (inj.onSetState?._onData == null) {

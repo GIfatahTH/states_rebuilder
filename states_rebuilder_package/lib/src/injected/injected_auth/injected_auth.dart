@@ -9,7 +9,7 @@ part 'i_auth.dart';
 part 'on_auth.dart';
 
 abstract class InjectedAuth<T, P> implements Injected<T> {
-  InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
+  // InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
   IAuth<T, P>? _repo;
 
   T get _state => getInjectedState(this);
@@ -197,7 +197,9 @@ class _AuthService<T, P> {
         _onError(_onSignInOut);
       }
 
-      injected.sideEffects?..onSetState?.call(snap)..onAfterBuild?.call();
+      injected.sideEffects
+        ?..onSetState?.call(snap)
+        ..onAfterBuild?.call();
     });
   }
 
