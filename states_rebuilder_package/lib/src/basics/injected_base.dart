@@ -69,16 +69,11 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///  * The mutation function. It takes the current state fo the model.
   /// The function can have any type of return including Future and Stream.
   ///* **Optional parameters:**
-  ///  * **onData**: The callback to execute when the state is successfully
-  /// mutated with data. If defined this [onData] will override any other
-  /// onData for this particular call.
-  ///  * **onError**: The callback to execute when the state has error. If
-  /// defined this [onError] will override any other onData for this particular
-  /// call.
-  ///  * **catchError**: automatically catch errors. It defaults to false, but
-  /// if [onError] is defined then it will be true.
-  ///  * **onSetState** and **onRebuildState**: for more general side effects to
-  /// execute before and after rebuilding observers.
+  ///  * **sideEffects**: Used to handle side effects resulting from calling
+  /// this method. It takes [SideEffects] object. Notice that [SideEffects.initState]
+  /// and [SideEffects.dispose] are never called here.
+  ///  * **shouldOverrideDefaultSideEffects**: used to decide when to override
+  /// the default side effects defined in [RM.inject] and other equivalent methods.
   ///  * **debounceDelay**: time in milliseconds to debounce the execution of
   /// [setState].
   ///  * **throttleDelay**: time in milliseconds to throttle the execution of

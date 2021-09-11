@@ -69,14 +69,8 @@ abstract class RM {
   ///   * **initialState**: Initial state.
   ///   * **onInitialized**: Callback to be executed after the injected model
   /// is first created.
-  ///   * **onDisposed**: Callback to be executed after the injected model is
-  /// removed.
-  ///   * **onWaiting**: Callback to be executed each time the [ReactiveModel]
-  /// associated with the injected model is in the awaiting state.
-  ///   * **onData**: Callback to be executed each time the [ReactiveModel]
-  /// associated with the injected model emits a notification with data.
-  ///   * **onError**: Callback to be executed each time the [ReactiveModel]
-  /// associated with the injected model emits a notification with error.
+  ///   * **sideEffects**: used to handle sideEffects. It takes a [SideEffects]
+  /// object.
   ///   * **dependsOn**: The other [Injected] models this Injected depends on.
   /// It takes an instance of [DependsOn] object.
   ///   * **undoStackLength**: the length of the undo/redo stack. If not
@@ -106,8 +100,9 @@ abstract class RM {
     @Deprecated('Use sideEffects instead') void Function()? onWaiting,
     @Deprecated('Use sideEffects instead') void Function(T s)? onData,
     @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
     SideEffects<T>? sideEffects,
-    void Function(dynamic e, StackTrace? s)? onError,
     DependsOn<T>? dependsOn,
     //
     int undoStackLength = 0,
@@ -129,7 +124,9 @@ abstract class RM {
           : onInitialized,
       onSetState: On(
         () {
-          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          sideEffects
+            ?..onSetState?.call(inj.snapState)
+            ..onAfterBuild?.call();
           onSetState?.call(inj.snapState);
         },
       ),
@@ -193,7 +190,9 @@ abstract class RM {
           : onInitialized,
       onSetState: On(
         () {
-          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          sideEffects
+            ?..onSetState?.call(inj.snapState)
+            ..onAfterBuild?.call();
         },
       ),
       dependsOn: dependsOn,
@@ -259,7 +258,9 @@ abstract class RM {
               : null,
       onSetState: On(
         () {
-          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          sideEffects
+            ?..onSetState?.call(inj.snapState)
+            ..onAfterBuild?.call();
           onSetState?.call(inj.snapState);
         },
       ),
@@ -398,10 +399,8 @@ abstract class RM {
   /// You can set it to false and intentionally call read method the time you
   /// want.
   /// {@template customInjectOptionalParameter}
-  ///   * **onInitialized**: Callback to be executed after the injected model
-  /// is first created.
-  ///   * **onDisposed**: Callback to be executed after the injected model is
-  /// removed.
+  ///   * **sideEffects**: used to handle sideEffects. It takes a [SideEffects]
+  /// object.
   ///   * **dependsOn**: The other [Injected] models this Injected depends on.
   /// It takes an instance of [DependsOn] object.
   ///   * **undoStackLength**: the length of the undo/redo stack. If not
@@ -783,6 +782,18 @@ abstract class RM {
     );
   }
 
+  ///Inject a TextEditingController
+  ///
+  ///* **initialValue** is the initial value.
+  ///* **validators** used for input validation, If it returns null means input
+  ///is valid, else the return string is the error message.
+  ///* **onValueChange** if set to true the input is validated while changing.
+  ///Default value is true.
+  ///* **validateOnLoseFocus** if set to true the input text is validated just
+  ///after the field lose focus.
+  ///* **onValueChange** fired whenever the input value is changed
+  ///* **autoDispose** if set to true the InjectedTextEditing is disposed of when
+  ///no longer used.S
   static InjectedFormField<T> injectFormField<T>(
     T initialValue, {
     List<String? Function(T value)>? validators,
@@ -925,7 +936,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
               : null,
       onSetState: On(
         () {
-          sideEffects?..onSetState?.call(inj.snapState)..onAfterBuild?.call();
+          sideEffects
+            ?..onSetState?.call(inj.snapState)
+            ..onAfterBuild?.call();
           onSetState?.call(inj.snapState);
         },
       ),
