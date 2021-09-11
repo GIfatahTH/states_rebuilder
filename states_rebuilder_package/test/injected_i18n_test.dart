@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +43,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -80,7 +81,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -117,7 +118,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -152,7 +153,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -216,7 +217,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -278,7 +279,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -322,7 +323,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -364,7 +365,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -426,7 +427,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -491,7 +492,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,

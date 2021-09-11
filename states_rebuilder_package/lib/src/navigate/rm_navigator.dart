@@ -6,7 +6,8 @@ class _Navigate {
   ///get the NavigatorState
   NavigatorState get navigatorState {
     final navigatorState = _navigatorKey.currentState;
-    assert(navigatorState != null, '''
+    assert(navigatorState != null,
+        '''
 The MaterialApp has no defined navigatorKey.
 
 To fix:
@@ -53,15 +54,15 @@ MaterialApp(
 
   //For onGenerateRoute
   late Map<String, Widget Function(RouteData data)> _routes;
-  Map<String, _RouteData> _routeData = {};
+  final Map<String, _RouteData> _routeData = {};
   RouteData? routeData;
 
   String _urlPath = '';
   String _baseUrl = '';
   String _routePath = '';
   dynamic _routeArguments;
-  Map<String, String> _routeQueryParams = {};
-  Map<String, String> _routePathParams = {};
+  final Map<String, String> _routeQueryParams = {};
+  final Map<String, String> _routePathParams = {};
 
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
@@ -140,7 +141,7 @@ MaterialApp(
         if (page is RouteWidget) {
           if (page.routes.isEmpty) {
             name = _routeData.containsKey(name)
-                ? '$name' + '${_routeData.length}'
+                ? name + '${_routeData.length}'
                 : name;
             _routeData[name] = _RouteData(
               builder: page.builder,
@@ -152,7 +153,7 @@ MaterialApp(
           } else {
             if (page.builder != null) {
               name = _routeData.containsKey(name)
-                  ? '$name' + '${_routeData.length}'
+                  ? name + '${_routeData.length}'
                   : name;
               _routeData[name] = _RouteData(
                 builder: page.builder,
@@ -175,9 +176,8 @@ MaterialApp(
             return null;
           }
         }
-        name = _routeData.containsKey(name)
-            ? '$name' + '${_routeData.length}'
-            : name;
+        name =
+            _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
         _routeData[name] = _RouteData(
           builder: (_) => page,
           routeData: routeData!,
@@ -626,8 +626,8 @@ List<dynamic> _isMatched(Uri route, Uri url) {
   if (route.pathSegments.length > url.pathSegments.length) {
     return [false, null, null];
   }
-  if (route.pathSegments.length == 0) {
-    if (url.pathSegments.length == 0) {
+  if (route.pathSegments.isEmpty) {
+    if (url.pathSegments.isEmpty) {
       return [true, route, ''];
     } else {
       return [false, null, null];

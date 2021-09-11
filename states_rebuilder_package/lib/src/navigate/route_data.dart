@@ -54,6 +54,7 @@ class RouteData {
   final Map<String, String> queryParams;
   final Map<String, String> pathParams;
   final dynamic arguments;
+  // ignore: prefer_final_fields
   bool _isBaseUrlChanged = false;
   RouteData({
     required this.baseUrl,

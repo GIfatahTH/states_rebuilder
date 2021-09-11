@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 //Fetching a list of counters from a backend service
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -95,20 +96,22 @@ class _App extends StatelessWidget {
 
 class CounterItem extends StatelessWidget {
   const CounterItem();
+  @override
   Widget build(BuildContext context) {
     final counter = injectedCounter(context);
     return Row(
       children: [
-        On.or(
+        OnBuilder.orElse(
+          listenTo: counter,
           onWaiting: () => Text('${counter.state.id}: isWaiting'),
           onError: (e, _) => Text('${counter.state.id}: hasError'),
-          or: () {
+          orElse: (_) {
             //count the number of rebuild
             numberOfRebuild[counter.state.id] =
                 numberOfRebuild[counter.state.id]! + 1;
             return Text('${counter.state.id}: ${counter.state.value}');
           },
-        ).listenTo(counter),
+        ),
         ElevatedButton(
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),

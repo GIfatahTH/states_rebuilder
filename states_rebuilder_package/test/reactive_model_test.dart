@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -828,9 +829,9 @@ void main() {
     'issue #61: reactive stream with error and watch',
     (WidgetTester tester) async {
       int numberOfRebuild = 0;
-      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (num) {
-        if (num == 0) throw Exception('Error message');
-        return num + 1;
+      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (n) {
+        if (n == 0) throw Exception('Error message');
+        return n + 1;
       }).take(3);
 
       final rmStream =
@@ -1070,7 +1071,7 @@ void main() {
       expect(find.text(('1')), findsOneWidget);
 
       //sync increment with error
-      var error;
+      dynamic error;
       await modelRM.setState(
         (_) {
           final model = VanillaModel();
@@ -1682,5 +1683,5 @@ Future<int> getFutureWithError() => Future.delayed(Duration(seconds: 1), () {
       throw Exception('Error message');
     });
 Stream<int> getStream() {
-  return Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+  return Stream.periodic(Duration(seconds: 1), (n) => n).take(3);
 }

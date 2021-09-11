@@ -127,7 +127,7 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         if ((this as InjectedTabImp).duration == Duration.zero) {
           return;
         }
-        var listener;
+        late void Function(AnimationStatus) listener;
         listener = (status) {
           if (status == AnimationStatus.completed) {
             future.complete();
@@ -163,7 +163,7 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         if ((this as InjectedTabImp).duration == Duration.zero) {
           return;
         }
-        var listener;
+        late void Function(AnimationStatus) listener;
         listener = (status) {
           if (status == AnimationStatus.completed) {
             future.complete();
@@ -195,8 +195,8 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
   InjectedTabImp({
     int initialIndex = 0,
     required int length,
-    this.duration: kTabScrollDuration,
-    this.curve: Curves.ease,
+    this.duration = kTabScrollDuration,
+    this.curve = Curves.ease,
     this.viewportFraction = 1.0,
     this.keepPage = true,
   }) : super(creator: () => initialIndex) {

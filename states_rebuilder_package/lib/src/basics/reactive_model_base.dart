@@ -159,6 +159,7 @@ class ReactiveModelBase<T> {
     late Future<SnapState<T>> Function() call;
     call = () async {
       try {
+        // ignore: prefer_typing_uninitialized_variables
         var _stream;
         dynamic result = fn(snapState.data);
         if (result is Future) {

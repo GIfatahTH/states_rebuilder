@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -22,8 +23,9 @@ void main() {
       );
 
       await tester.pumpWidget(
-        On(
-          () => On.animation(
+        OnBuilder(
+          listenTo: model,
+          builder: () => On.animation(
             (animate) {
               return Container(
                 height: height = animate(selected ? 100 : 0),
@@ -46,7 +48,7 @@ void main() {
               );
             },
           ).listenTo(animation),
-        ).listenTo(model),
+        ),
       );
       expect('$height', '0.0');
       expect('$width', '0.0');
@@ -160,7 +162,7 @@ void main() {
       );
       await tester.pumpWidget(On.animation(
         (animate) {
-          return Container(
+          return SizedBox(
             width: animate(100)!,
             height: animate(50)!,
           );
@@ -179,17 +181,20 @@ void main() {
     (tester) async {
       final isSelected = false.inj();
       late Container container1;
-      final widget = On(() {
-        return Column(
-          children: [
-            On.animation(
-              (animate) => container1 = Container(
-                width: animate(isSelected.state ? 100 : 200),
-              ),
-            ).listenTo(animation),
-          ],
-        );
-      }).listenTo(isSelected);
+      final widget = OnBuilder(
+        listenTo: isSelected,
+        builder: () {
+          return Column(
+            children: [
+              On.animation(
+                (animate) => container1 = Container(
+                  width: animate(isSelected.state ? 100 : 200),
+                ),
+              ).listenTo(animation),
+            ],
+          );
+        },
+      );
       await tester.pumpWidget(widget);
       expect(container1.constraints!.maxWidth, 200.0);
       isSelected.toggle();
@@ -223,22 +228,25 @@ void main() {
       late Container container1;
       late Container container2;
 
-      final widget = On(() {
-        return Column(
-          children: [
-            On.animation(
-              (animate) => container1 = Container(
-                width: animate(isSelected.state ? 100 : 200),
-              ),
-            ).listenTo(animation),
-            On.animation(
-              (animate) => container2 = Container(
-                width: animate(isSelected.state ? 100 : 200),
-              ),
-            ).listenTo(animation),
-          ],
-        );
-      }).listenTo(isSelected);
+      final widget = OnBuilder.data(
+        listenTo: isSelected,
+        builder: (_) {
+          return Column(
+            children: [
+              On.animation(
+                (animate) => container1 = Container(
+                  width: animate(isSelected.state ? 100 : 200),
+                ),
+              ).listenTo(animation),
+              On.animation(
+                (animate) => container2 = Container(
+                  width: animate(isSelected.state ? 100 : 200),
+                ),
+              ).listenTo(animation),
+            ],
+          );
+        },
+      );
       await tester.pumpWidget(widget);
       expect(container1.constraints!.maxWidth, 200.0);
       expect(container2.constraints!.maxWidth, 200.0);
@@ -1001,14 +1009,17 @@ void main() {
           home: On.animation(
             (animate) {
               animate(1.0);
-              return On(() {
-                return ListView.builder(
-                    itemCount: 1,
-                    itemBuilder: (_, __) {
-                      animate(1.0, 'n');
-                      return Container();
-                    });
-              }).listenTo(model);
+              return OnBuilder.data(
+                listenTo: model,
+                builder: (_) {
+                  return ListView.builder(
+                      itemCount: 1,
+                      itemBuilder: (_, __) {
+                        animate(1.0, 'n');
+                        return Container();
+                      });
+                },
+              );
             },
           ).listenTo(animation),
         ),
@@ -1037,24 +1048,27 @@ void main() {
           home: On.animation(
             (animate) {
               animate(1.0);
-              return On(() {
-                return ListView.builder(
-                  itemCount: 1,
-                  itemBuilder: (_, __) {
-                    width = animate(selected ? 0.0 : 100.0, 'n')!;
-                    return On.animation(
-                      (animate) {
-                        height = selected
-                            ? animate.fromTween(
-                                (_) => Tween(begin: 0, end: 100.0), 'n')!
-                            : animate.fromTween(
-                                (_) => Tween(begin: 0.0, end: 100.0), 'n')!;
-                        return Container();
-                      },
-                    ).listenTo(animation);
-                  },
-                );
-              }).listenTo(model);
+              return OnBuilder.data(
+                listenTo: model,
+                builder: (_) {
+                  return ListView.builder(
+                    itemCount: 1,
+                    itemBuilder: (_, __) {
+                      width = animate(selected ? 0.0 : 100.0, 'n')!;
+                      return On.animation(
+                        (animate) {
+                          height = selected
+                              ? animate.fromTween(
+                                  (_) => Tween(begin: 0, end: 100.0), 'n')!
+                              : animate.fromTween(
+                                  (_) => Tween(begin: 0.0, end: 100.0), 'n')!;
+                          return Container();
+                        },
+                      ).listenTo(animation);
+                    },
+                  );
+                },
+              );
             },
           ).listenTo(animation),
         ),

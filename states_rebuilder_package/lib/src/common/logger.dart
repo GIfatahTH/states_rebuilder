@@ -19,8 +19,10 @@ class StatesRebuilerLogger {
       message = message + ' : $errorMessage';
     }
     if (!isTestMode) {
+      // ignore: avoid_print
       print(message);
       if (s != null) {
+        // ignore: avoid_print
         print(s);
       }
     }

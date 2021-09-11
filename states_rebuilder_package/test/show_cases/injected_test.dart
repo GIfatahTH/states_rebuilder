@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart' as sb;
@@ -58,7 +59,7 @@ void main() {
   testWidgets(
     'futureInjected is linked to simple Injected',
     (tester) async {
-      assert(sb.injectedModels.length == 0);
+      assert(sb.injectedModels.isEmpty);
       final counter2Future = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
         dependsOn: DependsOn({counter1}),
@@ -635,7 +636,7 @@ void main() {
             return Text(model.state.toString());
           },
           initState: () {
-            print('initState');
+            // print('initState');
           },
           dispose: () {},
           shouldRebuild: () {
@@ -725,7 +726,7 @@ void main() {
             return Text(model.state.toString());
           },
           initState: () {
-            print('initState');
+            // print('initState');
           },
           dispose: () {},
           shouldRebuild: () {

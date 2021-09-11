@@ -363,15 +363,15 @@ class SnapState<T> {
   }
 
   @override
-  bool operator ==(Object o) {
-    if (identical(this, o)) return true;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
 
-    return o is SnapState<T> &&
-        o.isWaiting == isWaiting &&
-        o.error == error &&
+    return other is SnapState<T> &&
+        other.isWaiting == isWaiting &&
+        other.error == error &&
         // (o._infoMessage != kRecomputing || o.isIdle == isIdle) &&
         // o._infoMessage == _infoMessage &&
-        deepEquality.equals(o.data, data);
+        deepEquality.equals(other.data, data);
   }
 
   @override
@@ -379,10 +379,10 @@ class SnapState<T> {
     return _connectionState.hashCode ^ data.hashCode ^ error.hashCode;
   }
 
-  String toShortString<T>(T d) {
+  String toShortString<D>(D d) {
     var status = '';
     if (isIdle && _infoMessage.isNotEmpty) {
-      status = '$_infoMessage';
+      status = _infoMessage;
     } else if (isIdle) {
       status = 'isIdle : ${d ?? data}';
     } else if (isWaiting) {
@@ -392,12 +392,12 @@ class SnapState<T> {
     } else if (hasData) {
       status = 'hasData: ${d ?? data}';
     }
-    return '$status';
+    return status;
   }
 }
 
 class SkipSnapState<T> extends SnapState<T> {
-  SkipSnapState() : super._nothing(null, '', '');
+  const SkipSnapState() : super._nothing(null, '', '');
 }
 
 extension SnapStateX<T> on SnapState<T> {

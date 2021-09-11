@@ -43,7 +43,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   ///Whether the state is waiting for a CRUD operation to finish
   bool get isOnCRUD => _isOnCRUD;
 
-  List<ICRUD<T, P> Function()?> _cachedRepoMocks = [null];
+  final List<ICRUD<T, P> Function()?> _cachedRepoMocks = [null];
 
   ///Inject a fake implementation of this injected model.
   ///
@@ -96,7 +96,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
         ) {
     _resetDefaultState = () {
       _isInitialized = false;
-      onCrudSnap = SnapState.none();
+      onCrudSnap = const SnapState.none();
       _item?.dispose();
       _item = null;
       _repo = null;
@@ -126,7 +126,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }
 
     return () async {
-      onMiddleCRUD(SnapState.waiting());
+      onMiddleCRUD(const SnapState.waiting());
       await _init();
       crud;
 
@@ -135,7 +135,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
           () async {
             try {
               final l = await getRepoAs<ICRUD<T, P>>().read(param?.call());
-              onMiddleCRUD(SnapState.data());
+              onMiddleCRUD(const SnapState.data());
               return [...l];
             } catch (e, s) {
               onMiddleCRUD(SnapState.error(e, s, () {
@@ -148,7 +148,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
           creatorMock,
         );
       } else {
-        onMiddleCRUD(SnapState.data());
+        onMiddleCRUD(const SnapState.data());
         return super.middleCreator(crt, creatorMock);
       }
     }();
@@ -232,13 +232,13 @@ class _CRUDService<T, P> {
     injected.debugMessage = kReading;
     await injected.setState(
       (s) async {
-        injected.onMiddleCRUD(SnapState.waiting());
+        injected.onMiddleCRUD(const SnapState.waiting());
         await injected._init();
         final items = await _repository.read(
           param?.call(injected.param?.call()) ?? injected.param?.call(),
         );
         final result = middleState?.call(s, items) ?? items;
-        injected.onMiddleCRUD(SnapState.data());
+        injected.onMiddleCRUD(const SnapState.data());
         return result;
       },
       sideEffects: SideEffects(
@@ -286,7 +286,7 @@ class _CRUDService<T, P> {
     injected.debugMessage = kCreating;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
             if (isOptimistic) {
               yield <T>[...s, item];
             }
@@ -296,7 +296,7 @@ class _CRUDService<T, P> {
                 item,
                 param?.call(injected.param?.call()) ?? injected.param?.call(),
               );
-              injected.onMiddleCRUD(SnapState.data());
+              injected.onMiddleCRUD(const SnapState.data());
               onResult?.call(addedItem);
             } catch (e, stack) {
               injected.onMiddleCRUD(SnapState.error(e, stack, call));
@@ -375,7 +375,7 @@ class _CRUDService<T, P> {
     injected.debugMessage = kUpdating;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
             if (isOptimistic) {
               yield newState;
               if (injected._item != null) {
@@ -463,7 +463,7 @@ class _CRUDService<T, P> {
     injected.debugMessage = kDeleting;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
 
             if (isOptimistic) {
               yield newState;

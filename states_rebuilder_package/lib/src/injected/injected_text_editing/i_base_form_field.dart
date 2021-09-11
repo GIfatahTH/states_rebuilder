@@ -24,9 +24,9 @@ abstract class _BaseFormField<T> {
   set error(dynamic error) {
     assert(error is String?);
     if (error != null && error.isNotEmpty) {
-      _inj.snapState = _inj.snapState.copyToHasError(error, data: this.value);
+      _inj.snapState = _inj.snapState.copyToHasError(error, data: value);
     } else {
-      _inj.snapState = _inj.snapState.copyToHasData(this.value);
+      _inj.snapState = _inj.snapState.copyToHasData(value);
     }
     _inj.notify();
   }
@@ -52,14 +52,13 @@ abstract class _BaseFormField<T> {
 
   ///Validate the input text by invoking its validator.
   bool validate() {
-    _inj.snapState = _inj.snapState.copyToHasData(this.value);
+    _inj.snapState = _inj.snapState.copyToHasData(value);
 
     if (_validator != null) {
       for (var e in _validator!) {
         final error = e.call(value);
         if (error != null) {
-          _inj.snapState =
-              _inj.snapState.copyToHasError(error, data: this.value);
+          _inj.snapState = _inj.snapState.copyToHasError(error, data: value);
           break;
         }
       }
@@ -89,7 +88,7 @@ abstract class _BaseFormField<T> {
       return;
     }
     _isValidOnLoseFocusDefined = true;
-    final fn = () {
+    void fn() {
       if (!_focusNode!.hasFocus) {
         validate();
         //After the first lose of focus and if field is not valid,
@@ -98,7 +97,8 @@ abstract class _BaseFormField<T> {
         // _focusNode!.removeListener(fn);// removed (issue 187)
 
       }
-    };
+    }
+
     _focusNode!.addListener(fn);
   }
 }

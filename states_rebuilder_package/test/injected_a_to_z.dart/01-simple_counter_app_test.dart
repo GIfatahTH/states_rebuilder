@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -31,9 +33,10 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: On(
-        () => Text('${counter.state}'),
-      ).listenTo(counter),
+      child: OnBuilder(
+        listenTo: counter,
+        builder: () => Text('${counter.state}'),
+      ),
     );
   }
 }

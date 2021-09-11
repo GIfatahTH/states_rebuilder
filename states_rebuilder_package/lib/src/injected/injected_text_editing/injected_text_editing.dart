@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../rm.dart';
 
 part 'on_form_field_builder.dart';
-part 'injected_Form.dart';
+part 'injected_form.dart';
 part 'injected_form_field.dart';
 part 'on_form.dart';
 part 'on_form_submission.dart';
@@ -97,9 +97,6 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   final TextSelection _selection;
   final TextRange _composing;
 
-  //
-  @override
-  late InjectedForm? form;
   late bool _formIsSet;
   late VoidCallback? _removeFromInjectedList;
 
@@ -108,6 +105,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
 //
   late final VoidCallback _resetDefaultState;
 
+  @override
   TextEditingControllerImp get controller {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;

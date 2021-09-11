@@ -44,7 +44,7 @@ final helloName = RM.inject<String>(
         onWaiting: () => RM.scaffold.showSnackBar(
           SnackBar(
             content: Row(
-              children: [
+              children: const [
                 Text('Waiting ...'),
                 Spacer(),
                 CircularProgressIndicator(),
@@ -73,7 +73,7 @@ final streamedHelloName = RM.injectStream<String>(
     final letters = name.state.trim().split('');
     var n = '';
     for (var letter in letters) {
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
       // yield the name letter by letter
       yield n += letter;
     }
@@ -88,10 +88,12 @@ final streamedHelloName = RM.injectStream<String>(
 //
 //
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
@@ -103,7 +105,7 @@ class MyApp extends StatelessWidget {
           navigatorKey: RM.navigate.navigatorKey,
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
@@ -149,15 +151,18 @@ class HomeWidget extends StatelessWidget {
         //deeply nested in the widget tree provided that the widget is not loaded lazily
         //as inside the builder of ListView.builder.
         () => Column(
+          // ignore: prefer_const_literals_to_create_immutables
           children: [
             //For demo purpose, App is fractured to smaller widget.
             //Notes that widget are const,
             const TextFieldWidget(),
             const Spacer(),
+            // ignore: prefer_const_constructors
             HelloNameWidget(), // Not const to make it rebuildable
             const Spacer(),
             const RaisedButtonWidget(),
             const SizedBox(height: 20),
+            // ignore: prefer_const_constructors
             StreamNameWidget(),
             const Spacer(),
           ],
@@ -195,25 +200,25 @@ class HelloNameWidget extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: Icon(Icons.arrow_left_rounded, size: 40),
+          icon: const Icon(Icons.arrow_left_rounded, size: 40),
           onPressed:
               helloName.canUndoState ? () => helloName.undoState() : null,
         ),
-        Spacer(),
+        const Spacer(),
         Center(
           child: helloName.onAll(
             // This part will be re-rendered each time the helloName
             // emits notification of any kind of status (idle, waiting,
             // error, data).
             onIdle: () => Text(i18n.of(context).enterYourName),
-            onWaiting: () => CircularProgressIndicator(),
+            onWaiting: () => const CircularProgressIndicator(),
             onError: (err, refresh) => Text('${err.message}'),
             onData: (data) => Text(data),
           ),
         ),
-        Spacer(),
+        const Spacer(),
         IconButton(
-          icon: Icon(Icons.arrow_right_rounded, size: 40),
+          icon: const Icon(Icons.arrow_right_rounded, size: 40),
           onPressed:
               helloName.canRedoState ? () => helloName.redoState() : null,
         ),
@@ -257,10 +262,10 @@ class StreamNameWidget extends StatelessWidget {
     return streamedHelloName.onOrElse(
       onError: (err, refresh) => Text(
         err.message,
-        style: TextStyle(color: Colors.red),
+        style: const TextStyle(color: Colors.red),
       ),
       //This will rebuild if the stream emits valid data only
-      orElse: (data) => Text('$data'),
+      orElse: (data) => Text(data),
     );
   }
 }

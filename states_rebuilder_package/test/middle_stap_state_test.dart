@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -192,7 +193,7 @@ void main() {
       SnapState<int>? _snapState;
       SnapState<int>? _nextSnapState;
       final model = RM.injectStream<int>(
-        () => Stream.periodic(Duration(seconds: 1), (num) => num).take(3),
+        () => Stream.periodic(Duration(seconds: 1), (n) => n).take(3),
         middleSnapState: (middleSnap) {
           middleSnap.print(
             stateToString: (s) => '[$s]',

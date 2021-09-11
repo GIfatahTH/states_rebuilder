@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -8,15 +9,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 //language file model
 class I18n {
-  final firstString;
-  final secondString;
+  final String firstString;
+  final String secondString;
 
-  I18n({this.firstString, this.secondString});
+  I18n({required this.firstString, required this.secondString});
 
   static I18n fromMap(Map<String, String> map) {
     return I18n(
-      firstString: map['first_string'],
-      secondString: map['second_string'],
+      firstString: map['first_string']!,
+      secondString: map['second_string']!,
     );
   }
 }
@@ -89,7 +90,7 @@ class LocalizationsApp extends StatelessWidget {
           key: Key('${currentLocale.state}'),
           locale: currentLocale.state,
           // List all of the app's supported locales here
-          supportedLocales: [
+          supportedLocales: const [
             Locale('en', 'US'),
             Locale('ar', 'DZ'),
           ],

@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -308,7 +309,7 @@ void main() {
       expect(modelB.hasData, true);
       //
 
-      final widget = On(() => Container()).listenTo(modelA);
+      final widget = OnBuilder(listenTo: modelA, builder: () => Container());
       await tester.pumpWidget(widget);
       modelA.state++;
       expect(modelB.state, 6);

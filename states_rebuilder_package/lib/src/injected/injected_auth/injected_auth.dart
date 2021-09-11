@@ -39,7 +39,7 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
         this as InjectedAuthImp<T, P>,
       );
 
-  List<IAuth<T, P> Function()?> _cachedRepoMocks = [null];
+  final List<IAuth<T, P> Function()?> _cachedRepoMocks = [null];
 
   ///Inject a fake implementation of this injected model.
   ///

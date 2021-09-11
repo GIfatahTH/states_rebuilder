@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -52,20 +53,22 @@ class UserSearcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: On.data(
-        () {
+      child: OnBuilder.data(
+        listenTo: query,
+        builder: (_) {
           return query.state.isEmpty
               ? Text('Please enter a user name!')
-              : On.or(
+              : OnBuilder.orElse(
+                  listenTo: fetchedUsers,
                   onWaiting: () => CircularProgressIndicator(),
-                  or: () {
+                  orElse: (_) {
                     return Column(
                       children: fetchedUsers.state.map((e) => Text(e)).toList(),
                     );
                   },
-                ).listenTo(fetchedUsers);
+                );
         },
-      ).listenTo(query),
+      ),
     );
   }
 }

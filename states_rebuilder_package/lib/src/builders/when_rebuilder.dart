@@ -120,7 +120,7 @@ class WhenRebuilder<T> extends StatefulWidget {
 
   ///a combination of [StateBuilder] widget and [ReactiveModel.whenConnectionState] method.
   ///It Exhaustively switch over all the possible statuses of [ReactiveModel.connectionState]
-  WhenRebuilder({
+  const WhenRebuilder({
     Key? key,
     required this.onIdle,
     required this.onWaiting,
@@ -173,14 +173,14 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       } else {
         //3- take the first model of observeMany
         rm = _models.first as ReactiveModel<T>;
-        _models.forEach((m) {
+        for (var m in _models) {
           final disposer = m.subscribeToRM((snap) {
             //4- the model is that is emitting a notification
             final r = _models.firstWhereOrNull((e) => e.snapState == snap);
             rm = r as ReactiveModel<T>;
           });
           _disposers.add(disposer);
-        });
+        }
       }
     }
 
@@ -200,7 +200,9 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
 
   @override
   void dispose() {
-    _disposers.forEach((disposer) => disposer());
+    for (var disposer in _disposers) {
+      disposer();
+    }
     super.dispose();
   }
 

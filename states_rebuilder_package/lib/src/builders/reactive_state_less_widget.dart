@@ -37,7 +37,7 @@ class _ReactiveStatelessWidgetState
   late VoidCallback removeFromContextSet;
   Map<InjectedBaseState, VoidCallback> _obs1 = {};
   Map<InjectedBaseState, VoidCallback>? _obs2 = {};
-  late final AddObsCallback _addToObs = (InjectedBaseState inj) {
+  void _addToObs(InjectedBaseState inj) {
     final value = _obs1.remove(inj);
     if (value != null) {
       _obs2![inj] = value;
@@ -58,10 +58,13 @@ class _ReactiveStatelessWidgetState
         return true;
       }());
     }
-  };
+  }
+
   @override
   void afterBuild() {
-    _obs1.values.forEach((disposer) => disposer());
+    for (var disposer in _obs1.values) {
+      disposer();
+    }
     _obs1 = _obs2 ?? {};
     _obs2 = null;
     _obs2 = {};
@@ -77,7 +80,9 @@ class _ReactiveStatelessWidgetState
 
   @override
   void dispose() {
-    _obs1.values.forEach((disposer) => disposer());
+    for (var disposer in _obs1.values) {
+      disposer();
+    }
     removeFromContextSet();
     widget.didUnmountWidget();
     super.dispose();

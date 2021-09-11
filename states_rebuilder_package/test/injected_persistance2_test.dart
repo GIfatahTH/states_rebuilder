@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -215,7 +216,6 @@ void main() async {
   });
 
   testWidgets('Test try catch of PersistState', (tester) async {
-    String error = '';
     counter = RM.inject(() => 0,
         persist: () => PersistState(
               key: 'counter',
@@ -224,7 +224,7 @@ void main() async {
               catchPersistError: true,
             ),
         sideEffects: SideEffects.onError((e, s) {
-          error = e.message;
+          // error = e.message;
         }));
 
     store.exception = Exception('Read Error');
@@ -478,7 +478,7 @@ void main() async {
     'Case not initially persisted state',
     (tester) async {
       counter = RM.injectStream(
-        () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
+        () => Stream.periodic(Duration(seconds: 1), (n) => n * 10).take(3),
         persist: () => PersistState(
           key: 'counter',
         ),
@@ -505,7 +505,7 @@ void main() async {
     'Case the state is already persisted',
     (tester) async {
       counter = RM.injectStream(
-        () => Stream.periodic(Duration(seconds: 1), (num) => num * 10).take(3),
+        () => Stream.periodic(Duration(seconds: 1), (n) => n * 10).take(3),
         persist: () => PersistState(
           shouldRecreateTheState: false,
           key: 'counter',

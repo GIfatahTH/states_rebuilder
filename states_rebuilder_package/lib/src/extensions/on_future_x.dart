@@ -146,7 +146,7 @@ extension OnFutureX<F> on OnFuture<F> {
             disposer2?.call();
           },
           builder: (ctx, widget) {
-            final _refresher = () {
+            void _refresher() {
               if (injected != null) {
                 if (injected.hasError) {
                   injected.onErrorRefresher.call();
@@ -155,7 +155,7 @@ extension OnFutureX<F> on OnFuture<F> {
                 }
               }
               inj._reactiveModelState._refresh();
-            };
+            }
 
             return On(() {
               if (inj.snapState.isWaiting) {
@@ -181,7 +181,7 @@ extension OnFutureX<F> on OnFuture<F> {
           },
         );
       },
-      widget: OnFutureWidget(injects: []),
+      widget: const OnFutureWidget(injects: []),
       key: key,
     );
   }
@@ -189,9 +189,10 @@ extension OnFutureX<F> on OnFuture<F> {
 
 class OnFutureWidget extends Widget {
   final List<Injected> injects;
-  OnFutureWidget({
+  const OnFutureWidget({
     required this.injects,
-  });
+    Key? key,
+  }) : super(key: key);
   @override
   Element createElement() {
     throw UnimplementedError();

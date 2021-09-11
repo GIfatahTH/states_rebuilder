@@ -44,10 +44,6 @@ class OnAuth<T> {
             //It is not disposed
             inj.reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
-                print(inj.snapState);
-                print(inj.sideEffects);
-                print(inj.sideEffects!.onAfterBuild);
-                print(inj.sideEffects!.onSetState);
                 // inj.sideEffects
                 //   ?..onSetState?.call(inj.snapState)
                 //   ..onAfterBuild?.call();

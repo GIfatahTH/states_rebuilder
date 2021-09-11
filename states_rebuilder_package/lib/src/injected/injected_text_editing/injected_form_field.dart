@@ -17,6 +17,7 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
     _baseFormField.resetField();
   }
 
+  // ignore: prefer_function_declarations_over_variables
   late void Function(T? v) onChanged = (T? v) {
     value = v as T;
   };
@@ -61,12 +62,10 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     _resetDefaultState();
     _validator = validator;
   }
+  @override
   final bool autoDispose;
   final void Function(InjectedFormField formField)? onValueChange;
   late bool _formIsSet;
-
-  ///The associated [InjectedForm]
-  late InjectedForm? form;
 
   ///Remove this InjectedTextEditing from the associated InjectedForm,
   late VoidCallback? formTextFieldDisposer;
@@ -111,6 +110,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     }
   }
 
+  @override
   set value(T v) {
     if (v == value) {
       return;

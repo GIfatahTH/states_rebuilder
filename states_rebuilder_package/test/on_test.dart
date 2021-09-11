@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -284,7 +285,7 @@ void main() {
     expect(onCall(on, data: 'd'), 'Data');
   });
 
-  testWidgets('On.erro when return void', (tester) async {
+  testWidgets('On.error when return void', (tester) async {
     String? error;
     //
     final on = On<void>.error((_, __) => error = 'error: ' + _);
@@ -295,7 +296,7 @@ void main() {
     onCall(on, error: 'Error', isSideEffect: true);
     expect(error, 'error: Error');
     error = null;
-    onCall(on, data: 'data', isSideEffect: true);
+    onCall(on, data: null, isSideEffect: true);
     expect(error, null);
   });
 }

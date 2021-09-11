@@ -1,9 +1,9 @@
 ## 5.0.0 (2021-09-11)
-### New features
-* Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
-### Breaking changes 
-* `onSetState`, `onData`, `onError`, `onAfterState` are all deprecated in favor to `sideEffects` parameter which takes a `SideEffects` object.(See issue #222).
-* Deprecate `validator` parameter in `RM.injectTextEditing`. `validators` is used instead. 
+  ### New features
+  * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
+  ### Breaking changes 
+  * `onSetState`, `onData`, `onError`, `onAfterState` are all deprecated in favor to `sideEffects` parameter which takes a `SideEffects` object.(See issue #222).
+  * Deprecate `validator` parameter in `RM.injectTextEditing`. `validators` is used instead. 
 
 ## 4.4.0 (2021-09-04)
 * Add `OnReactive` widget for implicit subscription:

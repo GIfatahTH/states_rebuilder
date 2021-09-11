@@ -62,8 +62,12 @@ class ReactiveModelListener<T> {
 
   ///Notify all listeners
   void rebuildState(SnapState<T>? snap) {
-    _listeners.forEach((setState) => setState(snap));
-    [..._sideEffectListeners].forEach((fn) => fn(snap));
+    for (final setState in _listeners) {
+      setState(snap);
+    }
+    for (final fn in [..._sideEffectListeners]) {
+      fn(snap);
+    }
   }
 
   ///Add a callback to the cleaner list
@@ -74,7 +78,9 @@ class ReactiveModelListener<T> {
 
   ///Invoke all the registered cleaning callbacks
   void cleanState() {
-    [..._cleaners].forEach((cleaner) => cleaner());
+    for (final cleaner in [..._cleaners]) {
+      cleaner();
+    }
     _cleaners.clear();
     _sideEffectListeners.clear();
     // onFirstListerAdded = null;

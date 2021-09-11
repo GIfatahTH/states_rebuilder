@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,8 +54,8 @@ class FakeAuthRepo implements IAuth<String, String> {
   }
 
   Stream<String> onAuthChanged() {
-    return Stream.periodic(Duration(seconds: 1), (num) {
-      if (num < 1) return 'user0';
+    return Stream.periodic(Duration(seconds: 1), (n) {
+      if (n < 1) return 'user0';
       return 'user1';
     });
   }
@@ -450,8 +451,8 @@ void main() async {
         onUnSigned++;
       },
       onSigned: (_) => onSigned++,
-      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (num) {
-        if (num == 1) return 'user1';
+      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (n) {
+        if (n == 1) return 'user1';
         throw Exception('Stream Error');
       }),
     );

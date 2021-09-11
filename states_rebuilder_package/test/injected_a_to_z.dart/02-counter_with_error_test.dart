@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -39,23 +40,20 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: On.data(
-        () => Text('${counter.state.count}'),
-      ).listenTo(counter),
+      child: OnBuilder<Counter>.data(
+        listenTo: counter,
+        builder: (data) => Text('${data.count}'),
+      ),
     );
   }
 }
 
 //To test the app we have to use a fake counter
 class FakeCounter extends Counter {
-  @override
-  final int _incrementBy;
-
   final bool shouldThrow;
   FakeCounter({int incrementBy = 1, this.shouldThrow = false})
-      : _incrementBy = incrementBy;
-  @override
-  int _count = 0;
+      : super(incrementBy: incrementBy);
+
   @override
   int get count => _count * _incrementBy;
 

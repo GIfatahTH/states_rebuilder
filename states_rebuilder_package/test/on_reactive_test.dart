@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -585,8 +587,19 @@ class _ParentWidget extends ReactiveStatelessWidget {
   const _ParentWidget({Key? key}) : super(key: key);
 
   @override
+  void didAddObserverForDebug(List<InjectedBaseState> observers) {
+    // print(observers);
+  }
+
+  @override
+  void didNotifyWidget(SnapState snap) {
+    // print(snap);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
+      // ignore: prefer_const_literals_to_create_immutables
       children: [
         _Widget1(),
         _Widget2(),

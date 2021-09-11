@@ -5,12 +5,10 @@ class OnCRUD<T> {
   final T Function(dynamic err, void Function() refresh)? onError;
   final T Function(dynamic data) onResult;
   OnCRUD({
-    required T Function()? onWaiting,
-    required T Function(dynamic err, void Function() refresh)? onError,
-    required T Function(dynamic data) onResult,
-  })  : this.onWaiting = onWaiting,
-        this.onError = onError,
-        this.onResult = onResult;
+    required this.onWaiting,
+    required this.onError,
+    required this.onResult,
+  });
 
   ///Listen to an InjectedCRUD state
   Widget listenTo(

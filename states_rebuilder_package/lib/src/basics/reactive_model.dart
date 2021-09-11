@@ -471,37 +471,37 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   SnapState<T>? _middleSnap(
-    SnapState<T> snap, {
+    SnapState<T> s, {
     On<void>? onSetState,
     bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {
     // snap = middleSnap(snap) ?? snap;
-    if (snap.isWaiting) {
+    if (s.isWaiting) {
       if (snapState.isWaiting) {
         return null;
       }
-      onSetState?.call(snap);
-      return snap;
+      onSetState?.call(s);
+      return s;
     }
-    if (snap.hasError) {
-      if (snap.error == snapState.error) {
+    if (s.hasError) {
+      if (s.error == snapState.error) {
         return null;
       }
-      onSetState?.call(snap);
-      onError?.call(snap.error);
-      return snap;
+      onSetState?.call(s);
+      onError?.call(s.error);
+      return s;
     }
 
-    if (snap.hasData) {
-      if (snap._isImmutable == true && snap == snapState) {
+    if (s.hasData) {
+      if (s._isImmutable == true && s == snapState) {
         return null;
       }
-      onSetState?.call(snap);
-      onData?.call(snap.data as T);
+      onSetState?.call(s);
+      onData?.call(s.data as T);
     }
-    return snap;
+    return s;
   }
 
   // @override

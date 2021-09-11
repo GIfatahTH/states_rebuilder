@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, prefer_function_declarations_over_variables
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Route1 extends StatefulWidget {
   final dynamic data;
-  Route1(this.data);
+  const Route1(this.data);
 
   @override
   _Route1State createState() => _Route1State();
@@ -27,7 +28,7 @@ class _Route1State extends State<Route1> {
 
 class Route2 extends StatefulWidget {
   final dynamic data;
-  Route2(this.data);
+  const Route2(this.data);
 
   @override
   _Route2State createState() => _Route2State();
@@ -887,7 +888,7 @@ void main() {
       final page1121 = (_) => Text('$_');
       final page1122 = (_) => Text('$_');
       final page12 = (_) => Text('$_');
-      final page2 = (_) => Text('$_');
+      // final page2 = (_) => Text('$_');
       var getSubRoute = false;
 
       final routes = {

@@ -145,6 +145,7 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
     return _locale is SystemLocale ? _resolvedLocale : _locale;
   }
 
+  @override
   set locale(Locale? l) {
     if (l == null || _locale == l) {
       return;
@@ -228,8 +229,9 @@ class SystemLocale extends Locale {
   factory SystemLocale() {
     return const SystemLocale._(null);
   }
-  bool operator ==(Object o) {
-    return o is SystemLocale;
+  @override
+  bool operator ==(Object other) {
+    return other is SystemLocale;
   }
 
   @override

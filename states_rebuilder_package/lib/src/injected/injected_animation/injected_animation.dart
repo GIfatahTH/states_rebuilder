@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../rm.dart';
 
-part 'on_Animation.dart';
+part 'on_animation.dart';
 
 class _RebuildAnimation {
   final InjectedAnimation _injected;
@@ -343,12 +343,15 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   @override
   Future<double> refresh() async {
     animationEndFuture ??= Completer();
-    _didUpdateWidgetListeners.forEach((fn) => fn());
+    for (var fn in _didUpdateWidgetListeners) {
+      fn();
+    }
     notify();
     await animationEndFuture?.future;
     return 0.0;
   }
 
+  @override
   void resetAnimation({
     Duration? duration,
     Duration? reverseDuration,
@@ -381,7 +384,9 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       isCurveChanged = true;
     }
     if (isCurveChanged) {
-      _resetAnimationListeners.forEach((fn) => fn());
+      for (var fn in _resetAnimationListeners) {
+        fn();
+      }
       _curvedAnimation = null;
       _reverseCurvedAnimation = null;
     }

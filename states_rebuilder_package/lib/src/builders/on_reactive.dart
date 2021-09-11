@@ -86,7 +86,9 @@ class OnReactive extends ReactiveStatelessWidget {
 
   @override
   void didNotifyWidget(SnapState snap) {
-    sideEffects?..onSetState?.call(snap)..onAfterBuild?.call();
+    sideEffects
+      ?..onSetState?.call(snap)
+      ..onAfterBuild?.call();
     assert(() {
       if (debugPrintWhenRebuild != null) {
         StatesRebuilerLogger.log(
@@ -97,15 +99,15 @@ class OnReactive extends ReactiveStatelessWidget {
   }
 
   @override
-  bool shouldRebuildWidget(SnapState oldSnap, SnapState newSnap) {
-    return shouldRebuild?.call(oldSnap, newSnap) ?? true;
+  bool shouldRebuildWidget(SnapState oldSnap, SnapState currentSnap) {
+    return shouldRebuild?.call(oldSnap, currentSnap) ?? true;
   }
 
   @override
-  void didAddObserverForDebug(obs) {
+  void didAddObserverForDebug(observers) {
     if (debugPrintWhenObserverAdd != null) {
-      StatesRebuilerLogger.log(
-          debugPrintWhenObserverAdd! + ': ${obs.length} observers : $obs');
+      StatesRebuilerLogger.log(debugPrintWhenObserverAdd! +
+          ': ${observers.length} observers : $observers');
     }
   }
 

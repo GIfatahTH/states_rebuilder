@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -29,12 +30,13 @@ void main() {
       final widget = Directionality(
         textDirection: TextDirection.ltr,
         child: counter.futureBuilder<void>(
-          future: (s, asycS) => s?.increment(),
+          future: (s, asyncS) => s?.increment(),
           sideEffects: SideEffects(onSetState: (snap) {
-            if (snap.isWaiting)
+            if (snap.isWaiting) {
               message = 'isWaiting';
-            else
+            } else {
               message = 'hasData';
+            }
           }),
           onWaiting: () => Text('Waiting...'),
           onError: (err) => Text('Error'),

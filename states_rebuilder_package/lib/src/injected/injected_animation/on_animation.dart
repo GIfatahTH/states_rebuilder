@@ -153,18 +153,24 @@ class OnAnimation implements OnWidget {
               value: animateValue,
               fromTween: animateTween,
             );
-            disposer = _injected.reactiveModelState.listeners
-                .addListenerForRebuild((_) {
-              if (_hasChanged || animate.shouldAlwaysRebuild) {
-                try {
-                  assert(() {
-                    _assertionList.clear();
-                    return true;
-                  }());
-                  setState();
-                } catch (e) {}
-              }
-            });
+            disposer =
+                _injected.reactiveModelState.listeners.addListenerForRebuild(
+              (_) {
+                if (_hasChanged || animate.shouldAlwaysRebuild) {
+                  try {
+                    assert(() {
+                      _assertionList.clear();
+                      return true;
+                    }());
+                    setState();
+                  } catch (e) {
+                    if (e is! FlutterError) {
+                      rethrow;
+                    }
+                  }
+                }
+              },
+            );
           },
           dispose: (_) {
             if (ticker != null) {

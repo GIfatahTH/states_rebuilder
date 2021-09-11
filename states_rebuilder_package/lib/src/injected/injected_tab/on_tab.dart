@@ -92,7 +92,7 @@ class OnTabBuilder extends StatefulWidget {
 
 class _OnTabBuilderState extends State<OnTabBuilder>
     with TickerProviderStateMixin {
-  late InjectedTabImp _injected = widget.listenTo as InjectedTabImp;
+  late final InjectedTabImp _injected = widget.listenTo as InjectedTabImp;
   late VoidCallback disposer;
   @override
   void initState() {

@@ -105,17 +105,22 @@ abstract class InjectedScrolling implements InjectedBaseState<double> {
     if (_controller?.hasClients == false) {
       return 'InjectedScrolling(HasNoClient)';
     }
-    if (hasReachedMaxExtent)
+    if (hasReachedMaxExtent) {
       return 'InjectedScrolling(hasReachedTheBottom: true)';
+    }
     if (hasReachedMinExtent) return 'InjectedScrolling(hasReachedTheTop: true)';
-    if (hasStartedScrollingForward)
+    if (hasStartedScrollingForward) {
       return 'InjectedScrolling(hasStartedScrolling: true )';
-    if (hasStartedScrollingReverse)
+    }
+    if (hasStartedScrollingReverse) {
       return 'InjectedScrolling(hasStartedScrollingReverse: true )';
-    if (isScrollingForward)
+    }
+    if (isScrollingForward) {
       return 'InjectedScrolling(isScrollingForward: true )';
-    if (isScrollingReverse)
+    }
+    if (isScrollingReverse) {
       return 'InjectedScrolling(isScrollingReverse: true )';
+    }
     if (isScrolling) return 'InjectedScrolling(isScrolling: true )';
     return 'InjectedScrolling(isIdle: offset: $offset)';
   }
@@ -161,6 +166,7 @@ class InjectedScrollingImp extends InjectedBaseBaseImp<double>
   late final VoidCallback _resetDefaultState;
   //
   ScrollPosition get position => _controller!.position;
+  @override
   ScrollController get controller {
     if (_controller != null) {
       return _controller!;

@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -131,11 +132,12 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.data(
-            () => Text(
+          body: OnBuilder.data(
+            listenTo: model,
+            builder: (_) => Text(
               model.state.toString(),
             ),
-          ).listenTo(model),
+          ),
         ),
       );
 

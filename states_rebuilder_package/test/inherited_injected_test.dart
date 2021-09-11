@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -162,9 +163,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: On(
-          () => switcher.state ? widget1 : Container(),
-        ).listenTo(switcher),
+        home: OnBuilder(
+          listenTo: switcher,
+          builder: () => switcher.state ? widget1 : Container(),
+        ),
       ),
     );
 
@@ -270,9 +272,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: On(
-          () => switcher.state ? widget1 : Container(),
-        ).listenTo(switcher),
+        home: OnBuilder(
+          listenTo: switcher,
+          builder: () => switcher.state ? widget1 : Container(),
+        ),
       ),
     );
 

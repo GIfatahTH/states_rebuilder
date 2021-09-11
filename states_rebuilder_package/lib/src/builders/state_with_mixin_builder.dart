@@ -153,7 +153,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       didChangeLocales;
 
   ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
-  StateWithMixinBuilder({
+  const StateWithMixinBuilder({
     Key? key,
     this.tag,
     this.observe,
@@ -170,7 +170,8 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
     this.didChangeAppLifecycleState,
     this.didChangeLocales,
     required this.mixinWith,
-  })  : assert(builder != null || builderWithChild != null, '''
+  })  : assert(builder != null || builderWithChild != null,
+            '''
   
   | ***Builder not defined***
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -178,7 +179,8 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
-        assert(builderWithChild == null || child != null, '''
+        assert(builderWithChild == null || child != null,
+            '''
   | ***child is null***
   | You have defined the 'builderWithChild' parameter without defining the child parameter.
   | Use 'builderWithChild' with 'child' parameter. 
@@ -438,6 +440,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   }
 
   @override
+  // ignore: no_logic_in_create_state
   _State<T, R> createState() {
     switch (mixinWith) {
       case MixinWith.singleTickerProviderStateMixin:

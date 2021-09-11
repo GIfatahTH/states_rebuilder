@@ -27,7 +27,7 @@ part 'basics/injected.dart';
 part 'basics/injected_base_state.dart';
 part 'basics/injected_base.dart';
 part 'basics/injected_imp.dart';
-part 'basics/injected_persistance/i_persistStore.dart';
+part 'basics/injected_persistance/i_persist_store.dart';
 part 'basics/injected_persistance/injected_persistance.dart';
 part 'basics/injected_persistance/persist_state_mock.dart';
 // part 'basics/injected_state.dart';
@@ -40,7 +40,7 @@ part 'basics/undo_redo_persist_state.dart';
 part 'extensions/injected_list_x.dart';
 part 'extensions/injected_x.dart';
 part 'extensions/on_combined_x.dart';
-part 'extensions/on_future_X.dart';
+part 'extensions/on_future_x.dart';
 part 'extensions/on_x.dart';
 part 'navigate/build_context_x.dart';
 part 'navigate/page_route_builder.dart';
@@ -745,11 +745,7 @@ abstract class RM {
       text: text,
       selection: selection,
       composing: composing,
-      validator: validators != null
-          ? validators
-          : validator != null
-              ? [validator]
-              : null,
+      validator: validators ?? (validator != null ? [validator] : null),
       validateOnTyping: validateOnTyping,
       validateOnLoseFocus: validateOnLoseFocus,
       autoDispose: autoDispose,
@@ -911,13 +907,16 @@ abstract class RM {
     inj = InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null, '''
+        assert(RM.env != null,
+            '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null, '''
+        assert(impl[env] != null,
+            '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength, '''
+        assert(impl.length == _envMapLength,
+            '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
@@ -1033,6 +1032,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     if (_contextSet.isNotEmpty) {
       if (_contextSet.last.findRenderObject()?.attached != true) {
         _contextSet.removeLast();
+        // ignore: recursive_getters
         return context;
       }
       return _contextSet.last;

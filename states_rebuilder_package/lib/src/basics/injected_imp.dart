@@ -95,7 +95,7 @@ class InjectedImp<T> extends Injected<T> {
 
   SnapState<T>? oldSnap;
 
-  bool _isAsyncInjected;
+  final bool _isAsyncInjected;
 
   int undoStackLength = 0;
 
@@ -107,7 +107,7 @@ class InjectedImp<T> extends Injected<T> {
     dynamic Function() crt,
     dynamic Function()? creatorMock,
   ) {
-    final creator = creatorMock == null ? crt : creatorMock;
+    final creator = creatorMock ?? crt;
     if (undoRedoPersistState?.persistanceProvider != null) {
       final val = snapState._infoMessage == kInitMessage
           ? undoRedoPersistState!.persistedCreator()
@@ -136,11 +136,10 @@ class InjectedImp<T> extends Injected<T> {
       }
 
       if (val is Future) {
-        final Function() fn = () async {
+        return () async {
           final r = await val;
           return recreate(r);
-        };
-        return fn();
+        }();
       }
       return recreate(val);
     }
@@ -221,11 +220,11 @@ class InjectedImp<T> extends Injected<T> {
   Future<T?> refresh() async {
     if (inheritedInjects.isNotEmpty) {
       snapState = snapState._copyWith(infoMessage: kRefreshMessage);
-      inheritedInjects.forEach(
-        (e) => e._reactiveModelState._refresh(
+      for (final inj in inheritedInjects) {
+        inj._reactiveModelState._refresh(
           infoMessage: kRecomputing,
-        ),
-      );
+        );
+      }
       snapState = snapState._copyWith(infoMessage: '');
       return snapState.data;
     }
@@ -311,7 +310,7 @@ class InjectedImp<T> extends Injected<T> {
       if (onData != null) {
         onData.call(snap.data as T);
       } else {
-        this.onDataForSideEffect?.call(snap.data as T);
+        onDataForSideEffect?.call(snap.data as T);
       }
       undoRedoPersistState?.call(snap, this);
     } else if (snap.isIdle) {
@@ -342,7 +341,7 @@ class InjectedImp<T> extends Injected<T> {
 
   void _subscribeForCombinedSnap(Set<Injected> depends) {
     for (var depend in dependsOn!.injected) {
-      final fn = (_) {
+      void fn(_) {
         if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
           return;
         }
@@ -358,10 +357,10 @@ class InjectedImp<T> extends Injected<T> {
               _dependentDebounceTimer = null;
             },
           );
-          return null;
+          return;
         } else if (dependsOn!.throttleDelay > 0) {
           if (_dependentDebounceTimer != null) {
-            return null;
+            return;
           }
           _dependentDebounceTimer = Timer(
             Duration(milliseconds: dependsOn!.throttleDelay),
@@ -373,7 +372,7 @@ class InjectedImp<T> extends Injected<T> {
 
         _setCombinedSnap(dependsOn!.injected);
         // _reactiveModelState._refresh(infoMessage: kRecomputing);
-      };
+      }
 
       void addListenerForRebuild() {
         final disposer =
@@ -535,7 +534,9 @@ class InjectedImp<T> extends Injected<T> {
         }(),
       );
       if (dependsOn != null) {
-        _dependentDisposers.forEach((e) => e());
+        for (final disposer in _dependentDisposers) {
+          disposer();
+        }
       }
       _reactiveModelState._removeFromInjectedList?.call();
       _reactiveModelState._removeFromInjectedList = null;

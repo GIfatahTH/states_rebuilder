@@ -221,6 +221,7 @@ class Injector extends StatefulWidget {
   }
 
   @override
+  // ignore: no_logic_in_create_state
   State<Injector> createState() {
     if (appLifeCycle == null) {
       return InjectorState();

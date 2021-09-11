@@ -89,19 +89,19 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
 ///Implementation of [InjectedForm]
 class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   InjectedFormImp({
-    this.autovalidateMode = AutovalidateMode.disabled,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
     this.onSubmitting,
     this.onSubmitted,
     Future<void> Function()? submit,
   })  : _submit = submit,
-        super(creator: () => null);
-  @override
-  AutovalidateMode autovalidateMode;
+        super(creator: () => null) {
+    this.autovalidateMode = autovalidateMode;
+  }
 
   final void Function()? onSubmitting;
   final void Function()? onSubmitted;
-  Future<void> Function()? _submit;
+  final Future<void> Function()? _submit;
   // final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
 
   ///After form is validate, get focused on the first non valid TextField, if any.

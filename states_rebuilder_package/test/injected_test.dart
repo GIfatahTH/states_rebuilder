@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
@@ -10,7 +11,7 @@ import 'fake_classes/models.dart';
 final vanillaModel = RM.inject(() => VanillaModel());
 final streamVanillaModel = RM.injectStream(
   () => Stream.periodic(Duration(seconds: 1),
-      (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
+      (n) => n < 3 ? VanillaModel(n) : VanillaModel(3)).take(6),
   watch: (model) => model?.counter,
   initialState: VanillaModel(0),
   // isLazy: false,
@@ -373,7 +374,7 @@ void main() {
       onIdle: () => Text('Idle'),
       onWaiting: () => Text('waiting ...'),
       onError: (e, _) => Text('${e.message}'),
-      dispose: () => null,
+      dispose: () {},
       shouldRebuild: (_, __) => true,
       onData: (_) {
         return Text('data');
@@ -402,8 +403,8 @@ void main() {
     final widget = computed.rebuild.onOrElse(
       onWaiting: () => Text('waiting ...'),
       onError: (e, __) => Text('${e.message}'),
-      initState: () => null,
-      dispose: () => null,
+      initState: () {},
+      dispose: () {},
       orElse: (_) {
         return Text('${computed.state}');
       },
@@ -688,7 +689,7 @@ void main() {
     streamVanillaModel.injectStreamMock(
       () => Stream.periodic(
         Duration(seconds: 1),
-        (num) => VanillaModel((num + 1) * 2),
+        (n) => VanillaModel((n + 1) * 2),
       ).take(6),
     );
     await tester.pumpWidget(
@@ -1006,8 +1007,8 @@ void main() {
         () {
           counter2 = RM.injectStream<int?>(
             () {
-              return Stream.periodic(Duration(seconds: 1), (num) {
-                return num + 1;
+              return Stream.periodic(Duration(seconds: 1), (n) {
+                return n + 1;
               }).take(3);
             },
             sideEffects: SideEffects(
@@ -1572,7 +1573,7 @@ void main() {
       final counter = RM.inject(
         () => 0,
         sideEffects: SideEffects(
-          onSetState: (En_US) => injectOnSetState++,
+          onSetState: (_) => injectOnSetState++,
         ),
       );
 

@@ -488,7 +488,7 @@ class _OnStreamBuilderState<T> extends State<OnStreamBuilder<T>> {
   StreamSubscription<T>? _subscription;
   void _init() {
     if (_subscription != null) {
-      return null;
+      return;
     }
     _subscription = widget.stream().listen(
       (d) {

@@ -49,14 +49,13 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) {
-    return this.rebuild.call(
-          builder,
-          initState: initState != null ? () => initState() : null,
-          dispose: dispose != null ? () => dispose() : null,
-          shouldRebuild:
-              shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-          watch: watch,
-        );
+    return rebuild.call(
+      builder,
+      initState: initState != null ? () => initState() : null,
+      dispose: dispose != null ? () => dispose() : null,
+      shouldRebuild: shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+      watch: watch,
+    );
     // return On.data(builder).listenTo<T>(
     //   this,
     //   initState: initState != null ? () => initState() : null,
@@ -116,16 +115,16 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      this.rebuild.onAll(
-            onIdle: onIdle,
-            onWaiting: onWaiting,
-            onError: (err, _) => onError(err),
-            onData: (_) => onData(),
-            initState: initState != null ? () => initState() : null,
-            dispose: dispose != null ? () => dispose() : null,
-            shouldRebuild:
-                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-          );
+      rebuild.onAll(
+        onIdle: onIdle,
+        onWaiting: onWaiting,
+        onError: (err, _) => onError(err),
+        onData: (_) => onData(),
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild:
+            shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+      );
 
   /// {@template injected.whenRebuilderOr}
   /// ### This method is deprecated.
@@ -186,18 +185,18 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      this.rebuild.onOrElse(
-            onIdle: onIdle,
-            onWaiting: onWaiting,
-            onError: onError != null ? (err, _) => onError(err) : null,
-            onData: onData != null ? (_) => onData() : null,
-            orElse: (_) => builder(),
-            initState: initState != null ? () => initState() : null,
-            dispose: dispose != null ? () => dispose() : null,
-            shouldRebuild:
-                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-            watch: watch,
-          );
+      rebuild.onOrElse(
+        onIdle: onIdle,
+        onWaiting: onWaiting,
+        onError: onError != null ? (err, _) => onError(err) : null,
+        onData: onData != null ? (_) => onData() : null,
+        orElse: (_) => builder(),
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild:
+            shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+        watch: watch,
+      );
 
   ///Listen to a future from the injected model and rebuild this widget when it
   ///resolves.
@@ -254,7 +253,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         F? data = _getPrimitiveNullState<F>();
         dynamic error;
         Future<F?>? f;
-        SnapState<F> snap = SnapState._nothing(null, '', '');
+        SnapState<F> snap = const SnapState._nothing(null, '', '');
         VoidCallback? disposer;
         if (future != null) {
           f = future(inj._nullableState, inj.stateAsync);
@@ -398,7 +397,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         bool isDone = false;
         S? data = _getPrimitiveNullState<S>();
         dynamic error;
-        SnapState<S> snap = SnapState._nothing(null, '', '');
+        SnapState<S> snap = SnapState<S>._nothing(null, '', '');
 
         return LifeCycleHooks(
           mountedState: (_) {

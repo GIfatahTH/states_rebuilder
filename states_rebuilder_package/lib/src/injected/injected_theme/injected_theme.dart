@@ -142,9 +142,7 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
   @override
   ThemeData get lightTheme {
     var theme = lightThemes[state];
-    if (theme == null) {
-      theme = darkThemes?[state];
-    }
+    theme ??= darkThemes?[state];
     assert(theme != null);
     return theme!;
   }
@@ -154,6 +152,7 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
 
   @override
   ThemeMode get themeMode => _themeMode;
+  @override
   set themeMode(ThemeMode mode) {
     if (_themeMode == mode) {
       return;

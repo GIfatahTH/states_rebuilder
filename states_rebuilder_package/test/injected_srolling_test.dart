@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -15,6 +16,7 @@ void main() {
   bool hasEnded = false;
   final scroll = RM.injectScrolling(
     onScrolling: (scroll) {
+      // ignore: avoid_print
       print(scroll); //used for test coverage
       isTop = scroll.hasReachedMinExtent;
       isBottom = scroll.hasReachedMaxExtent;

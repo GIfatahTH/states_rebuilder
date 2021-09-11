@@ -134,7 +134,9 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
           dispose: (_) {
             dispose?.call();
 
-            disposers.forEach((e) => e());
+            for (var e in disposers) {
+              e();
+            }
           },
           didUpdateWidget: (context, oldWidget, newWidget) {
             for (var i = 0; i < newWidget.injects.length; i++) {

@@ -145,7 +145,7 @@ class StateBuilder<T> extends StatefulWidget {
   /// One of the three observer widgets in states_rebuilder
   ///
   /// See: [WhenRebuilder], [WhenRebuilderOr]
-  StateBuilder({
+  const StateBuilder({
     Key? key,
     // For state management
     this.builder,
@@ -304,8 +304,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
         }
         observe = ReactiveModelImp(creator: () {});
       }
-      observeMany.forEach(
-        (m) {
+      for (var m in observeMany) {
           final disposer = m.observeForRebuild((r) {
             if (r is ReactiveModel && widget.observe == null) {
               rm = r as ReactiveModel<T>;
@@ -313,8 +312,7 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
             observe?.notify();
           });
           observe?.addCleaner(() => disposer());
-        },
-      );
+        }
     } else if (widget.observe == null) {
       throw ArgumentError('You have to observe a model by defining '
           'either observe or observeMany parameters');

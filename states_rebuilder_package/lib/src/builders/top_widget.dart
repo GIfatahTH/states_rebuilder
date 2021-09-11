@@ -128,6 +128,7 @@ class TopAppWidget extends StatefulWidget {
         super(key: key);
 
   @override
+  // ignore: no_logic_in_create_state
   _TopAppWidgetState createState() {
     if (didChangeAppLifecycleState != null || injectedI18N != null) {
       return _TopWidgetWidgetsBindingObserverState();
@@ -145,6 +146,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
   bool _hasError = false;
   dynamic error;
   bool _hasWaiteFor = false;
+  @override
   void initState() {
     super.initState();
     _startWaiting();

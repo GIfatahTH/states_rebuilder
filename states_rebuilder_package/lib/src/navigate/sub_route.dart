@@ -24,7 +24,7 @@ class SubRoute extends InheritedWidget {
   )? transitionsBuilder;
 
   @override
-  bool updateShouldNotify(SubRoute _) {
+  bool updateShouldNotify(SubRoute oldWidget) {
     return false;
   }
 }

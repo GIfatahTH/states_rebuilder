@@ -22,7 +22,7 @@ class _RouteFullWidget extends StatefulWidget {
 class __RouteFullWidgetState extends State<_RouteFullWidget> {
   late Widget child;
 
-  Map<int, Widget> _lastSubRoute = {};
+  final Map<int, Widget> _lastSubRoute = {};
   late String _cachedBaseUrl;
   bool _isDeactivated = true;
   bool _isInit = false;
@@ -132,7 +132,7 @@ class __RouteFullWidgetState extends State<_RouteFullWidget> {
     );
     return StateBuilderBase(
       (_, setState) {
-        final listener = (status) {
+        void listener(status) {
           if (status == AnimationStatus.completed) {
             animationIsRunning = false;
             setState();
@@ -140,7 +140,8 @@ class __RouteFullWidgetState extends State<_RouteFullWidget> {
             animationIsRunning = true;
             setState();
           }
-        };
+        }
+
         widget.animation!.addStatusListener(listener);
         return LifeCycleHooks(
           dispose: (_) => widget.animation!.removeStatusListener(listener),

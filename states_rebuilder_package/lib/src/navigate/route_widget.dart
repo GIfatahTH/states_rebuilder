@@ -14,7 +14,9 @@ class RouteWidget extends Widget {
     this.builder,
     this.routes = const {},
     this.transitionsBuilder,
-  }) : assert(builder != null || routes.isNotEmpty);
+    Key? key,
+  })  : assert(builder != null || routes.isNotEmpty),
+        super(key: key);
 
   @override
   Element createElement() {
