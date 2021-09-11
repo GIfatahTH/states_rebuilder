@@ -236,12 +236,13 @@ void main() async {
 
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On.auth(
+        child: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => Text('Initial Waiting...'),
           onWaiting: () => Text('Waiting...'),
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
-        ).listenTo(user),
+        ),
       );
 
       await tester.pumpWidget(widget);

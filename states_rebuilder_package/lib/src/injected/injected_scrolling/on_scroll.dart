@@ -85,7 +85,7 @@ class OnScrollBuilder extends StatelessWidget {
   final Widget Function(InjectedScrolling) builder;
   @override
   Widget build(BuildContext context) {
-    return On.scroll(builder).listenTo(
+    return OnScroll(builder).listenTo(
       listenTo,
       key: key,
     );

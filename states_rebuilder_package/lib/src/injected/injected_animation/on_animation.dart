@@ -410,7 +410,7 @@ class OnAnimationBuilder extends StatelessWidget {
   final void Function()? onInitialized;
   @override
   Widget build(BuildContext context) {
-    return On.animation(builder).listenTo(
+    return OnAnimation(builder).listenTo(
       listenTo,
       onInitialized: onInitialized,
     );

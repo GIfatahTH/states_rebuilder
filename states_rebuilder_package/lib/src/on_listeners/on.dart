@@ -233,6 +233,7 @@ class On<T> implements OnWidget {
     }
   }
 
+  @Deprecated('Use OnAuthBuilder instead')
   static OnAuth<T> auth<T>({
     T Function()? onInitialWaiting,
     T Function()? onWaiting,
@@ -247,6 +248,7 @@ class On<T> implements OnWidget {
     );
   }
 
+  @Deprecated('Use OnCrudBuilder instead')
   static OnCRUD<T> crud<T>({
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresher)? onError,
@@ -340,16 +342,19 @@ class On<T> implements OnWidget {
   ///  },
   ///);
   ///```
+  @Deprecated('Use OnAnimationBuilder instead')
   static OnAnimation animation<F>(Widget Function(Animate animate) anim) {
     return OnAnimation(anim);
   }
 
+  @Deprecated('Use OnFormBuilder instead')
   static OnForm form(
     Widget Function() builder,
   ) {
     return OnForm(builder);
   }
 
+  @Deprecated('Use OnFormSubmissionBuilder instead')
   static OnFormSubmission formSubmission({
     required Widget Function() onSubmitting,
     Widget Function(dynamic error, VoidCallback onRefresh)? onSubmissionError,
@@ -363,6 +368,7 @@ class On<T> implements OnWidget {
   }
 
   ///Listen to [InjectedScrolling]
+  @Deprecated('Use OnScrollBuilder instead')
   static OnScroll<T> scroll<T>(
     T Function(InjectedScrolling scroll) builder,
   ) {

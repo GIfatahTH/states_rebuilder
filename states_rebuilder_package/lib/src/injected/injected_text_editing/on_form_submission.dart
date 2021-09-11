@@ -121,7 +121,7 @@ class OnFormSubmissionBuilder extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) {
-    return On.formSubmission(
+    return OnFormSubmission(
       onSubmitting: onSubmitting,
       onSubmissionError: onSubmissionError,
       child: child,

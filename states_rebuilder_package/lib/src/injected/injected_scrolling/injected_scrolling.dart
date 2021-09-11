@@ -16,7 +16,7 @@ class _RebuildScrolling {
     Widget Function(InjectedScrolling) builder, {
     Key? key,
   }) {
-    return On.scroll(builder).listenTo(
+    return OnScroll(builder).listenTo(
       _injected,
       key: key,
     );

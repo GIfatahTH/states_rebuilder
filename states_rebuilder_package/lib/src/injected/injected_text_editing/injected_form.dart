@@ -13,7 +13,7 @@ class _RebuildForm {
     Widget Function() builder, {
     Key? key,
   }) {
-    return On.form(builder).listenTo(
+    return OnForm(builder).listenTo(
       _injected,
       key: key,
     );
@@ -33,7 +33,7 @@ class _RebuildForm {
     required Widget child,
     Key? key,
   }) {
-    return On.formSubmission(
+    return OnFormSubmission(
       onSubmitting: onSubmitting,
       onSubmissionError: onSubmissionError,
       child: child,
@@ -46,7 +46,7 @@ class _RebuildForm {
 
 ///Inject a Form state.
 ///
-///Used in conjunction with [On.form].
+///Used in conjunction with [OnFormBuilder].
 abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///Listen to the [InjectedForm] and rebuild when it is notified.
   late final rebuild = _RebuildForm(this);

@@ -100,7 +100,7 @@ class OnFormBuilder extends StatelessWidget {
   final Widget Function() builder;
   @override
   Widget build(BuildContext context) {
-    return On.form(builder).listenTo(
+    return OnForm(builder).listenTo(
       listenTo,
       key: key,
     );

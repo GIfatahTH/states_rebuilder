@@ -269,13 +269,12 @@ class _Rebuild<T> {
     String? debugPrintWhenRebuild,
     Key? key,
   }) {
-    return On.auth(
+    return OnAuthBuilder(
+      listenTo: _injected as InjectedAuth<T, dynamic>,
       onInitialWaiting: onInitialWaiting,
       onWaiting: onWaiting,
       onUnsigned: onUnsigned,
       onSigned: onSigned,
-    ).listenTo<T>(
-      _injected as InjectedAuth<T, dynamic>,
       useRouteNavigation: useRouteNavigation,
       sideEffects: SideEffects<T>(
         onSetState: onSetState != null ? (snap) => onSetState.call(snap) : null,
@@ -306,12 +305,11 @@ class _Rebuild<T> {
     Key? key,
     String? debugPrintWhenRebuild,
   }) {
-    return On.crud(
+    return OnCRUDBuilder(
+      listenTo: _injected as InjectedCRUD,
       onWaiting: onWaiting,
       onError: onError,
       onResult: onResult,
-    ).listenTo(
-      _injected as InjectedCRUD,
       onSetState: onSetState,
       dispose: dispose,
       key: key,

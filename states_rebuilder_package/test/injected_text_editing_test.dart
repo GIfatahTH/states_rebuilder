@@ -126,8 +126,9 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -143,7 +144,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -193,8 +194,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -210,7 +212,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -252,8 +254,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -269,7 +272,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -309,8 +312,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return On(() {
                 if (switcher.state) {
                   return Column(
@@ -331,7 +335,7 @@ void main() {
                 return Container();
               }).listenTo(switcher);
             },
-          ).listenTo(form),
+          ),
         ),
       );
       await tester.pumpWidget(widget);
@@ -472,8 +476,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -491,7 +496,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
       await tester.pumpWidget(widget);
@@ -530,8 +535,9 @@ void main() {
                   itemBuilder: (_, __) {
                     return Builder(
                       builder: (_) {
-                        return On.form(
-                          () {
+                        return OnFormBuilder(
+                          listenTo: form1,
+                          builder: () {
                             return TextField(
                               key: Key('TextField1'),
                               controller: textField1.controller,
@@ -540,21 +546,22 @@ void main() {
                               ),
                             );
                           },
-                        ).listenTo(form1);
+                        );
                       },
                     );
                   },
                 ),
               ),
-              On.form(
-                () => TextField(
+              OnFormBuilder(
+                listenTo: form2,
+                builder: () => TextField(
                   key: Key('TextField2'),
                   controller: textField2.controller,
                   decoration: InputDecoration(
                     errorText: textField2.error,
                   ),
                 ),
-              ).listenTo(form2),
+              ),
             ],
           ),
         ),
@@ -654,7 +661,8 @@ void main() {
                   );
                 },
               ),
-              On.formSubmission(
+              OnFormSubmissionBuilder(
+                listenTo: form,
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(
                   onPressed: () {
@@ -667,7 +675,7 @@ void main() {
                   },
                   child: Text('Submit2'),
                 ),
-              ).listenTo(form),
+              ),
             ],
           ),
         ),
@@ -796,7 +804,8 @@ void main() {
                   );
                 },
               ),
-              On.formSubmission(
+              OnFormSubmissionBuilder(
+                listenTo: form,
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(
                   onPressed: () {
@@ -809,7 +818,7 @@ void main() {
                   },
                   child: Text('Submit2'),
                 ),
-              ).listenTo(form),
+              ),
             ],
           ),
         ),
@@ -929,7 +938,8 @@ void main() {
                   );
                 },
               ),
-              On.formSubmission(
+              OnFormSubmissionBuilder(
+                listenTo: form,
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(
                   onPressed: () {
@@ -942,7 +952,7 @@ void main() {
                   },
                   child: Text('Submit2'),
                 ),
-              ).listenTo(form),
+              ),
             ],
           ),
         ),

@@ -95,7 +95,7 @@ String onCRUDMessage = '';
 final products = RM.injectCRUD<Product, Object>(
   () => throw UnimplementedError(),
   readOnInitialization: true,
-  onCRUD: On.crud(
+  onCRUD: OnCRUD(
     onWaiting: () {
       onCRUDMessage = 'Waiting...';
     },
@@ -478,11 +478,12 @@ void main() {
   testWidgets('On.crud Optimistically', (tester) async {
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.crud(
+      child: OnCRUDBuilder(
+        listenTo: products,
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
-      ).listenTo(products),
+      ),
     );
 
     ///READ
@@ -528,11 +529,12 @@ void main() {
       textDirection: TextDirection.rtl,
       child: Column(
         children: [
-          On.crud(
+          OnCRUDBuilder(
+            listenTo: products,
             onWaiting: () => Text('CRUD Waiting...'),
             onError: (_, __) => Text('CRUD' + _.message),
             onResult: (r) => Text('Result: $r'),
-          ).listenTo(products),
+          ),
           On.all(
             onIdle: () => Text('Idel'),
             onWaiting: () => Text('OnAll Waiting...'),
@@ -639,16 +641,14 @@ void main() {
       late void Function() refresher;
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On.crud(
+        child: OnCRUDBuilder(
+          listenTo: products,
           onWaiting: () => Text('Waiting...'),
           onError: (_, refresh) {
             refresher = refresh;
             return Text(_.message);
           },
           onResult: (r) => Text('Result: $r'),
-        ).listenTo(
-          products,
-          // debugPrintWhenRebuild: '',
         ),
       );
 

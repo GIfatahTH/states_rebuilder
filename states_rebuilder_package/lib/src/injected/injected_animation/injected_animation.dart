@@ -29,8 +29,9 @@ class _RebuildAnimation {
     void Function()? onInitialized,
     Key? key,
   }) {
-    return On.animation(anim).listenTo(
-      _injected,
+    return OnAnimationBuilder(
+      listenTo: _injected,
+      builder: anim,
       onInitialized: onInitialized,
       key: key,
     );

@@ -25,8 +25,9 @@ void main() {
       await tester.pumpWidget(
         OnBuilder(
           listenTo: model,
-          builder: () => On.animation(
-            (animate) {
+          builder: () => OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               return Container(
                 height: height = animate(selected ? 100 : 0),
                 width: width = animate(selected ? 50 : 0, 'width'),
@@ -47,7 +48,7 @@ void main() {
                 child: Container(),
               );
             },
-          ).listenTo(animation),
+          ),
         ),
       );
       expect('$height', '0.0');
@@ -160,14 +161,15 @@ void main() {
       final animation = RM.injectAnimation(
         duration: Duration(seconds: 1),
       );
-      await tester.pumpWidget(On.animation(
-        (animate) {
+      await tester.pumpWidget(OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) {
           return SizedBox(
             width: animate(100)!,
             height: animate(50)!,
           );
         },
-      ).listenTo(animation));
+      ));
 
       expect(tester.takeException(), isArgumentError);
     },
@@ -186,11 +188,12 @@ void main() {
         builder: () {
           return Column(
             children: [
-              On.animation(
-                (animate) => container1 = Container(
+              OnAnimationBuilder(
+                listenTo: animation,
+                builder: (animate) => container1 = Container(
                   width: animate(isSelected.state ? 100 : 200),
                 ),
-              ).listenTo(animation),
+              ),
             ],
           );
         },
@@ -233,16 +236,18 @@ void main() {
         builder: (_) {
           return Column(
             children: [
-              On.animation(
-                (animate) => container1 = Container(
+              OnAnimationBuilder(
+                listenTo: animation,
+                builder: (animate) => container1 = Container(
                   width: animate(isSelected.state ? 100 : 200),
                 ),
-              ).listenTo(animation),
-              On.animation(
-                (animate) => container2 = Container(
+              ),
+              OnAnimationBuilder(
+                listenTo: animation,
+                builder: (animate) => container2 = Container(
                   width: animate(isSelected.state ? 100 : 200),
                 ),
-              ).listenTo(animation),
+              ),
             ],
           );
         },
@@ -286,8 +291,9 @@ void main() {
     (tester) async {
       int numberOfOnAnimationRebuild = 0;
       late Animation<Offset> anim;
-      final widget = On.animation(
-        (_) {
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (_) {
           numberOfOnAnimationRebuild++;
           return SlideTransition(
             position: anim = Tween<Offset>(
@@ -299,8 +305,6 @@ void main() {
             child: Container(),
           );
         },
-      ).listenTo(
-        animation,
         onInitialized: () => animation.triggerAnimation(),
       );
 
@@ -332,13 +336,14 @@ void main() {
             endAnimationNum++;
           });
       late double width;
-      final widget = On.animation(
-        (animate) => Container(
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) => Container(
           width: width = animate.fromTween(
             (_) => Tween(begin: 0.0, end: 100.0),
           )!,
         ),
-      ).listenTo(animation);
+      );
 
       await tester.pumpWidget(widget);
       expect(width, 0.0);
@@ -447,13 +452,14 @@ void main() {
             endAnimationNum++;
           });
       late double width;
-      final widget = On.animation(
-        (animate) => Container(
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) => Container(
           width: width = animate.fromTween(
             (_) => Tween(begin: 0.0, end: 100.0),
           )!,
         ),
-      ).listenTo(animation);
+      );
 
       await tester.pumpWidget(widget);
 
@@ -491,8 +497,9 @@ void main() {
       late double value0;
       late double value1;
       late double value2;
-      final widget = On.animation(
-        (animate) {
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) {
           value0 = animate(isSelected ? 0 : 100)!;
           value1 = animate.setCurve(Interval(0, 0.5)).call(
                 isSelected ? 0 : 100,
@@ -504,7 +511,7 @@ void main() {
               )!;
           return Container();
         },
-      ).listenTo(animation);
+      );
       await tester.pumpWidget(widget);
       expect(value0, 0.0);
       expect(value1, 0.0);
@@ -554,8 +561,9 @@ void main() {
       late double value0;
       late double value1;
       late double value2;
-      final widget = On.animation(
-        (animate) {
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) {
           value0 = animate(isSelected ? 0 : 100)!;
           value1 = animate.setReverseCurve(Interval(0, 0.5)).call(
                 isSelected ? 0 : 100,
@@ -567,7 +575,7 @@ void main() {
               )!;
           return Container();
         },
-      ).listenTo(animation);
+      );
       await tester.pumpWidget(widget);
       expect(value0, 0.0);
       expect(value1, 0.0);
@@ -623,8 +631,9 @@ void main() {
       late double value0;
       late double value1;
       late double value2;
-      final widget = On.animation(
-        (animate) {
+      final widget = OnAnimationBuilder(
+        listenTo: animation,
+        builder: (animate) {
           value0 = animate.fromTween((_) => Tween(begin: 0, end: 100))!;
           value1 = animate.setCurve(Interval(0, 0.5)).fromTween(
                 (_) => Tween(begin: 0, end: 100),
@@ -636,7 +645,7 @@ void main() {
               )!;
           return Container();
         },
-      ).listenTo(animation);
+      );
       await tester.pumpWidget(widget);
       expect(value0, 0.0);
       expect(value1, 0.0);
@@ -677,8 +686,9 @@ void main() {
         shouldAutoStart: true,
       );
       await tester.pumpWidget(
-        On.animation(
-          (_) {
+        OnAnimationBuilder(
+          listenTo: animation,
+          builder: (_) {
             return Directionality(
               textDirection: TextDirection.ltr,
               child: SizeTransition(
@@ -689,11 +699,6 @@ void main() {
               ),
             );
           },
-        ).listenTo(
-          animation,
-          // onInitialized: () {
-          //   animation.triggerAnimation();
-          // },
         ),
       );
       expect(animation.curvedAnimation.value, 0.0);
@@ -726,8 +731,9 @@ void main() {
 
       await tester.pumpWidget(Column(
         children: [
-          On.animation(
-            (animate) {
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               return Transform.translate(
                 offset: offset = animate(
                   isSelected ? Offset.zero : Offset(10, 10),
@@ -735,18 +741,20 @@ void main() {
                 child: Container(),
               );
             },
-          ).listenTo(animation),
-          On.animation(
-            (animate) {
+          ),
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               return SizedBox.fromSize(
                 size: size = animate(
                   isSelected ? Size.zero : Size(10, 10),
                 )!,
               );
             },
-          ).listenTo(animation),
-          On.animation(
-            (animate) {
+          ),
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               textStyle = animate(
                 isSelected
                     ? TextStyle(color: Colors.red)
@@ -781,7 +789,7 @@ void main() {
 
               return Container();
             },
-          ).listenTo(animation),
+          ),
         ],
       ));
 
@@ -836,8 +844,9 @@ void main() {
 
       await tester.pumpWidget(Column(
         children: [
-          On.animation(
-            (animate) {
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               return Transform.translate(
                 offset: offset = animate.fromTween(
                   (currentValue) => Offset.zero.tweenTo(Offset(10, 10)),
@@ -845,18 +854,20 @@ void main() {
                 child: Container(),
               );
             },
-          ).listenTo(animation),
-          On.animation(
-            (animate) {
+          ),
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               return SizedBox.fromSize(
                 size: size = animate.fromTween(
                   (currentValue) => Size.zero.tweenTo(Size(10, 10)),
                 )!,
               );
             },
-          ).listenTo(animation),
-          On.animation(
-            (animate) {
+          ),
+          OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               _double = animate.fromTween(
                 (_) => 0.0.tweenTo(10.0),
               )!;
@@ -910,7 +921,7 @@ void main() {
 
               return Container();
             },
-          ).listenTo(animation),
+          ),
         ],
       ));
       expect(_double, 0.0);
@@ -958,12 +969,13 @@ void main() {
       );
 
       await tester.pumpWidget(
-        On.animation(
-          (animate) {
+        OnAnimationBuilder(
+          listenTo: animation,
+          builder: (animate) {
             animate(Text(''));
             return Container();
           },
-        ).listenTo(animation),
+        ),
       );
 
       expect(tester.takeException(), isUnimplementedError);
@@ -978,8 +990,9 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
+          home: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               animate(1.0);
               return ListView.builder(
                   itemCount: 1,
@@ -988,7 +1001,7 @@ void main() {
                     return Container();
                   });
             },
-          ).listenTo(animation),
+          ),
         ),
       );
 
@@ -1006,8 +1019,9 @@ void main() {
       final model = ''.inj();
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
+          home: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               animate(1.0);
               return OnBuilder.data(
                 listenTo: model,
@@ -1021,7 +1035,7 @@ void main() {
                 },
               );
             },
-          ).listenTo(animation),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -1045,8 +1059,9 @@ void main() {
       bool selected = true;
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
+          home: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               animate(1.0);
               return OnBuilder.data(
                 listenTo: model,
@@ -1055,8 +1070,9 @@ void main() {
                     itemCount: 1,
                     itemBuilder: (_, __) {
                       width = animate(selected ? 0.0 : 100.0, 'n')!;
-                      return On.animation(
-                        (animate) {
+                      return OnAnimationBuilder(
+                        listenTo: animation,
+                        builder: (animate) {
                           height = selected
                               ? animate.fromTween(
                                   (_) => Tween(begin: 0, end: 100.0), 'n')!
@@ -1064,13 +1080,13 @@ void main() {
                                   (_) => Tween(begin: 0.0, end: 100.0), 'n')!;
                           return Container();
                         },
-                      ).listenTo(animation);
+                      );
                     },
                   );
                 },
               );
             },
-          ).listenTo(animation),
+          ),
         ),
       );
       model.notify();
@@ -1115,12 +1131,13 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
+          home: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               animate.fromTween((_) => Tween(begin: 0.0, end: 1.0))!;
               return Container();
             },
-          ).listenTo(animation),
+          ),
         ),
       );
       expect(animation.curvedAnimation.toString(), endsWith('_Linear'));
@@ -1149,12 +1166,13 @@ void main() {
       late double value;
       await tester.pumpWidget(
         MaterialApp(
-          home: On.animation(
-            (animate) {
+          home: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) {
               value = animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
               return Container();
             },
-          ).listenTo(animation),
+          ),
         ),
       );
       expect(value, 0);
@@ -1281,20 +1299,22 @@ void main() {
         MaterialApp(
           home: Column(
             children: [
-              On.animation(
-                (animate) {
+              OnAnimationBuilder(
+                listenTo: animation,
+                builder: (animate) {
                   value =
                       animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
                   return Container();
                 },
-              ).listenTo(animation),
-              On.animation(
-                (animate) {
+              ),
+              OnAnimationBuilder(
+                listenTo: animation,
+                builder: (animate) {
                   value2 =
                       animate.fromTween((_) => Tween(begin: 0.0, end: 100.0))!;
                   return Container();
                 },
-              ).listenTo(animation),
+              ),
             ],
           ),
         ),

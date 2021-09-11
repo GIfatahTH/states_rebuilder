@@ -145,7 +145,7 @@ class OnCRUDBuilder extends StatelessWidget {
   final String? debugPrintWhenRebuild;
   @override
   Widget build(BuildContext context) {
-    return On.crud(
+    return OnCRUD(
       onWaiting: onWaiting,
       onError: onError,
       onResult: onResult,

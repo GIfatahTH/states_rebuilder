@@ -196,7 +196,7 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
   final String? debugPrintWhenRebuild;
   @override
   Widget build(BuildContext context) {
-    return On.auth(
+    return OnAuth(
       onInitialWaiting: onInitialWaiting,
       onWaiting: onWaiting,
       onUnsigned: onUnsigned,

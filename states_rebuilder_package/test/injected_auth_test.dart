@@ -520,12 +520,13 @@ void main() async {
 
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On.auth(
+        child: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => Text('Initial Waiting...'),
           onWaiting: () => Text('Waiting...'),
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
-        ).listenTo(user),
+        ),
       );
 
       await tester.pumpWidget(widget);
@@ -553,12 +554,11 @@ void main() async {
     'The transition between onSignedIn and onSignedOut is done using navigation',
     (tester) async {
       final widget = MaterialApp(
-        home: On.auth(
+        home: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => Text('Initial Waiting...'),
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
-        ).listenTo(
-          user,
           useRouteNavigation: true,
         ),
         navigatorKey: RM.navigate.navigatorKey,
@@ -606,12 +606,11 @@ void main() async {
       );
 
       final widget = MaterialApp(
-        home: On.auth(
+        home: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => Text('Initial Waiting...'),
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
-        ).listenTo(
-          user,
           useRouteNavigation: true,
         ),
         navigatorKey: RM.navigate.navigatorKey,
