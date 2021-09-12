@@ -248,7 +248,7 @@ class On<T> implements OnWidget {
     );
   }
 
-  @Deprecated('Use OnCrudBuilder instead')
+  @Deprecated('Use OnCRUDBuilder instead or OnCRUD for side effects')
   static OnCRUD<T> crud<T>({
     required T Function()? onWaiting,
     required T Function(dynamic err, void Function() refresher)? onError,
