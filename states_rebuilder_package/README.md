@@ -37,12 +37,12 @@
 
 - [Getting Started with States_rebuilder](#getting-started-with-states_rebuilder)
 - [Breaking Changes](#breaking-changes)
-- [A Quick Tour of states_rebuilder API](#a-quick-tour-of-states_rebuilder-api)
+- [A Quick Tour of states_rebuilder APIs](#a-quick-tour-of-states_rebuilder-apis)
   - [Business logic and state injection](#business-logic-and-state-injection)
   - [State change and notification](#state-change-and-notification)
   - [State subscription and Reactive Builders](#state-subscription-and-reactive-builders)
-    - [OnReactive Builder](#onreactive-builder)
-    - [OnBuilder Builder](#onbuilder-builder)
+    - [OnReactive widget and ReactiveStatelessWidget](#onreactive-widget-and-reactivestatelesswidget)
+    - [OnBuilder widget](#onbuilder-widget)
   - [State persistence](#state-persistence)
   - [Undo and redo immutable state](#undo-and-redo-immutable-state)
   - [Route management](#route-management)
@@ -211,7 +211,7 @@ class Counter2View extends StatelessWidget {
 
 </br>
 
-# A Quick Tour of states_rebuilder API
+# A Quick Tour of states_rebuilder APIs
 
 ## Business logic and state injection
 
@@ -289,7 +289,8 @@ final Injected<Foo> foo = RM.inject<Foo>(
     }
   },
 );
-// For simple injection you can use `inj()` extension:
+
+// A handy syntax, injection you can use `.inj()` extension:
 final foo = Foo().inj<Foo>();
 final isBool = false.inj();
 final string = 'str'.inj();
@@ -308,7 +309,7 @@ Injected state can be instantiated globally or as a member of classes. They can 
 
 **Injected state can depend on other Injected states** and recalculate its state and notify its listeners whenever any of its Inject model that it depends on emits a notification.
 
-  [🗎 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
+  [🔍 See more detailed information about the RM.injected API](https://github.com/GIfatahTH/states_rebuilder/wiki/rm_injected_api).
 
 ## State change and notification
 
@@ -341,7 +342,7 @@ The state when mutated emits a notification to its registered listeners. The emi
   - `isActive`: the state had data at least one time.
 
 
-  [🗎 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
+  [🔍 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
 You can notify listeners without changing the state using :
 ```dart
@@ -359,15 +360,16 @@ If the state is persisted, calling `refresh` will delete the persisted state and
 
 Calling `refresh` will cancel any pending async task from the state before refreshing.
 
- [🗎 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
+ [🔍 See more detailed information about the refresh API](https://github.com/GIfatahTH/states_rebuilder/wiki/refresh_api).
 
 
 ## State subscription and Reactive Builders
-There are <span style="color:#20a844">**two ways**</span> to for get your widget rebuilds by state:
-| Widget Builders | Style                       | Link                                 |
-| --------------- | --------------------------- | ------------------------------------ |
-| `OnReactive`, `ReactiveStatelessWidget`    | 👩🏻‍💻 By default                | [Finish him!](#onreactive-builder)   |
-| `OnBuilder`     | 👨🏻‍🚒 Strictly to target widget | [Get Over Here!](#onbuilder-builder) |
+There are <font color=#008000>**two ways**</font> to for get your widget rebuilds by state:
+
+| Widget Builders                         | Style                         | Link                                                          |
+| --------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `OnReactive`, `ReactiveStatelessWidget` | 👩🏻‍💻 By default                  | [Finish him!](#onreactive-widget-and-reactivestatelesswidget) |
+| `OnBuilder`                             | 👨🏻‍🚒 Strictly rebuilds by target | [Get Over Here!](#onbuilder-widget)                           |
 
 </br>
 
@@ -427,7 +429,7 @@ OnReactive(
 )
 ```
 
-Similar to `OnReactive` widget there is the abstract widget **`ReactiveStatelessWidget`**. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners <span style="color:#20a844">**no matter how deep**</span> in the widget tree they are provided that the widget <span style="color:#c70000">**is not loaded lazily**</span> such as inside the `builder` method of the `ListView.builder` widget:
+Similar to `OnReactive` widget there is the abstract widget **`ReactiveStatelessWidget`**. When the `ReactiveStatelessWidget` is used instead of `StatelessWidget`, the widget becomes reactive and implicitly tracks its listeners <font color=#008000>**no matter how deep**</font> in the widget tree they are provided that the widget <font color=#c70000>**is not loaded lazily**</font> such as inside the `builder` method of the `ListView.builder` widget:
 
 ```dart
 class MyWidget extends ReactiveStatelessWidget {
@@ -444,13 +446,13 @@ class MyWidget extends ReactiveStatelessWidget {
 }
 ```
 
-  * [🗎 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
+  * [🔍 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
 
   * [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection). 
 
 </br>
 
-###  OnBuilder Builder
+###  OnBuilder widget
 
 In most cases `OnReactive` do the job. Nevertheless, if you want to explicitly specify the listeners you want to listen to, use `OnBuilder` widget.
 
@@ -483,7 +485,7 @@ OnBuilder.all(
 ),
 ```
 
-  * [🗎 See more detailed information about OnBuilder API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
+  * [🔍 See more detailed information about OnBuilder API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_builder_api).
 
 </br>
 
@@ -537,7 +539,7 @@ class App extends StatelessWidget{
   }
 }
 ```
-  * [🗎 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
+  * [🔍 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
 
 ## State persistence
 
@@ -559,7 +561,7 @@ To Persist the state and retrieve it when the app restarts,
   model.persistState();
   model.deletePersistState();
   ```
-  * [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+  * [🔍 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
 
   * [**Here is an example of state persistence**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_3_state_persistence).
 
@@ -572,7 +574,7 @@ Note: you should first set `undoStackLength:` from RM.inject
   model.undoState();
   model.redoState();
   ```
-  [🗎 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
+  [🔍 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
 
   * [**Here is an example on how to undo and redo the state**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_4_undo_redo_state).
 
@@ -636,7 +638,7 @@ To navigate, show dialogs and snackBars without `BuildContext`:
     RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // => renders PostDetailsWidget(),
   ```
     
-  * [🗎 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+  * [🔍 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
 
 </br>
 
@@ -667,7 +669,7 @@ To navigate, show dialogs and snackBars without `BuildContext`:
   );
   ```
 
-  * [🗎 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
+  * [🔍 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
 
   * [**Here is a working example of a CRUD app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_1_crud_app).
 
@@ -693,7 +695,7 @@ To authenticate and authorize users,
   user.auth.signOut();
   ```
 
-  * [🗎 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
+  * [🔍 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
   * [**Here is a typical auth app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_008_clean_architecture_firebase_login).
 
@@ -721,7 +723,7 @@ To dynamically switch themes,
   theme.toggle();
   ```
 
-  * [🗎 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
+  * [🔍 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
 
   * [**Here is an example on dynamic theming**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
@@ -759,7 +761,7 @@ To internationalize and localize your app:
   i18n.locale = SystemLocale();
   ```
 
-  * [🗎 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
+  * [🔍 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
 
   * [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
@@ -804,7 +806,7 @@ To internationalize and localize your app:
   ),
   ```
 
-  * [🗎 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
+  * [🔍 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
 
   * [**Here are many show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
 
@@ -897,7 +899,7 @@ To deal with TextFields and Form validation
       ),
   ),
   ```
-  * [🗎 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
+  * [🔍 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
 
 </br>
 
@@ -933,7 +935,7 @@ To deal with TextFields and Form validation
   );
   ```
 
-  * [🗎 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
+  * [🔍 See more detailed information about `InjectedScrolling`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_scrolling_api).
 
 
 ## Working with page and tab views
@@ -952,6 +954,8 @@ To mock it in test:
   ```
 
 And many more features.
+
+</br>
 
 # Examples:
 
@@ -1010,8 +1014,7 @@ Here, you will take your programming skills up a notch, deep dive in Architectur
 
 ## <p align='center'>`Code in BLOC Style`</p> <!-- omit in toc --> 
 <!-- 
-* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. --> --> -->
-
+* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. -->
 
 </br>
 Note that all of the above examples are tested. With `states_rebuilder`, testing your business logic is the simplest part of your coding time as it is made up of simple dart classes. On the other hand, testing widgets is no less easy, because with `states_rebuilder` you can isolate the widget under test and mock its dependencies.**
