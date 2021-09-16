@@ -2,8 +2,29 @@ import 'package:flutter/material.dart';
 
 import '../rm.dart';
 
+bool isObjectOrNull<T>() {
+  return T == Object || T == _typeDef<Object?>();
+}
+
+Type _typeDef<T>() => T;
+
+// ignore: prefer_void_to_null
+extension NullX on Null {
+  ReactiveModel<T> inj<T>({bool autoDisposeWhenNotUsed = true}) {
+    assert(T != dynamic);
+    assert(T != Object);
+    assert(T != _typeDef<Object?>());
+    assert(null is T);
+    return ReactiveModelImp<T>(
+      creator: () => this,
+      initialState: null,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
+  }
+}
+
 extension IntX on int {
-  ReactiveModel<int> inj({bool autoDisposeWhenNotUsed = true}) {
+  ReactiveModel<int> inj<T>({bool autoDisposeWhenNotUsed = true}) {
     return ReactiveModelImp(
       creator: () => this,
       initialState: 0,
@@ -91,6 +112,17 @@ extension MapX<T, D> on Map<T, D> {
     return ReactiveModelImp(
       creator: () => this,
       initialState: <T, D>{},
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
+  }
+}
+
+extension ObjectX on Object {
+  ReactiveModel<T> inj<T>({bool autoDisposeWhenNotUsed = true}) {
+    final T initState = this as T;
+    return ReactiveModelImp<T>(
+      creator: () => initState,
+      initialState: initState,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
   }

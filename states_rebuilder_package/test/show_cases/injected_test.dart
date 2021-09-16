@@ -368,6 +368,23 @@ void main() {
   );
 
   testWidgets('Object extension', (tester) async {
+    final model = _Model(0).inj();
+    expect(model.state.count, 0);
+    model.state = _Model(1);
+    expect(model.state.count, 1);
+
+    final injectedNull = null.inj<int?>();
+    expect(injectedNull.state, null);
+    expect(injectedNull.toString(), endsWith('SnapState<int?>(isIdle : null)'));
+    injectedNull.state = 1;
+    expect(injectedNull.state, 1);
+    expect(injectedNull.toString(), endsWith('SnapState<int?>(hasData: 1)'));
+    //
+    expect(() => null.inj<int>(), throwsAssertionError);
+    expect(() => null.inj(), throwsAssertionError);
+    expect(() => null.inj<Object>(), throwsAssertionError);
+    expect(() => null.inj<Object?>(), throwsAssertionError);
+    //
     final injectedInt = 1.inj();
     expect(injectedInt.state, 1);
     injectedInt.state++;
