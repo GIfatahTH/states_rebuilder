@@ -59,42 +59,200 @@ part 'builders/on_builder.dart';
 abstract class RM {
   RM._();
 
-  ///Functional injection of a primitive, enum or object.
+  /// Injection of a primitive, enum, or object.
   ///
-  ///* **Required parameters:**
-  ///  * **creator**:  (positional parameter) a callback that
-  /// creates an instance of the injected object
+  /// State can be injected globally or scoped locally:
+  /// * Global state:
+  ///
+  ///   ```dart
+  ///   //In the global scope
+  ///   final myState = RM.inject(() => MyState())
+  ///   ```
+  ///   // Or Encapsulate it inside a business logic class (BLOC):
+  ///   ```dart
+  ///   //For the sake of best practice, one strives to make the class immutable
+  ///   @immutable
+  ///   class MyBloc {  // or MyViewModel, or MyController
+  ///     final _myState1 = RM.inject(() => MyState1())
+  ///     final _myState2 = RM.inject(() => MyState2())
+  ///
+  ///     //Other logic
+  ///   }
+  ///
+  ///   //As MyBloc is immutable, it is safe to instantiate it globally
+  ///   final myBloc = MyBloc();
+  ///   ```
+  ///
+  /// * Scoped state (local state)
+  ///
+  ///   If the state or the Bloc are configurable (parametrized), Just declare
+  ///   them globally and override the state in the widget tree.
+  ///   ```dart
+  ///   final myState = RM.inject(() => throw UnimplementedError())
+  ///
+  ///   //In the widget tree
+  ///   myState.inherited(
+  ///     stateOverride: () {
+  ///       return MyState(parm1,param2);
+  ///     },
+  ///     builder: (context) {
+  ///       final _myState = myState.of(context);
+  ///     }
+  ///   )
+  ///   ```
+  ///   Similar with Blocs
+  ///   ```dart
+  ///   final myBloc = RM.inject<MyBloc>(() => throw UnimplementedError())
+  ///
+  ///   //In the widget tree
+  ///   myState.inherited(
+  ///     stateOverride: () {
+  ///       return MyBloc(parm1,param2);
+  ///     },
+  ///     builder: (context) {
+  ///       final _myBloc = myBloc.of(context);
+  ///     }
+  ///   )
+  ///   ```
+  /// ## Parameters:
+  /// ### 1. creator: Required callback that returns `<T>`
+  /// A callback that is used to create an instance of the injected object.
+  /// It is called when:
+  ///   * The state is first initialized
+  ///   * The state is refreshed by calling [InjectedBase.refresh] method.
+  ///   * Any of the states that it depends on emits a notification.
+  ///
   /// {@template injectOptionalParameter}
-  /// * **Optional parameters:**
-  ///   * **initialState**: Initial state.
-  ///   * **onInitialized**: Callback to be executed after the injected model
-  /// is first created.
-  ///   * **sideEffects**: used to handle sideEffects. It takes a [SideEffects]
-  /// object.
-  ///   * **dependsOn**: The other [Injected] models this Injected depends on.
-  /// It takes an instance of [DependsOn] object.
-  ///   * **undoStackLength**: the length of the undo/redo stack. If not
-  /// defined, the undo/redo is disabled.
-  ///   * **persist**: If defined the state of this Injected will be persisted.
-  /// It takes A callback that returns an instance of [PersistState].
-  ///   * **autoDisposeWhenNotUsed**: Whether to auto dispose the injected
-  /// model when no longer used (listened to).
-  /// The default value is true.
-  ///   * **isLazy**: By default models are lazily injected; that is not
-  /// instantiated until first used.
-  ///   * **debugPrintWhenNotifiedPreMessage**: if not null, print an
-  /// informative message when this model is notified in the debug mode. It
-  /// prints (FROM ==> TO state). The entered message will pré-append the
-  /// debug message. Useful if the type of the injected model is primitive to
-  /// distinguish between them.
-  ///   * **toDebugString**: String representation fo the state to be used in
-  /// debugPrintWhenNotifiedPreMessage. Useful, for example, if the state is a
-  /// collection and you want to print its length only.
-  /// {@endtemplate}
+  /// ### 2. initialState: Optional `<T>`
+  /// The initial state. It is useful when injecting Future or Stream. If you
+  /// try to get the state of non-resolved Future or Stream of non-nullable state,
+  /// it will throw if `initialState` is not defined.
+  ///
+  /// ### 3. autoDisposeWhenNotUsed**: Optional [bool] (Default true)
+  /// Whether to auto dispose the injected model when no longer used
+  /// (listened to).
+  ///
+  /// It is important to note that:
+  /// * A state never listened to for rebuild, never auto dispose even after it
+  /// is mutated.
+  /// * By default, all states consumed in the widget tree will auto dispose.
+  /// * It is recommended to manually dispose state that are not auto disposed
+  /// using [InjectedBaseState.dispose]. You can dispose all states of the app
+  /// using [RM.disposeAll].
+  /// * A state will auto dispose if all states it depends on are disposed of.
+  /// * Non disposed state may lead to unexpected behavior.
+  /// * To debug when state is initialized and disposed of use
+  /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
+  ///
+  /// ### 4. sideEffects: Optional [SideEffects]
+  /// Used to handle sideEffects when the state is initialized, mutated and
+  /// disposed of. Side effects defined here are called global (default) and
+  /// can be overridden when calling [InjectedBase.setState] method.
+  ///
+  /// See also: [InjectedBase.setState], [OnBuilder.sideEffects] and [OnReactive.sideEffects]
+  ///
+  /// ### 5. onInitialized: Optional callback That exposed the state
+  /// Callback to be executed after the injected model is first created. It is
+  /// similar to [SideEffects.initState] except that it exposes the state for
+  /// some useful cases.
+  ///
+  /// If the injected state is stream, onInitialized additionally exposes the
+  /// [StreamSubscription] object to be able to pause the stream.
+  ///
+  /// ### 6. dependsOn: optional [DependsOn]
+  /// Use to defined other injected states that this state depends on. When
+  /// any of states it depends on is notified, this state is also notified and
+  /// its creator is re-invoked. The state status will reflect a combination of
+  /// the state status of dependencies:
+  /// * If any of dependency state isWaiting, this state isWaiting.
+  /// * If any of dependency state hasError, this state hasError.
+  /// * If any of dependency state isIdle, this state isIdle.
+  /// * If all dependency states have data, this state hasData.
+  ///
+  /// You can set when the state should be recreated, the time of debounce
+  /// and the time of throttle.
+  ///
+  /// ### 7. undoStackLength: Optional integer
+  /// It defines the length of the undo/redo stack. If not defined, the
+  /// undo/redo is disabled.
+  ///
+  /// For the undo/redo state to work properly, the state must be immutable.
+  ///
+  /// Further on to undo or redo the state just call [Injected.undoState] and
+  /// [Injected.redoState]
+  ///
+  /// ### 8. persist: Optional callback that return [PersistState]
+  /// If defined, the state will be persisted.
+  ///
+  /// You have to provide a class that implements [IPersistStore] and initialize
+  /// it in the main method.
+  ///
+  /// For example
+  /// ```dart
+  /// class IPersistStoreImp implements IPersistStore{
+  ///  // ....
+  /// }
+  /// void main()async{
+  ///  WidgetsFlutterBinding.ensureInitialized();
+  ///
+  ///  await RM.storageInitializer(IPersistStoreImp());
+  ///  runApp(MyApp());
+  /// }
+  /// ```
+  /// By default the state is persisted whenever is mutated, but you can set it
+  /// to be persisted manually, or once the state is disposed.
+  ///
+  /// You can debounce and throttle state persistence.
+  ///
+  /// ### 9. stateInterceptor: Optional callback that exposes the current and
+  /// next [SnapState]
+  /// This call back is fired after on state mutation and exposes both the
+  /// current state just before mutation and the next state.
+  ///
+  /// The callback return the next [SnapState]. It may be the same as next state
+  /// or you can change it. Useful in many scenarios where we want to concatenate
+  /// both current and next snap (fetch for list of items is an example);
+  ///
+  /// Example:
+  /// ```dart
+  /// final myState = RM.inject(
+  ///  () => [],
+  ///  stateInterceptor: (currentSnap, nextSnap) {
+  ///    return nextSnap.copyTo(data: [
+  ///      ...currentSnap.state,
+  ///      ...nextSnap.state,
+  ///    ]);
+  ///  },
+  /// );
+  /// /// later on
+  /// myState.state = ['one'];
+  /// print(myState.state); // ['one']
+  ///
+  /// myState.state = ['two'];
+  /// print(myState.state); // ['one', 'two']
+  ///
+  /// ```
+  ///
+  /// ### 10. debugPrintWhenNotifiedPreMessage: Optional [String]
+  /// if not null, print an informative message when this model is notified in
+  /// the debug mode. It prints (FROM ==> TO state). The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model
+  /// is primitive to distinguish between them.
+  ///
+  /// ### 11. toDebugString: Optional callback that exposes the state
+  /// String representation fo the state to be used in
+  ///  `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
+  ///  collection and you want to print its length only.
+  ///  {@endtemplate}
+  ///
+  ///
   static Injected<T> inject<T>(
     T Function() creator, {
     T? initialState,
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
     void Function(T? s)? onInitialized,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
     @Deprecated('Use sideEffects instead') void Function()? onWaiting,
@@ -139,7 +297,12 @@ abstract class RM {
       dependsOn: dependsOn,
       undoStackLength: undoStackLength,
       persist: persist,
-      middleSnapState: middleSnapState,
+      middleSnapState: stateInterceptor != null
+          ? (middleSnap) => stateInterceptor(
+                middleSnap.currentSnap,
+                middleSnap.nextSnap,
+              )
+          : middleSnapState,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
@@ -148,15 +311,24 @@ abstract class RM {
     return inj;
   }
 
-  ///Functional injection of a [Future].
+  /// injection of a [Future].
   ///
-  ///* **Required parameters:**
-  ///  * [creator]:  (positional parameter) a callback that return a [Future].
+  /// ## Parameters:
+  /// ### 1. creator: Required callback that returns [Future]
+  /// A callback that is used to create an instance of the injected object.
+  /// It is called when:
+  ///   * The state is first initialized
+  ///   * The state is refreshed by calling [InjectedBase.refresh] method.
+  ///   * Any of the states that it depends on emits a notification.
+  ///
   /// {@macro injectOptionalParameter}
   static Injected<T> injectFuture<T>(
     Future<T> Function() creator, {
     T? initialState,
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
     void Function(T? s)? onInitialized,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
     @Deprecated('Use sideEffects instead') void Function()? onWaiting,
@@ -199,7 +371,12 @@ abstract class RM {
       isAsyncInjected: true,
       undoStackLength: undoStackLength,
       persist: persist,
-      middleSnapState: middleSnapState,
+      middleSnapState: stateInterceptor != null
+          ? (middleSnap) => stateInterceptor(
+                middleSnap.currentSnap,
+                middleSnap.nextSnap,
+              )
+          : middleSnapState,
       isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
@@ -208,17 +385,26 @@ abstract class RM {
     return inj;
   }
 
-  ///Functional injection of a [Stream].
+  /// injection of a [Stream].
   ///
-  ///* **Required parameters:**
-  ///  * [creator]:  (positional parameter) a callback that return a [Stream].
+  /// ## Parameters:
+  /// ### 1. creator: Required callback that returns [Stream]
+  /// A callback that is used to create an instance of the injected object.
+  /// It is called when:
+  ///   * The state is first initialized
+  ///   * The state is refreshed by calling [InjectedBase.refresh] method.
+  ///   * Any of the states that it depends on emits a notification.
+  ///
   /// {@macro injectOptionalParameter}
   ///   * **watch**: Object to watch its change, and do not notify listener if
   /// not changed after the stream emits data.
   static Injected<T> injectStream<T>(
     Stream<T> Function() creator, {
     T? initialState,
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
     void Function(T? s, StreamSubscription subscription)? onInitialized,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
     @Deprecated('Use sideEffects instead') void Function()? onWaiting,
@@ -268,7 +454,15 @@ abstract class RM {
       isAsyncInjected: true,
       undoStackLength: undoStackLength,
       middleSnapState: (s) {
-        final snap = middleSnapState?.call(s) ?? s.nextSnap;
+        final SnapState<T> snap = (stateInterceptor != null
+                ? stateInterceptor(
+                    s.currentSnap,
+                    s.nextSnap,
+                  )
+                : middleSnapState != null
+                    ? middleSnapState(s)
+                    : null) ??
+            s.nextSnap;
         if (watch != null && s.currentSnap.hasData && snap.hasData) {
           final can = watch(s.currentSnap.data) == watch(snap.data);
           if (can) {
