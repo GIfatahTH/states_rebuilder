@@ -261,7 +261,9 @@ class InjectedImp<T> extends Injected<T> {
     void Function(dynamic error)? onError,
   }) {
     final middleSnap = MiddleSnapState(snapState, s);
-    final snap = middleSnapState?.call(middleSnap) ?? s;
+    final snap = _reactiveModelState._isDisposed
+        ? s
+        : middleSnapState?.call(middleSnap) ?? s;
     if (snap is SkipSnapState) {
       return null;
     }
@@ -520,7 +522,7 @@ class InjectedImp<T> extends Injected<T> {
           debugPrintWhenNotifiedPreMessage,
         ),
       );
-      middleSnapState?.call(middleSnap);
+      // middleSnapState?.call(middleSnap);
 
       assert(
         () {
