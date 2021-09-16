@@ -121,6 +121,14 @@ class OnAnimation implements OnWidget {
         }
 
         void _didUpdateWidget() {
+          assert(() {
+            //Sometimes two succusef call of _didUpdateWidget (happen in hot restart)
+            //while _isDirty is true. This my throw for value duplication.
+            if (_isDirty) {
+              _assertionList.clear();
+            }
+            return true;
+          }());
           _isDirty = true;
           _evaluateAnimation.forEach((key, value) {
             value._isDirty = true;
