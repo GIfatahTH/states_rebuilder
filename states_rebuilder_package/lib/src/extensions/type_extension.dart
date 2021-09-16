@@ -24,7 +24,7 @@ extension NullX on Null {
 }
 
 extension IntX on int {
-  ReactiveModel<int> inj<T>({bool autoDisposeWhenNotUsed = true}) {
+  ReactiveModel<int> inj({bool autoDisposeWhenNotUsed = true}) {
     return ReactiveModelImp(
       creator: () => this,
       initialState: 0,
