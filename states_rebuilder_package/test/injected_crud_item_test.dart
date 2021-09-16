@@ -382,11 +382,11 @@ void main() {
         },
       );
       expect(products.isWaiting, true);
-      expect(_snapState, isNotNull);
-      expect(_snapState?.isIdle, true);
-      expect(_snapState?.data, []);
-      expect(_nextSnapState.isWaiting, true);
-      expect(_nextSnapState.data, []);
+      expect(_snapState, isNull);
+      // expect(_snapState?.isIdle, true);
+      // expect(_snapState?.data, []);
+      // expect(_nextSnapState.isWaiting, true);
+      // expect(_nextSnapState.data, []);
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(_snapState?.isWaiting, true);
       expect(_snapState?.data, []);
