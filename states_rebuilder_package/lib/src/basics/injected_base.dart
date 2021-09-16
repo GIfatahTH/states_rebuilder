@@ -84,8 +84,8 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///  * **context**: The [BuildContext] to be used for side effects
   /// (Navigation, SnackBar). If not defined a default [BuildContext]
   /// obtained from the last added [StateBuilder] will be used.
-  Future<T> setState(
-    dynamic Function(T s) fn, {
+  Future<T> setState<R>(
+    FutureOr<R> Function(T s) fn, {
     @Deprecated('User sideEffects.onData instead')
         void Function(T data)? onData,
     @Deprecated('User sideEffects.onError instead')
