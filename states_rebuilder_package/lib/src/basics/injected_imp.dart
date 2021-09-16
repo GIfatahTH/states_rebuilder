@@ -339,7 +339,7 @@ class InjectedImp<T> extends Injected<T> {
 
   final _dependentDisposers = <VoidCallback>[];
 
-  void _subscribeForCombinedSnap(Set<Injected> depends) {
+  void _subscribeForCombinedSnap(Set<ReactiveModel> depends) {
     for (var depend in dependsOn!.injected) {
       void fn(_) {
         if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
@@ -411,7 +411,8 @@ class InjectedImp<T> extends Injected<T> {
     }
   }
 
-  void _setCombinedSnap(Set<Injected> depends, {bool shouldRebuild = true}) {
+  void _setCombinedSnap(Set<ReactiveModel> depends,
+      {bool shouldRebuild = true}) {
     bool isIdle = false;
     // bool isWaiting = false;
 
@@ -424,7 +425,8 @@ class InjectedImp<T> extends Injected<T> {
       //to avoid dependent state to subscribe to OnReactive
       if (depend._reactiveModelState.snapState.isWaiting) {
         final snap = _reactiveModelState._snapState._copyToIsWaiting(
-          data: depend._imp.oldSnap?._infoMessage == kRefreshMessage
+          data: depend._reactiveModelState._oldSnapState._infoMessage ==
+                  kRefreshMessage
               ? _reactiveModelState._initialState
               : null,
           infoMessage: kDependsOn,
