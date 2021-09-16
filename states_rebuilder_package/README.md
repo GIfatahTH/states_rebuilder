@@ -149,8 +149,8 @@ class CounterApp extends ReactiveStatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        const Counter1View(),
-        const Counter2View(),
+        Counter1View(),
+        Counter2View(),
         Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
       ],
     );
