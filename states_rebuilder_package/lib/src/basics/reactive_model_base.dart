@@ -255,6 +255,10 @@ class ReactiveModelBase<T> {
       onError: (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
+          // ignore: avoid_print
+          print(err);
+          // ignore: avoid_print
+          print(s);
           throw err;
         }
         //In the other hand Exception are handled
