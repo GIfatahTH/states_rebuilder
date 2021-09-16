@@ -232,7 +232,11 @@ abstract class Injected<T> extends ReactiveModel<T> {
     if (defaultToGlobal) {
       return _state;
     }
-    throw Exception('No InheritedWidget of type $T is found');
+    throw Exception(
+      'No Parent InheritedWidget of type $T is found\n'
+      'If you pushed to new route use reInherited method to provide the state '
+      'to the new route',
+    );
     // return null;
   }
 
