@@ -18,6 +18,7 @@ abstract class InjectedTheme<KEY> implements Injected<KEY> {
 
   ///Get the current dark theme.
   ThemeData? get darkTheme;
+  ThemeData get activeTheme => isDarkTheme ? darkTheme! : lightTheme;
 
   ///The current [ThemeMode]
   late ThemeMode themeMode;
