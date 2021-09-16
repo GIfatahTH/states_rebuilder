@@ -165,7 +165,7 @@ class _WhenRebuilderState<T> extends State<WhenRebuilder<T>> {
       //1- rm is the model of the observer
       rm = _models.first as ReactiveModel<T>;
     } else if (widget.observeMany != null && widget.observeMany!.isNotEmpty) {
-      if (T != dynamic && isObjectOrNull<T>()) {
+      if (T != dynamic && !isObjectOrNull<T>()) {
         //Ensure T is not dynamic or Object
         //2- RM is the first model of observeMany that is of type T
         final r = _models.firstWhereOrNull((e) => e is ReactiveModel<T>);
