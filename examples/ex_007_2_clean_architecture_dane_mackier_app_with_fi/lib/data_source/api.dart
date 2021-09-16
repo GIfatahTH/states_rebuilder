@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import '../service/exceptions/input_exception.dart';
+import '../blocs/exceptions/input_exception.dart';
 import 'package:http/http.dart' as http;
 
 import '../domain/entities/comment.dart';
 import '../domain/entities/post.dart';
 import '../domain/entities/user.dart';
-import '../service/exceptions/fetch_exception.dart';
+import '../blocs/exceptions/fetch_exception.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 part 'user_repository.dart';

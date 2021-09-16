@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../service/exceptions/auth_exception.dart';
-import '../../service/exceptions/fetch_todos_exception.dart';
+import '../../blocs/exceptions/auth_exception.dart';
+import '../../blocs/exceptions/fetch_todos_exception.dart';
 
 class ErrorHandler {
   static String getErrorMessage(Object error) {

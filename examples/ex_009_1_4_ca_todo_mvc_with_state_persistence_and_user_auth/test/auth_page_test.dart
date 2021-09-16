@@ -1,3 +1,5 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/auth_bloc.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
@@ -15,8 +17,8 @@ void main() async {
   final storage = await RM.storageInitializerMock();
 
   setUp(() {
-    user.injectAuthMock(() => FakeAuthRepository());
-    todos.injectCRUDMock(() => FakeTodosRepository());
+    authBloc.userRM.injectAuthMock(() => FakeAuthRepository());
+    todosBloc.todosRM.injectCRUDMock(() => FakeTodosRepository());
     DateTimeX.customNow = DateTime(2020);
     storage.clear();
   });

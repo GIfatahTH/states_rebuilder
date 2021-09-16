@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../blocs/exceptions/auth_exception.dart';
 import '../domain/common/extensions.dart';
 import '../domain/entities/user.dart';
 import '../domain/value_object/token.dart';
-import '../service/exceptions/auth_exception.dart';
 import 'my_project_data.dart' as myProjectData;
 
 //Go to https://console.firebase.google.com/project/YOUR_PROJECT_NAME/settings/general and get `webApiKey`. This will be your `webApiKey` const.

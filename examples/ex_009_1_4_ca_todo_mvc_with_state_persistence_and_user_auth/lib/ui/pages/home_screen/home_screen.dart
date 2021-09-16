@@ -1,21 +1,18 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/common/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../data_source/firebase_todos_repository.dart';
+import '../../../blocs/auth_bloc.dart';
+import '../../../blocs/todos_bloc.dart';
 import '../../../domain/entities/todo.dart';
-import '../../../domain/value_object/todos_stats.dart';
-import '../../../service/common/enums.dart';
 import '../../common/enums.dart';
-import '../../common/localization/localization.dart';
-import '../../common/theme/theme.dart';
-import '../../exceptions/error_handler.dart';
+import '../../localization/localization.dart';
 import '../../pages/add_edit_screen.dart/add_edit_screen.dart';
-import '../auth_page/auth_page.dart';
+import '../../theme/theme.dart';
 import '../detail_screen/detail_screen.dart';
 
 part 'extra_actions_button.dart';
 part 'filter_button.dart';
-part 'injected_todo.dart';
 part 'languages.dart';
 part 'stats_counter.dart';
 part 'todo_item.dart';
@@ -41,13 +38,13 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         body: OnReactive(
-          () => todos.onOrElse(
-            onWaiting: todos.state.isEmpty
+          () => todosBloc.todosRM.onOrElse(
+            onWaiting: todosBloc.todos.isEmpty
                 ? () => const Center(
                       child: const CircularProgressIndicator(),
                     )
                 : null,
-            onError: todos.state.isEmpty
+            onError: todosBloc.todos.isEmpty
                 ? (err, refresh) => Center(
                       child: Column(
                         children: [
@@ -55,7 +52,7 @@ class HomeScreen extends StatelessWidget {
                           IconButton(
                             icon: Icon(Icons.refresh),
                             onPressed: () {
-                              todos.refresh();
+                              todosBloc.todosRM.refresh();
                               refresh();
                             },
                           ),

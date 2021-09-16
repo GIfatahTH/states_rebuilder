@@ -1,8 +1,9 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/exceptions/fetch_todos_exception.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/fetch_todos_exception.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/detail_screen/detail_screen.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
@@ -17,7 +18,7 @@ void main() async {
 
   setUp(
     () {
-      todos.injectCRUDMock(() => FakeTodosRepository());
+      todosBloc.todosRM.injectCRUDMock(() => FakeTodosRepository());
       DateTimeX.customNow = DateTime(2020);
       storage.clear();
       //auto log with _user12;
@@ -67,8 +68,10 @@ void main() async {
     expect(find.byType(TodoItem), findsOneWidget);
     // await tester.pump(Duration(seconds: 1));
 
-    final storedTodos =
-        todos.getRepoAs<FakeTodosRepository>().todos['__Todos__/user1']!.first;
+    final storedTodos = todosBloc.todosRM
+        .getRepoAs<FakeTodosRepository>()
+        .todos['__Todos__/user1']!
+        .first;
     expect(storedTodos.task, 'Task1');
     expect(storedTodos.note, 'Note1');
   });
@@ -78,7 +81,7 @@ void main() async {
     //Start with three todos
     expect(find.byType(TodoItem), findsNWidgets(3));
 
-    final repo = todos.getRepoAs<FakeTodosRepository>();
+    final repo = todosBloc.todosRM.getRepoAs<FakeTodosRepository>();
     expect(repo.todos['__Todos__/user2']!.length, 3);
     expect(repo.todos['__Todos__/user2']![1].task, 'Task2');
     expect(repo.todos['__Todos__/user2']![1].note, 'Note2');
@@ -119,7 +122,7 @@ void main() async {
       //
       //Set the mocked store to throw PersistanceException after one seconds,
       //when writing to the store
-      final repo = todos.getRepoAs<FakeTodosRepository>();
+      final repo = todosBloc.todosRM.getRepoAs<FakeTodosRepository>();
       repo.error = CRUDTodosException.netWorkFailure();
       storage.timeToThrow = 1000;
       //Dismiss the second todo
@@ -189,7 +192,7 @@ void main() async {
       expect(checkedCheckBox, findsNWidgets(1));
       expect(unCheckedCheckBox, findsNWidgets(2));
 
-      final repo = todos.getRepoAs<FakeTodosRepository>();
+      final repo = todosBloc.todosRM.getRepoAs<FakeTodosRepository>();
       expect(repo.todos['__Todos__/user2']![0].task, 'Task1');
       expect(repo.todos['__Todos__/user2']![0].complete, true);
       await tester.pump(Duration(seconds: 1));

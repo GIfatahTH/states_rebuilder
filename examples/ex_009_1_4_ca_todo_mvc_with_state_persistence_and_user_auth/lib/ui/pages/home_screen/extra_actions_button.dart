@@ -20,25 +20,27 @@ class ExtraActionsButton extends StatelessWidget {
             }
 
             if (action == ExtraAction.logout) {
-              user.auth.signOut();
+              authBloc.signOut();
               return;
             }
 
             if (action == ExtraAction.toggleAllComplete) {
-              todos.state.toggleAll();
+              todosBloc.toggleAll();
             } else {
-              todos.state.clearCompleted();
+              todosBloc.clearCompleted();
             }
           },
           itemBuilder: (BuildContext context) {
             return <PopupMenuItem<ExtraAction>>[
-              if (todosStats.hasData)
+              if (todosBloc.todosStats.hasData)
                 PopupMenuItem<ExtraAction>(
                   key: Key('__toggleAll__'),
                   value: ExtraAction.toggleAllComplete,
-                  child: Text(todosStats.state.allComplete
-                      ? i18n.of(context).markAllIncomplete
-                      : i18n.of(context).markAllComplete),
+                  child: Text(
+                    todosBloc.allComplete
+                        ? i18n.of(context).markAllIncomplete
+                        : i18n.of(context).markAllComplete,
+                  ),
                 ),
               PopupMenuItem<ExtraAction>(
                 key: Key('__toggleClearCompleted__'),

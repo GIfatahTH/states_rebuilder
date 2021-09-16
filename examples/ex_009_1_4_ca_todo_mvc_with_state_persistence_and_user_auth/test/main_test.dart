@@ -1,3 +1,5 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/auth_bloc.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,14 +9,13 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dar
 
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/auth_page/auth_page.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
 
   setUp(() {
-    user.injectMock(
+    authBloc.userRM.injectMock(
       () => User(
         userId: 'user1',
         email: 'user1@mail.com',
@@ -26,7 +27,7 @@ void main() async {
         ),
       ),
     );
-    todos.injectMock(() => []);
+    todosBloc.todosRM.injectMock(() => []);
     storage.clear();
   });
   testWidgets('Toggle theme should work', (tester) async {

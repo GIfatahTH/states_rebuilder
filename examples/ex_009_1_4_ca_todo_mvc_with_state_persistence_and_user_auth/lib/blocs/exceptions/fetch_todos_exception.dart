@@ -1,4 +1,4 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/common/localization/localization.dart';
+import '../../ui/localization/localization.dart';
 
 class CRUDTodosException implements Exception {
   final String message;

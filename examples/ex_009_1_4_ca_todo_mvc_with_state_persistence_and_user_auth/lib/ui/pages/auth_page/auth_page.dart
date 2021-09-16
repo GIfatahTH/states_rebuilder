@@ -1,79 +1,7 @@
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/service/exceptions/auth_exception.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/common/localization/localization.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/sign_form_bloc.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-
-import '../../../data_source/firebase_auth_repository.dart';
-import '../../../domain/common/extensions.dart';
-import '../../../domain/entities/user.dart';
-import '../../../ui/exceptions/error_handler.dart';
-
-part 'injected_user.dart';
-
-final RegExp _passwordRegExp = RegExp(
-  r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$',
-);
-final RegExp _emailRegExp = RegExp(
-  r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
-);
-final _email = RM.injectTextEditing(
-  validators: [
-    (email) {
-      if (!_emailRegExp.hasMatch(email!)) {
-        return i18n.state.enterValidEmail;
-      }
-    }
-  ],
-);
-final _password = RM.injectTextEditing(
-  validateOnTyping: true,
-  validators: [
-    (password) {
-      if (!_passwordRegExp.hasMatch(password!)) {
-        return i18n.state.enterValidPassword;
-      }
-    }
-  ],
-);
-
-final _confirmPassword = RM.injectTextEditing(
-  validateOnTyping: true,
-  validators: [
-    (value) {
-      if (_password.text != value) {
-        return 'Passwords do not match';
-      }
-    }
-  ],
-);
-final _isRegister = false.inj();
-
-final _form = RM.injectForm(
-  submit: () async {
-    if (_isRegister.state) {
-      await user.auth.signUp(
-        (_) => UserParam(email: _email.text, password: _password.text),
-      );
-    } else {
-      await user.auth.signIn(
-        (_) => UserParam(
-          email: _email.text,
-          password: _password.text,
-        ),
-      );
-    }
-    //After server validation
-    switch (user.error.runtimeType) {
-      case EmailException:
-        _email.error = user.error.message;
-        break;
-      case PasswordException:
-        _password.error = user.error.message;
-        break;
-      default:
-    }
-  },
-);
 
 class AuthPage extends StatelessWidget {
   const AuthPage({Key? key}) : super(key: key);
@@ -97,84 +25,85 @@ class AuthFormWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final _i18n = i18n.of(context);
     return OnFormBuilder(
-      listenTo: _form,
+      listenTo: signFormBloc.form,
       builder: () => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           TextField(
             key: Key('__EmailField__'),
-            controller: _email.controller,
-            focusNode: _email.focusNode,
+            controller: signFormBloc.email.controller,
+            focusNode: signFormBloc.email.focusNode,
             decoration: InputDecoration(
               icon: Icon(Icons.email),
               labelText: _i18n.email,
-              errorText: _email.error,
+              errorText: signFormBloc.email.error,
             ),
             keyboardType: TextInputType.emailAddress,
             autocorrect: false,
             onSubmitted: (_) {
-              _password.focusNode.requestFocus();
+              signFormBloc.password.focusNode.requestFocus();
             },
           ),
           TextField(
             key: Key('__PasswordField__'),
-            controller: _password.controller,
-            focusNode: _password.focusNode,
+            controller: signFormBloc.password.controller,
+            focusNode: signFormBloc.password.focusNode,
             decoration: InputDecoration(
               icon: Icon(Icons.lock),
               labelText: _i18n.password,
-              errorText: _password.error,
+              errorText: signFormBloc.password.error,
             ),
             obscureText: true,
             autocorrect: false,
             onSubmitted: (_) {
-              if (_isRegister.state) {
-                _confirmPassword.focusNode.requestFocus();
+              if (signFormBloc.isRegister.state) {
+                signFormBloc.confirmPassword.focusNode.requestFocus();
               } else {
-                _form.submitFocusNode.requestFocus();
+                signFormBloc.form.submitFocusNode.requestFocus();
               }
             },
           ),
-          if (_isRegister.state)
+          if (signFormBloc.isRegister.state)
             TextField(
               key: Key('__ConfirmPasswordField__'),
-              controller: _confirmPassword.controller,
-              focusNode: _confirmPassword.focusNode,
+              controller: signFormBloc.confirmPassword.controller,
+              focusNode: signFormBloc.confirmPassword.focusNode,
               decoration: InputDecoration(
                 icon: Icon(Icons.lock),
                 labelText: _i18n.confirmPassword,
-                errorText: _confirmPassword.error,
+                errorText: signFormBloc.confirmPassword.error,
               ),
               obscureText: true,
               autocorrect: false,
               onSubmitted: (_) {
-                _form.submitFocusNode.requestFocus();
+                signFormBloc.form.submitFocusNode.requestFocus();
               },
             ),
           SizedBox(height: 10),
           Row(
             children: <Widget>[
               Checkbox(
-                value: _isRegister.state,
+                value: signFormBloc.isRegister.state,
                 onChanged: (value) {
-                  _isRegister.state = value!;
+                  signFormBloc.isRegister.state = value!;
                 },
               ),
               Text(_i18n.doNotHaveAnAccount)
             ],
           ),
           OnFormSubmissionBuilder(
-            listenTo: _form,
+            listenTo: signFormBloc.form,
             onSubmitting: () => const Center(
               child: CircularProgressIndicator(),
             ),
             child: ElevatedButton(
-              focusNode: _form.submitFocusNode,
-              child:
-                  _isRegister.state ? Text(_i18n.signUp) : Text(_i18n.signIn),
+              focusNode: signFormBloc.form.submitFocusNode,
+              child: signFormBloc.isRegister.state
+                  ? Text(_i18n.signUp)
+                  : Text(_i18n.signIn),
               onPressed: () {
-                _form.submit();
+                signFormBloc.form.submit();
               },
             ),
           ),

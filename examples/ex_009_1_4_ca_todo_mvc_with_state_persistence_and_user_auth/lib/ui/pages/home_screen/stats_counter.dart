@@ -7,7 +7,7 @@ class StatsCounter extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnReactive(
       () => Center(
-        child: todosStats.isWaiting
+        child: todosBloc.todosStats.isWaiting
             ? CircularProgressIndicator()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -22,7 +22,7 @@ class StatsCounter extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
-                      '${todosStats.state.numCompleted}',
+                      '${todosBloc.numCompleted}',
                       style: Theme.of(context).textTheme.subtitle1,
                     ),
                   ),
@@ -36,7 +36,7 @@ class StatsCounter extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
-                      '${todosStats.state.numActive}',
+                      '${todosBloc.numActive}',
                       style: Theme.of(context).textTheme.subtitle1,
                     ),
                   )

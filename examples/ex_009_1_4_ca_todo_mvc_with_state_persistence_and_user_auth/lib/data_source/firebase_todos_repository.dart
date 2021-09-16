@@ -3,8 +3,7 @@ import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../service/exceptions/fetch_todos_exception.dart';
-
+import '../blocs/exceptions/fetch_todos_exception.dart';
 import '../domain/entities/todo.dart';
 import 'my_project_data.dart' as myProjectData; //TODO Delete this.
 

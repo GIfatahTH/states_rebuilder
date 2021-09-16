@@ -1,10 +1,11 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/auth_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_source/hive_storage.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import 'ui/common/localization/localization.dart';
-import 'ui/common/theme/theme.dart';
 import 'ui/pages/add_edit_screen.dart/add_edit_screen.dart';
 import 'ui/pages/auth_page/auth_page.dart';
 import 'ui/pages/home_screen/home_screen.dart';
@@ -39,7 +40,6 @@ class App extends StatelessWidget {
       },
       injectedTheme: isDark,
       injectedI18N: i18n,
-      injectedAuth: user,
       builder: (context) {
         return MaterialApp(
           title: i18n.of(context).appTitle,
@@ -55,7 +55,7 @@ class App extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           home: OnAuthBuilder(
-            listenTo: user,
+            listenTo: authBloc.userRM,
             onInitialWaiting: () => Center(child: CircularProgressIndicator()),
             onUnsigned: () => AuthPage(),
             onSigned: () => HomeScreen(),

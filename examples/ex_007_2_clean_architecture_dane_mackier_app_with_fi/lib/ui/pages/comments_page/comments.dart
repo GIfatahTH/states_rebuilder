@@ -1,38 +1,39 @@
 part of 'comments_page.dart';
 
-class _Comments extends StatelessWidget {
+class _Comments extends ReactiveStatelessWidget {
   final int postId;
   _Comments(this.postId);
+  @override
+  void didMountWidget() {
+    commentsBloc.read(postId);
+  }
+
+  @override
+  void didNotifyWidget(SnapState snap) {
+    snap.onOrElse(
+      onError: (err, refresh) => ExceptionHandler.showErrorDialog(err),
+      orElse: (_) {},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return OnReactive(
-      () => commentsInj.onAll(
-        onWaiting: () => Center(child: CircularProgressIndicator()),
-        onError: (err, refresh) => Center(
-          child: Text('${err.message}'),
-        ),
-        onData: (comments) {
-          return Expanded(
-            child: ListView(
-              children: comments
-                  .map(
-                    (comment) => _CommentItem(comment),
-                  )
-                  .toList(),
-            ),
-          );
-        },
+    return commentsBloc.commentsRM.onAll(
+      onWaiting: () => Center(child: CircularProgressIndicator()),
+      onError: (err, refresh) => Center(
+        child: Text('${err.message}'),
       ),
-      sideEffects: SideEffects(
-        initState: () => commentsInj.crud.read(param: (_) => postId),
-        onSetState: (snap) {
-          snap.onOrElse(
-            onError: (err, refresh) => ExceptionHandler.showErrorDialog(err),
-            orElse: (_) {},
-          );
-        },
-      ),
+      onData: (comments) {
+        return Expanded(
+          child: ListView(
+            children: comments
+                .map(
+                  (comment) => _CommentItem(comment),
+                )
+                .toList(),
+          ),
+        );
+      },
     );
   }
 }

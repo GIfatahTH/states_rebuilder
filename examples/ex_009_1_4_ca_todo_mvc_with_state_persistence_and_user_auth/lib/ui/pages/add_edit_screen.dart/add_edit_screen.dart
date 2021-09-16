@@ -2,13 +2,13 @@
 // Use of this source code is governed by the MIT license that can be found
 // in the LICENSE file.
 
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/todo.dart';
-import '../../common/localization/localization.dart';
-import '../home_screen/home_screen.dart';
 
 final _task = RM.injectTextEditing(
   text: 'hhhhhhh',
@@ -33,7 +33,7 @@ class AddEditPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _i18n = i18n.of(context);
-    final todo = todos.item(context);
+    final todo = todosBloc.todosRM.item(context);
     bool isEditing = todo != null;
 
     return Scaffold(
@@ -86,7 +86,7 @@ class AddEditPage extends StatelessWidget {
             );
             todo.state = newTodo;
           } else {
-            todos.crud.create(
+            todosBloc.createTodo(
               Todo(_task.text, note: _note.text),
               isOptimistic: false,
             );
