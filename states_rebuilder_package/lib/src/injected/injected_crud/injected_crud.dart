@@ -126,6 +126,11 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }
 
     return () async {
+      final List<T> cache = super.middleCreator(crt, creatorMock);
+      if (cache.isNotEmpty) {
+        await _init();
+        return cache;
+      }
       onMiddleCRUD(const SnapState.waiting());
       await _init();
       crud;
