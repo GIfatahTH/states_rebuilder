@@ -19,6 +19,7 @@ class CountDownTimer {
   //inject a stream to represent our timer.
   late Injected<int> duration = RM.injectStream<int>(
     () => Stream.periodic(Duration(seconds: 1), (num) => num),
+    initialState: initialTimer,
     middleSnapState: (middleState) {
       ////UnComment to see state transition print log
       // middleState.print();
