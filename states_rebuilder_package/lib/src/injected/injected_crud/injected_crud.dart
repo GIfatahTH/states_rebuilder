@@ -96,7 +96,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
         ) {
     _resetDefaultState = () {
       _isInitialized = false;
-      onCrudSnap = const SnapState.none();
+      _onCrudSnap = const SnapState.none();
       _item?.dispose();
       _item = null;
       _repo = null;
@@ -113,7 +113,12 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
   final OnCRUD<void>? onCRUD;
   //
   late bool _isInitialized;
-  late SnapState<dynamic> onCrudSnap;
+  late SnapState<dynamic> _onCrudSnap;
+  SnapState<dynamic> get onCrudSnap {
+    initialize();
+    return _onCrudSnap;
+  }
+
   late ReactiveModelListener onCRUDListeners;
   late final VoidCallback _resetDefaultState;
   @override
@@ -128,6 +133,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     return () async {
       final List<T> cache = super.middleCreator(crt, creatorMock);
       if (cache.isNotEmpty) {
+        snapState = snapState.copyToIsIdle(cache);
         await _init();
         return cache;
       }
@@ -160,7 +166,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
   }
 
   void onMiddleCRUD(SnapState<dynamic> snap) {
-    onCrudSnap = snap;
+    _onCrudSnap = snap;
     onCRUDListeners.rebuildState(snap);
     if (snap.isWaiting) {
       _isOnCRUD = true;

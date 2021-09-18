@@ -19,12 +19,13 @@ class OnCRUD<T> {
     Key? key,
   }) {
     final injected = inj as InjectedCRUDImp;
+    late final VoidCallback disposer;
     return StateBuilderBase<_OnCRUDWidget<T>>(
       (_, setState) {
         injected.initialize();
         return LifeCycleHooks(
           mountedState: (_) {
-            injected.onCRUDListeners.addListenerForRebuild(
+            disposer = injected.onCRUDListeners.addListenerForRebuild(
               (snap) {
                 onSetState?.call(injected.onCrudSnap);
                 setState();
@@ -36,7 +37,9 @@ class OnCRUD<T> {
                   return true;
                 }());
               },
-              clean: null,
+              clean: injected.autoDisposeWhenNotUsed
+                  ? () => injected.dispose()
+                  : null,
             );
 
             assert(() {
@@ -50,7 +53,7 @@ class OnCRUD<T> {
           },
           dispose: (_) {
             dispose?.call();
-            // disposer();
+            disposer();
           },
           didUpdateWidget: (context, oldWidget, newWidget) {
             final newInj = newWidget.inject as InjectedImp;

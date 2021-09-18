@@ -1,104 +1,313 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /* ----------------------------- Injected State ----------------------------- */
-final testOrderCRUD = RM.injectCRUD<Order?, String>(
+late InjectedCRUD<Order?, String> testOrderCRUD = RM.injectCRUD<Order?, String>(
   () => OrderRepository(),
-  readOnInitialization: true,
+  readOnInitialization: true, // NOTE Must add this line.
   persist: () => PersistState(
     key: '__Order__',
+    // shouldRecreateTheState: true,
     toJson: (List<Order?> orders) {
+      print('TO JSON');
       final mappedOrders = (orders).map((o) => o?.toMap()).toList();
       return jsonEncode(mappedOrders);
     },
     fromJson: (json) {
+      print('FROM JSON');
       return (jsonDecode(json) as List)
-          .map((mappedOrder) => Order.fromMap(mappedOrder))
+          .map(
+            (mappedOrder) => Order.fromJson(mappedOrder),
+          )
           .toList();
     },
   ),
 );
 
+bool isOnReactiveUsed = true;
 main() async {
   final store = await RM.storageInitializerMock();
   setUp(
     () {
       store.clear();
-      testOrderCRUD.dispose();
     },
   );
 
   testWidgets(
     'WHEN when no cached order and app starts'
-    'THEN the app fetches for items from the repo ',
+    'THEN the app fetches for items from the repo '
+    'Case OnReactive is used',
     (tester) async {
-      expect(testOrderCRUD.isWaiting, true);
-      await tester.pump(const Duration(seconds: 1));
-      expect(testOrderCRUD.hasData, true);
-      expect(testOrderCRUD.state.length, 5);
-      testOrderCRUD.deletePersistState();
-      print(store);
+      isOnReactiveUsed = true;
+      await tester.pumpWidget(const MyApp());
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byType(ListTile), findsNWidgets(5));
     },
   );
   testWidgets(
     'WHEN there is one order cached'
     'THEN it get in on app start without fetching from the repo'
     'WHEN refresh is called'
-    'THEN it trigger repo fetch',
+    'THEN it trigger repo fetch'
+    'Case OnReactive is used',
     (tester) async {
+      isOnReactiveUsed = true;
       store.store = {
-        '__Order__': '[{"id":"id-0","orderName":"Order No.#0"}]',
+        '__Order__': jsonEncode(
+          [Order(id: 'id-cached', orderName: 'Order No.#cached').toJson()],
+        )
       };
-      expect(testOrderCRUD.isWaiting, true);
-      await tester.pump();
+
+      await tester.pumpWidget(const MyApp());
+      await tester.pump(); //The first frame
+      expect(find.byType(ListTile), findsOneWidget);
       expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 1);
+      //
       testOrderCRUD.refresh();
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(testOrderCRUD.isWaiting, true);
-      await tester.pump(const Duration(seconds: 1));
+      //
+      await tester.pumpAndSettle();
+      expect(find.byType(ListTile), findsNWidgets(5));
       expect(testOrderCRUD.hasData, true);
       expect(testOrderCRUD.state.length, 5);
     },
   );
 
+  //
+  //
+  testWidgets(
+    'WHEN when no cached order and app starts'
+    'THEN the app fetches for items from the repo '
+    'Case OnCRUDBuilder is used',
+    (tester) async {
+      isOnReactiveUsed = false;
+      await tester.pumpWidget(const MyApp());
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byType(ListTile), findsNWidgets(5));
+    },
+  );
+  testWidgets(
+    'WHEN there is one order cached'
+    'THEN it get in on app start without fetching from the repo'
+    'WHEN refresh is called'
+    'THEN it trigger repo fetch'
+    'Case OnCRUDBuilder is used',
+    (tester) async {
+      isOnReactiveUsed = false;
+      store.store = {
+        '__Order__': jsonEncode(
+          [Order(id: 'id-cached', orderName: 'Order No.#cached').toJson()],
+        )
+      };
+
+      await tester.pumpWidget(const MyApp());
+      await tester.pump(); //The first frame
+      expect(find.byType(ListTile), findsOneWidget);
+      expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 1);
+      //
+      testOrderCRUD.refresh();
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(testOrderCRUD.isWaiting, true);
+      //
+      await tester.pumpAndSettle();
+      expect(find.byType(ListTile), findsNWidgets(5));
+      expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 5);
+    },
+  );
   testWidgets(
     'WHEN there is one order cached'
     'AND WHEN the shouldRecreateTheState is true'
-    'THEN it get in on app start and fetch in the repo in the background',
+    'THEN it get in on app start and fetch in the repo in the background'
+    'Case OnReactive is used',
     (tester) async {
-      final testOrderCRUD = RM.injectCRUD<Order?, String>(
+      isOnReactiveUsed = true;
+      testOrderCRUD = RM.injectCRUD<Order?, String>(
         () => OrderRepository(),
         readOnInitialization: true,
         persist: () => PersistState(
           key: '__Order__',
           shouldRecreateTheState: true,
           toJson: (List<Order?> orders) {
+            print('TO JSON');
             final mappedOrders = (orders).map((o) => o?.toMap()).toList();
             return jsonEncode(mappedOrders);
           },
           fromJson: (json) {
+            print('FROM JSON');
             return (jsonDecode(json) as List)
-                .map((mappedOrder) => Order.fromMap(mappedOrder))
+                .map(
+                  (mappedOrder) => Order.fromJson(mappedOrder),
+                )
                 .toList();
           },
         ),
       );
-
       store.store = {
-        '__Order__': '[{"id":"id-0","orderName":"Order No.#0"}]',
+        '__Order__': jsonEncode(
+          [Order(id: 'id-cached', orderName: 'Order No.#cached').toJson()],
+        )
       };
-      expect(testOrderCRUD.isWaiting, false);
+      await tester.pumpWidget(const MyApp());
       await tester.pump();
+      expect(find.byType(ListTile), findsOneWidget);
       expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 1);
+      //It is waiting for fetch under the hood
       expect(testOrderCRUD.isOnCRUD, true);
-
+      //
       await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(ListTile), findsNWidgets(5));
       expect(testOrderCRUD.hasData, true);
-      expect(testOrderCRUD.isOnCRUD, false);
       expect(testOrderCRUD.state.length, 5);
     },
   );
+  testWidgets(
+    'WHEN there is one order cached'
+    'AND WHEN the shouldRecreateTheState is true'
+    'THEN it get in on app start and fetch in the repo in the background'
+    'Case OnCRUDBuilder is used',
+    (tester) async {
+      isOnReactiveUsed = false;
+      testOrderCRUD = RM.injectCRUD<Order?, String>(
+        () => OrderRepository(),
+        readOnInitialization: true,
+        persist: () => PersistState(
+          key: '__Order__',
+          shouldRecreateTheState: true,
+          toJson: (List<Order?> orders) {
+            print('TO JSON');
+            final mappedOrders = (orders).map((o) => o?.toMap()).toList();
+            return jsonEncode(mappedOrders);
+          },
+          fromJson: (json) {
+            print('FROM JSON');
+            return (jsonDecode(json) as List)
+                .map(
+                  (mappedOrder) => Order.fromJson(mappedOrder),
+                )
+                .toList();
+          },
+        ),
+      );
+      store.store = {
+        '__Order__': jsonEncode(
+          [Order(id: 'id-cached', orderName: 'Order No.#cached').toJson()],
+        )
+      };
+      await tester.pumpWidget(const MyApp());
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 1);
+      //It is waiting for fetch under the hood
+      expect(testOrderCRUD.isOnCRUD, true);
+      //
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(ListTile), findsNWidgets(5));
+      expect(testOrderCRUD.hasData, true);
+      expect(testOrderCRUD.state.length, 5);
+    },
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: MyHomePage(title: 'Flutter Demo CRUD Persistence'),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  final String title;
+  const MyHomePage({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(8.0),
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                  onPressed: () async {
+                    // Fetch data from CRUD (Online)
+                    await testOrderCRUD.crud.read();
+                  },
+                  child: const Text('Fetch Online Data ')),
+              ElevatedButton(
+                  onPressed: () {
+                    // Refresh the state, then it'll auto-query back the cache data from localDB
+                    testOrderCRUD.refresh();
+                  },
+                  child: const Text('Refresh & Query from LocalDB')),
+              ElevatedButton(
+                  onPressed: () {
+                    // Delete the cache from localDB
+                    testOrderCRUD.deletePersistState();
+                  },
+                  child: const Text('Delete Cache')),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: isOnReactiveUsed
+                    ? OnReactive(
+                        () {
+                          if (testOrderCRUD.isWaiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          return Column(
+                            children: testOrderCRUD.state
+                                .map((order) => ListTile(
+                                    title: Text(order?.id ?? 'NO ID'),
+                                    subtitle:
+                                        Text(order?.orderName ?? 'NO NAME')))
+                                .toList(),
+                          );
+                        },
+                      )
+                    : OnCRUDBuilder(
+                        listenTo: testOrderCRUD,
+                        onWaiting: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        onResult: (_) {
+                          final List<ListTile> listOfResult = testOrderCRUD
+                              .state
+                              .map((order) => ListTile(
+                                  title: Text(order?.id ?? 'NO ID'),
+                                  subtitle:
+                                      Text(order?.orderName ?? 'NO NAME')))
+                              .toList();
+                          return Column(children: listOfResult);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class Order {
