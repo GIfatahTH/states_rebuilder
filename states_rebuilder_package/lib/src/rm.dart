@@ -62,6 +62,11 @@ abstract class RM {
   /// Injection of a primitive, enum, or object.
   ///
   /// State can be injected globally or scoped locally:
+  ///
+  /// Scoped locally means that the state's flow is encapsulated withing the widget
+  /// and its children. If more than one widget is created, each has its own
+  /// independent state.
+  ///
   /// * Global state:
   ///
   ///   ```dart
@@ -76,7 +81,7 @@ abstract class RM {
   ///     final _myState1 = RM.inject(() => MyState1())
   ///     final _myState2 = RM.inject(() => MyState2())
   ///
-  ///     //Other logic
+  ///     //Other logic that mutate _myState1 and _myState2
   ///   }
   ///
   ///   //As MyBloc is immutable, it is safe to instantiate it globally
@@ -88,14 +93,16 @@ abstract class RM {
   ///   If the state or the Bloc are configurable (parametrized), Just declare
   ///   them globally and override the state in the widget tree.
   ///   ```dart
+  ///   // The state will be initialized in the widget tree.
   ///   final myState = RM.inject(() => throw UnimplementedError())
   ///
-  ///   //In the widget tree
+  ///   // In the widget tree
   ///   myState.inherited(
   ///     stateOverride: () {
   ///       return MyState(parm1,param2);
   ///     },
   ///     builder: (context) {
+  ///       // Read the state through the context
   ///       final _myState = myState.of(context);
   ///     }
   ///   )
@@ -107,7 +114,7 @@ abstract class RM {
   ///   //In the widget tree
   ///   myState.inherited(
   ///     stateOverride: () {
-  ///       return MyBloc(parm1,param2);
+  ///       return MyBloc(parm1, param2);
   ///     },
   ///     builder: (context) {
   ///       final _myBloc = myBloc.of(context);
@@ -1101,16 +1108,13 @@ abstract class RM {
     inj = InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null,
-            '''
+        assert(RM.env != null, '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null,
-            '''
+        assert(impl[env] != null, '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength,
-            '''
+        assert(impl.length == _envMapLength, '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');

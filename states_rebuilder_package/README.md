@@ -43,6 +43,7 @@
   - [State subscription and Reactive Builders](#state-subscription-and-reactive-builders)
     - [OnReactive widget and ReactiveStatelessWidget](#onreactive-widget-and-reactivestatelesswidget)
     - [OnBuilder widget](#onbuilder-widget)
+  - [Global and local state](#global-and-local-state)
   - [State persistence](#state-persistence)
   - [Undo and redo immutable state](#undo-and-redo-immutable-state)
   - [Route management](#route-management)
@@ -540,6 +541,59 @@ class App extends StatelessWidget{
 }
 ```
   * [🔍 See more detailed information about the topic of state widget-wise and InheritedWidget](https://github.com/GIfatahTH/states_rebuilder/wiki/state_widget_wise_api)
+
+## Global and local state
+State can be injected globally or scoped locally.
+
+Scoped locally means that the state's flow is encapsulated withing the widget and its children. If more than one widget is created, each has its own independent state.
+
+### Global state:
+  ```dart
+  //In the global scope
+  final myState = RM.inject(() => MyState())
+  ```
+  // Or Encapsulate it inside a business logic class (BLOC):
+  ```dart
+  //For the sake of best practice, one strives to make the class immutable
+  @immutable
+  class MyBloc {  // or MyViewModel, or MyController
+    final _myState1 = RM.inject(() => MyState1())
+    final _myState2 = RM.inject(() => MyState2())
+    //Other logic that mutate _myState1 and _myState2
+  }
+  //As MyBloc is immutable, it is safe to instantiate it globally
+  final myBloc = MyBloc();
+  ```
+### Local state (Scoped state)
+  If the state or the Bloc are configurable (parametrized), Just declare  them globally and override the state in the widget tree.
+  ```dart
+  // The state will be initialized in the widget tree.
+  final myState = RM.inject(() => throw UnimplementedError())
+  // In the widget tree
+  myState.inherited(
+    stateOverride: () {
+      return MyState(parm1,param2);
+    },
+    builder: (context) {
+      // Read the state through the context
+      final _myState = myState.of(context);
+    }
+  )
+  ```
+  Similar with Blocs
+  ```dart
+  final myBloc = RM.inject<MyBloc>(() => throw UnimplementedError())
+  //In the widget tree
+  myState.inherited(
+    stateOverride: () {
+      return MyBloc(parm1, param2);
+    },
+    builder: (context) {
+      final _myBloc = myBloc.of(context);
+    }
+  )
+  ```
+  * [🔍 See more detailed about global and local state with examples](https://github.com/GIfatahTH/states_rebuilder/wiki/global_and_local_state)
 
 ## State persistence
 

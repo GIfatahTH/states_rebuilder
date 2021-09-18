@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 ///A Wrapper class that encloses the state of the model we want to Inject. The
-///state can be mutable or immutable.
+///state can be mutable or immutable and can also be global or local.
 ///
 ///Injected model can be instantiated globally or as a member of classes. They
 ///can be instantiated inside the build method without losing the state after
