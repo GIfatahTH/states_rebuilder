@@ -117,12 +117,11 @@ extension MapX<T, D> on Map<T, D> {
   }
 }
 
-extension ObjectX on Object {
-  ReactiveModel<T> inj<T>({bool autoDisposeWhenNotUsed = true}) {
-    final T initState = this as T;
+extension Inj<T> on T {
+  ReactiveModel<T> inj({bool autoDisposeWhenNotUsed = true}) {
     return ReactiveModelImp<T>(
-      creator: () => initState,
-      initialState: initState,
+      creator: () => this,
+      initialState: this,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
   }
