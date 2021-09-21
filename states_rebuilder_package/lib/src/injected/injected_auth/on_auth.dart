@@ -149,6 +149,8 @@ class _OnAuthWidget<T> {
   });
 }
 
+/// Listen to an [InjectedAuth] and define the appropriate view for each case
+
 class OnAuthBuilder<T, P> extends StatelessWidget {
   const OnAuthBuilder({
     Key? key,
@@ -158,11 +160,14 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
     this.onInitialWaiting,
     this.useRouteNavigation = false,
     this.onWaiting,
-    this.dispose,
-    this.onSetState,
     this.sideEffects,
     this.debugPrintWhenRebuild,
+    //Deprecated
+    this.dispose,
+    this.onSetState,
   }) : super(key: key);
+
+  /// [InjectedAuth] to listen to.
   final InjectedAuth<T, P> listenTo;
 
   ///Widget to display while waiting for the first signing when app starts
@@ -179,7 +184,23 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
 
   ///Whether to use navigation transition between onSigned and onUnsigned
   ///widgets or simply use widget replacement
+  ///
+  ///If you set useRouteNavigation you have to set [RM.navigate.navigatorKey]
+  ///in the MaterialApp.
+  ///
+  ///```dart
+  ///MaterialApp(
+  ///  navigatorKey : RM.navigate.navigatorKey,
+  ///)
+  ///```
+  ///
   final bool useRouteNavigation;
+
+  ///Handle side effects
+  final SideEffects<T>? sideEffects;
+
+  ///Debug print informative message when this widget is rebuilt
+  final String? debugPrintWhenRebuild;
 
   ///Side effects to call when this widget is disposed.
   @Deprecated('Use sideEffects instead')
@@ -188,12 +209,6 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
   ///Side effects to call InjectedAuth emits notification.
   @Deprecated('Use sideEffects instead')
   final On<void>? onSetState;
-
-  ///Handle side effects
-  final SideEffects<T>? sideEffects;
-
-  ///Debug print informative message when this widget is rebuilt
-  final String? debugPrintWhenRebuild;
   @override
   Widget build(BuildContext context) {
     return OnAuth(

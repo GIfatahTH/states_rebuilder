@@ -8,13 +8,32 @@ import '../../common/consts.dart';
 part 'i_auth.dart';
 part 'on_auth.dart';
 
+/// Injection of a state that can authenticate and authorize
+/// a user.
+///
+/// This injected state abstracts the best practices of the clean
+/// architecture to come out with a simple, clean, and testable approach
+/// to manage user authentication and authorization.
+///
+/// The approach consists fo the following steps:
+/// * Define uer User Model. (The name is up to you).
+/// * You may define a class (or enum) to parametrize the query.
+/// * Your repository must implements [IAuth]<T, P> where T is the User type
+///  and P is the parameter
+/// type. with `IAuth<T, P>` you define sign-(in, up , out) methods.
+/// * Instantiate an [InjectedAuth] object using [RM.injectAuth] method.
+/// * Later on use [InjectedAuth.auth].signUp, [InjectedAuth.auth].signIn, and
+/// [InjectedAuth.auth].signOut for sign up, sign in, sign out.
+/// * In the UI you can use [OnAuthBuilder] to listen the this injected state
+/// and define the appropriate view for each state.
+///
 abstract class InjectedAuth<T, P> implements Injected<T> {
   // InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
   IAuth<T, P>? _repo;
 
   T get _state => getInjectedState(this);
 
-  ///Get the auth repository
+  ///Get the auth repository of type R
   R getRepoAs<R extends IAuth<T, P>>() {
     if (_repo != null) {
       return _repo as R;
@@ -33,7 +52,7 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
   //
   _AuthService<T, P>? _auth;
 
-  ///To sign up, in or out
+  ///Object that encapsulates the signIn, signUp, signOut methods
   _AuthService<T, P> get auth => _auth ??= _AuthService<T, P>(
         getRepoAs<IAuth<T, P>>(),
         this as InjectedAuthImp<T, P>,
@@ -41,11 +60,9 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
 
   final List<IAuth<T, P> Function()?> _cachedRepoMocks = [null];
 
-  ///Inject a fake implementation of this injected model.
+  /// Inject a fake implementation of this injected model.
   ///
-  ///* Required parameters:
-  ///   * [creationFunction] (positional parameter): the fake creation function
-
+  /// Use [Injected.injectMock] to directly mack a signed user.
   void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
     dispose();
     RM.disposeAll();

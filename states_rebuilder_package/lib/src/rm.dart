@@ -92,6 +92,9 @@ abstract class RM {
   ///
   ///   If the state or the Bloc are configurable (parametrized), Just declare
   ///   them globally and override the state in the widget tree.
+  ///
+  ///   BloC stands for Business Logic, and when it is attached to the widget
+  ///   tree it becomes a Presentation logic or view model.
   ///   ```dart
   ///   // The state will be initialized in the widget tree.
   ///   final myState = RM.inject(() => throw UnimplementedError())
@@ -109,20 +112,20 @@ abstract class RM {
   ///   ```
   ///   Similar with Blocs
   ///   ```dart
-  ///   final myBloc = RM.inject<MyBloc>(() => throw UnimplementedError())
+  ///   final myBloC = RM.inject<myBloC>(() => throw UnimplementedError())
   ///
   ///   //In the widget tree
   ///   myState.inherited(
   ///     stateOverride: () {
-  ///       return MyBloc(parm1, param2);
+  ///       return myBloC(parm1, param2);
   ///     },
   ///     builder: (context) {
-  ///       final _myBloc = myBloc.of(context);
+  ///       final _myBloC = myBloC.of(context);
   ///     }
   ///   )
   ///   ```
   /// ## Parameters:
-  /// ### 1. creator: Required callback that returns `<T>`
+  /// ### 1. `creator`: Required callback that returns `<T>`
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -130,12 +133,12 @@ abstract class RM {
   ///   * Any of the states that it depends on emits a notification.
   ///
   /// {@template injectOptionalParameter}
-  /// ### 2. initialState: Optional `<T>`
+  /// ### 2. `initialState`: Optional `<T>`
   /// The initial state. It is useful when injecting Future or Stream. If you
   /// try to get the state of non-resolved Future or Stream of non-nullable state,
   /// it will throw if `initialState` is not defined.
   ///
-  /// ### 3. autoDisposeWhenNotUsed**: Optional [bool] (Default true)
+  /// ### 3. `autoDisposeWhenNotUsed`**: Optional [bool] (Default true)
   /// Whether to auto dispose the injected model when no longer used
   /// (listened to).
   ///
@@ -151,14 +154,14 @@ abstract class RM {
   /// * To debug when state is initialized and disposed of use
   /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
   ///
-  /// ### 4. sideEffects: Optional [SideEffects]
+  /// ### 4. `sideEffects`: Optional [SideEffects]
   /// Used to handle sideEffects when the state is initialized, mutated and
   /// disposed of. Side effects defined here are called global (default) and
   /// can be overridden when calling [InjectedBase.setState] method.
   ///
   /// See also: [InjectedBase.setState], [OnBuilder.sideEffects] and [OnReactive.sideEffects]
   ///
-  /// ### 5. onInitialized: Optional callback That exposed the state
+  /// ### 5. `onInitialized`: Optional callback That exposed the state
   /// Callback to be executed after the injected model is first created. It is
   /// similar to [SideEffects.initState] except that it exposes the state for
   /// some useful cases.
@@ -166,7 +169,7 @@ abstract class RM {
   /// If the injected state is stream, onInitialized additionally exposes the
   /// [StreamSubscription] object to be able to pause the stream.
   ///
-  /// ### 6. dependsOn: optional [DependsOn]
+  /// ### 6. `dependsOn`: optional [DependsOn]
   /// Use to defined other injected states that this state depends on. When
   /// any of states it depends on is notified, this state is also notified and
   /// its creator is re-invoked. The state status will reflect a combination of
@@ -179,7 +182,7 @@ abstract class RM {
   /// You can set when the state should be recreated, the time of debounce
   /// and the time of throttle.
   ///
-  /// ### 7. undoStackLength: Optional integer
+  /// ### 7. `undoStackLength`: Optional integer
   /// It defines the length of the undo/redo stack. If not defined, the
   /// undo/redo is disabled.
   ///
@@ -188,7 +191,7 @@ abstract class RM {
   /// Further on to undo or redo the state just call [Injected.undoState] and
   /// [Injected.redoState]
   ///
-  /// ### 8. persist: Optional callback that return [PersistState]
+  /// ### 8. `persist`: Optional callback that return [PersistState]
   /// If defined, the state will be persisted.
   ///
   /// You have to provide a class that implements [IPersistStore] and initialize
@@ -211,7 +214,7 @@ abstract class RM {
   ///
   /// You can debounce and throttle state persistence.
   ///
-  /// ### 9. stateInterceptor: Optional callback that exposes the current and
+  /// ### 9. `stateInterceptor`: Optional callback that exposes the current and
   /// next [SnapState]
   /// This call back is fired after on state mutation and exposes both the
   /// current state just before mutation and the next state.
@@ -240,13 +243,13 @@ abstract class RM {
   ///
   /// ```
   ///
-  /// ### 10. debugPrintWhenNotifiedPreMessage: Optional [String]
+  /// ### 10. `debugPrintWhenNotifiedPreMessage`: Optional [String]
   /// if not null, print an informative message when this model is notified in
   /// the debug mode. It prints (FROM ==> TO state). The entered message will
   /// pré-append the debug message. Useful if the type of the injected model
   /// is primitive to distinguish between them.
   ///
-  /// ### 11. toDebugString: Optional callback that exposes the state
+  /// ### 11. `toDebugString`: Optional callback that exposes the state
   /// String representation fo the state to be used in
   ///  `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
   ///  collection and you want to print its length only.
@@ -256,17 +259,9 @@ abstract class RM {
   static Injected<T> inject<T>(
     T Function() creator, {
     T? initialState,
-    @Deprecated('Use stateInterceptor instead')
-        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
         stateInterceptor,
     void Function(T? s)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
-    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
-    @Deprecated('Use sideEffects instead') On<void>? onSetState,
-    @Deprecated('Use sideEffects instead')
-        void Function(dynamic e, StackTrace? s)? onError,
     SideEffects<T>? sideEffects,
     DependsOn<T>? dependsOn,
     //
@@ -278,6 +273,14 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
   }) {
     late final InjectedImp<T> inj;
 
@@ -321,7 +324,7 @@ abstract class RM {
   /// injection of a [Future].
   ///
   /// ## Parameters:
-  /// ### 1. creator: Required callback that returns [Future]
+  /// ### 1. `creator`: Required callback that returns [Future]
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -332,17 +335,9 @@ abstract class RM {
   static Injected<T> injectFuture<T>(
     Future<T> Function() creator, {
     T? initialState,
-    @Deprecated('Use stateInterceptor instead')
-        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
         stateInterceptor,
     void Function(T? s)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
-    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
-    // On<void>? onSetState,
-    @Deprecated('Use sideEffects instead')
-        void Function(dynamic e, StackTrace? s)? onError,
     SideEffects<T>? sideEffects,
     DependsOn<T>? dependsOn,
     int undoStackLength = 0,
@@ -352,6 +347,13 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
   }) {
     late final InjectedImp<T> inj;
     inj = InjectedImp<T>(
@@ -395,7 +397,7 @@ abstract class RM {
   /// injection of a [Stream].
   ///
   /// ## Parameters:
-  /// ### 1. creator: Required callback that returns [Stream]
+  /// ### 1. `creator`: Required callback that returns [Stream]
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -408,17 +410,9 @@ abstract class RM {
   static Injected<T> injectStream<T>(
     Stream<T> Function() creator, {
     T? initialState,
-    @Deprecated('Use stateInterceptor instead')
-        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
         stateInterceptor,
     void Function(T? s, StreamSubscription subscription)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
-    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
-    @Deprecated('Use sideEffects instead') On<void>? onSetState,
-    @Deprecated('Use sideEffects instead')
-        void Function(dynamic e, StackTrace? s)? onError,
     SideEffects<T>? sideEffects,
     DependsOn<T>? dependsOn,
     PersistState<T> Function()? persist,
@@ -430,6 +424,14 @@ abstract class RM {
     String Function(T?)? toDebugString,
     //
     Object? Function(T? s)? watch,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') void Function()? onWaiting,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onData,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use sideEffects instead')
+        void Function(dynamic e, StackTrace? s)? onError,
   }) {
     late final InjectedImp<T> inj;
     inj = InjectedImp<T>(
@@ -489,46 +491,175 @@ abstract class RM {
     return inj;
   }
 
-  ///Functional injection of a state that can authenticate and authorize
-  ///a user.
+  /// Injection of a state that can authenticate and authorize
+  /// a user.
   ///
-  ///* Required parameters:
-  ///  * **repository**:  (positional parameter) Repository that implements
-  /// the IAuth<T, P> interface, where T is the Type of the user, and P is
-  /// the type of the param to be used when querying the backend service.
+  /// This injected state abstracts the best practices of the clean
+  /// architecture to come out with a simple, clean, and testable approach
+  /// to manage user authentication and authorization.
   ///
-  /// * **Optional parameters:**
-  ///  * **unsignedUser**:  (named parameter) An object that represents an
-  /// unsigned user. It must be of type T. It may be null.
-  ///   * **param**: Default param to be used for authentication.
-  /// It can be overridden when calling signUp, signIn and signOut
-  /// methods
-  ///   * **onSigned**: Callback to be called when a user is signed. This
-  /// is the right place to navigate to a user related page.
-  ///   * **onUnsigned**: Callback to be called when a user is unsigned or
-  /// signed out. This is the right place to navigate to authentication page.
-  ///   * **autoSignOut**: Callback that exposes the current signed user and
-  /// returns a duration after which the user is automatically signed out.
-  ///   * **authenticateOnInit**: Whether to authenticate the
-  /// {@macro customInjectOptionalParameter}
+  /// The approach consists fo the following steps:
+  /// * Define uer User Model. (The name is up to you).
+  /// * You may define a class (or enum) to parametrize the query.
+  /// * Your repository must implements [IAuth]<T, P> where T is the User type
+  ///  and P is the parameter
+  /// type. with `IAuth<T, P>` you define sign-(in, up , out) methods.
+  /// * Instantiate an [InjectedAuth] object using [RM.injectAuth] method.
+  /// * Later on use [InjectedAuth.auth].signUp, [InjectedAuth.auth].signIn, and
+  /// [InjectedAuth.auth].signOut for sign up, sign in, sign out.
+  /// * In the UI you can use [OnAuthBuilder] to listen the this injected state
+  /// and define the appropriate view for each state.
+  ///
+  /// ## Parameters:
+  /// ### 1. `repository`: Required callback that returns an object that implements [IAuth]<T, P>
+  ///
+  /// [IAuth]<T, P> forces you to implement the following methods:
+  /// 1. `Future<void> init()` to initialize your authentication service (if it
+  /// deeds to).
+  /// 2. `Future<T> signIn(P? param)` To sign in using your authentication
+  /// service. With param you can parametrize your query
+  /// Example:
+  ///
+  ///     ```
+  ///        @override
+  ///        Future<User> signIn(UserParam param) {
+  ///          switch (param.signIn) {
+  ///            case SignIn.anonymously:
+  ///              return _signInAnonymously();
+  ///            case SignIn.withGoogle:
+  ///              return _signInWithGoogle();
+  ///            case SignIn.withEmailAndPassword:
+  ///              return _signInWithEmailAndPassword(
+  ///                param.email,
+  ///                param.password,
+  ///              );
+  ///
+  ///            default:
+  ///              throw UnimplementedError();
+  ///          }
+  ///        }
+  ///     ```
+  /// 3. `Future<T> signUp(P? param)` To sign up
+  /// 4. `Future<T> signOut(P? param)` To sign out
+  /// 5. `void dispose()` To dispose any resources.
+  ///
+  /// Apart of these five methods, you can define other custom methods and
+  /// invoke them using [InjectedAuth.getRepoAs] method.
+  ///
+  /// ### 2. `unsignedUser`: Optional `T`
+  /// An object that represents an unsigned user. If T is nullable unsignedUser
+  /// is null. unsignedUser value is used internally to decide to call signed
+  /// hooks or unsigned hooks.
+  ///
+  /// ### 2. param: Optional callback that returns `P`
+  /// The default param object to be used in [IAuth.signIn], [IAuth.signUp], and
+  /// [IAuth.signOut] methods.
+  ///
+  /// You can override the default value when calling InjectedAuth.auth.signIn
+  /// , [InjectedAuth.auth].signUp, [InjectedAuth.auth].signOut
+  ///
+  /// ### 3. `autoSignOut`: Optional callback that exposes the signed user and
+  /// returns a [Duration].
+  /// After the return duration the user will auto sign out. Duration here may
+  /// be that of the auth token validity.
+  ///
+  /// ### 4. `onAuthStream`: Optional callback that exposes the repository and
+  /// returns a stream.
+  /// It is used to listen to a stream from the repository. The stream emits the
+  /// value of the currentUser. Depending on the emitted user, sign in or sign
+  /// out hooks will be invoked.
+  ///
+  /// ### 5. `persist`: Optional callback that return [PersistState]
+  /// If defined, the signed user will be persisted.
+  ///
+  /// You have to provide a class that implements [IPersistStore] and initialize
+  /// it in the main method.
+  ///
+  /// For example
+  /// ```dart
+  /// class IPersistStoreImp implements IPersistStore{
+  ///  // ....
+  /// }
+  /// void main()async{
+  ///  WidgetsFlutterBinding.ensureInitialized();
+  ///
+  ///  await RM.storageInitializer(IPersistStoreImp());
+  ///  runApp(MyApp());
+  /// }
+  /// ```
+  ///
+  /// If persist is defined the signed user information is persisted and when
+  /// the app starts up, the user information is retrieved from the local
+  /// storage and it is automatically signed in if it has no expired token.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final user = RM.injectAuth<User?, UserParam>(
+  ///   () => FireBaseAuth(),
+  ///   persist: () => PersistState<User?>(
+  ///     key: '__User__',
+  ///     toJson: (user) => user?.toJson(),
+  ///     fromJson: (json) {
+  ///       final user = User.fromJson(json);
+  ///       return user.token.isNotExpired ? user : null;
+  ///     },
+  ///   ),
+  /// );
+  /// ```
+  ///
+  /// ### 6. `onSigned`: Optional callback that exposes the signed user
+  /// It is used to call side effects when the user is signed.
+  ///
+  /// ### 7. `onUnSigned`: Optional callback
+  /// It is used to call side effects when the user is unsigned.
+  ///
+  /// ### 8. `stateInterceptor`: Optional callback that exposes the current and
+  /// next [SnapState]
+  /// This call back is fired after on state mutation (singed user change) and
+  /// exposes both the current state just before mutation and the next state.
+  ///
+  /// The callback return the next [SnapState]. It may be the same as next state
+  /// or you can change it.
+  ///
+  /// ### 9. `sideEffects`: Optional [SideEffects]
+  /// Used to handle sideEffects when the state is initialized, mutated and
+  /// disposed of. Side effects defined here are called global (default) and
+  /// can be overridden when calling [InjectedBase.setState] method.
+  ///
+  /// ### 10. `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// if not null, print an informative message when this model is notified in
+  /// the debug mode. It prints (FROM ==> TO state). The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model
+  /// is primitive to distinguish between them.
+  ///
+  /// ### 11. `toDebugString`: Optional callback that exposes the state
+  /// String representation fo the state to be used in
+  ///  `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
+  ///  collection and you want to print its length only.
+  ///
   static InjectedAuth<T, P> injectAuth<T, P>(
     IAuth<T, P> Function() repository, {
     T? unsignedUser,
     P Function()? param,
+    Duration Function(T user)? autoSignOut,
+    FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
+    PersistState<T> Function()? persist,
+    //
     void Function(T s)? onSigned,
     void Function()? onUnsigned,
-    Duration Function(T auth)? autoSignOut,
-    FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
+    SideEffects<T>? sideEffects,
     //
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    String? debugPrintWhenNotifiedPreMessage,
+    String Function(T?)? toDebugString,
+    //
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
     @Deprecated('Use sideEffects instead') On<void>? onSetState,
-    SideEffects<T>? sideEffects,
-    //
-    PersistState<T> Function()? persist,
-    String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
   }) {
     assert(
       null is T || unsignedUser != null,
@@ -1202,6 +1333,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     UndoRedoPersistState.cleanStorageProviders();
   }
 
+  /// Dispose all Injected State
   static void disposeAll() {
     for (var inj in [...injectedModels]) {
       inj.dispose();
@@ -1211,8 +1343,14 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     _navigate._dispose();
   }
 
+  /// Scaffold without BuildContext.
+  ///
   static _Scaffold scaffold = _scaffold;
+
+  /// Navigation without BuildContext.
   static _Navigate navigate = _navigate;
+
+  /// Predefined set of route transition animation
   static _Transitions transitions = _transitions;
   static BuildContext? _context;
 
