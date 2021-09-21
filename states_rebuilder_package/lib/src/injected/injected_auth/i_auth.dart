@@ -81,9 +81,28 @@ part of 'injected_auth.dart';
 ///     return _firebaseAuth.signOut();
 ///   }
 ///
+///  @override
+///  Future<User?>? refreshToken(User? currentUser) async {
+///
+///   final response = await http.post( ... );
+///
+///   if (response.codeStatus == 200){
+///    return currentUser!.copyWith(
+///      token: response.body['id_token'],
+///      refreshToken: response.body['refresh_token'],
+///      tokenExpiration: DateTime.now().add(
+///          Duration(seconds: response.body[expires_in] ),
+///      ),
+///    );
+///   }
+///
+///   return null;
+///
+///  }
+///
 ///   @override
 ///   void dispose() {
-///     // TODO: implement dispose
+///
 ///   }
 ///
 ///   Future<User> _signInWithEmailAndPassword(
@@ -155,6 +174,35 @@ abstract class IAuth<T, P> {
   ///Sign out
   Future<void> signOut(P? param);
 
+  /// Refresh the token
+  ///
+  /// It exposes the currentUser model, where you get the refresh token.
+  ///
+  /// If the token is successfully refreshed, a new copy of the current user
+  /// holding the new token is return.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  ///  @override
+  ///  Future<User?>? refreshToken(User? currentUser) async {
+  ///
+  ///   final response = await http.post( ... );
+  ///
+  ///   if (response.codeStatus == 200){
+  ///    return currentUser!.copyWith(
+  ///      token: response.body['id_token'],
+  ///      refreshToken: response.body['refresh_token'],
+  ///      tokenExpiration: DateTime.now().add(
+  ///          Duration(seconds: response.body[expires_in] ),
+  ///      ),
+  ///    );
+  ///   }
+  ///
+  ///   return null;
+  ///
+  ///  }
+  /// ```
   Future<T>? refreshToken(T currentUser) {}
 
   ///It is called when the injected model is disposed

@@ -232,6 +232,7 @@ class _AuthService<T, P> {
   ///[onAuthenticated] called after user authentication.
   ///
   ///[onError] called when authentication fails
+  //TODO make param named parameter
   Future<T> signIn(
     P Function(P? param)? param, {
     void Function()? onAuthenticated,
@@ -306,7 +307,7 @@ class _AuthService<T, P> {
         injected.onUnsigned?.call();
       }
     } else {
-      _persist();
+      // _persist();
       _autoSignOut();
       if (onAuthenticated == null) {
         injected.onSigned?.call(injected._state);
@@ -315,18 +316,38 @@ class _AuthService<T, P> {
     _onSignInOut = null;
   }
 
-  void _persist() {
-    injected.persistState();
-  }
-
   void _autoSignOut() {
     if (injected.autoSignOut != null) {
       _cancelTimer();
-      _authTimer = Timer(
-        injected.autoSignOut!(injected._state),
-        () => signOut(),
-      );
+      final duration = injected.autoSignOut!(injected._state);
+      if (duration.inSeconds <= 0) {
+        refreshToken();
+      } else {
+        _authTimer = Timer(
+          injected.autoSignOut!(injected._state),
+          () => refreshToken(),
+        );
+      }
     }
+  }
+
+  /// Refresh the token
+  ///
+  /// If `shouldAutoSignOut` is true (the default), the user is signed out if
+  /// the refresh token expires.
+  Future<T> refreshToken({bool shouldAutoSignOut = true}) async {
+    if (injected._state == injected.unsignedUser) {
+      return injected._state;
+    }
+    final refreshedUser = await _repository.refreshToken(injected._state);
+    if (refreshedUser == null || refreshedUser == injected.unsignedUser) {
+      if (shouldAutoSignOut) {
+        signOut();
+      }
+      return injected.unsignedUser as T;
+    }
+    injected.state = refreshedUser;
+    return injected._state;
   }
 
   ///Sign out

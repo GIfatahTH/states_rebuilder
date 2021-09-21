@@ -62,6 +62,9 @@ class FakeAuthRepo implements IAuth<String?, String> {
   void dispose() {
     disposeMessage = 'isDisposed';
   }
+
+  @override
+  Future<String?>? refreshToken(String? currentUser) {}
 }
 
 int onUnSigned = 0;

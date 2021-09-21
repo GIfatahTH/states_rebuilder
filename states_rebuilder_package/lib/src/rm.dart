@@ -541,7 +541,34 @@ abstract class RM {
   ///     ```
   /// 3. `Future<T> signUp(P? param)` To sign up
   /// 4. `Future<T> signOut(P? param)` To sign out
-  /// 5. `void dispose()` To dispose any resources.
+  /// 5. `Future<T> refreshToken(T currentUser)` To refresh user token
+  ///     It exposes the currentUser model, where you get the refresh token.
+  ///     If the token is successfully refreshed, a new copy of the current user
+  ///     holding the new token is return.
+  ///
+  ///     Example:
+  ///
+  ///     ```dart
+  ///      @override
+  ///      Future<User?>? refreshToken(User? currentUser) async {
+  ///
+  ///       final response = await http.post( ... );
+  ///
+  ///       if (response.codeStatus == 200){
+  ///        return currentUser!.copyWith(
+  ///          token: response.body['id_token'],
+  ///          refreshToken: response.body['refresh_token'],
+  ///          tokenExpiration: DateTime.now().add(
+  ///              Duration(seconds: response.body[expires_in] ),
+  ///          ),
+  ///        );
+  ///       }
+  ///
+  ///       return null;
+  ///
+  ///      }
+  ///     ```
+  /// 6. `void dispose()` To dispose any resources.
   ///
   /// Apart of these five methods, you can define other custom methods and
   /// invoke them using [InjectedAuth.getRepoAs] method.

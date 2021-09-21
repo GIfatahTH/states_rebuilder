@@ -163,8 +163,8 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
     this.sideEffects,
     this.debugPrintWhenRebuild,
     //Deprecated
-    this.dispose,
-    this.onSetState,
+    @Deprecated('Use sideEffects instead') this.dispose,
+    @Deprecated('Use sideEffects instead') this.onSetState,
   }) : super(key: key);
 
   /// [InjectedAuth] to listen to.
