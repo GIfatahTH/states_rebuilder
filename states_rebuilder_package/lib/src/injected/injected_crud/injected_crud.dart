@@ -6,9 +6,31 @@ import 'package:collection/collection.dart';
 part 'i_crud.dart';
 part 'on_crud.dart';
 
-/// Injected state that is responsible for holding a list of items and
-/// send and resolve CREATE, READ, UPDATE and DELETE queries to a backend
-/// service.
+/// Injection of a state that can create, read, update and
+/// delete from a backend or database service.
+///
+/// This injected state abstracts the best practices of the clean
+/// architecture to come out with a simple, clean, and testable approach
+/// to manage CRUD operations.
+///
+/// The approach consists fo the following steps:
+/// * Define uer Item Model. (The name is up to you).
+/// * You may define a class (or enum) to parametrize the query.
+/// * Your repository must implements [ICRUD]<T, P> where T is the Item type
+///  and P is the parameter
+/// type. with `ICRUD<T, P>` you define CRUD methods.
+/// * Instantiate an [InjectedCRUD] object using [RM.injectCRUD] method.
+/// * Later on use [InjectedCRUD.crud].create, [InjectedCRUD.auth].read,
+/// [InjectedCRUD.auth].update, and [InjectedCRUD.auth].delete item.
+/// * In the UI you can use [ReactiveStatelessWidget], [OnReactive], or
+/// [ObBuilder] to listen the this injected state and define the appropriate
+/// view for each state.
+/// * You may use [InjectedCRUD.item].inherited for performant list of item
+/// rendering.
+///
+/// See: [InjectedCRUD.crud], [_CRUDService.read], [_CRUDService.create],
+/// [_CRUDService.update], [_CRUDService.delete],[InjectedCRUD.item],
+/// [_Item.inherited] and [OnCRUDBuilder]
 abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   _CRUDService<T, P>? _crud;
 

@@ -748,6 +748,39 @@ abstract class RM {
   /// Injection of a state that can create, read, update and
   /// delete from a backend or database service.
   ///
+  /// This injected state abstracts the best practices of the clean
+  /// architecture to come out with a simple, clean, and testable approach
+  /// to manage CRUD operations.
+  ///
+  /// The approach consists fo the following steps:
+  /// * Define uer Item Model. (The name is up to you).
+  /// * You may define a class (or enum) to parametrize the query.
+  /// * Your repository must implements [ICRUD]<T, P> where T is the Item type
+  ///  and P is the parameter
+  /// type. with `ICRUD<T, P>` you define CRUD methods.
+  /// * Instantiate an [InjectedCRUD] object using [RM.injectCRUD] method.
+  /// * Later on use [InjectedCRUD.crud].create, [InjectedCRUD.auth].read,
+  /// [InjectedCRUD.auth].update, and [InjectedCRUD.auth].delete item.
+  /// * In the UI you can use [ReactiveStatelessWidget], [OnReactive], or
+  /// [ObBuilder] to listen the this injected state and define the appropriate
+  /// view for each state.
+  /// * You may use [InjectedCRUD.item].inherited for performant list of item
+  /// rendering.
+  ///
+  /// ## Parameters:
+  /// ### 1. `repository`: Required callback that returns an object that implements [ICRUD]<T, P>
+  ///
+  /// [ICRUD]<T, P> forces you to implement the following methods:
+  /// 1. `Future<void> init()` to initialize your authentication service (if it
+  /// deeds to).
+  /// 2. `Future<List<T>> read(P? param)` to read a list of Items
+  /// 3. `Future<T> create(T item, P? param)` to create on Item
+  /// 4. `Future<dynamic> update(List<T> items, P? param)` to update an item
+  /// 4. `Future<dynamic> delete(List<T> items, P? param)` to delete an item
+  /// 5. `Future<void> dispose()` to dispose resources.
+  ///
+  /// //TODO to be continued
+  ///
   ///* Required parameters:
   ///  * **repository**:  (positional parameter) Repository that implements
   /// the ICRUD<T,P> interface, where T is the Type of the state, and P is
@@ -788,10 +821,6 @@ abstract class RM {
     //
     SnapState<List<T>>? Function(MiddleSnapState<List<T>> middleSnap)?
         middleSnapState,
-    @Deprecated('Use sideEffects instead')
-        void Function(List<T>? s)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(List<T> s)? onDisposed,
-    @Deprecated('Use sideEffects instead') On<void>? onSetState,
     SideEffects<List<T>>? sideEffects,
     //
     DependsOn<List<T>>? dependsOn,
@@ -802,6 +831,11 @@ abstract class RM {
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(List<T>?)? toDebugString,
+    //
+    @Deprecated('Use sideEffects instead')
+        void Function(List<T>? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(List<T> s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
   }) {
     late final InjectedCRUDImp<T, P> inj;
     inj = InjectedCRUDImp<T, P>(

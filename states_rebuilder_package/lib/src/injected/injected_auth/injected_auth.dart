@@ -27,6 +27,9 @@ part 'on_auth.dart';
 /// * In the UI you can use [OnAuthBuilder] to listen the this injected state
 /// and define the appropriate view for each state.
 ///
+/// See: [InjectedAuth.auth], [_AuthService.signUp], [_AuthService.singIn],
+/// [_AuthService.signOut], [_AuthService.refreshToken],and
+/// [OnAuthBuilder]
 abstract class InjectedAuth<T, P> implements Injected<T> {
   // InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
   IAuth<T, P>? _repo;
