@@ -181,6 +181,12 @@ abstract class IAuth<T, P> {
   /// If the token is successfully refreshed, a new copy of the current user
   /// holding the new token is return.
   ///
+  /// It is automatically invoked after the duration return by
+  /// `autoRefreshOrSignOut` parameter of [RM.injectAuth].
+  ///
+  /// It can also be manually invoked using [InjectedAuth.auth].refreshToken
+  /// method. see [_AuthService.refreshToken].
+  ///
   /// Example:
   ///
   /// ```dart

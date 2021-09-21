@@ -102,7 +102,7 @@ InjectedAuth<String?, String> persistedUserWithAutoDispose = RM.injectAuth(
   onSigned: (user) => RM.navigate.toReplacement(HomePage(user: user)),
   onUnsigned: () =>
       RM.navigate.toReplacement(AuthPage(persistedUserWithAutoDispose)),
-  autoSignOut: (_) => Duration(seconds: 5),
+  autoRefreshTokenOrSignOut: (_) => Duration(seconds: 5),
 );
 
 late Widget widget;
@@ -473,12 +473,12 @@ void main() async {
 
   testWidgets(
     'WHEN onAuthStream is defined'
-    'AND autoSignOut is defined '
-    'THEN autoSignOut will work',
+    'AND autoRefreshTokenOrSignOut  is defined '
+    'THEN autoRefreshTokenOrSignOut  will work',
     (tester) async {
       final user = RM.injectAuth(
         () => FakeAuthRepo(),
-        autoSignOut: (_) => Duration(seconds: 2),
+        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 2),
         onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
       );
       expect(user.isSigned, false);
@@ -505,7 +505,7 @@ void main() async {
     (tester) async {
       final user = RM.injectAuth(
         () => FakeAuthRepo(),
-        autoSignOut: (_) => Duration(seconds: 1),
+        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 1),
         onAuthStream: (repo) =>
             (repo as FakeAuthRepo).futureSignIn(null).asStream(),
       );

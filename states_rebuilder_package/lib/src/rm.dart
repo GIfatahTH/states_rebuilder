@@ -585,10 +585,12 @@ abstract class RM {
   /// You can override the default value when calling InjectedAuth.auth.signIn
   /// , [InjectedAuth.auth].signUp, [InjectedAuth.auth].signOut
   ///
-  /// ### 3. `autoSignOut`: Optional callback that exposes the signed user and
-  /// returns a [Duration].
-  /// After the return duration the user will auto sign out. Duration here may
-  /// be that of the auth token validity.
+  /// ### 3. `autoRefreshTokenOrSignOut`: Optional callback that exposes the signed user and returns a [Duration].
+  /// After the return duration, the user will try to refresh the token as
+  /// implemented in[IAuth.refreshToken].If the token is not refreshed then the
+  /// user is sign out.
+  ///
+  /// See [IAuth.refreshToken]
   ///
   /// ### 4. `onAuthStream`: Optional callback that exposes the repository and
   /// returns a stream.
@@ -669,7 +671,7 @@ abstract class RM {
     IAuth<T, P> Function() repository, {
     T? unsignedUser,
     P Function()? param,
-    Duration Function(T user)? autoSignOut,
+    Duration Function(T user)? autoRefreshTokenOrSignOut,
     FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream,
     PersistState<T> Function()? persist,
     //
@@ -687,6 +689,8 @@ abstract class RM {
     @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
     @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    @Deprecated('Use `autoRefreshTokenOrSignOut` instead')
+        Duration Function(T user)? autoSignOut,
   }) {
     assert(
       null is T || unsignedUser != null,
@@ -706,7 +710,7 @@ abstract class RM {
       param: param,
       onSigned: onSigned,
       onUnsigned: onUnsigned,
-      autoSignOut: autoSignOut,
+      autoSignOut: autoRefreshTokenOrSignOut ?? autoSignOut,
       onAuthStream: onAuthStream,
       //
       middleSnapState: middleSnapState,
@@ -741,8 +745,8 @@ abstract class RM {
     return inj;
   }
 
-  ///Functional injection of a state that can create, read, update and
-  ///delete from a backend or database service.
+  /// Injection of a state that can create, read, update and
+  /// delete from a backend or database service.
   ///
   ///* Required parameters:
   ///  * **repository**:  (positional parameter) Repository that implements

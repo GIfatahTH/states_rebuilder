@@ -13,7 +13,7 @@ final user = RM.injectAuth<User?, String>(
     fromJson: (json) => User.fromJson(json),
     toJson: (s) => s?.toJson() ?? '',
   ),
-  autoSignOut: (user) => user!.tokenExpiration,
+  autoRefreshTokenOrSignOut: (user) => user!.tokenExpiration,
 );
 
 void main() async {
