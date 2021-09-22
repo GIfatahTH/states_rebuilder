@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
-import '../injected/injected_auth/injected_auth.dart';
 import '../rm.dart';
 
 ///{@template topWidget}
@@ -99,7 +99,7 @@ class TopAppWidget extends StatefulWidget {
   ///}
   ///```
   final InjectedI18N? injectedI18N;
-  final InjectedAuth? injectedAuth;
+  // final InjectedAuth? injectedAuth;
 
   ///Widget (Splash Screen) to display while it is waiting for dependencies to
   ///initialize.
@@ -118,7 +118,7 @@ class TopAppWidget extends StatefulWidget {
     this.onWaiting,
     this.ensureInitialization,
     this.onError,
-    this.injectedAuth,
+    // this.injectedAuth,
     required this.builder,
   })  : assert(
           ensureInitialization == null || onWaiting != null,
@@ -181,9 +181,9 @@ class _TopAppWidgetState extends State<TopAppWidget> {
 
   Future<void> _startWaiting() async {
     List<Future> waiteFor = widget.ensureInitialization?.call() ?? [];
-    _hasWaiteFor = waiteFor.isNotEmpty ||
-        widget.injectedI18N?.isWaiting == true ||
-        widget.injectedAuth?.isWaiting == true;
+    _hasWaiteFor =
+        waiteFor.isNotEmpty || widget.injectedI18N?.isWaiting == true;
+    // widget.injectedAuth?.isWaiting == true;
     if (!_hasWaiteFor) {
       // if (widget.injectedI18N != null) {
       //   waiteFor.add(widget.injectedI18N!.stateAsync);
@@ -200,10 +200,10 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         await future;
       }
       var i18n = widget.injectedI18N?.stateAsync;
-      var auth = widget.injectedAuth?.stateAsync;
+      // var auth = widget.injectedAuth?.stateAsync;
 
       await i18n;
-      await auth;
+      // await auth;
 
       setState(() {
         _isWaiting = false;
@@ -246,7 +246,7 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         _startWaiting();
       });
     }
-    (widget.injectedAuth as InjectedAuthImp?)?.initialize();
+    // (widget.injectedAuth as InjectedAuthImp?)?.initialize();
     // (widget.injectedI18N as InjectedI18NImp?)?.initialize();
     return child;
   }
