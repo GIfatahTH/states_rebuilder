@@ -341,10 +341,7 @@ class _AuthService<T, P> {
       } else {
         _authTimer = Timer(
           duration,
-          () {
-            print('timer is invoked');
-            refreshToken();
-          },
+          () => refreshToken(),
         );
       }
     }

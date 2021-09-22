@@ -12,12 +12,10 @@ late InjectedCRUD<Order?, String> testOrderCRUD = RM.injectCRUD<Order?, String>(
     key: '__Order__',
     // shouldRecreateTheState: true,
     toJson: (List<Order?> orders) {
-      print('TO JSON');
       final mappedOrders = (orders).map((o) => o?.toMap()).toList();
       return jsonEncode(mappedOrders);
     },
     fromJson: (json) {
-      print('FROM JSON');
       return (jsonDecode(json) as List)
           .map(
             (mappedOrder) => Order.fromJson(mappedOrder),
@@ -139,12 +137,10 @@ main() async {
           key: '__Order__',
           shouldRecreateTheState: true,
           toJson: (List<Order?> orders) {
-            print('TO JSON');
             final mappedOrders = (orders).map((o) => o?.toMap()).toList();
             return jsonEncode(mappedOrders);
           },
           fromJson: (json) {
-            print('FROM JSON');
             return (jsonDecode(json) as List)
                 .map(
                   (mappedOrder) => Order.fromJson(mappedOrder),
@@ -186,12 +182,10 @@ main() async {
           key: '__Order__',
           shouldRecreateTheState: true,
           toJson: (List<Order?> orders) {
-            print('TO JSON');
             final mappedOrders = (orders).map((o) => o?.toMap()).toList();
             return jsonEncode(mappedOrders);
           },
           fromJson: (json) {
-            print('FROM JSON');
             return (jsonDecode(json) as List)
                 .map(
                   (mappedOrder) => Order.fromJson(mappedOrder),

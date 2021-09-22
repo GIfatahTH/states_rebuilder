@@ -30,7 +30,7 @@ void main() async {
     'AND WHEN token expires'
     'THEN the token is refreshed',
     (tester) async {
-      await tester.pumpWidget(_App());
+      await tester.pumpWidget(const _App());
       expect(user.isSigned, false);
       expect(find.text('Waiting'), findsOneWidget);
       await tester.pump();
@@ -258,12 +258,12 @@ void main() async {
         '_key_': User(
           id: 'id',
           token: 'token',
-          tokenExpiration: Duration(seconds: -10),
+          tokenExpiration: const Duration(seconds: -10),
           refreshToken: 'refreshToken',
         ).toJson(),
       };
       _refreshTokenIsExpired = true;
-      await tester.pumpWidget(_App());
+      await tester.pumpWidget(const _App());
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, false);
@@ -303,7 +303,7 @@ class Repository extends IAuth<User?, String> {
     return User(
       id: 'id',
       token: 'token',
-      tokenExpiration: Duration(seconds: 2),
+      tokenExpiration: const Duration(seconds: 2),
       refreshToken: 'refreshToken',
     );
   }
@@ -316,7 +316,7 @@ class Repository extends IAuth<User?, String> {
     return User(
       id: 'id',
       token: 'token',
-      tokenExpiration: Duration(seconds: 2),
+      tokenExpiration: const Duration(seconds: 2),
       refreshToken: 'refreshToken',
     );
   }
@@ -334,7 +334,7 @@ class Repository extends IAuth<User?, String> {
     return currentUser!.copyWith(
       token: 'new token',
       refreshToken: 'new refreshToken',
-      tokenExpiration: Duration(seconds: 2),
+      tokenExpiration: const Duration(seconds: 2),
     );
   }
 }
