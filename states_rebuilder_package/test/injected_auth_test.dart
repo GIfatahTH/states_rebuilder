@@ -454,10 +454,13 @@ void main() async {
         onUnSigned++;
       },
       onSigned: (_) => onSigned++,
-      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (n) {
-        if (n == 1) return 'user1';
-        throw Exception('Stream Error');
-      }),
+      onAuthStream: (repo) => Stream.periodic(
+        const Duration(seconds: 1),
+        (n) {
+          if (n == 1) return 'user1';
+          throw Exception('Stream Error');
+        },
+      ),
     );
 
     expect(user.isSigned, false);
@@ -648,12 +651,11 @@ void main() async {
           Duration(seconds: 1),
           () => 'user1',
         ).asStream(),
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
-          if (middleSnap.nextSnap.hasData &&
-              middleSnap.nextSnap.data == 'user1') {
-            return middleSnap.nextSnap.copyToHasData('user100');
+        stateInterceptor: (currentSnap, nextSnap) {
+          _snapState = currentSnap;
+          _nextSnapState = nextSnap;
+          if (nextSnap.hasData && nextSnap.data == 'user1') {
+            return nextSnap.copyToHasData('user100');
           }
         },
       );
@@ -842,8 +844,6 @@ void main() async {
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
           useRouteNavigation: true,
-          dispose: () {},
-          onSetState: On(() {}),
           debugPrintWhenRebuild: '',
         ),
         navigatorKey: RM.navigate.navigatorKey,

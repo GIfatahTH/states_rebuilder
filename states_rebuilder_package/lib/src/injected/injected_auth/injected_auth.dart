@@ -45,14 +45,11 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
     _repo = repoMock != null
         ? repoMock()
         : (this as InjectedAuthImp<T, P>).repoCreator();
-    (this as InjectedAuthImp)._init();
     return _repo as R;
   }
 
   ///Whether the a user is signed or not
-  bool get isSigned =>
-      state != null && state != (this as InjectedAuthImp<T, P>).unsignedUser;
-  //
+  bool get isSigned;
   _AuthService<T, P>? _auth;
 
   ///Object that encapsulates the signIn, signUp, signOut methods
@@ -66,9 +63,14 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
   /// Inject a fake implementation of this injected model.
   ///
   /// Use [Injected.injectMock] to directly mack a signed user.
-  void injectAuthMock(IAuth<T, P> Function() fakeRepository) {
+  void injectAuthMock(IAuth<T, P> Function()? fakeRepository) {
     dispose();
     RM.disposeAll();
+    if (fakeRepository == null) {
+      _cachedRepoMocks
+        ..clear()
+        ..add(null);
+    }
     _cachedRepoMocks.add(fakeRepository);
   }
 }
@@ -116,7 +118,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     _resetDefaultState = () {
       _repo = null;
       _auth = null;
-      _isInitialized = false;
+      _isInitialized = true;
       onAuthStreamSubscription?.cancel();
       onAuthStreamSubscription = null;
     };
@@ -136,6 +138,8 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
   StreamSubscription<T>? onAuthStreamSubscription;
 
   late final VoidCallback _resetDefaultState;
+  @override
+  bool get isSigned => state != unsignedUser && _isInitialized;
 
   @override
   dynamic middleCreator(
@@ -146,6 +150,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
       return super.middleCreator(crt, creatorMock);
     }
     return () async {
+      _isInitialized = false;
       snapState = snapState.copyWith(infoMessage: 'REPO $kInitMessage');
       auth._param = param?.call();
       await _init();
@@ -153,6 +158,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
       if (onAuthStream != null) {
         final Stream<T> stream = await onAuthStream!(getRepoAs<IAuth<T, P>>());
         final future = Completer<T>();
+        _isInitialized = true;
         onAuthStreamSubscription = stream.listen(
           (data) {
             if (!future.isCompleted) {
@@ -179,7 +185,18 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
         );
         return super.middleCreator(() => future.future, creatorMock);
       }
-      return super.middleCreator(crt, creatorMock);
+      final r = super.middleCreator(crt, creatorMock);
+      if (r is T && r != unsignedUser) {
+        snapState = snapState.copyWith(data: r);
+        return auth._autoSignOut()?.then(
+          (data) {
+            _isInitialized = true;
+            return data;
+          },
+        );
+      }
+      _isInitialized = true;
+      return r;
     }();
   }
 
@@ -188,7 +205,6 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
       return;
     }
     await getRepoAs<IAuth<T, P>>().init();
-    _isInitialized = true;
   }
 
   @override
@@ -247,7 +263,6 @@ class _AuthService<T, P> {
         _param = param?.call(
           injected.param?.call(),
         );
-        await injected._init();
         return _repository.signIn(_param ?? injected.param?.call());
       },
       sideEffects: onError != null ? SideEffects.onError(onError) : null,
@@ -276,8 +291,6 @@ class _AuthService<T, P> {
         _param = param?.call(
           injected.param?.call(),
         );
-        await injected._init();
-
         return _repository.signUp(_param ?? injected.param?.call());
       },
       sideEffects: onError != null ? SideEffects.onError(onError) : null,
@@ -319,19 +332,23 @@ class _AuthService<T, P> {
     _onSignInOut = null;
   }
 
-  void _autoSignOut() {
+  Future<T>? _autoSignOut() async {
     if (injected.autoSignOut != null) {
       _cancelTimer();
       final duration = injected.autoSignOut!(injected._state);
       if (duration.inSeconds <= 0) {
-        refreshToken();
+        return refreshToken();
       } else {
         _authTimer = Timer(
-          injected.autoSignOut!(injected._state),
-          () => refreshToken(),
+          duration,
+          () {
+            print('timer is invoked');
+            refreshToken();
+          },
         );
       }
     }
+    return injected._state;
   }
 
   /// Refresh the token
@@ -343,13 +360,17 @@ class _AuthService<T, P> {
       return injected._state;
     }
     final refreshedUser = await _repository.refreshToken(injected._state);
+
     if (refreshedUser == null || refreshedUser == injected.unsignedUser) {
       if (shouldAutoSignOut) {
         signOut();
       }
       return injected.unsignedUser as T;
     }
-    injected.state = refreshedUser;
+    injected
+      ..snapState = injected.snapState.copyWith(data: refreshedUser)
+      ..persistState();
+    _autoSignOut();
     return injected._state;
   }
 
@@ -370,8 +391,6 @@ class _AuthService<T, P> {
     await injected.setState(
       (s) async* {
         yield injected.unsignedUser;
-        await injected._init();
-
         await _repository.signOut(
           param?.call(injected.param?.call()) ??
               injected.param?.call() ??

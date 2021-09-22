@@ -22,6 +22,7 @@ void main() async {
     _shouldRefreshToken = true;
     _refreshTokenIsExpired = false;
     store.clear();
+    user.injectAuthMock(null);
     user.dispose();
   });
   testWidgets(
@@ -31,6 +32,9 @@ void main() async {
     (tester) async {
       await tester.pumpWidget(_App());
       expect(user.isSigned, false);
+      expect(find.text('Waiting'), findsOneWidget);
+      await tester.pump();
+      expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
       //
       user.auth.signIn(null);
@@ -39,24 +43,24 @@ void main() async {
       expect(user.state?.token, 'token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
       _shouldRefreshToken = false;
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
       //
@@ -72,35 +76,79 @@ void main() async {
         '_key_': User(
           id: 'id',
           token: 'token',
-          tokenExpiration: Duration(seconds: 2),
+          tokenExpiration: const Duration(seconds: 2),
           refreshToken: 'refreshToken',
         ).toJson(),
       };
 
-      await tester.pumpWidget(_App());
+      await tester.pumpWidget(const _App());
       await tester.pump();
       expect(user.isSigned, true);
       expect(user.state?.token, 'token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
       _shouldRefreshToken = false;
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, false);
+      expect(find.text('UnSigned'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN use is persisted with valid token'
+    'THEN it will be use and refreshed'
+    'CASE Mock auth repo is used',
+    (tester) async {
+      //
+      store.store = {
+        '_key_': User(
+          id: 'id',
+          token: 'token',
+          tokenExpiration: const Duration(seconds: 2),
+          refreshToken: 'refreshToken',
+        ).toJson(),
+      };
+      user.injectAuthMock(() => Repository());
+      await tester.pumpWidget(const _App());
+      await tester.pump();
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'new token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      _shouldRefreshToken = false;
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'new token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
     },
@@ -114,36 +162,88 @@ void main() async {
         '_key_': User(
           id: 'id',
           token: 'token',
-          tokenExpiration: Duration(seconds: -10),
+          tokenExpiration: const Duration(seconds: -10),
           refreshToken: 'refreshToken',
         ).toJson(),
       };
 
-      await tester.pumpWidget(_App());
+      await tester.pumpWidget(const _App());
+      expect(find.text('Waiting'), findsOneWidget);
+      expect(user.isSigned, false);
+      expect(user.isWaiting, true);
       await tester.pump();
-      expect(user.isSigned, true);
+      expect(find.text('Waiting'), findsOneWidget);
+      expect(user.isSigned, false);
+      expect(user.isWaiting, true);
       expect(user.state?.token, 'token');
+      await tester.pump(1.seconds);
       expect(find.text('Signed'), findsOneWidget);
-      //
-      await tester.pump(Duration(seconds: 1));
       expect(user.isSigned, true);
+      expect(user.hasData, true);
       expect(user.state?.token, 'new token');
-      expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
       _shouldRefreshToken = false;
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, true);
       expect(user.state?.token, 'new token');
       expect(find.text('Signed'), findsOneWidget);
       //
-      await tester.pump(Duration(seconds: 1));
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, false);
+      expect(find.text('UnSigned'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN stored user has an expired token'
+    'THEN on app starts the token is refreshed'
+    'CASE Mock auth repos is used',
+    (tester) async {
+      store.store = {
+        '_key_': User(
+          id: 'id',
+          token: 'token',
+          tokenExpiration: const Duration(seconds: -10),
+          refreshToken: 'refreshToken',
+        ).toJson(),
+      };
+      user.injectAuthMock(() => Repository());
+      await tester.pumpWidget(const _App());
+      expect(find.text('Waiting'), findsOneWidget);
+      expect(user.isSigned, false);
+      expect(user.isWaiting, true);
+      await tester.pump();
+      expect(find.text('Waiting'), findsOneWidget);
+      expect(user.isSigned, false);
+      expect(user.isWaiting, true);
+      expect(user.state?.token, 'token');
+      await tester.pump(1.seconds);
+      expect(find.text('Signed'), findsOneWidget);
+      expect(user.isSigned, true);
+      expect(user.hasData, true);
+      expect(user.state?.token, 'new token');
+      //
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'new token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      _shouldRefreshToken = false;
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.isSigned, true);
+      expect(user.state?.token, 'new token');
+      expect(find.text('Signed'), findsOneWidget);
+      //
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
     },
@@ -165,7 +265,7 @@ void main() async {
       _refreshTokenIsExpired = true;
       await tester.pumpWidget(_App());
       await tester.pump();
-      await tester.pump(Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
       //
@@ -181,8 +281,9 @@ class _App extends StatelessWidget {
     return MaterialApp(
       home: OnAuthBuilder(
         listenTo: user,
-        onUnsigned: () => Text('UnSigned'),
-        onSigned: () => Text('Signed'),
+        onInitialWaiting: () => const Text('Waiting'),
+        onUnsigned: () => const Text('UnSigned'),
+        onSigned: () => const Text('Signed'),
       ),
     );
   }
@@ -225,7 +326,7 @@ class Repository extends IAuth<User?, String> {
     if (!_shouldRefreshToken) {
       return null;
     }
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     if (_refreshTokenIsExpired) {
       return null;
     }

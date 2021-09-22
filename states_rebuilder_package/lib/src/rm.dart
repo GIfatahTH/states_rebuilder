@@ -713,7 +713,12 @@ abstract class RM {
       autoSignOut: autoRefreshTokenOrSignOut ?? autoSignOut,
       onAuthStream: onAuthStream,
       //
-      middleSnapState: middleSnapState,
+      middleSnapState: stateInterceptor != null
+          ? (middleSnap) => stateInterceptor(
+                middleSnap.currentSnap,
+                middleSnap.nextSnap,
+              )
+          : middleSnapState,
       sideEffects: SideEffects<T>(
         initState: () {
           if (sideEffects?.initState != null) {
@@ -1304,13 +1309,16 @@ abstract class RM {
     inj = InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
-        assert(RM.env != null, '''
+        assert(RM.env != null,
+            '''
 You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
     ''');
-        assert(impl[env] != null, '''
+        assert(impl[env] != null,
+            '''
 There is no implementation for $env of $T interface
     ''');
-        assert(impl.length == _envMapLength, '''
+        assert(impl.length == _envMapLength,
+            '''
 You must be consistent about the number of flavor environment you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');

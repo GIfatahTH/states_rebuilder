@@ -635,12 +635,11 @@ void main() async {
           Duration(seconds: 1),
           () => 'user1',
         ).asStream(),
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
-          if (middleSnap.nextSnap.hasData &&
-              middleSnap.nextSnap.data == 'user1') {
-            return middleSnap.nextSnap.copyToHasData('user100');
+        stateInterceptor: (currentSnap, nextSnap) {
+          _snapState = currentSnap;
+          _nextSnapState = nextSnap;
+          if (nextSnap.hasData && nextSnap.data == 'user1') {
+            return nextSnap.copyToHasData('user100');
           }
         },
       );
