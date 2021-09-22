@@ -12,29 +12,27 @@ final Injected<int> counter = RM.inject<int>(
   //
   //You can override this global side effect when calling setState
   sideEffects: SideEffects.onOrElse(
-      onData: (_) {
-        //show snackBar
-        //any current snackBar is hidden.
-        RM.scaffold.showSnackBar(
-          SnackBar(
-            content: Text('${counter.state}'),
-          ),
-        );
-      },
-      onWaiting: () {
-        //show snackBar
-        //any current snackBar is hidden.
-        RM.scaffold.showSnackBar(
-          SnackBar(
-            content: Text('Waiting ...'),
-          ),
-        );
-      },
-      orElse: (_) {}),
-
-  middleSnapState: (middleSnap) {
-    middleSnap.print();
-  },
+    onData: (_) {
+      //show snackBar
+      //any current snackBar is hidden.
+      RM.scaffold.showSnackBar(
+        SnackBar(
+          content: Text('${counter.state}'),
+        ),
+      );
+    },
+    onWaiting: () {
+      //show snackBar
+      //any current snackBar is hidden.
+      RM.scaffold.showSnackBar(
+        SnackBar(
+          content: Text('Waiting ...'),
+        ),
+      );
+    },
+    orElse: (_) {},
+  ),
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 class MyHomePage extends StatelessWidget {

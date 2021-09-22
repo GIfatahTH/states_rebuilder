@@ -66,4 +66,7 @@ class FakeUserRepository implements UserRepository {
     await Future.delayed(Duration(seconds: 2));
     return fakeUser;
   }
+
+  @override
+  Future<User?>? refreshToken(User? currentUser) {}
 }

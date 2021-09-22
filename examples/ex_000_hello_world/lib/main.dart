@@ -96,13 +96,8 @@ final streamedHelloName = RM.injectStream<String>(
     // we use the onInitialized hook to pause it.
     subscription.pause();
   },
-  middleSnapState: (snapState) {
-    snapState.print(preMessage: 'streamedHelloName');
-    //Here we change the state
-    if (snapState.nextSnap.hasData) {
-      return snapState.nextSnap
-          .copyWith(data: snapState.nextSnap.data!.toUpperCase());
-    }
+  stateInterceptor: (currentSnap, nextSnap) {
+    return nextSnap.copyWith(data: nextSnap.data!.toUpperCase());
   },
 );
 //

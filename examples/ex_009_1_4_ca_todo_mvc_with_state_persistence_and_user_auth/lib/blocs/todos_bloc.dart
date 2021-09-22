@@ -12,9 +12,7 @@ import 'common/enums.dart';
 @immutable
 class TodosBloc {
   final InjectedCRUD<Todo, String> todosRM = RM.injectCRUD<Todo, String>(
-    () => FireBaseTodosRepository(
-      authToken: authBloc.user!.token.token!,
-    ),
+    () => FireBaseTodosRepository(),
     param: () => '__Todos__/${authBloc.user!.userId}',
     readOnInitialization: true,
     sideEffects: SideEffects.onError(

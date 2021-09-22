@@ -87,6 +87,7 @@ class FireBaseAuth implements IAuth<User?, UserParam> {
         email: email,
         token: Token(
           token: responseData['idToken'],
+          refreshToken: responseData['refreshToken'],
           expiryDate: DateTimeX.current.add(
             Duration(
               seconds: int.parse(
@@ -102,7 +103,35 @@ class FireBaseAuth implements IAuth<User?, UserParam> {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
+  void dispose() {}
+
+  @override
+  Future<User?>? refreshToken(User? currentUser) async {
+    final url = 'https://securetoken.googleapis.com/v1/token?key=$webApiKey';
+    final response = await http.post(
+      Uri.parse(url),
+      body: json.encode(
+        {
+          'grant_type': 'refresh_token',
+          'refresh_token': currentUser!.token.refreshToken,
+        },
+      ),
+    );
+    print('response $response');
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+
+      return currentUser.copyWith(
+        token: currentUser.token.copyWith(
+          token: responseData['id_token'],
+          refreshToken: responseData['refresh_token'],
+          expiryDate: DateTimeX.current.add(
+            Duration(
+              seconds: int.parse(responseData['expires_in']),
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

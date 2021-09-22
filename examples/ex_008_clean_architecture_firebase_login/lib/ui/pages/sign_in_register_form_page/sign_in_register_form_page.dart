@@ -58,8 +58,9 @@ class FormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return On.form(
-      () => Column(
+    return OnFormBuilder(
+      listenTo: _form,
+      builder: () => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -128,7 +129,8 @@ class FormWidget extends StatelessWidget {
                     Text(' I do not have an account')
                   ],
                 ),
-                On.formSubmission(
+                OnFormSubmissionBuilder(
+                  listenTo: _form,
                   onSubmitting: () =>
                       Center(child: CircularProgressIndicator()),
                   child: ElevatedButton(
@@ -166,7 +168,7 @@ class FormWidget extends StatelessWidget {
                       );
                     },
                   ),
-                ).listenTo(_form),
+                ),
               ],
             ),
           ),
@@ -186,6 +188,6 @@ class FormWidget extends StatelessWidget {
           // ).listenTo(user),
         ],
       ),
-    ).listenTo(_form);
+    );
   }
 }

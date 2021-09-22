@@ -5,7 +5,7 @@ import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/value_objects/email.dart';
 
-class FakeUserRepository implements UserRepository {
+class FakeUserRepository extends UserRepository {
   final dynamic error;
 
   FakeUserRepository({this.error});

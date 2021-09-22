@@ -21,6 +21,7 @@ void main() async {
         email: 'user1@mail.com',
         token: Token(
           token: 'token_user1',
+          refreshToken: 'refreshToken_user1',
           expiryDate: DateTimeX.current.add(
             Duration(seconds: 10),
           ),

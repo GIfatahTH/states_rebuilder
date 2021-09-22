@@ -4,11 +4,13 @@ import '../common/extensions.dart';
 
 class Token {
   final String? _token;
+  final String? refreshToken;
   final DateTime? expiryDate;
 
   Token({
     String? token,
     required this.expiryDate,
+    required this.refreshToken,
   }) : _token = token;
 
   bool get isAuth {
@@ -27,11 +29,13 @@ class Token {
 
   Token copyWith({
     String? token,
+    String? refreshToken,
     DateTime? expiryDate,
   }) {
     return Token(
       token: token ?? this._token,
       expiryDate: expiryDate ?? this.expiryDate,
+      refreshToken: refreshToken ?? this.refreshToken,
     );
   }
 
@@ -39,12 +43,14 @@ class Token {
     return {
       'token': _token,
       'expiryDate': expiryDate?.millisecondsSinceEpoch,
+      'refreshToken': refreshToken,
     };
   }
 
   factory Token.fromMap(Map<String, dynamic> map) {
     return Token(
       token: map['token'],
+      refreshToken: map['refreshToken'],
       expiryDate: DateTime.fromMillisecondsSinceEpoch(map['expiryDate']),
     );
   }

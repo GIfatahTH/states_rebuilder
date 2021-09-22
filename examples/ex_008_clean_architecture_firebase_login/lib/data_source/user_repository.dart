@@ -7,7 +7,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../domain/entities/user.dart';
 import '../service/exceptions/sign_in_out_exception.dart';
 
-class UserRepository implements IAuth<User?, UserParam> {
+class UserRepository extends IAuth<User?, UserParam> {
   final firebase.FirebaseAuth _firebaseAuth = firebase.FirebaseAuth.instance;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();

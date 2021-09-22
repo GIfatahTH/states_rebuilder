@@ -16,11 +16,12 @@ class AuthBloc {
       toJson: (user) => user!.toJson(),
       fromJson: (json) {
         final user = User.fromJson(json);
-        return user.token.isAuth == true ? user : null;
+        return user;
+        // return user.token.isAuth == true ? user : null;
       },
       // debugPrintOperations: true,
     ),
-    autoSignOut: (user) {
+    autoRefreshTokenOrSignOut: (user) {
       final timeToExpiry = user!.token.expiryDate!
           .difference(
             DateTimeX.current,
@@ -55,6 +56,10 @@ class AuthBloc {
 
   Future<void> signOut() {
     return userRM.auth.signOut();
+  }
+
+  Future<User?> refreshToken() {
+    return userRM.auth.refreshToken();
   }
 }
 
