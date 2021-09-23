@@ -1,17 +1,44 @@
 part of 'injected_crud.dart';
 
-class OnCRUD<T> {
+class OnCRUD<T> extends OnCRUDSideEffects<T> {
+  OnCRUD({
+    required T Function()? onWaiting,
+    required T Function(dynamic err, void Function() refresh)? onError,
+    required T Function(dynamic data) onResult,
+  }) : super(
+          onWaiting: onWaiting,
+          onError: onError,
+          onResult: onResult,
+        );
+}
+
+class OnCRUDSideEffects<T> {
   final T Function()? onWaiting;
   final T Function(dynamic err, void Function() refresh)? onError;
   final T Function(dynamic data) onResult;
-  OnCRUD({
+  OnCRUDSideEffects({
     required this.onWaiting,
     required this.onError,
     required this.onResult,
   });
+  @Deprecated('User OnCRUDBuilder instead')
+  Widget listenTo(
+    InjectedCRUD inj, {
+    void Function()? dispose,
+    On<void>? onSetState,
+    String? debugPrintWhenRebuild,
+    Key? key,
+  }) =>
+      _listenTo(
+        inj,
+        dispose: dispose,
+        onSetState: onSetState,
+        debugPrintWhenRebuild: debugPrintWhenRebuild,
+        key: key,
+      );
 
   ///Listen to an InjectedCRUD state
-  Widget listenTo(
+  Widget _listenTo(
     InjectedCRUD inj, {
     void Function()? dispose,
     On<void>? onSetState,
@@ -115,6 +142,39 @@ class _OnCRUDWidget<T> {
   });
 }
 
+/// To listen to an InjectedCRUD state just use [ReactiveStatelessWidget],
+/// [OnReactive], or [OnBuilder] widgets.
+///
+/// Nevertheless, as the CREATE, UPDATE, DELETE functions can be performed
+/// optimistically, the user will not notice anything. Looks like he's dealing
+/// with a simple sync list of items.
+///
+/// If we want to show the user that something is happening in the background,
+/// we can use the `OnCRUDBuilder` widget.
+///
+/// ```dart
+/// OnCRUDBuilder<T>(
+///   listenTo: products,
+///   onWaiting: ()=> Text('onWaiting'),
+///   onError: (err, refreshErr)=> Text('onError'),
+///   onResult: (result)=> Text('onResult'),
+/// )
+/// ```
+/// - onWaiting: while the database is querying.
+/// - onError: if the query ends with an error. IT exposes a refresher to reinvoke the async call that caused the error.
+/// - onResult; if the request ends successfully. It exposes the result fo the query (ex: number of rows updated).
+///
+/// #### [OnCRUDBuilder] vs [OnBuilder].all or [OnBuilder].orElse:
+/// - Both used to listen to injected state.
+/// - In pessimistic mode they are equivalent.
+/// - In optimistic mode, the difference is in the onWaiting hook.
+///   - In `OnBuilder.all` the onWaiting in never called.
+///   - In `OnCRUDBuilder` the onWaiting is called while waiting for the
+/// backend service result.
+/// - `OnBuilder.all` has onData callback.
+/// - `OnCRUDBuilder` has onResult callback that exposes the return result for
+/// the backend service.
+///
 class OnCRUDBuilder extends StatelessWidget {
   const OnCRUDBuilder({
     Key? key,
@@ -123,7 +183,7 @@ class OnCRUDBuilder extends StatelessWidget {
     this.onError,
     required this.onResult,
     this.dispose,
-    this.onSetState,
+    @Deprecated('') this.onSetState,
     this.debugPrintWhenRebuild,
   }) : super(key: key);
   final InjectedCRUD listenTo;
@@ -152,7 +212,7 @@ class OnCRUDBuilder extends StatelessWidget {
       onWaiting: onWaiting,
       onError: onError,
       onResult: onResult,
-    ).listenTo(
+    )._listenTo(
       listenTo,
       onSetState: onSetState,
       dispose: dispose,

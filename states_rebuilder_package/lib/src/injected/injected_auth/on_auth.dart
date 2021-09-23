@@ -24,7 +24,23 @@ class OnAuth<T> {
   ///a simple widget replacement. To use the navigation page transition
   ///animation, set [userRouteNavigation] to true. In this case, you
   ///need to set the [RM.navigate.navigatorKey].
+  @Deprecated('Use OnAuthBuilder instead')
   Widget listenTo<D>(
+    InjectedAuth<D, dynamic> injected, {
+    bool useRouteNavigation = false,
+    SideEffects<D>? sideEffects,
+    Key? key,
+    String? debugPrintWhenRebuild,
+  }) =>
+      _listenTo(
+        injected,
+        useRouteNavigation: useRouteNavigation,
+        sideEffects: sideEffects,
+        key: key,
+        debugPrintWhenRebuild: debugPrintWhenRebuild,
+      );
+
+  Widget _listenTo<D>(
     InjectedAuth<D, dynamic> injected, {
     bool useRouteNavigation = false,
     SideEffects<D>? sideEffects,
@@ -216,7 +232,7 @@ class OnAuthBuilder<T, P> extends StatelessWidget {
       onWaiting: onWaiting,
       onUnsigned: onUnsigned,
       onSigned: onSigned,
-    ).listenTo<T>(
+    )._listenTo<T>(
       listenTo,
       useRouteNavigation: useRouteNavigation,
       sideEffects: sideEffects,

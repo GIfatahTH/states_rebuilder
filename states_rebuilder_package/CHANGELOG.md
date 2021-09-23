@@ -5,6 +5,8 @@
   ### Breaking changes 
   * `onSetState`, `onData`, `onError`, `onAfterState` are all deprecated in favor to `sideEffects` parameter which takes a `SideEffects` object.(See issue #222).
   * Deprecate `validator` parameter in `RM.injectTextEditing`. `validators` is used instead. 
+  * Deprecate `middleSnapState` in favor to `stateInterceptor`
+  * Deprecate `onCRUD` (in `RM.injectedCRUD`) in favor to `OnCRUDSideEffects`
 
 ## 4.4.0 (2021-09-04)
 * Add `OnReactive` widget for implicit subscription:

@@ -15,7 +15,7 @@ part 'on_auth.dart';
 /// architecture to come out with a simple, clean, and testable approach
 /// to manage user authentication and authorization.
 ///
-/// The approach consists fo the following steps:
+/// The approach consists of the following steps:
 /// * Define uer User Model. (The name is up to you).
 /// * You may define a class (or enum) to parametrize the query.
 /// * Your repository must implements [IAuth]<T, P> where T is the User type

@@ -13,7 +13,7 @@ part 'on_crud.dart';
 /// architecture to come out with a simple, clean, and testable approach
 /// to manage CRUD operations.
 ///
-/// The approach consists fo the following steps:
+/// The approach consists of the following steps:
 /// * Define uer Item Model. (The name is up to you).
 /// * You may define a class (or enum) to parametrize the query.
 /// * Your repository must implements [ICRUD]<T, P> where T is the Item type
@@ -44,7 +44,124 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
 
   _Item<T, P>? _item;
 
-  ///Optimized for item displaying. Used with ListView
+  /// Optimized for item displaying. Used with
+  ///
+  /// Working with a list of items, we may want to display them using the
+  /// `ListView` widget of Flutter. At this stage, we are faced with some
+  /// problems regarding :
+  /// - performance: Can we use the `const` constructor for the item widget.
+  /// Then, how to update the item widget if the list of items updates.
+  /// - Widget tree structure: What if the item widget is a big widget with
+  /// its nested widget tree. Then, how to pass the state of the item through
+  ///  the widget three? Are we forced to pass it through a nest tree of
+  ///  constructors?
+  ///  - State mutation: How to efficiently update the list of items when an item
+  ///  is updated.
+  ///
+  /// InjectedCRUD, solves those problems using the concept of inherited
+  /// injected. [Injected.inherited]
+  ///
+  /// Example:
+  ///
+  /// ### inherited
+  /// ```dart
+  /// products.inherited({
+  ///     required Key  key,
+  ///     required T Function()? item,
+  ///     required Widget Function(BuildContext) builder,
+  ///     String? debugPrintWhenNotifiedPreMessage,
+  ///  })
+  /// ```
+  /// Key is required here because we are dealing with a list of widgets with
+  /// a similar state.
+  ///
+  /// Example:
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///   return OnReactive(
+  ///        ()=>  ListView.builder(
+  ///           itemCount: products.state.length,
+  ///           itemBuilder: (context, index) {
+  ///             //Put InheritedWidget here that holds the item state
+  ///             return todos.item.inherited(
+  ///               key: Key('${products.state[index].id}'),
+  ///               item: () => products.state[index],
+  ///               builder: (context) => const ProductItem(),//use of const
+  ///             );
+  ///           },
+  ///         );
+  ///   );
+  /// ```
+  /// In the ListBuilder, we used the `inherited` method to display the
+  /// `ItemWidget`. This has huge advantages:
+  ///
+  /// - As the `inherited` method inserts an` InheritedWidget` above`ItemWidget`
+  /// , we can take advantage of everything you know about` InheritedWidget`.
+  /// - Using const constructors for item widgets.
+  /// - Item widgets can be gigantic widgets with a long widget tree. We can
+  /// easily get the state of an item and mutate it with the state of the
+  /// original list of items even in the deepest widget.
+  /// - The `inherited` method, binds the item to the list of items so that
+  /// updating an item updates the state of the list of items and sends an
+  /// update request to the database. Likewise, updating the list of items will
+  /// update the `ItemWidget` even if it is built with the const constructor.
+  ///
+  /// ### call(context)
+  /// From a child of the item widget, we can obtain an injected state of the
+  /// item using the call method:
+  /// ```dart
+  /// Inherited<T> product = products.item.call(context);
+  /// //item is callable object. `call` can be removed
+  /// Inherited<T> product = products.item(context);
+  /// ```
+  /// You can use the injected product to listen to and mutate the state.
+  ///
+  /// ```dart
+  /// product.state = updatedProduct;
+  /// ```
+  /// Here we mutated the state of one item, the UI will update to display the
+  /// new state, and, **importantly, the list of items will update and update
+  /// query with the default parameter is sent to the backend service.**
+  ///
+  /// **Another important behavior is that if the list of items is updated, the
+  /// item states will update and the Item Widget is re-rendered, even if it is
+  /// declared with const constructor.** (This is possible because of the
+  /// underlying InheritedWidget).
+  ///
+  /// ### of(context)
+  /// It is used to obtain the state of an item. The `BuildContext` is
+  /// subscribed to the inherited widget used on top of the item widget,
+  ///
+  /// ```dart
+  /// T product = products.item.of(context);
+  /// ```
+  /// > of(context) vs call(context):
+  /// >  - of(context) gets the state of the item, whereas, call(context) gets
+  /// the `Injected` object.
+  /// >  * of(context) subscribes the BuildContext to the InheritedWidget,
+  /// whereas call(context) does not.
+  ///
+  /// ### reInherited
+  /// As we know `InheritedWidget` cannot cross route boundary unless it is
+  /// defined above the `MaterielApp` widget (which s a nonpractical case).
+  ///
+  /// After navigation, the `BuildContext` connection loses the connection
+  /// with the `InheritedWidgets` defined in the old route. To overcome this
+  /// shortcoming, with state_rebuilder, we can reinject the state to the next
+  /// route:
+  ///
+  /// ```dart
+  /// RM.navigate.to(
+  ///   products.item.reInherited(
+  ///      // Pass the current context
+  ///      context : context,
+  ///      // The builder method, Notice we can use const here, which is a big
+  ///      // performance gain
+  ///      builder: (BuildContext context)=>  const NewItemDetailedWidget()
+  ///   )
+  /// )
+  /// ```
+  ///
   _Item<T, P> get item => _item ??= _Item<T, P>(this);
   ICRUD<T, P>? _repo;
 
@@ -132,7 +249,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
   final ICRUD<T, P> Function() repoCreator;
   final P Function()? param;
   final bool readOnInitialization;
-  final OnCRUD<void>? onCRUD;
+  final OnCRUDSideEffects<void>? onCRUD;
   //
   late bool _isInitialized;
   late SnapState<dynamic> _onCrudSnap;
@@ -241,7 +358,8 @@ class _CRUDService<T, P> {
   ///
   ///[param] can be also used to distinguish between many
   ///delete queries
-  ///[onSetState] for side effects.
+  ///
+  ///[sideEffects] for side effects.
   ///
   ///[middleState] is a callback that exposes the current state
   ///before mutation and the next state and returns the state
@@ -258,9 +376,9 @@ class _CRUDService<T, P> {
   ///```
   Future<List<T>> read({
     P Function(P? param)? param,
-    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
     SideEffects<List<T>>? sideEffects,
     List<T> Function(List<T> state, List<T> nextState)? middleState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     injected.debugMessage = kReading;
     await injected.setState(
@@ -296,7 +414,7 @@ class _CRUDService<T, P> {
   ///[param] can be also used to distinguish between many
   ///delete queries
   ///
-  ///[onSetState] for side effects.
+  ///[sideEffects] for side effects.
   ///
   ///[isOptimistic]: Whether the querying is done optimistically a
   ///nd mutates the state before sending the query, or it is done
@@ -310,9 +428,9 @@ class _CRUDService<T, P> {
     T item, {
     P Function(P? param)? param,
     void Function(dynamic result)? onResult,
-    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
     SideEffects<List<T>>? sideEffects,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     T? addedItem;
 
@@ -374,7 +492,7 @@ class _CRUDService<T, P> {
   /// * Optional parameters:
   ///    * [param] : used to parametrizes the query. It can also be used to
   /// identify many update calls.
-  ///    * [onSetState] : user for side effects.
+  ///    * [sideEffects] : user for side effects.
   ///    * [onResult] : Hook to be called whenever the items are updated in t
   /// he database. It expoeses the return result (for example number of update line)
   ///    * [isOptimistic] : If true the state is mutated .
@@ -383,10 +501,10 @@ class _CRUDService<T, P> {
     required bool Function(T item) where,
     required T Function(T item) set,
     P Function(P? param)? param,
-    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
     SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     final oldState = <T>[];
     final updated = <T>[];
@@ -465,18 +583,17 @@ class _CRUDService<T, P> {
   /// * Optional parameters:
   ///    * [param] : used to parametrizes the query. It can also be used to
   /// identify many update calls.
-  ///    * [onSetState] : user for side effects.
+  ///    * [sideEffects] : user for side effects.
   ///    * [onResult] : Hook to be called whenever the items are deleted in
   /// the database. It exposes the return result (for example number of deleted line)
   ///    * [isOptimistic] : If true the state is mutated .
-
   Future<void> delete({
     required bool Function(T item) where,
     P Function(P? param)? param,
-    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
     SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     final oldState = <T>[];
     final removed = <T>[];
@@ -584,7 +701,51 @@ class _Item<T, P> {
   ///Provide the an item using an [InheritedWidget] to the sub-branch widget tree.
   ///
   ///The provided Item be obtained using .of(context) or .call(context) methods.
-
+  ///
+  ///Example:
+  ///
+  /// ### inherited
+  /// ```dart
+  /// products.inherited({
+  ///     required Key  key,
+  ///     required T Function()? item,
+  ///     required Widget Function(BuildContext) builder,
+  ///     String? debugPrintWhenNotifiedPreMessage,
+  ///  })
+  /// ```
+  /// Key is required here because we are dealing with a list of widgets with
+  /// a similar state.
+  ///
+  /// Example:
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///   return OnReactive(
+  ///        ()=>  ListView.builder(
+  ///           itemCount: products.state.length,
+  ///           itemBuilder: (context, index) {
+  ///             //Put InheritedWidget here that holds the item state
+  ///             return todos.item.inherited(
+  ///               key: Key('${products.state[index].id}'),
+  ///               item: () => products.state[index],
+  ///               builder: (context) => const ProductItem(),//use of const
+  ///             );
+  ///           },
+  ///         );
+  ///   );
+  /// ```
+  /// In the ListBuilder, we used the `inherited` method to display the
+  /// `ItemWidget`. This has huge advantages:
+  ///
+  /// - As the `inherited` method inserts an` InheritedWidget` above`ItemWidget`
+  /// , we can take advantage of everything you know about` InheritedWidget`.
+  /// - Using const constructors for item widgets.
+  /// - Item widgets can be gigantic widgets with a long widget tree. We can
+  /// easily get the state of an item and mutate it with the state of the
+  /// original list of items even in the deepest widget.
+  /// - The `inherited` method, binds the item to the list of items so that
+  /// updating an item updates the state of the list of items and sends an
+  /// update request to the database. Likewise, updating the list of items will
+  /// update the `ItemWidget` even if it is built with the const constructor.
   Widget inherited({
     required Key key,
     required T Function()? item,
@@ -602,6 +763,26 @@ class _Item<T, P> {
   }
 
   ///Provide the item to another widget tree branch.
+  ///
+  /// As we know `InheritedWidget` cannot cross route boundary unless it is
+  /// defined above the `MaterielApp` widget (which s a nonpractical case).
+  ///
+  /// After navigation, the `BuildContext` connection loses the connection
+  /// with the `InheritedWidgets` defined in the old route. To overcome this
+  /// shortcoming, with state_rebuilder, we can reinject the state to the next
+  /// route:
+  ///
+  /// ```dart
+  /// RM.navigate.to(
+  ///   products.item.reInherited(
+  ///      // Pass the current context
+  ///      context : context,
+  ///      // The builder method, Notice we can use const here, which is a big
+  ///      // performance gain
+  ///      builder: (BuildContext context)=>  const NewItemDetailedWidget()
+  ///   )
+  /// )
+  /// ```
   Widget reInherited({
     Key? key,
     required BuildContext context,
