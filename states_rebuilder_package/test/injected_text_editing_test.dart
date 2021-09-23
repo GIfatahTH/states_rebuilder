@@ -1195,4 +1195,83 @@ void main() {
       expect(text2.isValid, false);
     },
   );
+
+  testWidgets(
+    'WHEN focus changes'
+    'THEN InjectedForm emits notification'
+    'Using OnFormBuilder'
+    'issue #226',
+    (tester) async {
+      final field = RM.injectTextEditing();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return TextFormField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: field.focusNode.hasFocus ? Colors.red : null,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final redWidget = find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator &&
+            widget.decoration.fillColor == Colors.red,
+      );
+      expect(redWidget, findsNothing);
+      field.focusNode.requestFocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN focus changes'
+    'THEN InjectedForm emits notification'
+    'Using OnReactive'
+    'issue #226',
+    (tester) async {
+      final field = RM.injectTextEditing();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnReactive(
+            () {
+              return TextFormField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: field.focusNode.hasFocus ? Colors.red : null,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final redWidget = find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator &&
+            widget.decoration.fillColor == Colors.red,
+      );
+      expect(redWidget, findsNothing);
+      field.focusNode.requestFocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsNothing);
+    },
+  );
 }

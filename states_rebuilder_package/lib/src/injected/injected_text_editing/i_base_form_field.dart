@@ -33,7 +33,10 @@ abstract class _BaseFormField<T> {
 
   ///Creates a focus node for this TextField
   FocusNode get __focusNode {
-    _focusNode!.addListener(() => _inj.notify());
+    _focusNode!.addListener(() {
+      _inj.notify();
+      form?.notify();
+    });
     //To cache the auto focused TextField
     SchedulerBinding.instance!.endOfFrame.then((_) {
       final form = this.form as InjectedFormImp?;

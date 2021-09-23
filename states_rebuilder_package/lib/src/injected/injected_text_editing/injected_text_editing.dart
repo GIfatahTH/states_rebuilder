@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import '../../builders/on_reactive.dart';
 
 import '../../rm.dart';
 
@@ -47,6 +48,7 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
 
   ///Creates a focus node for this TextField
   FocusNode get focusNode {
+    OnReactiveState.addToObs?.call(this);
     if (_baseFormField._focusNode != null) {
       return _baseFormField._focusNode!;
     }
