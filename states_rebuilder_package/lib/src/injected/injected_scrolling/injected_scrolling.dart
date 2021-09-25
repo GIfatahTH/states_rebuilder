@@ -23,7 +23,9 @@ class _RebuildScrolling {
   }
 }
 
-///Injected a ScrollController
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach to control Scrollable view.
+///
 abstract class InjectedScrolling implements InjectedBaseState<double> {
   ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
   late final rebuild = _RebuildScrolling(this);

@@ -56,6 +56,24 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
     _baseFormField._focusNode ??= FocusNode();
     return _baseFormField.__focusNode;
   }
+
+  /// Invoke field validators and return true if the field is valid.
+  bool validate();
+
+  /// If true the [TextField] is clickable and selectable but not editable.
+  late bool isReadOnly;
+  late bool _isEnabled;
+
+  /// If false the associated [TextField] is disabled.
+  bool get isEnabled {
+    OnReactiveState.addToObs?.call(this);
+    return _isEnabled;
+  }
+
+  set isEnabled(bool val) {
+    _isEnabled = val;
+    notify();
+  }
 }
 
 /// InjectedTextEditing implementation
@@ -70,6 +88,8 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     this.autoDispose = true,
     this.onTextEditing,
     bool? validateOnLoseFocus,
+    bool isReadOnly = false,
+    bool isEnabled = true,
   })  : _composing = composing,
         _selection = selection,
         super(
@@ -88,6 +108,8 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       _validator = validator;
       _validateOnValueChange = validateOnTyping;
       _focusNode = null;
+      this.isReadOnly = isReadOnly;
+      this.isEnabled = isEnabled;
     };
     _resetDefaultState();
   }
@@ -161,6 +183,12 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     //   snapState = snapState.copyToIsIdle(this.text);
     // }
     _controller!.addListener(() {
+      if (isReadOnly) {
+        if (_controller!.text != _state) {
+          _controller!.text = _state;
+        }
+        return;
+      }
       onTextEditing?.call(this);
       if (_state == _controller!.text) {
         //if only selection is changed notify and return
@@ -168,9 +196,9 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         return;
       }
       snapState = snapState.copyWith(data: _controller!.text);
-      if (form != null && _validateOnValueChange != true) {
+      if (form != null) {
         //If form is not null than override the autoValidate of this Injected
-        _validateOnValueChange =
+        _validateOnValueChange ??=
             form!.autovalidateMode != AutovalidateMode.disabled;
       }
       if (_validateOnValueChange ?? !(_validateOnLoseFocus ?? false)) {

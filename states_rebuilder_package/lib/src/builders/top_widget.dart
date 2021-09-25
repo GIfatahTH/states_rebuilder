@@ -14,6 +14,44 @@ import '../rm.dart';
 ///It is also use to provide and listen to [InjectedTheme], [InjectedI18N]
 ///
 ///It can also be used to display a splash screen while initialization plugins.
+///
+/// Example of TopAppWidget used to provide [InjectedTheme] and [InjectedI18N]
+///
+///Provide and listen to the [InjectedTheme].
+///
+///```dart
+/// void main() {
+///   runApp(MyApp());
+/// }
+///
+/// class MyApp extends StatelessWidget {
+///   // This widget is the root of your application.
+///   @override
+///   Widget build(BuildContext context) {
+///     return TopAppWidget(//Use TopAppWidget
+///       injectedTheme: themeRM, //Set the injectedTheme
+///       injectedI18N: i18nRM, //Set the injectedI18N
+///       builder: (context) {
+///         return MaterialApp(
+///           //
+///           theme: themeRM.lightTheme, //light theme
+///           darkTheme: themeRM.darkTheme, //dark theme
+///           themeMode: themeRM.themeMode, //theme mode
+///           //
+///           locale: i18nRM.locale,
+///           localeResolutionCallback: i18nRM.localeResolutionCallback,
+///           localizationsDelegates: [
+///             GlobalMaterialLocalizations.delegate,
+///             GlobalWidgetsLocalizations.delegate,
+///             GlobalCupertinoLocalizations.delegate,
+///           ],
+///           home: HomePage(),
+///         );
+///       },
+///     );
+///   }
+/// }
+/// ```
 /// {@endtemplate}
 class TopAppWidget extends StatefulWidget {
   ///```dart

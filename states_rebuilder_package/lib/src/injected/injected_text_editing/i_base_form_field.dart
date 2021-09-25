@@ -53,6 +53,8 @@ abstract class _BaseFormField<T> {
     return _focusNode!;
   }
 
+  late bool isReadOnly;
+
   ///Validate the input text by invoking its validator.
   bool validate() {
     _inj.snapState = _inj.snapState.copyToHasData(value);

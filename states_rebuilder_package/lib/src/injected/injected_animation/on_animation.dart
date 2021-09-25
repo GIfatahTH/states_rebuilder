@@ -208,6 +208,27 @@ class _OnAnimationWidget {
   _OnAnimationWidget(this.animate);
 }
 
+/// Object exposed by the builder method of the [OnAnimationBuilder]. It is used
+/// to set tweens explicitly or implicitly.
+///
+///   ```dart
+///      child: OnAnimationBuilder(
+///        listenTo: animation,
+///        builder: (animate) {
+///          //Implicit animation
+///          final width = animate(selected ? 200.0 : 100.0);
+///
+///          // Explicit animation
+///          final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+///
+///          return Container(
+///            width: width,
+///            height: height,
+///            child: const FlutterLogo(size: 75),
+///          );
+///        },
+///      ),
+///    ```
 class Animate {
   final T? Function<T>(
     T? value,
@@ -219,15 +240,6 @@ class Animate {
   Curve? _reserveCurve;
 
   bool shouldAlwaysRebuild = false;
-  Animate setCurve(Curve curve) {
-    _curve = curve;
-    return this;
-  }
-
-  Animate setReverseCurve(Curve curve) {
-    _reserveCurve = curve;
-    return this;
-  }
 
   final T? Function<T>(
     Tween<T?> Function(T? currentValue) fn,
@@ -263,15 +275,31 @@ class Animate {
     return _value.call<T>(value, curve, reserveCurve, name);
   }
 
-  ///Set animation explicitly by defining the Tween.
+  /// Set animation explicitly by defining the Tween.
   ///
-  ///The callback exposes the currentValue value
+  /// The callback exposes the currentValue value
   T? fromTween<T>(Tween<T?> Function(T? currentValue) fn, [String? name]) {
     final curve = _curve;
     final reserveCurve = _reserveCurve;
     _curve = null;
     _reserveCurve = null;
     return _fromTween(fn, curve, reserveCurve, name ?? '');
+  }
+
+  /// Set the curve for this tween.
+  ///
+  /// Used for staggered animation.
+  Animate setCurve(Curve curve) {
+    _curve = curve;
+    return this;
+  }
+
+  /// Set the curve for this tween.
+  ///
+  /// Used for staggered animation.
+  Animate setReverseCurve(Curve curve) {
+    _reserveCurve = curve;
+    return this;
   }
 }
 
@@ -406,6 +434,54 @@ class EvaluateAnimation {
   }
 }
 
+/// Widget used to listen to an [InjectedAnimation] and call its builder each
+/// time the animation ticks.
+///
+/// Example of Implicit Animated Container
+///
+/// ```dart
+///  final animation = RM.injectAnimation(
+///    duration: Duration(seconds: 2),
+///    curve: Curves.fastOutSlowIn,
+///  );
+///
+///  class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+///    bool selected = false;
+///
+///    @override
+///    Widget build(BuildContext context) {
+///      return GestureDetector(
+///        onTap: () {
+///          setState(() {
+///            selected = !selected;
+///          });
+///        },
+///        child: Center(
+///          child: OnAnimationBuilder(
+///            listenTo: animation,
+///            builder: (animate) {
+///              final width = animate(selected ? 200.0 : 100.0);
+///              final height = animate(selected ? 100.0 : 200.0, 'height');
+///              final alignment = animate(
+///                selected ? Alignment.center : AlignmentDirectional.topCenter,
+///              );
+///              final Color? color = animate(
+///                selected ? Colors.red : Colors.blue,
+///              );
+///              return Container(
+///                width: width,
+///                height: height,
+///                color: color,
+///                alignment: alignment,
+///                child: const FlutterLogo(size: 75),
+///              );
+///            },
+///          ),
+///        ),
+///      );
+///    }
+///  }
+/// ```
 class OnAnimationBuilder extends StatelessWidget {
   const OnAnimationBuilder({
     Key? key,
@@ -413,8 +489,18 @@ class OnAnimationBuilder extends StatelessWidget {
     required this.builder,
     this.onInitialized,
   }) : super(key: key);
+
+  /// [InjectedAnimation] to listen to.
   final InjectedAnimation listenTo;
+
+  /// The builder callback. It is invoked for each tick.
+  /// It exposes an [Animate] object. The [Animate] object is used to set Tweens,
+  /// explicitly or implicitly
+  ///
+  ///
   final Widget Function(Animate) builder;
+
+  /// Callback fired after animation is set up.
   final void Function()? onInitialized;
   @override
   Widget build(BuildContext context) {
