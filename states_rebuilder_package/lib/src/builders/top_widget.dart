@@ -173,9 +173,9 @@ class _TopAppWidgetState extends State<TopAppWidget> {
       };
     }
     if (!_hasWaiteFor) {
-      child = _builderI18N?.call(widget.builder) ??
-          _builderTheme?.call(widget.builder) ??
-          widget.builder(context);
+      // child = _builderI18N?.call(widget.builder) ??
+      //     _builderTheme?.call(widget.builder) ??
+      //     widget.builder(context);
     }
   }
 
@@ -215,9 +215,9 @@ class _TopAppWidgetState extends State<TopAppWidget> {
         error = e;
       });
     } finally {
-      child = _builderI18N?.call(widget.builder) ??
-          _builderTheme?.call(widget.builder) ??
-          widget.builder(context);
+      // child = _builderI18N?.call(widget.builder) ??
+      //     _builderTheme?.call(widget.builder) ??
+      //     widget.builder(context);
     }
   }
 
@@ -248,7 +248,9 @@ class _TopAppWidgetState extends State<TopAppWidget> {
     }
     // (widget.injectedAuth as InjectedAuthImp?)?.initialize();
     // (widget.injectedI18N as InjectedI18NImp?)?.initialize();
-    return child;
+    return _builderI18N?.call(widget.builder) ??
+        _builderTheme?.call(widget.builder) ??
+        widget.builder(context);
   }
 }
 
