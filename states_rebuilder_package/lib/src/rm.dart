@@ -7,8 +7,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'builders/on_reactive.dart';
 
+import 'builders/on_reactive.dart';
+import 'builders/top_widget.dart';
 import 'common/consts.dart';
 import 'common/helper_method.dart';
 import 'common/logger.dart';
@@ -24,8 +25,8 @@ import 'legacy/injector.dart';
 
 part 'basics/depends_on.dart';
 part 'basics/injected.dart';
-part 'basics/injected_base_state.dart';
 part 'basics/injected_base.dart';
+part 'basics/injected_base_state.dart';
 part 'basics/injected_imp.dart';
 part 'basics/injected_persistance/i_persist_store.dart';
 part 'basics/injected_persistance/injected_persistance.dart';
@@ -37,6 +38,7 @@ part 'basics/reactive_model_listener.dart';
 part 'basics/snap_state.dart';
 part 'basics/state_builder.dart';
 part 'basics/undo_redo_persist_state.dart';
+part 'builders/on_builder.dart';
 part 'extensions/injected_list_x.dart';
 part 'extensions/injected_x.dart';
 part 'extensions/on_combined_x.dart';
@@ -54,7 +56,6 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
-part 'builders/on_builder.dart';
 
 abstract class RM {
   RM._();
@@ -125,7 +126,7 @@ abstract class RM {
   ///   )
   ///   ```
   /// ## Parameters:
-  /// ### 1. `creator`: Required callback that returns `<T>`
+  /// ### `creator`: Required callback that returns `<T>`
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -133,12 +134,12 @@ abstract class RM {
   ///   * Any of the states that it depends on emits a notification.
   ///
   /// {@template injectOptionalParameter}
-  /// ### 2. `initialState`: Optional `<T>`
+  /// ### `initialState`: Optional `<T>`
   /// The initial state. It is useful when injecting Future or Stream. If you
   /// try to get the state of non-resolved Future or Stream of non-nullable state,
   /// it will throw if `initialState` is not defined.
   ///
-  /// ### 3. `autoDisposeWhenNotUsed`**: Optional [bool] (Default true)
+  /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
   /// Whether to auto dispose the injected model when no longer used
   /// (listened to).
   ///
@@ -154,14 +155,14 @@ abstract class RM {
   /// * To debug when state is initialized and disposed of use
   /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
   ///
-  /// ### 4. `sideEffects`: Optional [SideEffects]
+  /// ### `sideEffects`: Optional [SideEffects]
   /// Used to handle sideEffects when the state is initialized, mutated and
   /// disposed of. Side effects defined here are called global (default) and
   /// can be overridden when calling [InjectedBase.setState] method.
   ///
   /// See also: [InjectedBase.setState], [OnBuilder.sideEffects] and [OnReactive.sideEffects]
   ///
-  /// ### 5. `onInitialized`: Optional callback That exposed the state
+  /// ### `onInitialized`: Optional callback That exposed the state
   /// Callback to be executed after the injected model is first created. It is
   /// similar to [SideEffects.initState] except that it exposes the state for
   /// some useful cases.
@@ -169,7 +170,7 @@ abstract class RM {
   /// If the injected state is stream, onInitialized additionally exposes the
   /// [StreamSubscription] object to be able to pause the stream.
   ///
-  /// ### 6. `dependsOn`: optional [DependsOn]
+  /// ### `dependsOn`: optional [DependsOn]
   /// Use to defined other injected states that this state depends on. When
   /// any of states it depends on is notified, this state is also notified and
   /// its creator is re-invoked. The state status will reflect a combination of
@@ -182,7 +183,7 @@ abstract class RM {
   /// You can set when the state should be recreated, the time of debounce
   /// and the time of throttle.
   ///
-  /// ### 7. `undoStackLength`: Optional integer
+  /// ### `undoStackLength`: Optional integer
   /// It defines the length of the undo/redo stack. If not defined, the
   /// undo/redo is disabled.
   ///
@@ -191,7 +192,7 @@ abstract class RM {
   /// Further on to undo or redo the state just call [Injected.undoState] and
   /// [Injected.redoState]
   ///
-  /// ### 8. `persist`: Optional callback that return [PersistState]
+  /// ### `persist`: Optional callback that return [PersistState]
   /// If defined, the state will be persisted.
   ///
   /// You have to provide a class that implements [IPersistStore] and initialize
@@ -214,7 +215,7 @@ abstract class RM {
   ///
   /// You can debounce and throttle state persistence.
   ///
-  /// ### 9. `stateInterceptor`: Optional callback that exposes the current and
+  /// ### `stateInterceptor`: Optional callback that exposes the current and
   /// next [SnapState]
   /// This call back is fired after on state mutation and exposes both the
   /// current state just before mutation and the next state.
@@ -243,13 +244,13 @@ abstract class RM {
   ///
   /// ```
   ///
-  /// ### 10. `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// ### `debugPrintWhenNotifiedPreMessage`: Optional [String]
   /// if not null, print an informative message when this model is notified in
   /// the debug mode. It prints (FROM ==> TO state). The entered message will
   /// pré-append the debug message. Useful if the type of the injected model
   /// is primitive to distinguish between them.
   ///
-  /// ### 11. `toDebugString`: Optional callback that exposes the state
+  /// ### `toDebugString`: Optional callback that exposes the state
   /// String representation of the state to be used in
   ///  `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
   ///  collection and you want to print its length only.
@@ -324,7 +325,7 @@ abstract class RM {
   /// injection of a [Future].
   ///
   /// ## Parameters:
-  /// ### 1. `creator`: Required callback that returns [Future]
+  /// ### `creator`: Required callback that returns [Future]
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -397,7 +398,7 @@ abstract class RM {
   /// injection of a [Stream].
   ///
   /// ## Parameters:
-  /// ### 1. `creator`: Required callback that returns [Stream]
+  /// ### `creator`: Required callback that returns [Stream]
   /// A callback that is used to create an instance of the injected object.
   /// It is called when:
   ///   * The state is first initialized
@@ -511,7 +512,7 @@ abstract class RM {
   /// and define the appropriate view for each state.
   ///
   /// ## Parameters:
-  /// ### 1. `repository`: Required callback that returns an object that implements [IAuth]<T, P>
+  /// ### `repository`: Required callback that returns an object that implements [IAuth]<T, P>
   ///
   /// [IAuth]<T, P> forces you to implement the following methods:
   /// 1. `Future<void> init()` to initialize your authentication service (if it
@@ -573,32 +574,32 @@ abstract class RM {
   /// Apart from these six methods, you can define other custom methods and
   /// invoke them using [InjectedAuth.getRepoAs] method.
   ///
-  /// ### 2. `unsignedUser`: Optional `T`
+  /// ### `unsignedUser`: Optional `T`
   /// An object that represents an unsigned user. If T is nullable unsignedUser
   /// is null. unsignedUser value is used internally to decide to call signed
   /// hooks or unsigned hooks.
   ///
-  /// ### 3. `param`: Optional callback that returns `P`
+  /// ### `param`: Optional callback that returns `P`
   /// The default param object to be used in [IAuth.signIn], [IAuth.signUp], and
   /// [IAuth.signOut] methods.
   ///
   /// You can override the default value when calling InjectedAuth.auth.signIn
   /// , [InjectedAuth.auth].signUp, [InjectedAuth.auth].signOut
   ///
-  /// ### 4. `autoRefreshTokenOrSignOut`: Optional callback that exposes the signed user and returns a [Duration].
+  /// ### `autoRefreshTokenOrSignOut`: Optional callback that exposes the signed user and returns a [Duration].
   /// After the return duration, the user will try to refresh the token as
   /// implemented in[IAuth.refreshToken].If the token is not refreshed then the
   /// user is sign out.
   ///
   /// See [IAuth.refreshToken]
   ///
-  /// ### 5. `onAuthStream`: Optional callback that exposes the repository and
+  /// ### `onAuthStream`: Optional callback that exposes the repository and
   /// returns a stream.
   /// It is used to listen to a stream from the repository. The stream emits the
   /// value of the currentUser. Depending on the emitted user, sign in or sign
   /// out hooks will be invoked.
   ///
-  /// ### 6. `persist`: Optional callback that return [PersistState]
+  /// ### `persist`: Optional callback that return [PersistState]
   /// If defined, the signed user will be persisted.
   ///
   /// You have to provide a class that implements [IPersistStore] and initialize
@@ -637,13 +638,13 @@ abstract class RM {
   /// );
   /// ```
   ///
-  /// ### 7. `onSigned`: Optional callback that exposes the signed user
+  /// ### `onSigned`: Optional callback that exposes the signed user
   /// It is used to call side effects when the user is signed.
   ///
-  /// ### 8. `onUnSigned`: Optional callback
+  /// ### `onUnSigned`: Optional callback
   /// It is used to call side effects when the user is unsigned.
   ///
-  /// ### 9. `stateInterceptor`: Optional callback that exposes the current and
+  /// ### `stateInterceptor`: Optional callback that exposes the current and
   /// next [SnapState]
   /// This call back is fired after on state mutation (singed user change) and
   /// exposes both the current state just before mutation and the next state.
@@ -651,18 +652,17 @@ abstract class RM {
   /// The callback return the next [SnapState]. It may be the same as next state
   /// or you can change it.
   ///
-  /// ### 10. `sideEffects`: Optional [SideEffects]
+  /// ### `sideEffects`: Optional [SideEffects]
   /// Used to handle sideEffects when the state is initialized, mutated and
-  /// disposed of. Side effects defined here are called global (default) and
-  /// can be overridden when calling [InjectedBase.setState] method.
+  /// disposed of.
   ///
-  /// ### 11. `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// ### `debugPrintWhenNotifiedPreMessage`: Optional [String]
   /// if not null, print an informative message when this model is notified in
   /// the debug mode. It prints (FROM ==> TO state). The entered message will
   /// pré-append the debug message. Useful if the type of the injected model
   /// is primitive to distinguish between them.
   ///
-  /// ### 12. `toDebugString`: Optional callback that exposes the state
+  /// ### `toDebugString`: Optional callback that exposes the state
   /// String representation of the state to be used in
   ///  `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
   ///  collection and you want to print its length only.
@@ -776,7 +776,7 @@ abstract class RM {
   ///
   ///
   /// ## Parameters:
-  /// ### 1. `repository`: Required callback that returns an object that implements [ICRUD]<T, P>
+  /// ### `repository`: Required callback that returns an object that implements [ICRUD]<T, P>
   /// [ICRUD]<T, P> forces you to implement the following methods:
   /// 1. `Future<void> init()` to initialize your CRUD service (if it
   /// deeds to).
@@ -808,19 +808,19 @@ abstract class RM {
   /// Apart from these five methods, you can define other custom methods and
   /// invoke them using [InjectedCRUD.getRepoAs] method.
   ///
-  /// ### 2. `param`: Optional callback that returns `P`
+  /// ### `param`: Optional callback that returns `P`
   /// The default param object to be used in [ICRUD.create], [ICRUD.read],
   /// [ICRUD.update], and [ICRUD.delete] methods.
   ///
-  /// ### 3. `readOnInitialization`: Optional bool. Defaults to false
+  /// ### `readOnInitialization`: Optional bool. Defaults to false
   /// If true, a read query with the default `param` will sent to the backend
   /// service once the state is initialized.
   ///
-  /// ### 4. `onCRUDSideEffects`: Optional [OnCRUDSideEffects] object
+  /// ### `onCRUDSideEffects`: Optional [OnCRUDSideEffects] object
   /// Use to perform side effects when the app is waiting for a CRUD operation
   /// to resolve.
   ///
-  /// ### 5. `sideEffects`: Optional [SideEffects]
+  /// ### `sideEffects`: Optional [SideEffects]
   /// Used to handle side effects when the state is initialized, mutated and
   /// disposed of.
   ///
@@ -834,7 +834,7 @@ abstract class RM {
   /// - `onCRUDSideEffects` has `onResult` callback that exposes the return result
   /// for the backend service.
   ///
-  /// ### 6. `persist`: Optional callback that return [PersistState]
+  /// ### `persist`: Optional callback that return [PersistState]
   /// If defined, the state will be persisted.
   ///
   /// You have to provide a class that implements [IPersistStore] and initialize
@@ -857,7 +857,7 @@ abstract class RM {
   ///
   /// You can debounce and throttle state persistence.
   ///
-  /// ### 7. `stateInterceptor`: Optional callback that exposes the current and
+  /// ### `stateInterceptor`: Optional callback that exposes the current and
   /// next [SnapState]
   /// This call back is fired after on state mutation and exposes both the
   /// current state just before mutation and the next state.
@@ -866,7 +866,7 @@ abstract class RM {
   /// or you can change it. Useful in many scenarios where we want to concatenate
   /// both current and next snap (fetch for list of items is an example);
   ///
-  ///### 8. `undoStackLength`: Optional integer
+  /// ### `undoStackLength`: Optional integer
   /// It defines the length of the undo/redo stack. If not defined, the
   /// undo/redo is disabled.
   ///
@@ -875,7 +875,7 @@ abstract class RM {
   /// Further on, to undo or redo the state just call [Injected.undoState] and
   /// [Injected.redoState]
   ///
-  /// ### 9. `dependsOn`: optional [DependsOn]
+  /// ### `dependsOn`: optional [DependsOn]
   /// Use to defined other injected states that this state depends on. When
   /// any of states it depends on is notified, this state is also notified and
   /// its creator is re-invoked. The state status will reflect a combination of
@@ -885,7 +885,7 @@ abstract class RM {
   /// * If any of dependency state isIdle, this state isIdle.
   /// * If all dependency states have data, this state hasData.
   ///
-  /// ### 10. `autoDisposeWhenNotUsed`**: Optional [bool] (Default true)
+  /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
   /// Whether to auto dispose the injected model when no longer used
   /// (listened to).
   ///
@@ -901,13 +901,13 @@ abstract class RM {
   /// * To debug when state is initialized and disposed of use
   /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
   ///
-  /// ### 11. `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// ### `debugPrintWhenNotifiedPreMessage`: Optional [String]
   /// if not null, print an informative message when this model is notified in
   /// the debug mode. It prints (FROM ==> TO state). The entered message will
   /// pré-append the debug message. Useful if the type of the injected model
   /// is primitive to distinguish between them.
   ///
-  /// ### 12. `toDebugString`: Optional callback that exposes the state
+  /// ### `toDebugString`: Optional callback that exposes the state
   /// String representation of the state to be used in
   /// `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
   ///  collection and you want to print its length only.
@@ -983,8 +983,7 @@ abstract class RM {
     return inj;
   }
 
-  ///{@template injectedTheme}
-  ///Injection of a state that handle app theme switching.
+  /// Injection of a state that handle app theme switching.
   ///
   /// This injected state abstracts the best practices of the clean
   /// architecture to come out with a simple, clean, and testable approach
@@ -992,46 +991,46 @@ abstract class RM {
   ///
   /// The approach consists of the following steps:
   /// * Instantiate an [InjectedTheme] object using [RM.injectTheme] method.
-  /// * we use the TopAppWidget that must be on top of the MaterialApp widget.
-  ///  ```dart
-  ///  void main() {
-  ///    runApp(MyApp());
-  ///  }
-  ///
-  ///  class MyApp extends StatelessWidget {
-  ///    // This widget is the root of your application.
-  ///    @override
-  ///    Widget build(BuildContext context) {
-  ///      return TopAppWidget(//Use TopAppWidget
-  ///        injectedTheme: themeRM, //Set te injectedTheme
-  ///        builder: (context) {
-  ///          return MaterialApp(
-  ///            theme: themeRM.lightTheme, //light theme
-  ///            darkTheme: themeRM.darkTheme, //dark theme
-  ///            themeMode: themeRM.themeMode, //theme mode
-  ///            home: HomePage(),
-  ///          );
-  ///        },
-  ///      );
+  /// * we use the [TopAppWidget] that must be on top of the MaterialApp widget.
+  ///   ```dart
+  ///    void main() {
+  ///      runApp(MyApp());
   ///    }
-  ///  }
-  ///  ```
+  ///
+  ///    class MyApp extends StatelessWidget {
+  ///      // This widget is the root of your application.
+  ///      @override
+  ///      Widget build(BuildContext context) {
+  ///        return TopAppWidget(//Use TopAppWidget
+  ///          injectedTheme: themeRM, //Set te injectedTheme
+  ///          builder: (context) {
+  ///            return MaterialApp(
+  ///              theme: themeRM.lightTheme, //light theme
+  ///              darkTheme: themeRM.darkTheme, //dark theme
+  ///              themeMode: themeRM.themeMode, //theme mode
+  ///              home: HomePage(),
+  ///            );
+  ///          },
+  ///        );
+  ///      }
+  ///    }
+  ///   ```
   ///
   /// ## Parameters:
   ///
-  /// ### 1. `lightThemes`: Required `Map<T, ThemeData>`
+  /// ### `lightThemes`: Required `Map<T, ThemeData>`
   /// Map of light themes the app supports. The keys of the Map are the names
   /// of the themes. `T` can be String or enumeration.
   ///
-  /// ### 2. `darkThemes`: Optional `Map<T, ThemeData>`
+  /// ### `darkThemes`: Optional `Map<T, ThemeData>`
   /// Map of dark themes the app supports. There should be a correspondence
   /// between light and dark themes. Nevertheless, you can have light themes
   /// with no corresponding dark one.
   ///
-  /// ### 3. `themeMode`: Optional `ThemeMode`
+  /// ### `themeMode`: Optional `ThemeMode`
   /// the [ThemeMode] the app should start with.
   ///
-  /// ### 4. `persistKey`: Optional `String`
+  /// ### `persistKey`: Optional `String`
   /// If defined the app theme is persisted to a local storage. The persisted
   /// theme will be used on app restarting.
   ///
@@ -1051,25 +1050,86 @@ abstract class RM {
   /// }
   /// ```
   ///
+  /// ### `stateInterceptor`: Optional callback that exposes the current and
+  /// next [SnapState]
+  /// This call back is fired after on state mutation (singed user change) and
+  /// exposes both the current state just before mutation and the next state.
+  ///
+  /// ### `undoStackLength`: Optional integer
+  /// It defines the length of the undo/redo stack. If not defined, the
+  /// undo/redo is disabled.
+  ///
+  /// For the undo/redo state to work properly, the state must be immutable.
+  ///
+  /// Further on, to undo or redo the state just call [Injected.undoState] and
+  /// [Injected.redoState]
+  ///
+  /// ### `sideEffects`: Optional [SideEffects]
+  /// Used to handle sideEffects when the state is initialized, mutated and
+  /// disposed of.
+  ///
+  /// ### `dependsOn`: optional [DependsOn]
+  /// Use to defined other injected states that this state depends on. When
+  /// any of states it depends on is notified, this state is also notified and
+  /// its creator is re-invoked. The state status will reflect a combination of
+  /// the state status of dependencies:
+  /// * If any of dependency state isWaiting, this state isWaiting.
+  /// * If any of dependency state hasError, this state hasError.
+  /// * If any of dependency state isIdle, this state isIdle.
+  /// * If all dependency states have data, this state hasData.
+  ///
+  /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
+  /// Whether to auto dispose the injected model when no longer used
+  /// (listened to).
+  ///
+  /// It is important to note that:
+  /// * A state never listened to for rebuild, never auto dispose even after it
+  /// is mutated.
+  /// * By default, all states consumed in the widget tree will auto dispose.
+  /// * It is recommended to manually dispose state that are not auto disposed
+  /// using [InjectedBaseState.dispose]. You can dispose all states of the app
+  /// using [RM.disposeAll].
+  /// * A state will auto dispose if all states it depends on are disposed of.
+  /// * Non disposed state may lead to unexpected behavior.
+  /// * To debug when state is initialized and disposed of use
+  /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
+  ///
+  /// ### `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// if not null, print an informative message when this model is notified in
+  /// the debug mode. It prints (FROM ==> TO state). The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model
+  /// is primitive to distinguish between them.
+  ///
+  /// ### `toDebugString`: Optional callback that exposes the state
+  /// String representation of the state to be used in
+  /// `debugPrintWhenNotifiedPreMessage`. Useful, for example, if the state is a
+  ///  collection and you want to print its length only.
   static InjectedTheme<T> injectTheme<T>({
     required Map<T, ThemeData> lightThemes,
     Map<T, ThemeData>? darkThemes,
     ThemeMode themeMode = ThemeMode.system,
     String? persistKey,
     //
-    SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
-    @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
-    @Deprecated('Use sideEffects instead') On<void>? onSetState,
+    SnapState<T>? Function(
+      SnapState<T> currentSnap,
+      SnapState<T> nextSnap,
+    )?
+        stateInterceptor,
     SideEffects<T>? sideEffects,
     //
-    DependsOn<T>? dependsOn,
     int undoStackLength = 0,
+    DependsOn<T>? dependsOn,
     //
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+    //
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
   }) {
     assert(
       T != dynamic && T != Object,
@@ -1082,7 +1142,12 @@ abstract class RM {
       themeModel: themeMode,
       persistKey: persistKey,
       //
-      middleSnapState: middleSnapState,
+      middleSnapState: stateInterceptor != null
+          ? (middleSnap) => stateInterceptor(
+                middleSnap.currentSnap,
+                middleSnap.nextSnap,
+              )
+          : middleSnapState,
       onInitialized: sideEffects?.initState != null
           ? (_) => sideEffects!.initState!()
           : onInitialized,
@@ -1111,40 +1176,102 @@ abstract class RM {
     return inj;
   }
 
-  ///Functional injection of a state that handle app internationalization
-  ///and localization.
+  /// Injection of a state that handle app internationalization
+  /// and localization.
   ///
-  ///* Required parameters:
-  ///  * **i18n**:  Map of supported locales with their language translation.
   ///
-  /// * **Optional parameters:**
-  ///  * **persistKey**: If defined the app locale is persisted to a local
-  /// storage. On app start, the stored locale will be used.
-  /// {@macro customInjectOptionalParameter}
-  static InjectedI18N<I18N> injectI18N<I18N>(
-    Map<Locale, FutureOr<I18N> Function()> i18Ns, {
+  /// This injected state abstracts the best practices of the clean
+  /// architecture to come out with a simple, clean, and testable approach
+  /// to manage app localization and internationalization.
+  ///
+  /// The approach consists of the following steps:
+  /// * //TODO
+  /// ## Parameters:
+  ///
+  /// ### `i18Ns`: Required `Map<T, FutureOr<T> Function()>`
+  /// Map of supported locales with their language translation
+  ///
+  /// ### `persistKey`: Optional `String`
+  /// If defined the app language is persisted to a local storage. The persisted
+  /// language will be used on app restarting.
+  ///
+  /// You have to provide a class that implements [IPersistStore] and initialize
+  /// it in the main method.
+  ///
+  /// For example
+  /// ```dart
+  /// class IPersistStoreImp implements IPersistStore{
+  ///  // ....
+  /// }
+  /// void main()async{
+  ///  WidgetsFlutterBinding.ensureInitialized();
+  ///
+  ///  await RM.storageInitializer(IPersistStoreImp());
+  ///  runApp(MyApp());
+  /// }
+  /// ```
+  ///
+  /// ### `stateInterceptor`: Optional callback that exposes the current and
+  /// next [SnapState]
+  /// This call back is fired after on state mutation (singed user change) and
+  /// exposes both the current state just before mutation and the next state.
+  ///
+  /// ### `undoStackLength`: Optional integer
+  /// It defines the length of the undo/redo stack. If not defined, the
+  /// undo/redo is disabled.
+  ///
+  /// For the undo/redo state to work properly, the state must be immutable.
+  ///
+  /// Further on, to undo or redo the state just call [Injected.undoState] and
+  /// [Injected.redoState]
+  ///
+  /// ### `sideEffects`: Optional [SideEffects]
+  /// Used to handle sideEffects when the state is initialized, mutated and
+  /// disposed of.
+  ///
+  /// ### `dependsOn`: optional [DependsOn]
+  /// Use to defined other injected states that this state depends on. When
+  /// any of states it depends on is notified, this state is also notified and
+  /// its creator is re-invoked. The state status will reflect a combination of
+  /// the state status of dependencies:
+  /// * If any of dependency state isWaiting, this state isWaiting.
+  /// * If any of dependency state hasError, this state hasError.
+  /// * If any of dependency state isIdle, this state isIdle.
+  /// * If all dependency states have data, this state hasData.
+  ///
+  /// ### `debugPrintWhenNotifiedPreMessage`: Optional [String]
+  /// if not null, print an informative message when this model is notified in
+  /// the debug mode. It prints (FROM ==> TO state). The entered message will
+  /// pré-append the debug message. Useful if the type of the injected model
+  /// is primitive to distinguish between them.
+  static InjectedI18N<T> injectI18N<T>(
+    Map<Locale, FutureOr<T> Function()> i18Ns, {
     String? persistKey,
     //
-    SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
-        middleSnapState,
-    @Deprecated('Use sideEffects instead')
-        void Function(I18N? s)? onInitialized,
-    @Deprecated('Use sideEffects instead') void Function(I18N s)? onDisposed,
-    @Deprecated('Use sideEffects instead') On<void>? onSetState,
-    SideEffects<I18N>? sideEffects,
+    SnapState<T>? Function(
+      SnapState<T> currentSnap,
+      SnapState<T> nextSnap,
+    )?
+        stateInterceptor,
+    SideEffects<T>? sideEffects,
     //
-    DependsOn<I18N>? dependsOn,
+    DependsOn<T>? dependsOn,
     int undoStackLength = 0,
     //
     // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
+    @Deprecated('Use stateInterceptor instead')
+        SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
+    @Deprecated('Use sideEffects instead') void Function(T? s)? onInitialized,
+    @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
+    @Deprecated('Use sideEffects instead') On<void>? onSetState,
   }) {
     assert(
-      I18N != dynamic && I18N != Object,
+      T != dynamic && T != Object,
       'Type can not inferred, please declare it explicitly',
     );
-    late final InjectedI18NImp<I18N> inj;
-    inj = InjectedI18NImp<I18N>(
+    late final InjectedI18NImp<T> inj;
+    inj = InjectedI18NImp<T>(
       i18Ns: i18Ns,
       persistKey: persistKey,
       //
@@ -1175,73 +1302,138 @@ abstract class RM {
     return inj;
   }
 
-  ///Inject an animation. It works for both implicit and explicit animation.
+  /// Inject an animation. It works for both implicit and explicit animation.
   ///
-  ///Animation is auto disposed if no longer used.
+  /// This injected state abstracts the best practices to come out with a
+  /// simple, clean, and testable approach to manage animations.
   ///
-  ///* **duration** Animation duration, It is required.
-  ///* **reverseDuration** The length of time this animation should last when going in reverse.
-  ///* **curve** Animation curve, It defaults to Curves.linear
-  ///* **reverseCurve** Animation curve to be used when the animation is going in reverse.
-  ///* **initialValue** The AnimationController's value the animation start with.
-  ///* **lowerBound** The value at which this animation is deemed to be dismissed.
-  ///* **upperBound** The value at which this animation is deemed to be completed.
-  ///* **animationBehavior** he behavior of the controller when [AccessibilityFeatures.disableAnimations]
-  /// is true.
-  ///* **repeats** the number of times the animation repeats (always from start to end).
-  ///A value of zero means that the animation will repeats infinity.
-  ///* **shouldReverseRepeats** When it is set to true, animation will repeat by alternating
-  ///between begin and end on each repeat.
-  ///* **shouldAutoStart** When it is set to true, animation will auto start after first initialized.
-  ///* **endAnimationListener** callback to be fired after animation ends (After purge of repeats and cycle)
-  ///
-  ///See [OnAnimationBuilder]
-  ///
-  ///Example of Implicit Animated Container
-  ///
-  ///```dart
-  /// final animation = RM.injectAnimation(
-  ///   duration: Duration(seconds: 2),
-  ///   curve: Curves.fastOutSlowIn,
-  /// );
-  ///
-  /// class _MyStatefulWidgetState extends State<MyStatefulWidget> {
-  ///   bool selected = false;
-  ///
-  ///   @override
-  ///   Widget build(BuildContext context) {
-  ///     return GestureDetector(
-  ///       onTap: () {
-  ///         setState(() {
-  ///           selected = !selected;
-  ///         });
-  ///       },
-  ///       child: Center(
+  /// The approach consists of the following steps:
+  /// * Instantiate an [InjectedAnimation] object using [RM.injectAnimation]
+  /// method.
+  ///   ```dart
+  ///     final animation = RM.injectAnimation(
+  ///       duration: Duration(seconds: 2),
+  ///       curve: Curves.fastOutSlowIn,
+  ///     );
+  ///    ```
+  /// * Use [OnAnimationBuilder] to listen to the [InjectedAnimation]. the
+  /// builder of [OnAnimationBuilder] exposes an [Animate] object used to set
+  /// tweens explicitly or implicitly
+  /// method.
+  ///   ```dart
   ///         child: OnAnimationBuilder(
   ///           listenTo: animation,
   ///           builder: (animate) {
+  ///             //Implicit animation
   ///             final width = animate(selected ? 200.0 : 100.0);
-  ///             final height = animate(selected ? 100.0 : 200.0, 'height');
-  ///             final alignment = animate(
-  ///               selected ? Alignment.center : AlignmentDirectional.topCenter,
-  ///             );
-  ///             final Color? color = animate(
-  ///               selected ? Colors.red : Colors.blue,
-  ///             );
+  ///
+  ///             // Explicit animation
+  ///             final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+  ///
   ///             return Container(
   ///               width: width,
   ///               height: height,
-  ///               color: color,
-  ///               alignment: alignment,
   ///               child: const FlutterLogo(size: 75),
   ///             );
   ///           },
   ///         ),
-  ///       ),
-  ///     );
-  ///   }
-  /// }
-  ///````
+  ///    ```
+  ///
+  /// ## Parameters:
+  ///
+  /// ### `duration`: Required [Duration]
+  /// The length of time the animation should last in the forward direction.
+  ///
+  /// ### `reverseDuration`: Optional [Duration]
+  /// The length of time this animation should last when going in reverse. If
+  /// not defined, the forward duration is used.
+  ///
+  /// ### `curve`: Optional [Curve]. Defaults to [Curves.linear]
+  /// The curve the animation should take when going in forward direction.
+  ///
+  /// ### `reverseCurve`: Optional [Curve].
+  /// The curve the animation should take when going in reverse direction. If
+  /// not defined, the forward curve is used.
+  ///
+  /// ### `lowerBound`: Optional [double]. Defaults to 0.0
+  /// The value at which this animation is deemed to be dismissed.
+  ///
+  ///
+  /// ### `upperBound`: Optional [double]. Defaults to 1.0
+  /// The value at which this animation is deemed to be completed.
+  ///
+  /// ### `initialValue`: Optional [double].
+  /// The AnimationController's value the animation start with. If not defined
+  /// the lowerBand is used.
+  ///
+  /// ### `animationBehavior`: Optional [AnimationBehavior]. Defaults to [AnimationBehavior.normal]
+  /// The behavior of the controller when [AccessibilityFeatures.disableAnimations]
+  /// is true.
+  ///
+  /// ### `repeats`: Optional [int]. Defaults to 1.
+  /// The number of times the animation repeats (always from start to end).
+  /// A value of zero means that the animation will repeats infinity.
+  ///
+  /// ### `shouldReverseRepeats`: Optional [bool]. Defaults to false.
+  /// When it is set to true, animation will repeat by alternating between begin
+  /// and end on each repeat.
+  ///
+  /// ### `shouldAutoStart`: Optional [bool]. Defaults to false.
+  /// When it is set to true, animation will auto start after first initialized.
+  ///
+  /// ### `onInitialized`: Optional Callback.
+  /// Callback fired once the animation is first set.
+  ///
+  /// ### `endAnimationListener`: Optional Callback.
+  /// callback to be fired after animation ends (After purge of repeats and cycle)
+  ///
+  /// See [OnAnimationBuilder], [Animate]
+  ///
+  /// Example of Implicit Animated Container
+  ///
+  /// ```dart
+  ///  final animation = RM.injectAnimation(
+  ///    duration: Duration(seconds: 2),
+  ///    curve: Curves.fastOutSlowIn,
+  ///  );
+  ///
+  ///  class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  ///    bool selected = false;
+  ///
+  ///    @override
+  ///    Widget build(BuildContext context) {
+  ///      return GestureDetector(
+  ///        onTap: () {
+  ///          setState(() {
+  ///            selected = !selected;
+  ///          });
+  ///        },
+  ///        child: Center(
+  ///          child: OnAnimationBuilder(
+  ///            listenTo: animation,
+  ///            builder: (animate) {
+  ///              final width = animate(selected ? 200.0 : 100.0);
+  ///              final height = animate(selected ? 100.0 : 200.0, 'height');
+  ///              final alignment = animate(
+  ///                selected ? Alignment.center : AlignmentDirectional.topCenter,
+  ///              );
+  ///              final Color? color = animate(
+  ///                selected ? Colors.red : Colors.blue,
+  ///              );
+  ///              return Container(
+  ///                width: width,
+  ///                height: height,
+  ///                color: color,
+  ///                alignment: alignment,
+  ///                child: const FlutterLogo(size: 75),
+  ///              );
+  ///            },
+  ///          ),
+  ///        ),
+  ///      );
+  ///    }
+  ///  }
+  /// ```
   static InjectedAnimation injectAnimation({
     required Duration duration,
     Duration? reverseDuration,
@@ -1274,31 +1466,170 @@ abstract class RM {
     );
   }
 
-  ///Inject a TextEditingController
+  /// Inject a [TextEditingController]
   ///
-  ///* **text** is the initial text.
-  ///* **selection** the initial text selection
-  ///* **composing** is initial the range of text.
-  ///* **validator** used for input validation, If it returns null means input
-  ///is valid, else the return string is the error message.
-  ///* **validateOnTyping** if set to true the input text is validated while typing.
-  ///Default value is true.
-  ///* **validateOnLoseFocus** if set to true the input text is validated just
-  ///after the field lose focus.
-  ///* **onTextEditing** fired whenever the input text or selection changes
-  ///* **autoDispose** if set to true the InjectedTextEditing is disposed of when
-  ///no longer used.
+  /// This injected state abstracts the best practices to come out with a
+  /// simple, clean, and testable approach deal with TextField and form
+  /// validation.
+  ///
+  /// The approach consists of the following steps:
+  ///   ```dart
+  ///      final email =  RM.injectTextEditing():
+  ///   ```
+  /// * Instantiate an [InjectedTextEditing] object using [RM.injectTextEditing]
+  /// * Link the injected state to a [TextField] (No need to [TextFormField] even
+  /// inside a [OnFormBuilder]).
+  ///   ```dart
+  ///      TextField(
+  ///         controller: email.controller,
+  ///         focusNode: email.focusNode, //It is auto disposed of.
+  ///         decoration:  InputDecoration(
+  ///             errorText: email.error, //To display the error message.
+  ///         ),
+  ///         onSubmitted: (_) {
+  ///             //Focus on the password TextField after submission
+  ///             password.focusNode.requestFocus();
+  ///         },
+  ///     ),
+  ///   ```
+  ///
+  /// See also :
+  /// * [InjectedFormField] for other type of inputs rather the text,
+  /// * [InjectedForm] and [OnFormBuilder] to work with form.
+  ///
+  /// ## Parameters:
+  ///
+  /// ### `text`: Optional [String]. Defaults to empty string.
+  /// The initial text the linked [TextField] displays.
+  ///
+  /// ### `selection`: Optional [TextSelection]. Defaults to empty `TextSelection.collapsed(offset: -1)`.
+  /// The initial text selection the linked [TextField] starts with.
+  ///
+  /// ### `composing`: Optional [TextRange]. Defaults to empty `TextRange.empty`
+  /// The initial range of text the linked [TextField] starts with.
+  ///
+  /// ### `validators`: Optional List of callbacks.
+  /// Set of validation rules the field should pass.
+  ///
+  /// Validators exposes the text that the user entered.
+  ///
+  /// If any of the validation callbacks return a non empty strings, the filed
+  /// is considered non valid. For the field to be valid all validators must
+  /// return null.
+  ///
+  /// example:
+  ///   ```dart
+  ///      final _email = RM.injectTextEditing(
+  ///       validators: [
+  ///         (value) {
+  ///            //Frontend validation
+  ///            if (!Validators.isValidEmail(value)) {
+  ///              return 'Enter a valid email';
+  ///            }
+  ///          },
+  ///       ]
+  ///     );
+  ///   ```
+  /// The validations performed here are frontend validation. To do backend
+  /// validation you must use [InjectedForm].
+  ///
+  /// ### `validateOnTyping`: Optional [bool].
+  /// Whether to validate the input while the user is typing.
+  ///
+  /// The default value depends on whether the linked [TextField] is inside or
+  /// outside [OnFormBuilder]:
+  /// * If outside: it default to true if `validateOnLoseFocus` is false.
+  /// * If inside: it defaults to false if [InjectedForm.autovalidateMode] is
+  /// [AutovalidateMode.disabled], otherwise it defaults to true.
+  ///
+  /// If `validateOnTyping` is set to false, the text is not validate on typing.
+  /// The text can be validate manually by invoking [InjectedTextEditing.validate].
+  ///
+  /// ### `validateOnLoseFocus`: Optional [bool].
+  /// Whether to validate the input just after the user finishes typing and the
+  /// field loses focus.
+  ///
+  /// It defaults to true if the linked [TextField] is inside [OnFormBuilder]
+  /// and defaults to false if it is outside.
+  ///
+  /// Once the [TextField] loses focus and if it fails to validate, the field will
+  /// auto validate on typing the next time the user starts typing.
+  ///
+  /// For `validateOnLoseFocus` to work you have to set the [TextField]'s [FocusNode]
+  /// to use [InjectedTextEditing.focusNode]
+  ///
+  /// Example:
+  ///   ```dart
+  ///     final email =  RM.injectTextEditing():
+  ///
+  ///     // In the widget tree
+  ///    TextField(
+  ///       controller: email.controller,
+  ///       focusNode: email.focusNode, //It is auto disposed of.
+  ///     ),
+  ///   ```
+  ///
+  /// ### `isReadOnly`: Optional [bool]. Defaults to false.
+  /// If true the [TextField] is clickable and selectable but not editable.
+  /// Later on, you can set it using [InjectedTextEditing.isReadOnly]
+  ///
+  /// All input fields are set to be read only if they are inside a [OnFormBuilder]
+  /// and the form is waiting for submission to resolve.
+  ///
+  /// ### `isEnabled`: Optional [bool]. Defaults to true.
+  /// If false the [TextField] is disabled.
+  /// Later on, you can set it using [InjectedTextEditing.isEnable].
+  ///
+  /// You can enable or disable all input fields inside [OnFormBuilder] using
+  /// [InjectedForm.isEnabled] setter.
+  ///
+  /// For `isEnabled` to work you have to set the [TextField]'s enable property
+  /// to use [InjectedTextEditing.isEnabled]
+  ///
+  /// Example:
+  ///   ```dart
+  ///     final email =  RM.injectTextEditing():
+  ///
+  ///     // In the widget tree
+  ///    TextField(
+  ///       controller: email.controller,
+  ///       enabled: email.isEnabled,
+  ///     ),
+  ///
+  /// ### `onTextEditing`: Optional callback.
+  /// Callback for side effects. It is fired whenever the input text or
+  /// selection changes
+  ///
+  /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
+  /// Whether to auto dispose the injected model when no longer used
+  /// (listened to).
+  ///
+  /// It is important to note that:
+  /// * A state never listened to for rebuild, never auto dispose even after it
+  /// is mutated.
+  /// * By default, all states consumed in the widget tree will auto dispose.
+  /// * It is recommended to manually dispose state that are not auto disposed
+  /// using [InjectedBaseState.dispose]. You can dispose all states of the app
+  /// using [RM.disposeAll].
+  /// * A state will auto dispose if all states it depends on are disposed of.
+  /// * Non disposed state may lead to unexpected behavior.
+  /// * To debug when state is initialized and disposed of use
+  /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
   static InjectedTextEditing injectTextEditing({
     String text = '',
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
-    @Deprecated('Use validators instead')
-        String? Function(String? text)? validator,
     List<String? Function(String? text)>? validators,
     bool? validateOnTyping,
     bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
     bool autoDispose = true,
+    bool isReadOnly = false,
+    bool isEnable = true,
+
+    //
+    @Deprecated('Use validators instead')
+        String? Function(String? text)? validator,
   }) {
     return InjectedTextEditingImp(
       text: text,
@@ -1309,6 +1640,8 @@ abstract class RM {
       validateOnLoseFocus: validateOnLoseFocus,
       autoDispose: autoDispose,
       onTextEditing: onTextEditing,
+      isReadOnly: isReadOnly,
+      isEnabled: isEnable,
     );
   }
 
@@ -1337,7 +1670,7 @@ abstract class RM {
     );
   }
 
-  ///Inject a TextEditingController
+  ///Inject a [TextEditingController]
   ///
   ///* **initialValue** is the initial value.
   ///* **validators** used for input validation, If it returns null means input
@@ -1367,14 +1700,88 @@ abstract class RM {
     );
   }
 
-  ///Inject a ScrollController
+  /// Inject a [ScrollController]
   ///
-  ///* **initialScrollOffset** is the initial scroll offset
-  ///* **keepScrollOffset** similar to [ScrollController.keepScrollOffset]
-  ///* **onScrolling: a callback invoked each time the ScrollController emits a
-  ///notification.
-  ///* **endScrollDelay** The delay in milliseconds to be awaited after the user stop scrolling to
+  /// This injected state abstracts the best practices to come out with a
+  /// simple, clean, and testable approach to control Scrollable view.
+  ///
+  /// If you don't use [OnScrollBuilder] to listen the state, it is highly
+  /// recommended to manually dispose the state using [Injected.dispose] method.
+  ///
+  /// ## Parameters:
+  ///
+  /// ### `initialScrollOffset`: Optional [double]. Defaults to 0.0.
+  /// is the initial scroll offset
+  ///
+  /// ### `endScrollDelay`: Optional [int]. Defaults to 300.
+  /// The delay in milliseconds to be awaited after the user stop scrolling to
   ///consider scrolling action ended.
+  ///
+  /// ### `onScrolling`: Optional callback.
+  /// Callback invoked each time the [ScrollController] emits a notification. It
+  /// exposes the [InjectedScrolling] instance. It is used to invoke side effects
+  /// when:
+  /// * Reaching the maximum scroll extent [InjectedScrolling.maxScrollExtent]
+  /// * Reaching the minimum scroll extent [InjectedScrolling.minScrollExtent]
+  /// * While is scrolling in the forward direction
+  /// * While is scrolling [InjectedScrolling.isScrolling]
+  /// [InjectedScrolling.isScrollingForward]
+  /// * When starts scrolling
+  /// [InjectedScrolling.isScrollingReverse]
+  /// * When starts scrolling to the forward direction
+  /// [InjectedScrolling.hasStartedScrolling]
+  /// [InjectedScrolling.hasStartedScrollingForward]
+  /// * When starts scrolling to the reverse direction
+  /// [InjectedScrolling.hasStartedScrollingReverse]
+  /// * When scrolling ends [InjectedScrolling.hasEndedScrolling]
+  ///
+  /// Example
+  /// ```dart
+  ///   final scroll = RM.injectScrolling(
+  ///     onScrolling: (scroll) {
+  ///           if (scroll.hasReachedMinExtent) {
+  ///              print('isTop');
+  ///            }
+  ///
+  ///            if (scroll.hasReachedMaxExtent) {
+  ///              print('isBottom');
+  ///            }
+  ///
+  ///            if (scroll.hasStartedScrollingReverse) {
+  ///              print('hasStartedUp');
+  ///            }
+  ///            if (scroll.hasStartedScrollingForward) {
+  ///              print('hasStartedDown');
+  ///            }
+  ///
+  ///            if (scroll.hasStartedScrolling) {
+  ///              print('hasStarted');
+  ///            }
+  ///
+  ///            if (scroll.isScrollingReverse) {
+  ///              print('isScrollingUp');
+  ///            }
+  ///            if (scroll.isScrollingForward) {
+  ///              print('isScrollingDown');
+  ///            }
+  ///
+  ///            if (scroll.isScrolling) {
+  ///              print('isScrolling');
+  ///            }
+  ///
+  ///            if (scroll.hasEndedScrolling) {
+  ///              print('hasEnded');
+  ///            }
+  ///     },
+  ///   );
+  /// ```
+  ///
+  ///
+  /// ### `keepScrollOffset`: Optional [bool]. Defaults to true.
+  /// Similar to [ScrollController.keepScrollOffset]
+  ///
+  /// See [OnScrollBuilder]
+  ///
   static InjectedScrolling injectScrolling({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,

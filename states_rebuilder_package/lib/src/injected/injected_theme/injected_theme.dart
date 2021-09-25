@@ -3,6 +3,38 @@ import 'package:flutter/material.dart';
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
+/// Injection of a state that handle app theme switching.
+///
+/// This injected state abstracts the best practices of the clean
+/// architecture to come out with a simple, clean, and testable approach
+/// to manage app theming.
+///
+/// The approach consists of the following steps:
+/// * Instantiate an [InjectedTheme] object using [RM.injectTheme] method.
+/// * we use the TopAppWidget that must be on top of the MaterialApp widget.
+///   ```dart
+///    void main() {
+///      runApp(MyApp());
+///    }
+///
+///    class MyApp extends StatelessWidget {
+///      // This widget is the root of your application.
+///      @override
+///      Widget build(BuildContext context) {
+///        return TopAppWidget(//Use TopAppWidget
+///          injectedTheme: themeRM, //Set te injectedTheme
+///          builder: (context) {
+///            return MaterialApp(
+///              theme: themeRM.lightTheme, //light theme
+///              darkTheme: themeRM.darkTheme, //dark theme
+///              themeMode: themeRM.themeMode, //theme mode
+///              home: HomePage(),
+///            );
+///          },
+///        );
+///      }
+///    }
+///   ```
 abstract class InjectedTheme<KEY> implements Injected<KEY> {
   @override
   KEY get state => getInjectedState(this);
