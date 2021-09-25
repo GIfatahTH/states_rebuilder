@@ -27,9 +27,50 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
     if (_baseFormField._focusNode != null) {
       return _baseFormField._focusNode as _FocusNode;
     }
-    _baseFormField._focusNode ??= _FocusNode();
-
+    final focus = _baseFormField._focusNode ??= _FocusNode();
+    focus.addListener(() {
+      if (focus.hasFocus && !isEnabled) {
+        Future.microtask(() {
+          _canChildRequestFocus(focus.children, false);
+          focus.nextFocus();
+        });
+      }
+    });
     return _baseFormField.__focusNode as _FocusNode;
+  }
+
+  /// If true the [TextField] is clickable and selectable but not editable.
+  late bool isReadOnly;
+  late bool _isEnabled;
+
+  /// If false the associated [TextField] is disabled.
+  bool get isEnabled {
+    OnReactiveState.addToObs?.call(this);
+    return _isEnabled;
+  }
+
+  void _canChildRequestFocus(
+    Iterable<FocusNode>? children,
+    bool canRequestFocus,
+  ) {
+    try {
+      void fn(FocusNode node, bool canRequestFocus) {
+        node.canRequestFocus = canRequestFocus;
+
+        for (var e in node.children) {
+          fn(e, canRequestFocus);
+        }
+      }
+
+      for (var e in (children ?? const <FocusNode>[])) {
+        fn(e, canRequestFocus);
+      }
+    } catch (e) {}
+  }
+
+  set isEnabled(bool val) {
+    _isEnabled = val;
+    notify();
   }
 }
 
@@ -42,6 +83,8 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     bool? validateOnLoseFocus,
     this.onValueChange,
     this.autoDispose = true,
+    bool isReadOnly = false,
+    bool isEnabled = true,
   }) : super(
           creator: () => initialValue,
           autoDisposeWhenNotUsed: autoDispose,
@@ -58,6 +101,8 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       _validateOnValueChange = validateOnValueChange;
       _focusNode = null;
       _hasFocus = null;
+      this.isReadOnly = isReadOnly;
+      this.isEnabled = isEnabled;
     };
     _resetDefaultState();
     _validator = validator;
@@ -112,6 +157,10 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
 
   @override
   set value(T v) {
+    if (isReadOnly) {
+      return;
+    }
+
     if (v == value) {
       return;
     }
@@ -153,10 +202,10 @@ class _FocusNode extends FocusNode {
     return children.isNotEmpty ? children.first : null;
   }
 
-  @override
-  void requestFocus([FocusNode? node]) {
-    super.requestFocus(childFocusNode);
-  }
+  // @override
+  // void requestFocus([FocusNode? node]) {
+  //   super.requestFocus(childFocusNode);
+  // }
 
   @override
   void unfocus({UnfocusDisposition disposition = UnfocusDisposition.scope}) {

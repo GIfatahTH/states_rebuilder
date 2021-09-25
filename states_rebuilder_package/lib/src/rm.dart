@@ -1625,8 +1625,7 @@ abstract class RM {
     void Function(InjectedTextEditing textEditing)? onTextEditing,
     bool autoDispose = true,
     bool isReadOnly = false,
-    bool isEnable = true,
-
+    bool isEnabled = true,
     //
     @Deprecated('Use validators instead')
         String? Function(String? text)? validator,
@@ -1641,7 +1640,7 @@ abstract class RM {
       autoDispose: autoDispose,
       onTextEditing: onTextEditing,
       isReadOnly: isReadOnly,
-      isEnabled: isEnable,
+      isEnabled: isEnabled,
     );
   }
 
@@ -1689,6 +1688,8 @@ abstract class RM {
     bool? validateOnLoseFocus,
     void Function(InjectedFormField formField)? onValueChange,
     bool autoDispose = true,
+    bool isReadOnly = false,
+    bool isEnabled = true,
   }) {
     return InjectedFormFieldImp<T>(
       initialValue,
@@ -1697,6 +1698,8 @@ abstract class RM {
       validateOnLoseFocus: validateOnLoseFocus,
       autoDispose: autoDispose,
       onValueChange: onValueChange,
+      isReadOnly: isReadOnly,
+      isEnabled: isEnabled,
     );
   }
 

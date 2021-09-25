@@ -1321,7 +1321,7 @@ void main() {
     (tester) async {
       final field = RM.injectTextEditing(
         text: '0',
-        isEnable: false,
+        isEnabled: false,
       );
       final widget = MaterialApp(
         home: Scaffold(

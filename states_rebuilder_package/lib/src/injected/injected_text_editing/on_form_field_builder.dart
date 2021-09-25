@@ -124,8 +124,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
     final InputDecoration effectiveDecoration =
         inputDecoration!.applyDefaults(themeData.inputDecorationTheme);
     return effectiveDecoration.copyWith(
-      //TODO add enable to injectedFormField
-      enabled: true,
+      enabled: listenTo.isEnabled,
       errorText: listenTo.error,
       border: enableBorder ? effectiveDecoration.border : InputBorder.none,
       errorBorder:
@@ -170,6 +169,9 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
               // textAlignVertical: textAlignVertical,
               // isHovering: _isHovering,
               isFocused: () {
+                if (!listenTo.isEnabled) {
+                  return false;
+                }
                 final inj = listenTo as InjectedFormFieldImp;
                 if (inj._hasFocus == true) {
                   inj._hasFocus = null;
@@ -179,10 +181,14 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
               }(),
               isEmpty: listenTo.value == null,
               expands: false,
+
               child: child,
             );
           }
-          return child;
+          return IgnorePointer(
+            ignoring: !listenTo.isEnabled,
+            child: child,
+          );
         },
         sideEffects: SideEffects(
           initState: () {
