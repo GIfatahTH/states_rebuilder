@@ -4,8 +4,6 @@ import 'package:states_rebuilder/src/common/logger.dart';
 import '../rm.dart';
 import 'reactive_state_less_widget.dart';
 
-typedef AddObsCallback = void Function(InjectedBaseState);
-
 ///{@template OnReactive}
 ///First choice widget to listen to an injected state.
 ///
@@ -119,4 +117,5 @@ class OnReactive extends ReactiveStatelessWidget {
 
 class OnReactiveState {
   static AddObsCallback? addToObs;
+  static AddObsCallback? addToTopStatelessObs;
 }

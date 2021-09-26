@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/widgets.dart';
-import '../../rm.dart';
-
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
+
+import '../../builders/on_reactive.dart';
+import '../../rm.dart';
 
 abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
   @override
-  I18N get state => getInjectedState(this);
+  I18N get state {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return getInjectedState(this);
+  }
 
   ///The current locale
   Locale? locale;
@@ -142,6 +146,7 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   @override
   Locale? get locale {
     initialize();
+    OnReactiveState.addToTopStatelessObs?.call(this);
     return _locale is SystemLocale ? _resolvedLocale : _locale;
   }
 

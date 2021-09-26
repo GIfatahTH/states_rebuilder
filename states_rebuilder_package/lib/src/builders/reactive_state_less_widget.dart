@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../rm.dart';
 import 'on_reactive.dart';
 
+typedef AddObsCallback = void Function(InjectedBaseState);
+
 abstract class ReactiveStatelessWidget extends MyStatefulWidget {
   const ReactiveStatelessWidget({Key? key}) : super(key: key);
 
