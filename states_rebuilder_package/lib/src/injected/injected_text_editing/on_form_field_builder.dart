@@ -1,6 +1,308 @@
 part of 'injected_text_editing.dart';
 
+/// Listen to an [InjectedFormField] and define its corresponding input fields
+///
+/// {@template InjectedFormField.examples}
+/// ## Examples
+/// ### Checkbox
+///   ```dart
+///     final myCheckBox = RM.injectFormField<bool>(false);
+///
+///     //In the widget tree
+///     OnFormFieldBuilder<bool>(
+///      listenTo: myCheckBox,
+///      builder: (value, onChanged) {
+///        return CheckboxListTile(
+///          value: value,
+///          onChanged: onChanged,
+///          title: Text('I accept the licence'),
+///        );
+///      },
+///     ),
+///   ```
+///
+/// ### Switch
+///   ```dart
+///       final switcher = RM.injectFormField(false);
+///
+///       OnFormFieldBuilder<bool>(
+///         listenTo: switcher,
+///         inputDecoration: InputDecoration(
+///           labelText: 'switcher label',
+///           hintText: 'switcher hint',
+///           helperText: 'switcher helper text',
+///           suffixIcon: dropdownMenu.hasError
+///               ? const Icon(Icons.error, color: Colors.red)
+///               : const Icon(Icons.check, color: Colors.green),
+///         ),
+///         builder: (val, onChanged) {
+///           return SwitchListTile(
+///             value: val,
+///             onChanged: onChanged,
+///             title: Text('I Accept the terms and conditions'),
+///           );
+///         },
+///       ),
+///     ),
+///   ```
+///
+/// ### Date picker
+///   ```dart
+///     final dateTime = RM.injectFormField<DateTime?>(
+///       null,
+///       validators: [
+///         (date) {
+///           if (date == null || date.isAfter(DateTime.now())) {
+///             return 'Not allowed';
+///           }
+///         }
+///       ],
+///       validateOnLoseFocus: true,
+///     );
+///
+///
+///     OnFormFieldBuilder(
+///       listenTo: dateTime,
+///       inputDecoration: InputDecoration(
+///         labelText: 'DatePicker label',
+///         hintText: 'DatePicker hint',
+///         helperText: 'DatePicker helper text',
+///       ),
+///       builder: (value, onChanged) => ListTile(
+///         dense: true,
+///         title: Text('${value ?? ''}'),
+///         //clear the state
+///         trailing: IconButton(
+///           icon: Icon(Icons.clear),
+///           onPressed: () => dateTime.value = null,
+///         ),
+///         onTap: () async {
+///           final result = await showDatePicker(
+///             context: context,
+///             initialDate: dateTime.value ?? DateTime.now(),
+///             firstDate: DateTime(2000, 1, 1),
+///             lastDate: DateTime(2040, 1, 1),
+///           );
+///           if (result != null) {
+///             dateTime.value = result;
+///           }
+///         },
+///       ),
+///     ),
+///   ```
+///
+/// ### Date range picker
+///   ```dart
+///   final dateTimeRange = RM.injectFormField<DateTimeRange?>(null);
+///
+///   OnFormFieldBuilder<DateTimeRange?>(
+///     listenTo: dateTimeRange,
+///     inputDecoration: InputDecoration(
+///       labelText: 'DateRangePicker label',
+///       hintText: 'DateRangePicker hint',
+///       helperText: 'DateRangePicker helper text',
+///     ),
+///     builder: (value, onChanged) {
+///       return ListTile(
+///         dense: true,
+///         title: Text('${value ?? ''}'),
+///         trailing: IconButton(
+///           icon: Icon(Icons.close),
+///           onPressed: () {
+///             dateTimeRange.value = null;
+///           },
+///         ),
+///         onTap: () async {
+///           final result = await showDateRangePicker(
+///             context: context,
+///             firstDate: DateTime(2000, 1, 1),
+///             lastDate: DateTime(2040, 1, 1),
+///           );
+///           if (result != null) {
+///             dateTimeRange.value = result;
+///           }
+///         },
+///       );
+///     },
+///   ),
+///   ```
+///
+/// ### Slider
+///   ```dart
+///   final slider = RM.injectFormField<double>(
+///       6.0,
+///       validators: [
+///         (value) {
+///           if (value < 6.0) {
+///             return 'Not allowed';
+///           }
+///         }
+///       ],
+///     );
+///
+///   OnFormFieldBuilder<double>(
+///     listenTo: slider,
+///     autofocus: true,
+///     inputDecoration: InputDecoration(
+///       labelText: 'Slider label',
+///       hintText: 'Slider hint',
+///       helperText: 'Slider helper text: ${slider.value}',
+///     ),
+///     builder: (value, onChanged) {
+///       return Slider(
+///         value: value,
+///         onChanged: onChanged,
+///         min: 0.0,
+///         max: 10.0,
+///       );
+///     },
+///   ),
+///   ```
+///
+/// ### RangeSlider
+///   ```dart
+///     OnFormFieldBuilder<RangeValues>(
+///       listenTo: rangeSlider,
+///       inputDecoration: InputDecoration(
+///         labelText: 'Slider label',
+///         hintText: 'Slider hint',
+///         helperText: 'Slider helper text',
+///       ),
+///       builder: (value, onChanged) {
+///         return RangeSlider(
+///           values: value,
+///           onChanged: onChanged,
+///           min: 0.0,
+///           max: 100.0,
+///           divisions: 20,
+///         );
+///       },
+///     ),
+///   ```
+/// ### DropdownButton
+///   ```dart
+///     const genders = ['Male', 'Female', 'Other'];
+///     final dropdownMenu = RM.injectFormField<String?>(null);
+///     OnFormFieldBuilder<String?>(
+///       listenTo: dropdownMenu,
+///       inputDecoration: InputDecoration(
+///         labelText: 'DropDownMenu label',
+///         hintText: 'DropDownMenu hint',
+///         helperText: 'DropDownMenu helper text',
+///         suffixIcon: dropdownMenu.hasError
+///             ? const Icon(Icons.error, color: Colors.red)
+///             : const Icon(Icons.check, color: Colors.green),
+///       ),
+///       builder: (val, onChanged) {
+///         return DropdownButtonHideUnderline(
+///           child: DropdownButton<String>(
+///             value: val,
+///             items: genders
+///                 .map(
+///                   (gender) => DropdownMenuItem(
+///                     value: gender,
+///                     child: Text(gender),
+///                   ),
+///                 )
+///                 .toList(),
+///             onChanged: onChanged,
+///           ),
+///         );
+///       },
+///     ),
+///   ```
+///
+/// ### Radio Options
+///   ```dart
+///     final radioOptions = ['Dart', 'Kotlin', 'Java', 'Swift', 'Objective-C'];
+///     final radioButtons = RM.injectFormField<String>('');
+///     OnFormFieldBuilder<String>(
+///       listenTo: radioButtons,
+///       inputDecoration: InputDecoration(
+///         labelText: 'Radio buttons label',
+///         hintText: 'Radio buttons hint',
+///         helperText: 'Radio buttons helper text',
+///         suffixIcon: radioButtons.hasError
+///             ? const Icon(Icons.error, color: Colors.red)
+///             : const Icon(Icons.check, color: Colors.green),
+///       ),
+///       builder: (val, onChanged) {
+///         return Row(
+///           children: radioOptions
+///               .map(
+///                 (e) => InkWell(
+///                   onTap: () => radioButtons.onChanged(e),
+///                   child: Row(
+///                     children: [
+///                       Radio<String>(
+///                         value: e,
+///                         groupValue: val,
+///                         onChanged: onChanged,
+///                       ),
+///                       Text(e),
+///                       const SizedBox(width: 8),
+///                     ],
+///                   ),
+///                 ),
+///               )
+///               .toList(),
+///         );
+///       },
+///     ),
+///   ```
+///
+/// ### Multi Check Boxes
+///   ```dart
+///       final multiCheckBoxes = RM.injectFormField<List<String>>(
+///         [],
+///         validators: [
+///           (val) {
+///             if (val.length < 3) {
+///               return 'choose more than three items';
+///             }
+///           }
+///         ],
+///       );
+///
+///
+///     OnFormFieldBuilder<List<String>>(
+///       listenTo: multiCheckBoxes,
+///       inputDecoration: InputDecoration(
+///         labelText: 'multiCheckBoxes label',
+///         hintText: 'multiCheckBoxes hint',
+///         helperText: 'multiCheckBoxes helper text',
+///       ),
+///       builder: (val, onChanged) {
+///         return Row(
+///           children: radioOptions
+///               .map(
+///                 (e) => Row(
+///                     children: [
+///                       Checkbox(
+///                         value: val.contains(e),
+///                         onChanged: (checked) {
+///                           if (checked!) {
+///                             multiCheckBoxes.value = [...val, e];
+///                           } else {
+///                             multiCheckBoxes.value =
+///                                 val.where((el) => e != el).toList();
+///                           }
+///                         },
+///                       ),
+///                       Text(e),
+///                       const SizedBox(width: 8),
+///                     ],
+///                   ),
+///               )
+///               .toList(),
+///         );
+///       },
+///     ),
+///   ```
+///  {@endtemplate}
 class OnFormFieldBuilder<T> extends StatelessWidget {
+  /// Listen to an [InjectedFormField] and define its corresponding input fields
+  /// {@macro InjectedFormField.examples}
   OnFormFieldBuilder({
     Key? key,
     required this.listenTo,

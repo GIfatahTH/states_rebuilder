@@ -1,5 +1,41 @@
 part of 'injected_text_editing.dart';
 
+///{@template InjectedFormField}
+/// Inject form inputs other than for text editing
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach deal with form inputs and form
+/// validation.
+///
+/// See also :
+/// * [OnFormFieldBuilder] to listen to the injected input.
+/// * [InjectedTextEditing] to inject a [TextEditingController],
+/// * [InjectedForm] and [OnFormBuilder] to work with form.
+///
+/// Example:
+///
+/// In most cases, any input form widget have a value and onChanged
+/// properties. You must set these properties to the exposed value and
+/// onChanged of [OnFormFieldBuilder].
+/// This is an example of CheckBox input field
+/// ```dart
+///   final myCheckBox = RM.injectFormField<bool>(false);
+///
+///   //In the widget tree
+///   OnFormFieldBuilder<bool>(
+///    listenTo: myCheckBox,
+///    builder: (value, onChanged) {
+///      return CheckboxListTile(
+///        value: value,
+///        onChanged: onChanged,
+///        title: Text('I accept the licence'),
+///      );
+///    },
+///   ),
+/// ```
+/// See bellow for more examples.
+///  {@endtemplate}
+
 abstract class InjectedFormField<T> implements InjectedBaseState<T> {
   late final _baseFormField = this as _BaseFormField;
 

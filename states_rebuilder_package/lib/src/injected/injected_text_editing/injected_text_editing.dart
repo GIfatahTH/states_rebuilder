@@ -14,7 +14,38 @@ part 'on_form.dart';
 part 'on_form_submission.dart';
 part 'i_base_form_field.dart';
 
-///Inject a TextEditingController
+///{@template InjectedTextEditing}
+///Inject a [TextEditingController]
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach deal with TextField and form
+/// validation.
+///
+/// The approach consists of the following steps:
+///   ```dart
+///      final email =  RM.injectTextEditing():
+///   ```
+/// * Instantiate an [InjectedTextEditing] object using [RM.injectTextEditing]
+/// * Link the injected state to a [TextField] (No need to [TextFormField] even
+/// inside a [OnFormBuilder]).
+///   ```dart
+///      TextField(
+///         controller: email.controller,
+///         focusNode: email.focusNode, //It is auto disposed of.
+///         decoration:  InputDecoration(
+///             errorText: email.error, //To display the error message.
+///         ),
+///         onSubmitted: (_) {
+///             //Focus on the password TextField after submission
+///             password.focusNode.requestFocus();
+///         },
+///     ),
+///   ```
+///
+/// See also :
+/// * [InjectedFormField] for other type of inputs rather the text,
+/// * [InjectedForm] and [OnFormBuilder] to work with form.
+///  {@endtemplate}
 abstract class InjectedTextEditing implements InjectedBaseState<String> {
   late TextEditingControllerImp? _controller;
 

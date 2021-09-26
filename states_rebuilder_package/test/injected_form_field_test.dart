@@ -244,4 +244,141 @@ void main() {
       expect(find.text('Can not be empty'), findsNothing);
     },
   );
+
+  testWidgets(
+    'WHEN readOnly is true,'
+    'THEN the field is selectable, clickable but not editable',
+    (tester) async {
+      final field = RM.injectFormField(
+        true,
+        isReadOnly: true,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormFieldBuilder<bool>(
+            listenTo: field,
+            builder: (value, onChanged) {
+              return Checkbox(value: value, onChanged: onChanged);
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final isChecked = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      //
+      expect(isChecked, findsOneWidget);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+      //
+      field.isReadOnly = false;
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsNothing);
+      //
+      field.isReadOnly = true;
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN enabled is false,'
+    'THEN the field is disabled',
+    (tester) async {
+      final field = RM.injectFormField(
+        true,
+        isEnabled: false,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormFieldBuilder<bool>(
+            listenTo: field,
+            builder: (value, onChanged) {
+              return Checkbox(value: value, onChanged: onChanged);
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final isChecked = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+      //
+      expect(isEnabled, findsNothing);
+      expect(isChecked, findsOneWidget);
+      await tester.tap(find.byType(Checkbox), warnIfMissed: false);
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+      //
+      field.isEnabled = true;
+      await tester.pump();
+      expect(isEnabled, findsOneWidget);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsNothing);
+      //
+      field.isEnabled = false;
+      await tester.pump();
+      expect(isEnabled, findsNothing);
+      await tester.tap(find.byType(Checkbox), warnIfMissed: false);
+      await tester.pump();
+      expect(isChecked, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN enabled is false,'
+    'THEN the field is not focusable',
+    (tester) async {
+      final field = RM.injectFormField(
+        true,
+        isEnabled: false,
+      );
+      final focusNode1 = FocusNode();
+      final focusNode2 = FocusNode();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              TextField(
+                autofocus: true,
+                focusNode: focusNode1,
+              ),
+              OnFormFieldBuilder<bool>(
+                listenTo: field,
+                builder: (value, onChanged) {
+                  return CheckboxListTile(
+                    value: value,
+                    onChanged: onChanged,
+                    title: Text(''),
+                  );
+                },
+              ),
+              TextField(
+                focusNode: focusNode1,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(focusNode1.hasFocus, true);
+      expect(focusNode2.hasFocus, false);
+      //
+      print(focusNode1.nextFocus());
+      await tester.pump();
+      await tester.pump();
+      expect(focusNode1.hasFocus, false, skip: true);
+      expect(focusNode2.hasFocus, true, skip: true);
+      //
+      field.isEnabled = true;
+    },
+  );
 }

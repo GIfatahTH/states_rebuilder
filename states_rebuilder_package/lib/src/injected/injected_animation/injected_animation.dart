@@ -38,7 +38,45 @@ class _RebuildAnimation {
   }
 }
 
-///Inject an animation
+///{@template InjectedAnimation}
+/// Inject an animation. It works for both implicit and explicit animation.
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach to manage animations.
+///
+/// The approach consists of the following steps:
+/// * Instantiate an [InjectedAnimation] object using [RM.injectAnimation]
+/// method.
+///   ```dart
+///     final animation = RM.injectAnimation(
+///       duration: Duration(seconds: 2),
+///       curve: Curves.fastOutSlowIn,
+///     );
+///    ```
+/// * Use [OnAnimationBuilder] to listen to the [InjectedAnimation]. the
+/// builder of [OnAnimationBuilder] exposes an [Animate] object used to set
+/// tweens explicitly or implicitly
+/// method.
+///   ```dart
+///         child: OnAnimationBuilder(
+///           listenTo: animation,
+///           builder: (animate) {
+///             //Implicit animation
+///             final width = animate(selected ? 200.0 : 100.0);
+///
+///             // Explicit animation
+///             final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+///
+///             return Container(
+///               width: width,
+///               height: height,
+///               child: const FlutterLogo(size: 75),
+///             );
+///           },
+///         ),
+///    ```
+///  {@endtemplate}
+
 abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   ///

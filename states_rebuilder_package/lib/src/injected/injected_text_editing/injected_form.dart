@@ -44,9 +44,53 @@ class _RebuildForm {
   }
 }
 
-///Inject a Form state.
+///{@template InjectedForm}
+/// Inject a form that controls all [TextField] and [OnFormFieldBuilder]
+/// instantiated inside its builder method.
 ///
-///Used in conjunction with [OnFormBuilder].
+/// If the application you are working on contains dozens of TextFields,
+/// it becomes tedious to process each field individually. `Form` helps us
+/// collect many TextFields and manage them as a unit.
+///
+/// With [InjectedForm] you can validate all input fields in the front end,
+/// submit them and do server side validation.
+///
+/// Example: Supposing we have already defined email and password
+/// [InjectedTextEditing]
+///
+/// ```dart
+///  final form = RM.injectForm(
+///    submit: () async {
+///      //This is the default submission logic,
+///      //It may be override when calling form.submit( () async { });
+///      //It may contains server validation.
+///     await serverError =  authRepository.signInWithEmailAndPassword(
+///        email: email.text,
+///        password: password.text,
+///      );
+///
+///      //after server validation
+///      if(serverError == 'Invalid-Email'){
+///        email.error = 'Invalid email';
+///      }
+///      if(serverError == 'Weak-Password'){
+///        email.error = 'Password must have more the 6 characters';
+///      }
+///    },
+///  );
+/// ```
+///
+/// Once [InjectedForm.submit] is invoked, input field are first validate in
+/// the front end. If they are valid, submit is called. After waiting for
+/// submission, if it ends with server error we set it our field to display
+/// the server validation.
+///
+/// See also :
+/// * [OnFormBuilder]  to listen to [InjectedForm].
+/// * [OnFormFieldBuilder] to listen to the injected input.
+/// * [InjectedTextEditing] to inject a [TextEditingController],
+///  {@endtemplate}
+
 abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///Listen to the [InjectedForm] and rebuild when it is notified.
   late final rebuild = _RebuildForm(this);

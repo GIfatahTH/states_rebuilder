@@ -256,7 +256,6 @@ abstract class RM {
   ///  collection and you want to print its length only.
   ///  {@endtemplate}
   ///
-  ///
   static Injected<T> inject<T>(
     T Function() creator, {
     T? initialState,
@@ -983,38 +982,7 @@ abstract class RM {
     return inj;
   }
 
-  /// Injection of a state that handle app theme switching.
-  ///
-  /// This injected state abstracts the best practices of the clean
-  /// architecture to come out with a simple, clean, and testable approach
-  /// to manage app theming.
-  ///
-  /// The approach consists of the following steps:
-  /// * Instantiate an [InjectedTheme] object using [RM.injectTheme] method.
-  /// * we use the [TopAppWidget] that must be on top of the MaterialApp widget.
-  ///   ```dart
-  ///    void main() {
-  ///      runApp(MyApp());
-  ///    }
-  ///
-  ///    class MyApp extends StatelessWidget {
-  ///      // This widget is the root of your application.
-  ///      @override
-  ///      Widget build(BuildContext context) {
-  ///        return TopAppWidget(//Use TopAppWidget
-  ///          injectedTheme: themeRM, //Set te injectedTheme
-  ///          builder: (context) {
-  ///            return MaterialApp(
-  ///              theme: themeRM.lightTheme, //light theme
-  ///              darkTheme: themeRM.darkTheme, //dark theme
-  ///              themeMode: themeRM.themeMode, //theme mode
-  ///              home: HomePage(),
-  ///            );
-  ///          },
-  ///        );
-  ///      }
-  ///    }
-  ///   ```
+  /// {@macro InjectedTheme}
   ///
   /// ## Parameters:
   ///
@@ -1302,42 +1270,7 @@ abstract class RM {
     return inj;
   }
 
-  /// Inject an animation. It works for both implicit and explicit animation.
-  ///
-  /// This injected state abstracts the best practices to come out with a
-  /// simple, clean, and testable approach to manage animations.
-  ///
-  /// The approach consists of the following steps:
-  /// * Instantiate an [InjectedAnimation] object using [RM.injectAnimation]
-  /// method.
-  ///   ```dart
-  ///     final animation = RM.injectAnimation(
-  ///       duration: Duration(seconds: 2),
-  ///       curve: Curves.fastOutSlowIn,
-  ///     );
-  ///    ```
-  /// * Use [OnAnimationBuilder] to listen to the [InjectedAnimation]. the
-  /// builder of [OnAnimationBuilder] exposes an [Animate] object used to set
-  /// tweens explicitly or implicitly
-  /// method.
-  ///   ```dart
-  ///         child: OnAnimationBuilder(
-  ///           listenTo: animation,
-  ///           builder: (animate) {
-  ///             //Implicit animation
-  ///             final width = animate(selected ? 200.0 : 100.0);
-  ///
-  ///             // Explicit animation
-  ///             final height = animate.fromTween((_)=> Tween(200.0, 100.0));
-  ///
-  ///             return Container(
-  ///               width: width,
-  ///               height: height,
-  ///               child: const FlutterLogo(size: 75),
-  ///             );
-  ///           },
-  ///         ),
-  ///    ```
+  /// {@macro InjectedAnimation}
   ///
   /// ## Parameters:
   ///
@@ -1466,39 +1399,9 @@ abstract class RM {
     );
   }
 
-  /// Inject a [TextEditingController]
-  ///
-  /// This injected state abstracts the best practices to come out with a
-  /// simple, clean, and testable approach deal with TextField and form
-  /// validation.
-  ///
-  /// The approach consists of the following steps:
-  ///   ```dart
-  ///      final email =  RM.injectTextEditing():
-  ///   ```
-  /// * Instantiate an [InjectedTextEditing] object using [RM.injectTextEditing]
-  /// * Link the injected state to a [TextField] (No need to [TextFormField] even
-  /// inside a [OnFormBuilder]).
-  ///   ```dart
-  ///      TextField(
-  ///         controller: email.controller,
-  ///         focusNode: email.focusNode, //It is auto disposed of.
-  ///         decoration:  InputDecoration(
-  ///             errorText: email.error, //To display the error message.
-  ///         ),
-  ///         onSubmitted: (_) {
-  ///             //Focus on the password TextField after submission
-  ///             password.focusNode.requestFocus();
-  ///         },
-  ///     ),
-  ///   ```
-  ///
-  /// See also :
-  /// * [InjectedFormField] for other type of inputs rather the text,
-  /// * [InjectedForm] and [OnFormBuilder] to work with form.
+  /// {@macro InjectedTextEditing}
   ///
   /// ## Parameters:
-  ///
   /// ### `text`: Optional [String]. Defaults to empty string.
   /// The initial text the linked [TextField] displays.
   ///
@@ -1644,14 +1547,36 @@ abstract class RM {
     );
   }
 
-  ///Inject a form.
+  /// {@macro InjectedForm}
   ///
-  ///* **autoFocusOnFirstError** : After the form is validate, get focused on
-  ///the first non valid TextField, if any.
-  ///* **submit** : Contains the user submission logic. Called when invoking
+  /// ## Parameters:
+  /// ### `autovalidateMode`: Optional [AutovalidateMode]. Defaults to [AutovalidateMode.disabled]
+  /// The auto validation mode of the form. It can take one of three enumeration
+  /// values:
+  ///    - `AutovalidateMode.disable`: The form is validated manually by
+  /// calling` form.validate()`
+  ///    - `AutovalidateMode.always`: The form is always validated
+  ///    - `AutovalidateMode.onUserInteraction`: The form is not validated
+  /// until the user has started typing.
+  ///
+  /// If autovalidateMode is set to  `AutovalidateMode.always` or
+  /// `AutovalidateMode.onUserInteraction`, It overrides the value of
+  /// `autoValidateValueChange` of its child [InjectedTextEditing] or
+  /// [InjectedFormField].
+  ///
+  /// ### `autoFocusOnFirstError`: Optional [bool]. Defaults to true
+  /// After the form is validated, get focused on the first non valid TextField,
+  /// if any.
+  ///
+  /// ### `submit`: Optional callback.
+  /// Contains the user submission logic. Called when invoking
   ///[InjectedForm.submit] method.
-  ///* **onSubmitting** : Callback called while waiting for form submission.
-  ///* **onSubmitted** : Callback called if the form successfully submitted.
+  ///
+  /// ### `onSubmitting`: Optional callback.
+  /// Callback for side effects called while waiting for form submission
+  ///
+  /// ### `onSubmitted`: Optional callback.
+  /// Callback for side effects called if the form successfully submitted.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
@@ -1669,18 +1594,94 @@ abstract class RM {
     );
   }
 
-  ///Inject a [TextEditingController]
+  /// {@macro InjectedFormField}
   ///
-  ///* **initialValue** is the initial value.
-  ///* **validators** used for input validation, If it returns null means input
-  ///is valid, else the return string is the error message.
-  ///* **onValueChange** if set to true the input is validated while changing.
-  ///Default value is true.
-  ///* **validateOnLoseFocus** if set to true the input text is validated just
-  ///after the field lose focus.
-  ///* **onValueChange** fired whenever the input value is changed
-  ///* **autoDispose** if set to true the InjectedTextEditing is disposed of when
-  ///no longer used.S
+  /// ## Parameters:
+  /// ### `text`: Required initial value of the generic type.
+  /// The initial value the linked [OnFormFieldBuilder] should expose.
+  ///
+  /// ### `validators`: Optional List of callbacks.
+  /// Set of validation rules the field should pass.
+  ///
+  /// Validators exposes the value that the user entered.
+  ///
+  /// If any of the validation callbacks return a non empty strings, the filed
+  /// is considered non valid. For the field to be valid all validators must
+  /// return null.
+  ///
+  /// example:
+  ///   ```dart
+  ///      final _email = RM.injectedFormField(
+  ///       false,
+  ///       validators: [
+  ///         (value) {
+  ///            //Frontend validation
+  ///            if(!value){
+  ///               return 'You must accept the license'.
+  ///             }
+  ///          },
+  ///       ]
+  ///     );
+  ///   ```
+  /// The validations performed here are frontend validation. To do backend
+  /// validation you must use [InjectedForm].
+  ///
+  /// ### `validateOnValueChange`: Optional [bool].
+  /// Whether to validate the input when the user change its value.
+  ///
+  /// The default value depends on whether the linked [OnFormFieldBuilder] is
+  /// inside or  [OnFormBuilder]:
+  /// * If outside: it default to true if `validateOnLoseFocus` is false.
+  /// * If inside: it defaults to false if [InjectedForm.autovalidateMode] is
+  /// [AutovalidateMode.disabled], otherwise it defaults to true.
+  ///
+  /// If `validateOnValueChange` is set to false, the text is not validated on
+  /// input change.
+  /// The text can be validate manually by invoking [InjectedFormField.validate].
+  ///
+  /// ### `validateOnLoseFocus`: Optional [bool].
+  /// Whether to validate the input just after the field loses focus.
+  ///
+  /// It defaults to true if the linked [OnFormFieldBuilder] is inside [OnFormBuilder]
+  /// and defaults to false if it is outside.
+  ///
+  /// Once the [OnFormFieldBuilder] loses focus and if it fails to validate,
+  /// the field will auto validate on typing the next time the user starts typing.
+  ///
+  /// ### `isReadOnly`: Optional [bool]. Defaults to false.
+  /// If true the input is clickable and selectable but not editable.
+  /// Later on, you can set it using [InjectedFormField.isReadOnly]
+  ///
+  /// All input fields are set to be read only if they are inside a [OnFormBuilder]
+  /// and the form is waiting for submission to resolve.
+  ///
+  /// ### `isEnabled`: Optional [bool]. Defaults to true.
+  /// If false the [OnFormFieldBuilder] is disabled.
+  /// Later on, you can set it using [InjectedFormField.isEnable].
+  ///
+  /// You can enable or disable all input fields inside [OnFormBuilder] using
+  /// [InjectedForm.isEnabled] setter.
+  ///
+  /// ### `onValueChange`: Optional callback.
+  /// Callback for side effects. It is fired whenever the input is changed
+  ///
+  /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
+  /// Whether to auto dispose the injected model when no longer used
+  /// (listened to).
+  ///
+  /// It is important to note that:
+  /// * A state never listened to for rebuild, never auto dispose even after it
+  /// is mutated.
+  /// * By default, all states consumed in the widget tree will auto dispose.
+  /// * It is recommended to manually dispose state that are not auto disposed
+  /// using [InjectedBaseState.dispose]. You can dispose all states of the app
+  /// using [RM.disposeAll].
+  /// * A state will auto dispose if all states it depends on are disposed of.
+  /// * Non disposed state may lead to unexpected behavior.
+  /// * To debug when state is initialized and disposed of use
+  /// `debugPrintWhenNotifiedPreMessage` parameter (See below)
+  ///
+  /// {@macro InjectedFormField.examples}
   static InjectedFormField<T> injectFormField<T>(
     T initialValue, {
     List<String? Function(T value)>? validators,
