@@ -40,9 +40,12 @@ void main() {
   });
 
   testWidgets('provide i18n with async translation', (tester) async {
-    final i18n = RM.injectI18N({
-      Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
-    });
+    final i18n = RM.injectI18N(
+      {
+        Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
+      },
+      debugPrintWhenNotifiedPreMessage: '',
+    );
     final widget = TopAppWidget(
       injectedI18N: i18n,
       onWaiting: () => Directionality(
@@ -52,7 +55,11 @@ void main() {
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)),
+          child: Builder(
+            builder: (context) {
+              return Text(i18n.of(context));
+            },
+          ),
         );
       },
     );
@@ -109,9 +116,12 @@ void main() {
   });
 
   testWidgets('async i18n 1 s with waitFor 2s', (tester) async {
-    final i18n = RM.injectI18N({
-      Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
-    });
+    final i18n = RM.injectI18N(
+      {
+        Locale('en'): () => Future.delayed(Duration(seconds: 1), () => 'hello'),
+      },
+      debugPrintWhenNotifiedPreMessage: '',
+    );
     final widget = TopAppWidget(
       injectedI18N: i18n,
       ensureInitialization: () => [

@@ -6,11 +6,11 @@ final InjectedTheme theme = RM.injectTheme<AppTheme>(
   lightThemes: {
     AppTheme.Green: ThemeData(
       brightness: Brightness.light,
-      primaryColor: Colors.green,
+      primarySwatch: Colors.green,
     ),
     AppTheme.Blue: ThemeData(
       brightness: Brightness.light,
-      primaryColor: Colors.blue,
+      primarySwatch: Colors.blue,
     ),
   },
   darkThemes: {
@@ -24,11 +24,6 @@ final InjectedTheme theme = RM.injectTheme<AppTheme>(
     ),
   },
   persistKey: '__theme__',
-  middleSnapState: (middleSnap) {
-    // middleSnap.print(
-    //   stateToString: (s) => '$s (${theme.themeMode})',
-    // );
-  },
 );
 enum AppTheme {
   Green,

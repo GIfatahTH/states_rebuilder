@@ -14,8 +14,8 @@ void main() async {
     await tester.pumpWidget(MyApp());
     await tester.pumpAndSettle();
     //Defautl theme is the AppTheme.Green
-    expect(Theme.of(RM.context).primaryColor, Colors.green);
-    expect(Theme.of(RM.context).brightness, Brightness.light);
+    expect(Theme.of(RM.context!).primaryColor, Colors.green);
+    expect(Theme.of(RM.context!).brightness, Brightness.light);
     //
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.system);
@@ -36,8 +36,8 @@ void main() async {
     await tester.pumpAndSettle();
 
     //Stored theme is the AppTheme.Blue and dark model
-    expect(Theme.of(RM.context).primaryColor, Colors.blue[700]);
-    expect(Theme.of(RM.context).brightness, Brightness.dark);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue[700]);
+    expect(Theme.of(RM.context!).brightness, Brightness.dark);
     //
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.dark);
@@ -58,16 +58,16 @@ void main() async {
     //toggle to dark
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.green[700]);
-    expect(Theme.of(RM.context).brightness, Brightness.dark);
+    expect(Theme.of(RM.context!).primaryColor, Colors.green[700]);
+    expect(Theme.of(RM.context!).brightness, Brightness.dark);
     expect(find.byIcon(Icons.nights_stay), findsOneWidget);
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.dark);
     //toggle to light
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.green);
-    expect(Theme.of(RM.context).brightness, Brightness.light);
+    expect(Theme.of(RM.context!).primaryColor, Colors.green);
+    expect(Theme.of(RM.context!).brightness, Brightness.light);
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.light);
@@ -75,16 +75,16 @@ void main() async {
     //toggle to dark
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.green[700]);
-    expect(Theme.of(RM.context).brightness, Brightness.dark);
+    expect(Theme.of(RM.context!).primaryColor, Colors.green[700]);
+    expect(Theme.of(RM.context!).brightness, Brightness.dark);
     expect(find.byIcon(Icons.nights_stay), findsOneWidget);
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.dark);
     //use system theme
     await tester.tap(find.byType(OutlinedButton));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.green);
-    expect(Theme.of(RM.context).brightness, Brightness.light);
+    expect(Theme.of(RM.context!).primaryColor, Colors.green);
+    expect(Theme.of(RM.context!).brightness, Brightness.light);
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.system);
@@ -101,21 +101,21 @@ void main() async {
     //
     await tester.tap(find.byKey(Key('BlueThemeListTile')));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.blue);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue);
 
     //toggle to dark
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.blue[700]);
-    expect(Theme.of(RM.context).brightness, Brightness.dark);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue[700]);
+    expect(Theme.of(RM.context!).brightness, Brightness.dark);
     expect(find.byIcon(Icons.nights_stay), findsOneWidget);
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.dark);
     //toggle to light
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.blue);
-    expect(Theme.of(RM.context).brightness, Brightness.light);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue);
+    expect(Theme.of(RM.context!).brightness, Brightness.light);
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.light);
@@ -123,16 +123,16 @@ void main() async {
     //toggle to dark
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.blue[700]);
-    expect(Theme.of(RM.context).brightness, Brightness.dark);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue[700]);
+    expect(Theme.of(RM.context!).brightness, Brightness.dark);
     expect(find.byIcon(Icons.nights_stay), findsOneWidget);
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.dark);
     //use system theme
     await tester.tap(find.byType(OutlinedButton));
     await tester.pumpAndSettle();
-    expect(Theme.of(RM.context).primaryColor, Colors.blue);
-    expect(Theme.of(RM.context).brightness, Brightness.light);
+    expect(Theme.of(RM.context!).primaryColor, Colors.blue);
+    expect(Theme.of(RM.context!).brightness, Brightness.light);
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     expect(theme.state, AppTheme.Blue);
     expect(theme.themeMode, ThemeMode.system);

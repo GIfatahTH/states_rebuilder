@@ -19,7 +19,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   Widget? onError(dynamic error, void Function() refresh) {}
 
   ///List of future (plugins initialization) to wait for, and display a waiting screen while waiting
-  List<Future>? ensureInitialization() {}
+  List<Future<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
   void didMountWidget() {}
@@ -28,6 +28,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   void didUnmountWidget() {}
 
   @override
+  // ignore: no_logic_in_create_state
   _TopStatelessWidgetState createState() {
     if (this is AppLifecycle) {
       return _TopStatelessWidgetStateWidgetsBindingObserverState();
@@ -44,6 +45,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
   bool isWaiting = false;
   dynamic error;
   InjectedI18N? injectedI18N;
+  bool isInitialized = false;
   void _addToObs(InjectedBaseState inj) {
     if (inj is! InjectedTheme && inj is! InjectedI18N) {
       return;
@@ -68,13 +70,12 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
 
   @override
   void afterBuild() {
-    for (var disposer in _obs1.values) {
-      disposer();
-    }
+    // for (var disposer in _obs1.values) {
+    //   disposer();
+    // }
     _obs1 = _obs2 ?? {};
     _obs2 = null;
     _obs2 = {};
-    OnReactiveState.addToObs = cachedAddToObs;
   }
 
   @override
@@ -96,7 +97,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       error = null;
     });
     try {
-      await Future.wait(toInitialize);
+      await Future.wait(toInitialize, eagerError: true);
       setState(() {
         isWaiting = false;
         error = null;
@@ -139,33 +140,43 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       return widget.onError(error, _ensureInitialization) ??
           widget.build(context);
     }
-    cachedAddToObs = OnReactiveState.addToObs;
-    OnReactiveState.addToObs = _addToObs;
-    OnReactiveState.addToTopStatelessObs = _addToObs;
-    // late Widget child;
-    // if (injectedI18N != null) {
-    //   return injectedI18N!.inherited(
-    //     builder: (ctx) {
-    //       return widget.build(ctx);
-    //     },
-    //   );
-    // }
-    // try {
-    final child = widget.build(context);
-    // } catch (e) {}
-    if (injectedI18N != null) {
+
+    if (isInitialized) {
       if (injectedI18N?.isWaiting == true) {
         return getOnWaitingWidget();
       }
+      return injectedI18N?.inherited(
+            // key: ValueKey(injectedI18N),
+            builder: (ctx) {
+              return widget.build(ctx);
+            },
+          ) ??
+          widget.build(context);
+    }
+    isInitialized = true;
 
-      return injectedI18N!.inherited(
-        builder: (ctx) {
-          return child;
-        },
-      );
+    Widget child = widget.build(context);
+    // if (injectedI18N == null) {
+    OnReactiveState.addToTopStatelessObs = null;
+
+    if (injectedI18N?.isWaiting == true) {
+      return getOnWaitingWidget();
     }
 
-    return child;
+    return injectedI18N?.inherited(
+          // key: ValueKey(injectedI18N),
+          builder: (ctx) {
+            return widget.build(ctx);
+          },
+        ) ??
+        child;
+    // }
+
+    // return injectedI18N!.inherited(
+    //   builder: (ctx) {
+    //     return child;
+    //   },
+    // );
   }
 }
 

@@ -177,6 +177,7 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
 
   @override
   ThemeData get lightTheme {
+    OnReactiveState.addToTopStatelessObs?.call(this);
     var theme = lightThemes[state];
     theme ??= darkThemes?[state];
     assert(theme != null);
@@ -184,7 +185,10 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
   }
 
   @override
-  ThemeData? get darkTheme => darkThemes?[state] ?? lightThemes[state];
+  ThemeData? get darkTheme {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return darkThemes?[state] ?? lightThemes[state];
+  }
 
   @override
   ThemeMode get themeMode => _themeMode;

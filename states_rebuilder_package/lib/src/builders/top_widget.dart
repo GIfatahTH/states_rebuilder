@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
 
+import '../../states_rebuilder.dart';
 import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
-import '../rm.dart';
 
 ///{@template topWidget}
 ///Widget to put on top of the app.
@@ -54,12 +53,16 @@ import '../rm.dart';
 /// }
 /// ```
 /// {@endtemplate}
-class TopAppWidget extends TopStatelessWidget {
+class TopAppWidget extends TopStatelessWidget with AppLifecycle {
   ///```dart
   ///Called when the system puts the app in the background or returns the
   ///app to the foreground.
   ///
-  final void Function(AppLifecycleState state)? didChangeAppLifecycleState;
+  final void Function(AppLifecycleState state)? _didChangeAppLifecycleState;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _didChangeAppLifecycleState?.call(state);
+  }
 
   ///Child widget to render
   final Widget Function(BuildContext) builder;
@@ -161,15 +164,10 @@ class TopAppWidget extends TopStatelessWidget {
     return _ensureInitialization?.call();
   }
 
-  @override
-  void didMountWidget() {
-    injectedI18N?.state;
-  }
-
   ///{@macro topWidget}
   const TopAppWidget({
     Key? key,
-    this.didChangeAppLifecycleState,
+    Function(AppLifecycleState)? didChangeAppLifecycleState,
     this.injectedTheme,
     this.injectedI18N,
     Widget Function()? onWaiting,
@@ -180,6 +178,7 @@ class TopAppWidget extends TopStatelessWidget {
   })  : _onWaiting = onWaiting,
         _onError = onError,
         _ensureInitialization = ensureInitialization,
+        _didChangeAppLifecycleState = didChangeAppLifecycleState,
         assert(
           ensureInitialization == null || onWaiting != null,
           'You have to define a waiting splash screen '
@@ -189,9 +188,8 @@ class TopAppWidget extends TopStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Builder(builder: (ctx) {
-      return builder(ctx);
-    });
+    injectedI18N?.locale;
+    return builder(context);
   }
 }
 

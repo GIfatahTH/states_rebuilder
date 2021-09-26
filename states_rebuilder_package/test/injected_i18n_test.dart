@@ -62,7 +62,7 @@ void main() async {
     expect(find.text('arabic'), findsOneWidget);
     expect(textDirection, TextDirection.rtl);
     i18n.locale = Locale('es');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('spanish'), findsOneWidget);
     expect(textDirection, TextDirection.ltr);
   });
