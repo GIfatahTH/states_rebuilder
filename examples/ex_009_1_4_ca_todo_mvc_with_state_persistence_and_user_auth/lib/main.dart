@@ -16,62 +16,67 @@ void main() async {
   runApp(App());
 }
 
-class App extends StatelessWidget {
+class App extends TopStatelessWidget {
   const App({Key? key}) : super(key: key);
+
+  @override
+  List<Future<void>>? ensureInitialization() {
+    return [
+      RM.storageInitializer(HiveStorage()),
+    ];
+  }
+
+  @override
+  Widget? splashScreen() {
+    return MaterialApp(
+      theme: ThemeData.dark(),
+      home: Scaffold(
+        body: Container(),
+      ),
+    );
+  }
+
+  @override
+  Widget? errorScreen(error, void Function() refresh) {
+    return MaterialApp(
+      theme: ThemeData.dark(),
+      home: Scaffold(
+        body: Text('$error'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return TopAppWidget(
-      ensureInitialization: () => [
-        RM.storageInitializer(HiveStorage()),
+    return MaterialApp(
+      title: i18n.state.appTitle,
+      // theme
+      theme: isDark.lightTheme,
+      darkTheme: isDark.darkTheme,
+      themeMode: isDark.themeMode,
+      // i18n
+      locale: i18n.locale,
+      localeResolutionCallback: i18n.localeResolutionCallback,
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
       ],
-      onWaiting: () => MaterialApp(
-        theme: ThemeData.dark(),
-        home: Scaffold(
-          body: Container(),
-        ),
+      home: OnAuthBuilder(
+        listenTo: authBloc.userRM,
+        onInitialWaiting: () => Center(child: CircularProgressIndicator()),
+        onUnsigned: () => AuthPage(),
+        onSigned: () => HomeScreen(),
+        useRouteNavigation: true,
       ),
-      onError: (error, refresh) {
-        return MaterialApp(
-          theme: ThemeData.dark(),
-          home: Scaffold(
-            body: Text('$error'),
-          ),
-        );
-      },
-      injectedTheme: isDark,
-      injectedI18N: i18n,
-      builder: (context) {
-        return MaterialApp(
-          title: i18n.of(context).appTitle,
-          //theme
-          theme: isDark.lightTheme,
-          darkTheme: isDark.darkTheme,
-          themeMode: isDark.themeMode,
-          //i18n
-          locale: i18n.locale,
-          localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          home: OnAuthBuilder(
-            listenTo: authBloc.userRM,
-            onInitialWaiting: () => Center(child: CircularProgressIndicator()),
-            onUnsigned: () => AuthPage(),
-            onSigned: () => HomeScreen(),
-            useRouteNavigation: true,
-          ),
-          navigatorKey: RM.navigate.navigatorKey,
-          onGenerateRoute: RM.navigate.onGenerateRoute(
-            {
-              HomeScreen.routeName: (_) => const HomeScreen(),
-              AuthPage.routeName: (_) => const AuthPage(),
-              AddEditPage.routeName: (_) => const AddEditPage(),
-            },
-            // transitionsBuilder: RM.transitions.upToBottom(),
-          ),
-        );
-      },
+      navigatorKey: RM.navigate.navigatorKey,
+      onGenerateRoute: RM.navigate.onGenerateRoute(
+        {
+          HomeScreen.routeName: (_) => const HomeScreen(),
+          AuthPage.routeName: (_) => const AuthPage(),
+          AddEditPage.routeName: (_) => const AddEditPage(),
+        },
+        // transitionsBuilder: RM.transitions.upToBottom(),
+      ),
     );
   }
 }

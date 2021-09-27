@@ -23,7 +23,7 @@ class MyApp extends TopStatelessWidget {
       ];
 
   @override
-  Widget? onWaiting() => MaterialApp(
+  Widget? splashScreen() => MaterialApp(
         home: Scaffold(
           body: Center(
             child: CircularProgressIndicator(),

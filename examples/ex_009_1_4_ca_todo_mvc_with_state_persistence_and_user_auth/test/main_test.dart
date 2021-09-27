@@ -1,6 +1,7 @@
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/auth_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -35,7 +36,8 @@ void main() async {
     await tester.pumpWidget(App());
     await tester.pumpAndSettle();
     //App start with dart model
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
+    expect(isDark.isDarkTheme, false);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isFalse);
 
     //tap on the ExtraActionsButton
     await tester.tap(find.byType(ExtraActionsButton));
@@ -45,7 +47,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is light
-    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
     //
     //Tap to toggle theme to dark mode
     await tester.tap(find.byType(ExtraActionsButton));
@@ -54,7 +56,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is dark
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
   });
 
   testWidgets('Change language should work', (tester) async {
