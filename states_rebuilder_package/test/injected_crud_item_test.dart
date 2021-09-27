@@ -372,12 +372,14 @@ void main() {
         readOnInitialization: true,
         stateInterceptor: (current, next) {
           _snapState = current;
-          _nextSnapState = current;
+          _nextSnapState = next;
           if (_nextSnapState.hasData) {
-            return _nextSnapState.copyToHasData([
-              ..._nextSnapState.data!,
-              ..._nextSnapState.data!,
-            ]);
+            return _nextSnapState.copyToHasData(
+              [
+                ..._nextSnapState.data!,
+                ..._nextSnapState.data!,
+              ],
+            );
           }
         },
       );

@@ -5,8 +5,7 @@ export 'src/builders/state_builder.dart' show StateBuilder;
 export 'src/builders/state_with_mixin_builder.dart'
     show StateWithMixinBuilder, MixinWith;
 export 'src/builders/top_widget.dart' show TopAppWidget;
-export 'src/builders/top_stateless_widget.dart'
-    show TopStatelessWidget, TopAppLifecycleMixin;
+export 'src/builders/top_stateless_widget.dart' show TopStatelessWidget;
 export 'src/builders/when_rebuilder.dart' show WhenRebuilder;
 export 'src/builders/when_rebuilder_or.dart' show WhenRebuilderOr;
 export 'src/extensions/type_extension.dart';

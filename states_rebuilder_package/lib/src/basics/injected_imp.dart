@@ -694,7 +694,7 @@ class InjectedImp<T> extends Injected<T> {
             toDebugString: toDebugString,
           );
         }
-        return LifeCycleHooks<NullWidget>(
+        return LifeCycleHooks<_InheritedHelper>(
           mountedState: (context) {
             disposer =
                 injected._reactiveModelState.listeners.addListenerForRebuild(
@@ -734,14 +734,14 @@ class InjectedImp<T> extends Injected<T> {
               injected: injected,
               globalInjected: globalInjected!,
               context: context,
-              child: Builder(builder: (context) => builder(context)),
+              child: Builder(builder: (context) => widget.builder(context)),
             );
           },
         );
       },
       key: key,
-      widget: NullWidget(
-        injects: [],
+      widget: _InheritedHelper(
+        builder: builder,
       ),
     );
   }
@@ -821,4 +821,11 @@ class _InheritedInjected<T> extends InheritedWidget {
   bool updateShouldNotify(_InheritedInjected _) {
     return true;
   }
+}
+
+class _InheritedHelper {
+  final Widget Function(BuildContext) builder;
+  _InheritedHelper({
+    required this.builder,
+  });
 }

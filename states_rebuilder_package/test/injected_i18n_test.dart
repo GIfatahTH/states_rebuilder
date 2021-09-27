@@ -283,7 +283,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -327,7 +327,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -369,7 +369,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -431,7 +431,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -496,7 +496,7 @@ void main() async {
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );

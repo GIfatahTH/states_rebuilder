@@ -1103,6 +1103,7 @@ void main() {
         ),
       );
       await tester.pumpWidget(widget);
+      await tester.pump();
       expect((form as InjectedFormImp).autoFocusedNode, isNotNull);
       expect(find.text('not allowed'), findsNothing);
       form.submitFocusNode.requestFocus();

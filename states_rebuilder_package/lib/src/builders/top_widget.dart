@@ -4,8 +4,7 @@ import '../../states_rebuilder.dart';
 import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
 
-///# Use [TopStatelessWidget] instead.
-///
+///# Prefer using [TopStatelessWidget] instead.
 ///
 ///{@template topWidget}
 ///Widget to put on top of the app.
@@ -56,8 +55,7 @@ import '../injected/injected_theme/injected_theme.dart';
 /// }
 /// ```
 /// {@endtemplate}
-@Deprecated('Use TopStatelessWidget instead')
-class TopAppWidget extends TopStatelessWidget with TopAppLifecycleMixin {
+class TopAppWidget extends TopStatelessWidget {
   ///```dart
   ///Called when the system puts the app in the background or returns the
   ///app to the foreground.

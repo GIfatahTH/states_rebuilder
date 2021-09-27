@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../injected/injected_i18n/injected_i18n.dart';
@@ -5,18 +7,6 @@ import '../injected/injected_theme/injected_theme.dart';
 import '../rm.dart';
 import 'on_reactive.dart';
 import 'reactive_state_less_widget.dart';
-
-/// To be mixined with [TopStatelessWidget] to track app life cycle state
-mixin TopAppLifecycleMixin {
-  /// Called when the system puts the app in the background or returns
-  /// the app to the foreground.
-  ///
-  /// An example of implementing this method is provided in the class-level
-  /// documentation for the [WidgetsBindingObserver] class.
-  ///
-  /// This method exposes notifications from [SystemChannels.lifecycle].
-  void didChangeAppLifecycleState(AppLifecycleState state) {}
-}
 
 /// Used instead of [StatelessWidget] on top of [MaterialApp] widget to listen
 /// to [InjectedI18N] and [InjectedTheme]
@@ -32,7 +22,7 @@ mixin TopAppLifecycleMixin {
 /// [TopStatelessWidget.ensureInitialization], [TopStatelessWidget.splashScreen],
 /// [TopStatelessWidget.errorScreen], [TopStatelessWidget.didMountWidget],
 /// [TopStatelessWidget.didUnmountWidget] and
-/// [TopAppLifecycleMixin.didChangeAppLifecycleState]
+/// [TopStatelessWidget.didChangeAppLifecycleState]
 ///
 ///
 /// Example of TopAppWidget used to provide [InjectedTheme] and [InjectedI18N]
@@ -122,10 +112,9 @@ mixin TopAppLifecycleMixin {
 /// }
 /// ```
 ///
-/// To invoke side effects depending on the app life cycle, just mixin
-/// [TopStatelessWidget] with [TopAppLifecycleMixin]
+/// To invoke side effects depending on the app life cycle,
 /// ```dart
-/// class MyApp extends TopStatelessWidget with TopAppLifecycleMixin {
+/// class MyApp extends TopStatelessWidget {
 ///   @override
 ///   void didChangeAppLifecycleState(AppLifecycleState state) {
 ///     print(state);
@@ -159,13 +148,18 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   ///Called when the widget is  removed from the widget tree
   void didUnmountWidget() {}
 
+  /// Called when the system puts the app in the background or returns
+  /// the app to the foreground.
+  ///
+  /// An example of implementing this method is provided in the class-level
+  /// documentation for the [WidgetsBindingObserver] class.
+  ///
+  /// This method exposes notifications from [SystemChannels.lifecycle].
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
+
   @override
-  // ignore: no_logic_in_create_state
   _TopStatelessWidgetState createState() {
-    if (this is TopAppLifecycleMixin) {
-      return _TopStatelessWidgetStateWidgetsBindingObserverState();
-    }
-    return _TopStatelessWidgetState();
+    return _TopStatelessWidgetStateWidgetsBindingObserverState();
   }
 }
 
@@ -241,6 +235,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     }
     removeFromContextSet();
     widget.didUnmountWidget();
+    RM.disposeAll();
     super.dispose();
   }
 
@@ -259,37 +254,27 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     if (isWaiting || injectedI18N?.isWaiting == true) {
       return getOnWaitingWidget();
     }
-
     if (error != null) {
       return widget.errorScreen(error, _ensureInitialization) ??
           widget.build(context);
     }
-
-    if (isInitialized) {
-      if (injectedI18N?.isWaiting == true) {
+    Widget? child;
+    if (!isInitialized) {
+      isInitialized = true;
+      child = widget.build(context);
+      OnReactiveState.addToTopStatelessObs = null;
+    }
+    if (injectedI18N != null) {
+      if (injectedI18N!.isWaiting == true) {
         return getOnWaitingWidget();
       }
-      return injectedI18N?.inherited(
-            builder: (ctx) {
-              return widget.build(ctx);
-            },
-          ) ??
-          widget.build(context);
+      return injectedI18N!.inherited(
+        builder: (context) {
+          return child ?? widget.build(context);
+        },
+      );
     }
-    isInitialized = true;
-    Widget child = widget.build(context);
-    OnReactiveState.addToTopStatelessObs = null;
-
-    if (injectedI18N?.isWaiting == true) {
-      return getOnWaitingWidget();
-    }
-
-    return injectedI18N?.inherited(
-          builder: (ctx) {
-            return child;
-          },
-        ) ??
-        child;
+    return child ?? widget.build(context);
   }
 }
 
@@ -309,7 +294,7 @@ class _TopStatelessWidgetStateWidgetsBindingObserverState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    (widget as TopAppLifecycleMixin).didChangeAppLifecycleState.call(state);
+    widget.didChangeAppLifecycleState.call(state);
   }
 
   @override

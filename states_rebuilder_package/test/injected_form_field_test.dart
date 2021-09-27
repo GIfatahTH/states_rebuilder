@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/injected/injected_text_editing/injected_text_editing.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -57,6 +58,7 @@ void main() {
       expect(find.text('Label text'), findsOneWidget);
       expect(find.text('Hint text'), findsOneWidget);
       expect(find.text('Helper text'), findsOneWidget);
+      expect((form as InjectedFormImp).autoFocusedNode, checkBox.focusNode);
       //
       checkBox.focusNode.unfocus();
       await tester.pump();
@@ -362,7 +364,7 @@ void main() {
                 },
               ),
               TextField(
-                focusNode: focusNode1,
+                focusNode: focusNode2,
               ),
             ],
           ),
@@ -371,14 +373,22 @@ void main() {
       await tester.pumpWidget(widget);
       expect(focusNode1.hasFocus, true);
       expect(focusNode2.hasFocus, false);
-      //
-      print(focusNode1.nextFocus());
+
+      focusNode1.nextFocus();
       await tester.pump();
-      await tester.pump();
-      expect(focusNode1.hasFocus, false, skip: true);
-      expect(focusNode2.hasFocus, true, skip: true);
+      expect(focusNode1.hasFocus, false);
+      expect(focusNode2.hasFocus, true);
       //
+      focusNode1.requestFocus();
+      await tester.pump();
+      expect(focusNode1.hasFocus, true);
+      expect(focusNode2.hasFocus, false);
       field.isEnabled = true;
+      //
+      focusNode1.nextFocus();
+      await tester.pump();
+      expect(focusNode1.hasFocus, false);
+      expect(focusNode2.hasFocus, false);
     },
   );
 }

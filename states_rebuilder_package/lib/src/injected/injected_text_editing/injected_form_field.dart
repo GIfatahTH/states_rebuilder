@@ -238,10 +238,10 @@ class _FocusNode extends FocusNode {
     return children.isNotEmpty ? children.first : null;
   }
 
-  // @override
-  // void requestFocus([FocusNode? node]) {
-  //   super.requestFocus(childFocusNode);
-  // }
+  @override
+  void requestFocus([FocusNode? node]) {
+    super.requestFocus(childFocusNode);
+  }
 
   @override
   void unfocus({UnfocusDisposition disposition = UnfocusDisposition.scope}) {

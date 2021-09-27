@@ -38,14 +38,17 @@ abstract class _BaseFormField<T> {
       form?.notify();
     });
     //To cache the auto focused TextField
-    SchedulerBinding.instance!.endOfFrame.then((_) {
-      final form = this.form as InjectedFormImp?;
-      if (form != null) {
-        if (_focusNode?.hasFocus == true) {
-          form.autoFocusedNode = _focusNode;
+    WidgetsBinding.instance!.scheduleFrameCallback((timeStamp) {
+      SchedulerBinding.instance!.endOfFrame.then((_) {
+        final form = this.form as InjectedFormImp?;
+        if (form != null) {
+          if (_focusNode?.hasFocus == true) {
+            form.autoFocusedNode = _focusNode;
+          }
         }
-      }
+      });
     });
+
     if (_validateOnLoseFocus == true) {
       _listenToFocusNodeForValidation();
     }

@@ -7,7 +7,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 late Widget Function(BuildContext context) _builder;
 late Widget? _onWaiting;
 late Widget? Function(dynamic error, void Function() refresh)? _onError;
-late List<Future>? _ensureInitialization;
+late List<Future> Function()? _ensureInitialization;
 late void Function(AppLifecycleState state)? _didChangeAppLifecycleState;
 
 void main() {
@@ -21,7 +21,7 @@ void main() {
   testWidgets(
     'throw if waiteFore is defined without onWaiting',
     (tester) async {
-      _ensureInitialization = [Future.value(0)];
+      _ensureInitialization = () => [Future.value(0)];
       await tester.pumpWidget(const _TopAppWidget1());
       expect(tester.takeException(), isException);
     },
@@ -47,7 +47,7 @@ void main() {
         );
       };
 
-      await tester.pumpWidget(_TopAppWidget1());
+      await tester.pumpWidget(const _TopAppWidget1());
       expect(find.text('hello'), findsOneWidget);
       i18n.state = 'hello world';
       await tester.pump();
@@ -61,8 +61,8 @@ void main() {
     'Then throw an exception hinting to use Builder',
     (tester) async {
       final i18n = RM.injectI18N({
-        Locale('en'): () => 'hello',
-        Locale('fr'): () => 'salut',
+        const Locale('en'): () => 'hello',
+        const Locale('fr'): () => 'salut',
       });
       _builder = (ctx) {
         return MaterialApp(
@@ -73,7 +73,7 @@ void main() {
         );
       };
 
-      await tester.pumpWidget(_TopAppWidget1());
+      await tester.pumpWidget(const _TopAppWidget1());
       expect(
           tester.takeException(), contains('use a Builder to get a context'));
     },
@@ -85,8 +85,8 @@ void main() {
     'Then throw an exception hinting to use TopReactiveStateless',
     (tester) async {
       final i18n = RM.injectI18N({
-        Locale('en'): () => 'hello',
-        Locale('fr'): () => 'salut',
+        const Locale('en'): () => 'hello',
+        const Locale('fr'): () => 'salut',
       });
       final widget = Builder(
         // injectedI18N: i18n,
@@ -167,10 +167,10 @@ void main() {
       textDirection: TextDirection.ltr,
       child: Text('Waiting...'),
     );
-    _ensureInitialization = [
-      Future.delayed(const Duration(seconds: 1)),
-      Future.delayed(const Duration(seconds: 2)),
-    ];
+    _ensureInitialization = () => [
+          Future.delayed(const Duration(seconds: 1)),
+          Future.delayed(const Duration(seconds: 2)),
+        ];
 
     await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
@@ -199,10 +199,10 @@ void main() {
       textDirection: TextDirection.ltr,
       child: Text('Waiting...'),
     );
-    _ensureInitialization = [
-      Future.delayed(const Duration(seconds: 2)),
-      i18n.stateAsync,
-    ];
+    _ensureInitialization = () => [
+          Future.delayed(const Duration(seconds: 2)),
+          i18n.stateAsync,
+        ];
 
     await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
@@ -230,10 +230,10 @@ void main() {
       textDirection: TextDirection.ltr,
       child: Text('Waiting...'),
     );
-    _ensureInitialization = [
-      Future.delayed(const Duration(seconds: 2)),
-      // i18n.stateAsync,
-    ];
+    _ensureInitialization = () => [
+          Future.delayed(const Duration(seconds: 2)),
+          // i18n.stateAsync,
+        ];
 
     await tester.pumpWidget(const _TopAppWidget1());
 
@@ -261,11 +261,11 @@ void main() {
       textDirection: TextDirection.ltr,
       child: Text('Waiting...'),
     );
-    _ensureInitialization = [
-      Future.delayed(const Duration(seconds: 1),
-          () => shouldThrow ? throw Exception('Error') : 1),
-      Future.delayed(const Duration(seconds: 2), () => 2),
-    ];
+    _ensureInitialization = () => [
+          Future.delayed(const Duration(seconds: 1),
+              () => shouldThrow ? throw Exception('Error') : 1),
+          Future.delayed(const Duration(seconds: 2), () => 2),
+        ];
     _onError = (err, refresher) {
       refresh = refresher;
       return const Directionality(
@@ -274,7 +274,7 @@ void main() {
       );
     };
 
-    await tester.pumpWidget(_TopAppWidget1());
+    await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Error'), findsOneWidget);
@@ -360,7 +360,7 @@ class _TopAppWidget1 extends TopStatelessWidget {
 
   @override
   List<Future>? ensureInitialization() {
-    return _ensureInitialization;
+    return _ensureInitialization?.call();
   }
 
   @override
@@ -379,7 +379,7 @@ class _TopAppWidget1 extends TopStatelessWidget {
   }
 }
 
-class _TopAppWidget2 extends TopStatelessWidget with TopAppLifecycleMixin {
+class _TopAppWidget2 extends TopStatelessWidget {
   const _TopAppWidget2({Key? key}) : super(key: key);
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

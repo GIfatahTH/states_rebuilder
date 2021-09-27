@@ -421,7 +421,7 @@ class _AuthService<T, P> {
 
   Future<void> _dispose() async {
     _disposer();
-    _authTimer?.cancel();
+    _cancelTimer();
     _repository.dispose();
   }
 }
