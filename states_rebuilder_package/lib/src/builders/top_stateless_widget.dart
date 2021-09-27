@@ -6,19 +6,151 @@ import '../rm.dart';
 import 'on_reactive.dart';
 import 'reactive_state_less_widget.dart';
 
-abstract class AppLifecycle {
+/// To be mixined with [TopStatelessWidget] to track app life cycle state
+mixin TopAppLifecycleMixin {
+  /// Called when the system puts the app in the background or returns
+  /// the app to the foreground.
+  ///
+  /// An example of implementing this method is provided in the class-level
+  /// documentation for the [WidgetsBindingObserver] class.
+  ///
+  /// This method exposes notifications from [SystemChannels.lifecycle].
   void didChangeAppLifecycleState(AppLifecycleState state) {}
 }
 
+/// Used instead of [StatelessWidget] on top of [MaterialApp] widget to listen
+/// to [InjectedI18N] and [InjectedTheme]
+///
+/// It disposes all non auto disposed injected model when the app closes.
+///
+/// Useful also to dispose resources and reset injected states for test.
+///
+///
+/// It can also be used to display a splash screen while initialization plugins.
+///
+/// These are the Hooks offered by this widget:
+/// [TopStatelessWidget.ensureInitialization], [TopStatelessWidget.splashScreen],
+/// [TopStatelessWidget.errorScreen], [TopStatelessWidget.didMountWidget],
+/// [TopStatelessWidget.didUnmountWidget] and
+/// [TopAppLifecycleMixin.didChangeAppLifecycleState]
+///
+///
+/// Example of TopAppWidget used to provide [InjectedTheme] and [InjectedI18N]
+///
+/// ```dart
+///  void main() {
+///    runApp(MyApp());
+///  }
+///
+///  class MyApp extends TopStatelessWidget {
+///    // This widget is the root of your application.
+///    @override
+///    Widget build(BuildContext context) {
+///      return MaterialApp(
+///        //
+///        theme: themeRM.lightTheme, //light theme
+///        darkTheme: themeRM.darkTheme, //dark theme
+///        themeMode: themeRM.themeMode, //theme mode
+///        //
+///        locale: i18nRM.locale,
+///        localeResolutionCallback: i18nRM.localeResolutionCallback,
+///        localizationsDelegates: [
+///          GlobalMaterialLocalizations.delegate,
+///          GlobalWidgetsLocalizations.delegate,
+///          GlobalCupertinoLocalizations.delegate,
+///        ],
+///        home: HomePage(),
+///      );
+///    }
+///  }
+///  ```
+///
+/// Example of initializing plugins
+///
+/// In Flutter it is common to initialize plugins inside the main method:
+/// ```dart
+/// void main()async{
+///  WidgetsFlutterBinding.ensureInitialized();
+///
+///  await initializeFirstPlugin();
+///  await initializeSecondPlugin();
+///  runApp(MyApp());
+/// }
+/// ```
+///
+/// If you want to initialize plugins and display splash screen while waiting
+/// for them to initialize and display an error screen if any of them fails to
+/// initialize or request for permission with the ability to retry the
+/// initialization you can use [TopStatelessWidget]:
+///
+/// ```dart
+/// class MyApp extends TopStatelessWidget {
+///   const MyApp({Key? key}) : super(key: key);
+///
+///   @override
+///   List<Future<void>>? ensureInitialization() {
+///     return [
+///       initializeFirstPlugin(),
+///       initializeSecondPlugin(),
+///     ];
+///   }
+///
+///   @override
+///   Widget? splashScreen() {
+///     return Material(
+///       child: Scaffold(
+///         body: Center(
+///           child: CircularProgressIndicator(),
+///         ),
+///       ),
+///     );
+///   }
+///
+///   @override
+///   Widget? errorScreen(error, void Function() refresh) {
+///     return ElevatedButton.icon(
+///       onPressed: () => refresh(),
+///       icon: Icon(Icons.refresh),
+///       label: Text('Retry again'),
+///     );
+///   }
+///
+///   @override
+///   Widget build(BuildContext context) {
+///     return MyHomePage();
+///   }
+/// }
+/// ```
+///
+/// To invoke side effects depending on the app life cycle, just mixin
+/// [TopStatelessWidget] with [TopAppLifecycleMixin]
+/// ```dart
+/// class MyApp extends TopStatelessWidget with TopAppLifecycleMixin {
+///   @override
+///   void didChangeAppLifecycleState(AppLifecycleState state) {
+///     print(state);
+///   }
+///
+///   const MyApp({Key? key}) : super(key: key);
+///
+///   @override
+///   Widget build(BuildContext context) {
+///     return Container();
+///   }
+/// }
+/// ```
 abstract class TopStatelessWidget extends MyStatefulWidget {
   const TopStatelessWidget({Key? key}) : super(key: key);
   Widget build(BuildContext context);
 
-  // void Function(AppLifecycleState state)? didChangeAppLifecycleState;
-  Widget? onWaiting() {}
-  Widget? onError(dynamic error, void Function() refresh) {}
+  /// Hook to be called while waiting for plugins initialization.
+  Widget? splashScreen() {}
 
-  ///List of future (plugins initialization) to wait for, and display a waiting screen while waiting
+  /// Hook to be called if initialization fails.
+  Widget? errorScreen(dynamic error, void Function() refresh) {}
+
+  ///List of future (plugins initialization) to wait for, and display a
+  ///waiting screen while waiting
   List<Future<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
@@ -30,7 +162,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   @override
   // ignore: no_logic_in_create_state
   _TopStatelessWidgetState createState() {
-    if (this is AppLifecycle) {
+    if (this is TopAppLifecycleMixin) {
       return _TopStatelessWidgetStateWidgetsBindingObserverState();
     }
     return _TopStatelessWidgetState();
@@ -40,8 +172,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
   AddObsCallback? cachedAddToObs;
   late VoidCallback removeFromContextSet;
-  Map<InjectedBaseState, VoidCallback> _obs1 = {};
-  Map<InjectedBaseState, VoidCallback>? _obs2 = {};
+  Map<InjectedBaseState, VoidCallback> _obs = {};
   bool isWaiting = false;
   dynamic error;
   InjectedI18N? injectedI18N;
@@ -53,29 +184,22 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     if (inj is InjectedI18N) {
       injectedI18N = inj;
     }
-    final value = _obs1.remove(inj);
-    if (value != null) {
-      _obs2![inj] = value;
-      return;
+    if (inj is InjectedThemeImp) {
+      inj.isLinkedToTopStatelessWidget = true;
     }
-    if (!_obs2!.containsKey(inj)) {
-      _obs2![inj] = inj.observeForRebuild(
+    // final value = _obs1.remove(inj);
+    // if (value != null) {
+    //   _obs2![inj] = value;
+    //   return;
+    // }
+    if (!_obs.containsKey(inj)) {
+      _obs[inj] = inj.observeForRebuild(
         (rm) {
           setState(() {});
         },
         clean: inj.autoDisposeWhenNotUsed ? () => inj.dispose() : null,
       );
     }
-  }
-
-  @override
-  void afterBuild() {
-    // for (var disposer in _obs1.values) {
-    //   disposer();
-    // }
-    _obs1 = _obs2 ?? {};
-    _obs2 = null;
-    _obs2 = {};
   }
 
   @override
@@ -112,7 +236,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
 
   @override
   void dispose() {
-    for (var disposer in _obs1.values) {
+    for (var disposer in _obs.values) {
       disposer();
     }
     removeFromContextSet();
@@ -121,7 +245,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
   }
 
   Widget getOnWaitingWidget() {
-    final child = widget.onWaiting();
+    final child = widget.splashScreen();
     if (child == null) {
       throw Exception('TopWidget is waiting for dependencies to initialize. '
           'you have to define a waiting screen using the onWaiting '
@@ -137,7 +261,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     }
 
     if (error != null) {
-      return widget.onError(error, _ensureInitialization) ??
+      return widget.errorScreen(error, _ensureInitialization) ??
           widget.build(context);
     }
 
@@ -146,7 +270,6 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
         return getOnWaitingWidget();
       }
       return injectedI18N?.inherited(
-            // key: ValueKey(injectedI18N),
             builder: (ctx) {
               return widget.build(ctx);
             },
@@ -154,9 +277,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
           widget.build(context);
     }
     isInitialized = true;
-
     Widget child = widget.build(context);
-    // if (injectedI18N == null) {
     OnReactiveState.addToTopStatelessObs = null;
 
     if (injectedI18N?.isWaiting == true) {
@@ -164,19 +285,11 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     }
 
     return injectedI18N?.inherited(
-          // key: ValueKey(injectedI18N),
           builder: (ctx) {
-            return widget.build(ctx);
+            return child;
           },
         ) ??
         child;
-    // }
-
-    // return injectedI18N!.inherited(
-    //   builder: (ctx) {
-    //     return child;
-    //   },
-    // );
   }
 }
 
@@ -196,7 +309,7 @@ class _TopStatelessWidgetStateWidgetsBindingObserverState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    (widget as AppLifecycle).didChangeAppLifecycleState.call(state);
+    (widget as TopAppLifecycleMixin).didChangeAppLifecycleState.call(state);
   }
 
   @override

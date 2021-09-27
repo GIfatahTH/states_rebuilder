@@ -1935,7 +1935,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   /// await RM.storageInitializer(IPersistStoreImp());
   /// runApp(MyApp());
   ///}
-  ///
   ///```
   ///
   ///This is considered as the default storage provider. It can be overridden

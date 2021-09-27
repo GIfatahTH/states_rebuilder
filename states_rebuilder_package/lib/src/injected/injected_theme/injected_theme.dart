@@ -102,6 +102,13 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           toDebugString: toDebugString,
         ) {
+    _resetDefaultState = () {
+      _isDarkTheme = false;
+      _themeMode = ThemeMode.system;
+      isLinkedToTopStatelessWidget = false;
+    };
+    _resetDefaultState();
+
     final persist = persistKey == null
         ? null
         : PersistState(
@@ -160,7 +167,11 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
 
   final Map<KEY, ThemeData> lightThemes;
   final Map<KEY, ThemeData>? darkThemes;
-  ThemeMode _themeMode = ThemeMode.system;
+  late ThemeMode _themeMode;
+  bool _isDarkTheme = false;
+  late bool isLinkedToTopStatelessWidget;
+
+  late final VoidCallback _resetDefaultState;
 
   @override
   Map<KEY, ThemeData> get supportedLightThemes {
@@ -193,7 +204,20 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
   @override
   ThemeMode get themeMode => _themeMode;
   @override
+  set state(KEY value) {
+    assert(() {
+      _assertIsLinkedToTopStatelessWidget();
+      return true;
+    }());
+    super.state = value;
+  }
+
+  @override
   set themeMode(ThemeMode mode) {
+    assert(() {
+      _assertIsLinkedToTopStatelessWidget();
+      return true;
+    }());
     if (_themeMode == mode) {
       return;
     }
@@ -204,7 +228,6 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     notify();
   }
 
-  bool _isDarkTheme = false;
   @override
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
@@ -235,10 +258,17 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     }
   }
 
+  void _assertIsLinkedToTopStatelessWidget() {
+    if (!isLinkedToTopStatelessWidget) {
+      throw ('No Parent InheritedWidget of type [TopReactiveStateless ] is found.\n'
+          'Make sure to use [TopReactiveStateless] widget on top of MaterialApp '
+          'Widget.\n');
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
-    _isDarkTheme = false;
-    _themeMode = ThemeMode.system;
+    _resetDefaultState();
   }
 }

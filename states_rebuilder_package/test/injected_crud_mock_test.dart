@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
+import 'package:states_rebuilder/src/injected/injected_crud/injected_crud.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -95,7 +96,7 @@ String onCRUDMessage = '';
 final products = RM.injectCRUD<Product, Object>(
   () => throw UnimplementedError(),
   readOnInitialization: true,
-  onCRUD: OnCRUD(
+  onCRUDSideEffects: OnCRUDSideEffects(
     onWaiting: () {
       onCRUDMessage = 'Waiting...';
     },

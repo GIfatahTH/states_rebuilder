@@ -38,7 +38,6 @@ void main() async {
       // debugPrintWhenNotifiedPreMessage: 'i18n',
     );
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
@@ -76,7 +75,6 @@ void main() async {
       Locale('en', 'TN'): () => 'english_TN',
     });
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
@@ -113,7 +111,6 @@ void main() async {
       Locale('en', 'US'): () => 'english_US',
     });
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
@@ -148,7 +145,6 @@ void main() async {
     Locale? localization;
 
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
@@ -211,7 +207,6 @@ void main() async {
     Locale? localization;
 
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       onWaiting: () => CircularProgressIndicator(),
       builder: (context) {
         return MaterialApp(

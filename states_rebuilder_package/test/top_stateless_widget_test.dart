@@ -55,6 +55,54 @@ void main() {
     },
   );
 
+  testWidgets(
+    'WHEN trying to get the app language using of(context)'
+    'in the builder of TopReactiveStateless'
+    'Then throw an exception hinting to use Builder',
+    (tester) async {
+      final i18n = RM.injectI18N({
+        Locale('en'): () => 'hello',
+        Locale('fr'): () => 'salut',
+      });
+      _builder = (ctx) {
+        return MaterialApp(
+          locale: i18n.locale,
+          home: Text(
+            i18n.of(ctx),
+          ),
+        );
+      };
+
+      await tester.pumpWidget(_TopAppWidget1());
+      expect(
+          tester.takeException(), contains('use a Builder to get a context'));
+    },
+  );
+
+  testWidgets(
+    'WHEN trying to get the app language using of(context)'
+    'without using TopReactiveStateless widget'
+    'Then throw an exception hinting to use TopReactiveStateless',
+    (tester) async {
+      final i18n = RM.injectI18N({
+        Locale('en'): () => 'hello',
+        Locale('fr'): () => 'salut',
+      });
+      final widget = Builder(
+        // injectedI18N: i18n,
+        builder: (ctx) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(i18n.of(ctx)),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(),
+          contains('Make sure to use [TopReactiveStateless] '));
+    },
+  );
+
   testWidgets('provide i18n with async translation', (tester) async {
     final i18n = RM.injectI18N({
       const Locale('en'): () =>
@@ -203,30 +251,30 @@ void main() {
   testWidgets('TopAppWidget error', (tester) async {
     bool shouldThrow = true;
     void Function()? refresh;
-    final widget = TopAppWidget(
-      ensureInitialization: () => [
-        Future.delayed(const Duration(seconds: 1),
-            () => shouldThrow ? throw Exception('Error') : 1),
-        Future.delayed(const Duration(seconds: 2), () => 2),
-      ],
-      onWaiting: () => const Directionality(
-        textDirection: TextDirection.rtl,
-        child: Text('Waiting...'),
-      ),
-      onError: (err, refresher) {
-        refresh = refresher;
-        return const Directionality(
-          textDirection: TextDirection.rtl,
-          child: Text('Error'),
-        );
-      },
-      builder: (context) => const Directionality(
+    _builder = (ctx) {
+      return const Directionality(
         textDirection: TextDirection.rtl,
         child: Text('Data'),
-      ),
+      );
+    };
+    _onWaiting = const Directionality(
+      textDirection: TextDirection.ltr,
+      child: Text('Waiting...'),
     );
+    _ensureInitialization = [
+      Future.delayed(const Duration(seconds: 1),
+          () => shouldThrow ? throw Exception('Error') : 1),
+      Future.delayed(const Duration(seconds: 2), () => 2),
+    ];
+    _onError = (err, refresher) {
+      refresh = refresher;
+      return const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Text('Error'),
+      );
+    };
 
-    await tester.pumpWidget(widget);
+    await tester.pumpWidget(_TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Error'), findsOneWidget);
@@ -239,7 +287,38 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Data'), findsOneWidget);
   });
-
+  testWidgets(
+    'TopStatelessWidget register to theme',
+    (tester) async {
+      final theme = RM.injectTheme(lightThemes: {
+        'basic': ThemeData.light(),
+      }, darkThemes: {
+        'basic': ThemeData.dark(),
+      });
+      late Brightness brightness;
+      _builder = (context) {
+        return MaterialApp(
+          theme: theme.lightTheme,
+          darkTheme: theme.darkTheme,
+          themeMode: theme.themeMode,
+          home: () {
+            return Builder(
+              builder: (context) {
+                brightness = Theme.of(context).brightness;
+                return Container();
+              },
+            );
+          }(),
+        );
+      };
+      await tester.pumpWidget(const _TopAppWidget1());
+      expect(brightness, Brightness.light);
+      //
+      theme.toggle();
+      await tester.pumpAndSettle();
+      expect(brightness, Brightness.dark);
+    },
+  );
   testWidgets('appLifeCycle works', (WidgetTester tester) async {
     final BinaryMessenger defaultBinaryMessenger =
         ServicesBinding.instance!.defaultBinaryMessenger;
@@ -274,39 +353,6 @@ void main() {
         'flutter/lifecycle', message, (_) {});
     expect(lifecycleState, AppLifecycleState.detached);
   });
-
-  testWidgets(
-    'TopStatelessWidget register to theme',
-    (tester) async {
-      final theme = RM.injectTheme(lightThemes: {
-        'basic': ThemeData.light(),
-      }, darkThemes: {
-        'basic': ThemeData.dark(),
-      });
-      late Brightness brightness;
-      _builder = (context) {
-        return MaterialApp(
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
-          home: () {
-            return Builder(
-              builder: (context) {
-                brightness = Theme.of(context).brightness;
-                return Container();
-              },
-            );
-          }(),
-        );
-      };
-      await tester.pumpWidget(const _TopAppWidget1());
-      expect(brightness, Brightness.light);
-      //
-      theme.toggle();
-      await tester.pumpAndSettle();
-      expect(brightness, Brightness.dark);
-    },
-  );
 }
 
 class _TopAppWidget1 extends TopStatelessWidget {
@@ -318,12 +364,12 @@ class _TopAppWidget1 extends TopStatelessWidget {
   }
 
   @override
-  Widget? onWaiting() {
+  Widget? splashScreen() {
     return _onWaiting;
   }
 
   @override
-  Widget? onError(error, void Function() refresh) {
+  Widget? errorScreen(error, void Function() refresh) {
     return _onError?.call(error, refresh);
   }
 
@@ -333,7 +379,7 @@ class _TopAppWidget1 extends TopStatelessWidget {
   }
 }
 
-class _TopAppWidget2 extends TopStatelessWidget with AppLifecycle {
+class _TopAppWidget2 extends TopStatelessWidget with TopAppLifecycleMixin {
   const _TopAppWidget2({Key? key}) : super(key: key);
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

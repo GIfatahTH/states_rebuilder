@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';
@@ -217,6 +218,43 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   // void initialize() {
   //   super.initialize();
   // }
+
+  @override
+  I18N of(
+    BuildContext context, {
+    bool defaultToGlobal = false,
+  }) {
+    try {
+      return super.of(
+        context,
+        defaultToGlobal: defaultToGlobal,
+      );
+    } catch (e) {
+      final widget = context.widget;
+      if (widget is TopStatelessWidget) {
+        throw ('No Parent InheritedWidget of type [TopReactiveStateless] is found.\n'
+            'There are several ways to avoid this problem. The simplest is to '
+            'use a Builder to get a context that is "under" the [TopReactiveStateless].\n'
+            'A more efficient solution is to split your build function into several widgets. This '
+            'introduces a new context from which you can obtain the [TopReactiveStateless].\n'
+            '${context.describeElement('The context used was')}');
+      }
+      throw ('No Parent InheritedWidget of type [TopReactiveStateless ] is found.\n'
+          'Make sure to use [TopReactiveStateless] widget on top of MaterialApp '
+          'Widget.\n'
+          '${context.describeElement('The context used was')}');
+    }
+  }
+
+  @override
+  Injected<I18N> call(
+    BuildContext context, {
+    bool defaultToGlobal = false,
+  }) {
+    throw Exception(
+      'Use of(context) method instead',
+    );
+  }
 
   @override
   void dispose() {

@@ -26,9 +26,13 @@ void main() {
     final widget = TopAppWidget(
       injectedI18N: i18n,
       builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)),
+        return Builder(
+          builder: (ctx) {
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(i18n.of(ctx)),
+            );
+          },
         );
       },
     );
@@ -38,6 +42,54 @@ void main() {
     await tester.pump();
     expect(find.text('hello world'), findsOneWidget);
   });
+
+  testWidgets(
+    'WHEN trying to get the app language using of(context)'
+    'in the builder of TopReactiveStateless'
+    'Then throw an exception hinting to use Builder',
+    (tester) async {
+      final i18n = RM.injectI18N({
+        Locale('en'): () => 'hello',
+        Locale('fr'): () => 'salut',
+      });
+      final widget = TopAppWidget(
+        injectedI18N: i18n,
+        builder: (ctx) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(i18n.of(ctx)),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(
+          tester.takeException(), contains('use a Builder to get a context'));
+    },
+  );
+
+  testWidgets(
+    'WHEN trying to get the app language using of(context)'
+    'without using TopReactiveStateless widget'
+    'Then throw an exception hinting to use TopReactiveStateless',
+    (tester) async {
+      final i18n = RM.injectI18N({
+        Locale('en'): () => 'hello',
+        Locale('fr'): () => 'salut',
+      });
+      final widget = Builder(
+        // injectedI18N: i18n,
+        builder: (ctx) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(i18n.of(ctx)),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(),
+          contains('Make sure to use [TopReactiveStateless] '));
+    },
+  );
 
   testWidgets('provide i18n with async translation', (tester) async {
     final i18n = RM.injectI18N(
@@ -78,9 +130,13 @@ void main() {
     final widget = TopAppWidget(
       injectedI18N: i18n,
       builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)),
+        return Builder(
+          builder: (context) {
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(i18n.of(context)),
+            );
+          },
         );
       },
     );
@@ -133,10 +189,12 @@ void main() {
         child: Text('Waiting...'),
       ),
       builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)),
-        );
+        return Builder(builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(i18n.of(context)),
+          );
+        });
       },
     );
     await tester.pumpWidget(widget);
@@ -162,10 +220,12 @@ void main() {
         child: Text('Waiting...'),
       ),
       builder: (ctx) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(i18n.of(ctx)),
-        );
+        return Builder(builder: (context) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(i18n.of(context)),
+          );
+        });
       },
     );
     await tester.pumpWidget(widget);

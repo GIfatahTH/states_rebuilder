@@ -370,9 +370,9 @@ void main() {
       final products = RM.injectCRUD<Product, Object>(
         () => _repo,
         readOnInitialization: true,
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
+        stateInterceptor: (current, next) {
+          _snapState = current;
+          _nextSnapState = current;
           if (_nextSnapState.hasData) {
             return _nextSnapState.copyToHasData([
               ..._nextSnapState.data!,

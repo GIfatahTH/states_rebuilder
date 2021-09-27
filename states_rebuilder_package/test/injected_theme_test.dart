@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/injected/injected_theme/injected_theme.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final theme = RM.injectTheme(
@@ -19,7 +20,6 @@ void main() async {
     );
     late BuildContext context;
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -62,7 +62,6 @@ void main() async {
     );
     late BuildContext context;
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -107,7 +106,6 @@ void main() async {
     expect(theme.isDarkTheme, false);
     late Brightness brightness;
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -164,7 +162,6 @@ void main() async {
     );
 
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -222,7 +219,6 @@ void main() async {
     );
 
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -265,7 +261,6 @@ void main() async {
     );
 
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -307,7 +302,6 @@ void main() async {
     );
 
     final widget = TopAppWidget(
-      injectedTheme: theme,
       builder: (ctx) {
         return MaterialApp(
           theme: theme.lightTheme,
@@ -332,8 +326,7 @@ void main() async {
   });
 
   testWidgets(
-    'WHEN '
-    'THEN ',
+    'stateInterceptor works ',
     (tester) async {
       SnapState<String>? _snapState;
       late SnapState<String> _nextSnapState;
@@ -354,11 +347,12 @@ void main() async {
             // onSetStateNum++;
           },
         ),
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
+        stateInterceptor: (currentSnap, nextSnap) {
+          _snapState = currentSnap;
+          _nextSnapState = nextSnap;
         },
       );
+      (theme as InjectedThemeImp).isLinkedToTopStatelessWidget = true;
       theme.state = 'theme2';
 
       expect(_snapState?.isIdle, true);
@@ -366,6 +360,39 @@ void main() async {
       //
       expect(_nextSnapState.hasData, true);
       expect(_nextSnapState.data, 'theme2');
+    },
+  );
+
+  testWidgets(
+    'Throw exception if the injected theme is not linked to TopStatelessWidget'
+    'THEN',
+    (tester) async {
+      final lightTheme = ThemeData.light();
+      final darkTheme = ThemeData.dark();
+      final theme = RM.injectTheme<String>(
+        lightThemes: {
+          'theme1': lightTheme,
+          'theme2': lightTheme,
+        },
+        darkThemes: {
+          'theme1': lightTheme,
+          'theme2': darkTheme,
+        },
+      );
+      dynamic error;
+      try {
+        theme.state = 'theme2';
+      } catch (e) {
+        error = e;
+      }
+      expect(error, contains('Make sure to use [TopReactiveStateless] '));
+      error = null;
+      try {
+        theme.toggle();
+      } catch (e) {
+        error = e;
+      }
+      expect(error, contains('Make sure to use [TopReactiveStateless] '));
     },
   );
 }
