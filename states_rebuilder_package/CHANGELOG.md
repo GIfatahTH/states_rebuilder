@@ -2,6 +2,8 @@
   ### New features
   * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
   * Add `refreshToken` method to `IAuth` interface. It is used to refresh token (See issue #228).
+  * Add `isEnabled` and `isReadOnly` to to `InjectedTextEditing`, and `OnFormBuilder` (See issue #229).
+  * Add `TopStatelessWidget` to replace `TopAppWidget`.
   ### Breaking changes 
   * `onSetState`, `onData`, `onError`, `onAfterState` are all deprecated in favor to `sideEffects` parameter which takes a `SideEffects` object.(See issue #222).
   * Deprecate `validator` parameter in `RM.injectTextEditing`. `validators` is used instead. 

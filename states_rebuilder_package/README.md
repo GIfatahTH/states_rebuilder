@@ -204,7 +204,8 @@ class Counter2View extends StatelessWidget {
 
 | Breaking Version | Support             | Link                                                                                                           |
 | ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **4.0**          | ✅  Least version    | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md) |
+| **5.0**          | ✅  Least version    | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-5.0.0.md) |
+| **4.0**          | Legacy (2021-09-30)    | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-4.0.0.md) |
 | **3.0**          | Legacy (2020-09-04) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) |
 | **2.0**          | Legacy (2020-06-02) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) |
 
@@ -292,10 +293,11 @@ final Injected<Foo> foo = RM.inject<Foo>(
 );
 
 // A handy syntax, injection you can use `.inj()` extension:
-final foo = Foo().inj<Foo>();
+final foo = Foo().inj();
 final isBool = false.inj();
 final string = 'str'.inj();
 final count = 0.inj();
+final trueOrNull = null.inj<bool?>();
 ```
 
 `Injected` interface is a wrapper class that encloses the state we want to inject. The state can be mutable or immutable.
@@ -881,6 +883,15 @@ To deal with TextFields and Form validation
     },
   );
 
+    final acceptLicence = RM.injectedFormField(
+    validator: (bool? value) {
+      if (bool != true) {
+        return "You have to accept the licence";
+      }
+      return null;
+    },
+  );
+
   final form = RM.injectForm(
     autovalidateMode: AutovalidateMode.disable,
     autoFocusOnFirstError: true,
@@ -937,6 +948,16 @@ To deal with TextFields and Form validation
                   // Request the submit button node
                   form.submitFocusNode.requestFocus();
                 },
+            ),
+            OnFormFieldBuilder<bool>(
+              listenTo: acceptLicence,
+              builder: (value, onChanged){
+                return CheckBoxListTile(
+                  value: value,
+                  onChanged: onChanged,
+                  title: Text('Do you accept the licence?'),
+                )
+              }
             ),
             OnFormSubmissionBuilder(
               listenTo: form,
