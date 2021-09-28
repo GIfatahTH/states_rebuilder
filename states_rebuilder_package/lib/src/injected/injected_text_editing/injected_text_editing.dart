@@ -158,8 +158,8 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       _validator = validator;
       _validateOnValueChange = validateOnTyping;
       _focusNode = null;
-      this.isReadOnly = isReadOnly;
-      this._isEnabled = isEnabled;
+      this.isReadOnly = _initialIsReadOnly = isReadOnly;
+      _isEnabled = _initialIsEnabled = isEnabled;
     };
     _resetDefaultState();
   }
@@ -176,7 +176,9 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
 
   ///Remove this InjectedTextEditing from the associated InjectedForm,
   late VoidCallback? formTextFieldDisposer;
-//
+  late bool _initialIsEnabled;
+  late bool _initialIsReadOnly;
+  //
   late final VoidCallback _resetDefaultState;
 
   @override
@@ -208,14 +210,20 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         }
       }
     }
-    final _isEnabled = (form as InjectedFormImp?)?._isEnabled;
-    if (_isEnabled != null) {
-      (form as InjectedFormImp).enableFields(_isEnabled);
-    }
-    if (_isEnabled != true) {
-      final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
-      if (isReadOnly != null) {
-        (form as InjectedFormImp).readOnlyFields(isReadOnly);
+    if (form != null) {
+      final _isEnabled = (form as InjectedFormImp?)?._isEnabled;
+      if (_isEnabled != null) {
+        this._isEnabled = _isEnabled;
+      } else {
+        this._isEnabled = _initialIsEnabled;
+      }
+      if (_isEnabled != true) {
+        final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+        if (isReadOnly != null) {
+          this.isReadOnly = isReadOnly;
+        } else {
+          this.isReadOnly = _initialIsReadOnly;
+        }
       }
     }
     if (_controller != null) {

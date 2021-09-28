@@ -83,6 +83,9 @@ class OnForm {
                 Builder(
                   builder: (_) {
                     InjectedFormImp._currentInitializedForm = cached;
+                    inj
+                      .._isEnabled = null
+                      .._isReadOnly = null;
                     return const SizedBox(height: 0, width: 0);
                   },
                 ),

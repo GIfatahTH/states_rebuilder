@@ -452,41 +452,41 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
       child: OnBuilder(
         listenTo: listenTo,
         builder: () {
-          Widget child = GestureDetector(
-            onTapDown: (_) {
-              FocusScope.of(context).unfocus();
-              (listenTo as InjectedFormFieldImp)._hasFocus = true;
-              // (_focusNode as FocusNode).requestFocus();
-            },
-            child: builder(
-              listenTo._state,
-              listenTo.onChanged,
+          Widget child = builder(
+            listenTo._state,
+            listenTo.onChanged,
+          );
+
+          child = InputDecorator(
+            decoration: _getEffectiveDecoration(context),
+            baseStyle: style,
+            textAlign: TextAlign.start,
+            // textAlignVertical: textAlignVertical,
+            // isHovering: _isHovering,
+            isFocused: () {
+              if (!listenTo.isEnabled) {
+                return false;
+              }
+              final inj = listenTo as InjectedFormFieldImp;
+              if (inj._hasFocus == true) {
+                inj._hasFocus = null;
+                return true;
+              }
+              return _focusNode.hasFocus;
+            }(),
+            isEmpty: listenTo.value == null,
+            expands: false,
+
+            child: GestureDetector(
+              onTapDown: (_) {
+                FocusScope.of(context).unfocus();
+                (listenTo as InjectedFormFieldImp)._hasFocus = true;
+                // (_focusNode as FocusNode).requestFocus();
+              },
+              child: child,
             ),
           );
-          if (inputDecoration != null) {
-            child = InputDecorator(
-              decoration: _getEffectiveDecoration(context),
-              baseStyle: style,
-              textAlign: TextAlign.start,
-              // textAlignVertical: textAlignVertical,
-              // isHovering: _isHovering,
-              isFocused: () {
-                if (!listenTo.isEnabled) {
-                  return false;
-                }
-                final inj = listenTo as InjectedFormFieldImp;
-                if (inj._hasFocus == true) {
-                  inj._hasFocus = null;
-                  return true;
-                }
-                return _focusNode.hasFocus;
-              }(),
-              isEmpty: listenTo.value == null,
-              expands: false,
 
-              child: child,
-            );
-          }
           return IgnorePointer(
             ignoring: !listenTo.isEnabled,
             child: child,
@@ -497,7 +497,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
             (listenTo as InjectedFormFieldImp).linkToForm();
             if (autofocus) {
               WidgetsBinding.instance!.scheduleFrameCallback((timeStamp) {
-                  _focusNode.requestFocus();
+                _focusNode.requestFocus();
               });
             }
           },

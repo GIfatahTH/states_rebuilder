@@ -166,7 +166,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     return () => _fields.remove(field);
   }
 
-  static late InjectedFormImp? _currentInitializedForm;
+  static InjectedFormImp? _currentInitializedForm;
   late FocusNode? autoFocusedNode;
   late bool? _isEnabled;
   late bool? _isReadOnly;

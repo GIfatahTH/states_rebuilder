@@ -39,7 +39,7 @@ part of 'injected_text_editing.dart';
 abstract class InjectedFormField<T> implements InjectedBaseState<T> {
   late final _baseFormField = this as _BaseFormField;
 
-  T get _state => getInjectedState(this);
+  T get _state;
 
   ///Whether it passes the validation test
   bool get isValid;
@@ -101,7 +101,9 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
       for (var e in (children ?? const <FocusNode>[])) {
         fn(e, canRequestFocus);
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   set isEnabled(bool val) {
@@ -137,8 +139,8 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       _validateOnValueChange = validateOnValueChange;
       _focusNode = null;
       _hasFocus = null;
-      this.isReadOnly = isReadOnly;
-      this.isEnabled = isEnabled;
+      this.isReadOnly = _initialIsReadOnly = isReadOnly;
+      this.isEnabled = _initialIsEnabled = isEnabled;
     };
     _resetDefaultState();
     _validator = validator;
@@ -152,8 +154,34 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   late VoidCallback? formTextFieldDisposer;
   late VoidCallback? _removeFromInjectedList;
 
-  late final VoidCallback _resetDefaultState;
   late bool? _hasFocus;
+  late bool _initialIsEnabled;
+  late bool _initialIsReadOnly;
+  late final VoidCallback _resetDefaultState;
+
+  @override
+  T get _state {
+    if (form == null) {
+      return getInjectedState(this);
+    }
+    final _isEnabled = (form as InjectedFormImp)._isEnabled;
+    if (_isEnabled != null) {
+      this._isEnabled = _isEnabled;
+      (form as InjectedFormImp?)?._isEnabled = null;
+    } else {
+      this._isEnabled = _initialIsEnabled;
+    }
+    if (_isEnabled != true) {
+      final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+      if (isReadOnly != null) {
+        this.isReadOnly = isReadOnly;
+      } else {
+        this.isReadOnly = _initialIsReadOnly;
+      }
+    }
+    return getInjectedState(this);
+  }
+
   void linkToForm() {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;
