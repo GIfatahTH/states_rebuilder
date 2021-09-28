@@ -5,6 +5,7 @@ import 'on_reactive.dart';
 
 typedef AddObsCallback = void Function(InjectedBaseState);
 
+///Never use [ReactiveStatelessWidget] above [MaterialApp]
 abstract class ReactiveStatelessWidget extends MyStatefulWidget {
   const ReactiveStatelessWidget({Key? key}) : super(key: key);
 
