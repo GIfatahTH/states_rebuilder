@@ -14,7 +14,7 @@ extension NullX on Null {
     assert(T != dynamic);
     assert(T != Object);
     assert(T != _typeDef<Object?>());
-    assert(null is T);
+    assert(null is T, '$T is not nullable type. User $T?');
     return ReactiveModelImp<T>(
       creator: () => this,
       initialState: null,
