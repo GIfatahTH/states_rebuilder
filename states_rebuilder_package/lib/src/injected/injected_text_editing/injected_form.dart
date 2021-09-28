@@ -95,6 +95,19 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///Listen to the [InjectedForm] and rebuild when it is notified.
   late final rebuild = _RebuildForm(this);
 
+  /// Used to enable/disable this form field auto validation and update its
+  /// error text.
+  ///
+  ///
+  /// If [AutovalidateMode.onUserInteraction] this form fields will only
+  /// auto-validate after its content changes, if [AutovalidateMode.always] they
+  /// will auto validate even without user interaction and
+  /// if [AutovalidateMode.disabled] the auto validation will be disabled.
+  ///
+  /// It defaults to [AutovalidateMode.disabled].
+  late AutovalidateMode autovalidateMode;
+  late FocusNode? _submitFocusNode;
+
   ///Validate the text fields and return true if they are all valid
   bool validate();
 
@@ -107,19 +120,6 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   void reset();
 
   void submit([Future<void> Function()? fn]);
-
-  /// Used to enable/disable this form field auto validation and update its
-  /// error text.
-  ///
-  ///
-  /// If [AutovalidateMode.onUserInteraction] this form fields will only
-  /// auto-validate after its content changes, if [AutovalidateMode.always] they
-  /// will auto validate even without user interaction and
-  /// if [AutovalidateMode.disabled] the auto validation will be disabled.
-  ///
-  /// It defaults to [AutovalidateMode.disabled].
-  late AutovalidateMode autovalidateMode;
-  FocusNode? _submitFocusNode;
 
   ///Creates a focus node to be used with submit button
   FocusNode get submitFocusNode => _submitFocusNode ??= FocusNode();
@@ -137,35 +137,49 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     this.autoFocusOnFirstError = true,
     this.onSubmitting,
     this.onSubmitted,
+    this.sideEffects,
     Future<void> Function()? submit,
   })  : _submit = submit,
         super(creator: () => null) {
-    this.autovalidateMode = autovalidateMode;
+    _resetDefaultState = () {
+      this.autovalidateMode = autovalidateMode;
+      _submitFocusNode = null;
+      _currentInitializedForm = null;
+      autoFocusedNode = null;
+      _isEnabled = null;
+      _isReadOnly = null;
+    };
+    _resetDefaultState();
   }
 
   final void Function()? onSubmitting;
   final void Function()? onSubmitted;
+  final SideEffects? sideEffects;
   final Future<void> Function()? _submit;
   // final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
 
   ///After form is validate, get focused on the first non valid TextField, if any.
   final bool autoFocusOnFirstError;
-  final List<_BaseFormField> _textFields = [];
+  final List<_BaseFormField> _fields = [];
   VoidCallback addTextFieldToForm(_BaseFormField field) {
-    _textFields.add(field);
-    return () => _textFields.remove(field);
+    _fields.add(field);
+    return () => _fields.remove(field);
   }
 
-  static InjectedFormImp? _currentInitializedForm;
-  FocusNode? autoFocusedNode;
+  static late InjectedFormImp? _currentInitializedForm;
+  late FocusNode? autoFocusedNode;
+  late bool? _isEnabled;
+  late bool? _isReadOnly;
+  late final VoidCallback _resetDefaultState;
+
   @override
-  bool get isValid => _textFields.every((e) => e.isValid);
+  bool get isValid => _fields.every((e) => e.isValid);
 
   @override
   bool validate() {
     bool isNotValid = false;
     _BaseFormField? firstErrorField;
-    for (var field in _textFields) {
+    for (var field in _fields) {
       isNotValid = !field.validate() || isNotValid;
       firstErrorField ??= isNotValid ? field : null;
     }
@@ -177,7 +191,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
 
   @override
   void reset() {
-    for (var field in _textFields) {
+    for (var field in _fields) {
       if (field is InjectedTextEditing) {
         (field as InjectedTextEditing).reset();
       } else {
@@ -202,14 +216,20 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
       try {
         if (result is Future) {
           snapState = snapState.copyToIsWaiting();
+          sideEffects
+            ?..onSetState?.call(snapState)
+            ..onAfterBuild?.call();
           notify();
           await result;
         }
         snapState = snapState.copyToHasData(null);
         onSubmitted?.call();
+        sideEffects
+          ?..onSetState?.call(snapState)
+          ..onAfterBuild?.call();
         if (autoFocusOnFirstError) {
           _BaseFormField? firstErrorField;
-          for (var field in _textFields) {
+          for (var field in _fields) {
             if (field.hasError) {
               firstErrorField = field;
               break;
@@ -226,6 +246,9 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
           stackTrace: s,
           onErrorRefresher: () => submit(fn),
         );
+        sideEffects
+          ?..onSetState?.call(snapState)
+          ..onAfterBuild?.call();
         notify();
       }
     }
@@ -233,47 +256,29 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     await setState(
       () => fn == null ? _submit?.call() : fn(),
     );
+  }
 
-    // Future<void> Function() call;
-    // call = () async {
-    //   try {
-    //     snapState = snapState.copyToIsWaiting();
-    //     notify();
-    //     await (fn == null ? _submit?.call() : fn());
-    //     snapState = snapState.copyToHasData(null);
-    //     if (autoFocusOnFirstError) {
-    //       InjectedTextEditingImp? firstErrorField;
-    //       for (var field in _textFields) {
-    //         if (field.hasError) {
-    //           firstErrorField = field;
-    //           break;
-    //         }
-    //       }
-    //       if (firstErrorField != null) {
-    //         firstErrorField._focusNode?.requestFocus();
-    //       }
-    //     }
-    //     onSubmitted?.call();
-    //     notify();
-    //   } catch (e) {
-    //     if (e is Error) {
-    //       rethrow;
-    //     }
-    //     snapState = snapState.copyToHasData(null);
-    //   }
-    // };
-    // await call();
+  void enableFields(bool isEnabled) {
+    for (var field in _fields) {
+      field._isEnabled = isEnabled;
+    }
+  }
+
+  void readOnlyFields(bool isReadOnly) {
+    for (var field in _fields) {
+      field.isReadOnly = isReadOnly;
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
     _submitFocusNode?.dispose();
-    _submitFocusNode = null;
-    for (var field in [..._textFields]) {
+    for (var field in [..._fields]) {
       if (field.autoDispose && !field.hasObservers) {
         field.dispose();
       }
     }
+    _resetDefaultState();
   }
 }

@@ -201,6 +201,10 @@ extension InjectedBaseX<T> on InjectedBaseState<T> {
   }
 }
 
+extension InjectedBaseXInternal<T> on InjectedBase<T> {
+  ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
+}
+
 class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
   InjectedBaseBaseImp({
     required T Function() creator,

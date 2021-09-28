@@ -91,11 +91,30 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   /// Invoke field validators and return true if the field is valid.
   bool validate();
 
-  /// If true the [TextField] is clickable and selectable but not editable.
+  /// If true the [TextField] is clickable, selectable and focusable but not
+  /// editable.
+  ///
+  /// For it to work you must set readOnly property of [TextField.readOnly] to :
+  ///
+  /// ```dart
+  ///   final myText = RM.injectedTextEditing();
+  ///   TextField(
+  ///     readOnly: myText.isReadOnly,
+  ///   )
+  /// ```
   late bool isReadOnly;
   late bool _isEnabled;
 
   /// If false the associated [TextField] is disabled.
+  ///
+  /// For it to work you must set `enabled` property of [TextField.enabled] to:
+  ///
+  /// ```dart
+  ///   final myText = RM.injectedTextEditing();
+  ///   TextField(
+  ///     enabled: myText.isEnabled,
+  ///   )
+  /// ```
   bool get isEnabled {
     OnReactiveState.addToObs?.call(this);
     return _isEnabled;
@@ -140,7 +159,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       _validateOnValueChange = validateOnTyping;
       _focusNode = null;
       this.isReadOnly = isReadOnly;
-      this.isEnabled = isEnabled;
+      this._isEnabled = isEnabled;
     };
     _resetDefaultState();
   }
@@ -187,6 +206,16 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
             }
           }
         }
+      }
+    }
+    final _isEnabled = (form as InjectedFormImp?)?._isEnabled;
+    if (_isEnabled != null) {
+      (form as InjectedFormImp).enableFields(_isEnabled);
+    }
+    if (_isEnabled != true) {
+      final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+      if (isReadOnly != null) {
+        (form as InjectedFormImp).readOnlyFields(isReadOnly);
       }
     }
     if (_controller != null) {

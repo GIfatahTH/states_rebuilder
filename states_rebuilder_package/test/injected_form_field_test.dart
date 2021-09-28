@@ -391,4 +391,112 @@ void main() {
       expect(focusNode2.hasFocus, false);
     },
   );
+
+  testWidgets(
+    'WHEN isEnabledRM of the form is defined'
+    'THEN all form child  isEnable will be overridden',
+    (tester) async {
+      final form = RM.injectForm();
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      final isEnabled = RM.inject<bool?>(() => false);
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            isEnabledRM: isEnabled,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormFieldBuilder<bool>(
+                    listenTo: check,
+                    builder: (val, onChanged) {
+                      return CheckboxListTile(
+                        value: val,
+                        onChanged: onChanged,
+                        title: Text(''),
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      final _isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+//TODO
+      // await tester.pumpWidget(widget);
+      // expect(_isEnabled, findsOneWidget);
+      // expect(text.isEnabled, false);
+      // isEnabled.state = true;
+      // await tester.pump();
+      // expect(_isEnabled, findsNWidgets(2));
+      // expect(text.isEnabled, true);
+      // //
+      // isEnabled.state = false;
+      // await tester.pump();
+      // expect(_isEnabled, findsNWidgets(0));
+      // expect(text.isEnabled, false);
+      // //
+      // isEnabled.state = null;
+      // await tester.pump();
+      // expect(_isEnabled, findsNWidgets(2));
+      // expect(text.isEnabled, true);
+    },
+  );
+
+  testWidgets(
+    'WHEN isReadOnlyRM of the form is defined'
+    'THEN all form child  isEnable will be overridden',
+    (tester) async {
+      final form = RM.injectForm();
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      final isReadOnly = RM.inject<bool?>(() => true);
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            isReadOnlyRM: isReadOnly,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormFieldBuilder<bool>(
+                    listenTo: check,
+                    builder: (val, onChanged) {
+                      return CheckboxListTile(
+                        value: val,
+                        onChanged: onChanged,
+                        title: Text(''),
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(text.isReadOnly, true);
+      isReadOnly.state = false;
+      await tester.pump();
+      expect(text.isReadOnly, false);
+    },
+  );
 }

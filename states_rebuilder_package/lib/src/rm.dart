@@ -1581,6 +1581,7 @@ abstract class RM {
     bool autoFocusOnFirstError = true,
     void Function()? onSubmitting,
     void Function()? onSubmitted,
+    SideEffects? submissionSideEffects,
     Future<void> Function()? submit,
     // void Function(dynamic, void Function())? onSubmissionError,
   }) {
@@ -1589,6 +1590,7 @@ abstract class RM {
       autoFocusOnFirstError: autoFocusOnFirstError,
       onSubmitting: onSubmitting,
       onSubmitted: onSubmitted,
+      sideEffects: submissionSideEffects,
       submit: submit,
     );
   }
