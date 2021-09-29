@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final injectedTabPage = RM.injectPageTab(
+final injectedTabPage = RM.injectTabPageView(
   length: 3,
   //Optional
   initialIndex: 0,
@@ -79,7 +79,7 @@ class MixPageAndTabView extends StatelessWidget {
           },
         ),
       ),
-      bottomNavigationBar: OnTabBuilder(
+      bottomNavigationBar: OnTabPageViewBuilder(
         listenTo: injectedTabPage,
         builder: (index) {
           return OnAnimationBuilder(
