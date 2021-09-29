@@ -532,12 +532,11 @@ void main() async {
           Locale('en', 'US'): () => 'english_US',
           Locale('es', 'ES'): () => 'spanish',
         },
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
-          if (middleSnap.nextSnap.hasError &&
-              middleSnap.nextSnap.error.message == 'Error') {
-            return middleSnap.currentSnap.copyToHasData('arabic');
+        stateInterceptor: (currentSnap, nextSnap) {
+          _snapState = currentSnap;
+          _nextSnapState = nextSnap;
+          if (nextSnap.hasError && nextSnap.error.message == 'Error') {
+            return currentSnap.copyToHasData('arabic');
           }
         },
         sideEffects: SideEffects(
@@ -546,7 +545,7 @@ void main() async {
           },
         ),
       );
-      // expect(_snapState, null);
+      expect(_snapState, null);
 
       i18n.locale = Locale('en', 'TN');
       //

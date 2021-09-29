@@ -1256,7 +1256,12 @@ abstract class RM {
       i18Ns: i18Ns,
       persistKey: persistKey,
       //
-      middleSnapState: middleSnapState,
+      middleSnapState: stateInterceptor != null
+          ? (middleSnap) => stateInterceptor(
+                middleSnap.currentSnap,
+                middleSnap.nextSnap,
+              )
+          : middleSnapState,
       onInitialized: sideEffects?.initState != null
           ? (_) => sideEffects!.initState!()
           : onInitialized,

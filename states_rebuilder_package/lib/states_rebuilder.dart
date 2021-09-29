@@ -14,7 +14,7 @@ export 'src/injected/injected_animation/injected_animation.dart'
 export 'src/injected/injected_auth/injected_auth.dart'
     show IAuth, InjectedAuth, OnAuthBuilder;
 export 'src/injected/injected_crud/injected_crud.dart'
-    show ICRUD, OnCRUD, InjectedCRUD, OnCRUDBuilder;
+    show ICRUD, OnCRUD, InjectedCRUD, OnCRUDBuilder, OnCRUDSideEffects;
 export 'src/injected/injected_i18n/injected_i18n.dart'
     show InjectedI18N, SystemLocale;
 export 'src/injected/injected_scrolling/injected_scrolling.dart'
