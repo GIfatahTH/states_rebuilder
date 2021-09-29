@@ -1,10 +1,12 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  final injectedTab = RM.injectPageTab(
+  StatesRebuilerLogger.isTestMode = true;
+  final injectedTab = RM.injectPageTabView(
     initialIndex: 2,
     length: 5,
   );
@@ -32,7 +34,7 @@ void main() {
   testWidgets(
     'injectedTab basic functionality',
     (tester) async {
-      int numberOfRebuild = 0;
+      int numberOfRebuild = -1;
       late int currentIndex;
 
       final widget = MaterialApp(
@@ -40,8 +42,8 @@ void main() {
           body: Column(
             children: [
               Expanded(
-                child: OnTabViewBuilder(
-                  listenTo: injectedTab,
+                child: OnTabPageViewBuilder(
+                  // listenTo: injectedTab,
                   builder: (index) {
                     numberOfRebuild++;
                     currentIndex = index;
@@ -53,8 +55,8 @@ void main() {
                 ),
               ),
               Expanded(
-                child: OnTabViewBuilder(
-                  listenTo: injectedTab,
+                child: OnTabPageViewBuilder(
+                  // listenTo: injectedTab,
                   builder: (index) {
                     return PageView(
                       controller: injectedTab.pageController,
@@ -65,8 +67,8 @@ void main() {
               )
             ],
           ),
-          bottomNavigationBar: OnTabViewBuilder(
-            listenTo: injectedTab,
+          bottomNavigationBar: OnTabPageViewBuilder(
+            // listenTo: injectedTab,
             builder: (index) => TabBar(
               controller: injectedTab.tabController,
               tabs: tabs,
@@ -156,7 +158,7 @@ void main() {
   testWidgets(
     'OnTabBuilder',
     (tester) async {
-      final injectedTab = RM.injectPageTab(
+      final injectedTab = RM.injectPageTabView(
         length: 5,
       );
       late int currentIndex;
@@ -164,13 +166,13 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: OnTabViewBuilder(
+            title: OnTabPageViewBuilder(
               listenTo: injectedTab,
               builder: (index) => Text('Tab $index is displayed'),
             ),
           ),
-          body: OnTabViewBuilder(
-            listenTo: injectedTab,
+          body: OnTabPageViewBuilder(
+            // listenTo: injectedTab,
             builder: (_) {
               return TabBarView(
                 controller: injectedTab.tabController,
@@ -178,8 +180,8 @@ void main() {
               );
             },
           ),
-          bottomNavigationBar: OnTabViewBuilder(
-            listenTo: injectedTab,
+          bottomNavigationBar: OnTabPageViewBuilder(
+            // listenTo: injectedTab,
             builder: (_) {
               currentIndex = injectedTab.index;
               return TabBar(
@@ -372,8 +374,8 @@ void main() {
               builder: () => Text('Tab ${injectedTab.index} is displayed'),
             ),
           ),
-          body: OnTabViewBuilder(
-            listenTo: injectedTab,
+          body: OnTabPageViewBuilder(
+            // listenTo: injectedTab,
             builder: (_) {
               return TabBarView(
                 controller: injectedTab.tabController,
@@ -531,8 +533,8 @@ void main() {
               );
             },
           ),
-          bottomNavigationBar: OnTabViewBuilder(
-            listenTo: injectedTab,
+          bottomNavigationBar: OnTabPageViewBuilder(
+            // listenTo: injectedTab,
             builder: (index) => TabBar(
               controller: injectedTab.tabController,
               tabs: tabs
@@ -660,6 +662,19 @@ void main() {
       expect(find.text('TabView3'), findsOneWidget);
       expect(find.text('Selected tab: 3'), findsOneWidget);
       expect(find.text('Tab 3 is displayed'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN fails to implicitly refer the InjectedTabPageView'
+    'AND when it is not explicitly defined'
+    'THEN throws an assertion error',
+    (tester) async {
+      final widget = OnTabPageViewBuilder(builder: (index) {
+        return Container();
+      });
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isAssertionError);
     },
   );
 }

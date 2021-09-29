@@ -1803,7 +1803,6 @@ abstract class RM {
   /// Similar to [ScrollController.keepScrollOffset]
   ///
   /// See [OnScrollBuilder]
-  ///
   static InjectedScrolling injectScrolling({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
@@ -1818,15 +1817,7 @@ abstract class RM {
     );
   }
 
-  /// Inject a [TabController] and [PageController] and sync them to work
-  /// together to get the most benefit of them.
-  ///
-  /// This injected state abstracts the best practices to come out with a
-  /// simple, clean, and testable approach to control tab and page views.
-  ///
-  /// If you don't use [OnTabViewBuilder] to listen the state, it is highly
-  /// recommended to manually dispose the state using [Injected.dispose] method.
-  ///
+  /// {@macro InjectedTabPageView}
   /// ## Parameters:
   ///
   /// ### `length`: Required [int].
@@ -1848,8 +1839,7 @@ abstract class RM {
   /// ### `viewportFraction`: Optional [double]. Defaults to `1.0`.
   /// The fraction of the viewport that each page should occupy.
   /// See [PageController.viewportFraction]
-
-  static InjectedPageTab injectPageTab({
+  static InjectedTabPageView injectPageTabView({
     required int length,
     int initialIndex = 0,
     Duration duration = kTabScrollDuration,

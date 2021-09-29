@@ -200,7 +200,17 @@ class OnBuilder<T> extends StatelessWidget {
         debugPrintWhenRebuild: debugPrintWhenRebuild,
       );
     }
-    assert(listenTo != null);
+    assert(() {
+      if (listenTo == null) {
+        StatesRebuilerLogger.log(
+          'No state to listen to',
+          'You have to define either `listenTo` or `listenToMany` parameters',
+        );
+        return false;
+      }
+      return true;
+    }());
+
     final on = onBuilder.isOnDataOnly
         ? On.data(() => onBuilder.orElse(listenTo!.state))
         : On.or(

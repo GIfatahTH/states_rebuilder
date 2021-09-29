@@ -28,7 +28,7 @@ export 'src/injected/injected_text_editing/injected_text_editing.dart'
         OnFormFieldBuilder,
         InjectedFormField;
 export 'src/injected/injected_tab/injected_page_tab.dart'
-    show InjectedPageTab, OnTabViewBuilder;
+    show InjectedTabPageView, OnTabPageViewBuilder;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;
 export 'src/legacy/inject.dart' show Inject, Injectable;
 export 'src/legacy/injector.dart' show IN, Injector;

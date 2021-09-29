@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';
@@ -8,29 +9,95 @@ import '../../rm.dart';
 part 'on_tab.dart';
 
 class _RebuildTab {
-  final InjectedPageTab _injected;
+  final InjectedTabPageView _injected;
   _RebuildTab(this._injected);
 
-  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
+  ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
   Widget onTab(
     Widget Function(int index) builder, {
     Key? key,
   }) {
-    return OnTabViewBuilder(
+    return OnTabPageViewBuilder(
       listenTo: _injected,
       builder: builder,
     );
   }
 }
 
-abstract class InjectedPageTab implements InjectedBaseState<int> {
-  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
+/// {@template InjectedTabPageView}
+/// Inject a [TabController] and [PageController] and sync them to work
+/// together to get the most benefit of them.
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach to control tab and page views.
+///
+/// If you don't use [OnTabPageViewBuilder] to listen the state, it is highly
+/// recommended to manually dispose the state using [Injected.dispose] method.
+///
+/// Example: of controlling [TabBarView], [PageView], and [TabBar] with the
+/// same [InjectedTabPageView]
+/// ```dart
+///  final injectedTab = RM.injectPageTab(
+///    initialIndex: 2,
+///    length: 5,
+///  );
+///
+///  //In the widget tree;
+///  @override
+///  Widget build(BuildContext context) {
+///    return MaterialApp(
+///      home: Scaffold(
+///        appBar: AppBar(
+///          title: OnTabViewBuilder(
+///            listenTo: injectedTab,
+///            builder: (index) => Text('$index'),
+///          ),
+///        ),
+///        body: Column(
+///          children: [
+///            Expanded(
+///              child: OnTabViewBuilder(
+///                builder: (index) {
+///                  print(index);
+///                  return TabBarView(
+///                    controller: injectedTab.tabController,
+///                    children: views,
+///                  );
+///                },
+///              ),
+///            ),
+///            Expanded(
+///              child: OnTabViewBuilder(
+///                builder: (index) {
+///                  return PageView(
+///                    controller: injectedTab.pageController,
+///                    children: pages,
+///                  );
+///                },
+///              ),
+///            )
+///          ],
+///        ),
+///        bottomNavigationBar: OnTabViewBuilder(
+///          builder: (index) => TabBar(
+///            controller: injectedTab.tabController,
+///            tabs: tabs,
+///            labelColor: Colors.blue,
+///          ),
+///        ),
+///      ),
+///    );
+///  }
+/// ```
+///  {@endtemplate}
+abstract class InjectedTabPageView implements InjectedBaseState<int> {
+  ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
   late final rebuild = _RebuildTab(this);
   TabController? _tabController;
   PageController? _pageController;
 
   TabController get tabController {
-    _OnTabViewBuilderState._addToTabObs?.call(this);
+    _OnTabPageViewBuilderState._addToTabObs?.call(this);
     assert(
         _tabController != null,
         'TabController is not initialized yet. '
@@ -192,7 +259,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
   // }
 }
 
-class InjectedPageTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
+class InjectedPageTabImp extends InjectedBaseBaseImp<int>
+    with InjectedTabPageView {
   InjectedPageTabImp({
     int initialIndex = 0,
     required int length,
@@ -312,7 +380,7 @@ class InjectedPageTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
 
   @override
   PageController get pageController {
-    _OnTabViewBuilderState._addToTabObs?.call(this);
+    _OnTabPageViewBuilderState._addToTabObs?.call(this);
 
     if (_pageController != null) {
       return _pageController!;
