@@ -646,8 +646,18 @@ class InjectedImp<T> extends Injected<T> {
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
             ?.widget as _InheritedInjected<T>?)
         ?.globalInjected;
-    assert(globalInjected != null,
-        'The provided BuildContext has no Inherited state ancestor');
+    assert(() {
+      if (globalInjected == null) {
+        StatesRebuilerLogger.log(
+          'Can not find and Inherited state ancestor',
+          'The provided BuildContext has no Inherited state ancestor',
+        );
+        return false;
+      }
+
+      return true;
+    }());
+
     return _inherited(
       key: key ?? Key('$context'),
       builder: builder,

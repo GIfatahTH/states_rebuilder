@@ -400,7 +400,7 @@ void main() async {
     expect(store.store['counter'], '3');
     expect(counter.state, 3);
     expect(StatesRebuilerLogger.message,
-        '[states_rebuilder]: PersistState: write(counter, 3)');
+        '[states_rebuilder::INFO]: PersistState: write(counter, 3)');
   });
 
   testWidgets('deleteAll the persistance', (tester) async {

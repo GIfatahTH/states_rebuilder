@@ -195,10 +195,20 @@ class ReactiveModelBase<T> {
 
           return _snapState;
         }
-        assert(
-          result == null || result is T,
-          'Type mismatch of the state: $result is not $T',
-        );
+
+        assert(() {
+          if (result != null && result is! T) {
+            StatesRebuilerLogger.log(
+              'The result of setState call is not null and it is not fo type $T',
+              'If you are using expression body function in setState, '
+                  'try to use block body function instead',
+            );
+            return false;
+          }
+
+          return true;
+        }());
+
         setSnapStateAndRebuild = middleState(
           _snapState._copyToHasData(result),
         );

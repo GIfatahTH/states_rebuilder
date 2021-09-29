@@ -102,8 +102,12 @@ class PersistState<T> {
   void setPersistStateSingleton() {
     _persistStateSingleton = (persistStateProvider ?? _persistStateGlobalTest);
     _persistStateSingleton ??= _persistStateGlobal;
-    assert(_persistStateSingleton != null,
-        '''
+
+    assert(() {
+      if (_persistStateSingleton == null) {
+        StatesRebuilerLogger.log(
+          'No implementation of `IPersistStore` is provided.',
+          '''
 No implementation of `IPersistStore` is provided.
 Pleas implementation the `IPersistStore` interface and Initialize it in the main 
 method.
@@ -120,7 +124,13 @@ If you are testing the app use:
 await RM.storageInitializerMock();\n\n
 
 
-''');
+''',
+        );
+        return false;
+      }
+
+      return true;
+    }());
   }
 
   ///Get the persisted state
