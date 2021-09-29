@@ -30,9 +30,6 @@ final i18n = RM.injectI18N<EnUS>(
       );
     },
   ),
-  middleSnapState: (middleSnap) {
-    // middleSnap.print();
-  },
 );
 
 class EnUS {

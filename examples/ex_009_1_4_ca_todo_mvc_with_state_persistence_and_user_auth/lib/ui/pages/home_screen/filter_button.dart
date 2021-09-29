@@ -18,7 +18,7 @@ class FilterButton extends StatelessWidget {
       defaultStyle: defaultStyle!,
     );
 
-    return OnTabBuilder(
+    return OnTabPageViewBuilder(
       listenTo: HomeScreen.appTab,
       builder: (index) {
         return AnimatedOpacity(

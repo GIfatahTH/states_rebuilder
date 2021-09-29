@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({Key? key}) : super(key: key);
 
-  static final appTab = RM.injectPageTab(length: 2);
+  static final appTab = RM.injectTabPageView(length: 2);
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +61,7 @@ class HomeScreen extends StatelessWidget {
                     )
                 : null,
             orElse: (data) {
-              return OnTabBuilder(
-                listenTo: appTab,
+              return OnTabPageViewBuilder(
                 builder: (_) => PageView(
                   controller: appTab.pageController,
                   children: [const TodoList(), const StatsCounter()],
@@ -80,8 +79,7 @@ class HomeScreen extends StatelessWidget {
           child: const Icon(Icons.add),
           tooltip: _i18n.addTodo,
         ),
-        bottomNavigationBar: OnTabBuilder(
-          listenTo: appTab,
+        bottomNavigationBar: OnTabPageViewBuilder(
           builder: (index) {
             return SizedBox(
               height: 50,
