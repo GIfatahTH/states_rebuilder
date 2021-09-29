@@ -6,7 +6,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
   StatesRebuilerLogger.isTestMode = true;
-  final injectedTab = RM.injectPageTabView(
+  final injectedTab = RM.injectTabPageView(
     initialIndex: 2,
     length: 5,
   );
@@ -122,7 +122,7 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: injectedTab.rebuild.onTab(
+          body: injectedTab.rebuild.onTabPageView(
             (index) {
               return TabBarView(
                 controller: injectedTab.tabController,
@@ -130,7 +130,7 @@ void main() {
               );
             },
           ),
-          bottomNavigationBar: injectedTab.rebuild.onTab(
+          bottomNavigationBar: injectedTab.rebuild.onTabPageView(
             (index) => TabBar(
               controller: injectedTab.tabController,
               tabs: tabs,
@@ -158,7 +158,7 @@ void main() {
   testWidgets(
     'OnTabBuilder',
     (tester) async {
-      final injectedTab = RM.injectPageTabView(
+      final injectedTab = RM.injectTabPageView(
         length: 5,
       );
       late int currentIndex;
@@ -670,9 +670,11 @@ void main() {
     'AND when it is not explicitly defined'
     'THEN throws an assertion error',
     (tester) async {
-      final widget = OnTabPageViewBuilder(builder: (index) {
-        return Container();
-      });
+      final widget = OnTabPageViewBuilder(
+        builder: (index) {
+          return Container();
+        },
+      );
       await tester.pumpWidget(widget);
       expect(tester.takeException(), isAssertionError);
     },

@@ -1,12 +1,25 @@
 part of 'injected_page_tab.dart';
 
+/// Listen to [InjectedTabPageView].
+///
+/// In most cases, the [InjectedTabPageView] can be inferred implicitly. If it
+/// can not It must be explicitly defined using `listenTo` parameter.
 class OnTabPageViewBuilder extends StatefulWidget {
+  /// Listen to [InjectedTabPageView].
+  ///
+  /// In most cases, the [InjectedTabPageView] can be inferred implicitly. If it
+  /// can not It must be explicitly defined using `listenTo` parameter.
   const OnTabPageViewBuilder({
     Key? key,
     this.listenTo,
     required this.builder,
   }) : super(key: key);
+
+  /// [InjectedTabPageView] to listen to. If not defined, the
+  /// [InjectedTabPageView] is deduced implicitly. If it is not, it throws.
   final InjectedTabPageView? listenTo;
+
+  /// The builder callback, it exposes the current index.
   final Widget Function(int index) builder;
 
   @override

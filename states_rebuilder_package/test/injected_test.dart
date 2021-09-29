@@ -1687,12 +1687,12 @@ void main() {
       model.state = ['1'];
       expect(
         StatesRebuilerLogger.message,
-        '[states_rebuilder]: <model> : isIdle : 0 ==> hasData: 1',
+        '[states_rebuilder::INFO]: <model> : isIdle : 0 ==> hasData: 1',
       );
       model.dispose();
       expect(
         StatesRebuilerLogger.message,
-        '[states_rebuilder]: <model> : hasData: 1 ==> DISPOSING...',
+        '[states_rebuilder::INFO]: <model> : hasData: 1 ==> DISPOSING...',
       );
     },
   );

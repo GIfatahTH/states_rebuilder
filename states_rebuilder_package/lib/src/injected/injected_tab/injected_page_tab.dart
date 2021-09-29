@@ -13,7 +13,7 @@ class _RebuildTab {
   _RebuildTab(this._injected);
 
   ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
-  Widget onTab(
+  Widget onTabPageView(
     Widget Function(int index) builder, {
     Key? key,
   }) {
@@ -37,7 +37,7 @@ class _RebuildTab {
 /// Example: of controlling [TabBarView], [PageView], and [TabBar] with the
 /// same [InjectedTabPageView]
 /// ```dart
-///  final injectedTab = RM.injectPageTab(
+///  final injectedTab = RM.injectTabPageView(
 ///    initialIndex: 2,
 ///    length: 5,
 ///  );
@@ -78,14 +78,25 @@ class _RebuildTab {
 ///            )
 ///          ],
 ///        ),
-///        bottomNavigationBar: OnTabViewBuilder(
-///          builder: (index) => TabBar(
-///            controller: injectedTab.tabController,
-///            tabs: tabs,
-///            labelColor: Colors.blue,
-///          ),
-///        ),
-///      ),
+///        bottomNavigationBar: OnTabPageViewBuilder(
+///           listenTo: injectedTab,
+///           builder: (index) => BottomNavigationBar(
+///             currentIndex: index,
+///             onTap: (int index) {
+///               injectedTab.index = index;
+///             },
+///             selectedItemColor: Colors.blue,
+///             unselectedItemColor: Colors.blue[100],
+///             items: tabs
+///                 .map(
+///                   (e) => BottomNavigationBarItem(
+///                     icon: e,
+///                     label: '$index',
+///                   ),
+///                 )
+///                 .toList(),
+///           ),
+///       ),
 ///    );
 ///  }
 /// ```
