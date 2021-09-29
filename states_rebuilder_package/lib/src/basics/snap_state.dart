@@ -363,9 +363,16 @@ class SnapState<T> {
   @override
   String toString() {
     if (_debugPrintWhenNotifiedPreMessage != null) {
-      return 'SnapState<$T>[$_debugPrintWhenNotifiedPreMessage](${toShortString(data)})';
+      return 'SnapState<$T>[$_debugPrintWhenNotifiedPreMessage](${_toShortString(data)})';
     }
-    return 'SnapState<$T>(${toShortString(data)})';
+    return 'SnapState<$T>(${_toShortString(data)})';
+  }
+
+  String toStringShort() {
+    if (_debugPrintWhenNotifiedPreMessage != null) {
+      return 'SnapState<$T>[$_debugPrintWhenNotifiedPreMessage]())';
+    }
+    return 'SnapState<$T>()';
   }
 
   @override
@@ -385,7 +392,7 @@ class SnapState<T> {
     return _connectionState.hashCode ^ data.hashCode ^ error.hashCode;
   }
 
-  String toShortString<D>(D d) {
+  String _toShortString<D>(D d) {
     var status = '';
     if (isIdle && _infoMessage.isNotEmpty) {
       status = _infoMessage;
@@ -483,8 +490,8 @@ class MiddleSnapState<T> {
         ' ' +
         (isMutable ? '[Mutable]' : '') +
         ': '
-            '${currentSnap.toShortString(stateToString?.call(currentSnap.data))} ==> '
-            '${nextSnap.toShortString(stateToString?.call(nextSnap.data))}';
+            '${currentSnap._toShortString(stateToString?.call(currentSnap.data))} ==> '
+            '${nextSnap._toShortString(stateToString?.call(nextSnap.data))}';
   }
 
   String print({

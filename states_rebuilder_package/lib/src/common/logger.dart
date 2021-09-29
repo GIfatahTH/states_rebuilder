@@ -8,7 +8,8 @@ class StatesRebuilerLogger {
 
   ///Console log the error
   static void log(String m, [dynamic e, StackTrace? s]) {
-    message = message = '[states_rebuilder]: $m';
+    final suffix = e == null ? 'INFO' : 'ERROR';
+    message = message = '[states_rebuilder::$suffix]: $m';
     if (e != null) {
       String? errorMessage;
       try {

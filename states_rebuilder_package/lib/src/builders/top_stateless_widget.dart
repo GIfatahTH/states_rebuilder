@@ -181,11 +181,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     if (inj is InjectedThemeImp) {
       inj.isLinkedToTopStatelessWidget = true;
     }
-    // final value = _obs1.remove(inj);
-    // if (value != null) {
-    //   _obs2![inj] = value;
-    //   return;
-    // }
+
     if (!_obs.containsKey(inj)) {
       _obs[inj] = inj.observeForRebuild(
         (rm) {

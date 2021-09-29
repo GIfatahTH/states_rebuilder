@@ -1497,10 +1497,23 @@ abstract class RM {
   ///       controller: email.controller,
   ///       enabled: email.isEnabled,
   ///     ),
-  ///
+  ///   ```
   /// ### `onTextEditing`: Optional callback.
   /// Callback for side effects. It is fired whenever the input text or
   /// selection changes
+  ///
+  /// ### `isReadOnly`: Optional [bool]. Defaults to false.
+  /// If true the input is clickable and selectable but not editable.
+  /// Later on, you can set it using [InjectedTextEditing.isReadOnly].
+  ///
+  /// See [OnFormBuilder.isReadOnlyRM] to set a group of input fields to read
+  /// only.
+  ///
+  /// ### `isEnabled`: Optional [bool]. Defaults to true.
+  /// If false the [OnFormFieldBuilder] is disabled.
+  /// Later on, you can set it using [InjectedTextEditing.isEnabled].
+  ///
+  /// See [OnFormBuilder.isReadOnlyRM] to disable a group of input fields.
   ///
   /// ### `autoDisposeWhenNotUsed`: Optional [bool] (Default true)
   /// Whether to auto dispose the injected model when no longer used
@@ -1525,9 +1538,9 @@ abstract class RM {
     bool? validateOnTyping,
     bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
-    bool autoDispose = true,
     bool isReadOnly = false,
     bool isEnabled = true,
+    bool autoDispose = true,
     //
     @Deprecated('Use validators instead')
         String? Function(String? text)? validator,
@@ -1571,6 +1584,10 @@ abstract class RM {
   /// Contains the user submission logic. Called when invoking
   ///[InjectedForm.submit] method.
   ///
+  /// ### `submissionSideEffects`: Optional [SideEffects].
+  /// Use to invoke side effects. See [OnFormBuilder.isEnabledRM] for an example
+  /// of disabling a inputs while waiting for the form submission.
+  ///
   /// ### `onSubmitting`: Optional callback.
   /// Callback for side effects called while waiting for form submission
   ///
@@ -1596,7 +1613,7 @@ abstract class RM {
   }
 
   /// {@macro InjectedFormField}
-  ///
+  /// See bellow for more examples.
   /// ## Parameters:
   /// ### `text`: Required initial value of the generic type.
   /// The initial value the linked [OnFormFieldBuilder] should expose.
@@ -1653,15 +1670,15 @@ abstract class RM {
   /// If true the input is clickable and selectable but not editable.
   /// Later on, you can set it using [InjectedFormField.isReadOnly]
   ///
-  /// All input fields are set to be read only if they are inside a [OnFormBuilder]
-  /// and the form is waiting for submission to resolve.
+  /// See [OnFormBuilder.isReadOnlyRM] to set a group of input fields to read
+  /// only.
   ///
   /// ### `isEnabled`: Optional [bool]. Defaults to true.
   /// If false the [OnFormFieldBuilder] is disabled.
-  /// Later on, you can set it using [InjectedFormField.isEnable].
+  /// Later on, you can set it using [InjectedFormField.isEnabled].
   ///
-  /// You can enable or disable all input fields inside [OnFormBuilder] using
-  /// [InjectedForm.isEnabled] setter.
+  /// See [OnFormBuilder.isEnabledRM] to set a group of input fields to read
+  /// only.
   ///
   /// ### `onValueChange`: Optional callback.
   /// Callback for side effects. It is fired whenever the input is changed
@@ -1801,37 +1818,46 @@ abstract class RM {
     );
   }
 
-  ///Injected a PageController and/or a TabController
+  /// Inject a [TabController] and [PageController] and sync them to work
+  /// together to get the most benefit of them.
   ///
-  ///It combines both controller to use the best of them.
+  /// This injected state abstracts the best practices to come out with a
+  /// simple, clean, and testable approach to control tab and page views.
   ///
-  ///* **initialIndex** The initial index the app start with.
+  /// If you don't use [OnTabViewBuilder] to listen the state, it is highly
+  /// recommended to manually dispose the state using [Injected.dispose] method.
   ///
-  ///* **length** The total number of tabs
-  ///Typically greater than one. Must match [TabBar.tabs]'s and
-  ///[TabBarView.children]'s length.
+  /// ## Parameters:
   ///
-  ///* **duration** The duration the page/tab transition takes. Defaults to
-  ///Duration(milliseconds: 300)
+  /// ### `length`: Required [int].
+  /// The number of tabs / pages to display. It can be dynamically changes later.
   ///
-  ///* **curve** The curve the page/tab animation transition takes. Defaults to
-  ///Curves.ease
+  /// ### `initialIndex`: Optional [int]. Defaults to 0.
+  /// The index of the tab / page to start with.
   ///
-  ///* **keepPage** Save the current [page] with [PageStorage] and restore it if this
-  ///controller's scrollable is recreated. See [PageController.keepPage]
+  /// ### `duration`: Optional [Duration]. Defaults to `Duration(milliseconds: 300)`.
+  /// The duration the tab / page transition takes.
   ///
-  ///* **viewportFraction** The fraction of the viewport that each page should occupy.
-  ///Defaults to 1.0, which means each page fills the viewport in the
-  ///scrolling direction. See [PageController.viewportFraction]
+  /// ### `curve`: Optional [Curve]. Defaults to `Curves.ease`.
+  /// The duration the tab / page transition takes.
+  ///
+  /// ### `keepPage`: Optional [bool]. Defaults to `true`.
+  /// Save the current [page] with [PageStorage] and restore it if this
+  /// controller's scrollable is recreated. See [PageController.keepPage]
+  ///
+  /// ### `viewportFraction`: Optional [double]. Defaults to `1.0`.
+  /// The fraction of the viewport that each page should occupy.
+  /// See [PageController.viewportFraction]
+
   static InjectedPageTab injectPageTab({
-    int initialIndex = 0,
     required int length,
+    int initialIndex = 0,
     Duration duration = kTabScrollDuration,
     Curve curve = Curves.ease,
     bool keepPage = true,
     double viewportFraction = 1.0,
   }) {
-    return InjectedTabImp(
+    return InjectedPageTabImp(
       initialIndex: initialIndex,
       length: length,
       curve: curve,

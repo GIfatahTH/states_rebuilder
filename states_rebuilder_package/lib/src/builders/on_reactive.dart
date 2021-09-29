@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/common/logger.dart';
+import '../common/logger.dart';
 
 import '../rm.dart';
 import 'reactive_state_less_widget.dart';

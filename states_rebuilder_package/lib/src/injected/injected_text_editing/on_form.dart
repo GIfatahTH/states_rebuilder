@@ -123,7 +123,88 @@ class OnFormBuilder extends StatelessWidget {
   }) : super(key: key);
   final InjectedForm listenTo;
   final Widget Function() builder;
+
+  /// ReactiveState of type bool. It is used to set the value of `isEnabled` of
+  /// all child input fields.
+  ///
+  /// Example: Disabling inputs while the form is submitting:
+  /// ```dart
+  ///  final isEnabledRM = true.inj();
+  ///  final formRM =  RM.injectForm(
+  ///    submissionSideEffects: SideEffects.onOrElse(
+  ///      onWaiting: ()=> isEnabledRM = false,
+  ///      orElse: (_)=> isEnabledRM = true,
+  ///      submit: () => repository.submitForm( ... ),
+  ///    ),
+  ///  );
+  ///
+  ///  // In the widget tree
+  ///  OnFormBuilder(
+  ///    listenTo: formRM,
+  ///    // Adding this all child input's enabled and readOnly properties are controlled.
+  ///    isEnabledRM: isEnabledRM,
+  ///
+  ///    builder: () => Column(
+  ///        children: [
+  ///          TextField(
+  ///            controller: myText.controller,
+  ///            enabled: myText.isEnabled,
+  ///          ),
+  ///          OnFormFieldBuilder<bool>(
+  ///            listenTo: myCheckBox,
+  ///            builder: (value, onChanged){
+  ///              return CheckBoxListTile(
+  ///                value: value,
+  ///                onChanged: onChanged,
+  ///                title: Text('Accept me'),
+  ///              );
+  ///            }
+  ///          )
+  ///        ]
+  ///    ),
+  ///  )
+  /// ```
   final ReactiveModel<bool?>? isEnabledRM;
+
+  /// ReactiveState of type bool. It is used to set the value of `isReadOnly` of
+  /// all child input fields.
+  ///
+  /// Example: Make inputs readOnly while the form is submitting:
+  /// ```dart
+  ///  final isReadOnlyRM = false.inj();
+  ///  final formRM =  RM.injectForm(
+  ///    submissionSideEffects: SideEffects.onOrElse(
+  ///      onWaiting: ()=> isReadOnlyRM = true,
+  ///      orElse: (_)=> isReadOnlyRM = false,
+  ///      submit: () => repository.submitForm( ... ),
+  ///    ),
+  ///  );
+  ///
+  ///  // In the widget tree
+  ///  OnFormBuilder(
+  ///    listenTo: formRM,
+  ///    // Adding this all child input's enabled and readOnly properties are controlled.
+  ///    isReadOnlyRM: isReadOnlyRM,
+  ///
+  ///    builder: () => Column(
+  ///        children: [
+  ///          TextField(
+  ///            controller: myText.controller,
+  ///          ),
+  ///          OnFormFieldBuilder<bool>(
+  ///            listenTo: myCheckBox,
+  ///            builder: (value, onChanged){
+  ///              return CheckBoxListTile(
+  ///                value: value,
+  ///                onChanged: onChanged,
+  ///                title: Text('Accept me'),
+  ///              );
+  ///            }
+  ///          )
+  ///        ]
+  ///    ),
+  ///  )
+  /// ```
   final ReactiveModel<bool?>? isReadOnlyRM;
   @override
   Widget build(BuildContext context) {

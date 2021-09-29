@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import '../../../states_rebuilder.dart';
 
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';

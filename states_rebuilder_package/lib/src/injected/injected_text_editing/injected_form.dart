@@ -119,6 +119,33 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   /// If any TextField is autoFocused, than it gets focused after reset.
   void reset();
 
+  /// Submit the form.
+  ///
+  /// The argument is the callback to be invoked. If it is null the callback
+  /// defined in [RM.injectForm].submit will be used.
+  ///
+  /// This is an example of form submission with server validation:
+  ///
+  /// ```dart
+  ///  final form = RM.injectForm(
+  ///    submit: () async {
+  ///      //This is the default submission logic,
+  ///      //It may be override when calling form.submit( () async { });
+  ///      //It may contains server validation.
+  ///     await serverError =  authRepository.signInWithEmailAndPassword(
+  ///        email: email.text,
+  ///        password: password.text,
+  ///      );
+  ///      //after server validation
+  ///      if(serverError == 'Invalid-Email'){
+  ///        email.error = 'Invalid email';
+  ///      }
+  ///      if(serverError == 'Weak-Password'){
+  ///        email.error = 'Password must have more the 6 characters';
+  ///      }
+  ///    },
+  ///  );
+  ///  ```
   void submit([Future<void> Function()? fn]);
 
   ///Creates a focus node to be used with submit button

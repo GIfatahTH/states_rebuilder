@@ -8,12 +8,19 @@ void main() {
     initialIndex: 2,
     length: 5,
   );
-  final screens = [
+  final views = [
     Text('TabView0'),
     Text('TabView1'),
     Text('TabView2'),
     Text('TabView3'),
     Text('TabView4'),
+  ];
+  final pages = [
+    Text('PageView0'),
+    Text('PageView1'),
+    Text('PageView2'),
+    Text('PageView3'),
+    Text('PageView4'),
   ];
   final tabs = [
     Text('Tab0'),
@@ -30,18 +37,35 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: OnTabBuilder(
-            listenTo: injectedTab,
-            builder: (index) {
-              numberOfRebuild++;
-              currentIndex = index;
-              return TabBarView(
-                controller: injectedTab.tabController,
-                children: screens,
-              );
-            },
+          body: Column(
+            children: [
+              Expanded(
+                child: OnTabViewBuilder(
+                  listenTo: injectedTab,
+                  builder: (index) {
+                    numberOfRebuild++;
+                    currentIndex = index;
+                    return TabBarView(
+                      controller: injectedTab.tabController,
+                      children: views,
+                    );
+                  },
+                ),
+              ),
+              Expanded(
+                child: OnTabViewBuilder(
+                  listenTo: injectedTab,
+                  builder: (index) {
+                    return PageView(
+                      controller: injectedTab.pageController,
+                      children: pages,
+                    );
+                  },
+                ),
+              )
+            ],
           ),
-          bottomNavigationBar: OnTabBuilder(
+          bottomNavigationBar: OnTabViewBuilder(
             listenTo: injectedTab,
             builder: (index) => TabBar(
               controller: injectedTab.tabController,
@@ -53,6 +77,7 @@ void main() {
       //
       await tester.pumpWidget(widget);
       expect(find.text('TabView2'), findsOneWidget);
+      expect(find.text('PageView2'), findsOneWidget);
       expect(find.text('Tab2'), findsOneWidget);
       expect(numberOfRebuild, 1);
       expect(currentIndex, 2);
@@ -60,6 +85,7 @@ void main() {
       await tester.tap(find.text('Tab4'));
       await tester.pumpAndSettle();
       expect(find.text('TabView4'), findsOneWidget);
+      expect(find.text('PageView4'), findsOneWidget);
       expect(find.text('Tab4'), findsOneWidget);
       expect(numberOfRebuild, 2);
       expect(currentIndex, 4);
@@ -67,6 +93,7 @@ void main() {
       await tester.tap(find.text('Tab0'));
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('PageView0'), findsOneWidget);
       expect(find.text('Tab0'), findsOneWidget);
       expect(numberOfRebuild, 3);
       expect(currentIndex, 0);
@@ -74,6 +101,7 @@ void main() {
       await tester.tap(find.text('Tab0'));
       await tester.pumpAndSettle();
       expect(find.text('TabView0'), findsOneWidget);
+      expect(find.text('PageView0'), findsOneWidget);
       expect(find.text('Tab0'), findsOneWidget);
       expect(numberOfRebuild, 3);
       expect(currentIndex, 0);
@@ -81,6 +109,7 @@ void main() {
       injectedTab.index = 3;
       await tester.pumpAndSettle();
       expect(find.text('TabView3'), findsOneWidget);
+      expect(find.text('PageView3'), findsOneWidget);
       expect(find.text('Tab3'), findsOneWidget);
       expect(numberOfRebuild, 4);
       expect(currentIndex, 3);
@@ -95,7 +124,7 @@ void main() {
             (index) {
               return TabBarView(
                 controller: injectedTab.tabController,
-                children: screens,
+                children: views,
               );
             },
           ),
@@ -135,21 +164,21 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: OnTabBuilder(
+            title: OnTabViewBuilder(
               listenTo: injectedTab,
               builder: (index) => Text('Tab $index is displayed'),
             ),
           ),
-          body: OnTabBuilder(
+          body: OnTabViewBuilder(
             listenTo: injectedTab,
             builder: (_) {
               return TabBarView(
                 controller: injectedTab.tabController,
-                children: screens,
+                children: views,
               );
             },
           ),
-          bottomNavigationBar: OnTabBuilder(
+          bottomNavigationBar: OnTabViewBuilder(
             listenTo: injectedTab,
             builder: (_) {
               currentIndex = injectedTab.index;
@@ -191,7 +220,7 @@ void main() {
           body: OnReactive(
             () => PageView(
               controller: injectedTab.pageController,
-              children: screens.getRange(0, injectedTab.length).toList(),
+              children: views.getRange(0, injectedTab.length).toList(),
             ),
           ),
           bottomNavigationBar: OnReactive(
@@ -343,12 +372,12 @@ void main() {
               builder: () => Text('Tab ${injectedTab.index} is displayed'),
             ),
           ),
-          body: OnTabBuilder(
+          body: OnTabViewBuilder(
             listenTo: injectedTab,
             builder: (_) {
               return TabBarView(
                 controller: injectedTab.tabController,
-                children: screens.getRange(0, injectedTab.length).toList(),
+                children: views.getRange(0, injectedTab.length).toList(),
               );
             },
           ),
@@ -498,11 +527,11 @@ void main() {
             () {
               return PageView(
                 controller: injectedTab.pageController,
-                children: screens.getRange(0, injectedTab.length).toList(),
+                children: views.getRange(0, injectedTab.length).toList(),
               );
             },
           ),
-          bottomNavigationBar: OnTabBuilder(
+          bottomNavigationBar: OnTabViewBuilder(
             listenTo: injectedTab,
             builder: (index) => TabBar(
               controller: injectedTab.tabController,

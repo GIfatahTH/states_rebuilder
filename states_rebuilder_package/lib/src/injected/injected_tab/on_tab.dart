@@ -77,47 +77,75 @@ part of 'injected_page_tab.dart';
 //   });
 // }
 
-class OnTabBuilder extends StatefulWidget {
-  const OnTabBuilder({
+class OnTabViewBuilder extends StatefulWidget {
+  const OnTabViewBuilder({
     Key? key,
-    required this.listenTo,
+    this.listenTo,
     required this.builder,
   }) : super(key: key);
-  final InjectedPageTab listenTo;
+  final InjectedPageTab? listenTo;
   final Widget Function(int index) builder;
 
   @override
-  _OnTabBuilderState createState() => _OnTabBuilderState();
+  _OnTabViewBuilderState createState() => _OnTabViewBuilderState();
 }
 
-class _OnTabBuilderState extends State<OnTabBuilder>
+class _OnTabViewBuilderState extends State<OnTabViewBuilder>
     with TickerProviderStateMixin {
-  late final InjectedTabImp _injected = widget.listenTo as InjectedTabImp;
+  InjectedPageTabImp? _injected;
+  static void Function(InjectedPageTab)? _addToTabObs;
+  late VoidCallback removeFromContextSet;
   late VoidCallback disposer;
+  bool isWaiting = false;
+  dynamic error;
+  bool isInitialized = false;
+  void _addToObs(InjectedPageTab inj) {
+    if (_injected != null) {
+      return;
+    }
+    _injected = inj as InjectedPageTabImp;
+    _injected?.initialize(this);
+    disposer = inj.observeForRebuild(
+      (rm) {
+        setState(() {});
+      },
+      clean: inj.autoDisposeWhenNotUsed ? () => inj.dispose() : null,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    if (_injected._tabController == null) {
-      _injected.initialize(this);
-    }
+    removeFromContextSet = addToContextSet(context);
 
-    disposer = _injected.reactiveModelState.listeners.addListenerForRebuild(
-      (_) {
-        setState(() {});
-      },
-      clean:
-          _injected.autoDisposeWhenNotUsed ? () => _injected.dispose() : null,
-    );
+    _injected = widget.listenTo as InjectedPageTabImp?;
+    if (_injected != null) {
+      _injected?.initialize(this);
+      disposer = _injected!.reactiveModelState.listeners.addListenerForRebuild(
+        (_) {
+          setState(() {});
+        },
+        clean: _injected!.autoDisposeWhenNotUsed
+            ? () => _injected!.dispose()
+            : null,
+      );
+      return;
+    }
+    _addToTabObs = _addToObs;
+    widget.builder(widget.listenTo?.index ?? 0);
+    _addToTabObs = null;
+    assert(_injected != null);
   }
 
   @override
   void dispose() {
     disposer();
+    removeFromContextSet();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(_injected.index);
+    return widget.builder(_injected!.index);
   }
 }

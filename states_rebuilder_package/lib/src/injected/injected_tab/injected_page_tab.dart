@@ -16,7 +16,7 @@ class _RebuildTab {
     Widget Function(int index) builder, {
     Key? key,
   }) {
-    return OnTabBuilder(
+    return OnTabViewBuilder(
       listenTo: _injected,
       builder: builder,
     );
@@ -30,6 +30,7 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
   PageController? _pageController;
 
   TabController get tabController {
+    _OnTabViewBuilderState._addToTabObs?.call(this);
     assert(
         _tabController != null,
         'TabController is not initialized yet. '
@@ -60,15 +61,15 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     if (_tabController != null) {
       _tabController!.animateTo(
         i,
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     } else {
       assert(_pageController != null);
       _pageController!.animateToPage(
         i,
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
@@ -121,10 +122,10 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         final future = Completer();
         _tabController!.animateTo(
           index + 1,
-          duration: (this as InjectedTabImp).duration,
-          curve: (this as InjectedTabImp).curve,
+          duration: (this as InjectedPageTabImp).duration,
+          curve: (this as InjectedPageTabImp).curve,
         );
-        if ((this as InjectedTabImp).duration == Duration.zero) {
+        if ((this as InjectedPageTabImp).duration == Duration.zero) {
           return;
         }
         late void Function(AnimationStatus) listener;
@@ -140,8 +141,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     } else {
       assert(_pageController != null);
       return _pageController!.nextPage(
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
@@ -157,10 +158,10 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         final future = Completer();
         _tabController!.animateTo(
           index - 1,
-          duration: (this as InjectedTabImp).duration,
-          curve: (this as InjectedTabImp).curve,
+          duration: (this as InjectedPageTabImp).duration,
+          curve: (this as InjectedPageTabImp).curve,
         );
-        if ((this as InjectedTabImp).duration == Duration.zero) {
+        if ((this as InjectedPageTabImp).duration == Duration.zero) {
           return;
         }
         late void Function(AnimationStatus) listener;
@@ -176,8 +177,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     } else {
       assert(_pageController != null);
       return _pageController!.previousPage(
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
@@ -191,8 +192,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
   // }
 }
 
-class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
-  InjectedTabImp({
+class InjectedPageTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
+  InjectedPageTabImp({
     int initialIndex = 0,
     required int length,
     this.duration = kTabScrollDuration,
@@ -311,6 +312,8 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
 
   @override
   PageController get pageController {
+    _OnTabViewBuilderState._addToTabObs?.call(this);
+
     if (_pageController != null) {
       return _pageController!;
     }
