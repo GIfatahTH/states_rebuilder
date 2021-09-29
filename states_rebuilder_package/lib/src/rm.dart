@@ -693,17 +693,31 @@ abstract class RM {
     @Deprecated('Use `autoRefreshTokenOrSignOut` instead')
         Duration Function(T user)? autoSignOut,
   }) {
-    assert(
-      null is T || unsignedUser != null,
-      '$T is non nullable, you have to define unsignedUser parameter.\n'
-      'If you want the unsignedUSer to be null use nullable type ($T?)',
-    );
-    assert(
-      null is! T || unsignedUser == null,
-      'Because $T is nullable, null is considered as the unsigned user.'
-      'You can not set a non null unsignedUser\n'
-      'If you want the unsignedUSer to be non null use non nullable type ($T).',
-    );
+    assert(() {
+      if (null is! T && unsignedUser == null) {
+        StatesRebuilerLogger.log(
+          '$T is non nullable and the unsignedUser is null',
+          'You have to define unsignedUser parameter.\n'
+              'If you want the unsignedUSer to be null use nullable type ($T?)',
+        );
+        return false;
+      }
+
+      return true;
+    }());
+    assert(() {
+      if (null is T && unsignedUser != null) {
+        StatesRebuilerLogger.log(
+          '$T is nullable, null is considered as the unsigned user',
+          'You can not set a non null unsignedUser\n'
+              'If you want the unsignedUSer to be non null use non nullable type ($T).',
+        );
+        return false;
+      }
+
+      return true;
+    }());
+
     late final InjectedAuthImp<T, P> inj;
     inj = InjectedAuthImp<T, P>(
       repoCreator: repository,
@@ -1839,7 +1853,7 @@ abstract class RM {
   /// ### `viewportFraction`: Optional [double]. Defaults to `1.0`.
   /// The fraction of the viewport that each page should occupy.
   /// See [PageController.viewportFraction]
-  static InjectedTabPageView injectPageTabView({
+  static InjectedTabPageView injectTabPageView({
     required int length,
     int initialIndex = 0,
     Duration duration = kTabScrollDuration,
