@@ -73,40 +73,18 @@ class TabViewOnly extends StatelessWidget {
           controller: injectedTabPage.tabController,
           children: icons
               .getRange(0, injectedTabPage.length)
-              .toList()
-              .asMap()
-              .map((i, icon) {
-                return MapEntry(
-                  i,
-                  Icon(icon, size: 50),
-                );
-              })
-              .values
+              .map((icon) => Icon(icon, size: 50))
               .toList(),
         ),
       ),
       bottomNavigationBar: OnTabPageViewBuilder(
-        listenTo: injectedTabPage,
-        builder: (index) {
-          return OnAnimationBuilder(
-            listenTo: animation,
-            builder: (animate) {
-              return TabBar(
-                controller: injectedTabPage.tabController,
-                tabs: icons
-                    .getRange(0, injectedTabPage.length)
-                    .toList()
-                    .asMap()
-                    .map((i, icon) {
-                      return MapEntry(
-                        i,
-                        Icon(icon, color: Colors.blue),
-                      );
-                    })
-                    .values
-                    .toList(),
-              );
-            },
+        builder: (_) {
+          return TabBar(
+            controller: injectedTabPage.tabController,
+            tabs: icons
+                .getRange(0, injectedTabPage.length)
+                .map((icon) => Icon(icon, color: Colors.blue))
+                .toList(),
           );
         },
       ),

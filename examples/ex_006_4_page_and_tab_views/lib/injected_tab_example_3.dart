@@ -82,24 +82,20 @@ class MixPageAndTabView extends StatelessWidget {
       bottomNavigationBar: OnTabPageViewBuilder(
         listenTo: injectedTabPage,
         builder: (index) {
-          return OnAnimationBuilder(
-            listenTo: animation,
-            builder: (animate) {
-              return TabBar(
-                  controller: injectedTabPage.tabController,
-                  tabs: icons
-                      .getRange(0, injectedTabPage.length)
-                      .toList()
-                      .asMap()
-                      .map((i, icon) {
-                        return MapEntry(
-                          i,
-                          Icon(icon, color: Colors.blue),
-                        );
-                      })
-                      .values
-                      .toList());
-            },
+          return BottomNavigationBar(
+            currentIndex: index,
+            onTap: (i) => injectedTabPage.index = i,
+            selectedItemColor: Colors.blue,
+            unselectedItemColor: Colors.black,
+            items: icons
+                .getRange(0, injectedTabPage.length)
+                .map(
+                  (icon) => BottomNavigationBarItem(
+                    label: '',
+                    icon: Icon(icon),
+                  ),
+                )
+                .toList(),
           );
         },
       ),
