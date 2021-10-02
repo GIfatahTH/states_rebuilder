@@ -42,11 +42,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);

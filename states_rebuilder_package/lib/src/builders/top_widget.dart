@@ -42,11 +42,7 @@ import '../injected/injected_theme/injected_theme.dart';
 ///           //
 ///           locale: i18nRM.locale,
 ///           localeResolutionCallback: i18nRM.localeResolutionCallback,
-///           localizationsDelegates: [
-///             GlobalMaterialLocalizations.delegate,
-///             GlobalWidgetsLocalizations.delegate,
-///             GlobalCupertinoLocalizations.delegate,
-///           ],
+///           localizationsDelegates: i18n.localizationsDelegates,,
 ///           home: HomePage(),
 ///         );
 ///       },
@@ -119,10 +115,11 @@ class TopAppWidget extends TopStatelessWidget {
   ///      ),
   ///      builder: (context) {
   ///        return MaterialApp(
-  ///          //Defining locale and localeResolutionCallback is more than
-  ///          //enough for the app to get the right locale.
+  ///          //Defining locale, localeResolutionCallback and localizationsDelegates
+  ///          //is more than enough for the app to get the right locale.
   ///          locale: i18n.locale,
   ///          localeResolutionCallback: i18n.localeResolutionCallback,
+  ///          localizationsDelegates: i18n.localizationsDelegates,
   ///
   ///          //For more elaborate locale resolution algorithm use
   ///          //supportedLocales and localeListResolutionCallback.
@@ -130,11 +127,6 @@ class TopAppWidget extends TopStatelessWidget {
   ///          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
   ///          //   //your algorithm
   ///          //   } ,
-  ///          localizationsDelegates: [
-  ///            GlobalMaterialLocalizations.delegate,
-  ///            GlobalWidgetsLocalizations.delegate,
-  ///            GlobalCupertinoLocalizations.delegate,
-  ///          ],
   ///          home: const HomePage(),//Notice const here
   ///        );
   ///      },

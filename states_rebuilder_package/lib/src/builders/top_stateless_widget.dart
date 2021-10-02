@@ -44,11 +44,7 @@ import 'reactive_state_less_widget.dart';
 ///        //
 ///        locale: i18nRM.locale,
 ///        localeResolutionCallback: i18nRM.localeResolutionCallback,
-///        localizationsDelegates: [
-///          GlobalMaterialLocalizations.delegate,
-///          GlobalWidgetsLocalizations.delegate,
-///          GlobalCupertinoLocalizations.delegate,
-///        ],
+///        localizationsDelegates: i18nRM.localizationsDelegates,
 ///        home: HomePage(),
 ///      );
 ///    }
