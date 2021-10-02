@@ -107,6 +107,7 @@ abstract class InjectedTabPageView implements InjectedBaseState<int> {
   TabController? _tabController;
   PageController? _pageController;
 
+  /// Get the associated [TabController]
   TabController get tabController {
     _OnTabPageViewBuilderState._addToTabObs?.call(this);
     assert(
@@ -116,10 +117,14 @@ abstract class InjectedTabPageView implements InjectedBaseState<int> {
     return _tabController!;
   }
 
+  /// Get the associated [PageController]
   PageController get pageController;
   int? get _page => _pageController?.page?.round();
 
-  ///The index of the currently selected tab.
+  /// The index of the currently selected tab.
+  ///
+  /// When is set to a target index, the tab / page will animated from the
+  /// current idex to the target index
   int get index {
     return state;
     // if (_tabController != null) {
@@ -152,18 +157,34 @@ abstract class InjectedTabPageView implements InjectedBaseState<int> {
     }
   }
 
+  /// The number of tabs / pages. It can set dynamically
+  ///
+  /// Example:
+  /// ```dart
+  ///    // We start with 2 tabs
+  ///    final myInjectedTabPageView = RM.injectedTabPageView(length: 2);
+  ///
+  ///   // Later on, we can extend or shrink the length of tab views.
+  ///
+  ///   // Tab/page views are updated to display three views
+  ///   myInjectedTabPageView.length = 3
+  ///
+  ///   // Tab/page views are updated to display one view
+  ///   myInjectedTabPageView.length = 1
+  /// ```
   late int length;
 
   late bool _pageIndexIsChanging;
 
-  ///The index of the previously selected tab.
+  /// The index of the previously selected tab.
   int get previousIndex => _tabController!.previousIndex;
 
-  ///True while we're animating from [previousIndex] to [index] as a consequence of calling [animateTo].
+  /// True while we're animating from [previousIndex] to [index] as a consequence of calling [animateTo].
   bool get indexIsChanging =>
       _tabController?.indexIsChanging == true || _pageIndexIsChanging;
 
-  ///Immediately sets [index] and [previousIndex] and then plays the animation from its current value to [index].
+  /// Immediately sets [index] and [previousIndex] and then plays the animation
+  /// from its current value to [index].
   void animateTo(
     int value, {
     Duration duration = kTabScrollDuration,
