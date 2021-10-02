@@ -1,5 +1,4 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -42,11 +41,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -79,11 +74,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -115,11 +106,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               return Text(i18n.of(ctx));
@@ -149,11 +136,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -212,11 +195,7 @@ void main() async {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -274,11 +253,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -318,11 +293,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -360,11 +331,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -422,11 +389,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -487,11 +450,7 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18nStored.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);

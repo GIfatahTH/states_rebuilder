@@ -50,7 +50,7 @@
   - [Create, Read, Update and Delete items from backend service](#create-read-update-and-delete-items-from-backend-service)
   - [Authentication and authorization](#authentication-and-authorization)
   - [Dynamic theme switching](#dynamic-theme-switching)
-  - [App internationalization](#app-internationalization)
+  - [App internationalization and localization](#app-internationalization-and-localization)
   - [Animation in StatelessWidget:](#animation-in-statelesswidget)
     - [Implicit and explicit animation](#implicit-and-explicit-animation)
   - [Working with TextFields and Form validation](#working-with-textfields-and-form-validation)
@@ -67,6 +67,8 @@
   - [Advanced:](#advanced)
     - [Firebase Series:](#firebase-series)
     - [Firestore Series in Todo App:](#firestore-series-in-todo-app) -->
+
+> Although states_rebuilder is a feature-rich library, the maintenance cost is very low, and the size of the library is small. this is because states_rebuilder does not draw a single pixel on the screen and the way the internal code is structured makes adding new functionality a straightforward process with fewer lines of code.
 
 </br>
 
@@ -783,7 +785,7 @@ To dynamically switch themes,
 
   * [**Here is an example on dynamic theming**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
-## App internationalization
+## App internationalization and localization
 
 To internationalize and localize your app:
   ```dart
@@ -796,6 +798,8 @@ To internationalize and localize your app:
     final helloWorld = 'Hola Mondo';
   }
   ```
+  > You can use `json` or `arb` file for language translations.
+
   ```dart
   final i18n = RM.injectI18N<EnUS>(
       {
@@ -1030,7 +1034,7 @@ To deal with TextFields and Form validation
           body: Column(
             children: [
               Expanded(
-                child: OnTabViewBuilder(
+                child: OnTabPageViewBuilder(
                   builder: (index) {
                     return TabBarView(
                       controller: injectedTab.tabController,
@@ -1040,7 +1044,7 @@ To deal with TextFields and Form validation
                 ),
               ),
               Expanded(
-                child: OnTabViewBuilder(
+                child: OnTabPageViewBuilder(
                   builder: (index) {
                     return PageView(
                       controller: injectedTab.pageController,

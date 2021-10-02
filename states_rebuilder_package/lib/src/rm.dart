@@ -1841,6 +1841,19 @@ abstract class RM {
   ///
   /// ### `length`: Required [int].
   /// The number of tabs / pages to display. It can be dynamically changes later.
+  /// Example:
+  /// ```dart
+  ///    // We start with 2 tabs
+  ///    final myInjectedTabPageView = RM.injectedTabPageView(length: 2);
+  ///
+  ///   // Later on, we can extend or shrink the length of tab views.
+  ///
+  ///   // Tab/page views are updated to display three views
+  ///   myInjectedTabPageView.length = 3
+  ///
+  ///   // Tab/page views are updated to display one view
+  ///   myInjectedTabPageView.length = 1
+  /// ```
   ///
   /// ### `initialIndex`: Optional [int]. Defaults to 0.
   /// The index of the tab / page to start with.

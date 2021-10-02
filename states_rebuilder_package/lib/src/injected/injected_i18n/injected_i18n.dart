@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../../states_rebuilder.dart';
 
 import '../../builders/on_reactive.dart';
@@ -32,6 +33,13 @@ abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///and define your logic.
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback;
+
+  final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates =
+      const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ];
 }
 
 class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
@@ -142,7 +150,10 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   late final VoidCallback _resetDefaultState;
 
   @override
-  List<Locale> get supportedLocales => i18Ns.keys.toList();
+  List<Locale> get supportedLocales {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return i18Ns.keys.toList();
+  }
 
   @override
   Locale? get locale {
