@@ -1,0 +1,9 @@
+{
+    "@@locale": "es",
+    "helloWorld": "¡Hola Mundo!",
+    "welcome": "Hola {name}",
+    "genre": "{gender, select, male {Hola el hombre} female {Hola la mujer} other {Hola}}",
+    "plural": "{howMany, plural, =1{1 mensaje} other{{howMany} mensajes}}",
+    "formattedNumber": "El número formateado es: {value}",
+    "date": "Es {date}"
+}
