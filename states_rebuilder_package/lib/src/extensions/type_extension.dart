@@ -75,6 +75,16 @@ extension StringX on String {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
   }
+
+  Locale locale() {
+    if (contains('_')) {
+      assert(length == 5);
+      final l = split('_');
+      return Locale(l[0], l[1]);
+    }
+    assert(length == 2);
+    return Locale(this);
+  }
 }
 
 extension BoolX on bool {
