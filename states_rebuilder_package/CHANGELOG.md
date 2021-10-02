@@ -3,12 +3,15 @@
   * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
   * Add `refreshToken` method to `IAuth` interface. It is used to refresh token (See issue #228).
   * Add `isEnabled` and `isReadOnly` to to `InjectedTextEditing`, and `OnFormBuilder` (See issue #229).
-  * Add `TopStatelessWidget` to replace `TopAppWidget`.
+  * Add `TopStatelessWidget` to replace `TopAppWidget` (See issue #232).
+  * Add `InjectedTabPageView` to work with tabs and pages (See issue #233).
   ### Breaking changes 
   * `onSetState`, `onData`, `onError`, `onAfterState` are all deprecated in favor to `sideEffects` parameter which takes a `SideEffects` object.(See issue #222).
   * Deprecate `validator` parameter in `RM.injectTextEditing`. `validators` is used instead. 
   * Deprecate `middleSnapState` in favor to `stateInterceptor`
   * Deprecate `onCRUD` (in `RM.injectedCRUD`) in favor to `OnCRUDSideEffects`
+
+See the detailed change log [Here](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-5.0.0.md)
 
 ## 4.4.0 (2021-09-04)
 * Add `OnReactive` widget for implicit subscription:
