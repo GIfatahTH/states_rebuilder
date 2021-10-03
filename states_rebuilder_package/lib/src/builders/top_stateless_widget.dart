@@ -162,7 +162,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
   AddObsCallback? cachedAddToObs;
   late VoidCallback removeFromContextSet;
-  Map<InjectedBaseState, VoidCallback> _obs = {};
+  final Map<InjectedBaseState, VoidCallback> _obs = {};
   bool isWaiting = false;
   dynamic error;
   InjectedI18N? injectedI18N;
