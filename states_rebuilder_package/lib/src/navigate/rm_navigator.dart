@@ -6,8 +6,7 @@ class _Navigate {
   ///get the NavigatorState
   NavigatorState get navigatorState {
     final navigatorState = _navigatorKey.currentState;
-    assert(navigatorState != null,
-        '''
+    assert(navigatorState != null, '''
 The MaterialApp has no defined navigatorKey.
 
 To fix:

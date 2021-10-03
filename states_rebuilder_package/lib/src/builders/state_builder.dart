@@ -305,14 +305,14 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
         observe = ReactiveModelImp(creator: () {});
       }
       for (var m in observeMany) {
-          final disposer = m.observeForRebuild((r) {
-            if (r is ReactiveModel && widget.observe == null) {
-              rm = r as ReactiveModel<T>;
-            }
-            observe?.notify();
-          });
-          observe?.addCleaner(() => disposer());
-        }
+        final disposer = m.observeForRebuild((r) {
+          if (r is ReactiveModel && widget.observe == null) {
+            rm = r as ReactiveModel<T>;
+          }
+          observe?.notify();
+        });
+        observe?.addCleaner(() => disposer());
+      }
     } else if (widget.observe == null) {
       throw ArgumentError('You have to observe a model by defining '
           'either observe or observeMany parameters');
