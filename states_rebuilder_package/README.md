@@ -825,6 +825,8 @@ To internationalize and localize your app:
 
   * [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
 
+  * [**Here is an example on app internationalization using ARB files**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_1_internationalization_using_arb).
+
 </br>
 
 ## Animation in StatelessWidget:
@@ -978,7 +980,7 @@ To deal with TextFields and Form validation
       ),
   ),
   ```
-  * [🔍 See more detailed information about `InjectedTextEditing and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
+  * [🔍 See more detailed information about `InjectedTextEditing, InjectedFormField, and InjectedForm`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_text_editing_api).
 
 </br>
 
@@ -1125,6 +1127,11 @@ Since you are new to `states_rebuilder`, this is the right place for you to expl
 
 * [**Infinite scroll listView**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_2_infinite_scroll_list). This is another example of CRUD operation using `RM.injectCRUD`. More items will be fetched when the list reaches its bottom.
 
+* [**App localization and internationalization using ARB files**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_1_internationalization_using_arb).
+
+* [**Show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
+
+* [**Show cases of tabs and pages**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_4_page_and_tab_views).
 
 </br>
 
