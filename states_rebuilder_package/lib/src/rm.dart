@@ -63,7 +63,7 @@ abstract class RM {
   ///
   /// State can be injected globally or scoped locally:
   ///
-  /// Scoped locally means that the state's flow is encapsulated withing the widget
+  /// Scoped locally means that the state's flow is encapsulated within the widget
   /// and its children. If more than one widget is created, each has its own
   /// independent state.
   ///
@@ -209,8 +209,8 @@ abstract class RM {
   ///  runApp(MyApp());
   /// }
   /// ```
-  /// By default the state is persisted whenever is mutated, but you can set it
-  /// to be persisted manually, or once the state is disposed.
+  /// By default, the state is persisted whenever is mutated, but you can set it
+  /// to be persisted manually, or once the state is disposed of.
   ///
   /// You can debounce and throttle state persistence.
   ///
@@ -219,7 +219,7 @@ abstract class RM {
   /// This call back is fired after on state mutation and exposes both the
   /// current state just before mutation and the next state.
   ///
-  /// The callback return the next [SnapState]. It may be the same as next state
+  /// The callback return the next [SnapState]. It may be the same as the next state
   /// or you can change it. Useful in many scenarios where we want to concatenate
   /// both current and next snap (fetch for list of items is an example);
   ///
@@ -498,7 +498,7 @@ abstract class RM {
   /// to manage user authentication and authorization.
   ///
   /// The approach consists of the following steps:
-  /// * Define uer User Model. (The name is up to you).
+  /// * Define the User Model. (The name is up to you).
   /// * You may define a class (or enum) to parametrize the query.
   /// * Your repository must implements [IAuth]<T, P> where T is the User type
   ///  and P is the parameter
@@ -647,7 +647,7 @@ abstract class RM {
   /// This call back is fired after on state mutation (singed user change) and
   /// exposes both the current state just before mutation and the next state.
   ///
-  /// The callback return the next [SnapState]. It may be the same as next state
+  /// The callback return the next [SnapState]. It may be the same as the next state
   /// or you can change it.
   ///
   /// ### `sideEffects`: Optional [SideEffects]
@@ -696,9 +696,9 @@ abstract class RM {
     assert(() {
       if (null is! T && unsignedUser == null) {
         StatesRebuilerLogger.log(
-          '$T is non nullable and the unsignedUser is null',
+          '$T is non-nullable and the unsignedUser is null',
           'You have to define unsignedUser parameter.\n'
-              'If you want the unsignedUSer to be null use nullable type ($T?)',
+              'If you want the unsignedUser to be null use nullable type ($T?)',
         );
         return false;
       }
@@ -709,8 +709,8 @@ abstract class RM {
       if (null is T && unsignedUser != null) {
         StatesRebuilerLogger.log(
           '$T is nullable, null is considered as the unsigned user',
-          'You can not set a non null unsignedUser\n'
-              'If you want the unsignedUSer to be non null use non nullable type ($T).',
+          'You can not set a non-null unsignedUser\n'
+              'If you want the unsignedUSer to be non-null use non-nullable type ($T).',
         );
         return false;
       }
@@ -864,8 +864,8 @@ abstract class RM {
   ///  runApp(MyApp());
   /// }
   /// ```
-  /// By default the state is persisted whenever is mutated, but you can set it
-  /// to be persisted manually, or once the state is disposed.
+  /// By default, the state is persisted whenever is mutated, but you can set it
+  /// to be persisted manually, or once the state is disposed of.
   ///
   /// You can debounce and throttle state persistence.
   ///
@@ -874,7 +874,7 @@ abstract class RM {
   /// This call back is fired after on state mutation and exposes both the
   /// current state just before mutation and the next state.
   ///
-  /// The callback return the next [SnapState]. It may be the same as next state
+  /// The callback return the next [SnapState]. It may be the same as the next state
   /// or you can change it. Useful in many scenarios where we want to concatenate
   /// both current and next snap (fetch for list of items is an example);
   ///
@@ -1432,9 +1432,9 @@ abstract class RM {
   /// ### `validators`: Optional List of callbacks.
   /// Set of validation rules the field should pass.
   ///
-  /// Validators exposes the text that the user entered.
+  /// Validators expose the text that the user entered.
   ///
-  /// If any of the validation callbacks return a non empty strings, the filed
+  /// If any of the validation callbacks return a non-empty string, the filed
   /// is considered non valid. For the field to be valid all validators must
   /// return null.
   ///
@@ -1474,7 +1474,7 @@ abstract class RM {
   /// and defaults to false if it is outside.
   ///
   /// Once the [TextField] loses focus and if it fails to validate, the field will
-  /// auto validate on typing the next time the user starts typing.
+  /// auto-validate on typing the next time the user starts typing.
   ///
   /// For `validateOnLoseFocus` to work you have to set the [TextField]'s [FocusNode]
   /// to use [InjectedTextEditing.focusNode]
@@ -1494,7 +1494,7 @@ abstract class RM {
   /// If true the [TextField] is clickable and selectable but not editable.
   /// Later on, you can set it using [InjectedTextEditing.isReadOnly]
   ///
-  /// All input fields are set to be read only if they are inside a [OnFormBuilder]
+  /// All input fields are set to be read-only if they are inside a [OnFormBuilder]
   /// and the form is waiting for submission to resolve.
   ///
   /// ### `isEnabled`: Optional [bool]. Defaults to true.
@@ -1640,9 +1640,9 @@ abstract class RM {
   /// ### `validators`: Optional List of callbacks.
   /// Set of validation rules the field should pass.
   ///
-  /// Validators exposes the value that the user entered.
+  /// Validators expose the value that the user entered.
   ///
-  /// If any of the validation callbacks return a non empty strings, the filed
+  /// If any of the validation callbacks return a non-empty strings, the filed
   /// is considered non valid. For the field to be valid all validators must
   /// return null.
   ///
@@ -1746,7 +1746,7 @@ abstract class RM {
   /// This injected state abstracts the best practices to come out with a
   /// simple, clean, and testable approach to control Scrollable view.
   ///
-  /// If you don't use [OnScrollBuilder] to listen the state, it is highly
+  /// If you don't use [OnScrollBuilder] to listen to the state, it is highly
   /// recommended to manually dispose the state using [Injected.dispose] method.
   ///
   /// ## Parameters:
@@ -1889,7 +1889,7 @@ abstract class RM {
     );
   }
 
-  ///Static variable the holds the chosen working environment or flavour.
+  ///Static variable the holds the chosen working environment or flavor.
   static dynamic env;
   static int? _envMapLength;
 
@@ -1933,7 +1933,7 @@ You are using [RM.injectFlavor]. You have to define the [RM.env] before the [run
 There is no implementation for $env of $T interface
     ''');
         assert(impl.length == _envMapLength, '''
-You must be consistent about the number of flavor environment you have.
+You must be consistent about the number of flavor environments you have.
 you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     ''');
         return impl[env]!();
@@ -1974,7 +1974,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return inj;
   }
 
-  ///Initialize the default persistance provider to be used.
+  ///Initialize the default persistence provider to be used.
   ///
   ///Called in the main method:
   ///```dart
@@ -1998,7 +1998,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return _persistStateGlobal?.init();
   }
 
-  ///Initialize a mock persistance provider.
+  ///Initialize a mock persistence provider.
   ///
   ///Used for tests.
   ///
