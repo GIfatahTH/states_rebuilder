@@ -64,15 +64,15 @@ class MyHomePage extends ReactiveStatelessWidget {
             ),
             const Divider(),
             Text(
-              _i18n.genre('male'),
+              _i18n.gender('male'),
               style: textStyle,
             ),
             Text(
-              _i18n.genre('female'),
+              _i18n.gender('female'),
               style: textStyle,
             ),
             Text(
-              _i18n.genre('other'),
+              _i18n.gender('other'),
               style: textStyle,
             ),
             const Divider(),
