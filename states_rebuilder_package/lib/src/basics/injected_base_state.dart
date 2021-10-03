@@ -64,6 +64,14 @@ abstract class InjectedBaseState<T> {
     return snap.data as T;
   }
 
+  /// Initialize the state
+  FutureOr<T> initializeState() {
+    if (isWaiting) {
+      return stateAsync;
+    }
+    return state;
+  }
+
   ///The state is initialized and never mutated.
   bool get isIdle {
     OnReactiveState.addToObs?.call(this);
