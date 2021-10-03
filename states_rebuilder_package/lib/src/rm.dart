@@ -283,7 +283,7 @@ abstract class RM {
   }) {
     late final InjectedImp<T> inj;
 
-    inj = InjectedImp<T>(
+    return inj = InjectedImp<T>(
       creator: creator,
       initialState: initialState,
       onInitialized: sideEffects?.initState != null
@@ -317,7 +317,6 @@ abstract class RM {
       toDebugString: toDebugString,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
-    return inj;
   }
 
   /// injection of a [Future].
@@ -355,7 +354,7 @@ abstract class RM {
         void Function(dynamic e, StackTrace? s)? onError,
   }) {
     late final InjectedImp<T> inj;
-    inj = InjectedImp<T>(
+    return inj = InjectedImp<T>(
       creator: creator,
       initialState: initialState,
       // onInitialized: onInitialized,
@@ -390,7 +389,6 @@ abstract class RM {
       toDebugString: toDebugString,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
-    return inj;
   }
 
   /// injection of a [Stream].
@@ -719,7 +717,7 @@ abstract class RM {
     }());
 
     late final InjectedAuthImp<T, P> inj;
-    inj = InjectedAuthImp<T, P>(
+    return inj = InjectedAuthImp<T, P>(
       repoCreator: repository,
       unsignedUser: unsignedUser,
       param: param,
@@ -762,7 +760,6 @@ abstract class RM {
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
-    return inj;
   }
 
   /// Injection of a state that can create, read, update and
@@ -955,7 +952,7 @@ abstract class RM {
     @Deprecated('Use sideEffects instead') On<void>? onSetState,
   }) {
     late final InjectedCRUDImp<T, P> inj;
-    inj = InjectedCRUDImp<T, P>(
+    return inj = InjectedCRUDImp<T, P>(
       repoCreator: repository,
       param: param,
       readOnInitialization: readOnInitialization,
@@ -992,7 +989,6 @@ abstract class RM {
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
-    return inj;
   }
 
   /// {@macro InjectedTheme}
@@ -1117,7 +1113,7 @@ abstract class RM {
       'Type can not inferred, please declare it explicitly',
     );
     late final InjectedThemeImp<T> inj;
-    inj = InjectedThemeImp<T>(
+    return inj = InjectedThemeImp<T>(
       lightThemes: lightThemes,
       darkThemes: darkThemes,
       themeModel: themeMode,
@@ -1154,7 +1150,6 @@ abstract class RM {
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
     );
-    return inj;
   }
 
   /// Injection of a state that handle app internationalization
@@ -1252,7 +1247,7 @@ abstract class RM {
       'Type can not inferred, please declare it explicitly',
     );
     late final InjectedI18NImp<T> inj;
-    inj = InjectedI18NImp<T>(
+    return inj = InjectedI18NImp<T>(
       i18Ns: i18Ns,
       persistKey: persistKey,
       //
@@ -1285,7 +1280,6 @@ abstract class RM {
       // isLazy: isLazy,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
     );
-    return inj;
   }
 
   /// {@macro InjectedAnimation}
@@ -1923,7 +1917,7 @@ abstract class RM {
     String Function(T?)? toDebugString,
   }) {
     late final InjectedImp<T> inj;
-    inj = InjectedImp<T>(
+    return inj = InjectedImp<T>(
       creator: () {
         _envMapLength ??= impl.length;
         assert(RM.env != null, '''
@@ -1971,7 +1965,6 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       middleSnapState: middleSnapState,
       isLazy: isLazy,
     );
-    return inj;
   }
 
   ///Initialize the default persistence provider to be used.

@@ -448,6 +448,13 @@ void main() {
     expect(numberOfNotification, 1);
     injectedMap.state = {'1': _Model(1), '2': _Model(3)};
     expect(numberOfNotification, 2);
+
+    //
+    expect('en'.locale(), const Locale('en'));
+    expect('en_us'.locale(), const Locale('en', 'US'));
+    expect(() => 'ens'.locale(), throwsAssertionError);
+    expect(() => 'en_s'.locale(), throwsAssertionError);
+    expect(() => 'en_US_us'.locale(), throwsAssertionError);
     //
     // numberOfNotification = 0;
     // final injectModel = _Model(5).inj<_Model>();

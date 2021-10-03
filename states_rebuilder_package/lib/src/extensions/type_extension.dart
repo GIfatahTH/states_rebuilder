@@ -80,7 +80,8 @@ extension StringX on String {
     if (contains('_')) {
       assert(length == 5);
       final l = split('_');
-      return Locale(l[0], l[1]);
+      assert(l.length == 2);
+      return Locale(l[0], l[1].toUpperCase());
     }
     assert(length == 2);
     return Locale(this);
