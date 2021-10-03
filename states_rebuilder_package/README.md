@@ -211,7 +211,7 @@ class Counter2View extends StatelessWidget {
 | **3.0**          | Legacy (2020-09-04) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-3.0.0.md) |
 | **2.0**          | Legacy (2020-06-02) | [Doc](https://github.com/GIfatahTH/states_rebuilder/blob/master/states_rebuilder_package/changelog/v-2.0.0.md) |
 
-* Use of modern version is recommended for getting maximum performance & development experience with **flutter 2.0**.
+> Use of modern version is recommended for getting maximum performance & development experience with **flutter 2.0**.
 
 </br>
 
@@ -259,14 +259,18 @@ final Injected<Foo> foo = RM.inject<Foo>(
   ()=> Foo(),
   onInitialized : (Foo state) => print('Initialized'),
   // Default callbacks for side effects.
-  onSetState: On.all(
-    onIdle: () => print('Is idle'),
-    onWaiting: () => print('Is waiting'),
-    onError: (error) => print('Has error'),
-    onData: (Foo data) => print('Has data'),
+  sideEffects: SideEffects(
+    onSetState: (snap){
+      snap.onAll(
+        onIdle: () => print('Is idle'),
+        onWaiting: () => print('Is waiting'),
+        onError: (error) => print('Has error'),
+        onData: (Foo data) => print('Has data'),
+      );
+    },
+    // It is disposed when no longer needed
+    dispose: ()=>  print('Disposed'),
   ),
-  // It is disposed when no longer needed
-  onDisposed: (Foo state) => print('Disposed'),
   // To persist the state
   persist:() => PersistState(
       key: '__FooKey__',
@@ -276,17 +280,14 @@ final Injected<Foo> foo = RM.inject<Foo>(
       throttleDelay: 1000,
   ),
 
-  // middleSnapState as a middleWare place used to 
-  // track and log state lifecycle and transitions.
+  // stateInterceptor as a middleWare place
   // It can also be used to return another state created 
   // from the current state and the next state.
-  middleSnapState: (middleSnap) {
-     middleSnap.print(); //Build-in logger
-    
+  stateInterceptor: (currentSnap, nextSnap) {
     // Example of simple email validation
-    if (middleSnap.nextSnap.hasData) {
-      if (!middleSnap.nextSnap.data.contains('@')) {
-        return middleSnap.nextSnap.copyToHasError(
+    if (nextSnap.hasData) {
+      if (!nextSnap.data.contains('@')) {
+        return nextSnap.copyToHasError(
           Exception('Enter a valid Email'),
         );
       }
@@ -327,7 +328,7 @@ foo.state = newFoo;
 foo.setState(
   (s) => s.fetchSomeThing(),
   // Run `side-effect` during setState
-  onSetState: On.waiting(()=> showSnackBar()),
+  sideEffects: SideEffects.onWaiting(()=> showSnackBar()),
   debounceDelay : 400,
 );
 
@@ -735,16 +736,20 @@ To navigate, show dialogs and snackBars without `BuildContext`:
 
 To authenticate and authorize users,
   ```dart
-  final user = RM.injectAuth<User, Param>(
-      ()=> MyAuthRepository(),// Implements IAuth<User, Param>
-      unSignedUser: UnsignedUser(), // If null-safety it's `null`
-      onSigned: (user)=> // Navigate to home page,
-      onUnsigned: ()=> // Navigate to Auth Page,
-      autoSignOut: (user)=> Duration(seconds: user.tokenExpiryDate)
+  final user = RM.injectAuth<User?, Param>(
+      ()=> MyAuthRepository(),// Implements IAuth<User?, Param>
+      autoRefreshTokenOrSignOut: (user)=> Duration(seconds: user.tokenExpiryDate)
   );
   ```
 
   ```dart
+  // in the widget tree
+  OnAuthBuilder(
+    listenTo: user,
+    onUnsigned: ()=> LoginPage(),
+    onSigned: ()=> UserHomePage(),
+  )
+  // later on: 
   // Sign up
   user.auth.signUp((param)=> Param());
   // Sign in
@@ -881,21 +886,25 @@ To deal with TextFields and Form validation
   final email =  RM.injectTextEditing():
 
   final password = RM.injectTextEditing(
-    validator: (String? value) {
-      if (value!.length < 6) {
-        return "Password must have at least 6 characters";
-      }
-      return null;
-    },
+    validators: [
+      (String? value) {
+        if (value!.length < 6) {
+          return "Password must have at least 6 characters";
+        }
+        return null;
+      },
+    ],
   );
 
     final acceptLicence = RM.injectedFormField(
-    validator: (bool? value) {
-      if (bool != true) {
-        return "You have to accept the licence";
-      }
-      return null;
-    },
+    validators: [
+      (bool? value) {
+        if (bool != true) {
+          return "You have to accept the licence";
+        }
+        return null;
+      },
+    ],
   );
 
   final form = RM.injectForm(
