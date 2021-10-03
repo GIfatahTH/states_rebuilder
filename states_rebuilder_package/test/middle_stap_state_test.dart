@@ -287,6 +287,8 @@ void main() {
         },
         dependsOn: DependsOn({model1}),
       );
+      model1.initializeState();
+      model2.initializeState();
       expect(model1.isIdle, true);
       expect(model2.isWaiting, true);
       await tester.pump(Duration(seconds: 1));
