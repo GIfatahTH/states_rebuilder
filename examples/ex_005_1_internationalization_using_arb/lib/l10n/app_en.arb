@@ -10,8 +10,8 @@
             "name": {}
         }
     },
-    "genre": "{gender, select, male {Hi man!} female {Hi woman!} other {Hi there!}}",
-    "@genre": {
+    "gender": "{gender, select, male {Hi man!} female {Hi woman!} other {Hi there!}}",
+    "@gender": {
         "placeholders": {
             "gender": {}
         }
