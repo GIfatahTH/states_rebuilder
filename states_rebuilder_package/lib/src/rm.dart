@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'builders/top_stateless_widget.dart';
 
 import 'builders/on_reactive.dart';
 import 'common/consts.dart';
@@ -47,6 +48,7 @@ part 'navigate/build_context_x.dart';
 part 'navigate/page_route_builder.dart';
 part 'navigate/rm_navigator.dart';
 part 'navigate/rm_scaffold.dart';
+part 'navigate/rm_navigator_2.dart';
 part 'navigate/route_data.dart';
 part 'navigate/route_full_widget.dart';
 part 'navigate/route_widget.dart';

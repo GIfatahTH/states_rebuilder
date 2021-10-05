@@ -139,7 +139,11 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   List<Future<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
-  void didMountWidget() {}
+  void didMountWidget() {
+    if (this is TopRouter) {
+      Routers.initialize((this as TopRouter).routes);
+    }
+  }
 
   ///Called when the widget is  removed from the widget tree
   void didUnmountWidget() {}
@@ -161,7 +165,6 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 
 class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
   AddObsCallback? cachedAddToObs;
-  late VoidCallback removeFromContextSet;
   final Map<InjectedBaseState, VoidCallback> _obs = {};
   bool isWaiting = false;
   dynamic error;
@@ -193,7 +196,6 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     super.initState();
     OnReactiveState.addToTopStatelessObs = _addToObs;
     widget.didMountWidget();
-    removeFromContextSet = addToContextSet(context);
     _ensureInitialization();
   }
 
@@ -225,7 +227,6 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     for (var disposer in _obs.values) {
       disposer();
     }
-    removeFromContextSet();
     widget.didUnmountWidget();
     RM.disposeAll();
     super.dispose();
