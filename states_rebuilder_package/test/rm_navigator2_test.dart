@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -66,14 +68,6 @@ class _App extends TopStatelessWidget with TopRouter {
 }
 
 void main() {
-  testWidgets(
-    'WHEN'
-    'THEN',
-    (tester) async {
-      await tester.pumpWidget(_App());
-    },
-  );
-
   testWidgets('navigate to', (tester) async {
     await tester.pumpWidget(_App());
     expect(RM.context, isNotNull);
@@ -124,53 +118,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
-  testWidgets('navigate to remove until', (tester) async {
-    await tester.pumpWidget(_App());
+  // testWidgets('navigate to remove until', (tester) async {
+  //   await tester.pumpWidget(_App());
 
-    expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
-    await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route3', arguments: 'data');
-    await tester.pumpAndSettle();
-    //
-    RM.navigate.toAndRemoveUntil(
-      Route2('data'),
-      name: 'ROUTE2',
-      untilRouteName: '/',
-      fullscreenDialog: true,
-      maintainState: false,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Route2: data'), findsOneWidget);
-    //
-    RM.navigate.back();
-    await tester.pumpAndSettle();
-    expect(find.text('Home'), findsOneWidget);
-    //With route name
-    RM.navigate.toAndRemoveUntil(
-      Route2('data'),
-      name: 'ROUTE2',
-      untilRouteName: '/',
-    );
-    RM.navigate.toNamed('Route1', arguments: 'data');
-    await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route3', arguments: 'data');
-    await tester.pumpAndSettle();
-    //
-    RM.navigate.toAndRemoveUntil(
-      Route1(''),
-      untilRouteName: 'ROUTE2',
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Route1: '), findsOneWidget);
-    RM.navigate.back();
-    await tester.pumpAndSettle();
-    expect(find.text('Route2: data'), findsOneWidget);
-    //
-    RM.navigate.back();
-    await tester.pumpAndSettle();
-    expect(find.text('Home'), findsOneWidget);
-  });
+  //   expect(find.text('Home'), findsOneWidget);
+  //   RM.navigate.toNamed('Route1', arguments: 'data');
+  //   await tester.pumpAndSettle();
+  //   RM.navigate.toNamed('Route3', arguments: 'data');
+  //   await tester.pumpAndSettle();
+  //   //
+  //   RM.navigate.toAndRemoveUntil(
+  //     Route2('data'),
+  //     name: 'ROUTE2',
+  //     untilRouteName: '/',
+  //     fullscreenDialog: true,
+  //     maintainState: false,
+  //   );
+  //   await tester.pumpAndSettle();
+  //   expect(find.text('Route2: data'), findsOneWidget);
+  //   //
+  //   RM.navigate.back();
+  //   await tester.pumpAndSettle();
+  //   expect(find.text('Home'), findsOneWidget);
+  //   //With route name
+  //   RM.navigate.toAndRemoveUntil(
+  //     Route2('data'),
+  //     name: 'ROUTE2',
+  //     untilRouteName: '/',
+  //   );
+  //   RM.navigate.toNamed('Route1', arguments: 'data');
+  //   await tester.pumpAndSettle();
+  //   RM.navigate.toNamed('Route3', arguments: 'data');
+  //   await tester.pumpAndSettle();
+  //   //
+  //   RM.navigate.toAndRemoveUntil(
+  //     Route1(''),
+  //     untilRouteName: 'ROUTE2',
+  //   );
+  //   await tester.pumpAndSettle();
+  //   expect(find.text('Route1: '), findsOneWidget);
+  //   RM.navigate.back();
+  //   await tester.pumpAndSettle();
+  //   expect(find.text('Route2: data'), findsOneWidget);
+  //   //
+  //   RM.navigate.back();
+  //   await tester.pumpAndSettle();
+  //   expect(find.text('Home'), findsOneWidget);
+  // });
 
 //   testWidgets('navigate to remove all', (tester) async {
 //     await tester.pumpWidget(_App());
@@ -196,156 +190,155 @@ void main() {
 //     expect(find.text('Home'), findsNothing);
 //   });
 
-//   testWidgets('navigate to named remove  until', (tester) async {
-//     await tester.pumpWidget(_App());
+  testWidgets('navigate to named remove  until', (tester) async {
+    await tester.pumpWidget(_App());
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.to(Route1(''), name: 'ROUTE1');
-//     await tester.pumpAndSettle();
-//     RM.navigate.toNamed('Route2', arguments: '');
-//     await tester.pumpAndSettle();
-//     //
-//     RM.navigate.toNamedAndRemoveUntil(
-//       'Route3',
-//       arguments: 'data',
-//       untilRouteName: 'ROUTE1',
-//       fullscreenDialog: true,
-//       maintainState: false,
-//     );
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route3'), findsOneWidget);
-//     //
-//     RM.navigate.back();
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route1: '), findsOneWidget);
-//     RM.navigate.back();
-//     await tester.pumpAndSettle();
-//     expect(find.text('Home'), findsOneWidget);
-//   });
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.to(const Route1(''), name: 'ROUTE1');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: '');
+    await tester.pumpAndSettle();
+    //
+    RM.navigate.toNamedAndRemoveUntil(
+      'Route3',
+      arguments: 'data',
+      untilRouteName: 'ROUTE1',
+      fullscreenDialog: true,
+      maintainState: false,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Route1: '), findsOneWidget);
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
 
-//   testWidgets('navigate to named remove  all', (tester) async {
-//     await tester.pumpWidget(_App());
+  testWidgets('navigate to named remove  all', (tester) async {
+    await tester.pumpWidget(_App());
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toNamed('Route1', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     RM.navigate.toNamed('Route2', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     //
-//     RM.navigate.toNamedAndRemoveUntil(
-//       'Route3',
-//       arguments: 'data',
-//     );
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route3'), findsOneWidget);
-//     //
-//     RM.navigate.back();
-//     await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
+    //
+    RM.navigate.toNamedAndRemoveUntil(
+      'Route3',
+      arguments: 'data',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
 
-//     expect(find.text('Route3'), findsNothing);
-//     expect(find.text('Home'), findsNothing);
-//   });
+    expect(find.text('Route3'), findsOneWidget);
+    expect(find.text('Home'), findsNothing);
+  });
 
-//   testWidgets('back until', (tester) async {
-//     await tester.pumpWidget(_App());
+  testWidgets('back until', (tester) async {
+    await tester.pumpWidget(_App());
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toNamed('Route1', arguments: 'data');
-//     await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
 
-//     RM.navigate.toNamed('Route2', arguments: 'data');
-//     await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
 
-//     RM.navigate.toNamed('Route3', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route3'), findsOneWidget);
-//     //
-//     RM.navigate.backUntil('/Route1');
-//     await tester.pumpAndSettle();
-//     await tester.pumpAndSettle(Duration(seconds: 1));
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.backUntil('/Route1');
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 1));
 
-//     expect(find.text('Route1: data'), findsOneWidget);
-//     //
-//     RM.navigate.back();
-//     await tester.pumpAndSettle();
-//     expect(find.text('Home'), findsOneWidget);
-//   });
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+  });
 
-//   testWidgets('back and to named', (tester) async {
-//     await tester.pumpWidget(_App());
+  testWidgets('back and to named', (tester) async {
+    await tester.pumpWidget(_App());
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toNamed('Route1', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route2', arguments: 'data');
+    await tester.pumpAndSettle();
+    RM.navigate.toNamed('Route3', arguments: 'data');
+    await tester.pumpAndSettle();
+    expect(find.text('Route3'), findsOneWidget);
+    //
+    RM.navigate.backAndToNamed(
+      'Route1',
+      arguments: 'data',
+      result: '',
+      fullscreenDialog: true,
+      maintainState: false,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Route1: data'), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    expect(find.text('Route2: data'), findsOneWidget);
+  });
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toNamed('Route1', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     RM.navigate.toNamed('Route2', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     RM.navigate.toNamed('Route3', arguments: 'data');
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route3'), findsOneWidget);
-//     //
-//     RM.navigate.backAndToNamed(
-//       'Route1',
-//       arguments: 'data',
-//       result: '',
-//       fullscreenDialog: true,
-//       maintainState: false,
-//     );
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route1: data'), findsOneWidget);
-//     //
-//     RM.navigate.back();
-//     await tester.pumpAndSettle();
-//     expect(find.text('Route2: data'), findsOneWidget);
-//   });
+  testWidgets('to CupertinoDialog', (tester) async {
+    await tester.pumpWidget(_App());
 
-//   testWidgets('to CupertinoDialog', (tester) async {
-//     await tester.pumpWidget(_App());
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toCupertinoDialog(
+      const Dialog(
+        child: Text(''),
+      ),
+      barrierDismissible: false,
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.byType(Dialog), findsOneWidget);
+  });
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toCupertinoDialog(
-//       Dialog(
-//         child: Text(''),
-//       ),
-//       barrierDismissible: false,
-//     );
-//     await tester.pumpAndSettle();
-//     //
-//     expect(find.byType(Dialog), findsOneWidget);
-//   });
+  testWidgets('to BottomSheet', (tester) async {
+    await tester.pumpWidget(_App());
 
-//   testWidgets('to BottomSheet', (tester) async {
-//     await tester.pumpWidget(_App());
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toBottomSheet(
+      const Text('bottom sheet'),
+      isDismissible: true,
+      backgroundColor: Colors.red,
+      barrierColor: Colors.black,
+      clipBehavior: Clip.antiAlias,
+      elevation: 2.0,
+      enableDrag: true,
+      isScrollControlled: true,
+      shape: const BorderDirectional(),
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.text('bottom sheet'), findsOneWidget);
+  });
 
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toBottomSheet(
-//       Text('bottom sheet'),
-//       isDismissible: true,
-//       backgroundColor: Colors.red,
-//       barrierColor: Colors.black,
-//       clipBehavior: Clip.antiAlias,
-//       elevation: 2.0,
-//       enableDrag: true,
-//       isScrollControlled: true,
-//       shape: BorderDirectional(),
-//     );
-//     await tester.pumpAndSettle();
-//     //
-//     expect(find.text('bottom sheet'), findsOneWidget);
-//   });
+  testWidgets('to CupertinoModalPopup', (tester) async {
+    await tester.pumpWidget(_App());
 
-//   testWidgets('to CupertinoModalPopup', (tester) async {
-//     await tester.pumpWidget(_App());
-
-//     expect(find.text('Home'), findsOneWidget);
-//     RM.navigate.toCupertinoModalPopup(
-//       Text('toCupertinoModalPopup'),
-//       semanticsDismissible: true,
-//       filter: ImageFilter.blur(),
-//     );
-//     await tester.pumpAndSettle();
-//     //
-//     expect(find.text('toCupertinoModalPopup'), findsOneWidget);
-//   });
+    expect(find.text('Home'), findsOneWidget);
+    RM.navigate.toCupertinoModalPopup(
+      const Text('toCupertinoModalPopup'),
+      semanticsDismissible: true,
+      filter: ImageFilter.blur(),
+    );
+    await tester.pumpAndSettle();
+    //
+    expect(find.text('toCupertinoModalPopup'), findsOneWidget);
+  });
 
 //   testWidgets(
 //       'WHEN RM.navigate.pageRouteBuilder is defined'

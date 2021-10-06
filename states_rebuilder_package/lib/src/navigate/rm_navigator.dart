@@ -63,6 +63,17 @@ MaterialApp(
   dynamic _routeArguments;
   final Map<String, String> _routeQueryParams = {};
   final Map<String, String> _routePathParams = {};
+  void _resetFields() {
+    _routeData.clear();
+    routeData = null;
+    _routeQueryParams.clear();
+    _routePathParams.clear();
+    _routeArguments = null;
+
+    _urlPath = '';
+    _routePath = '';
+    absolutePath = '';
+  }
 
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
@@ -93,15 +104,7 @@ MaterialApp(
     pageRouteBuilder = null;
 
     return (RouteSettings settings) {
-      _routeData.clear();
-      routeData = null;
-      _routeQueryParams.clear();
-      _routePathParams.clear();
-      _routeArguments = null;
-
-      _urlPath = '';
-      _routePath = '';
-      absolutePath = '';
+      _resetFields();
 
       final page = _resolvePageFromRouteSettings(settings);
 
@@ -210,6 +213,7 @@ MaterialApp(
       _routePath += name!;
       routeData = RouteData(
         baseUrl: _getBaseUrl(_urlPath),
+        urlPath: _urlPath,
         routePath: _routePath,
         arguments: _routeArguments,
         queryParams: {..._routeQueryParams},
@@ -318,6 +322,15 @@ MaterialApp(
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
+    if (Routers._routerDelegate != null && name != null) {
+      return Routers._routerDelegate!.to<T>(
+        RouteSettingsWithChild(
+          name: name,
+          child: page,
+        ),
+      );
+    }
+
     return navigatorState.push<T>(
       _pageRouteBuilder(
         (_) => page,
@@ -345,8 +358,8 @@ MaterialApp(
     }
 
     if (Routers._routerDelegate != null) {
-      return Routers._routerDelegate!.toNamed<T>(
-        RouteSettings(name: routeName, arguments: arguments),
+      return Routers._routerDelegate!.to<T>(
+        RouteSettingsWithChild(name: routeName, arguments: arguments),
       );
     }
 
@@ -401,7 +414,7 @@ MaterialApp(
 
     if (Routers._routerDelegate != null) {
       return Routers._routerDelegate!.toReplacementNamed<T, TO>(
-        RouteSettings(name: routeName, arguments: arguments),
+        RouteSettingsWithChild(name: routeName, arguments: arguments),
       );
     }
 
@@ -465,6 +478,14 @@ MaterialApp(
       newRouteName =
           Uri(path: newRouteName, queryParameters: queryParams).toString();
     }
+
+    if (Routers._routerDelegate != null) {
+      return Routers._routerDelegate!.toNamedAndRemoveUntil<T>(
+        RouteSettingsWithChild(name: newRouteName, arguments: arguments),
+        untilRouteName,
+      );
+    }
+
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -487,6 +508,11 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.popUntil]
   void backUntil(String untilRouteName) {
+    if (Routers._routerDelegate != null) {
+      Routers._routerDelegate!.backUntil(untilRouteName);
+      return;
+    }
+
     return navigatorState.popUntil(
       ModalRoute.withName(untilRouteName),
     );
@@ -504,6 +530,12 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+    if (Routers._routerDelegate != null) {
+      return Routers._routerDelegate!.backAndToNamed<T, TO>(
+        RouteSettingsWithChild(name: routeName, arguments: arguments),
+        result,
+      );
+    }
     return navigatorState.popAndPushNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -641,40 +673,11 @@ MaterialApp(
   }
 }
 
-List<dynamic> _isMatched(Uri route, Uri url) {
-  Map<String, String>? params;
-  if (route.pathSegments.length > url.pathSegments.length) {
-    return [false, null, null];
-  }
-  if (route.pathSegments.isEmpty) {
-    if (url.pathSegments.isEmpty) {
-      return [true, route, ''];
-    } else {
-      return [false, null, null];
-    }
-  }
+mixin TopRouter on TopStatelessWidget {
+  final RouteInformationParser<RouteSettings> routeInformationParser =
+      _RouteInformationParser();
+  late final RouterDelegate<RouteSettings> routerDelegate =
+      Routers._routerDelegate!;
 
-  String parsedUrl = '';
-  for (var i = 0; i < route.pathSegments.length; i++) {
-    if (route.pathSegments[i].startsWith(':')) {
-      params ??= {};
-      params[route.pathSegments[i].substring(1)] = url.pathSegments[i];
-    } else {
-      if (route.pathSegments[i] != url.pathSegments[i]) {
-        return [false, params, ''];
-      }
-    }
-    parsedUrl += '/${url.pathSegments[i]}';
-  }
-  return [
-    true,
-    route.replace(path: parsedUrl, queryParameters: params),
-    url.path.replaceFirst(parsedUrl, ''),
-  ];
-}
-
-String _getBaseUrl(String path) {
-  final segments = path.split('/');
-  segments.removeLast();
-  return segments.join('/');
+  Map<String, Widget Function(RouteData)> get routes;
 }

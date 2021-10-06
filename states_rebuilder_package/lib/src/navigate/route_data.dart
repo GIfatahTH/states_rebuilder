@@ -50,6 +50,7 @@ class _RouteData {
 class RouteData {
   final String baseUrl;
   final String routePath;
+  final String urlPath;
   // final String routeName;
   final Map<String, String> queryParams;
   final Map<String, String> pathParams;
@@ -59,7 +60,7 @@ class RouteData {
   RouteData({
     required this.baseUrl,
     required this.routePath,
-    // required this.routeName,
+    required this.urlPath,
     required this.queryParams,
     required this.pathParams,
     required this.arguments,
@@ -67,6 +68,6 @@ class RouteData {
 
   @override
   String toString() {
-    return 'RouteData(baseUrl: $baseUrl, routePath: $routePath, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments, _isBaseUrlChanged: $_isBaseUrlChanged)';
+    return 'RouteData(baseUrl: $baseUrl, routePath: $routePath, urlPath: $urlPath, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments, _isBaseUrlChanged: $_isBaseUrlChanged)';
   }
 }

@@ -62,4 +62,5 @@ export 'src/rm.dart'
         OnBuilder,
         SideEffects,
         OnFutureBuilder,
-        OnStreamBuilder;
+        OnStreamBuilder,
+        TopRouter;
