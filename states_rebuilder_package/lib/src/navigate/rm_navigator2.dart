@@ -12,6 +12,7 @@ abstract class Routers {
 }
 
 final List<RouteSettingsWithChild> _routeSettingsList = [];
+final resolvePathRouteUtil = ResolvePathRouteUtil();
 
 class _RouterDelegate extends RouterDelegate<RouteSettingsWithChild>
     with
@@ -28,7 +29,7 @@ class _RouterDelegate extends RouterDelegate<RouteSettingsWithChild>
   @override
   Future<void> setInitialRoutePath(RouteSettingsWithChild configuration) async {
     // return setNewRoutePath(configuration);
-    updatePages();
+    // updatePages();
   }
 
   void updatePages() {
@@ -40,9 +41,12 @@ class _RouterDelegate extends RouterDelegate<RouteSettingsWithChild>
         _pages[settings] = p[settings]!;
       } else {
         _pages[settings] = _createPage(settings);
-        if (_navigate.absolutePath.isNotEmpty) {
+        if (settings.child != null) {
+          return;
+        }
+        if (resolvePathRouteUtil.absolutePath.isNotEmpty) {
           _routeSettingsList[i] = settings.copyWith(
-            name: _navigate.absolutePath,
+            name: resolvePathRouteUtil.absolutePath,
           );
         }
       }
@@ -75,13 +79,20 @@ class _RouterDelegate extends RouterDelegate<RouteSettingsWithChild>
     RouteSettingsWithChild settings,
   ) {
     late MaterialPage m;
-    _navigate._resetFields();
     if (settings.child == null) {
-      final child = _navigate._resolvePageFromRouteSettings(settings);
+      final child = resolvePathRouteUtil
+          .getPagesFromRouteSettings(
+            routes: Routers.routers!,
+            settings: settings,
+          )
+          .values
+          .last
+          .child;
+
       m = MaterialPage(
         child: child ?? const Text('404'),
         key: ValueKey(settings.name),
-        name: _navigate.absolutePath,
+        name: resolvePathRouteUtil.absolutePath,
         arguments: settings.arguments,
         fullscreenDialog: _navigate._fullscreenDialog,
         maintainState: _navigate._maintainState,
@@ -242,6 +253,13 @@ class _RouteInformationParser
       RouteInformation routeInformation) async {
     final settings =
         RouteSettingsWithChild(name: routeInformation.location ?? '/');
+
+    final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
+      routes: Routers.routers!,
+      settings: settings,
+    );
+    _routeSettingsList.clear();
+    _routeSettingsList.addAll(pages.values);
     // _navigate._resetFields();
     // _routeSettingsList.clear();
     // final child = _navigate._resolvePageFromRouteSettings(settings);
@@ -256,12 +274,12 @@ class _RouteInformationParser
     //   );
     // }
     // print(_routeSettingsList);
-    if (_routeSettingsList.isEmpty) {
-      _routeSettingsList.add(settings);
-      _routeSettingsList.add(const RouteSettingsWithChild(
-          name: '/book/1', arguments: null, child: null));
-    }
-    print(_routeSettingsList);
+    // if (_routeSettingsList.isEmpty) {
+    //   _routeSettingsList.add(settings);
+    //   // _routeSettingsList.add(const RouteSettingsWithChild(
+    //   //     name: '/book/1', arguments: null, child: null));
+    // }
+    // print(_routeSettingsList);
 
     return SynchronousFuture(settings);
   }
@@ -316,22 +334,23 @@ class RouteSettingsWithChild extends RouteSettings {
   int get hashCode => name.hashCode;
 
   @override
-  String toString() =>
-      'RouteSettingsWithChild(name: $name, child: $child, arguments: $arguments,'
+  String toString() => 'Page(name: $name, child: $child, arguments: $arguments,'
       ' pathParams: $pathParams, queryParams: $queryParams)';
 }
 
-class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChild {
-  final Widget? subRoute;
-  final bool isBaseUrlChanged;
-  const RouteSettingsWithChildAndSubRoute({
+class RouteSettingsWithChildAndData extends RouteSettingsWithChild {
+  final String routeUriPath;
+  final String baseUrlPath;
+  final bool isPagesFound;
+  const RouteSettingsWithChildAndData({
     required String name,
+    required this.routeUriPath,
+    required this.baseUrlPath,
+    this.isPagesFound = true,
     Object? arguments,
     Widget? child,
     Map<String, String> queryParams = const {},
     Map<String, String> pathParams = const {},
-    this.subRoute,
-    this.isBaseUrlChanged = false,
   }) : super(
           name: name,
           child: child,
@@ -341,8 +360,61 @@ class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChild {
         );
 
   @override
-  RouteSettingsWithChild copyWith({
+  RouteSettingsWithChildAndData copyWith({
     String? name,
+    Object? arguments,
+    Widget? child,
+    Map<String, String>? queryParams,
+    Map<String, String>? pathParams,
+    String? routeUriPath,
+    String? baseUrlPath,
+  }) {
+    return RouteSettingsWithChildAndData(
+      name: name ?? super.name!,
+      arguments: arguments ?? super.arguments,
+      child: child ?? this.child,
+      queryParams: queryParams ?? this.queryParams,
+      pathParams: pathParams ?? this.pathParams,
+      routeUriPath: routeUriPath ?? this.routeUriPath,
+      baseUrlPath: baseUrlPath ?? this.baseUrlPath,
+    );
+  }
+
+  @override
+  String toString() =>
+      isPagesFound ? super.toString() : 'PAGE NOT Found (name: $name)';
+}
+
+class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChildAndData {
+  final Widget? subRoute;
+  final bool isBaseUrlChanged;
+  const RouteSettingsWithChildAndSubRoute({
+    required String name,
+    required String routeUriPath,
+    required String baseUrlPath,
+    Object? arguments,
+    Widget? child,
+    Map<String, String> queryParams = const {},
+    Map<String, String> pathParams = const {},
+    this.subRoute,
+    this.isBaseUrlChanged = false,
+    bool isPagesFound = true,
+  }) : super(
+          name: name,
+          child: child,
+          arguments: arguments,
+          queryParams: queryParams,
+          pathParams: pathParams,
+          routeUriPath: routeUriPath,
+          baseUrlPath: baseUrlPath,
+          isPagesFound: isPagesFound,
+        );
+
+  @override
+  RouteSettingsWithChildAndSubRoute copyWith({
+    String? name,
+    String? routeUriPath,
+    String? baseUrlPath,
     Object? arguments,
     Widget? child,
     Map<String, String>? queryParams,
@@ -352,6 +424,8 @@ class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChild {
   }) {
     return RouteSettingsWithChildAndSubRoute(
       name: name ?? super.name!,
+      routeUriPath: routeUriPath ?? this.routeUriPath,
+      baseUrlPath: baseUrlPath ?? this.baseUrlPath,
       arguments: arguments ?? super.arguments,
       child: child ?? this.child,
       queryParams: queryParams ?? this.queryParams,

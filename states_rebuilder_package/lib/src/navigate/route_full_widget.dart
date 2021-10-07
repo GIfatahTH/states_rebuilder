@@ -1,5 +1,103 @@
 part of '../rm.dart';
 
+class _RouteFullWidget1 extends StatefulWidget {
+  final Map<String, RouteSettingsWithChildAndData> pages;
+
+  final Animation<double>? animation;
+  final void Function()? initState;
+  final void Function()? dispose;
+  const _RouteFullWidget1({
+    Key? key,
+    required this.pages,
+    this.animation,
+    this.initState,
+    this.dispose,
+  }) : super(key: key);
+
+  @override
+  __RouteFullWidget1State createState() => __RouteFullWidget1State();
+}
+
+class __RouteFullWidget1State extends State<_RouteFullWidget1> {
+  Widget? child;
+  @override
+  void initState() {
+    super.initState();
+    _initState();
+  }
+
+  void _initState() {
+    Widget getChild({
+      required List<String> keys,
+      required Widget? route,
+      required Widget? lastSubRoute,
+    }) {
+      var key = keys.last;
+      final lastPage = widget.pages[key]!;
+      child = SubRoute._(
+        child: () {
+          var c = lastPage.child;
+          if (lastPage is RouteSettingsWithChildAndSubRoute) {
+            if (route != null) {
+              return (c as RouteWidget).builder!(route);
+            }
+            if (lastPage.subRoute != null) {
+              return lastPage.subRoute!;
+            }
+            if (c is RouteWidget) {
+              return c.builder!(route ?? const SizedBox());
+            }
+          }
+          return c!;
+        }(),
+        route: route,
+        lastSubRoute: lastSubRoute,
+        routeData: RouteData(
+          arguments: lastPage.arguments,
+          urlPath: lastPage.name!,
+          routePath: lastPage.routeUriPath,
+          baseUrl: lastPage.baseUrlPath,
+          queryParams: lastPage.queryParams,
+          pathParams: lastPage.pathParams,
+        ),
+        animation: widget.animation,
+        transitionsBuilder: lastPage.child is RouteWidget
+            ? (lastPage.child as RouteWidget).transitionsBuilder
+            : null,
+        shouldAnimate: false,
+        key: Key(key),
+      );
+      return child!;
+    }
+
+    var keys = widget.pages.keys.toList();
+    getChild(keys: keys, route: null, lastSubRoute: null);
+    while (true) {
+      keys.removeLast();
+
+      if (keys.isEmpty) {
+        break;
+      }
+      final r = widget.pages[keys.last];
+      if (r is RouteSettingsWithChildAndSubRoute) {
+        final c = r.child as RouteWidget;
+        if (c.builder != null) {
+          getChild(
+            keys: keys,
+            route: child,
+            lastSubRoute: null,
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return child!;
+  }
+}
+
 class _RouteFullWidget extends StatefulWidget {
   final Widget child;
   final Map<String, _RouteData> routeData;

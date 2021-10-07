@@ -3,47 +3,68 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
 
 void main() {
-  final routePathResolver = ResolvePathRouteUtil();
+  late ResolvePathRouteUtil routePathResolver;
+  setUp(() {
+    routePathResolver = ResolvePathRouteUtil();
+  });
   testWidgets(
     'test setAbsoluteUrlPath',
     (tester) async {
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
-      expect(routePathResolver.absolutePath, '/');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
-      expect(routePathResolver.absolutePath, '/page1');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: 'page1'));
-      expect(routePathResolver.absolutePath, '/page1');
+      var absolutePath =
+          routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
+      expect(absolutePath, '/');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
+      expect(absolutePath, '/page1');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: 'page1'));
+      expect(absolutePath, '/page1');
+      //
+      routePathResolver.baseUrl = '/';
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
+      expect(absolutePath, '/page1');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: 'page1'));
+      expect(absolutePath, '/page1');
+
       //
       routePathResolver.baseUrl = '/page1';
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
-      expect(routePathResolver.absolutePath, '/');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
-      expect(routePathResolver.absolutePath, '/page1');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: 'page2'));
-      expect(routePathResolver.absolutePath, '/page1/page2');
+      absolutePath =
+          routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
+      expect(absolutePath, '/');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
+      expect(absolutePath, '/page1');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: 'page2'));
+      expect(absolutePath, '/page1/page2');
       //
       routePathResolver.baseUrl = '/page1/page2';
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
-      expect(routePathResolver.absolutePath, '/');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
-      expect(routePathResolver.absolutePath, '/page1');
-      routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: 'page3'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3');
-      routePathResolver
+      absolutePath =
+          routePathResolver.setAbsoluteUrlPath(const RouteSettings(name: '/'));
+      expect(absolutePath, '/');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: '/page1'));
+      expect(absolutePath, '/page1');
+      absolutePath = routePathResolver
+          .setAbsoluteUrlPath(const RouteSettings(name: 'page3'));
+      expect(absolutePath, '/page1/page2/page3');
+      absolutePath = routePathResolver
           .setAbsoluteUrlPath(const RouteSettings(name: 'page2/page3'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3');
-      routePathResolver
+      expect(absolutePath, '/page1/page2/page3');
+      absolutePath = routePathResolver
           .setAbsoluteUrlPath(const RouteSettings(name: 'page1/page2/page3'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3');
-      routePathResolver
+      expect(absolutePath, '/page1/page2/page3');
+      absolutePath = routePathResolver
           .setAbsoluteUrlPath(const RouteSettings(name: 'page3/page4'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3/page4');
-      routePathResolver
+      expect(absolutePath, '/page1/page2/page3/page4');
+      absolutePath = routePathResolver
           .setAbsoluteUrlPath(const RouteSettings(name: 'page2/page3/page4'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3/page4');
-      routePathResolver.setAbsoluteUrlPath(
+      expect(absolutePath, '/page1/page2/page3/page4');
+      absolutePath = routePathResolver.setAbsoluteUrlPath(
           const RouteSettings(name: 'page1/page2/page3/page4'));
-      expect(routePathResolver.absolutePath, '/page1/page2/page3/page4');
+      expect(absolutePath, '/page1/page2/page3/page4');
     },
   );
 
@@ -100,6 +121,7 @@ void main() {
         },
         settings: routeSetting,
       );
+      print(r);
       expect(r.values, [const RouteSettingsWithChild(name: '/')]);
       expect(r['/']!.child, isA<RouteWidget>());
       expect(
@@ -359,9 +381,145 @@ void main() {
         const RouteSettingsWithChild(name: '/page1/2'),
         const RouteSettingsWithChild(name: '/page1/2/page11/i_am_a_user'),
       ]);
-      expect(r['/page1/2']!.pathParams, {'id': '2'});
+      expect(r['/page1/2']!.pathParams, {'id': '2', 'user': 'i_am_a_user'});
       expect(r['/page1/2/page11/i_am_a_user']!.pathParams,
-          {'user': 'i_am_a_user'});
+          {'id': '2', 'user': 'i_am_a_user'});
+    },
+  );
+
+  testWidgets(
+    'route / not found',
+    (tester) async {
+      var routeSetting = const RouteSettings(name: '/');
+      Map<String, RouteSettingsWithChild> r =
+          routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+      expect(r.toString(), '{/: PAGE NOT Found (name: /)}');
+    },
+  );
+
+  testWidgets(
+    'route / inside RouteWidget not found',
+    (tester) async {
+      var routeSetting = const RouteSettings(name: '/page1');
+      Map<String, RouteSettingsWithChild> r =
+          routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+      expect(r.toString(), '{/page1: PAGE NOT Found (name: /page1)}');
+    },
+  );
+
+  testWidgets(
+    'get the right basePathUrl based on route path',
+    (tester) async {
+      // route name does not end with '/'
+      var routeSetting = const RouteSettings(name: '/page1');
+      routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (_) => const Center(),
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+      expect(routePathResolver.baseUrl, '/');
+
+      // route name ends with '/'
+      routeSetting = const RouteSettings(name: '/page1/');
+      routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (_) => const Center(),
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+      expect(routePathResolver.baseUrl, '/page1');
+    },
+  );
+
+  testWidgets(
+    'route / inside RouteWidget not found with builder defined',
+    (tester) async {
+      var routeSetting = const RouteSettings(name: '/page1');
+      Map<String, RouteSettingsWithChild> r =
+          routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                builder: (_) => const Center(),
+                routes: {
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+      expect(r.toString(), '{/page1: PAGE NOT Found (name: /page1)}');
+      print(r);
+      // expect(r.values, [const RouteSettingsWithChild(name: '/')]);
+      // expect(r['/']!.child, isA<Text>());
+    },
+  );
+
+  testWidgets(
+    'routes are ordered in the right order',
+    (tester) async {
+      var routeSetting = const RouteSettings(name: '/page1/page11');
+      Map<String, RouteSettingsWithChild> r =
+          routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (_) => const Text(''),
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+
+      expect(r.values, [
+        const RouteSettingsWithChild(name: '/page1'),
+        const RouteSettingsWithChild(name: '/page1/page11'),
+      ]);
+      //
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: {
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  'page11': (_) => const Text(''),
+                },
+              ),
+        },
+        settings: routeSetting,
+      );
+
+      expect(r.values, [
+        const RouteSettingsWithChild(name: '/page1'),
+        const RouteSettingsWithChild(name: '/page1/page11'),
+      ]);
     },
   );
 }

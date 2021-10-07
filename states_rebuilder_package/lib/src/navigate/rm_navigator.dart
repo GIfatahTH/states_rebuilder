@@ -103,31 +103,34 @@ MaterialApp(
     _baseUrl = '';
     pageRouteBuilder = null;
 
+    final resolvePathRouteUtil = ResolvePathRouteUtil();
+
     return (RouteSettings settings) {
-      _resetFields();
-
-      final page = _resolvePageFromRouteSettings(settings);
-
-      if (page != null) {
-        bool isSubRouteTransition = _routeData.values.any(
+      final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
+          routes: routes_,
+          settings: settings,
+          baseUrlPath: null,
+          unknownRoute: unknownRoute);
+      if (pages.isNotEmpty) {
+        bool isSubRouteTransition = pages.values.any(
           (e) {
-            return !e.routeData._isBaseUrlChanged;
+            if (e is RouteSettingsWithChildAndSubRoute) {
+              return !e.isBaseUrlChanged;
+            }
+            return false;
           },
         );
-        final _routeDataCopy = {..._routeData};
-
         final r = _pageRouteBuilder(
           (animation) {
-            return _RouteFullWidget(
-              child: page,
-              routeData: _routeDataCopy,
+            return _RouteFullWidget1(
+              pages: pages,
               animation: animation,
-              key: Key(_routeDataCopy.keys.toString()),
+              key: Key(pages.keys.toString()),
             );
           },
           RouteSettings(
-            name: absolutePath,
-            arguments: _routeArguments,
+            name: resolvePathRouteUtil.absolutePath,
+            arguments: settings.arguments,
           ),
           _fullscreenDialog,
           _maintainState,
@@ -137,143 +140,179 @@ MaterialApp(
         _fullscreenDialog = false;
         _maintainState = true;
         return r;
-      } else {
-        return unknownRoute != null
-            ? _pageRouteBuilder(
-                (_) => unknownRoute(absolutePath), settings, false, true)
-            : null;
       }
     };
+    // return (RouteSettings settings) {
+    //   _resetFields();
+
+    //   final page = _resolvePageFromRouteSettings(settings);
+
+    //   if (page != null) {
+    //     bool isSubRouteTransition = _routeData.values.any(
+    //       (e) {
+    //         return !e.routeData._isBaseUrlChanged;
+    //       },
+    //     );
+    //     final _routeDataCopy = {..._routeData};
+
+    //     final r = _pageRouteBuilder(
+    //       (animation) {
+    //         return _RouteFullWidget(
+    //           child: page,
+    //           routeData: _routeDataCopy,
+    //           animation: animation,
+    //           key: Key(_routeDataCopy.keys.toString()),
+    //         );
+    //       },
+    //       RouteSettings(
+    //         name: absolutePath,
+    //         arguments: _routeArguments,
+    //       ),
+    //       _fullscreenDialog,
+    //       _maintainState,
+    //       isSubRouteTransition: isSubRouteTransition,
+    //     );
+    //     //set to default
+    //     _fullscreenDialog = false;
+    //     _maintainState = true;
+    //     return r;
+    //   } else {
+    //     return unknownRoute != null
+    //         ? _pageRouteBuilder(
+    //             (_) => unknownRoute(absolutePath), settings, false, true)
+    //         : null;
+    //   }
+    // };
   }
 
-  Widget? _resolvePageFromRouteSettings(RouteSettings settings) {
-    if (settings.name!.startsWith('/')) {
-      absolutePath = settings.name!;
-    } else {
-      if (_baseUrl == '') {
-        absolutePath = '/' + settings.name!;
-      } else {
-        String relativeBasePath = _getBaseUrl('/' + settings.name!);
-        String? p;
-        while (relativeBasePath.isNotEmpty) {
-          // add '/' to ensure the route name and not a stirng containing the name
-          final r = (_baseUrl + '/').split(relativeBasePath + '/');
-          if (r.length > 1) {
-            r.removeLast();
-            p = r.join('/');
-          }
-          if (p != null) {
-            break;
-          }
-          relativeBasePath = _getBaseUrl(relativeBasePath);
-        }
+  // Widget? _resolvePageFromRouteSettings(RouteSettings settings) {
+  //   if (settings.name!.startsWith('/')) {
+  //     absolutePath = settings.name!;
+  //   } else {
+  //     if (_baseUrl == '') {
+  //       absolutePath = '/' + settings.name!;
+  //     } else {
+  //       String relativeBasePath = _getBaseUrl('/' + settings.name!);
+  //       String? p;
+  //       while (relativeBasePath.isNotEmpty) {
+  //         // add '/' to ensure the route name and not a stirng containing the name
+  //         final r = (_baseUrl + '/').split(relativeBasePath + '/');
+  //         if (r.length > 1) {
+  //           r.removeLast();
+  //           p = r.join('/');
+  //         }
+  //         if (p != null) {
+  //           break;
+  //         }
+  //         relativeBasePath = _getBaseUrl(relativeBasePath);
+  //       }
 
-        absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
-      }
-    }
+  //       absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
+  //     }
+  //   }
 
-    settings = settings.copyWith(name: absolutePath);
-    return _resolvePage(settings);
-  }
+  //   settings = settings.copyWith(name: absolutePath);
+  //   return _resolvePage(settings);
+  // }
 
-  Widget? _resolvePage(RouteSettings settings) {
-    assert(settings.name != null);
+  // Widget? _resolvePage(RouteSettings settings) {
+  //   assert(settings.name != null);
 
-    final uri = Uri.parse(settings.name!);
-    late Uri routeUri;
-    late String childName;
+  //   final uri = Uri.parse(settings.name!);
+  //   late Uri routeUri;
+  //   late String childName;
 
-    var name = _routes.keys.firstWhereOrNull(
-      (key) {
-        final matcher = _isMatched(
-          Uri.parse(key),
-          uri,
-        );
-        if (matcher.first == true) {
-          routeUri = matcher[1];
-          childName = matcher[2];
+  //   var name = _routes.keys.firstWhereOrNull(
+  //     (key) {
+  //       final matcher = _isMatched(
+  //         Uri.parse(key),
+  //         uri,
+  //       );
+  //       if (matcher.first == true) {
+  //         routeUri = matcher[1];
+  //         childName = matcher[2];
 
-          return true;
-        }
-        return false;
-      },
-    );
+  //         return true;
+  //       }
+  //       return false;
+  //     },
+  //   );
 
-    final route = _routes[name];
-    if (route != null) {
-      _routeArguments = settings.arguments;
-      if (uri.queryParameters.isNotEmpty) {
-        _routeQueryParams.addAll(uri.queryParameters);
-      }
-      if (routeUri.queryParameters.isNotEmpty) {
-        _routePathParams.addAll(routeUri.queryParameters);
-      }
+  //   final route = _routes[name];
+  //   if (route != null) {
+  //     _routeArguments = settings.arguments;
+  //     if (uri.queryParameters.isNotEmpty) {
+  //       _routeQueryParams.addAll(uri.queryParameters);
+  //     }
+  //     if (routeUri.queryParameters.isNotEmpty) {
+  //       _routePathParams.addAll(routeUri.queryParameters);
+  //     }
 
-      _urlPath += routeUri.path;
-      _routePath += name!;
-      routeData = RouteData(
-        baseUrl: _getBaseUrl(_urlPath),
-        urlPath: _urlPath,
-        routePath: _routePath,
-        arguments: _routeArguments,
-        queryParams: {..._routeQueryParams},
-        pathParams: {..._routePathParams},
-      );
-      routeData!._isBaseUrlChanged =
-          _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
+  //     _urlPath += routeUri.path;
+  //     _routePath += name!;
+  //     routeData = RouteData(
+  //       baseUrl: _getBaseUrl(_urlPath),
+  //       urlPath: _urlPath,
+  //       routePath: _routePath,
+  //       arguments: _routeArguments,
+  //       queryParams: {..._routeQueryParams},
+  //       pathParams: {..._routePathParams},
+  //     );
+  //     routeData!._isBaseUrlChanged =
+  //         _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
 
-      Widget page = route(routeData!);
+  //     Widget page = route(routeData!);
 
-      if (page is RouteWidget) {
-        if (page.routes.isEmpty) {
-          name = _routeData.containsKey(name)
-              ? name + '${_routeData.length}'
-              : name;
-          _routeData[name] = _RouteData(
-            builder: page.builder,
-            subRoute: null,
-            transitionsBuilder: page.transitionsBuilder,
-            routeData: routeData!,
-          );
-          return page.builder!(Container());
-        } else {
-          if (page.builder != null) {
-            name = _routeData.containsKey(name)
-                ? name + '${_routeData.length}'
-                : name;
-            _routeData[name] = _RouteData(
-              builder: page.builder,
-              subRoute: null,
-              transitionsBuilder: page.transitionsBuilder,
-              routeData: routeData!,
-            );
-          }
+  //     if (page is RouteWidget) {
+  //       if (page.routes.isEmpty) {
+  //         name = _routeData.containsKey(name)
+  //             ? name + '${_routeData.length}'
+  //             : name;
+  //         _routeData[name] = _RouteData(
+  //           builder: page.builder,
+  //           subRoute: null,
+  //           transitionsBuilder: page.transitionsBuilder,
+  //           routeData: routeData!,
+  //         );
+  //         return page.builder!(Container());
+  //       } else {
+  //         if (page.builder != null) {
+  //           name = _routeData.containsKey(name)
+  //               ? name + '${_routeData.length}'
+  //               : name;
+  //           _routeData[name] = _RouteData(
+  //             builder: page.builder,
+  //             subRoute: null,
+  //             transitionsBuilder: page.transitionsBuilder,
+  //             routeData: routeData!,
+  //           );
+  //         }
 
-          final n = childName.startsWith('/') ? childName : '/$childName';
-          _routes = page.routes;
-          final p = _resolvePage(settings.copyWith(name: n));
-          _routes = Routers.routers!;
-          if (p != null) {
-            if (page.builder != null) {
-              _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
-            }
-            return p;
-          }
-          return null;
-        }
-      }
-      name =
-          _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
-      _routeData[name] = _RouteData(
-        builder: (_) => page,
-        routeData: routeData!,
-        subRoute: null,
-        transitionsBuilder: null,
-      );
-      return page;
-    }
-    return null;
-  }
+  //         final n = childName.startsWith('/') ? childName : '/$childName';
+  //         _routes = page.routes;
+  //         final p = _resolvePage(settings.copyWith(name: n));
+  //         _routes = Routers.routers!;
+  //         if (p != null) {
+  //           if (page.builder != null) {
+  //             _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
+  //           }
+  //           return p;
+  //         }
+  //         return null;
+  //       }
+  //     }
+  //     name =
+  //         _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
+  //     _routeData[name] = _RouteData(
+  //       builder: (_) => page,
+  //       routeData: routeData!,
+  //       subRoute: null,
+  //       transitionsBuilder: null,
+  //     );
+  //     return page;
+  //   }
+  //   return null;
+  // }
 
   static Duration? _transitionDuration;
   PageRoute<T> _pageRouteBuilder<T>(

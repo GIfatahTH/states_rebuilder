@@ -4,32 +4,34 @@ class ResolvePathRouteUtil {
   late Map<String, Widget Function(RouteData data)> _routes = Routers.routers!;
   final Map<String, _RouteData> _routeData = {};
   RouteData? routeData;
-
-  String _urlPath = '';
-  String baseUrl = '';
-  String _routePath = '';
   String absolutePath = '';
+  String baseUrl = '';
+  String _urlPath = '';
+  String _routePath = '';
   dynamic _routeArguments;
-  final Map<String, String> _routeQueryParams = {};
-  final Map<String, String> _routePathParams = {};
+  bool _isPagesFound = true;
+  final Map<String, String> _queryParams = {};
+  final Map<String, String> _pathParams = {};
   void _resetFields() {
     _routeData.clear();
     routeData = null;
-    _routeQueryParams.clear();
-    _routePathParams.clear();
+    _queryParams.clear();
+    _pathParams.clear();
     _routeArguments = null;
+    absolutePath = '';
 
     _urlPath = '';
     _routePath = '';
-    absolutePath = '';
+    _isPagesFound = true;
   }
 
-  void setAbsoluteUrlPath(RouteSettings settings) {
+  String setAbsoluteUrlPath(RouteSettings settings) {
+    late String absolutePath;
     _resetFields();
     if (settings.name!.startsWith('/')) {
       absolutePath = settings.name!;
     } else {
-      if (baseUrl == '') {
+      if (baseUrl == '/' || baseUrl.isEmpty) {
         absolutePath = '/' + settings.name!;
       } else {
         String relativeBasePath = _getBaseUrl('/' + settings.name!);
@@ -50,180 +52,127 @@ class ResolvePathRouteUtil {
         absolutePath = (p ?? baseUrl) + '/' + settings.name!;
       }
     }
+    return this.absolutePath = absolutePath;
   }
 
-  List<RouteSettingsWithChild> decodeRouteSettings(
-    RouteSettings settings, [
-    List<RouteSettingsWithChild>? settingsWithChild,
-  ]) {
-    if (settingsWithChild == null) {
-      setAbsoluteUrlPath(settings);
-      settings = settings.copyWith(name: absolutePath);
-      settingsWithChild = [];
+  Map<String, RouteSettingsWithChildAndData> getPagesFromRouteSettings({
+    required Map<String, Widget Function(RouteData)> routes,
+    required RouteSettings settings,
+    String? baseUrlPath,
+    String? baseRouteUri,
+    Widget Function(String routeName)? unknownRoute,
+  }) {
+    final absolutePath = setAbsoluteUrlPath(settings);
+    final pages = resolve(
+      routes: routes,
+      settings: settings.copyWith(name: absolutePath),
+      baseRouteUri: baseRouteUri,
+      baseUrlPath: baseUrlPath,
+      unknownRoute: unknownRoute,
+    );
+    if (pages.values.last.isPagesFound) {
+      baseUrl = settings.name!.endsWith('/')
+          ? pages.values.last.name!
+          : pages.values.last.baseUrlPath;
+    }
+    return pages;
+  }
+
+  Map<String, RouteSettingsWithChildAndData> resolve({
+    required Map<String, Widget Function(RouteData)> routes,
+    required RouteSettings settings,
+    String? baseUrlPath,
+    String? baseRouteUri,
+    Widget Function(String routeName)? unknownRoute,
+  }) {
+    RouteSettings s = settings;
+    final matched = <String, RouteSettingsWithChildAndData>{};
+    String? foundRoute;
+    if (baseUrlPath != null && baseUrlPath != '/') {
+      final newName = settings.name!.replaceFirst(baseUrlPath, '');
+      s = settings.copyWith(
+        name: newName.isEmpty ? '/' : newName,
+      );
+      // if (s.name!.isEmpty) {
+      //   return matched;
+      // }
     }
 
-    final uri = Uri.parse(settings.name!);
-    late Uri routeUri;
-    late String childName;
-
-    var name = _routes.keys.firstWhereOrNull(
-      (key) {
-        final matcher = _isMatched(
-          Uri.parse(key),
-          uri,
-        );
-        if (matcher.first == true) {
-          routeUri = matcher[1];
-          childName = matcher[2];
-
-          return true;
+    for (final route in routes.keys) {
+      final routeUriSegments = Uri.parse(route).pathSegments;
+      final routeData = _getRouteData(
+        routeUriSegments: routeUriSegments,
+        settings: s,
+        baseUrlPath: baseUrlPath,
+        baseRouteUri: baseRouteUri,
+      );
+      if (routeData != null) {
+        if (route != '/' || route == '/' && s.name == "/") {
+          foundRoute = route;
         }
-        return false;
-      },
-    );
-
-    final route = _routes[name];
-    if (route != null) {
-      _routeArguments = settings.arguments;
-      if (uri.queryParameters.isNotEmpty) {
-        _routeQueryParams.addAll(uri.queryParameters);
-      }
-      if (routeUri.queryParameters.isNotEmpty) {
-        _routePathParams.addAll(routeUri.queryParameters);
-      }
-
-      _urlPath += routeUri.path;
-      _routePath += name!;
-      routeData = RouteData(
-        baseUrl: _getBaseUrl(_urlPath),
-        routePath: _routePath,
-        urlPath: _urlPath,
-        arguments: _routeArguments,
-        queryParams: {..._routeQueryParams},
-        pathParams: {..._routePathParams},
-      );
-      Widget page = route(routeData!);
-      settingsWithChild.add(
-        RouteSettingsWithChild(
-          name: _urlPath,
-          child: page,
-          arguments: _routeArguments,
-          queryParams: {..._routeQueryParams},
-          pathParams: {..._routePathParams},
-        ),
-      );
-    }
-    return settingsWithChild;
-  }
-
-  Widget? resolvePageFromRouteSettings(RouteSettings settings) {
-    setAbsoluteUrlPath(settings);
-    settings = settings.copyWith(name: absolutePath);
-    return _resolvePage(settings);
-  }
-
-  Widget? _resolvePage(RouteSettings settings) {
-    assert(settings.name != null);
-
-    final uri = Uri.parse(settings.name!);
-    late Uri routeUri;
-    late String childName;
-
-    var name = _routes.keys.firstWhereOrNull(
-      (key) {
-        final matcher = _isMatched(
-          Uri.parse(key),
-          uri,
-        );
-        if (matcher.first == true) {
-          routeUri = matcher[1];
-          childName = matcher[2];
-
-          return true;
-        }
-        return false;
-      },
-    );
-
-    final route = _routes[name];
-    if (route != null) {
-      _routeArguments = settings.arguments;
-      if (uri.queryParameters.isNotEmpty) {
-        _routeQueryParams.addAll(uri.queryParameters);
-      }
-      if (routeUri.queryParameters.isNotEmpty) {
-        _routePathParams.addAll(routeUri.queryParameters);
-      }
-
-      _urlPath += routeUri.path;
-      _routePath += name!;
-      routeData = RouteData(
-        baseUrl: _getBaseUrl(_urlPath),
-        urlPath: _urlPath,
-        routePath: _routePath,
-        arguments: _routeArguments,
-        queryParams: {..._routeQueryParams},
-        pathParams: {..._routePathParams},
-      );
-      routeData!._isBaseUrlChanged =
-          baseUrl.isEmpty ? true : !baseUrl.startsWith(routeData!.baseUrl);
-
-      Widget page = route(routeData!);
-
-      if (page is RouteWidget) {
-        if (page.routes.isEmpty) {
-          name = _routeData.containsKey(name)
-              ? name + '${_routeData.length}'
-              : name;
-          _routeData[name] = _RouteData(
-            builder: page.builder,
-            subRoute: null,
-            transitionsBuilder: page.transitionsBuilder,
-            routeData: routeData!,
-          );
-          return page.builder!(Container());
-        } else {
-          if (page.builder != null) {
-            name = _routeData.containsKey(name)
-                ? name + '${_routeData.length}'
-                : name;
-            _routeData[name] = _RouteData(
-              builder: page.builder,
-              subRoute: null,
-              transitionsBuilder: page.transitionsBuilder,
-              routeData: routeData!,
+        Widget page = routes[route]!(routeData);
+        if (page is RouteWidget) {
+          final subSettings = routeData.urlPath;
+          Map<String, RouteSettingsWithChildAndData> subRouteMatches = {};
+          if (page.routes.isNotEmpty) {
+            subRouteMatches = resolve(
+              routes: page.routes,
+              settings: settings.copyWith(name: Uri.parse(settings.name!).path),
+              baseUrlPath: routeData.urlPath,
+              baseRouteUri: routeData.routePath,
+              unknownRoute: unknownRoute,
             );
-          }
-
-          final n = childName.startsWith('/') ? childName : '/$childName';
-          _routes = page.routes;
-          final p = _resolvePage(settings.copyWith(name: n));
-          _routes = Routers.routers!;
-          if (p != null) {
-            if (page.builder != null) {
-              _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
+            if (subRouteMatches.isEmpty) {
+              continue;
             }
-            return p;
           }
-          return null;
+          matched[subSettings] = RouteSettingsWithChildAndSubRoute(
+            name: subSettings,
+            routeUriPath: routeData.routePath,
+            baseUrlPath: routeData.baseUrl,
+            child: page,
+            subRoute: page.routes.isNotEmpty
+                ? subRouteMatches[subSettings]?.child ??
+                    subRouteMatches.values.last.child
+                : null,
+            isBaseUrlChanged: routeData._isBaseUrlChanged,
+            arguments: routeData.arguments,
+            pathParams: routeData.pathParams,
+            queryParams: routeData.queryParams,
+            isPagesFound: _isPagesFound,
+          );
+          //Used to ensure keys are ordered
+          subRouteMatches.forEach((key, value) {
+            if (!matched.containsKey(key)) {
+              matched[key] = value;
+            }
+          });
+        } else {
+          matched[routeData.urlPath] = RouteSettingsWithChildAndData(
+            name: routeData.urlPath,
+            routeUriPath: routeData.routePath,
+            baseUrlPath: routeData.baseUrl,
+            child: page,
+            arguments: routeData.arguments,
+            pathParams: routeData.pathParams,
+            queryParams: routeData.queryParams,
+            isPagesFound: _isPagesFound,
+          );
         }
       }
-      name =
-          _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
-      _routeData[name] = _RouteData(
-        builder: (_) => page,
-        routeData: routeData!,
-        subRoute: null,
-        transitionsBuilder: null,
-      );
-      return page;
     }
-    return null;
+    if (foundRoute == null) {
+      _isPagesFound = false;
+      matched[settings.name!] = RouteSettingsWithChildAndData(
+        name: settings.name!,
+        baseUrlPath: settings.name!,
+        routeUriPath: settings.name!,
+        child: unknownRoute != null ? unknownRoute(settings.name!) : null,
+        isPagesFound: false,
+      );
+    }
+    return matched;
   }
-
-  // Widget _getChild(Widget Function(RouteData) fn) {
-
-  // }
 
   RouteData? _getRouteData({
     required List<String> routeUriSegments,
@@ -238,13 +187,14 @@ class ResolvePathRouteUtil {
     }
     if (routeUriSegments.isEmpty) {
       baseUrlPath ??= '/';
+      baseRouteUri ??= '/';
       return RouteData(
         baseUrl: baseUrlPath,
         urlPath: baseUrlPath,
-        routePath: baseUrlPath,
+        routePath: baseRouteUri,
         arguments: settings.arguments,
-        queryParams: pathUrl.queryParameters,
-        pathParams: {},
+        queryParams: _queryParams,
+        pathParams: _pathParams,
       );
     }
     Map<String, String> params = {};
@@ -263,74 +213,20 @@ class ResolvePathRouteUtil {
       parsedRouteUri += '/${routeUriSegments[i]}';
       parsedPathUrl += '/${pathUrlSegments[i]}';
     }
+    _queryParams.addAll(pathUrl.queryParameters);
+    _pathParams.addAll(params);
     final routeData = RouteData(
       baseUrl: baseUrlPath,
       urlPath: parsedPathUrl,
       routePath: parsedRouteUri,
       arguments: settings.arguments,
-      queryParams: pathUrl.queryParameters,
-      pathParams: {...params},
+      queryParams: _queryParams,
+      pathParams: _pathParams,
     );
     routeData._isBaseUrlChanged =
         baseUrlPath.isEmpty ? true : !baseUrlPath.startsWith(routeData.baseUrl);
 
     return routeData;
-  }
-
-  Map<String, RouteSettingsWithChild> resolve({
-    required Map<String, Widget Function(RouteData)> routes,
-    required RouteSettings settings,
-    String? baseUrlPath,
-    String? baseRouteUri,
-  }) {
-    RouteSettings s = settings;
-    final matched = <String, RouteSettingsWithChild>{};
-    if (baseUrlPath != null && baseUrlPath != '/') {
-      s = settings.copyWith(
-        name: settings.name!.replaceFirst(baseUrlPath, ''),
-      );
-    }
-
-    for (final route in routes.keys) {
-      final routeUriSegments = Uri.parse(route).pathSegments;
-      final routeData = _getRouteData(
-        routeUriSegments: routeUriSegments,
-        settings: s,
-        baseUrlPath: baseUrlPath,
-        baseRouteUri: baseRouteUri,
-      );
-      if (routeData != null) {
-        Widget page = routes[route]!(routeData);
-        if (page is RouteWidget && page.routes.isNotEmpty) {
-          final subSettings = routeData.urlPath;
-          final subRouteMatches = resolve(
-            routes: page.routes,
-            settings: settings,
-            baseUrlPath: routeData.urlPath,
-            baseRouteUri: routeData.routePath,
-          );
-          matched.addAll(subRouteMatches);
-          matched[subSettings] = RouteSettingsWithChildAndSubRoute(
-            name: subSettings,
-            child: page,
-            subRoute: subRouteMatches[subSettings]!.child,
-            isBaseUrlChanged: routeData._isBaseUrlChanged,
-            arguments: routeData.arguments,
-            pathParams: routeData.pathParams,
-            queryParams: routeData.queryParams,
-          );
-        } else {
-          matched[routeData.urlPath] = RouteSettingsWithChild(
-            name: routeData.urlPath,
-            child: page,
-            arguments: routeData.arguments,
-            pathParams: routeData.pathParams,
-            queryParams: routeData.queryParams,
-          );
-        }
-      }
-    }
-    return matched;
   }
 }
 

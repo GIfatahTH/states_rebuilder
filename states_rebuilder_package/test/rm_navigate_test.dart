@@ -686,6 +686,7 @@ void main() {
     'Nested route trial',
     (tester) async {
       final home = (_) => Text('/');
+      final page00 = (_) => Text('$_');
       final page1 = (_) => Text('$_');
       final page11 = (_) => Text('$_');
       final page111 = (_) => Text('$_');
@@ -706,6 +707,11 @@ void main() {
       String baseUrl = '';
       final routes = {
         '/': home,
+        '/page0': (_) => RouteWidget(
+              routes: {
+                '/page00': (_) => page00(_.arguments),
+              },
+            ),
         '/page1': (_) => RouteWidget(
               routes: {
                 '/': (_) => page1(_.arguments),
@@ -734,7 +740,7 @@ void main() {
               builder: (__) => page3(_.arguments),
             ),
         '/page4': (_) => page4(_.arguments),
-        '/page5/:page5ID': (_) => RouteWidget(
+        '/page5/:page5ID': (__) => RouteWidget(
               routes: {
                 '/': (data) => Builder(
                       builder: (__) {
@@ -745,26 +751,30 @@ void main() {
                         return page5(data.arguments);
                       },
                     ),
-                '/page51': (data) => Builder(
-                      builder: (ctx) {
-                        queryParams = ctx.routeQueryParams;
-                        pathParams = ctx.routePathParams;
-                        routePath = ctx.routePath;
-                        baseUrl = ctx.routeBaseUrl;
-                        return page5(ctx.routeArguments);
-                      },
-                    ),
+                '/page51': (data) {
+                  return Builder(
+                    builder: (ctx) {
+                      queryParams = ctx.routeQueryParams;
+                      pathParams = ctx.routePathParams;
+                      routePath = ctx.routePath;
+                      baseUrl = ctx.routeBaseUrl;
+                      return page5(ctx.routeArguments);
+                    },
+                  );
+                },
                 '/page52/:page52ID': (_) => RouteWidget(
                       routes: {
-                        '/': (_) => Builder(
-                              builder: (ctx) {
-                                queryParams = ctx.routeQueryParams;
-                                pathParams = ctx.routePathParams;
-                                routePath = ctx.routePath;
-                                baseUrl = ctx.routeBaseUrl;
-                                return page52(ctx.routeArguments);
-                              },
-                            ),
+                        '/': (_) {
+                          return Builder(
+                            builder: (ctx) {
+                              queryParams = ctx.routeQueryParams;
+                              pathParams = ctx.routePathParams;
+                              routePath = ctx.routePath;
+                              baseUrl = ctx.routeBaseUrl;
+                              return page52(ctx.routeArguments);
+                            },
+                          );
+                        },
                         '/:page521ID': (_) => Builder(
                               builder: (ctx) {
                                 queryParams = ctx.routeQueryParams;
@@ -798,12 +808,15 @@ void main() {
         }
       }
 
+      await navigateAndExpect('/page0/page00');
+
       await navigateAndExpect('/page1');
+      await navigateAndExpect('/page1/');
       await navigateAndExpect('page1', false);
       expect(find.text('404 /page1/page1'), findsOneWidget);
       await navigateAndExpect('/page1/');
-      await navigateAndExpect('page11');
-      //
+      await navigateAndExpect('page11/');
+      // //
       await navigateAndExpect('page12', false);
       expect(find.text('404 /page1/page11/page12'), findsOneWidget);
       await navigateAndExpect('page111');
@@ -822,13 +835,13 @@ void main() {
       await navigateAndExpect('/page5/id-1');
 
       expect(baseUrl, '/page5/id-1');
-      expect(routePath, '/page5/:page5ID/');
+      expect(routePath, '/page5/:page5ID');
       expect(pathParams, {'page5ID': 'id-1'});
 
-      await navigateAndExpect('page5/id-2');
+      await navigateAndExpect('page5/id-2/');
 
       expect(baseUrl, '/page5/id-2');
-      expect(routePath, '/page5/:page5ID/');
+      expect(routePath, '/page5/:page5ID');
       expect(pathParams, {'page5ID': 'id-2'});
       //
       await navigateAndExpect('page51');
@@ -836,26 +849,29 @@ void main() {
       expect(baseUrl, '/page5/id-2');
       expect(routePath, '/page5/:page5ID/page51');
       expect(pathParams, {'page5ID': 'id-2'});
-      //
 
       await navigateAndExpect('page52/id-3');
 
-      expect(baseUrl, '/page5/id-2/page52/id-3');
-      expect(routePath, '/page5/:page5ID/page52/:page52ID/');
+      expect(baseUrl, '/page5/id-2');
+      expect(routePath, '/page5/:page5ID/page52/:page52ID');
       expect(pathParams, {'page5ID': 'id-2', 'page52ID': 'id-3'});
-      //
-      await navigateAndExpect('id-4');
-      RM.navigate.toNamed('id-4', arguments: 'id-4', queryParams: {
-        'queryId': 'id-6',
-      });
+      // //
+      await navigateAndExpect(baseUrl + '/page52/id-4');
+      RM.navigate.toNamed(
+        baseUrl + '/page52/id-5',
+        arguments: 'id-5',
+        queryParams: {
+          'queryId': 'id-6',
+        },
+      );
       await tester.pumpAndSettle();
-      expect(find.text('id-4'), findsOneWidget);
+      expect(find.text('id-5'), findsOneWidget);
 
-      expect(baseUrl, '/page5/id-2/page52/id-3');
-      expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
-      expect(pathParams,
-          {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-4'});
-      expect(queryParams, {'queryId': 'id-6'});
+      // expect(baseUrl, '/page5/id-2/page52/id-3');
+      // expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
+      // expect(pathParams,
+      //     {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-4'});
+      // expect(queryParams, {'queryId': 'id-6'});
 
       RM.navigate.toNamed('/', arguments: '/');
       RM.navigate.toNamed('/page1/', arguments: '/page1');
@@ -894,14 +910,16 @@ void main() {
       final routes = {
         '/': home,
         '/page1': (_) => RouteWidget(
-              builder: (child) => getSubRoute
-                  ? Builder(
-                      builder: (context) {
-                        assert(child == context.routeWidget);
-                        return context.routeWidget;
-                      },
-                    )
-                  : page1('/page1'),
+              builder: (child) {
+                return getSubRoute
+                    ? Builder(
+                        builder: (context) {
+                          assert(child == context.routeWidget);
+                          return context.routeWidget;
+                        },
+                      )
+                    : page1('/page1');
+              },
               routes: {
                 '/page12': (_) {
                   return Builder(
@@ -975,7 +993,7 @@ void main() {
       expect(tester.takeException(), isAssertionError);
 
 /////
-      // await navigateAndExpect('page1/page11/page112', false);
+      await navigateAndExpect('page1/page11/page112', false);
 
       // //
       // await navigateAndExpect('page11/page111');
