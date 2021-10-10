@@ -140,8 +140,11 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 
   ///Called when the widget is first inserted in the widget tree
   void didMountWidget() {
-    if (this is TopRouter) {
-      Routers.initialize((this as TopRouter).routes);
+    if (this is NavigatorMixin) {
+      RouterObjects.initialize(
+        routes: (this as NavigatorMixin).routes,
+        unknownRoute: (this as NavigatorMixin).unknownRoute,
+      );
     }
   }
 

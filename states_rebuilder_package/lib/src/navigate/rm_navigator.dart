@@ -52,7 +52,8 @@ MaterialApp(
   bool _maintainState = true;
 
   //For onGenerateRoute
-  late Map<String, Widget Function(RouteData data)> _routes = Routers.routers!;
+  late Map<String, Widget Function(RouteData data)> _routes =
+      RouterObjects._routers!;
   final Map<String, _RouteData> _routeData = {};
   RouteData? routeData;
 
@@ -99,7 +100,7 @@ MaterialApp(
     if (transitionsBuilder != null) {
       this.transitionsBuilder = transitionsBuilder;
     }
-    Routers.routers = routes_;
+    RouterObjects._routers = routes_;
     _baseUrl = '';
     pageRouteBuilder = null;
 
@@ -107,10 +108,12 @@ MaterialApp(
 
     return (RouteSettings settings) {
       final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
-          routes: routes_,
-          settings: settings,
-          baseUrlPath: null,
-          unknownRoute: unknownRoute);
+        routes: routes_,
+        settings: settings,
+        unknownRoute: unknownRoute,
+        skipHomeSlash: true,
+      );
+
       if (pages.isNotEmpty) {
         bool isSubRouteTransition = pages.values.any(
           (e) {
@@ -125,7 +128,7 @@ MaterialApp(
             return _RouteFullWidget1(
               pages: pages,
               animation: animation,
-              key: Key(pages.keys.toString()),
+              // key: Key(pages.keys.toString()),
             );
           },
           RouteSettings(
@@ -361,9 +364,9 @@ MaterialApp(
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (Routers._routerDelegate != null && name != null) {
-      return Routers._routerDelegate!.to<T>(
-        RouteSettingsWithChild(
+    if (RouterObjects._routerDelegate != null && name != null) {
+      return RouterObjects._routerDelegate!.to<T>(
+        PageSettings(
           name: name,
           child: page,
         ),
@@ -396,9 +399,9 @@ MaterialApp(
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
 
-    if (Routers._routerDelegate != null) {
-      return Routers._routerDelegate!.to<T>(
-        RouteSettingsWithChild(name: routeName, arguments: arguments),
+    if (RouterObjects._routerDelegate != null) {
+      return RouterObjects._routerDelegate!.to<T>(
+        PageSettings(name: routeName, arguments: arguments),
       );
     }
 
@@ -451,9 +454,9 @@ MaterialApp(
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
 
-    if (Routers._routerDelegate != null) {
-      return Routers._routerDelegate!.toReplacementNamed<T, TO>(
-        RouteSettingsWithChild(name: routeName, arguments: arguments),
+    if (RouterObjects._routerDelegate != null) {
+      return RouterObjects._routerDelegate!.toReplacementNamed<T, TO>(
+        PageSettings(name: routeName, arguments: arguments),
       );
     }
 
@@ -518,9 +521,9 @@ MaterialApp(
           Uri(path: newRouteName, queryParameters: queryParams).toString();
     }
 
-    if (Routers._routerDelegate != null) {
-      return Routers._routerDelegate!.toNamedAndRemoveUntil<T>(
-        RouteSettingsWithChild(name: newRouteName, arguments: arguments),
+    if (RouterObjects._routerDelegate != null) {
+      return RouterObjects._routerDelegate!.toNamedAndRemoveUntil<T>(
+        PageSettings(name: newRouteName, arguments: arguments),
         untilRouteName,
       );
     }
@@ -547,8 +550,8 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.popUntil]
   void backUntil(String untilRouteName) {
-    if (Routers._routerDelegate != null) {
-      Routers._routerDelegate!.backUntil(untilRouteName);
+    if (RouterObjects._routerDelegate != null) {
+      RouterObjects._routerDelegate!.backUntil(untilRouteName);
       return;
     }
 
@@ -569,9 +572,9 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
-    if (Routers._routerDelegate != null) {
-      return Routers._routerDelegate!.backAndToNamed<T, TO>(
-        RouteSettingsWithChild(name: routeName, arguments: arguments),
+    if (RouterObjects._routerDelegate != null) {
+      return RouterObjects._routerDelegate!.backAndToNamed<T, TO>(
+        PageSettings(name: routeName, arguments: arguments),
         result,
       );
     }
@@ -706,17 +709,19 @@ MaterialApp(
   }
 
   void _dispose() {
-    Routers.routers = null;
+    RouterObjects._routers = null;
     transitionsBuilder = null;
     pageRouteBuilder = null;
   }
 }
 
-mixin TopRouter on TopStatelessWidget {
-  final RouteInformationParser<RouteSettings> routeInformationParser =
-      _RouteInformationParser();
-  late final RouterDelegate<RouteSettings> routerDelegate =
-      Routers._routerDelegate!;
+mixin NavigatorMixin on TopStatelessWidget {
+  /// Use
+  late final RouterDelegate<PageSettings> routerDelegate =
+      RouterObjects._routerDelegate!;
+  late final RouteInformationParser<PageSettings> routeInformationParser =
+      RouterObjects._routeInformationParser!;
 
   Map<String, Widget Function(RouteData)> get routes;
+  Widget unknownRoute(String route);
 }

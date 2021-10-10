@@ -63,4 +63,6 @@ export 'src/rm.dart'
         SideEffects,
         OnFutureBuilder,
         OnStreamBuilder,
-        TopRouter;
+        NavigatorMixin,
+        PageSettings,
+        RouteInformationParserX;

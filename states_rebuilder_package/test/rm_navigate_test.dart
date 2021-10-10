@@ -658,23 +658,23 @@ void main() {
       expect(find.text('Route1: Parsed data : 1'), findsOneWidget);
 
       RM.navigate.toNamed(
-        'Route1/toNamed, ',
-        queryParams: {'data': 'Parsed data : 2'},
+        'Route1/toNamed,',
+        queryParams: {'data': ' Parsed data : 2'},
       );
       await tester.pumpAndSettle();
       expect(find.text('Route1: toNamed, Parsed data : 2'), findsOneWidget);
 
       RM.navigate.toReplacementNamed(
-        'Route1/toReplacementNamed, ',
-        queryParams: {'data': 'Parsed data : 2'},
+        'Route1/toReplacementNamed,',
+        queryParams: {'data': ' Parsed data : 2'},
       );
       await tester.pumpAndSettle();
       expect(find.text('Route1: toReplacementNamed, Parsed data : 2'),
           findsOneWidget);
 
       RM.navigate.toNamedAndRemoveUntil(
-        'Route1/toNamedAndRemoveUntil, ',
-        queryParams: {'data': 'Parsed data : 2'},
+        'Route1/toNamedAndRemoveUntil,',
+        queryParams: {'data': ' Parsed data : 2'},
       );
       await tester.pumpAndSettle();
       expect(find.text('Route1: toNamedAndRemoveUntil, Parsed data : 2'),
@@ -808,87 +808,87 @@ void main() {
         }
       }
 
-      await navigateAndExpect('/page0/page00');
+      // await navigateAndExpect('/page0/page00');
 
-      await navigateAndExpect('/page1');
-      await navigateAndExpect('/page1/');
-      await navigateAndExpect('page1', false);
+      // await navigateAndExpect('/page1');
+      // await navigateAndExpect('/page1/');
+      await navigateAndExpect('page1/page1', false);
       expect(find.text('404 /page1/page1'), findsOneWidget);
-      await navigateAndExpect('/page1/');
-      await navigateAndExpect('page11/');
+      // await navigateAndExpect('/page1/');
+      // await navigateAndExpect('page11/');
       // //
-      await navigateAndExpect('page12', false);
-      expect(find.text('404 /page1/page11/page12'), findsOneWidget);
-      await navigateAndExpect('page111');
-      await navigateAndExpect('page11/page111');
-      await navigateAndExpect('page112/page1121');
-      await navigateAndExpect('page1122');
-      await navigateAndExpect('/page1/page11/page112/page1122');
-      await navigateAndExpect('page1/page12');
-      await navigateAndExpect('page1/page13');
-      await navigateAndExpect('/page2');
-      await navigateAndExpect('page4');
-      await navigateAndExpect('page3');
+      // await navigateAndExpect('page12', false);
+      // expect(find.text('404 /page1/page11/page12'), findsOneWidget);
+      // await navigateAndExpect('page111');
+      // await navigateAndExpect('page11/page111');
+      // await navigateAndExpect('page112/page1121');
+      // await navigateAndExpect('page1122');
+      // await navigateAndExpect('/page1/page11/page112/page1122');
+      // await navigateAndExpect('page1/page12');
+      // await navigateAndExpect('page1/page13');
+      // await navigateAndExpect('/page2');
+      // await navigateAndExpect('page4');
+      // await navigateAndExpect('page3');
 
-      await navigateAndExpect('/page5', false);
-      expect(find.text('404 /page5'), findsOneWidget);
-      await navigateAndExpect('/page5/id-1');
+      // await navigateAndExpect('/page5', false);
+      // expect(find.text('404 /page5'), findsOneWidget);
+      // await navigateAndExpect('/page5/id-1');
 
-      expect(baseUrl, '/page5/id-1');
-      expect(routePath, '/page5/:page5ID');
-      expect(pathParams, {'page5ID': 'id-1'});
+      // expect(baseUrl, '/page5/id-1');
+      // expect(routePath, '/page5/:page5ID');
+      // expect(pathParams, {'page5ID': 'id-1'});
 
-      await navigateAndExpect('page5/id-2/');
+      // await navigateAndExpect('page5/id-2/');
 
-      expect(baseUrl, '/page5/id-2');
-      expect(routePath, '/page5/:page5ID');
-      expect(pathParams, {'page5ID': 'id-2'});
-      //
-      await navigateAndExpect('page51');
-
-      expect(baseUrl, '/page5/id-2');
-      expect(routePath, '/page5/:page5ID/page51');
-      expect(pathParams, {'page5ID': 'id-2'});
-
-      await navigateAndExpect('page52/id-3');
-
-      expect(baseUrl, '/page5/id-2');
-      expect(routePath, '/page5/:page5ID/page52/:page52ID');
-      expect(pathParams, {'page5ID': 'id-2', 'page52ID': 'id-3'});
+      // expect(baseUrl, '/page5/id-2');
+      // expect(routePath, '/page5/:page5ID');
+      // expect(pathParams, {'page5ID': 'id-2'});
       // //
-      await navigateAndExpect(baseUrl + '/page52/id-4');
-      RM.navigate.toNamed(
-        baseUrl + '/page52/id-5',
-        arguments: 'id-5',
-        queryParams: {
-          'queryId': 'id-6',
-        },
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('id-5'), findsOneWidget);
+      // await navigateAndExpect('page51');
+
+      // expect(baseUrl, '/page5/id-2');
+      // expect(routePath, '/page5/:page5ID/page51');
+      // expect(pathParams, {'page5ID': 'id-2'});
+
+      // await navigateAndExpect('page52/id-3');
 
       // expect(baseUrl, '/page5/id-2/page52/id-3');
-      // expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
-      // expect(pathParams,
-      //     {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-4'});
-      // expect(queryParams, {'queryId': 'id-6'});
+      // expect(routePath, '/page5/:page5ID/page52/:page52ID');
+      // expect(pathParams, {'page5ID': 'id-2', 'page52ID': 'id-3'});
+      // // //
+      // await navigateAndExpect(baseUrl + '/page52/id-4');
+      // RM.navigate.toNamed(
+      //   baseUrl + '/page52/id-5',
+      //   arguments: 'id-5',
+      //   queryParams: {
+      //     'queryId': 'id-6',
+      //   },
+      // );
+      // await tester.pumpAndSettle();
+      // expect(find.text('id-5'), findsOneWidget);
 
-      RM.navigate.toNamed('/', arguments: '/');
-      RM.navigate.toNamed('/page1/', arguments: '/page1');
-      RM.navigate.toNamed('page11/', arguments: 'page11');
-      RM.navigate.toNamed('page112/page1122', arguments: 'page112/page1122');
-      await tester.pumpAndSettle();
-      expect(find.text('page112/page1122'), findsOneWidget);
-      //
-      RM.navigate.back();
-      await tester.pumpAndSettle();
-      expect(find.text('page11'), findsOneWidget);
-      RM.navigate.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/page1'), findsOneWidget);
-      RM.navigate.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/'), findsOneWidget);
+      // // expect(baseUrl, '/page5/id-2/page52/id-3');
+      // // expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
+      // // expect(pathParams,
+      // //     {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-4'});
+      // // expect(queryParams, {'queryId': 'id-6'});
+
+      // RM.navigate.toNamed('/', arguments: '/');
+      // RM.navigate.toNamed('/page1/', arguments: '/page1');
+      // RM.navigate.toNamed('page11/', arguments: 'page11');
+      // RM.navigate.toNamed('page112/page1122', arguments: 'page112/page1122');
+      // await tester.pumpAndSettle();
+      // expect(find.text('page112/page1122'), findsOneWidget);
+      // //
+      // RM.navigate.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('page11'), findsOneWidget);
+      // RM.navigate.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // RM.navigate.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/'), findsOneWidget);
     },
   );
 
@@ -936,24 +936,26 @@ void main() {
                               },
                             ),
                         '/page111': (_) => page111(_.arguments),
-                        '/page112': (_) => RouteWidget(
-                              builder: (_) => getSubRoute
-                                  ? Builder(
-                                      builder: (context) {
-                                        return context.routeWidget;
-                                      },
-                                    )
-                                  : page112('/page112'),
-                              routes: {
-                                '/page1121': (_) => page1121(_.arguments),
-                                '/page1122': (_) => page1122(_.arguments),
-                              },
-                            ),
+                        '/page112': (_) {
+                          return RouteWidget(
+                            builder: (_) => getSubRoute
+                                ? Builder(
+                                    builder: (context) {
+                                      return context.routeWidget;
+                                    },
+                                  )
+                                : page112('/page112'),
+                            routes: {
+                              '/page1121': (_) => page1121(_.arguments),
+                              '/page1122': (_) => page1122(_.arguments),
+                            },
+                          );
+                        },
                       },
                     ),
               },
             ),
-        'page2': (_) => Builder(
+        '/page2': (_) => Builder(
               builder: (context) {
                 return context.routeWidget;
               },
@@ -978,37 +980,268 @@ void main() {
         }
       }
 
-      await navigateAndExpect('page1/page12', false);
+      RM.navigate.toNamed('page1/page12', arguments: 'page1/page12');
+      await tester.pumpAndSettle();
       expect(find.text('/page1'), findsOneWidget);
 
       getSubRoute = true;
-      await navigateAndExpect('page1/page12', true);
+      await navigateAndExpect('page1/page12');
 
-      await navigateAndExpect('page1/page11', true);
+      await navigateAndExpect('page1/page11');
 
       await navigateAndExpect('page1/page11/page112', false);
       expect(find.text('404 /page1/page11/page112'), findsOneWidget);
 
+      await navigateAndExpect('page1/page12');
+      await navigateAndExpect('page111', false);
+      expect(find.text('404 /page1/page111'), findsOneWidget);
+      await navigateAndExpect('page1/page11/');
+      await navigateAndExpect('page111');
+      await navigateAndExpect('page11/page111');
+      await navigateAndExpect('page112/page1121');
+      await navigateAndExpect('page1122');
+      await navigateAndExpect('/page1/page11/page112/page1122');
+      await navigateAndExpect('page1/page12');
+      await navigateAndExpect('page13', false);
+      expect(find.text('404 /page1/page13'), findsOneWidget);
+
       await navigateAndExpect('/page2', false);
       expect(tester.takeException(), isAssertionError);
+    },
+  );
 
-/////
-      await navigateAndExpect('page1/page11/page112', false);
+  testWidgets(
+    'WHEN RouteWidget is defined with builder and without routes'
+    'AND WHEN the exposed route or the route from the context is used'
+    'THEN it throws non defined sub routes assertion',
+    (tester) async {
+      final routes = {
+        '/': (data) => RouteWidget(
+              builder: (route) {
+                return route;
+              },
+            ),
+        '/page1': (data) => RouteWidget(
+              builder: (route) {
+                return Builder(
+                  builder: (context) {
+                    return context.routeWidget;
+                  },
+                );
+              },
+            ),
+      };
 
-      // //
-      // await navigateAndExpect('page11/page111');
-      // expect(routeName, 'page111');
-      // expect(parentRoutePath, '/page1/page11');
+      final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute(
+          routes,
+          unknownRoute: (name) => Text('404 $name'),
+        ),
+      );
 
-      // await navigateAndExpect('page12');
-      // await navigateAndExpect('page111', false);
-      // expect(find.text('404 /page1/page111'), findsOneWidget);
-      // await navigateAndExpect('page11/page111');
-      // await navigateAndExpect('page112/page1121');
-      // await navigateAndExpect('page1122');
-      // await navigateAndExpect('/page1/page11/page112/page1122');
-      // await navigateAndExpect('page1/page12');
-      // await navigateAndExpect('page13');
+      await tester.pumpWidget(widget);
+      expect(tester.takeException(), isAssertionError);
+      RM.navigate.toNamed('/page1');
+      await tester.pump();
+      expect(tester.takeException(), isAssertionError);
+    },
+  );
+
+  testWidgets(
+    'WHEN RouteWidget builder do not use the route'
+    'THEN it works normally even if route is not found',
+    (tester) async {
+      final routes = {
+        '/': (data) => RouteWidget(
+              builder: (route) {
+                return Text('builder/');
+              },
+              routes: {
+                '/': (data) => Text('/'),
+              },
+            ),
+        '/page1': (data) => RouteWidget(
+              builder: (route) {
+                return Builder(
+                  builder: (context) {
+                    return Text('builder/page1');
+                  },
+                );
+              },
+              routes: {
+                '/': (data) => Text('/page1'),
+                '/page11': (data) => Text('/page11'),
+              },
+            ),
+      };
+
+      final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute(
+          routes,
+          unknownRoute: (name) => Text('404 $name'),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('builder/'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('builder/page1'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('builder/page1'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page1/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('builder/page1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'context.routeBaseUrl get the right value',
+    (tester) async {
+      String? path1;
+      String? path2;
+      String? path3;
+      final Map<String, Widget Function(RouteData)> routes = {
+        '/page1/:id': (data) => RouteWidget(
+              builder: (route) {
+                final id = data.pathParams['id'];
+                return Column(
+                  children: [
+                    Text('page1/$id'),
+                    Builder(builder: (context) {
+                      path1 = context.routeBaseUrl;
+                      return route;
+                    }),
+                  ],
+                );
+              },
+              routes: {
+                '/': (data) => RouteWidget(
+                      builder: (route) {
+                        return Builder(
+                          builder: (context) {
+                            path2 = context.routeBaseUrl;
+                            return context.routeWidget;
+                          },
+                        );
+                      },
+                      routes: {
+                        '/': (data) {
+                          return Text('page1/' + data.pathParams['id']!);
+                        },
+                        '/page11/:user': (data) => RouteWidget(
+                              builder: (route) {
+                                return Builder(
+                                  builder: (context) {
+                                    path3 = context.routeBaseUrl;
+                                    return context.routeWidget;
+                                  },
+                                );
+                              },
+                              routes: {
+                                '/': (data) =>
+                                    Text('page11/' + data.pathParams['user']!),
+                              },
+                            ),
+                      },
+                    ),
+              },
+            ),
+      };
+
+      final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute(
+          routes,
+          unknownRoute: (name) => Text('404 $name'),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('404 /'), findsOneWidget);
+
+      RM.navigate.toNamed('/page1/1');
+      await tester.pumpAndSettle();
+      expect(find.text('page1/1'), findsNWidgets(2));
+      expect(path1, '/');
+      expect(path2, '/page1/1');
+      expect(path3, null);
+
+      // RM.navigate.toNamed('/page1/1/page11/user1');
+      // await tester.pumpAndSettle();
+      // expect(path1, '/');
+      // expect(path2, '/page1/1');
+      // expect(path3, '/page1/1');
+    },
+  );
+  testWidgets(
+    'Test route is not found',
+    (tester) async {
+      final Map<String, Widget Function(RouteData)> routes = {
+        '/page1': (_) => Text(''),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => Text(''),
+            ),
+        '/page3': (_) => RouteWidget(
+              routes: {
+                '/': (_) => Text(''),
+                '/page31': (_) {
+                  return RouteWidget(
+                    builder: (_) => Text(''),
+                  );
+                },
+              },
+            ),
+        '/page4': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text(''),
+                '/page41': (_) {
+                  return RouteWidget(
+                    builder: (_) => Text(''),
+                  );
+                },
+              },
+            ),
+      };
+
+      final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute(
+          routes,
+          unknownRoute: (name) => Text('404 $name'),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('404 /'), findsOneWidget);
+      RM.navigate.toNamed('/page1/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page1/notFound'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page2/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page2/notFound'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page3/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page3/notFound'), findsOneWidget);
+      RM.navigate.toNamed('/page3/page31/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page3/page31/notFound'), findsOneWidget);
+      //
+      RM.navigate.toNamed('/page4/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page4/notFound'), findsOneWidget);
+      RM.navigate.toNamed('/page4/page41/notFound');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page4/page41/notFound'), findsOneWidget);
     },
   );
 }
