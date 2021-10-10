@@ -159,7 +159,7 @@ class CounterApp extends ReactiveStatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Counter1View(),
+        Counter1View(), // Not const to make it rebuildable
         Counter2View(),
         Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
       ],
@@ -169,7 +169,7 @@ class CounterApp extends ReactiveStatelessWidget {
 
 // Child 1 - Plain StatelessWidget
 class Counter1View extends StatelessWidget {
-  const Counter1View({Key? key}) : super(key: key);
+  Counter1View({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +188,7 @@ class Counter1View extends StatelessWidget {
 
 // Child 2 - Plain StatelessWidget
 class Counter2View extends StatelessWidget {
-  const Counter2View({Key? key}) : super(key: key);
+  Counter2View({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
