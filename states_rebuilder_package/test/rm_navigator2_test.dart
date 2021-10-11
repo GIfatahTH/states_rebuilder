@@ -32,10 +32,23 @@ class _TopWidget extends TopStatelessWidget with NavigatorMixin {
   Map<String, Widget Function(RouteData p1)> get routes => routers;
 
   @override
-  Widget unknownRoute(String route) {
-    return Text('404 $route');
-  }
+  Widget Function(String route) get unknownRoute =>
+      (route) => Text('404 $route');
+  @override
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  )? get transitionsBuilder => _transitionsBuilder;
 }
+
+Widget Function(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+)? _transitionsBuilder;
 
 class Route1 extends StatefulWidget {
   final dynamic data;
@@ -87,6 +100,9 @@ _TopWidget get app => _TopWidget(
     );
 
 void main() {
+  setUp(() {
+    _transitionsBuilder = null;
+  });
   testWidgets('navigate to', (tester) async {
     await tester.pumpWidget(app);
     expect(RM.context, isNotNull);
@@ -363,50 +379,19 @@ void main() {
   testWidgets(
       'WHEN RM.navigate.pageRouteBuilder is defined'
       'Route animation uses it'
-      'CASE Widget route', (tester) async {
-    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
-          transitionDuration: Duration(milliseconds: 2000),
-          reverseTransitionDuration: Duration(milliseconds: 2000),
-          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: RM.transitions.upToBottom(),
-        );
-
-    await tester.pumpWidget(app);
-
-    expect(find.text('Home'), findsOneWidget);
-    RM.navigate.to(Route1('data'));
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Route1: data'), findsNothing);
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('Route1: data'), findsOneWidget);
-    //
-    RM.navigate.toReplacement(Route2('data'), result: '');
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('Route1: data'), findsOneWidget);
-    expect(find.text('Route2: data'), findsNothing);
-    await tester.pump(Duration(seconds: 1));
-    expect(find.text('Route2: data'), findsOneWidget);
-    //
-    RM.navigate.back();
-    await tester.pumpAndSettle();
-    expect(find.text('Home'), findsOneWidget);
-  });
-
-  testWidgets(
-      'WHEN RM.navigate.pageRouteBuilder is defined'
-      'Route animation uses it'
       'CASE named route', (tester) async {
     //
     //IT will not used because pageRouteBuilder is defined
     RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
 
-    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
-          transitionDuration: Duration(milliseconds: 2000),
-          reverseTransitionDuration: Duration(milliseconds: 2000),
-          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: RM.transitions.bottomToUp(),
-        );
+    RM.navigate.pageRouteBuilder =
+        (Widget nextPage, settings) => PageRouteBuilder(
+              settings: settings,
+              transitionDuration: Duration(milliseconds: 2000),
+              reverseTransitionDuration: Duration(milliseconds: 2000),
+              pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+              transitionsBuilder: RM.transitions.bottomToUp(),
+            );
 
     await tester.pumpWidget(app);
 
@@ -466,7 +451,7 @@ void main() {
       'WHEN RM.navigate.transitionsBuilder is defined'
       'Route animation uses it'
       'CASE named route', (tester) async {
-    RM.navigate.transitionsBuilder = RM.transitions.rightToLeft(
+    _transitionsBuilder = RM.transitions.rightToLeft(
       duration: Duration(milliseconds: 2000),
     );
 
@@ -510,20 +495,15 @@ void main() {
   testWidgets(
       'WHEN transitionsBuilder is defined in RM.navigate.onGenerateRoute'
       'THEN it will work', (tester) async {
-    //TODO
-    final app = MaterialApp(
-      navigatorKey: RM.navigate.navigatorKey,
-      onGenerateRoute: RM.navigate.onGenerateRoute(
-        {
-          '/': (_) => Text('Home'),
-          'Route1': (data) => Route1(data.arguments as String),
-          'Route2': (data) => Route2(data.arguments as String),
-          'Route3': (_) => Text('Route3'),
-        },
-        transitionsBuilder: RM.transitions.rightToLeft(
-          duration: Duration(milliseconds: 2000),
-        ),
-      ),
+    final app = _TopWidget(routers: {
+      '/': (_) => Text('Home'),
+      'Route1': (data) => Route1(data.arguments as String),
+      'Route2': (data) => Route2(data.arguments as String),
+      'Route3': (_) => Text('Route3'),
+    });
+
+    _transitionsBuilder = RM.transitions.rightToLeft(
+      duration: Duration(milliseconds: 2000),
     );
 
     await tester.pumpWidget(app);

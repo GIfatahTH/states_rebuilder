@@ -7,7 +7,8 @@ Widget Function(
   Widget child,
 )? _getThemeTransition;
 
-class _PageRouteBuilder<T> extends PageRoute<T> {
+class _PageRouteBuilder<T> extends PageRoute<T>
+    with MaterialRouteTransitionMixin<T> {
   _PageRouteBuilder({
     required this.builder,
     this.isSubRouteTransition = false,
@@ -56,6 +57,10 @@ class _PageRouteBuilder<T> extends PageRoute<T> {
 
   @override
   final bool maintainState;
+  @override
+  Widget buildContent(BuildContext context) {
+    return const SizedBox.shrink();
+  }
 
   @override
   bool canTransitionTo(
@@ -72,6 +77,7 @@ class _PageRouteBuilder<T> extends PageRoute<T> {
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     final Widget result = builder(context, animation);
+
     return Semantics(
       scopesRoute: true,
       explicitChildNodes: true,
@@ -87,17 +93,7 @@ class _PageRouteBuilder<T> extends PageRoute<T> {
     Widget child,
   ) {
     if (isSubRouteTransition) {
-      _getThemeTransition = (context, animation, secondAnimation, child) {
-        final PageTransitionsTheme theme =
-            Theme.of(context).pageTransitionsTheme;
-        return theme.buildTransitions<T>(
-          this,
-          context,
-          animation,
-          secondAnimation,
-          child,
-        );
-      };
+      _getThemeTransition = super.buildTransitions;
       return child;
     }
     if (customBuildTransitions != null) {
@@ -108,9 +104,8 @@ class _PageRouteBuilder<T> extends PageRoute<T> {
         child,
       );
     }
-    final PageTransitionsTheme theme = Theme.of(context).pageTransitionsTheme;
-    return theme.buildTransitions<T>(
-      this,
+
+    return super.buildTransitions(
       context,
       animation,
       secondaryAnimation,

@@ -157,3 +157,41 @@ class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChildAndData {
       'baseUrlPath: $baseUrlPath, routeUriPath: $routeUriPath, '
       ' pathParams: $pathParams, queryParams: $queryParams)';
 }
+
+class _MaterialPage<T> extends Page<T> {
+  /// Creates a material page.
+  const _MaterialPage({
+    required this.child,
+    this.maintainState = true,
+    this.fullscreenDialog = false,
+    LocalKey? key,
+    String? name,
+    Object? arguments,
+    String? restorationId,
+  }) : super(
+          key: key,
+          name: name,
+          arguments: arguments,
+          restorationId: restorationId,
+        );
+
+  /// The content to be shown in the [Route] created by this page.
+  final Widget child;
+
+  /// {@macro flutter.widgets.ModalRoute.maintainState}
+  final bool maintainState;
+
+  /// {@macro flutter.widgets.PageRoute.fullscreenDialog}
+  final bool fullscreenDialog;
+
+  @override
+  Route<T> createRoute(BuildContext context) {
+    final r = _navigate._pageRouteBuilder<T>(
+      (_) => child,
+      this,
+      fullscreenDialog,
+      maintainState,
+    );
+    return r;
+  }
+}

@@ -1097,6 +1097,56 @@ void main() {
   );
 
   testWidgets(
+    'WHEN u '
+    'THEN',
+    (tester) async {
+      final Map<String, Widget Function(RouteData)> routes = {
+        '/': (data) => const Text('/'),
+        '/page1': (data) => const Text('/page1'),
+        '/page1/:id': (data) => Text(
+              '/page1/${data.pathParams['id']}',
+            ),
+        '/page1/:id/page11': (data) => Text(
+              '/page1/${data.pathParams['id']}/page11',
+            ),
+        '/page1/:id/page12': (data) => Text(
+              '/page1/${data.pathParams['id']}/page12',
+            ),
+      };
+      // var r = routePathResolver.getPagesFromRouteSettings(
+      //   routes: routes,
+      //   settings: const RouteSettings(name: '/'),
+      // );
+      // expect((r['/']!.child as Text).data, '/');
+      // //
+      // r = routePathResolver.getPagesFromRouteSettings(
+      //   routes: routes,
+      //   settings: const RouteSettings(name: '/page1'),
+      // );
+      // expect((r['/page1']!.child as Text).data, '/page1');
+
+      // r = routePathResolver.getPagesFromRouteSettings(
+      //   routes: routes,
+      //   settings: const RouteSettings(name: '/page1/1'),
+      // );
+      // expect((r['/page1/1']!.child as Text).data, '/page1/1');
+
+      var r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes,
+        settings: const RouteSettings(name: '/page1/1/page11'),
+        skipHomeSlash: true,
+      );
+      print(r);
+      expect((r['/page1/1/page11']!.child as Text).data, '/page1/1/page11');
+
+      // r = routePathResolver.getPagesFromRouteSettings(
+      //   routes: routes,
+      //   settings: const RouteSettings(name: '/page1/1/page12'),
+      // );
+      // expect((r['/page1/1/page12']!.child as Text).data, '/page1/1/page12');
+    },
+  );
+  testWidgets(
     'WHEN'
     'THEN',
     (tester) async {
@@ -1176,7 +1226,6 @@ class _TopWidget extends TopStatelessWidget with NavigatorMixin {
   @override
   Map<String, Widget Function(RouteData p1)> get routes => routers;
   @override
-  Widget unknownRoute(String route) {
-    return Text('404 $route');
-  }
+  Widget Function(String route) get unknownRoute =>
+      (route) => Text('404 $route');
 }

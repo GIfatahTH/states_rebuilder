@@ -1,19 +1,32 @@
 part of '../../rm.dart';
 
 abstract class RouterObjects {
-  static String? _initialRoute;
+  static String? _initialRouteValue;
+  static bool _isInitialRouteSet = false;
+  static void _setInitialRoute(String? route) {
+    if (_isInitialRouteSet) {
+      return;
+    }
+    _initialRouteValue = route;
+  }
+
   static _RouterDelegate? _routerDelegate;
   static _RouteInformationParser? _routeInformationParser;
   static Map<String, Widget Function(RouteData routeData)>? _routers;
   static Widget Function(String route)? _unknownRoute;
   static void initialize({
     required Map<String, Widget Function(RouteData routeData)> routes,
-    required Widget Function(String route) unknownRoute,
+    required Widget Function(String route)? unknownRoute,
+    required Widget Function(
+            BuildContext, Animation<double>, Animation<double>, Widget)?
+        transitionsBuilder,
   }) {
+    _isInitialRouteSet = false;
     _routers = routes;
     _routerDelegate = _RouterDelegate();
     _routeInformationParser = _RouteInformationParser();
     _unknownRoute = unknownRoute;
+    _navigate.transitionsBuilder = transitionsBuilder;
   }
 }
 
@@ -27,7 +40,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
   }
   @override
   GlobalKey<NavigatorState>? get navigatorKey => _navigate._navigatorKey;
-  final Map<PageSettings, MaterialPage> _pages = {};
+  final Map<PageSettings, _MaterialPage> _pages = {};
   final Map<PageSettings, Completer> _completers = {};
 
   void updatePages() {
@@ -52,7 +65,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
     notifyListeners();
   }
 
-  List<MaterialPage> get pages {
+  List<_MaterialPage> get pages {
     if (_pages.isEmpty) {
       for (final setting in _pageSettingsList) {
         _pages[setting] = _createPage(setting);
@@ -68,7 +81,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
 
   @override
   Future<void> setInitialRoutePath(PageSettings configuration) {
-    RouterObjects._initialRoute = configuration.name;
+    RouterObjects._setInitialRoute(configuration.name);
     return SynchronousFuture(null);
   }
 
@@ -93,10 +106,10 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
     );
   }
 
-  MaterialPage _createPage(
+  _MaterialPage _createPage(
     PageSettings settings,
   ) {
-    late MaterialPage m;
+    late _MaterialPage m;
     late Widget child;
     if (settings.child == null) {
       final p = resolvePathRouteUtil.getPagesFromRouteSettings(
@@ -107,7 +120,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
       );
       final child = getWidgetFromPages(pages: p);
 
-      m = MaterialPage(
+      m = _MaterialPage(
         child: child,
         key: ValueKey(settings.name),
         name: resolvePathRouteUtil.absolutePath,
@@ -121,7 +134,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
       } else {
         child = settings.child!;
       }
-      m = MaterialPage(
+      m = _MaterialPage(
         child: child,
         key: ValueKey(settings.name),
         name: settings.name,

@@ -62,7 +62,6 @@ class ResolvePathRouteUtil {
     final absolutePath = setAbsoluteUrlPath(settings);
     final uri = Uri.parse(absolutePath);
     assert(uri.path.isNotEmpty);
-    final pathSegments = uri.pathSegments;
     final queryParameters = uri.queryParameters;
     final arguments = settings.arguments;
     remainingUrlPathToResolve = absolutePath;

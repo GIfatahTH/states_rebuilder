@@ -144,6 +144,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
       RouterObjects.initialize(
         routes: (this as NavigatorMixin).routes,
         unknownRoute: (this as NavigatorMixin).unknownRoute,
+        transitionsBuilder: (this as NavigatorMixin).transitionsBuilder,
       );
     }
   }

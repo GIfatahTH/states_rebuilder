@@ -348,12 +348,14 @@ void main() {
       'WHEN RM.navigate.pageRouteBuilder is defined'
       'Route animation uses it'
       'CASE Widget route', (tester) async {
-    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
-          transitionDuration: Duration(milliseconds: 2000),
-          reverseTransitionDuration: Duration(milliseconds: 2000),
-          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: RM.transitions.upToBottom(),
-        );
+    RM.navigate.pageRouteBuilder =
+        (Widget nextPage, settings) => PageRouteBuilder(
+              settings: settings,
+              transitionDuration: Duration(milliseconds: 2000),
+              reverseTransitionDuration: Duration(milliseconds: 2000),
+              pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+              transitionsBuilder: RM.transitions.upToBottom(),
+            );
 
     await tester.pumpWidget(app);
 
@@ -385,12 +387,14 @@ void main() {
     //IT will not used because pageRouteBuilder is defined
     RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
 
-    RM.navigate.pageRouteBuilder = (Widget nextPage) => PageRouteBuilder(
-          transitionDuration: Duration(milliseconds: 2000),
-          reverseTransitionDuration: Duration(milliseconds: 2000),
-          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: RM.transitions.bottomToUp(),
-        );
+    RM.navigate.pageRouteBuilder =
+        (Widget nextPage, settings) => PageRouteBuilder(
+              settings: settings,
+              transitionDuration: Duration(milliseconds: 2000),
+              reverseTransitionDuration: Duration(milliseconds: 2000),
+              pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+              transitionsBuilder: RM.transitions.bottomToUp(),
+            );
 
     await tester.pumpWidget(app);
 

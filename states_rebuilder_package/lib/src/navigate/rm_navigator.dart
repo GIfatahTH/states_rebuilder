@@ -31,7 +31,8 @@ MaterialApp(
   ///
   ///Similar ot [PageRouteBuilder]
   ///
-  PageRoute Function(Widget nextPage)? pageRouteBuilder;
+  PageRoute Function(Widget nextPage, RouteSettings? settings)?
+      pageRouteBuilder;
 
   ///Used to change the page animation transition.
   ///
@@ -50,31 +51,6 @@ MaterialApp(
 
   bool _fullscreenDialog = false;
   bool _maintainState = true;
-
-  //For onGenerateRoute
-  late Map<String, Widget Function(RouteData data)> _routes =
-      RouterObjects._routers!;
-  final Map<String, _RouteData> _routeData = {};
-  RouteData? routeData;
-
-  String _urlPath = '';
-  String _baseUrl = '';
-  String _routePath = '';
-  String absolutePath = '';
-  dynamic _routeArguments;
-  final Map<String, String> _routeQueryParams = {};
-  final Map<String, String> _routePathParams = {};
-  void _resetFields() {
-    _routeData.clear();
-    routeData = null;
-    _routeQueryParams.clear();
-    _routePathParams.clear();
-    _routeArguments = null;
-
-    _urlPath = '';
-    _routePath = '';
-    absolutePath = '';
-  }
 
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
@@ -101,7 +77,6 @@ MaterialApp(
       this.transitionsBuilder = transitionsBuilder;
     }
     RouterObjects._routers = routes_;
-    _baseUrl = '';
     pageRouteBuilder = null;
 
     final resolvePathRouteUtil = ResolvePathRouteUtil();
@@ -327,7 +302,7 @@ MaterialApp(
   }) {
     Widget? _page;
     return pageRouteBuilder != null
-        ? pageRouteBuilder!.call(_page ??= page(null)) as PageRoute<T>
+        ? pageRouteBuilder!.call(_page ??= page(null), settings) as PageRoute<T>
         : _PageRouteBuilder<T>(
             builder: (context, animation) => _page ??= page(animation),
             settings: settings,
@@ -723,5 +698,11 @@ mixin NavigatorMixin on TopStatelessWidget {
       RouterObjects._routeInformationParser!;
 
   Map<String, Widget Function(RouteData)> get routes;
-  Widget unknownRoute(String route);
+  Widget Function(String route)? get unknownRoute => null;
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  )? get transitionsBuilder => null;
 }
