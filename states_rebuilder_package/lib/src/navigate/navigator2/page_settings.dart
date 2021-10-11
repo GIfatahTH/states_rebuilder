@@ -168,12 +168,19 @@ class _MaterialPage<T> extends Page<T> {
     String? name,
     Object? arguments,
     String? restorationId,
+    this.transitionsBuilder,
   }) : super(
           key: key,
           name: name,
           arguments: arguments,
           restorationId: restorationId,
         );
+  final Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  )? transitionsBuilder;
 
   /// The content to be shown in the [Route] created by this page.
   final Widget child;
@@ -186,12 +193,12 @@ class _MaterialPage<T> extends Page<T> {
 
   @override
   Route<T> createRoute(BuildContext context) {
-    final r = _navigate._pageRouteBuilder<T>(
+    return _navigate._pageRouteBuilder<T>(
       (_) => child,
       this,
       fullscreenDialog,
       maintainState,
+      transitionsBuilder: transitionsBuilder,
     );
-    return r;
   }
 }

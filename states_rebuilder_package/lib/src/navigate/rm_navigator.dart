@@ -299,6 +299,13 @@ MaterialApp(
     bool fullscreenDialog,
     bool maintainState, {
     bool isSubRouteTransition = false,
+    Widget Function(
+      BuildContext,
+      Animation<double>,
+      Animation<double>,
+      Widget,
+    )?
+        transitionsBuilder,
   }) {
     Widget? _page;
     return pageRouteBuilder != null
@@ -309,7 +316,8 @@ MaterialApp(
             fullscreenDialog: fullscreenDialog,
             maintainState: maintainState,
             isSubRouteTransition: isSubRouteTransition,
-            customBuildTransitions: transitionsBuilder,
+            customBuildTransitions:
+                transitionsBuilder ?? this.transitionsBuilder,
             transitionDuration: _transitionDuration ??
                 const Duration(
                   milliseconds: 300,
@@ -339,8 +347,8 @@ MaterialApp(
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (RouterObjects._routerDelegate != null && name != null) {
-      return RouterObjects._routerDelegate!.to<T>(
+    if (RouterObjects._routerDelegate.containsKey('/') && name != null) {
+      return RouterObjects._routerDelegate['/']!.to<T>(
         PageSettings(
           name: name,
           child: page,
@@ -374,8 +382,8 @@ MaterialApp(
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
 
-    if (RouterObjects._routerDelegate != null) {
-      return RouterObjects._routerDelegate!.to<T>(
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.to<T>(
         PageSettings(name: routeName, arguments: arguments),
       );
     }
@@ -429,8 +437,8 @@ MaterialApp(
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
 
-    if (RouterObjects._routerDelegate != null) {
-      return RouterObjects._routerDelegate!.toReplacementNamed<T, TO>(
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.toReplacementNamed<T, TO>(
         PageSettings(name: routeName, arguments: arguments),
       );
     }
@@ -496,8 +504,8 @@ MaterialApp(
           Uri(path: newRouteName, queryParameters: queryParams).toString();
     }
 
-    if (RouterObjects._routerDelegate != null) {
-      return RouterObjects._routerDelegate!.toNamedAndRemoveUntil<T>(
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.toNamedAndRemoveUntil<T>(
         PageSettings(name: newRouteName, arguments: arguments),
         untilRouteName,
       );
@@ -525,8 +533,8 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.popUntil]
   void backUntil(String untilRouteName) {
-    if (RouterObjects._routerDelegate != null) {
-      RouterObjects._routerDelegate!.backUntil(untilRouteName);
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.backUntil(untilRouteName);
       return;
     }
 
@@ -547,8 +555,8 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
-    if (RouterObjects._routerDelegate != null) {
-      return RouterObjects._routerDelegate!.backAndToNamed<T, TO>(
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.backAndToNamed<T, TO>(
         PageSettings(name: routeName, arguments: arguments),
         result,
       );
@@ -690,10 +698,10 @@ MaterialApp(
   }
 }
 
-mixin NavigatorMixin on TopStatelessWidget {
+mixin NavigatorMixin {
   /// Use
   late final RouterDelegate<PageSettings> routerDelegate =
-      RouterObjects._routerDelegate!;
+      RouterObjects._routerDelegate['/']!;
   late final RouteInformationParser<PageSettings> routeInformationParser =
       RouterObjects._routeInformationParser!;
 

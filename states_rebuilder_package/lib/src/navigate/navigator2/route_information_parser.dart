@@ -8,15 +8,17 @@ extension RouteInformationParserX on RouteInformationParser<PageSettings> {
 }
 
 class _RouteInformationParser extends RouteInformationParser<PageSettings> {
+  const _RouteInformationParser(this._pageSettingsList);
+
+  final List<PageSettings> _pageSettingsList;
+
   @override
   Future<PageSettings> parseRouteInformation(
       RouteInformation routeInformation) async {
-    print(RouterObjects._initialRouteValue);
     final settings = PageSettings(
       name:
           RouterObjects._initialRouteValue ?? routeInformation.location ?? '/',
     );
-    print('settings $settings');
     RouterObjects._initialRouteValue = null;
     RouterObjects._isInitialRouteSet = true;
     final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
@@ -36,16 +38,10 @@ class _RouteInformationParser extends RouteInformationParser<PageSettings> {
         path: configuration.name,
         queryParameters: configuration.queryParams,
       );
-      print('configuration $configuration');
-      print('uri $uri');
-      print('${uri.path}?${uri.query}');
-
       return RouteInformation(
         location: '$uri',
       );
     }
-    print('configuration without query $configuration');
-
     return RouteInformation(
       location: configuration.name,
     );

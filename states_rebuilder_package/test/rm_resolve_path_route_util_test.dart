@@ -1097,6 +1097,28 @@ void main() {
   );
 
   testWidgets(
+    'WHEN 88'
+    'THEN',
+    (tester) async {
+      final routes = {
+        '/': (data) => const Text('/'),
+        '/page1': (data) => SubRouteWidget(
+              routes: {
+                '/': (_) => const Text('/page1'),
+              },
+            )
+      };
+
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      RM.navigate.toNamed('/page1');
+      await tester.pumpAndSettle();
+      find.text('/page1');
+    },
+  );
+
+  testWidgets(
     'WHEN u '
     'THEN',
     (tester) async {
@@ -1137,7 +1159,7 @@ void main() {
         skipHomeSlash: true,
       );
       print(r);
-      expect((r['/page1/1/page11']!.child as Text).data, '/page1/1/page11');
+      // expect((r['/page1/1/page11']!.child as Text).data, '/page1/1/page11');
 
       // r = routePathResolver.getPagesFromRouteSettings(
       //   routes: routes,
@@ -1151,13 +1173,13 @@ void main() {
     'THEN',
     (tester) async {
       final routes = {
-        '/': (data) => Center(),
+        '/': (data) => const Text('/'),
         '/page1': (data) => RouteWidget(
               builder: (_) => _,
               routes: {
-                '/': (_) => Center(),
-                '/page11': (_) => Center(),
-                '/page12': (_) => Center(),
+                '/': (_) => const Text('/page1'),
+                '/page11': (_) => const Text('/page1/page11'),
+                '/page12': (_) => const Text('/page1/page12'),
               },
             ),
       };

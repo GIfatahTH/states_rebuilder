@@ -10,7 +10,7 @@ abstract class RouterObjects {
     _initialRouteValue = route;
   }
 
-  static _RouterDelegate? _routerDelegate;
+  static final Map<String, _RouterDelegate> _routerDelegate = {};
   static _RouteInformationParser? _routeInformationParser;
   static Map<String, Widget Function(RouteData routeData)>? _routers;
   static Widget Function(String route)? _unknownRoute;
@@ -23,23 +23,41 @@ abstract class RouterObjects {
   }) {
     _isInitialRouteSet = false;
     _routers = routes;
-    _routerDelegate = _RouterDelegate();
-    _routeInformationParser = _RouteInformationParser();
+    final delegate = _RouterDelegate(
+      key: null,
+      routes: _routers!,
+      transitionsBuilder: transitionsBuilder,
+    );
+    _routerDelegate['/'] = delegate;
+    _routeInformationParser = _RouteInformationParser(
+      delegate._pageSettingsList,
+    );
     _unknownRoute = unknownRoute;
-    _navigate.transitionsBuilder = transitionsBuilder;
   }
 }
 
-final List<PageSettings> _pageSettingsList = [];
 final resolvePathRouteUtil = ResolvePathRouteUtil();
 
 class _RouterDelegate extends RouterDelegate<PageSettings>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<PageSettings> {
-  _RouterDelegate() {
-    _pageSettingsList.clear();
+  _RouterDelegate({
+    required GlobalKey<NavigatorState>? key,
+    required this.routes,
+    this.transitionsBuilder,
+  }) : _navigatorKey = key ?? _navigate.navigatorKey {
+    // _pageSettingsList.clear();
   }
+  final List<PageSettings> _pageSettingsList = [];
+  final Map<String, Widget Function(RouteData)> routes;
+  final GlobalKey<NavigatorState> _navigatorKey;
+  final Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  )? transitionsBuilder;
   @override
-  GlobalKey<NavigatorState>? get navigatorKey => _navigate._navigatorKey;
+  GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;
   final Map<PageSettings, _MaterialPage> _pages = {};
   final Map<PageSettings, Completer> _completers = {};
 
@@ -98,7 +116,6 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
 
   @override
   Widget build(BuildContext context) {
-    print('');
     return Navigator(
       key: navigatorKey,
       onPopPage: _onPopPage,
@@ -113,7 +130,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
     late Widget child;
     if (settings.child == null) {
       final p = resolvePathRouteUtil.getPagesFromRouteSettings(
-        routes: RouterObjects._routers!,
+        routes: routes,
         settings: settings,
         skipHomeSlash: true,
         unknownRoute: RouterObjects._unknownRoute,
@@ -127,6 +144,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
         arguments: settings.arguments,
         fullscreenDialog: _navigate._fullscreenDialog,
         maintainState: _navigate._maintainState,
+        transitionsBuilder: transitionsBuilder,
       );
     } else {
       if (settings is RouteSettingsWithChildAndData) {
@@ -141,6 +159,7 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
         arguments: settings.arguments,
         fullscreenDialog: _navigate._fullscreenDialog,
         maintainState: _navigate._maintainState,
+        transitionsBuilder: transitionsBuilder,
       );
     }
     _navigate
