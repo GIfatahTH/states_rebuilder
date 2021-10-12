@@ -102,14 +102,13 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 class Counter {
   final int value;
   Counter(this.value);
+  
   @override
-  String toString() {
-    return 'Counter($value)';
-  }
+  String toString() => 'Counter($value)';
 }
 
 /* --------------  🤔 Business Logic -------------- */
-//🚀 It is immutable
+//🚀 These states are immutable
 @immutable
 class ViewModel {
   // Inject a reactive state of type int.
@@ -138,31 +137,37 @@ class ViewModel {
 }
 
 /* ------------------- 👍 Setup ------------------- */
-/// NOTE: As [ViewModel] is immutable and final, it is safe to globally instantiate it.
+/// 🚀 As [ViewModel] is immutable and final, it is safe to globally instantiate it.
+// The state of counter1 and counter2 will be auto-disposed when no longer in use.
+// NOTE: They are testable and mockable.
 
-//🚀 The state of counter1 and counter2 will be auto-disposed when no longer in use.
-// They are testable and mockable.
 final viewModel = ViewModel();
 
 
 /* --------------------  👀 UI -------------------- */
 ///🚀 Just use [ReactiveStatelessWidget] widget instead of StatelessWidget.
-
 // CounterApp will automatically register in any state consumed in its widget child 
 // branch, regardless of its depth, provided the widget is not lazily loaded as 
 // in the builder method of the ListView.builder widget. 
+
+// BTW, if you're looking for optimization for rebuild by target widget, 
+// check out [OnReactive] or [OnBuilder].
 class CounterApp extends ReactiveStatelessWidget {
   const CounterApp();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Counter1View(),
-        Counter2View(),
-        Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
-      ],
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Counter1View(), // No const to get rebuild
+            Counter2View(),
+            Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
+          ],
+        ),
+      ),
     );
   }
 }
