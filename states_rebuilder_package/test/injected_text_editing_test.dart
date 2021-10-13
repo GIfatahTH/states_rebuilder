@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/injected/injected_text_editing/injected_text_editing.dart';
@@ -70,11 +71,13 @@ void main() {
     'THEN input is validated',
     (tester) async {
       final textEditing = RM.injectTextEditing(
-        validator: (val) {
-          if (val?.contains('@') != true) {
-            return 'Must contain @';
+        validators: [
+          (val) {
+            if (val?.contains('@') != true) {
+              return 'Must contain @';
+            }
           }
-        },
+        ],
       );
 
       final widget = MaterialApp(
@@ -102,15 +105,18 @@ void main() {
       await tester.enterText(find.byType(TextField), 'new text');
       await tester.pump();
       expect(find.text('Must contain @'), findsOneWidget);
+      textEditing.error = null;
+      await tester.pump();
+      expect(find.text('Must contain @'), findsNothing);
     },
   );
 
   final InjectedForm form = RM.injectForm();
   final name = RM.injectTextEditing(
-    validator: (v) => v!.length > 3 ? null : 'Name Error',
+    validators: [(v) => v!.length > 3 ? null : 'Name Error'],
   );
   final email = RM.injectTextEditing(
-    validator: (v) => v!.length > 3 ? 'Email Error' : null,
+    validators: [(v) => v!.length > 3 ? 'Email Error' : null],
   );
   testWidgets(
     'WHEN InjectedForm is used'
@@ -120,8 +126,9 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -137,7 +144,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -187,8 +194,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -204,7 +212,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -246,8 +254,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -263,7 +272,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
 
@@ -303,8 +312,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return On(() {
                 if (switcher.state) {
                   return Column(
@@ -325,7 +335,7 @@ void main() {
                 return Container();
               }).listenTo(switcher);
             },
-          ).listenTo(form),
+          ),
         ),
       );
       await tester.pumpWidget(widget);
@@ -466,8 +476,9 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.form(
-            () {
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
               return Column(
                 children: [
                   TextField(
@@ -485,7 +496,7 @@ void main() {
                 ],
               );
             },
-          ).listenTo(form),
+          ),
         ),
       );
       await tester.pumpWidget(widget);
@@ -508,10 +519,10 @@ void main() {
       );
 
       final textField1 = RM.injectTextEditing(
-        validator: (_) => 'TextField1 Error',
+        validators: [(_) => 'TextField1 Error'],
       );
       final textField2 = RM.injectTextEditing(
-        validator: (_) => 'TextField2 Error',
+        validators: [(_) => 'TextField2 Error'],
       );
       final widget = MaterialApp(
         home: Scaffold(
@@ -524,29 +535,33 @@ void main() {
                   itemBuilder: (_, __) {
                     return Builder(
                       builder: (_) {
-                        return On.form(
-                          () => TextField(
-                            key: Key('TextField1'),
-                            controller: textField1.controller,
-                            decoration: InputDecoration(
-                              errorText: textField1.error,
-                            ),
-                          ),
-                        ).listenTo(form1);
+                        return OnFormBuilder(
+                          listenTo: form1,
+                          builder: () {
+                            return TextField(
+                              key: Key('TextField1'),
+                              controller: textField1.controller,
+                              decoration: InputDecoration(
+                                errorText: textField1.error,
+                              ),
+                            );
+                          },
+                        );
                       },
                     );
                   },
                 ),
               ),
-              On.form(
-                () => TextField(
+              OnFormBuilder(
+                listenTo: form2,
+                builder: () => TextField(
                   key: Key('TextField2'),
                   controller: textField2.controller,
                   decoration: InputDecoration(
                     errorText: textField2.error,
                   ),
                 ),
-              ).listenTo(form2),
+              ),
             ],
           ),
         ),
@@ -646,7 +661,8 @@ void main() {
                   );
                 },
               ),
-              On.formSubmission(
+              OnFormSubmissionBuilder(
+                listenTo: form,
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(
                   onPressed: () {
@@ -659,7 +675,150 @@ void main() {
                   },
                   child: Text('Submit2'),
                 ),
-              ).listenTo(form),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(submitMessage, '');
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      //
+      await tester.tap(find.text('Submit1'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(submitMessage, 'Submitted');
+      expect(find.text('Submitting...'), findsNothing);
+      //
+      await tester.tap(find.text('Submit2'));
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+      serverError = null;
+      refresher();
+      await tester.pump();
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsNothing);
+      expect(find.text('Submit2'), findsNothing);
+      expect(submitMessage, 'Submitting...');
+      expect(find.text('Submitting...'), findsNWidgets(2));
+
+      //
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('Email Server Error'), findsNothing);
+      expect(find.text('Server Error'), findsNothing);
+      expect(find.text('Submit1'), findsOneWidget);
+      expect(find.text('Submit2'), findsOneWidget);
+      expect(find.text('Submitting...'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'On.formSubmission widget and side effects work for OnFormFieldBuilder',
+    (tester) async {
+      final name = RM.injectFormField<String>(
+        '',
+        validateOnLoseFocus: false,
+      );
+      final email = RM.injectFormField<String>(
+        '',
+        validateOnLoseFocus: false,
+      );
+      String submitMessage = '';
+      String? serverError = 'Server Error';
+      late void Function() refresher;
+      final form = RM.injectForm(
+        // autoFocusOnFirstError: false,
+        submit: () async {
+          await Future.delayed(Duration(seconds: 1));
+          email.error = 'Email Server Error';
+        },
+        onSubmitting: () => submitMessage = 'Submitting...',
+        onSubmitted: () => submitMessage = 'Submitted',
+      );
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              OnFormBuilder(
+                listenTo: form,
+                builder: () {
+                  return Column(
+                    children: [
+                      OnFormFieldBuilder<String>(
+                        listenTo: name,
+                        builder: (value, onChanged) {
+                          return TextFormField(
+                            key: Key('Name'),
+                            initialValue: value,
+                            onChanged: onChanged,
+                          );
+                        },
+                      ),
+                      OnFormFieldBuilder<String>(
+                        listenTo: email,
+                        builder: (value, onChanged) {
+                          return TextFormField(
+                            key: Key('Email'),
+                            initialValue: value,
+                            onChanged: onChanged,
+                          );
+                        },
+                      ),
+                      form.rebuild.onFormSubmission(
+                        onSubmitting: () => Text('Submitting...'),
+                        onSubmissionError: (error, ref) {
+                          refresher = ref;
+                          return Text(error);
+                        },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            form.submit();
+                          },
+                          child: Text('Submit1'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              OnFormSubmissionBuilder(
+                listenTo: form,
+                onSubmitting: () => Text('Submitting...'),
+                child: ElevatedButton(
+                  onPressed: () {
+                    form.submit(
+                      () async {
+                        await Future.delayed(Duration(seconds: 1));
+                        if (serverError != null) throw serverError;
+                      },
+                    );
+                  },
+                  child: Text('Submit2'),
+                ),
+              ),
             ],
           ),
         ),
@@ -779,7 +938,8 @@ void main() {
                   );
                 },
               ),
-              On.formSubmission(
+              OnFormSubmissionBuilder(
+                listenTo: form,
                 onSubmitting: () => Text('Submitting...'),
                 child: ElevatedButton(
                   onPressed: () {
@@ -792,7 +952,7 @@ void main() {
                   },
                   child: Text('Submit2'),
                 ),
-              ).listenTo(form),
+              ),
             ],
           ),
         ),
@@ -858,11 +1018,13 @@ void main() {
       final form = RM.injectForm();
       final password = RM.injectTextEditing(text: '12');
       final confirmPassword = RM.injectTextEditing(
-        validator: (text) {
-          if (text != password.state) {
-            return 'Password do not match';
+        validators: [
+          (text) {
+            if (text != password.state) {
+              return 'Password do not match';
+            }
           }
-        },
+        ],
       );
 
       final isRegister = true.inj();
@@ -873,15 +1035,17 @@ void main() {
             () => OnFormBuilder(
               listenTo: form,
               builder: () {
-                return Column(children: [
-                  TextField(
-                    controller: password.controller,
-                  ),
-                  if (isRegister.state)
+                return Column(
+                  children: [
                     TextField(
-                      controller: confirmPassword.controller,
+                      controller: password.controller,
                     ),
-                ]);
+                    if (isRegister.state)
+                      TextField(
+                        controller: confirmPassword.controller,
+                      ),
+                  ],
+                );
               },
             ),
           ),
@@ -901,14 +1065,14 @@ void main() {
     'THEN the it is assigned to the form autoFocusedNode'
     'AND it is auto validated when lost focus',
     (tester) async {
-      final text = RM.injectTextEditing(
-          text: '',
-          validateOnLoseFocus: true,
-          validator: (txt) {
-            if (txt!.length < 3) {
-              return 'not allowed';
-            }
-          });
+      final text = RM
+          .injectTextEditing(text: '', validateOnLoseFocus: true, validators: [
+        (txt) {
+          if (txt!.length < 3) {
+            return 'not allowed';
+          }
+        }
+      ]);
       final form = RM.injectForm();
       final widget = MaterialApp(
         home: Scaffold(
@@ -939,6 +1103,7 @@ void main() {
         ),
       );
       await tester.pumpWidget(widget);
+      await tester.pump();
       expect((form as InjectedFormImp).autoFocusedNode, isNotNull);
       expect(find.text('not allowed'), findsNothing);
       form.submitFocusNode.requestFocus();
@@ -977,11 +1142,11 @@ void main() {
     (tester) async {
       final text1 =
           RM.injectTextEditing(text: 'initial text1', validateOnTyping: false);
-      final text2 = RM.injectTextEditing(
-          text: 'initial text2',
-          validator: (txt) {
-            if (txt!.length < 3) return 'not allowed';
-          });
+      final text2 = RM.injectTextEditing(text: 'initial text2', validators: [
+        (txt) {
+          if (txt!.length < 3) return 'not allowed';
+        }
+      ]);
       final widget = MaterialApp(
         home: Scaffold(
           body: OnReactive(
@@ -1029,6 +1194,163 @@ void main() {
       expect(find.text('initial text1'), findsNWidgets(2));
       expect(find.text('initial text2'), findsNWidgets(2));
       expect(text2.isValid, false);
+    },
+  );
+
+  testWidgets(
+    'WHEN focus changes'
+    'THEN InjectedForm emits notification'
+    'Using OnFormBuilder'
+    'issue #226',
+    (tester) async {
+      final field = RM.injectTextEditing();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return TextFormField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: field.focusNode.hasFocus ? Colors.red : null,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final redWidget = find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator &&
+            widget.decoration.fillColor == Colors.red,
+      );
+      expect(redWidget, findsNothing);
+      field.focusNode.requestFocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN focus changes'
+    'THEN InjectedForm emits notification'
+    'Using OnReactive'
+    'issue #226',
+    (tester) async {
+      final field = RM.injectTextEditing();
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnReactive(
+            () {
+              return TextFormField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: field.focusNode.hasFocus ? Colors.red : null,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final redWidget = find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator &&
+            widget.decoration.fillColor == Colors.red,
+      );
+      expect(redWidget, findsNothing);
+      field.focusNode.requestFocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pumpAndSettle();
+      expect(redWidget, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN readOnly is true,'
+    'THEN the TextField is selectable, clickable but not editable',
+    (tester) async {
+      final field = RM.injectTextEditing(
+        text: '0',
+        isReadOnly: true,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: TextField(
+            controller: field.controller,
+            focusNode: field.focusNode,
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      await tester.enterText(find.byType(TextField), '1');
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('0'), findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pump();
+      //
+      field.isReadOnly = false;
+      await tester.enterText(find.byType(TextField), '1');
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pump();
+      //
+      field.isReadOnly = true;
+      await tester.enterText(find.byType(TextField), '2');
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN isEnable is true,'
+    'THEN the TextField is selectable, clickable but not editable',
+    (tester) async {
+      final field = RM.injectTextEditing(
+        text: '0',
+        isEnabled: false,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnReactive(
+            () {
+              return TextField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                enabled: field.isEnabled,
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      final isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+      expect(isEnabled, findsNothing);
+      //
+      field.isEnabled = true;
+      await tester.pump();
+      expect(isEnabled, findsOneWidget);
+      //
+      field.isEnabled = false;
+      await tester.pump();
+      expect(isEnabled, findsNothing);
     },
   );
 }

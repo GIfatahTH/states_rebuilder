@@ -54,23 +54,23 @@ class PreferencePage extends StatelessWidget {
           () => Column(
             children: [
               Card(
-                color: theme.supportedLightThemes[AppTheme.Green].primaryColor,
+                color: theme.supportedLightThemes[AppTheme.Green]!.primaryColor,
                 child: ListTile(
                   title: Text(
                     i18n.of(context).greenTheme,
-                    style: theme.supportedLightThemes[AppTheme.Green].textTheme
+                    style: theme.supportedLightThemes[AppTheme.Green]!.textTheme
                         .bodyText2,
                   ),
                   onTap: () => theme.state = AppTheme.Green,
                 ),
               ),
               Card(
-                color: theme.supportedLightThemes[AppTheme.Blue].primaryColor,
+                color: theme.supportedLightThemes[AppTheme.Blue]!.primaryColor,
                 child: ListTile(
                   key: Key('BlueThemeListTile'),
                   title: Text(
                     i18n.of(context).blueTheme,
-                    style: theme.supportedLightThemes[AppTheme.Blue].textTheme
+                    style: theme.supportedLightThemes[AppTheme.Blue]!.textTheme
                         .bodyText2,
                   ),
                   onTap: () => theme.state = AppTheme.Blue,

@@ -24,15 +24,30 @@ class OnAuth<T> {
   ///a simple widget replacement. To use the navigation page transition
   ///animation, set [userRouteNavigation] to true. In this case, you
   ///need to set the [RM.navigate.navigatorKey].
-  Widget listenTo(
-    InjectedAuth injected, {
+  @Deprecated('Use OnAuthBuilder instead')
+  Widget listenTo<D>(
+    InjectedAuth<D, dynamic> injected, {
     bool useRouteNavigation = false,
-    void Function()? dispose,
-    On<void>? onSetState,
+    SideEffects<D>? sideEffects,
+    Key? key,
+    String? debugPrintWhenRebuild,
+  }) =>
+      _listenTo(
+        injected,
+        useRouteNavigation: useRouteNavigation,
+        sideEffects: sideEffects,
+        key: key,
+        debugPrintWhenRebuild: debugPrintWhenRebuild,
+      );
+
+  Widget _listenTo<D>(
+    InjectedAuth<D, dynamic> injected, {
+    bool useRouteNavigation = false,
+    SideEffects<D>? sideEffects,
     Key? key,
     String? debugPrintWhenRebuild,
   }) {
-    final inj = injected as InjectedAuthImp;
+    final inj = injected as InjectedAuthImp<D, dynamic>;
     inj.initialize();
     T getWidget() => inj.isSigned ? _onSigned() : _onUnsigned();
     bool isNavigated = false;
@@ -43,11 +58,13 @@ class OnAuth<T> {
         return LifeCycleHooks(
           mountedState: (_) {
             //It is not disposed
-            injected.reactiveModelState.listeners.addListenerForRebuild(
+            inj.reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
-                onSetState?.call(injected.snapState);
+                // inj.sideEffects
+                //   ?..onSetState?.call(inj.snapState)
+                //   ..onAfterBuild?.call();
 
-                if (useRouteNavigation && injected.hasData) {
+                if (useRouteNavigation && inj.hasData) {
                   if (injected.isSigned) {
                     RM.navigate.toAndRemoveUntil<T>(
                       _onSigned() as Widget,
@@ -75,9 +92,11 @@ class OnAuth<T> {
               },
               clean: null,
             );
+            sideEffects?.initState?.call();
           },
           dispose: (_) {
-            dispose?.call();
+            sideEffects?.dispose?.call();
+
             // disposer();
           },
           didUpdateWidget: (context, oldWidget, newWidget) {
@@ -146,7 +165,9 @@ class _OnAuthWidget<T> {
   });
 }
 
-class OnAuthBuilder extends StatelessWidget {
+/// Listen to an [InjectedAuth] and define the appropriate view for each case
+
+class OnAuthBuilder<T, P> extends StatelessWidget {
   const OnAuthBuilder({
     Key? key,
     required this.listenTo,
@@ -155,11 +176,15 @@ class OnAuthBuilder extends StatelessWidget {
     this.onInitialWaiting,
     this.useRouteNavigation = false,
     this.onWaiting,
-    this.dispose,
-    this.onSetState,
+    this.sideEffects,
     this.debugPrintWhenRebuild,
+    //Deprecated
+    @Deprecated('Use sideEffects instead') this.dispose,
+    @Deprecated('Use sideEffects instead') this.onSetState,
   }) : super(key: key);
-  final InjectedAuth listenTo;
+
+  /// [InjectedAuth] to listen to.
+  final InjectedAuth<T, P> listenTo;
 
   ///Widget to display while waiting for the first signing when app starts
   final Widget Function()? onInitialWaiting;
@@ -175,28 +200,42 @@ class OnAuthBuilder extends StatelessWidget {
 
   ///Whether to use navigation transition between onSigned and onUnsigned
   ///widgets or simply use widget replacement
+  ///
+  ///If you set useRouteNavigation you have to set [RM.navigate.navigatorKey]
+  ///in the MaterialApp.
+  ///
+  ///```dart
+  ///MaterialApp(
+  ///  navigatorKey : RM.navigate.navigatorKey,
+  ///)
+  ///```
+  ///
   final bool useRouteNavigation;
 
-  ///Side effects to call when this widget is disposed.
-  final void Function()? dispose;
-
-  ///Side effects to call InjectedAuth emits notification.
-  final On<void>? onSetState;
+  ///Handle side effects
+  final SideEffects<T>? sideEffects;
 
   ///Debug print informative message when this widget is rebuilt
   final String? debugPrintWhenRebuild;
+
+  ///Side effects to call when this widget is disposed.
+  @Deprecated('Use sideEffects instead')
+  final void Function()? dispose;
+
+  ///Side effects to call InjectedAuth emits notification.
+  @Deprecated('Use sideEffects instead')
+  final On<void>? onSetState;
   @override
   Widget build(BuildContext context) {
-    return On.auth(
+    return OnAuth(
       onInitialWaiting: onInitialWaiting,
       onWaiting: onWaiting,
       onUnsigned: onUnsigned,
       onSigned: onSigned,
-    ).listenTo(
+    )._listenTo<T>(
       listenTo,
       useRouteNavigation: useRouteNavigation,
-      onSetState: onSetState,
-      dispose: dispose,
+      sideEffects: sideEffects,
       key: key,
       debugPrintWhenRebuild: debugPrintWhenRebuild,
     );

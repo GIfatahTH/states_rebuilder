@@ -8,6 +8,54 @@ part of 'injected_crud.dart';
 ///
 ///the second generic type is for the query parameter
 ///type
+///
+///```dart
+/// class MyItemsRepository implements ICRUD<Item, Param> {
+///   @override
+///   ICRUD<void> init()async{
+///     //initialize any plugging here
+///   }
+///
+///   @override
+///   Future<List<Item>> read(Param? param) async {
+///     final items = await http.get('uri/${param.user.id}');
+///     //After parsing
+///     return items;
+///
+///     //OR
+///     // if(param.queryType=='GetCompletedItems'){
+///     //    final items = await http.get('uri/${param.user.id}/completed');
+///     //    return items;
+///     // }else if(param.queryType == 'GetActiveItems'){
+///     //   final items = await http.get('uri/${param.user.id}/active');
+///     //    return items;
+///     // }
+///   }
+///   @override
+///   Future<Item> create(Item item, Param? param) async {
+///     final result = await http.post('uri/${param.user.id}/items');
+///     return item.copyWith(id: result['id']);
+///   }
+///
+///   @override
+///   Future<dynamic> update(List<Item> items, Param? param) async {
+///     //Update items
+///     return numberOfUpdatedRows;
+///   }
+///   @override
+///   Future<dynamic> delete(List<Item> items, Param? param) async {
+///     //Delete items
+///   }
+///
+///   @override
+///   void dispose() {
+///     //Cleaning resources
+///   }
+///
+/// // You can add here custom methods to perform other requests to the backend
+///
+/// }
+/// ```
 abstract class ICRUD<T, P> {
   ///Initialize any plugging and return the
   ///initialized instance.

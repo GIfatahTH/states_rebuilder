@@ -1,17 +1,23 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/widgets.dart';
-import '../../rm.dart';
-
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import '../../../states_rebuilder.dart';
+
+import '../../builders/on_reactive.dart';
+import '../../rm.dart';
 
 abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
   @override
-  I18N get state => getInjectedState(this);
+  I18N get state {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return getInjectedState(this);
+  }
 
   ///The current locale
   Locale? locale;
@@ -27,6 +33,13 @@ abstract class InjectedI18N<I18N> implements Injected<I18N> {
   ///and define your logic.
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback;
+
+  final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates =
+      const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ];
 }
 
 class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
@@ -137,14 +150,19 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   late final VoidCallback _resetDefaultState;
 
   @override
-  List<Locale> get supportedLocales => i18Ns.keys.toList();
+  List<Locale> get supportedLocales {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return i18Ns.keys.toList();
+  }
 
   @override
   Locale? get locale {
     initialize();
+    OnReactiveState.addToTopStatelessObs?.call(this);
     return _locale is SystemLocale ? _resolvedLocale : _locale;
   }
 
+  @override
   set locale(Locale? l) {
     if (l == null || _locale == l) {
       return;
@@ -213,6 +231,43 @@ class InjectedI18NImp<I18N> extends InjectedImp<I18N> with InjectedI18N<I18N> {
   // }
 
   @override
+  I18N of(
+    BuildContext context, {
+    bool defaultToGlobal = false,
+  }) {
+    try {
+      return super.of(
+        context,
+        defaultToGlobal: defaultToGlobal,
+      );
+    } catch (e) {
+      final widget = context.widget;
+      if (widget is TopStatelessWidget) {
+        throw ('No Parent InheritedWidget of type [TopReactiveStateless] is found.\n'
+            'There are several ways to avoid this problem. The simplest is to '
+            'use a Builder to get a context that is "under" the [TopReactiveStateless].\n'
+            'A more efficient solution is to split your build function into several widgets. This '
+            'introduces a new context from which you can obtain the [TopReactiveStateless].\n'
+            '${context.describeElement('The context used was')}');
+      }
+      throw ('No Parent InheritedWidget of type [TopReactiveStateless ] is found.\n'
+          'Make sure to use [TopReactiveStateless] widget on top of MaterialApp '
+          'Widget.\n'
+          '${context.describeElement('The context used was')}');
+    }
+  }
+
+  @override
+  Injected<I18N> call(
+    BuildContext context, {
+    bool defaultToGlobal = false,
+  }) {
+    throw Exception(
+      'Use of(context) method instead',
+    );
+  }
+
+  @override
   void dispose() {
     super.dispose();
     _resetDefaultState();
@@ -228,8 +283,9 @@ class SystemLocale extends Locale {
   factory SystemLocale() {
     return const SystemLocale._(null);
   }
-  bool operator ==(Object o) {
-    return o is SystemLocale;
+  @override
+  bool operator ==(Object other) {
+    return other is SystemLocale;
   }
 
   @override

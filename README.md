@@ -21,9 +21,17 @@
 </p>
  -->
 
-<p align="justify">
-`states_rebuilder` is a feature-rich state management sulution:
-</p>
+# Contributing
+There are multiple ways and places you can contribute to make this package nicer, if you are wondering how to start please post an issue and we're here to help facilitate that.
+
+  - Asking question, leaving suggestion
+  - Code commits and pull requests
+  - Youtube promotion or Medium tutorial
+
+
+# About `states_rebuilder`
+
+It is a feature-rich state management sulution:
 
 ## Performance
   - Predictable and controllable

@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -10,7 +11,7 @@ class CounterState {
   //they return a new counterState instance
   final int counter;
 
-  CounterState(this.counter);
+  const CounterState(this.counter);
 
   //1- Synchronous mutation
   CounterState incrementSync() {
@@ -63,16 +64,18 @@ class MyApp extends StatelessWidget {
       child: Column(
         children: [
           //rebuilder will rebuild only if counter has data
-          On.data(
-            () {
+          OnBuilder.data(
+            listenTo: counter,
+            builder: (_) {
               rebuilderCount++;
               return Text('rebuilder: ${counter.state.counter}');
             },
-          ).listenTo(counter),
+          ),
 
           //whenRebuilder will rebuild each time the counter change its state,
           //and call the corresponding callback.
-          On.all(
+          OnBuilder.all(
+            listenTo: counter,
             onIdle: () {
               whenRebuilderCount++;
               return Text('whenRebuilder: Idle');
@@ -85,11 +88,11 @@ class MyApp extends StatelessWidget {
               whenRebuilderCount++;
               return Text('whenRebuilder: ${e.message}');
             },
-            onData: () {
+            onData: (_) {
               whenRebuilderCount++;
               return Text('whenRebuilder: ${counter.state.counter}');
             },
-          ).listenTo(counter),
+          ),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -52,12 +53,13 @@ class CounterApp extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          On.data(
-            () {
+          OnBuilder.data(
+            listenTo: counter1,
+            builder: (data) {
               numberOfCounter1Rebuild++;
-              return Text('counter1 : ${counter1.state}');
+              return Text('counter1 : $data');
             },
-          ).listenTo(counter1),
+          ),
 
           //you can use this
           // counter2.rebuilder(() {
@@ -74,14 +76,18 @@ class CounterApp extends StatelessWidget {
           //     return Text('counter2 : ${counter2.state}');
           //   },
           // ),
-          On.data(() {
-            numberOfCounter2Rebuild++;
-            return Text('counter2 : ${counter2.state}');
-          }).listenTo(counter2),
-          On.data(() {
-            numberOfComputedRebuild++;
-            return Text('computedCounter : ${computedCounter.state}');
-          }).listenTo(computedCounter),
+          OnBuilder.data(
+              listenTo: counter2,
+              builder: (_) {
+                numberOfCounter2Rebuild++;
+                return Text('counter2 : ${counter2.state}');
+              }),
+          OnBuilder.data(
+              listenTo: computedCounter,
+              builder: (_) {
+                numberOfComputedRebuild++;
+                return Text('computedCounter : ${computedCounter.state}');
+              }),
         ],
       ),
     );

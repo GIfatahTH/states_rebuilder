@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -19,7 +20,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On(() => ++onSetState),
+      sideEffects: SideEffects(onSetState: (_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -58,7 +59,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.data(() => ++onSetState),
+      sideEffects: SideEffects.onData((_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -94,9 +95,9 @@ void main() {
   testWidgets('On.waiting in widget', (tester) async {
     int onSetState = 0;
     int onBuild = 0;
-    final counter = RM.inject(
+    final counter = RM.inject<int>(
       () => 0,
-      onSetState: On.waiting(() => ++onSetState),
+      sideEffects: SideEffects.onWaiting(() => ++onSetState),
     );
 
     final widget = Directionality(
@@ -140,7 +141,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.error((_, __) => ++onSetState),
+      sideEffects: SideEffects.onError((_, __) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -284,7 +285,7 @@ void main() {
     expect(onCall(on, data: 'd'), 'Data');
   });
 
-  testWidgets('On.erro when return void', (tester) async {
+  testWidgets('On.error when return void', (tester) async {
     String? error;
     //
     final on = On<void>.error((_, __) => error = 'error: ' + _);
@@ -295,7 +296,7 @@ void main() {
     onCall(on, error: 'Error', isSideEffect: true);
     expect(error, 'error: Error');
     error = null;
-    onCall(on, data: 'data', isSideEffect: true);
+    onCall(on, data: null, isSideEffect: true);
     expect(error, null);
   });
 }

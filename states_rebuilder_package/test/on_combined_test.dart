@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -194,7 +195,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On(() => ++onSetState),
+      sideEffects: SideEffects(onSetState: (_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -233,7 +234,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.data(() => ++onSetState),
+      sideEffects: SideEffects.onData((_) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -272,7 +273,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.waiting(() => ++onSetState),
+      sideEffects: SideEffects.onWaiting(() => ++onSetState),
     );
 
     final widget = Directionality(
@@ -316,7 +317,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      onSetState: On.error((_, __) => ++onSetState),
+      sideEffects: SideEffects.onError((_, __) => ++onSetState),
     );
 
     final widget = Directionality(

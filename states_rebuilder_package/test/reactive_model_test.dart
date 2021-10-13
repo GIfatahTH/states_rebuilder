@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
@@ -375,12 +376,14 @@ void main() {
       //
       modelRM.setState(
         (s) => s + 1,
-        onSetState: On(() {
+        sideEffects: SideEffects(onSetState: (_) {
           numberOfOnSetStateCall++;
-        }),
-        onRebuildState: () {
+        }, onAfterBuild: () {
           numberOfOnRebuildStateCall++;
-        },
+        }),
+        // onRebuildState: () {
+        //   numberOfOnRebuildStateCall++;
+        // },
       );
       await tester.pump();
       expect(numberOfOnSetStateCall, equals(1));
@@ -397,9 +400,12 @@ void main() {
       //
       modelRM?.setState(
         (s) => s.increment(),
-        onData: (data) {
-          numberOfOnDataCall++;
-        },
+        // onSetState: On.data(() => numberOfOnDataCall++),
+        sideEffects: SideEffects.onData(
+          (data) {
+            numberOfOnDataCall++;
+          },
+        ),
       );
       expect(numberOfOnDataCall, equals(1));
     },
@@ -413,9 +419,11 @@ void main() {
       //
       modelRM?.setState(
         (s) => s.incrementAsync(),
-        onData: (data) {
-          numberOfOnDataCall++;
-        },
+        sideEffects: SideEffects.onData(
+          (data) {
+            numberOfOnDataCall++;
+          },
+        ),
       );
       await tester.pump();
       expect(numberOfOnDataCall, equals(0));
@@ -432,9 +440,11 @@ void main() {
       //
       modelRM?.setState(
         (s) => s.incrementError(),
-        onError: (data) {
-          numberOfOnErrorCall++;
-        },
+        sideEffects: SideEffects.onError(
+          (_, __) {
+            numberOfOnErrorCall++;
+          },
+        ),
       );
       await tester.pump();
       expect(numberOfOnErrorCall, equals(1));
@@ -448,9 +458,11 @@ void main() {
       //
       modelRM?.setState(
         (s) => s.incrementAsyncWithError(),
-        onError: (data) {
-          numberOfOnErrorCall++;
-        },
+        sideEffects: SideEffects.onError(
+          (data, _) {
+            numberOfOnErrorCall++;
+          },
+        ),
       );
       await tester.pump();
       expect(numberOfOnErrorCall, equals(0));
@@ -817,9 +829,9 @@ void main() {
     'issue #61: reactive stream with error and watch',
     (WidgetTester tester) async {
       int numberOfRebuild = 0;
-      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (num) {
-        if (num == 0) throw Exception('Error message');
-        return num + 1;
+      Stream<int> snapStream = Stream.periodic(Duration(seconds: 1), (n) {
+        if (n == 0) throw Exception('Error message');
+        return n + 1;
       }).take(3);
 
       final rmStream =
@@ -1012,14 +1024,16 @@ void main() {
       //
       modelRM.setState(
         (_) => modelRM.state + 1,
-        onSetState: On(() {
-          numberOfOnSetStateCall++;
-          lifeCycleTracker += 'onSetState, ';
-        }),
-        onRebuildState: () {
-          numberOfOnRebuildStateCall++;
-          lifeCycleTracker += 'onRebuildState, ';
-        },
+        sideEffects: SideEffects(
+          onSetState: (_) {
+            numberOfOnSetStateCall++;
+            lifeCycleTracker += 'onSetState, ';
+          },
+          onAfterBuild: () {
+            numberOfOnRebuildStateCall++;
+            lifeCycleTracker += 'onRebuildState, ';
+          },
+        ),
       );
       await tester.pump();
       expect(numberOfOnSetStateCall, equals(1));
@@ -1057,16 +1071,18 @@ void main() {
       expect(find.text(('1')), findsOneWidget);
 
       //sync increment with error
-      var error;
+      dynamic error;
       await modelRM.setState(
         (_) {
           final model = VanillaModel();
           model.incrementError();
           return model.counter;
         },
-        onError: (e) {
-          error = e;
-        },
+        sideEffects: SideEffects.onError(
+          (e, _) {
+            error = e;
+          },
+        ),
       );
       await tester.pump();
       expect(find.text('Error message'), findsOneWidget);
@@ -1097,13 +1113,18 @@ void main() {
       expect(find.text(('onIdle')), findsOneWidget);
 
       //sync increment without error
-      modelRM.setState((_) async {
-        final model = VanillaModel();
-        await model.incrementAsync();
-        return model.counter;
-      }, onData: (data) {
-        onData = data;
-      });
+      modelRM.setState(
+        (_) async {
+          final model = VanillaModel();
+          await model.incrementAsync();
+          return model.counter;
+        },
+        sideEffects: SideEffects.onData(
+          (data) {
+            onData = data;
+          },
+        ),
+      );
       await tester.pump();
       expect(find.text(('onWaiting')), findsOneWidget);
       expect(onData, isNull);
@@ -1589,7 +1610,9 @@ void main() {
     int numberOfOnData = 0;
     final counter = RM.inject(
       () => 0,
-      onData: (_) => numberOfOnData++,
+      sideEffects: SideEffects.onData(
+        (_) => numberOfOnData++,
+      ),
     );
     final widget = counter.rebuild.onOrElse(orElse: (_) {
       numberOfRebuild++;
@@ -1660,5 +1683,5 @@ Future<int> getFutureWithError() => Future.delayed(Duration(seconds: 1), () {
       throw Exception('Error message');
     });
 Stream<int> getStream() {
-  return Stream.periodic(Duration(seconds: 1), (num) => num).take(3);
+  return Stream.periodic(Duration(seconds: 1), (n) => n).take(3);
 }

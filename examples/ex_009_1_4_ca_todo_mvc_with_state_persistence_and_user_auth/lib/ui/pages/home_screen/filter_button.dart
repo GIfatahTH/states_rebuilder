@@ -12,13 +12,13 @@ class FilterButton extends StatelessWidget {
     final activeStyle = Theme.of(context)
         .textTheme
         .bodyText2!
-        .copyWith(color: Theme.of(context).accentColor);
+        .copyWith(color: Theme.of(context).colorScheme.secondary);
     final button = _Button(
       activeStyle: activeStyle,
       defaultStyle: defaultStyle!,
     );
 
-    return OnTabBuilder(
+    return OnTabPageViewBuilder(
       listenTo: HomeScreen.appTab,
       builder: (index) {
         return AnimatedOpacity(
@@ -47,7 +47,7 @@ class _Button extends StatelessWidget {
     return PopupMenuButton<VisibilityFilter>(
       tooltip: i18n.of(context).filterTodos,
       onSelected: (filter) {
-        activeFilter.state = filter;
+        todosBloc.activeFilter.state = filter;
       },
       itemBuilder: (BuildContext context) => <PopupMenuItem<VisibilityFilter>>[
         PopupMenuItem<VisibilityFilter>(
@@ -55,7 +55,7 @@ class _Button extends StatelessWidget {
           value: VisibilityFilter.all,
           child: Text(
             i18n.of(context).showAll,
-            style: activeFilter.state == VisibilityFilter.all
+            style: todosBloc.activeFilter.state == VisibilityFilter.all
                 ? activeStyle
                 : defaultStyle,
           ),
@@ -65,7 +65,7 @@ class _Button extends StatelessWidget {
           value: VisibilityFilter.active,
           child: Text(
             i18n.of(context).showActive,
-            style: activeFilter.state == VisibilityFilter.active
+            style: todosBloc.activeFilter.state == VisibilityFilter.active
                 ? activeStyle
                 : defaultStyle,
           ),
@@ -75,7 +75,7 @@ class _Button extends StatelessWidget {
           value: VisibilityFilter.completed,
           child: Text(
             i18n.of(context).showCompleted,
-            style: activeFilter.state == VisibilityFilter.completed
+            style: todosBloc.activeFilter.state == VisibilityFilter.completed
                 ? activeStyle
                 : defaultStyle,
           ),

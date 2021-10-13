@@ -11,10 +11,10 @@ final i18n = RM.injectI18N<EnUS>(
         Future.delayed(Duration(seconds: 1), () => FrFR()),
   },
   persistKey: '__lang__',
-  onSetState: On.data(
-    () {
+  sideEffects: SideEffects.onData(
+    (data) {
       //For better user experience, RTL languages page animates from RTL
-      if (Directionality.of(RM.context) == TextDirection.rtl) {
+      if (Directionality.of(RM.context!) == TextDirection.rtl) {
         RM.navigate.transitionsBuilder = RM.transitions.rightToLeft();
       } else {
         RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
@@ -30,9 +30,6 @@ final i18n = RM.injectI18N<EnUS>(
       );
     },
   ),
-  middleSnapState: (middleSnap) {
-    // middleSnap.print();
-  },
 );
 
 class EnUS {

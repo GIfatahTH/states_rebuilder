@@ -1,4 +1,7 @@
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/auth_bloc.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/value_object/token.dart';
+import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -7,33 +10,34 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/main.dar
 
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/common/extensions.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/domain/entities/user.dart';
-import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/auth_page/auth_page.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/pages/home_screen/home_screen.dart';
 
 void main() async {
   final storage = await RM.storageInitializerMock();
 
   setUp(() {
-    user.injectMock(
+    authBloc.userRM.injectMock(
       () => User(
         userId: 'user1',
         email: 'user1@mail.com',
         token: Token(
           token: 'token_user1',
+          refreshToken: 'refreshToken_user1',
           expiryDate: DateTimeX.current.add(
             Duration(seconds: 10),
           ),
         ),
       ),
     );
-    todos.injectMock(() => []);
+    todosBloc.todosRM.injectMock(() => []);
     storage.clear();
   });
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
     await tester.pumpAndSettle();
     //App start with dart model
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
+    expect(isDark.isDarkTheme, false);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isFalse);
 
     //tap on the ExtraActionsButton
     await tester.tap(find.byType(ExtraActionsButton));
@@ -43,7 +47,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is light
-    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
     //
     //Tap to toggle theme to dark mode
     await tester.tap(find.byType(ExtraActionsButton));
@@ -52,7 +56,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is dark
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
   });
 
   testWidgets('Change language should work', (tester) async {

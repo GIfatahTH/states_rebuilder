@@ -7,9 +7,11 @@ final animation = RM.injectAnimation(
 
 final _selected = RM.inject<bool>(
   () => true,
-  onData: (_) {
-    animation.refresh();
-  },
+  sideEffects: SideEffects.onData(
+    (_) {
+      animation.refresh();
+    },
+  ),
 );
 
 class ImplicitStaggeredDemo extends StatelessWidget {

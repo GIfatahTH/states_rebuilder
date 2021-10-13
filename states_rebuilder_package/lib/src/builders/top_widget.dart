@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
+import '../../states_rebuilder.dart';
 import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
-import '../injected/injected_auth/injected_auth.dart';
-import '../rm.dart';
 
+///# Prefer using [TopStatelessWidget] instead.
+///
 ///{@template topWidget}
 ///Widget to put on top of the app.
 ///
@@ -14,13 +16,51 @@ import '../rm.dart';
 ///It is also use to provide and listen to [InjectedTheme], [InjectedI18N]
 ///
 ///It can also be used to display a splash screen while initialization plugins.
+///
+/// Example of TopAppWidget used to provide [InjectedTheme] and [InjectedI18N]
+///
+///Provide and listen to the [InjectedTheme].
+///
+///```dart
+/// void main() {
+///   runApp(MyApp());
+/// }
+///
+/// class MyApp extends StatelessWidget {
+///   // This widget is the root of your application.
+///   @override
+///   Widget build(BuildContext context) {
+///     return TopAppWidget(//Use TopAppWidget
+///       injectedTheme: themeRM, //Set the injectedTheme
+///       injectedI18N: i18nRM, //Set the injectedI18N
+///       builder: (context) {
+///         return MaterialApp(
+///           //
+///           theme: themeRM.lightTheme, //light theme
+///           darkTheme: themeRM.darkTheme, //dark theme
+///           themeMode: themeRM.themeMode, //theme mode
+///           //
+///           locale: i18nRM.locale,
+///           localeResolutionCallback: i18nRM.localeResolutionCallback,
+///           localizationsDelegates: i18n.localizationsDelegates,,
+///           home: HomePage(),
+///         );
+///       },
+///     );
+///   }
+/// }
+/// ```
 /// {@endtemplate}
-class TopAppWidget extends StatefulWidget {
+class TopAppWidget extends TopStatelessWidget {
   ///```dart
   ///Called when the system puts the app in the background or returns the
   ///app to the foreground.
   ///
-  final void Function(AppLifecycleState state)? didChangeAppLifecycleState;
+  final void Function(AppLifecycleState state)? _didChangeAppLifecycleState;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _didChangeAppLifecycleState?.call(state);
+  }
 
   ///Child widget to render
   final Widget Function(BuildContext) builder;
@@ -75,10 +115,11 @@ class TopAppWidget extends StatefulWidget {
   ///      ),
   ///      builder: (context) {
   ///        return MaterialApp(
-  ///          //Defining locale and localeResolutionCallback is more than
-  ///          //enough for the app to get the right locale.
+  ///          //Defining locale, localeResolutionCallback and localizationsDelegates
+  ///          //is more than enough for the app to get the right locale.
   ///          locale: i18n.locale,
   ///          localeResolutionCallback: i18n.localeResolutionCallback,
+  ///          localizationsDelegates: i18n.localizationsDelegates,
   ///
   ///          //For more elaborate locale resolution algorithm use
   ///          //supportedLocales and localeListResolutionCallback.
@@ -86,11 +127,6 @@ class TopAppWidget extends StatefulWidget {
   ///          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
   ///          //   //your algorithm
   ///          //   } ,
-  ///          localizationsDelegates: [
-  ///            GlobalMaterialLocalizations.delegate,
-  ///            GlobalWidgetsLocalizations.delegate,
-  ///            GlobalCupertinoLocalizations.delegate,
-  ///          ],
   ///          home: const HomePage(),//Notice const here
   ///        );
   ///      },
@@ -99,32 +135,45 @@ class TopAppWidget extends StatefulWidget {
   ///}
   ///```
   final InjectedI18N? injectedI18N;
-  final InjectedAuth? injectedAuth;
+  // final InjectedAuth? injectedAuth;
 
   ///Widget (Splash Screen) to display while it is waiting for dependencies to
   ///initialize.
-  final Widget Function()? onWaiting;
-  final Widget Function(dynamic error, void Function() refresh)? onError;
+  final Widget Function()? _onWaiting;
+  @override
+  Widget? splashScreen() {
+    return _onWaiting?.call();
+  }
+
+  final Widget Function(dynamic error, void Function() refresh)? _onError;
+  @override
+  Widget? errorScreen(error, void Function() refresh) {
+    return _onError?.call(error, refresh);
+  }
 
   ///List of future (plugins initialization) to wait for, and display a waiting screen while waiting
-  final List<Future> Function()? ensureInitialization;
-
-  @Deprecated('Use ensureInitialization instead')
-  final List<Future> Function()? waiteFor;
+  final List<Future> Function()? _ensureInitialization;
+  @override
+  List<Future>? ensureInitialization() {
+    return _ensureInitialization?.call();
+  }
 
   ///{@macro topWidget}
   const TopAppWidget({
     Key? key,
-    this.didChangeAppLifecycleState,
+    Function(AppLifecycleState)? didChangeAppLifecycleState,
     this.injectedTheme,
     this.injectedI18N,
-    this.onWaiting,
-    this.ensureInitialization,
-    this.waiteFor,
-    this.onError,
-    this.injectedAuth,
+    Widget Function()? onWaiting,
+    List<Future> Function()? ensureInitialization,
+    Widget Function(dynamic error, void Function() refresh)? onError,
+    // this.injectedAuth,
     required this.builder,
-  })  : assert(
+  })  : _onWaiting = onWaiting,
+        _onError = onError,
+        _ensureInitialization = ensureInitialization,
+        _didChangeAppLifecycleState = didChangeAppLifecycleState,
+        assert(
           ensureInitialization == null || onWaiting != null,
           'You have to define a waiting splash screen '
           'using onWaiting parameter',
@@ -132,151 +181,8 @@ class TopAppWidget extends StatefulWidget {
         super(key: key);
 
   @override
-  _TopAppWidgetState createState() {
-    if (didChangeAppLifecycleState != null || injectedI18N != null) {
-      return _TopWidgetWidgetsBindingObserverState();
-    } else {
-      return _TopAppWidgetState();
-    }
-  }
-}
-
-class _TopAppWidgetState extends State<TopAppWidget> {
-  Widget Function(Widget Function(BuildContext) builder)? _builderTheme;
-  Widget Function(Widget Function(BuildContext) builder)? _builderI18N;
-  late Widget child;
-  bool _isWaiting = false;
-  bool _hasError = false;
-  dynamic error;
-  bool _hasWaiteFor = false;
-  void initState() {
-    super.initState();
-    _startWaiting();
-
-    if (widget.injectedTheme != null) {
-      _builderTheme = (builder) {
-        return On(
-          () => Builder(
-            builder: (context) => builder(context),
-          ),
-        ).listenTo(widget.injectedTheme!);
-      };
-    }
-    if (widget.injectedI18N != null) {
-      _builderI18N = (builder) {
-        return widget.injectedI18N!.inherited(
-          builder: (context) {
-            if (_isWaiting || widget.injectedI18N!.isWaiting) {
-              return widget.onWaiting!();
-            }
-            return _builderTheme?.call(builder) ?? builder(context);
-          },
-        );
-      };
-    }
-    if (!_hasWaiteFor) {
-      child = _builderI18N?.call(widget.builder) ??
-          _builderTheme?.call(widget.builder) ??
-          widget.builder(context);
-    }
-  }
-
-  Future<void> _startWaiting() async {
-    List<Future> waiteFor = widget.ensureInitialization?.call() ?? [];
-    waiteFor.addAll(widget.waiteFor?.call() ?? []);
-    _hasWaiteFor = waiteFor.isNotEmpty ||
-        widget.injectedI18N?.isWaiting == true ||
-        widget.injectedAuth?.isWaiting == true;
-    if (!_hasWaiteFor) {
-      // if (widget.injectedI18N != null) {
-      //   waiteFor.add(widget.injectedI18N!.stateAsync);
-      // } else {
-      //   return;
-      // }
-      return;
-    }
-
-    _isWaiting = true;
-    _hasError = false;
-    try {
-      for (var future in waiteFor) {
-        await future;
-      }
-      var i18n = widget.injectedI18N?.stateAsync;
-      var auth = widget.injectedAuth?.stateAsync;
-
-      await i18n;
-      await auth;
-
-      setState(() {
-        _isWaiting = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isWaiting = false;
-        _hasError = true;
-        error = e;
-      });
-    } finally {
-      child = _builderI18N?.call(widget.builder) ??
-          _builderTheme?.call(widget.builder) ??
-          widget.builder(context);
-    }
-  }
-
-  @override
-  void dispose() {
-    RM.disposeAll();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_isWaiting || widget.injectedI18N?.isWaiting == true) {
-      if (widget.onWaiting == null) {
-        throw Exception('TopWidget is waiting for dependencies to initialize. '
-            'you have to define a waiting screen using the onWaiting '
-            'parameter of the TopWidget');
-      }
-      return widget.onWaiting!();
-    }
-    if (_hasError && widget.onError != null) {
-      return widget.onError!.call(error, () {
-        setState(() {
-          _isWaiting = true;
-          _hasError = false;
-        });
-        _startWaiting();
-      });
-    }
-    (widget.injectedAuth as InjectedAuthImp?)?.initialize();
-    // (widget.injectedI18N as InjectedI18NImp?)?.initialize();
-    return child;
-  }
-}
-
-class _TopWidgetWidgetsBindingObserverState extends _TopAppWidgetState
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance!.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    widget.didChangeAppLifecycleState?.call(state);
-  }
-
-  @override
-  void didChangeLocales(List<Locale>? locales) {
-    super.didChangeLocales(locales);
-    (widget.injectedI18N as InjectedI18NImp).didChangeLocales(locales);
+    injectedI18N?.locale;
+    return builder(context);
   }
 }

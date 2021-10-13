@@ -3,8 +3,8 @@ import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../service/exceptions/fetch_todos_exception.dart';
-
+import '../blocs/auth_bloc.dart';
+import '../blocs/exceptions/fetch_todos_exception.dart';
 import '../domain/entities/todo.dart';
 import 'my_project_data.dart' as myProjectData; //TODO Delete this.
 
@@ -33,11 +33,10 @@ class TodosQuery {
 }
 
 class FireBaseTodosRepository implements ICRUD<Todo, String> {
-  final String authToken;
+  //Use getter to bu sure to use the refreshed token
+  String get authToken => authBloc.user!.token.token!;
 
-  FireBaseTodosRepository({
-    required this.authToken,
-  });
+  FireBaseTodosRepository();
   @override
   Future<List<Todo>> read(String? userId) async {
     if (userId == null) {

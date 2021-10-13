@@ -19,16 +19,15 @@ class CountDownTimer {
   //inject a stream to represent our timer.
   late Injected<int> duration = RM.injectStream<int>(
     () => Stream.periodic(Duration(seconds: 1), (num) => num),
-    middleSnapState: (middleState) {
-      ////UnComment to see state transition print log
-      // middleState.print();
-      if (middleState.nextSnap.isWaiting) {
+    initialState: initialTimer,
+    stateInterceptor: (currentSnap, nextSnap) {
+      if (nextSnap.isWaiting) {
         //stream is waiting means that is is first start.
         //we pause it and display the initial timer
         duration.subscription?.pause();
-        return middleState.nextSnap.copyToHasData(initialTimer);
+        return nextSnap.copyToHasData(initialTimer);
       }
-      final timer = middleState.nextSnap.data!;
+      final timer = nextSnap.data!;
       int d = initialTimer - timer - 1;
 
       if (d < 1) {
@@ -38,9 +37,9 @@ class CountDownTimer {
         //- create brand new subscription
         //- recall onInitialized (see above) which pauses the subscription
         stop();
-        return middleState.nextSnap.copyToHasData(initialTimer);
+        return nextSnap.copyToHasData(initialTimer);
       }
-      return middleState.nextSnap.copyToHasData(d);
+      return nextSnap.copyToHasData(d);
     },
     // debugPrintWhenNotifiedPreMessage: 'duration',
   );

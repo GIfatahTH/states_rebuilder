@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -74,6 +75,7 @@ class Repository implements ICRUD<Product, Object> {
     _products.removeWhere((item) => items.contains(item));
   }
 
+  @override
   void dispose() {
     disposeMessage = "isDisposed";
   }
@@ -155,8 +157,19 @@ void main() {
     expect(_repo._products.length, 1);
     //
     _repo.error = null;
-    products.crud.read();
+    late SnapState snapState;
+    products.crud.read(
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          snapState = snap;
+        },
+      ),
+    );
+    await tester.pump();
+    expect(snapState.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
+    expect(snapState.hasData, true);
+
     _repo.error = Exception('CRUD error');
 
     products.crud.update(

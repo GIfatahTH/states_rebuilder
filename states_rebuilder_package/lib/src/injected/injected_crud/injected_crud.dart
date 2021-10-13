@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/common/logger.dart';
+import '../../common/logger.dart';
 import '../../rm.dart';
 import '../../common/consts.dart';
 import 'package:collection/collection.dart';
 part 'i_crud.dart';
 part 'on_crud.dart';
 
-/// Injected state that is responsible for holding a list of items and
-/// send and resolve CREATE, READ, UPDATE and DELETE queries to a backend
-/// service.
+/// Injection of a state that can create, read, update and
+/// delete from a backend or database service.
+///
+/// This injected state abstracts the best practices of the clean
+/// architecture to come out with a simple, clean, and testable approach
+/// to manage CRUD operations.
+///
+/// The approach consists of the following steps:
+/// * Define uer Item Model. (The name is up to you).
+/// * You may define a class (or enum) to parametrize the query.
+/// * Your repository must implements [ICRUD]<T, P> where T is the Item type
+///  and P is the parameter
+/// type. with `ICRUD<T, P>` you define CRUD methods.
+/// * Instantiate an [InjectedCRUD] object using [RM.injectCRUD] method.
+/// * Later on use [InjectedCRUD.crud].create, [InjectedCRUD.auth].read,
+/// [InjectedCRUD.auth].update, and [InjectedCRUD.auth].delete item.
+/// * In the UI you can use [ReactiveStatelessWidget], [OnReactive], or
+/// [ObBuilder] to listen the this injected state and define the appropriate
+/// view for each state.
+/// * You may use [InjectedCRUD.item].inherited for performant list of item
+/// rendering.
+///
+/// See: [InjectedCRUD.crud], [_CRUDService.read], [_CRUDService.create],
+/// [_CRUDService.update], [_CRUDService.delete],[InjectedCRUD.item],
+/// [_Item.inherited] and [OnCRUDBuilder]
 abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   _CRUDService<T, P>? _crud;
 
@@ -22,7 +44,124 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
 
   _Item<T, P>? _item;
 
-  ///Optimized for item displaying. Used with ListView
+  /// Optimized for item displaying. Used with
+  ///
+  /// Working with a list of items, we may want to display them using the
+  /// `ListView` widget of Flutter. At this stage, we are faced with some
+  /// problems regarding :
+  /// - performance: Can we use the `const` constructor for the item widget.
+  /// Then, how to update the item widget if the list of items updates.
+  /// - Widget tree structure: What if the item widget is a big widget with
+  /// its nested widget tree. Then, how to pass the state of the item through
+  ///  the widget three? Are we forced to pass it through a nest tree of
+  ///  constructors?
+  ///  - State mutation: How to efficiently update the list of items when an item
+  ///  is updated.
+  ///
+  /// InjectedCRUD, solves those problems using the concept of inherited
+  /// injected. [Injected.inherited]
+  ///
+  /// Example:
+  ///
+  /// ### inherited
+  /// ```dart
+  /// products.inherited({
+  ///     required Key  key,
+  ///     required T Function()? item,
+  ///     required Widget Function(BuildContext) builder,
+  ///     String? debugPrintWhenNotifiedPreMessage,
+  ///  })
+  /// ```
+  /// Key is required here because we are dealing with a list of widgets with
+  /// a similar state.
+  ///
+  /// Example:
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///   return OnReactive(
+  ///        ()=>  ListView.builder(
+  ///           itemCount: products.state.length,
+  ///           itemBuilder: (context, index) {
+  ///             //Put InheritedWidget here that holds the item state
+  ///             return todos.item.inherited(
+  ///               key: Key('${products.state[index].id}'),
+  ///               item: () => products.state[index],
+  ///               builder: (context) => const ProductItem(),//use of const
+  ///             );
+  ///           },
+  ///         );
+  ///   );
+  /// ```
+  /// In the ListBuilder, we used the `inherited` method to display the
+  /// `ItemWidget`. This has huge advantages:
+  ///
+  /// - As the `inherited` method inserts an` InheritedWidget` above`ItemWidget`
+  /// , we can take advantage of everything you know about` InheritedWidget`.
+  /// - Using const constructors for item widgets.
+  /// - Item widgets can be gigantic widgets with a long widget tree. We can
+  /// easily get the state of an item and mutate it with the state of the
+  /// original list of items even in the deepest widget.
+  /// - The `inherited` method, binds the item to the list of items so that
+  /// updating an item updates the state of the list of items and sends an
+  /// update request to the database. Likewise, updating the list of items will
+  /// update the `ItemWidget` even if it is built with the const constructor.
+  ///
+  /// ### call(context)
+  /// From a child of the item widget, we can obtain an injected state of the
+  /// item using the call method:
+  /// ```dart
+  /// Inherited<T> product = products.item.call(context);
+  /// //item is callable object. `call` can be removed
+  /// Inherited<T> product = products.item(context);
+  /// ```
+  /// You can use the injected product to listen to and mutate the state.
+  ///
+  /// ```dart
+  /// product.state = updatedProduct;
+  /// ```
+  /// Here we mutated the state of one item, the UI will update to display the
+  /// new state, and, **importantly, the list of items will update and update
+  /// query with the default parameter is sent to the backend service.**
+  ///
+  /// **Another important behavior is that if the list of items is updated, the
+  /// item states will update and the Item Widget is re-rendered, even if it is
+  /// declared with const constructor.** (This is possible because of the
+  /// underlying InheritedWidget).
+  ///
+  /// ### of(context)
+  /// It is used to obtain the state of an item. The `BuildContext` is
+  /// subscribed to the inherited widget used on top of the item widget,
+  ///
+  /// ```dart
+  /// T product = products.item.of(context);
+  /// ```
+  /// > of(context) vs call(context):
+  /// >  - of(context) gets the state of the item, whereas, call(context) gets
+  /// the `Injected` object.
+  /// >  * of(context) subscribes the BuildContext to the InheritedWidget,
+  /// whereas call(context) does not.
+  ///
+  /// ### reInherited
+  /// As we know `InheritedWidget` cannot cross route boundary unless it is
+  /// defined above the `MaterielApp` widget (which s a nonpractical case).
+  ///
+  /// After navigation, the `BuildContext` connection loses the connection
+  /// with the `InheritedWidgets` defined in the old route. To overcome this
+  /// shortcoming, with state_rebuilder, we can reinject the state to the next
+  /// route:
+  ///
+  /// ```dart
+  /// RM.navigate.to(
+  ///   products.item.reInherited(
+  ///      // Pass the current context
+  ///      context : context,
+  ///      // The builder method, Notice we can use const here, which is a big
+  ///      // performance gain
+  ///      builder: (BuildContext context)=>  const NewItemDetailedWidget()
+  ///   )
+  /// )
+  /// ```
+  ///
   _Item<T, P> get item => _item ??= _Item<T, P>(this);
   ICRUD<T, P>? _repo;
 
@@ -43,7 +182,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   ///Whether the state is waiting for a CRUD operation to finish
   bool get isOnCRUD => _isOnCRUD;
 
-  List<ICRUD<T, P> Function()?> _cachedRepoMocks = [null];
+  final List<ICRUD<T, P> Function()?> _cachedRepoMocks = [null];
 
   ///Inject a fake implementation of this injected model.
   ///
@@ -96,7 +235,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
         ) {
     _resetDefaultState = () {
       _isInitialized = false;
-      onCrudSnap = SnapState.none();
+      _onCrudSnap = const SnapState.none();
       _item?.dispose();
       _item = null;
       _repo = null;
@@ -110,10 +249,15 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
   final ICRUD<T, P> Function() repoCreator;
   final P Function()? param;
   final bool readOnInitialization;
-  final OnCRUD<void>? onCRUD;
+  final OnCRUDSideEffects<void>? onCRUD;
   //
   late bool _isInitialized;
-  late SnapState<dynamic> onCrudSnap;
+  late SnapState<dynamic> _onCrudSnap;
+  SnapState<dynamic> get onCrudSnap {
+    initialize();
+    return _onCrudSnap;
+  }
+
   late ReactiveModelListener onCRUDListeners;
   late final VoidCallback _resetDefaultState;
   @override
@@ -126,7 +270,13 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
     }
 
     return () async {
-      onMiddleCRUD(SnapState.waiting());
+      final List<T> cache = super.middleCreator(crt, creatorMock);
+      if (cache.isNotEmpty) {
+        snapState = snapState.copyToIsIdle(cache);
+        await _init();
+        return cache;
+      }
+      onMiddleCRUD(const SnapState.waiting());
       await _init();
       crud;
 
@@ -135,7 +285,7 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
           () async {
             try {
               final l = await getRepoAs<ICRUD<T, P>>().read(param?.call());
-              onMiddleCRUD(SnapState.data());
+              onMiddleCRUD(const SnapState.data());
               return [...l];
             } catch (e, s) {
               onMiddleCRUD(SnapState.error(e, s, () {
@@ -148,14 +298,14 @@ class InjectedCRUDImp<T, P> extends InjectedImp<List<T>>
           creatorMock,
         );
       } else {
-        onMiddleCRUD(SnapState.data());
+        onMiddleCRUD(const SnapState.data());
         return super.middleCreator(crt, creatorMock);
       }
     }();
   }
 
   void onMiddleCRUD(SnapState<dynamic> snap) {
-    onCrudSnap = snap;
+    _onCrudSnap = snap;
     onCRUDListeners.rebuildState(snap);
     if (snap.isWaiting) {
       _isOnCRUD = true;
@@ -208,7 +358,8 @@ class _CRUDService<T, P> {
   ///
   ///[param] can be also used to distinguish between many
   ///delete queries
-  ///[onSetState] for side effects.
+  ///
+  ///[sideEffects] for side effects.
   ///
   ///[middleState] is a callback that exposes the current state
   ///before mutation and the next state and returns the state
@@ -225,31 +376,31 @@ class _CRUDService<T, P> {
   ///```
   Future<List<T>> read({
     P Function(P? param)? param,
-    On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     List<T> Function(List<T> state, List<T> nextState)? middleState,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     injected.debugMessage = kReading;
     await injected.setState(
       (s) async {
-        injected.onMiddleCRUD(SnapState.waiting());
+        injected.onMiddleCRUD(const SnapState.waiting());
         await injected._init();
         final items = await _repository.read(
           param?.call(injected.param?.call()) ?? injected.param?.call(),
         );
         final result = middleState?.call(s, items) ?? items;
-        injected.onMiddleCRUD(SnapState.data());
+        injected.onMiddleCRUD(const SnapState.data());
         return result;
       },
-      onSetState: onSetState,
-      onError: (err) {
-        injected.onMiddleCRUD(
-          SnapState.error(
-            err,
-            injected.snapState.stackTrace,
-            injected.onErrorRefresher,
-          ),
-        );
-      },
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          onSetState?.call(snap);
+          sideEffects?.onSetState?.call(snap);
+          if (snap.hasError) {
+            injected.onMiddleCRUD(snap);
+          }
+        },
+      ),
     );
     return injected._state;
   }
@@ -263,7 +414,7 @@ class _CRUDService<T, P> {
   ///[param] can be also used to distinguish between many
   ///delete queries
   ///
-  ///[onSetState] for side effects.
+  ///[sideEffects] for side effects.
   ///
   ///[isOptimistic]: Whether the querying is done optimistically a
   ///nd mutates the state before sending the query, or it is done
@@ -277,15 +428,16 @@ class _CRUDService<T, P> {
     T item, {
     P Function(P? param)? param,
     void Function(dynamic result)? onResult,
-    On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     T? addedItem;
 
     injected.debugMessage = kCreating;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
             if (isOptimistic) {
               yield <T>[...s, item];
             }
@@ -295,7 +447,7 @@ class _CRUDService<T, P> {
                 item,
                 param?.call(injected.param?.call()) ?? injected.param?.call(),
               );
-              injected.onMiddleCRUD(SnapState.data());
+              injected.onMiddleCRUD(const SnapState.data());
               onResult?.call(addedItem);
             } catch (e, stack) {
               injected.onMiddleCRUD(SnapState.error(e, stack, call));
@@ -309,7 +461,12 @@ class _CRUDService<T, P> {
               yield <T>[...s, addedItem!];
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
           skipWaiting: isOptimistic,
         );
     await call();
@@ -335,7 +492,7 @@ class _CRUDService<T, P> {
   /// * Optional parameters:
   ///    * [param] : used to parametrizes the query. It can also be used to
   /// identify many update calls.
-  ///    * [onSetState] : user for side effects.
+  ///    * [sideEffects] : user for side effects.
   ///    * [onResult] : Hook to be called whenever the items are updated in t
   /// he database. It expoeses the return result (for example number of update line)
   ///    * [isOptimistic] : If true the state is mutated .
@@ -344,9 +501,10 @@ class _CRUDService<T, P> {
     required bool Function(T item) where,
     required T Function(T item) set,
     P Function(P? param)? param,
-    On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     final oldState = <T>[];
     final updated = <T>[];
@@ -368,7 +526,7 @@ class _CRUDService<T, P> {
     injected.debugMessage = kUpdating;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
             if (isOptimistic) {
               yield newState;
               if (injected._item != null) {
@@ -397,7 +555,12 @@ class _CRUDService<T, P> {
               yield newState;
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
           skipWaiting: isOptimistic,
         );
     await call();
@@ -420,17 +583,17 @@ class _CRUDService<T, P> {
   /// * Optional parameters:
   ///    * [param] : used to parametrizes the query. It can also be used to
   /// identify many update calls.
-  ///    * [onSetState] : user for side effects.
+  ///    * [sideEffects] : user for side effects.
   ///    * [onResult] : Hook to be called whenever the items are deleted in
   /// the database. It exposes the return result (for example number of deleted line)
   ///    * [isOptimistic] : If true the state is mutated .
-
   Future<void> delete({
     required bool Function(T item) where,
     P Function(P? param)? param,
-    On<void>? onSetState,
+    SideEffects<List<T>>? sideEffects,
     void Function(dynamic result)? onResult,
     bool isOptimistic = true,
+    @Deprecated(('Use sideEffects instead')) On<void>? onSetState,
   }) async {
     final oldState = <T>[];
     final removed = <T>[];
@@ -450,7 +613,7 @@ class _CRUDService<T, P> {
     injected.debugMessage = kDeleting;
     Future<List<T>> call() => injected.setState(
           (s) async* {
-            injected.onMiddleCRUD(SnapState.waiting());
+            injected.onMiddleCRUD(const SnapState.waiting());
 
             if (isOptimistic) {
               yield newState;
@@ -475,7 +638,12 @@ class _CRUDService<T, P> {
               yield newState;
             }
           },
-          onSetState: onSetState,
+          sideEffects: SideEffects(
+            onSetState: (snap) {
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
+            },
+          ),
         );
     await call();
     if (injected.hasError) {
@@ -498,8 +666,8 @@ class _Item<T, P> {
   _Item(this.injectedList) {
     injected = RM.inject(
       () => injectedList._state.first,
-      onSetState: On.data(
-        () async {
+      sideEffects: SideEffects.onData(
+        (_) async {
           if (_isRefreshing) {
             return;
           }
@@ -533,7 +701,51 @@ class _Item<T, P> {
   ///Provide the an item using an [InheritedWidget] to the sub-branch widget tree.
   ///
   ///The provided Item be obtained using .of(context) or .call(context) methods.
-
+  ///
+  ///Example:
+  ///
+  /// ### inherited
+  /// ```dart
+  /// products.inherited({
+  ///     required Key  key,
+  ///     required T Function()? item,
+  ///     required Widget Function(BuildContext) builder,
+  ///     String? debugPrintWhenNotifiedPreMessage,
+  ///  })
+  /// ```
+  /// Key is required here because we are dealing with a list of widgets with
+  /// a similar state.
+  ///
+  /// Example:
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///   return OnReactive(
+  ///        ()=>  ListView.builder(
+  ///           itemCount: products.state.length,
+  ///           itemBuilder: (context, index) {
+  ///             //Put InheritedWidget here that holds the item state
+  ///             return todos.item.inherited(
+  ///               key: Key('${products.state[index].id}'),
+  ///               item: () => products.state[index],
+  ///               builder: (context) => const ProductItem(),//use of const
+  ///             );
+  ///           },
+  ///         );
+  ///   );
+  /// ```
+  /// In the ListBuilder, we used the `inherited` method to display the
+  /// `ItemWidget`. This has huge advantages:
+  ///
+  /// - As the `inherited` method inserts an` InheritedWidget` above`ItemWidget`
+  /// , we can take advantage of everything you know about` InheritedWidget`.
+  /// - Using const constructors for item widgets.
+  /// - Item widgets can be gigantic widgets with a long widget tree. We can
+  /// easily get the state of an item and mutate it with the state of the
+  /// original list of items even in the deepest widget.
+  /// - The `inherited` method, binds the item to the list of items so that
+  /// updating an item updates the state of the list of items and sends an
+  /// update request to the database. Likewise, updating the list of items will
+  /// update the `ItemWidget` even if it is built with the const constructor.
   Widget inherited({
     required Key key,
     required T Function()? item,
@@ -551,6 +763,26 @@ class _Item<T, P> {
   }
 
   ///Provide the item to another widget tree branch.
+  ///
+  /// As we know `InheritedWidget` cannot cross route boundary unless it is
+  /// defined above the `MaterielApp` widget (which s a nonpractical case).
+  ///
+  /// After navigation, the `BuildContext` connection loses the connection
+  /// with the `InheritedWidgets` defined in the old route. To overcome this
+  /// shortcoming, with state_rebuilder, we can reinject the state to the next
+  /// route:
+  ///
+  /// ```dart
+  /// RM.navigate.to(
+  ///   products.item.reInherited(
+  ///      // Pass the current context
+  ///      context : context,
+  ///      // The builder method, Notice we can use const here, which is a big
+  ///      // performance gain
+  ///      builder: (BuildContext context)=>  const NewItemDetailedWidget()
+  ///   )
+  /// )
+  /// ```
   Widget reInherited({
     Key? key,
     required BuildContext context,

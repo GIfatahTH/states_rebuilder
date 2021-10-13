@@ -102,7 +102,12 @@ class PersistState<T> {
   void setPersistStateSingleton() {
     _persistStateSingleton = (persistStateProvider ?? _persistStateGlobalTest);
     _persistStateSingleton ??= _persistStateGlobal;
-    assert(_persistStateSingleton != null, '''
+
+    assert(() {
+      if (_persistStateSingleton == null) {
+        StatesRebuilerLogger.log(
+          'No implementation of `IPersistStore` is provided.',
+          '''
 No implementation of `IPersistStore` is provided.
 Pleas implementation the `IPersistStore` interface and Initialize it in the main 
 method.
@@ -119,7 +124,13 @@ If you are testing the app use:
 await RM.storageInitializerMock();\n\n
 
 
-''');
+''',
+        );
+        return false;
+      }
+
+      return true;
+    }());
   }
 
   ///Get the persisted state
@@ -183,7 +194,7 @@ await RM.storageInitializerMock();\n\n
     if (throttleDelay != null) {
       _valueForThrottle = value;
       if (_throttleTimer != null) {
-        return null;
+        return;
       }
       _throttleTimer = Timer(Duration(milliseconds: throttleDelay!), () async {
         _throttleTimer = null;
@@ -197,7 +208,7 @@ await RM.storageInitializerMock();\n\n
         _valueForThrottle = null;
         return r;
       });
-      return null;
+      return;
     }
     final json = toJson!(value);
     if (json == cachedJson) {
@@ -225,7 +236,7 @@ await RM.storageInitializerMock();\n\n
     } catch (e, s) {
       if (catchPersistError) {
         StatesRebuilerLogger.log('Delete from localStorage error', e, s);
-        return null;
+        return;
       }
       if (debugPrintOperations) {
         StatesRebuilerLogger.log(

@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -5,7 +6,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 enum TimerStatus { none, ready, running, paused }
 
 final Injected<int> timer = RM.injectStream<int>(
-  () => Stream.periodic(Duration(seconds: 1), (num) => num + 1),
+  () => Stream.periodic(Duration(seconds: 1), (n) => n + 1),
   initialState: 0,
   // isLazy: false,
   onInitialized: (_, __) {
@@ -15,25 +16,27 @@ final Injected<int> timer = RM.injectStream<int>(
 
 final timerStatus = RM.inject<TimerStatus>(
   () => TimerStatus.none,
-  onData: (timerStatus) {
-    switch (timerStatus) {
-      case TimerStatus.running:
-        timer.subscription?.resume();
-        break;
-      case TimerStatus.ready:
-      case TimerStatus.paused:
-      default:
-        if (timer.subscription?.isPaused == false) {
-          //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
-          timer.subscription?.pause();
-        }
-        break;
-    }
-  },
+  sideEffects: SideEffects.onData(
+    ((timerStatus) {
+      switch (timerStatus) {
+        case TimerStatus.running:
+          timer.subscription?.resume();
+          break;
+        case TimerStatus.ready:
+        case TimerStatus.paused:
+        default:
+          if (timer.subscription?.isPaused == false) {
+            //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
+            timer.subscription?.pause();
+          }
+          break;
+      }
+    }),
+  ),
 );
 
 // the initial timer value
-final initialTimer = 60;
+const initialTimer = 60;
 
 final duration = RM.inject<int>(
   () {
@@ -55,9 +58,10 @@ class TimerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: On(
-        () => Text('${duration.state}'),
-      ).listenTo(duration),
+      child: OnBuilder(
+        listenTo: duration,
+        builder: () => Text('${duration.state}'),
+      ),
     );
   }
 }

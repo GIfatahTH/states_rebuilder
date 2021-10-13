@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
@@ -10,7 +11,7 @@ import 'fake_classes/models.dart';
 final vanillaModel = RM.inject(() => VanillaModel());
 final streamVanillaModel = RM.injectStream(
   () => Stream.periodic(Duration(seconds: 1),
-      (num) => num < 3 ? VanillaModel(num) : VanillaModel(3)).take(6),
+      (n) => n < 3 ? VanillaModel(n) : VanillaModel(3)).take(6),
   watch: (model) => model?.counter,
   initialState: VanillaModel(0),
   // isLazy: false,
@@ -184,9 +185,11 @@ void main() {
       String? errorMessage;
       vanillaModel.setState(
         (state) => state.incrementAsyncWithError(),
-        onError: (error) {
-          errorMessage = error.message;
-        },
+        sideEffects: SideEffects.onError(
+          (error, _) {
+            errorMessage = error.message;
+          },
+        ),
       );
       await tester.pump();
       await tester.pump(Duration(seconds: 2));
@@ -294,7 +297,7 @@ void main() {
         return s?.incrementStream.call().map((e) => VanillaModel(e));
       },
       onError: null,
-      onSetState: On.waiting(() {}),
+      sideEffects: SideEffects.onWaiting(() {}),
       onWaiting: () => Text('waiting ...'),
       onData: (state) {
         return Text('${state!.counter}');
@@ -323,9 +326,12 @@ void main() {
   });
 
   testWidgets('Injected.streamBuilder with error', (tester) async {
-    final widget = vanillaModel.streamBuilder(
+    late SnapState sideSnap;
+    final widget = vanillaModel.streamBuilder<int>(
       stream: (s, subscription) => s?.incrementStreamWithError(),
-      onSetState: On.waiting(() {}),
+      sideEffects: SideEffects(onSetState: (snap) {
+        sideSnap = snap;
+      }),
       onWaiting: null,
       onError: (e) => Text('${e.message}'),
       onData: (state) {
@@ -334,20 +340,25 @@ void main() {
     );
 
     await tester.pumpWidget(MaterialApp(home: widget));
-
+    expect(sideSnap.isWaiting, true);
     expect(find.text('0'), findsOneWidget);
 
     await tester.pump(Duration(seconds: 1));
     expect(find.text('1'), findsOneWidget);
+    expect(sideSnap.data, 1);
 
     await tester.pump(Duration(seconds: 1));
     expect(find.text('2'), findsOneWidget);
+    expect(sideSnap.data, 2);
 
     await tester.pump(Duration(seconds: 1));
 
     expect(find.text('Error message'), findsOneWidget);
+    expect(sideSnap.hasError, true);
+
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Error message'), findsOneWidget);
+    expect(sideSnap.hasError, true);
   });
 
   testWidgets('Injected.whenRebuilder', (tester) async {
@@ -363,7 +374,7 @@ void main() {
       onIdle: () => Text('Idle'),
       onWaiting: () => Text('waiting ...'),
       onError: (e, _) => Text('${e.message}'),
-      dispose: () => null,
+      dispose: () {},
       shouldRebuild: (_, __) => true,
       onData: (_) {
         return Text('data');
@@ -392,8 +403,8 @@ void main() {
     final widget = computed.rebuild.onOrElse(
       onWaiting: () => Text('waiting ...'),
       onError: (e, __) => Text('${e.message}'),
-      initState: () => null,
-      dispose: () => null,
+      initState: () {},
+      dispose: () {},
       orElse: (_) {
         return Text('${computed.state}');
       },
@@ -486,18 +497,24 @@ void main() {
     bool counter3IsDisposed = false;
     final counter1 = RM.inject(
       () => 0,
-      onDisposed: (_) => counter1IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter1IsDisposed = true,
+      ),
     );
     final counter2 = RM.inject(
       () => 0,
-      onDisposed: (_) => counter2IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter2IsDisposed = true,
+      ),
     );
     final counter3 = RM.inject<int>(
       () {
         return counter1.state + counter2.state;
       },
       dependsOn: DependsOn({counter1, counter2}),
-      onDisposed: (_) => counter3IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter3IsDisposed = true,
+      ),
     );
     final switcher = RM.inject(() => true);
     await tester.pumpWidget(switcher.rebuild(() {
@@ -522,23 +539,31 @@ void main() {
     bool counter4IsDisposed = false;
     final counter1 = RM.inject(
       () => 0,
-      onDisposed: (_) => counter1IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter1IsDisposed = true,
+      ),
     );
     final counter2 = RM.inject(
       () => 0,
-      onDisposed: (_) => counter2IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter2IsDisposed = true,
+      ),
     );
     final counter3 = RM.inject<int>(
       () {
         return counter1.state + counter2.state;
       },
       dependsOn: DependsOn({counter1, counter2}),
-      onDisposed: (_) => counter3IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter3IsDisposed = true,
+      ),
     );
     final counter4 = RM.inject(
       () => counter1.state,
       dependsOn: DependsOn({counter1}),
-      onDisposed: (_) => counter4IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter4IsDisposed = true,
+      ),
     );
 
     final switcher = RM.inject(() => true);
@@ -565,20 +590,26 @@ void main() {
     bool counter3IsDisposed = false;
     final counter1 = RM.inject(
       () => 0,
-      onDisposed: (_) => counter1IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter1IsDisposed = true,
+      ),
       debugPrintWhenNotifiedPreMessage: 'counter1',
     );
     final counter2 = RM.inject(
       () => counter1.state,
       dependsOn: DependsOn({counter1}),
-      onDisposed: (_) => counter2IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter2IsDisposed = true,
+      ),
     );
     final counter3 = RM.inject<int>(
       () {
         return counter1.state;
       },
       dependsOn: DependsOn({counter1}),
-      onDisposed: (_) => counter3IsDisposed = true,
+      sideEffects: SideEffects(
+        dispose: () => counter3IsDisposed = true,
+      ),
     );
     final switcher = RM.inject(() => true);
     await tester.pumpWidget(switcher.rebuild(() {
@@ -658,7 +689,7 @@ void main() {
     streamVanillaModel.injectStreamMock(
       () => Stream.periodic(
         Duration(seconds: 1),
-        (num) => VanillaModel((num + 1) * 2),
+        (n) => VanillaModel((n + 1) * 2),
       ).take(6),
     );
     await tester.pumpWidget(
@@ -976,15 +1007,17 @@ void main() {
         () {
           counter2 = RM.injectStream<int?>(
             () {
-              return Stream.periodic(Duration(seconds: 1), (num) {
-                return num + 1;
+              return Stream.periodic(Duration(seconds: 1), (n) {
+                return n + 1;
               }).take(3);
             },
-            onData: (data) {
-              onData = data;
-            },
-            onInitialized: (_, __) => numberOfOnInitialized++,
-            onDisposed: (_) => numberOfOnDisposed++,
+            sideEffects: SideEffects(
+              onSetState: (snap) {
+                if (snap.hasData) onData = snap.data;
+              },
+              initState: () => numberOfOnInitialized++,
+              dispose: () => numberOfOnDisposed++,
+            ),
             isLazy: false,
           );
 
@@ -1091,17 +1124,21 @@ void main() {
       (tester) async {
     String? data;
     String? error;
-    final model = RM.inject(
+    final model = RM.inject<VanillaModel>(
       () => VanillaModel(),
-      onData: (_) => data = 'Data from global',
-      onError: (_, __) => error = 'Error from global',
+      sideEffects: SideEffects.onAll(
+        onWaiting: null,
+        onError: (_, __) => error = 'Error from global',
+        onData: (_) => data = 'Data from global',
+      ),
     );
 
     model.setState((s) => s.increment());
     expect(data, 'Data from global');
     model.setState(
       (s) => s.increment(),
-      onData: (_) => data = 'Data from setState',
+      sideEffects: SideEffects.onData((_) => data = 'Data from setState'),
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     expect(data, 'Data from setState');
 
@@ -1111,7 +1148,10 @@ void main() {
 
     model.setState(
       (s) => throw Exception('error'),
-      onError: (_) => error = 'Error from setState',
+      sideEffects: SideEffects.onError(
+        (_, __) => error = 'Error from setState',
+      ),
+      shouldOverrideDefaultSideEffects: (_) => true,
     );
     expect(error, 'Error from setState');
   });
@@ -1333,20 +1373,19 @@ void main() {
     (tester) async {
       int counter1OnSetState = 0;
       String counter2OnSetState = '';
-      final counter1 = RM.inject(
+      final counter1 = RM.inject<int>(
         () => 0,
-        onSetState: On(
-          () => counter1OnSetState++,
+        sideEffects: SideEffects(
+          onSetState: (snap) => counter1OnSetState++,
         ),
       );
 
-      final counter2 = RM.inject(
+      final counter2 = RM.inject<int>(
         () => 0,
-        onSetState: On.all(
-          onIdle: () => counter2OnSetState += 'Idle ',
+        sideEffects: SideEffects.onAll(
           onWaiting: () => counter2OnSetState += 'Waiting ',
           onError: (_, __) => counter2OnSetState += 'Error ',
-          onData: () => counter2OnSetState += 'Data ',
+          onData: (_) => counter2OnSetState += 'Data ',
         ),
       );
       expect(counter1OnSetState, 0);
@@ -1380,16 +1419,17 @@ void main() {
     (tester) async {
       int injectOnSetState = 0;
       int setStateOnSetState = 0;
-      final counter = RM.inject(
+      final counter = RM.inject<int>(
         () => 0,
-        onSetState: On(
-          () => injectOnSetState++,
+        sideEffects: SideEffects(
+          onSetState: (snap) => injectOnSetState++,
         ),
       );
 
       counter.setState(
         (s) => s + 1,
-        onSetState: On.data(() => setStateOnSetState++),
+        sideEffects: SideEffects.onData((_) => setStateOnSetState++),
+        shouldOverrideDefaultSideEffects: (_) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1397,7 +1437,8 @@ void main() {
 
       counter.setState(
         (s) => s + 1,
-        onSetState: On.or(or: () => setStateOnSetState++),
+        sideEffects: SideEffects.onOrElse(orElse: (_) => setStateOnSetState++),
+        shouldOverrideDefaultSideEffects: (_) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1413,16 +1454,21 @@ void main() {
       int setStateOnSetState = 0;
       final counter = RM.inject(
         () => 0,
-        onSetState: On(
-          () => injectOnSetState++,
+        sideEffects: SideEffects(
+          onSetState: (snap) {
+            injectOnSetState++;
+          },
         ),
       );
 
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => 1),
-        onSetState: On.data(() {
-          setStateOnSetState++;
-        }),
+        sideEffects: SideEffects.onData(
+          (_) {
+            setStateOnSetState++;
+          },
+        ),
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasData,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1433,9 +1479,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On.data(() {
+        sideEffects: SideEffects.onData((_) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasData,
       );
       await tester.pump();
       expect(injectOnSetState, 2);
@@ -1446,9 +1493,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On(() {
+        sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1467,16 +1515,17 @@ void main() {
       int setStateOnSetState = 0;
       final counter = RM.inject(
         () => 0,
-        onSetState: On(
-          () => injectOnSetState++,
+        sideEffects: SideEffects(
+          onSetState: (_) => injectOnSetState++,
         ),
       );
 
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => 1),
-        onSetState: On.error((err, _) {
+        sideEffects: SideEffects.onError((err, _) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasError,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1487,9 +1536,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On.error((err, _) {
+        sideEffects: SideEffects.onError((err, _) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => snap.hasError,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1500,9 +1550,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On(() {
+        sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 3);
@@ -1521,16 +1572,17 @@ void main() {
       int setStateOnSetState = 0;
       final counter = RM.inject(
         () => 0,
-        onSetState: On(
-          () => injectOnSetState++,
+        sideEffects: SideEffects(
+          onSetState: (_) => injectOnSetState++,
         ),
       );
 
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => 1),
-        onSetState: On.waiting(() {
+        sideEffects: SideEffects.onWaiting(() {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => snap.isWaiting,
       );
       await tester.pump();
       expect(injectOnSetState, 0);
@@ -1541,9 +1593,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On.waiting(() {
+        sideEffects: SideEffects.onWaiting(() {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => snap.isWaiting,
       );
       await tester.pump();
       expect(injectOnSetState, 1);
@@ -1554,9 +1607,10 @@ void main() {
       //
       counter.setState(
         (s) => Future.delayed(Duration(seconds: 1), () => throw Exception()),
-        onSetState: On(() {
+        sideEffects: SideEffects(onSetState: (_) {
           setStateOnSetState++;
         }),
+        shouldOverrideDefaultSideEffects: (snap) => true,
       );
       await tester.pump();
       expect(injectOnSetState, 2);
@@ -1633,12 +1687,12 @@ void main() {
       model.state = ['1'];
       expect(
         StatesRebuilerLogger.message,
-        '[states_rebuilder]: <model> : isIdle : 0 ==> hasData: 1',
+        '[states_rebuilder::INFO]: <model> : isIdle : 0 ==> hasData: 1',
       );
       model.dispose();
       expect(
         StatesRebuilerLogger.message,
-        '[states_rebuilder]: <model> : hasData: 1 ==> DISPOSING...',
+        '[states_rebuilder::INFO]: <model> : hasData: 1 ==> DISPOSING...',
       );
     },
   );

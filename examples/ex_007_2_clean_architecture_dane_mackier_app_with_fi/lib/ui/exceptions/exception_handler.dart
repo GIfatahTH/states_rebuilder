@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../domain/exceptions/validation_exception.dart';
-import '../../service/exceptions/fetch_exception.dart';
-import '../../service/exceptions/input_exception.dart';
+import '../../blocs/exceptions/fetch_exception.dart';
+import '../../blocs/exceptions/input_exception.dart';
 
 class ExceptionHandler {
   //go through all custom errors and return the corresponding error message

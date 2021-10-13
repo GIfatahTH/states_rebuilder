@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -18,18 +19,16 @@ final Injected<int> counter = RM.inject<int>(
 class CounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return On.data(
-      () {
+    return OnBuilder.data(
+      listenTo: RM.inject(() => ''),
+      builder: (_) {
         return MaterialApp(
-          home: On.data(
-            () => Text('${counter.state}'),
-          ).listenTo(counter),
+          home: OnBuilder.data(
+            listenTo: counter,
+            builder: (_) => Text('${counter.state}'),
+            sideEffects: SideEffects(dispose: () => RM.disposeAll()),
+          ),
         );
-      },
-    ).listenTo(
-      RM.inject(() => ''),
-      dispose: () {
-        RM.disposeAll();
       },
     );
   }

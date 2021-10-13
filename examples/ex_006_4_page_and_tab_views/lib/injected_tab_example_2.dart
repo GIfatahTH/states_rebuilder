@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final injectedTabPage = RM.injectPageTab(
+final injectedTabPage = RM.injectTabPageView(
   length: 3,
   //Optional
   initialIndex: 0,
@@ -67,46 +67,24 @@ class TabViewOnly extends StatelessWidget {
           ),
         ),
       ),
-      body: OnTabBuilder(
+      body: OnTabPageViewBuilder(
         listenTo: injectedTabPage,
         builder: (_) => TabBarView(
           controller: injectedTabPage.tabController,
           children: icons
               .getRange(0, injectedTabPage.length)
-              .toList()
-              .asMap()
-              .map((i, icon) {
-                return MapEntry(
-                  i,
-                  Icon(icon, size: 50),
-                );
-              })
-              .values
+              .map((icon) => Icon(icon, size: 50))
               .toList(),
         ),
       ),
-      bottomNavigationBar: OnTabBuilder(
-        listenTo: injectedTabPage,
-        builder: (index) {
-          return OnAnimationBuilder(
-            listenTo: animation,
-            builder: (animate) {
-              return TabBar(
-                controller: injectedTabPage.tabController,
-                tabs: icons
-                    .getRange(0, injectedTabPage.length)
-                    .toList()
-                    .asMap()
-                    .map((i, icon) {
-                      return MapEntry(
-                        i,
-                        Icon(icon, color: Colors.blue),
-                      );
-                    })
-                    .values
-                    .toList(),
-              );
-            },
+      bottomNavigationBar: OnTabPageViewBuilder(
+        builder: (_) {
+          return TabBar(
+            controller: injectedTabPage.tabController,
+            tabs: icons
+                .getRange(0, injectedTabPage.length)
+                .map((icon) => Icon(icon, color: Colors.blue))
+                .toList(),
           );
         },
       ),

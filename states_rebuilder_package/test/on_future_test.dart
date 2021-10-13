@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
@@ -119,9 +120,11 @@ void main() {
       (tester) async {
     String? data;
 
-    final modelFuture = RM.inject(
+    final modelFuture = RM.inject<VanillaModel>(
       () => VanillaModel(),
-      onData: (_) => data = 'Data from global $_',
+      sideEffects: SideEffects.onData(
+        (_) => data = 'Data from global $_',
+      ),
     );
     await tester.pumpWidget(
       On.future(
@@ -144,9 +147,11 @@ void main() {
       (tester) async {
     String? data;
 
-    final modelFuture = RM.inject(
+    final modelFuture = RM.inject<VanillaModel>(
       () => VanillaModel(),
-      onData: (_) => data = 'Data from global $_',
+      sideEffects: SideEffects.onData(
+        (_) => data = 'Data from global $_',
+      ),
     );
 
     await tester.pumpWidget(On.future(
@@ -166,10 +171,10 @@ void main() {
   testWidgets('On.future call global onError', (tester) async {
     String? error;
 
-    final modelFuture = RM.inject(
-      () => VanillaModel(),
-      onError: (_, __) => error = 'Error from global $_',
-    );
+    final modelFuture = RM.inject(() => VanillaModel(),
+        sideEffects: SideEffects.onError(
+          (_, __) => error = 'Error from global $_',
+        ));
 
     await tester.pumpWidget(On.future(
       onWaiting: () => Container(),

@@ -43,7 +43,7 @@ class OnCombined<T, R> {
         onError,
     required R Function(T data)? onData,
     // required _OnType onType,
-  })   : _onIdle = onIdle,
+  })  : _onIdle = onIdle,
         _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;

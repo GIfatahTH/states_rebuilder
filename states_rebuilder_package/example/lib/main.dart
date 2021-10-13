@@ -38,23 +38,27 @@ final helloName = RM.inject<String>(
   //
   // It take on On objects, it has many named constructor: On.data, On.error,
   // On.waiting, On.all and On.or
-  onSetState: On.or(
-    onWaiting: () => RM.scaffold.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Text('Waiting ...'),
-            Spacer(),
-            CircularProgressIndicator(),
-          ],
+  sideEffects: SideEffects(
+    onSetState: (snapState) {
+      snapState.onOrElse(
+        onWaiting: () => RM.scaffold.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: const [
+                Text('Waiting ...'),
+                Spacer(),
+                CircularProgressIndicator(),
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
-    onError: (err, refresh) => RM.scaffold.showSnackBar(
-      SnackBar(content: Text('${err.message}')),
-    ),
-    // the default case. hide the snackbar
-    or: () => RM.scaffold.hideCurrentSnackBar(),
+        onError: (err, refresh) => RM.scaffold.showSnackBar(
+          SnackBar(content: Text('${err.message}')),
+        ),
+        // the other case. hide the snackbar
+        orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
+      );
+    },
   ),
   //Set the undoStackLength to 5. This will automatically
   // enable doing and undoing of the  state
@@ -63,13 +67,13 @@ final helloName = RM.inject<String>(
 //Stream that emits the entered name letter by letter
 final streamedHelloName = RM.injectStream<String>(
   () async* {
-    if (name.state.isEmpty) {
+    if (name.isActive && name.state.isEmpty) {
       throw Exception(i18n.state.enterYourName);
     }
     final letters = name.state.trim().split('');
     var n = '';
     for (var letter in letters) {
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
       // yield the name letter by letter
       yield n += letter;
     }
@@ -84,10 +88,12 @@ final streamedHelloName = RM.injectStream<String>(
 //
 //
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return TopAppWidget(
@@ -99,7 +105,7 @@ class MyApp extends StatelessWidget {
           navigatorKey: RM.navigate.navigatorKey,
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
@@ -145,15 +151,18 @@ class HomeWidget extends StatelessWidget {
         //deeply nested in the widget tree provided that the widget is not loaded lazily
         //as inside the builder of ListView.builder.
         () => Column(
+          // ignore: prefer_const_literals_to_create_immutables
           children: [
             //For demo purpose, App is fractured to smaller widget.
             //Notes that widget are const,
             const TextFieldWidget(),
             const Spacer(),
+            // ignore: prefer_const_constructors
             HelloNameWidget(), // Not const to make it rebuildable
             const Spacer(),
             const RaisedButtonWidget(),
             const SizedBox(height: 20),
+            // ignore: prefer_const_constructors
             StreamNameWidget(),
             const Spacer(),
           ],
@@ -191,25 +200,25 @@ class HelloNameWidget extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: Icon(Icons.arrow_left_rounded, size: 40),
+          icon: const Icon(Icons.arrow_left_rounded, size: 40),
           onPressed:
               helloName.canUndoState ? () => helloName.undoState() : null,
         ),
-        Spacer(),
+        const Spacer(),
         Center(
           child: helloName.onAll(
             // This part will be re-rendered each time the helloName
             // emits notification of any kind of status (idle, waiting,
             // error, data).
             onIdle: () => Text(i18n.of(context).enterYourName),
-            onWaiting: () => CircularProgressIndicator(),
+            onWaiting: () => const CircularProgressIndicator(),
             onError: (err, refresh) => Text('${err.message}'),
             onData: (data) => Text(data),
           ),
         ),
-        Spacer(),
+        const Spacer(),
         IconButton(
-          icon: Icon(Icons.arrow_right_rounded, size: 40),
+          icon: const Icon(Icons.arrow_right_rounded, size: 40),
           onPressed:
               helloName.canRedoState ? () => helloName.redoState() : null,
         ),
@@ -253,39 +262,10 @@ class StreamNameWidget extends StatelessWidget {
     return streamedHelloName.onOrElse(
       onError: (err, refresh) => Text(
         err.message,
-        style: TextStyle(color: Colors.red),
+        style: const TextStyle(color: Colors.red),
       ),
       //This will rebuild if the stream emits valid data only
-      orElse: (data) => Text('$data'),
-    );
-  }
-}
-
-List<String> _products = [];
-Future<List<String>> _fetchProduct() async {
-  await Future.delayed(Duration(seconds: 1));
-  return _products..add('Product ${_products.length}');
-}
-
-final products = RM.injectFuture(() => _fetchProduct());
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => products.refresh(),
-      child: products.futureBuilder(
-        onWaiting: () => CircularProgressIndicator(),
-        onError: (err) => Text('error : $err'),
-        onData: (_) {
-          return ListView.builder(
-            itemCount: products.state.length,
-            itemBuilder: (context, index) {
-              return Text(products.state[index]);
-            },
-          );
-        },
-      ),
+      orElse: (data) => Text(data),
     );
   }
 }

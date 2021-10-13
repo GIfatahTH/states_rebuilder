@@ -159,6 +159,7 @@ class ReactiveModelBase<T> {
     late Future<SnapState<T>> Function() call;
     call = () async {
       try {
+        // ignore: prefer_typing_uninitialized_variables
         var _stream;
         dynamic result = fn(snapState.data);
         if (result is Future) {
@@ -194,10 +195,20 @@ class ReactiveModelBase<T> {
 
           return _snapState;
         }
-        assert(
-          result == null || result is T,
-          'Type mismatch of the state: $result is not $T',
-        );
+
+        assert(() {
+          if (result != null && result is! T) {
+            StatesRebuilerLogger.log(
+              'The result of setState call is not null and it is not fo type $T',
+              'If you are using expression body function in setState, '
+                  'try to use block body function instead',
+            );
+            return false;
+          }
+
+          return true;
+        }());
+
         setSnapStateAndRebuild = middleState(
           _snapState._copyToHasData(result),
         );
@@ -254,6 +265,10 @@ class ReactiveModelBase<T> {
       onError: (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
+          // ignore: avoid_print
+          print(err);
+          // ignore: avoid_print
+          print(s);
           throw err;
         }
         //In the other hand Exception are handled

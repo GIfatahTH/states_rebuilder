@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -7,12 +8,12 @@ void main() {
   testWidgets(
     'Nullable sync state',
     (tester) async {
-      final counter = RM.inject<int?>(
-        () => null,
-        onData: (_) {
+      final counter =
+          RM.inject<int?>(() => null, sideEffects: SideEffects.onData(
+        (_) {
           //issue 203.
         },
-      );
+      ));
       expect(counter.state, null);
       counter.state = 0;
       expect(counter.state, 0);

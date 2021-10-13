@@ -5,6 +5,7 @@ export 'src/builders/state_builder.dart' show StateBuilder;
 export 'src/builders/state_with_mixin_builder.dart'
     show StateWithMixinBuilder, MixinWith;
 export 'src/builders/top_widget.dart' show TopAppWidget;
+export 'src/builders/top_stateless_widget.dart' show TopStatelessWidget;
 export 'src/builders/when_rebuilder.dart' show WhenRebuilder;
 export 'src/builders/when_rebuilder_or.dart' show WhenRebuilderOr;
 export 'src/extensions/type_extension.dart';
@@ -13,7 +14,7 @@ export 'src/injected/injected_animation/injected_animation.dart'
 export 'src/injected/injected_auth/injected_auth.dart'
     show IAuth, InjectedAuth, OnAuthBuilder;
 export 'src/injected/injected_crud/injected_crud.dart'
-    show ICRUD, OnCRUD, InjectedCRUD, OnCRUDBuilder;
+    show ICRUD, OnCRUD, InjectedCRUD, OnCRUDBuilder, OnCRUDSideEffects;
 export 'src/injected/injected_i18n/injected_i18n.dart'
     show InjectedI18N, SystemLocale;
 export 'src/injected/injected_scrolling/injected_scrolling.dart'
@@ -23,9 +24,11 @@ export 'src/injected/injected_text_editing/injected_text_editing.dart'
         InjectedTextEditing,
         InjectedForm,
         OnFormBuilder,
-        OnFormSubmissionBuilder;
+        OnFormSubmissionBuilder,
+        OnFormFieldBuilder,
+        InjectedFormField;
 export 'src/injected/injected_tab/injected_page_tab.dart'
-    show InjectedPageTab, OnTabBuilder;
+    show InjectedTabPageView, OnTabPageViewBuilder;
 export 'src/injected/injected_theme/injected_theme.dart' show InjectedTheme;
 export 'src/legacy/inject.dart' show Inject, Injectable;
 export 'src/legacy/injector.dart' show IN, Injector;
@@ -59,4 +62,8 @@ export 'src/rm.dart'
         OnBuilder,
         SideEffects,
         OnFutureBuilder,
-        OnStreamBuilder;
+        OnStreamBuilder,
+        NavigatorMixin,
+        PageSettings,
+        RouteInformationParserX;
+// SubRouteWidget;

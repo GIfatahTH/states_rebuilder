@@ -15,11 +15,8 @@ final posts = RM.injectCRUD<Post, int>(
   () => FakePostsRepository(),
   readOnInitialization: true,
   param: () => 0,
-  middleSnapState: (snap) {
-    snap.print(
-      stateToString: (List<Post>? s) => '${s?.length}',
-    );
-  },
+  debugPrintWhenNotifiedPreMessage: '',
+  toDebugString: (List<Post>? s) => '${s?.length}',
 );
 
 extension PostsX on List<Post> {

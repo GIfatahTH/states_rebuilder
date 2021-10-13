@@ -153,7 +153,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
       didChangeLocales;
 
   ///StateBuilder that can be mixin with one of the predefined mixin in [mixinWith]
-  StateWithMixinBuilder({
+  const StateWithMixinBuilder({
     Key? key,
     this.tag,
     this.observe,
@@ -438,6 +438,7 @@ class StateWithMixinBuilder<T, R> extends StatefulWidget {
   }
 
   @override
+  // ignore: no_logic_in_create_state
   _State<T, R> createState() {
     switch (mixinWith) {
       case MixinWith.singleTickerProviderStateMixin:

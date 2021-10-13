@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -10,18 +12,20 @@ final Injected<int> counter = RM.inject<int>(
   () => throw Exception('Will be mocked'),
   // -- Optionally
   // For side effects
-  onSetState: On.all(
-    onIdle: () => print('onIdle'),
-    onWaiting: () => print('waiting'),
-    onError: (e, _) => print('error : $e'),
-    onData: () => print('data ${counter.state}'),
-  ),
-  onInitialized: (int? state) => print('Initialized'),
+  sideEffects: SideEffects(
+    onSetState: (snap) => print(snap),
 
-  //For disposing resources
-  //It will be called when the last observer is removed from the widget tree
-  //ie: when no observer is observing it.
-  onDisposed: (int state) => print('disposed'),
+    //For disposing resources
+    //It will be called when the last observer is removed from the widget tree
+    //ie: when no observer is observing it.
+    dispose: () => print('disposed'),
+  ),
+  // SideEffects.onAll(
+  //   onWaiting: () => print('waiting'),
+  //   onError: (e, _) => print('error : $e'),
+  //   onData: (data) => print('data $data'),
+  // ),
+  onInitialized: (int? state) => print('Initialized'),
 );
 
 class CounterApp extends StatelessWidget {
@@ -29,9 +33,10 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: On(
-        () => Text('${counter.state}'),
-      ).listenTo(counter),
+      child: OnBuilder(
+        listenTo: counter,
+        builder: () => Text('${counter.state}'),
+      ),
     );
   }
 }

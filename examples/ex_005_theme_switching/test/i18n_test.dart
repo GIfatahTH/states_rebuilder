@@ -15,7 +15,7 @@ void main() async {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
     expect(find.text('Zero times'), findsOneWidget);
     //
     await tester.tap(find.byType(FloatingActionButton));
@@ -37,7 +37,7 @@ void main() async {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
     //
     //Navigate to PreferencePage
     await tester.tap(find.byIcon(Icons.settings));
@@ -72,8 +72,8 @@ void main() async {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
-    expect(Directionality.of(RM.context), TextDirection.ltr);
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
+    expect(Directionality.of(RM.context!), TextDirection.ltr);
     //
     //Navigate to PreferencePage
     await tester.tap(find.byIcon(Icons.settings));
@@ -85,7 +85,7 @@ void main() async {
     await tester.pumpAndSettle();
     RM.navigate.back();
     await tester.pumpAndSettle();
-    expect(Directionality.of(RM.context), TextDirection.rtl);
+    expect(Directionality.of(RM.context!), TextDirection.rtl);
 
     expect(find.text('صفحة البداية'), findsOneWidget);
 
@@ -114,7 +114,7 @@ void main() async {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
     //
     //Navigate to PreferencePage
     await tester.tap(find.byIcon(Icons.settings));
@@ -152,37 +152,37 @@ void main() async {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
-    expect(Directionality.of(RM.context), TextDirection.ltr);
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
+    expect(Directionality.of(RM.context!), TextDirection.ltr);
     expect(find.text('Home'), findsOneWidget);
     //To spanish
     await tester.binding.setLocale('es', 'Es');
     await tester.pumpAndSettle();
-    expect(Localizations.localeOf(RM.context).toString(), 'es_ES');
-    expect(Directionality.of(RM.context), TextDirection.ltr);
+    expect(Localizations.localeOf(RM.context!).toString(), 'es_ES');
+    expect(Directionality.of(RM.context!), TextDirection.ltr);
     expect(find.text('Página de inicio'), findsOneWidget);
 
     //To arabic
     await tester.binding.setLocale('ar', 'DZ');
     await tester.pumpAndSettle();
-    expect(Localizations.localeOf(RM.context).toString(), 'ar_DZ');
-    expect(Directionality.of(RM.context), TextDirection.rtl);
+    expect(Localizations.localeOf(RM.context!).toString(), 'ar_DZ');
+    expect(Directionality.of(RM.context!), TextDirection.rtl);
     expect(find.text('صفحة البداية'), findsOneWidget);
 
     //To french
     await tester.binding.setLocale('fr', 'FR');
     await tester.pumpAndSettle();
-    expect(Localizations.localeOf(RM.context).toString(), 'fr_FR');
+    expect(Localizations.localeOf(RM.context!).toString(), 'fr_FR');
 
     expect(find.text('Page d\'accueil'), findsOneWidget);
 
-    expect(Directionality.of(RM.context), TextDirection.ltr);
+    expect(Directionality.of(RM.context!), TextDirection.ltr);
 
     //To non supported locale, get the default.
     await tester.binding.setLocale('de', 'DE');
     await tester.pumpAndSettle();
-    expect(Localizations.localeOf(RM.context).toString(), 'en_US');
-    expect(Directionality.of(RM.context), TextDirection.ltr);
+    expect(Localizations.localeOf(RM.context!).toString(), 'en_US');
+    expect(Directionality.of(RM.context!), TextDirection.ltr);
     expect(find.text('Home'), findsOneWidget);
   });
 }

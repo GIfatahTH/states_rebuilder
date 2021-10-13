@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
 
@@ -30,7 +31,7 @@ void main() async {
       counter.dispose();
       counterFuture.dispose();
     } catch (e) {
-      print(e);
+      // print(e);
     }
   });
   testWidgets(
@@ -356,16 +357,18 @@ void main() async {
       'WHEN catchPersistError is true'
       'THEN persisted exceptions are caught and a print message is logged',
       (tester) async {
-    final counter = RM.inject(() => 0,
-        persist: () => PersistState(
-              key: 'counter',
-              fromJson: (json) => int.parse(json),
-              toJson: (s) => '$s',
-              catchPersistError: true,
-            ),
-        onError: (e, s) {
-          // error = e.message;
-        });
+    final counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        catchPersistError: true,
+      ),
+      sideEffects: SideEffects.onError((e, s) {
+        // error = e.message;
+      }),
+    );
 
     store.exception = Exception('Read Error');
     expect(counter.state, 0);

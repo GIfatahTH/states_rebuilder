@@ -1,6 +1,6 @@
 part of 'api.dart';
 
-class UserRepository implements IAuth<User, int> {
+class UserRepository extends IAuth<User, int> {
   @override
   Future<void> init() async {}
 

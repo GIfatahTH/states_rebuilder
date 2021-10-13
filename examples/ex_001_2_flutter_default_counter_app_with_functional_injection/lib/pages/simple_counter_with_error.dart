@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -9,11 +8,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //With functional injection we do not need to use RMKey.
 final Injected<int> counter = RM.inject<int>(
   () => 0,
-  middleSnapState: (middleSnap) {
-    if (middleSnap.nextSnap.hasData) {
-      //Multiply the state by 10
-      return middleSnap.nextSnap.copyToHasData(middleSnap.nextSnap.data! * 10);
-    }
+  stateInterceptor: (currentSnap, nextSnap) {
+    //Multiply the state by 10
+    return nextSnap.copyToHasData(nextSnap.data! * 10);
   },
   debugPrintWhenNotifiedPreMessage: 'counter',
 );
@@ -55,7 +52,7 @@ class MyHomePage extends StatelessWidget {
               }
               return counter + 1;
             },
-            onSetState: On.or(
+            sideEffects: SideEffects.onAll(
               onError: (dynamic error, void Function() refresh) {
                 RM.navigate.toDialog(
                   AlertDialog(
@@ -75,16 +72,16 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               },
-              onData: () {
+              onData: (data) {
                 //show snackBar
                 //any current snackBar is hidden.
                 RM.scaffold.showSnackBar(
                   SnackBar(
-                    content: Text('${counter.state}'),
+                    content: Text('$data'),
                   ),
                 );
               },
-              or: () {},
+              onWaiting: null,
             ),
           );
         },

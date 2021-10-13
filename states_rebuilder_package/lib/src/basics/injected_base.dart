@@ -56,6 +56,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects,
     void Function(T)? onData,
     void Function(dynamic)? onError,
   });
@@ -68,16 +69,11 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///  * The mutation function. It takes the current state fo the model.
   /// The function can have any type of return including Future and Stream.
   ///* **Optional parameters:**
-  ///  * **onData**: The callback to execute when the state is successfully
-  /// mutated with data. If defined this [onData] will override any other
-  /// onData for this particular call.
-  ///  * **onError**: The callback to execute when the state has error. If
-  /// defined this [onError] will override any other onData for this particular
-  /// call.
-  ///  * **catchError**: automatically catch errors. It defaults to false, but
-  /// if [onError] is defined then it will be true.
-  ///  * **onSetState** and **onRebuildState**: for more general side effects to
-  /// execute before and after rebuilding observers.
+  ///  * **sideEffects**: Used to handle side effects resulting from calling
+  /// this method. It takes [SideEffects] object. Notice that [SideEffects.initState]
+  /// and [SideEffects.dispose] are never called here.
+  ///  * **shouldOverrideDefaultSideEffects**: used to decide when to override
+  /// the default side effects defined in [RM.inject] and other equivalent methods.
   ///  * **debounceDelay**: time in milliseconds to debounce the execution of
   /// [setState].
   ///  * **throttleDelay**: time in milliseconds to throttle the execution of
@@ -88,18 +84,21 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///  * **context**: The [BuildContext] to be used for side effects
   /// (Navigation, SnackBar). If not defined a default [BuildContext]
   /// obtained from the last added [StateBuilder] will be used.
-  Future<T> setState(
-    dynamic Function(T s) fn, {
-    void Function(T data)? onData,
-    void Function(dynamic error)? onError,
-    On<void>? onSetState,
-    void Function()? onRebuildState,
+  Future<T> setState<R>(
+    FutureOr<R> Function(T s) fn, {
+    @Deprecated('User sideEffects.onData instead')
+        void Function(T data)? onData,
+    @Deprecated('User sideEffects.onError instead')
+        void Function(dynamic error)? onError,
+    @Deprecated('User sideEffects instead') On<void>? onSetState,
+    @Deprecated('User sideEffects instead') void Function()? onRebuildState,
+    SideEffects<T>? sideEffects,
     int debounceDelay = 0,
     int throttleDelay = 0,
     bool shouldAwait = false,
-    // bool silent = false,
     bool skipWaiting = false,
     BuildContext? context,
+    bool Function(SnapState<T> snap)? shouldOverrideDefaultSideEffects,
   }) async {
     final debugMessage = this.debugMessage;
     this.debugMessage = null;
@@ -114,15 +113,25 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
           s,
           onError: onError,
           onData: onData,
-          onSetState: onSetState,
+          shouldOverrideGlobalSideEffects:
+              shouldOverrideDefaultSideEffects?.call(s) ?? false,
+          onSetState: sideEffects?.onSetState != null
+              ? On(() {
+                  sideEffects!.onSetState!(s);
+                })
+              : onSetState,
         );
         if (skipWaiting && snap != null && snap.isWaiting) {
           return null;
         }
-        if (onRebuildState != null && snap != null && snap.hasData) {
-          WidgetsBinding.instance?.addPostFrameCallback(
-            (_) => onRebuildState(),
-          );
+        if (snap != null && snap.hasData) {
+          if (sideEffects?.onAfterBuild != null) {
+            sideEffects!.onAfterBuild!();
+          } else if (onRebuildState != null) {
+            WidgetsBinding.instance?.addPostFrameCallback(
+              (_) => onRebuildState(),
+            );
+          }
         }
         return snap;
       },

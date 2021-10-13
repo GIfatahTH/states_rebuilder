@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -145,7 +146,9 @@ void main() {
     final switcher = true.inj();
     final counter = RM.inject(
       () => 1,
-      onDisposed: (_) => disposedNum++,
+      sideEffects: SideEffects(
+        dispose: () => disposedNum++,
+      ),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -160,9 +163,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: On(
-          () => switcher.state ? widget1 : Container(),
-        ).listenTo(switcher),
+        home: OnBuilder(
+          listenTo: switcher,
+          builder: () => switcher.state ? widget1 : Container(),
+        ),
       ),
     );
 
@@ -243,7 +247,7 @@ void main() {
     switcher.toggle();
     await tester.pump();
     expect(disposedNum, 1);
-    expect((counter as InjectedImp).inheritedInjects.length, 0);
+    expect((counter).inheritedInjects.length, 0);
   });
 
   testWidgets('reInherited works when stateOverride is not defined',
@@ -252,7 +256,9 @@ void main() {
     final switcher = true.inj();
     final counter = RM.inject(
       () => 2,
-      onDisposed: (_) => disposedNum++,
+      sideEffects: SideEffects(
+        dispose: () => disposedNum++,
+      ),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -266,9 +272,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: On(
-          () => switcher.state ? widget1 : Container(),
-        ).listenTo(switcher),
+        home: OnBuilder(
+          listenTo: switcher,
+          builder: () => switcher.state ? widget1 : Container(),
+        ),
       ),
     );
 
@@ -349,6 +356,6 @@ void main() {
     switcher.toggle();
     await tester.pump();
     expect(disposedNum, 1);
-    expect((counter as InjectedImp).inheritedInjects.length, 0);
+    expect((counter).inheritedInjects.length, 0);
   });
 }

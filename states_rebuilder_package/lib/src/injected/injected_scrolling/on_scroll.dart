@@ -75,17 +75,108 @@ class _OnScrollWidget<T> {
   });
 }
 
+/// Listen to an [InjectedScrolling] state.
+///
+/// The builder method is invoked when scrolling start, while scrolling and
+/// when scrolling ends.
+///  ```dart
+///   OnScrollBuilder(
+///     listenTo: scroll,
+///     builder: (scroll) {
+///       if (scroll.hasReachedMinExtent) {
+///         return Text('isTop');
+///       }
+///
+///       if (scroll.hasReachedMaxExtent) {
+///         return Text('isBottom');
+///       }
+///
+///       if (scroll.hasStartedScrollingReverse) {
+///         return Text('hasStartedUp');
+///       }
+///       if (scroll.hasStartedScrollingForward) {
+///         return Text('hasStartedDown');
+///       }
+///
+///       if (scroll.hasStartedScrolling) {
+///         return Text('hasStarted');
+///       }
+///
+///       if (scroll.isScrollingReverse) {
+///         return Text('isScrollingUp');
+///       }
+///       if (scroll.isScrollingForward) {
+///         return Text('isScrollingDown');
+///       }
+///
+///       if (scroll.isScrolling) {
+///         return Text('isScrolling');
+///       }
+///
+///       if (scroll.hasEndedScrolling) {
+///         return Text('hasEnded');
+///       }
+///       return Text('NAN');
+///     },
+///   ),
+///  ```
 class OnScrollBuilder extends StatelessWidget {
   const OnScrollBuilder({
     Key? key,
     required this.listenTo,
     required this.builder,
   }) : super(key: key);
+
+  /// [InjectedScrolling] to listen to.
   final InjectedScrolling listenTo;
+
+  /// The builder method is invoked when scrolling start, while scrolling and
+  /// when scrolling ends.
+  ///  ```dart
+  ///   OnScrollBuilder(
+  ///     listenTo: scroll,
+  ///     builder: (scroll) {
+  ///       if (scroll.hasReachedMinExtent) {
+  ///         return Text('isTop');
+  ///       }
+  ///
+  ///       if (scroll.hasReachedMaxExtent) {
+  ///         return Text('isBottom');
+  ///       }
+  ///
+  ///       if (scroll.hasStartedScrollingReverse) {
+  ///         return Text('hasStartedUp');
+  ///       }
+  ///       if (scroll.hasStartedScrollingForward) {
+  ///         return Text('hasStartedDown');
+  ///       }
+  ///
+  ///       if (scroll.hasStartedScrolling) {
+  ///         return Text('hasStarted');
+  ///       }
+  ///
+  ///       if (scroll.isScrollingReverse) {
+  ///         return Text('isScrollingUp');
+  ///       }
+  ///       if (scroll.isScrollingForward) {
+  ///         return Text('isScrollingDown');
+  ///       }
+  ///
+  ///       if (scroll.isScrolling) {
+  ///         return Text('isScrolling');
+  ///       }
+  ///
+  ///       if (scroll.hasEndedScrolling) {
+  ///         return Text('hasEnded');
+  ///       }
+  ///       return Text('NAN');
+  ///     },
+  ///   ),
+  ///  ```
   final Widget Function(InjectedScrolling) builder;
   @override
   Widget build(BuildContext context) {
-    return On.scroll(builder).listenTo(
+    return OnScroll(builder).listenTo(
       listenTo,
       key: key,
     );

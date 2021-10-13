@@ -20,6 +20,7 @@ class FakeAuthRepository implements FireBaseAuth {
       email: param.email,
       token: Token(
         token: 'token_${param.email}',
+        refreshToken: 'refreshToken_${param.email}',
         expiryDate: DateTimeX.current.add(
           Duration(seconds: 10),
         ),
@@ -38,6 +39,7 @@ class FakeAuthRepository implements FireBaseAuth {
       email: param.email,
       token: Token(
         token: 'token_${param.email}',
+        refreshToken: 'refreshToken__${param.email}',
         expiryDate: DateTimeX.current.add(
           Duration(seconds: 10),
         ),
@@ -53,9 +55,10 @@ class FakeAuthRepository implements FireBaseAuth {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-  }
+  void dispose() {}
+
+  @override
+  Future<User?>? refreshToken(User? currentUser) {}
 }
 
 // class FakeAuthRepository extends IAuthRepository {

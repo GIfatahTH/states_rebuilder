@@ -15,16 +15,58 @@ void main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends TopStatelessWidget {
+  @override
+  List<Future> ensureInitialization() => [
+        //Plugins can be initialized, to display our Splash screen
+        RM.storageInitializer(HiveStorage()),
+      ];
+
+  @override
+  Widget? splashScreen() => MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
   @override
   Widget build(BuildContext context) {
-    return TopAppWidget(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: theme.lightTheme,
+      darkTheme: theme.darkTheme,
+      themeMode: theme.themeMode,
+      //Defining locale and localeResolutionCallback is enough to
+      //handle the app localization
+      locale: i18n.locale,
+      localeResolutionCallback: i18n.localeResolutionCallback,
+      //For more elaborate locale resolution algorithm use supportedLocales and
+      //localeListResolutionCallback.
+      // supportedLocales: i18n.supportedLocales,
+      // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
+      //   //your algorithm
+      //   } ,
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      // title: i18n.of(context).flutterDemo,
+      home: const HomePage(),
+      navigatorKey: RM.navigate.navigatorKey,
+    );
+  }
+}
+
+/*
+ return TopAppWidget(
       ensureInitialization: () => [
         //Plugins can be initialized, to display our Splash screen
         RM.storageInitializer(HiveStorage()),
       ],
-      injectedTheme: theme,
-      injectedI18N: i18n,
+      // injectedTheme: theme,
+      // injectedI18N: i18n,
       onWaiting: () => MaterialApp(
         home: Scaffold(
           body: Center(
@@ -53,11 +95,10 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          title: i18n.of(context).flutterDemo,
+          // title: i18n.of(context).flutterDemo,
           home: const HomePage(),
           navigatorKey: RM.navigate.navigatorKey,
         );
       },
     );
-  }
-}
+    */

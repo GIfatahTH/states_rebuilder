@@ -58,6 +58,7 @@ class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
     OnReactiveState.addToObs = cachedAddToObs;
   }
 
+  @override
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
     final cachedAddToObs = OnReactiveState.addToObs;
@@ -66,6 +67,7 @@ class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
     OnReactiveState.addToObs = cachedAddToObs;
   }
 
+  @override
   void dispose() {
     _builder.dispose?.call(context);
     removeFromContextSet();
@@ -115,6 +117,7 @@ class StateBuilderBaseWithTicker<T> extends MyStatefulWidget {
 
   @override
   State<StateBuilderBaseWithTicker<T>> createState() {
+    // ignore: no_logic_in_create_state
     return withTicker()
         ? _StateBuilderBaseWithTickerState<T>()
         : _StateBuilderBaseWithOutTicker<T>();
@@ -139,6 +142,7 @@ class _StateBuilderBase<T> extends State<StateBuilderBaseWithTicker<T>> {
     OnReactiveState.addToObs = cachedAddToObs;
   }
 
+  @override
   void didUpdateWidget(oldWidget) {
     final cachedAddToObs = OnReactiveState.addToObs;
     OnReactiveState.addToObs = null;
@@ -171,6 +175,7 @@ class _StateBuilderBaseWithOutTicker<T> extends _StateBuilderBase<T> {
     _isMounted = false;
   }
 
+  @override
   void dispose() {
     _builder.dispose?.call(context);
     super.dispose();
@@ -196,6 +201,7 @@ class _StateBuilderBaseWithTickerState<T> extends _StateBuilderBase<T>
     _isMounted = false;
   }
 
+  @override
   void dispose() {
     _builder.dispose?.call(context);
     super.dispose();

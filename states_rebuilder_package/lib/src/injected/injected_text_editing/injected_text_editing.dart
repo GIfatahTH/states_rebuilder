@@ -1,16 +1,55 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import '../../builders/on_reactive.dart';
 
 import '../../rm.dart';
-part 'injected_Form.dart';
+
+part 'on_form_field_builder.dart';
+part 'injected_form.dart';
+part 'injected_form_field.dart';
 part 'on_form.dart';
 part 'on_form_submission.dart';
+part 'i_base_form_field.dart';
 
-///Inject a TextEditingController
+///{@template InjectedTextEditing}
+///Inject a [TextEditingController]
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach deal with TextField and form
+/// validation.
+///
+/// The approach consists of the following steps:
+///   ```dart
+///      final email =  RM.injectTextEditing():
+///   ```
+/// * Instantiate an [InjectedTextEditing] object using [RM.injectTextEditing]
+/// * Link the injected state to a [TextField] (No need to [TextFormField] even
+/// inside a [OnFormBuilder]).
+///   ```dart
+///      TextField(
+///         controller: email.controller,
+///         focusNode: email.focusNode, //It is auto disposed of.
+///         decoration:  InputDecoration(
+///             errorText: email.error, //To display the error message.
+///         ),
+///         onSubmitted: (_) {
+///             //Focus on the password TextField after submission
+///             password.focusNode.requestFocus();
+///         },
+///     ),
+///   ```
+///
+/// See also :
+/// * [InjectedFormField] for other type of inputs rather the text,
+/// * [InjectedForm] and [OnFormBuilder] to work with form.
+///  {@endtemplate}
 abstract class InjectedTextEditing implements InjectedBaseState<String> {
-  TextEditingControllerImp? _controller;
+  late TextEditingControllerImp? _controller;
 
-  String get _state => getInjectedState(this);
+  late final _baseFormField = this as _BaseFormField;
 
   ///A controller for an editable text field.
   TextEditingControllerImp get controller;
@@ -18,121 +57,131 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///The current text being edited.
   String get text => state;
 
+  String get _state => getInjectedState(this);
+
+  ///Whether it passes the validation test
+  bool get isValid;
+
+  String get value => state;
+
   ///The range of text that is currently selected.
   TextSelection get selection => _controller!.value.selection;
 
   ///The range of text that is still being composed.
   TextRange get composing => _controller!.value.composing;
 
-  ///Input text validator
-  String? Function(String? text)? _validator;
+  set error(dynamic error);
 
-  ///Get the error text (as String)
-  @override
-  dynamic get error;
-  // String? get errorText => _errorText;
-  set error(dynamic error) {
-    assert(error is String?);
-    if (error != null && error.isNotEmpty) {
-      snapState = snapState.copyToHasError(error, data: this.text);
-    } else {
-      snapState = snapState.copyToHasData(this.text);
-    }
-    notify();
+  void reset() {
+    _controller?.text = _baseFormField.initialValue;
+    _baseFormField.resetField();
   }
-
-  bool? _validateOnLoseFocus;
-
-  ///Whether it passes the validation test
-  bool get isValid => hasData;
-
-  ///Get Validator to be used with TextFormField
-  // String? Function(String? text)? get validator {
-  //   return (_) => error;
-  // }
-
-  ///Validate the input text by invoking its validator.
-  bool validate() {
-    error = _validator?.call(this.text);
-    (this as InjectedTextEditingImp).form?.notify();
-    return isValid;
-  }
-
-  ///Set the field to its initialValue
-  void reset();
-
-  FocusNode? _focusNode;
 
   ///Creates a focus node for this TextField
   FocusNode get focusNode {
-    if (_focusNode != null) {
-      return _focusNode!;
+    OnReactiveState.addToObs?.call(this);
+    if (_baseFormField._focusNode != null) {
+      return _baseFormField._focusNode!;
     }
 
-    _focusNode ??= FocusNode();
-    //To cache the auto focused TextField
-    SchedulerBinding.instance!.endOfFrame.then((_) {
-      final form = (this as InjectedTextEditingImp).form as InjectedFormImp?;
-      if (form != null) {
-        if (_focusNode?.hasFocus == true) {
-          form.autoFocusedNode = _focusNode;
-        }
-      }
-      if (_validateOnLoseFocus == true) {
-        _listenToFocusNode();
-      }
-    });
-
-    return _focusNode!;
+    _baseFormField._focusNode ??= FocusNode();
+    return _baseFormField.__focusNode;
   }
 
-  void _listenToFocusNode() {
-    var fn;
-    fn = () {
-      if (!_focusNode!.hasFocus) {
-        if (!validate()) {
-          //After the first lose of focus and if field is not valid,
-          // turn validateOnTyping to true and remove listener
-          (this as InjectedTextEditingImp).validateOnTyping = true;
-          // _focusNode!.removeListener(fn);// removed (issue 187)
-        }
-      }
-    };
-    _focusNode!.addListener(fn);
+  /// Invoke field validators and return true if the field is valid.
+  bool validate();
+
+  /// If true the [TextField] is clickable, selectable and focusable but not
+  /// editable.
+  ///
+  /// For it to work you must set readOnly property of [TextField.readOnly] to :
+  ///
+  /// ```dart
+  ///   final myText = RM.injectedTextEditing();
+  ///   TextField(
+  ///     readOnly: myText.isReadOnly,
+  ///   )
+  /// ```
+  late bool isReadOnly;
+  late bool _isEnabled;
+
+  /// If false the associated [TextField] is disabled.
+  ///
+  /// For it to work you must set `enabled` property of [TextField.enabled] to:
+  ///
+  /// ```dart
+  ///   final myText = RM.injectedTextEditing();
+  ///   TextField(
+  ///     enabled: myText.isEnabled,
+  ///   )
+  /// ```
+  bool get isEnabled {
+    OnReactiveState.addToObs?.call(this);
+    return _isEnabled;
+  }
+
+  set isEnabled(bool val) {
+    _isEnabled = val;
+    notify();
   }
 }
 
 /// InjectedTextEditing implementation
 class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
-    with InjectedTextEditing {
+    with InjectedTextEditing, _BaseFormField<String> {
   InjectedTextEditingImp({
     String text = '',
     TextSelection selection = const TextSelection.collapsed(offset: -1),
     TextRange composing = TextRange.empty,
-    String? Function(String?)? validator,
-    this.validateOnTyping,
+    List<String? Function(String?)>? validator,
+    bool? validateOnTyping,
     this.autoDispose = true,
     this.onTextEditing,
     bool? validateOnLoseFocus,
-  })  : _validator = validator,
-        initialValue = text,
-        _initialValidateOnTyping = validateOnTyping,
-        _composing = composing,
+    bool isReadOnly = false,
+    bool isEnabled = true,
+  })  : _composing = composing,
         _selection = selection,
         super(
           creator: () => text,
           autoDisposeWhenNotUsed: autoDispose,
         ) {
-    _validateOnLoseFocus = validateOnLoseFocus;
+    _resetDefaultState = () {
+      initialValue = text;
+      _controller = null;
+      form = null;
+      _formIsSet = false;
+      _removeFromInjectedList = null;
+      formTextFieldDisposer = null;
+      _validateOnLoseFocus = validateOnLoseFocus;
+      _isValidOnLoseFocusDefined = false;
+      _validator = validator;
+      _validateOnValueChange = validateOnTyping;
+      _focusNode = null;
+      this.isReadOnly = _initialIsReadOnly = isReadOnly;
+      _isEnabled = _initialIsEnabled = isEnabled;
+    };
+    _resetDefaultState();
   }
+
+  @override
+  final bool autoDispose;
+  final void Function(InjectedTextEditing textEditing)? onTextEditing;
 
   final TextSelection _selection;
   final TextRange _composing;
-  final bool? _initialValidateOnTyping;
-  bool? validateOnTyping;
-  bool _formIsSet = false;
-  final bool autoDispose;
-  final void Function(InjectedTextEditing textEditing)? onTextEditing;
+
+  late bool _formIsSet;
+  late VoidCallback? _removeFromInjectedList;
+
+  ///Remove this InjectedTextEditing from the associated InjectedForm,
+  late VoidCallback? formTextFieldDisposer;
+  late bool _initialIsEnabled;
+  late bool _initialIsReadOnly;
+  //
+  late final VoidCallback _resetDefaultState;
+
+  @override
   TextEditingControllerImp get controller {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;
@@ -150,14 +199,30 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
             },
           );
         } else {
-          if (_validateOnLoseFocus == null && validateOnTyping != true) {
+          if (_validateOnLoseFocus == null && _validateOnValueChange != true) {
             //If the TextField is inside a On.form, set _validateOnLoseFocus to
             //true if it is not
             _validateOnLoseFocus = true;
-            // if (_focusNode != null) {
-            //   _listenToFocusNode();
-            // }
+            if (!_isValidOnLoseFocusDefined) {
+              _listenToFocusNodeForValidation();
+            }
           }
+        }
+      }
+    }
+    if (form != null) {
+      final _isEnabled = (form as InjectedFormImp?)?._isEnabled;
+      if (_isEnabled != null) {
+        this._isEnabled = _isEnabled;
+      } else {
+        this._isEnabled = _initialIsEnabled;
+      }
+      if (_isEnabled != true) {
+        final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+        if (isReadOnly != null) {
+          this.isReadOnly = isReadOnly;
+        } else {
+          this.isReadOnly = _initialIsReadOnly;
         }
       }
     }
@@ -168,7 +233,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
 
     _controller ??= TextEditingControllerImp.fromValue(
       TextEditingValue(
-        text: initialValue,
+        text: initialValue ?? '',
         selection: _selection,
         composing: _composing,
       ),
@@ -186,6 +251,12 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     //   snapState = snapState.copyToIsIdle(this.text);
     // }
     _controller!.addListener(() {
+      if (isReadOnly) {
+        if (_controller!.text != _state) {
+          _controller!.text = _state;
+        }
+        return;
+      }
       onTextEditing?.call(this);
       if (_state == _controller!.text) {
         //if only selection is changed notify and return
@@ -193,55 +264,18 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         return;
       }
       snapState = snapState.copyWith(data: _controller!.text);
-      if (form != null && validateOnTyping != true) {
+      if (form != null) {
         //If form is not null than override the autoValidate of this Injected
-        validateOnTyping = form!.autovalidateMode != AutovalidateMode.disabled;
+        _validateOnValueChange ??=
+            form!.autovalidateMode != AutovalidateMode.disabled;
       }
-      if (validateOnTyping ?? !(_validateOnLoseFocus ?? false)) {
-        validate(); //will be notified in error setter
-      } else {
-        notify();
+      if (_validateOnValueChange ?? !(_validateOnLoseFocus ?? false)) {
+        validate();
       }
-
-      // else {
-      //   // if (_validator == null) {
-      //   //   snapState = snapState.copyToHasData(this.text);
-      //   // } else {
-      //   //   //IF there is a validator, then set with idle flag so that isValid
-      //   //   //is false unless validator is called
-      //   //   snapState = snapState.copyToIsIdle(this.text);
-      //   // }
-      //   // notify();
-      // }
+      notify();
     });
 
     return _controller!;
-  }
-
-  VoidCallback? _removeFromInjectedList;
-
-  ///The associated [InjectedForm]
-  InjectedForm? form;
-
-  ///Remove this InjectedTextEditing from the associated InjectedForm,
-  VoidCallback? formTextFieldDisposer;
-
-  ///The initial value
-  final String initialValue;
-  @override
-  final String? Function(String? text)? _validator;
-
-  @override
-  void reset() {
-    _controller?.text = initialValue;
-    if (_validator == null) {
-      snapState = snapState.copyToHasData(initialValue);
-    } else {
-      //IF there is a validator, then set with idle flag so that isValid
-      //is false unless validator is called
-      snapState = snapState.copyToIsIdle(initialValue);
-    }
-    notify();
   }
 
   @override
@@ -250,15 +284,12 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
     _removeFromInjectedList?.call();
     _controller?.dispose();
     _controller = null;
+    formTextFieldDisposer?.call();
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       //Dispose after the associated TextField remove its listeners to _focusNode
       _focusNode?.dispose();
-      _focusNode = null;
+      _resetDefaultState();
     });
-    _formIsSet = false;
-    form = null;
-    validateOnTyping = _initialValidateOnTyping;
-    formTextFieldDisposer?.call();
   }
 }
 

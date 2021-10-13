@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../data_source/firebase_todos_repository.dart';
-import '../../../domain/entities/todo.dart';
-import '../../../domain/value_object/todos_stats.dart';
-import '../../../service/common/enums.dart';
+import '../../../blocs/auth_bloc.dart';
+import '../../../blocs/common/enums.dart';
+import '../../../blocs/todos_bloc.dart';
 import '../../common/enums.dart';
-import '../../common/localization/localization.dart';
-import '../../common/theme/theme.dart';
-import '../../exceptions/error_handler.dart';
+import '../../localization/localization.dart';
 import '../../pages/add_edit_screen.dart/add_edit_screen.dart';
-import '../auth_page/auth_page.dart';
+import '../../theme/theme.dart';
 import '../detail_screen/detail_screen.dart';
 
 part 'extra_actions_button.dart';
 part 'filter_button.dart';
-part 'injected_todo.dart';
 part 'languages.dart';
 part 'stats_counter.dart';
 part 'todo_item.dart';
@@ -26,7 +22,7 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({Key? key}) : super(key: key);
 
-  static final appTab = RM.injectPageTab(length: 2);
+  static final appTab = RM.injectTabPageView(length: 2);
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +37,13 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         body: OnReactive(
-          () => todos.onOrElse(
-            onWaiting: todos.state.isEmpty
+          () => todosBloc.todosRM.onOrElse(
+            onWaiting: todosBloc.todos.isEmpty
                 ? () => const Center(
                       child: const CircularProgressIndicator(),
                     )
                 : null,
-            onError: todos.state.isEmpty
+            onError: todosBloc.todos.isEmpty
                 ? (err, refresh) => Center(
                       child: Column(
                         children: [
@@ -55,7 +51,7 @@ class HomeScreen extends StatelessWidget {
                           IconButton(
                             icon: Icon(Icons.refresh),
                             onPressed: () {
-                              todos.refresh();
+                              todosBloc.todosRM.refresh();
                               refresh();
                             },
                           ),
@@ -65,8 +61,7 @@ class HomeScreen extends StatelessWidget {
                     )
                 : null,
             orElse: (data) {
-              return OnTabBuilder(
-                listenTo: appTab,
+              return OnTabPageViewBuilder(
                 builder: (_) => PageView(
                   controller: appTab.pageController,
                   children: [const TodoList(), const StatsCounter()],
@@ -84,8 +79,7 @@ class HomeScreen extends StatelessWidget {
           child: const Icon(Icons.add),
           tooltip: _i18n.addTodo,
         ),
-        bottomNavigationBar: OnTabBuilder(
-          listenTo: appTab,
+        bottomNavigationBar: OnTabPageViewBuilder(
           builder: (index) {
             return SizedBox(
               height: 50,

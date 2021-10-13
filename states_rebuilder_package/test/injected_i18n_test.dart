@@ -1,4 +1,4 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -37,16 +37,11 @@ void main() async {
       // debugPrintWhenNotifiedPreMessage: 'i18n',
     );
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -61,7 +56,7 @@ void main() async {
     expect(find.text('arabic'), findsOneWidget);
     expect(textDirection, TextDirection.rtl);
     i18n.locale = Locale('es');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('spanish'), findsOneWidget);
     expect(textDirection, TextDirection.ltr);
   });
@@ -75,16 +70,11 @@ void main() async {
       Locale('en', 'TN'): () => 'english_TN',
     });
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -112,16 +102,11 @@ void main() async {
       Locale('en', 'US'): () => 'english_US',
     });
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               return Text(i18n.of(ctx));
@@ -147,16 +132,11 @@ void main() async {
     Locale? localization;
 
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -210,17 +190,12 @@ void main() async {
     Locale? localization;
 
     final widget = TopAppWidget(
-      injectedI18N: i18n,
       onWaiting: () => CircularProgressIndicator(),
       builder: (context) {
         return MaterialApp(
           locale: i18n.locale,
           localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
@@ -278,16 +253,12 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -322,16 +293,12 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -364,16 +331,12 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -426,16 +389,12 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18n.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -491,16 +450,12 @@ void main() async {
         return MaterialApp(
           locale: i18nStored.locale,
           localeResolutionCallback: i18nStored.localeResolutionCallback,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: i18nStored.localizationsDelegates,
           home: Builder(
             builder: (ctx) {
               textDirection = Directionality.of(ctx);
               localization = Localizations.localeOf(ctx);
-              return Text(i18nStored.of(context));
+              return Text(i18nStored.of(ctx));
             },
           ),
         );
@@ -536,21 +491,20 @@ void main() async {
           Locale('en', 'US'): () => 'english_US',
           Locale('es', 'ES'): () => 'spanish',
         },
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
-          if (middleSnap.nextSnap.hasError &&
-              middleSnap.nextSnap.error.message == 'Error') {
-            return middleSnap.currentSnap.copyToHasData('arabic');
+        stateInterceptor: (currentSnap, nextSnap) {
+          _snapState = currentSnap;
+          _nextSnapState = nextSnap;
+          if (nextSnap.hasError && nextSnap.error.message == 'Error') {
+            return currentSnap.copyToHasData('arabic');
           }
         },
-        onSetState: On(
-          () {
+        sideEffects: SideEffects(
+          onSetState: (_) {
             onSetStateNum++;
           },
         ),
       );
-      // expect(_snapState, null);
+      expect(_snapState, null);
 
       i18n.locale = Locale('en', 'TN');
       //

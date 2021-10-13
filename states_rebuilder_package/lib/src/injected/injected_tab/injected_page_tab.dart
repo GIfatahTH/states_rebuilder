@@ -1,36 +1,115 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/diagnostics.dart';
-import 'package:states_rebuilder/src/builders/on_reactive.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
 
+import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
 part 'on_tab.dart';
 
 class _RebuildTab {
-  final InjectedPageTab _injected;
+  final InjectedTabPageView _injected;
   _RebuildTab(this._injected);
 
-  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
-  Widget onTab(
+  ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
+  Widget onTabPageView(
     Widget Function(int index) builder, {
     Key? key,
   }) {
-    return OnTabBuilder(
+    return OnTabPageViewBuilder(
       listenTo: _injected,
       builder: builder,
     );
   }
 }
 
-abstract class InjectedPageTab implements InjectedBaseState<int> {
-  ///Listen to the [InjectedPageTab] and rebuild when tab index is changed.
+/// {@template InjectedTabPageView}
+/// Inject a [TabController] and [PageController] and sync them to work
+/// together to get the most benefit of them.
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach to control tab and page views.
+///
+/// If you don't use [OnTabPageViewBuilder] to listen the state, it is highly
+/// recommended to manually dispose the state using [Injected.dispose] method.
+///
+/// Example: of controlling [TabBarView], [PageView], and [TabBar] with the
+/// same [InjectedTabPageView]
+/// ```dart
+///  final injectedTab = RM.injectTabPageView(
+///    initialIndex: 2,
+///    length: 5,
+///  );
+///
+///  //In the widget tree;
+///  @override
+///  Widget build(BuildContext context) {
+///    return MaterialApp(
+///      home: Scaffold(
+///        appBar: AppBar(
+///          title: OnTabViewBuilder(
+///            listenTo: injectedTab,
+///            builder: (index) => Text('$index'),
+///          ),
+///        ),
+///        body: Column(
+///          children: [
+///            Expanded(
+///              child: OnTabViewBuilder(
+///                builder: (index) {
+///                  print(index);
+///                  return TabBarView(
+///                    controller: injectedTab.tabController,
+///                    children: views,
+///                  );
+///                },
+///              ),
+///            ),
+///            Expanded(
+///              child: OnTabViewBuilder(
+///                builder: (index) {
+///                  return PageView(
+///                    controller: injectedTab.pageController,
+///                    children: pages,
+///                  );
+///                },
+///              ),
+///            )
+///          ],
+///        ),
+///        bottomNavigationBar: OnTabPageViewBuilder(
+///           listenTo: injectedTab,
+///           builder: (index) => BottomNavigationBar(
+///             currentIndex: index,
+///             onTap: (int index) {
+///               injectedTab.index = index;
+///             },
+///             selectedItemColor: Colors.blue,
+///             unselectedItemColor: Colors.blue[100],
+///             items: tabs
+///                 .map(
+///                   (e) => BottomNavigationBarItem(
+///                     icon: e,
+///                     label: '$index',
+///                   ),
+///                 )
+///                 .toList(),
+///           ),
+///       ),
+///    );
+///  }
+/// ```
+///  {@endtemplate}
+abstract class InjectedTabPageView implements InjectedBaseState<int> {
+  ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
   late final rebuild = _RebuildTab(this);
   TabController? _tabController;
   PageController? _pageController;
 
+  /// Get the associated [TabController]
   TabController get tabController {
+    _OnTabPageViewBuilderState._addToTabObs?.call(this);
     assert(
         _tabController != null,
         'TabController is not initialized yet. '
@@ -38,10 +117,14 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     return _tabController!;
   }
 
+  /// Get the associated [PageController]
   PageController get pageController;
   int? get _page => _pageController?.page?.round();
 
-  ///The index of the currently selected tab.
+  /// The index of the currently selected tab.
+  ///
+  /// When is set to a target index, the tab / page will animated from the
+  /// current idex to the target index
   int get index {
     return state;
     // if (_tabController != null) {
@@ -61,31 +144,47 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     if (_tabController != null) {
       _tabController!.animateTo(
         i,
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     } else {
       assert(_pageController != null);
       _pageController!.animateToPage(
         i,
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
 
+  /// The number of tabs / pages. It can set dynamically
+  ///
+  /// Example:
+  /// ```dart
+  ///    // We start with 2 tabs
+  ///    final myInjectedTabPageView = RM.injectedTabPageView(length: 2);
+  ///
+  ///   // Later on, we can extend or shrink the length of tab views.
+  ///
+  ///   // Tab/page views are updated to display three views
+  ///   myInjectedTabPageView.length = 3
+  ///
+  ///   // Tab/page views are updated to display one view
+  ///   myInjectedTabPageView.length = 1
+  /// ```
   late int length;
 
   late bool _pageIndexIsChanging;
 
-  ///The index of the previously selected tab.
+  /// The index of the previously selected tab.
   int get previousIndex => _tabController!.previousIndex;
 
-  ///True while we're animating from [previousIndex] to [index] as a consequence of calling [animateTo].
+  /// True while we're animating from [previousIndex] to [index] as a consequence of calling [animateTo].
   bool get indexIsChanging =>
       _tabController?.indexIsChanging == true || _pageIndexIsChanging;
 
-  ///Immediately sets [index] and [previousIndex] and then plays the animation from its current value to [index].
+  /// Immediately sets [index] and [previousIndex] and then plays the animation
+  /// from its current value to [index].
   void animateTo(
     int value, {
     Duration duration = kTabScrollDuration,
@@ -122,13 +221,13 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         final future = Completer();
         _tabController!.animateTo(
           index + 1,
-          duration: (this as InjectedTabImp).duration,
-          curve: (this as InjectedTabImp).curve,
+          duration: (this as InjectedPageTabImp).duration,
+          curve: (this as InjectedPageTabImp).curve,
         );
-        if ((this as InjectedTabImp).duration == Duration.zero) {
+        if ((this as InjectedPageTabImp).duration == Duration.zero) {
           return;
         }
-        var listener;
+        late void Function(AnimationStatus) listener;
         listener = (status) {
           if (status == AnimationStatus.completed) {
             future.complete();
@@ -141,8 +240,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     } else {
       assert(_pageController != null);
       return _pageController!.nextPage(
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
@@ -158,13 +257,13 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
         final future = Completer();
         _tabController!.animateTo(
           index - 1,
-          duration: (this as InjectedTabImp).duration,
-          curve: (this as InjectedTabImp).curve,
+          duration: (this as InjectedPageTabImp).duration,
+          curve: (this as InjectedPageTabImp).curve,
         );
-        if ((this as InjectedTabImp).duration == Duration.zero) {
+        if ((this as InjectedPageTabImp).duration == Duration.zero) {
           return;
         }
-        var listener;
+        late void Function(AnimationStatus) listener;
         listener = (status) {
           if (status == AnimationStatus.completed) {
             future.complete();
@@ -177,8 +276,8 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
     } else {
       assert(_pageController != null);
       return _pageController!.previousPage(
-        duration: (this as InjectedTabImp).duration,
-        curve: (this as InjectedTabImp).curve,
+        duration: (this as InjectedPageTabImp).duration,
+        curve: (this as InjectedPageTabImp).curve,
       );
     }
   }
@@ -192,12 +291,13 @@ abstract class InjectedPageTab implements InjectedBaseState<int> {
   // }
 }
 
-class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
-  InjectedTabImp({
+class InjectedPageTabImp extends InjectedBaseBaseImp<int>
+    with InjectedTabPageView {
+  InjectedPageTabImp({
     int initialIndex = 0,
     required int length,
-    this.duration: kTabScrollDuration,
-    this.curve: Curves.ease,
+    this.duration = kTabScrollDuration,
+    this.curve = Curves.ease,
     this.viewportFraction = 1.0,
     this.keepPage = true,
   }) : super(creator: () => initialIndex) {
@@ -312,6 +412,8 @@ class InjectedTabImp extends InjectedBaseBaseImp<int> with InjectedPageTab {
 
   @override
   PageController get pageController {
+    _OnTabPageViewBuilderState._addToTabObs?.call(this);
+
     if (_pageController != null) {
       return _pageController!;
     }

@@ -1,11 +1,11 @@
+import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/input_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/data_source/api.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/comment.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/value_objects/email.dart';
-import 'package:clean_architecture_dane_mackier_app/service/exceptions/input_exception.dart';
 
-class FakeUserRepository implements UserRepository {
+class FakeUserRepository extends UserRepository {
   final dynamic error;
 
   FakeUserRepository({this.error});

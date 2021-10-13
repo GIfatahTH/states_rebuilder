@@ -3,6 +3,41 @@ import 'package:flutter/material.dart';
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
+///{@template InjectedTheme}
+/// Injection of a state that handle app theme switching.
+///
+/// This injected state abstracts the best practices of the clean
+/// architecture to come out with a simple, clean, and testable approach
+/// to manage app theming.
+///
+/// The approach consists of the following steps:
+/// * Instantiate an [InjectedTheme] object using [RM.injectTheme] method.
+/// * we use the [TopAppWidget] that must be on top of the MaterialApp widget.
+///   ```dart
+///    void main() {
+///      runApp(MyApp());
+///    }
+///
+///    class MyApp extends StatelessWidget {
+///      // This widget is the root of your application.
+///      @override
+///      Widget build(BuildContext context) {
+///        return TopAppWidget(//Use TopAppWidget
+///          injectedTheme: themeRM, //Set te injectedTheme
+///          builder: (context) {
+///            return MaterialApp(
+///              theme: themeRM.lightTheme, //light theme
+///              darkTheme: themeRM.darkTheme, //dark theme
+///              themeMode: themeRM.themeMode, //theme mode
+///              home: HomePage(),
+///            );
+///          },
+///        );
+///      }
+///    }
+///   ```
+///  {@endtemplate}
+
 abstract class InjectedTheme<KEY> implements Injected<KEY> {
   @override
   KEY get state => getInjectedState(this);
@@ -18,6 +53,7 @@ abstract class InjectedTheme<KEY> implements Injected<KEY> {
 
   ///Get the current dark theme.
   ThemeData? get darkTheme;
+  ThemeData get activeTheme => isDarkTheme ? darkTheme! : lightTheme;
 
   ///The current [ThemeMode]
   late ThemeMode themeMode;
@@ -66,6 +102,13 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
           debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
           toDebugString: toDebugString,
         ) {
+    _resetDefaultState = () {
+      _isDarkTheme = false;
+      _themeMode = ThemeMode.system;
+      isLinkedToTopStatelessWidget = false;
+    };
+    _resetDefaultState();
+
     final persist = persistKey == null
         ? null
         : PersistState(
@@ -124,7 +167,11 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
 
   final Map<KEY, ThemeData> lightThemes;
   final Map<KEY, ThemeData>? darkThemes;
-  ThemeMode _themeMode = ThemeMode.system;
+  late ThemeMode _themeMode;
+  bool _isDarkTheme = false;
+  late bool isLinkedToTopStatelessWidget;
+
+  late final VoidCallback _resetDefaultState;
 
   @override
   Map<KEY, ThemeData> get supportedLightThemes {
@@ -141,20 +188,36 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
 
   @override
   ThemeData get lightTheme {
+    OnReactiveState.addToTopStatelessObs?.call(this);
     var theme = lightThemes[state];
-    if (theme == null) {
-      theme = darkThemes?[state];
-    }
+    theme ??= darkThemes?[state];
     assert(theme != null);
     return theme!;
   }
 
   @override
-  ThemeData? get darkTheme => darkThemes?[state] ?? lightThemes[state];
+  ThemeData? get darkTheme {
+    OnReactiveState.addToTopStatelessObs?.call(this);
+    return darkThemes?[state] ?? lightThemes[state];
+  }
 
   @override
   ThemeMode get themeMode => _themeMode;
+  @override
+  set state(KEY value) {
+    assert(() {
+      _assertIsLinkedToTopStatelessWidget();
+      return true;
+    }());
+    super.state = value;
+  }
+
+  @override
   set themeMode(ThemeMode mode) {
+    assert(() {
+      _assertIsLinkedToTopStatelessWidget();
+      return true;
+    }());
     if (_themeMode == mode) {
       return;
     }
@@ -165,7 +228,6 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     notify();
   }
 
-  bool _isDarkTheme = false;
   @override
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
@@ -196,10 +258,17 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     }
   }
 
+  void _assertIsLinkedToTopStatelessWidget() {
+    if (!isLinkedToTopStatelessWidget) {
+      throw ('No Parent InheritedWidget of type [TopReactiveStateless ] is found.\n'
+          'Make sure to use [TopReactiveStateless] widget on top of MaterialApp '
+          'Widget.\n');
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
-    _isDarkTheme = false;
-    _themeMode = ThemeMode.system;
+    _resetDefaultState();
   }
 }

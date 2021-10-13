@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -306,7 +307,7 @@ void main() {
 
       final widget = StateBuilder(
         observe: () => model,
-        tag: ['mainTag'],
+        tag: const ['mainTag'],
         builder: (ctx, _) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -352,7 +353,7 @@ void main() {
 
       final widget = StateBuilder(
         observe: () => model,
-        tag: ['mainTag'],
+        tag: const ['mainTag'],
         builder: (ctx, _) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -853,7 +854,7 @@ void main() {
       int numberOfDidUpdateWidget = 0;
       final widget = StateBuilder(
         observe: () => model,
-        tag: ['mainTag'],
+        tag: const ['mainTag'],
         builder: (ctx, _) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -907,7 +908,7 @@ void main() {
     final model1 = ReactiveModel.create(Model()) as ReactiveModelImp<Model>;
     final widget = StateBuilder(
       observe: () => model,
-      tag: ['mainTag'],
+      tag: const ['mainTag'],
       builder: (ctx, _) {
         return StateBuilder(
           observeMany: [() => model1],
@@ -961,6 +962,7 @@ enum Tags { tag1, tag2, tag3 }
 
 class StatesRebuilder extends Injected {
   void rebuildStates([List? tags]) {}
+  @override
   int get observerLength => 0;
   @override
   bool get canRedoState => throw UnimplementedError();
@@ -1010,6 +1012,7 @@ class StatesRebuilder extends Injected {
 
   @override
   void undoState() {}
+  @override
   Future<F> Function() future<F>(Future<F> Function(dynamic s) future) =>
       () async {
         return null as F;

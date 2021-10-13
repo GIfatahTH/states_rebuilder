@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/src/common/logger.dart';
+import '../common/logger.dart';
 
 import '../rm.dart';
 import 'reactive_state_less_widget.dart';
-
-typedef AddObsCallback = void Function(InjectedBaseState);
 
 ///{@template OnReactive}
 ///First choice widget to listen to an injected state.
@@ -86,12 +84,9 @@ class OnReactive extends ReactiveStatelessWidget {
 
   @override
   void didNotifyWidget(SnapState snap) {
-    sideEffects?.onSetState?.call(snap);
-    if (sideEffects?.onSetState != null) {
-      WidgetsBinding.instance?.addPostFrameCallback(
-        (_) => sideEffects?.onAfterBuild?.call(),
-      );
-    }
+    sideEffects
+      ?..onSetState?.call(snap)
+      ..onAfterBuild?.call();
     assert(() {
       if (debugPrintWhenRebuild != null) {
         StatesRebuilerLogger.log(
@@ -102,15 +97,15 @@ class OnReactive extends ReactiveStatelessWidget {
   }
 
   @override
-  bool shouldRebuildWidget(SnapState oldSnap, SnapState newSnap) {
-    return shouldRebuild?.call(oldSnap, newSnap) ?? true;
+  bool shouldRebuildWidget(SnapState oldSnap, SnapState currentSnap) {
+    return shouldRebuild?.call(oldSnap, currentSnap) ?? true;
   }
 
   @override
-  void didAddObserverForDebug(obs) {
+  void didAddObserverForDebug(observers) {
     if (debugPrintWhenObserverAdd != null) {
-      StatesRebuilerLogger.log(
-          debugPrintWhenObserverAdd! + ': ${obs.length} observers : $obs');
+      StatesRebuilerLogger.log(debugPrintWhenObserverAdd! +
+          ': ${observers.length} observers : $observers');
     }
   }
 
@@ -122,4 +117,5 @@ class OnReactive extends ReactiveStatelessWidget {
 
 class OnReactiveState {
   static AddObsCallback? addToObs;
+  static AddObsCallback? addToTopStatelessObs;
 }

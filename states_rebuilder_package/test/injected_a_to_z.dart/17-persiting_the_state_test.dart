@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -36,20 +37,19 @@ class App extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          On.data(
-            () => switcher.state
-                ? On.data(
-                    () => Text('counter: ${counter.state}'),
-                  ).listenTo(
-                    counter,
+          OnBuilder.data(
+            listenTo: switcher,
+            builder: (_) => switcher.state
+                ? OnBuilder.data(
+                    listenTo: counter,
+                    builder: (_) => Text('counter: ${counter.state}'),
                   )
                 : Container(),
-          ).listenTo(switcher),
-          On.or(
+          ),
+          OnBuilder.orElse(
+            listenTo: counterFuture,
             onWaiting: () => Text('Waiting...'),
-            or: () => Text('counterFuture: ${counterFuture.state}'),
-          ).listenTo(
-            counterFuture,
+            orElse: (_) => Text('counterFuture: ${counterFuture.state}'),
           ),
         ],
       ),

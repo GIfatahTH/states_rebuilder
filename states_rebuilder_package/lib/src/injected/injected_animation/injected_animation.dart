@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../rm.dart';
 
-part 'on_Animation.dart';
+part 'on_animation.dart';
 
 class _RebuildAnimation {
   final InjectedAnimation _injected;
@@ -13,7 +13,10 @@ class _RebuildAnimation {
 
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   Widget call(Widget Function() builder) {
-    return On(builder).listenTo(_injected);
+    return OnBuilder(
+      listenTo: _injected,
+      builder: builder,
+    );
   }
 
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
@@ -26,15 +29,54 @@ class _RebuildAnimation {
     void Function()? onInitialized,
     Key? key,
   }) {
-    return On.animation(anim).listenTo(
-      _injected,
+    return OnAnimationBuilder(
+      listenTo: _injected,
+      builder: anim,
       onInitialized: onInitialized,
       key: key,
     );
   }
 }
 
-///Inject an animation
+///{@template InjectedAnimation}
+/// Inject an animation. It works for both implicit and explicit animation.
+///
+/// This injected state abstracts the best practices to come out with a
+/// simple, clean, and testable approach to manage animations.
+///
+/// The approach consists of the following steps:
+/// * Instantiate an [InjectedAnimation] object using [RM.injectAnimation]
+/// method.
+///   ```dart
+///     final animation = RM.injectAnimation(
+///       duration: Duration(seconds: 2),
+///       curve: Curves.fastOutSlowIn,
+///     );
+///    ```
+/// * Use [OnAnimationBuilder] to listen to the [InjectedAnimation]. the
+/// builder of [OnAnimationBuilder] exposes an [Animate] object used to set
+/// tweens explicitly or implicitly
+/// method.
+///   ```dart
+///         child: OnAnimationBuilder(
+///           listenTo: animation,
+///           builder: (animate) {
+///             //Implicit animation
+///             final width = animate(selected ? 200.0 : 100.0);
+///
+///             // Explicit animation
+///             final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+///
+///             return Container(
+///               width: width,
+///               height: height,
+///               child: const FlutterLogo(size: 75),
+///             );
+///           },
+///         ),
+///    ```
+///  {@endtemplate}
+
 abstract class InjectedAnimation implements InjectedBaseState<double> {
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   ///
@@ -340,12 +382,15 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
   @override
   Future<double> refresh() async {
     animationEndFuture ??= Completer();
-    _didUpdateWidgetListeners.forEach((fn) => fn());
+    for (var fn in _didUpdateWidgetListeners) {
+      fn();
+    }
     notify();
     await animationEndFuture?.future;
     return 0.0;
   }
 
+  @override
   void resetAnimation({
     Duration? duration,
     Duration? reverseDuration,
@@ -378,7 +423,9 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
       isCurveChanged = true;
     }
     if (isCurveChanged) {
-      _resetAnimationListeners.forEach((fn) => fn());
+      for (var fn in _resetAnimationListeners) {
+        fn();
+      }
       _curvedAnimation = null;
       _reverseCurvedAnimation = null;
     }

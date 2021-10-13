@@ -8,7 +8,7 @@ class OnFuture<F> {
     required Widget Function()? onWaiting,
     required Widget Function(dynamic err, void Function() refresh)? onError,
     required Widget Function(F data, void Function() refresh) onData,
-  })   : _onWaiting = onWaiting,
+  })  : _onWaiting = onWaiting,
         _onError = onError,
         _onData = onData;
 }

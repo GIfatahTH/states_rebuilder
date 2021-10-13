@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -506,7 +507,7 @@ void main() {
   );
 
   testWidgets('Injector.interface should work Env.prod', (tester) async {
-    Injector.env = Env.prod;
+    RM.env = Env.prod;
     late ReactiveModel<IModelInterface> model;
     Widget widget = Injector(
       inject: [
@@ -537,7 +538,7 @@ void main() {
   });
 
   testWidgets('Injector.interface should work Env.test', (tester) async {
-    Injector.env = Env.test;
+    RM.env = Env.test;
     late ReactiveModel<IModelInterface> model;
     Widget widget = Injector(
       inject: [

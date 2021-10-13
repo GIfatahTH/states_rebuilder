@@ -220,10 +220,8 @@ class Injector extends StatefulWidget {
     return inject as Inject<T>;
   }
 
-  @Deprecated('user RM.env instead')
-  static dynamic env;
-
   @override
+  // ignore: no_logic_in_create_state
   State<Injector> createState() {
     if (appLifeCycle == null) {
       return InjectorState();

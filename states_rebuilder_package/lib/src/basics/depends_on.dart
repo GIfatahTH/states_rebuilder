@@ -5,7 +5,7 @@ part of '../rm.dart';
 ///{@endtemplate}
 class DependsOn<T> {
   ///Set of [Injected] models to depend on.
-  final Set<Injected> injected;
+  final Set<ReactiveModel> injected;
 
   ///Callback to determine when to notify and recall the creation function
   ///of the **dependent** [Injected] models.

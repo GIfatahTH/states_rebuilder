@@ -113,7 +113,7 @@ class WhenRebuilderOr<T> extends StatefulWidget {
       didUpdateWidget;
 
   ///Just like [WhenRebuilder] but you do not have to define all possible states.
-  WhenRebuilderOr({
+  const WhenRebuilderOr({
     Key? key,
     this.onIdle,
     this.onWaiting,
@@ -167,14 +167,14 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
       } else {
         //3- take the first model of observeMany
         rm = _models.first as ReactiveModel<T>;
-        _models.forEach((m) {
+        for (var m in _models) {
           final disposer = m.subscribeToRM((snap) {
             //4- the model is that is emitting a notification
             final r = _models.firstWhereOrNull((e) => e.snapState == snap);
             rm = r as ReactiveModel<T>;
           });
           _disposers.add(disposer);
-        });
+        }
       }
     }
     _widget = OnCombined.or(
@@ -199,7 +199,9 @@ class _WhenRebuilderOrState<T> extends State<WhenRebuilderOr<T>> {
 
   @override
   void dispose() {
-    _disposers.forEach((disposer) => disposer());
+    for (var disposer in _disposers) {
+      disposer();
+    }
     super.dispose();
   }
 

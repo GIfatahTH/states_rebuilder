@@ -31,7 +31,8 @@ MaterialApp(
   ///
   ///Similar ot [PageRouteBuilder]
   ///
-  PageRoute Function(Widget nextPage)? pageRouteBuilder;
+  PageRoute Function(Widget nextPage, RouteSettings? settings)?
+      pageRouteBuilder;
 
   ///Used to change the page animation transition.
   ///
@@ -51,18 +52,6 @@ MaterialApp(
   bool _fullscreenDialog = false;
   bool _maintainState = true;
 
-  //For onGenerateRoute
-  late Map<String, Widget Function(RouteData data)> _routes;
-  Map<String, _RouteData> _routeData = {};
-  RouteData? routeData;
-
-  String _urlPath = '';
-  String _baseUrl = '';
-  String _routePath = '';
-  dynamic _routeArguments;
-  Map<String, String> _routeQueryParams = {};
-  Map<String, String> _routePathParams = {};
-
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
   ///
@@ -73,7 +62,7 @@ MaterialApp(
   ///unknown route page using [unknownRoute]
   ///
   Route<dynamic>? Function(RouteSettings settings) onGenerateRoute(
-    Map<String, Widget Function(RouteData data)> routes, {
+    Map<String, Widget Function(RouteData data)> routes_, {
     Widget Function(
       BuildContext,
       Animation<double>,
@@ -83,170 +72,43 @@ MaterialApp(
         transitionsBuilder,
     Widget Function(String routeName)? unknownRoute,
   }) {
-    assert(routes.isNotEmpty);
+    assert(routes_.isNotEmpty);
     if (transitionsBuilder != null) {
       this.transitionsBuilder = transitionsBuilder;
     }
-    _routes = routes;
-    _baseUrl = '';
+    RouterObjects._routers = routes_;
     pageRouteBuilder = null;
-    Widget? resolvePage(RouteSettings settings) {
-      assert(settings.name != null);
 
-      final uri = Uri.parse(settings.name!);
-      late Uri routeUri;
-      late String childName;
-
-      var name = _routes.keys.firstWhereOrNull(
-        (key) {
-          final matcher = _isMatched(
-            Uri.parse(key),
-            uri,
-          );
-          if (matcher.first == true) {
-            routeUri = matcher[1];
-            childName = matcher[2];
-
-            return true;
-          }
-          return false;
-        },
-      );
-
-      final route = _routes[name];
-      if (route != null) {
-        _routeArguments = settings.arguments;
-        if (uri.queryParameters.isNotEmpty) {
-          _routeQueryParams.addAll(uri.queryParameters);
-        }
-        if (routeUri.queryParameters.isNotEmpty) {
-          _routePathParams.addAll(routeUri.queryParameters);
-        }
-
-        _urlPath += routeUri.path;
-        _routePath += name!;
-        routeData = RouteData(
-          baseUrl: _getBaseUrl(_urlPath),
-          routePath: _routePath,
-          arguments: _routeArguments,
-          queryParams: {..._routeQueryParams},
-          pathParams: {..._routePathParams},
-        );
-        routeData!._isBaseUrlChanged =
-            _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
-
-        Widget page = route(routeData!);
-
-        if (page is RouteWidget) {
-          if (page.routes.isEmpty) {
-            name = _routeData.containsKey(name)
-                ? '$name' + '${_routeData.length}'
-                : name;
-            _routeData[name] = _RouteData(
-              builder: page.builder,
-              subRoute: null,
-              transitionsBuilder: page.transitionsBuilder,
-              routeData: routeData!,
-            );
-            return page.builder!(Container());
-          } else {
-            if (page.builder != null) {
-              name = _routeData.containsKey(name)
-                  ? '$name' + '${_routeData.length}'
-                  : name;
-              _routeData[name] = _RouteData(
-                builder: page.builder,
-                subRoute: null,
-                transitionsBuilder: page.transitionsBuilder,
-                routeData: routeData!,
-              );
-            }
-
-            final n = childName.startsWith('/') ? childName : '/$childName';
-            _routes = page.routes;
-            final p = resolvePage(settings.copyWith(name: n));
-            _routes = routes;
-            if (p != null) {
-              if (page.builder != null) {
-                _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
-              }
-              return p;
-            }
-            return null;
-          }
-        }
-        name = _routeData.containsKey(name)
-            ? '$name' + '${_routeData.length}'
-            : name;
-        _routeData[name] = _RouteData(
-          builder: (_) => page,
-          routeData: routeData!,
-          subRoute: null,
-          transitionsBuilder: null,
-        );
-        return page;
-      }
-      return null;
-    }
+    final resolvePathRouteUtil = ResolvePathRouteUtil();
 
     return (RouteSettings settings) {
-      _routeData.clear();
-      routeData = null;
-      _routeQueryParams.clear();
-      _routePathParams.clear();
-      _routeArguments = null;
+      final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
+        routes: routes_,
+        settings: settings,
+        unknownRoute: unknownRoute,
+        skipHomeSlash: true,
+      );
 
-      _urlPath = '';
-      _routePath = '';
-      late String absolutePath;
-      if (settings.name!.startsWith('/')) {
-        absolutePath = settings.name!;
-      } else {
-        if (_baseUrl == '') {
-          absolutePath = '/' + settings.name!;
-        } else {
-          String relativeBasePath = _getBaseUrl('/' + settings.name!);
-          String? p;
-          while (relativeBasePath.isNotEmpty) {
-            // add '/' to ensure the route name and not a stirng containing the name
-            final r = (_baseUrl + '/').split(relativeBasePath + '/');
-            if (r.length > 1) {
-              r.removeLast();
-              p = r.join('/');
-            }
-            if (p != null) {
-              break;
-            }
-            relativeBasePath = _getBaseUrl(relativeBasePath);
-          }
-
-          absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
-        }
-      }
-
-      settings = settings.copyWith(name: absolutePath);
-
-      final page = resolvePage(settings);
-      if (page != null) {
-        bool isSubRouteTransition = _routeData.values.any(
+      if (pages.isNotEmpty) {
+        bool isSubRouteTransition = pages.values.any(
           (e) {
-            return !e.routeData._isBaseUrlChanged;
+            if (e is RouteSettingsWithChildAndSubRoute) {
+              return !e.isBaseUrlChanged;
+            }
+            return false;
           },
         );
-        final _routeDataCopy = {..._routeData};
-
         final r = _pageRouteBuilder(
           (animation) {
-            return _RouteFullWidget(
-              child: page,
-              routeData: _routeDataCopy,
+            return _RouteFullWidget1(
+              pages: pages,
               animation: animation,
-              key: Key(_routeDataCopy.keys.toString()),
+              // key: Key(pages.keys.toString()),
             );
           },
           RouteSettings(
-            name: settings.name,
-            arguments: _routeArguments,
+            name: resolvePathRouteUtil.absolutePath,
+            arguments: settings.arguments,
           ),
           _fullscreenDialog,
           _maintainState,
@@ -256,14 +118,179 @@ MaterialApp(
         _fullscreenDialog = false;
         _maintainState = true;
         return r;
-      } else {
-        return unknownRoute != null
-            ? _pageRouteBuilder(
-                (_) => unknownRoute(absolutePath), settings, false, true)
-            : null;
       }
     };
+    // return (RouteSettings settings) {
+    //   _resetFields();
+
+    //   final page = _resolvePageFromRouteSettings(settings);
+
+    //   if (page != null) {
+    //     bool isSubRouteTransition = _routeData.values.any(
+    //       (e) {
+    //         return !e.routeData._isBaseUrlChanged;
+    //       },
+    //     );
+    //     final _routeDataCopy = {..._routeData};
+
+    //     final r = _pageRouteBuilder(
+    //       (animation) {
+    //         return _RouteFullWidget(
+    //           child: page,
+    //           routeData: _routeDataCopy,
+    //           animation: animation,
+    //           key: Key(_routeDataCopy.keys.toString()),
+    //         );
+    //       },
+    //       RouteSettings(
+    //         name: absolutePath,
+    //         arguments: _routeArguments,
+    //       ),
+    //       _fullscreenDialog,
+    //       _maintainState,
+    //       isSubRouteTransition: isSubRouteTransition,
+    //     );
+    //     //set to default
+    //     _fullscreenDialog = false;
+    //     _maintainState = true;
+    //     return r;
+    //   } else {
+    //     return unknownRoute != null
+    //         ? _pageRouteBuilder(
+    //             (_) => unknownRoute(absolutePath), settings, false, true)
+    //         : null;
+    //   }
+    // };
   }
+
+  // Widget? _resolvePageFromRouteSettings(RouteSettings settings) {
+  //   if (settings.name!.startsWith('/')) {
+  //     absolutePath = settings.name!;
+  //   } else {
+  //     if (_baseUrl == '') {
+  //       absolutePath = '/' + settings.name!;
+  //     } else {
+  //       String relativeBasePath = _getBaseUrl('/' + settings.name!);
+  //       String? p;
+  //       while (relativeBasePath.isNotEmpty) {
+  //         // add '/' to ensure the route name and not a stirng containing the name
+  //         final r = (_baseUrl + '/').split(relativeBasePath + '/');
+  //         if (r.length > 1) {
+  //           r.removeLast();
+  //           p = r.join('/');
+  //         }
+  //         if (p != null) {
+  //           break;
+  //         }
+  //         relativeBasePath = _getBaseUrl(relativeBasePath);
+  //       }
+
+  //       absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
+  //     }
+  //   }
+
+  //   settings = settings.copyWith(name: absolutePath);
+  //   return _resolvePage(settings);
+  // }
+
+  // Widget? _resolvePage(RouteSettings settings) {
+  //   assert(settings.name != null);
+
+  //   final uri = Uri.parse(settings.name!);
+  //   late Uri routeUri;
+  //   late String childName;
+
+  //   var name = _routes.keys.firstWhereOrNull(
+  //     (key) {
+  //       final matcher = _isMatched(
+  //         Uri.parse(key),
+  //         uri,
+  //       );
+  //       if (matcher.first == true) {
+  //         routeUri = matcher[1];
+  //         childName = matcher[2];
+
+  //         return true;
+  //       }
+  //       return false;
+  //     },
+  //   );
+
+  //   final route = _routes[name];
+  //   if (route != null) {
+  //     _routeArguments = settings.arguments;
+  //     if (uri.queryParameters.isNotEmpty) {
+  //       _routeQueryParams.addAll(uri.queryParameters);
+  //     }
+  //     if (routeUri.queryParameters.isNotEmpty) {
+  //       _routePathParams.addAll(routeUri.queryParameters);
+  //     }
+
+  //     _urlPath += routeUri.path;
+  //     _routePath += name!;
+  //     routeData = RouteData(
+  //       baseUrl: _getBaseUrl(_urlPath),
+  //       urlPath: _urlPath,
+  //       routePath: _routePath,
+  //       arguments: _routeArguments,
+  //       queryParams: {..._routeQueryParams},
+  //       pathParams: {..._routePathParams},
+  //     );
+  //     routeData!._isBaseUrlChanged =
+  //         _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
+
+  //     Widget page = route(routeData!);
+
+  //     if (page is RouteWidget) {
+  //       if (page.routes.isEmpty) {
+  //         name = _routeData.containsKey(name)
+  //             ? name + '${_routeData.length}'
+  //             : name;
+  //         _routeData[name] = _RouteData(
+  //           builder: page.builder,
+  //           subRoute: null,
+  //           transitionsBuilder: page.transitionsBuilder,
+  //           routeData: routeData!,
+  //         );
+  //         return page.builder!(Container());
+  //       } else {
+  //         if (page.builder != null) {
+  //           name = _routeData.containsKey(name)
+  //               ? name + '${_routeData.length}'
+  //               : name;
+  //           _routeData[name] = _RouteData(
+  //             builder: page.builder,
+  //             subRoute: null,
+  //             transitionsBuilder: page.transitionsBuilder,
+  //             routeData: routeData!,
+  //           );
+  //         }
+
+  //         final n = childName.startsWith('/') ? childName : '/$childName';
+  //         _routes = page.routes;
+  //         final p = _resolvePage(settings.copyWith(name: n));
+  //         _routes = Routers.routers!;
+  //         if (p != null) {
+  //           if (page.builder != null) {
+  //             _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
+  //           }
+  //           return p;
+  //         }
+  //         return null;
+  //       }
+  //     }
+  //     name =
+  //         _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
+  //     _routeData[name] = _RouteData(
+  //       builder: (_) => page,
+  //       routeData: routeData!,
+  //       subRoute: null,
+  //       transitionsBuilder: null,
+  //     );
+  //     return page;
+  //   }
+  //   return null;
+  // }
 
   static Duration? _transitionDuration;
   PageRoute<T> _pageRouteBuilder<T>(
@@ -272,17 +299,25 @@ MaterialApp(
     bool fullscreenDialog,
     bool maintainState, {
     bool isSubRouteTransition = false,
+    Widget Function(
+      BuildContext,
+      Animation<double>,
+      Animation<double>,
+      Widget,
+    )?
+        transitionsBuilder,
   }) {
     Widget? _page;
     return pageRouteBuilder != null
-        ? pageRouteBuilder!.call(_page ??= page(null)) as PageRoute<T>
+        ? pageRouteBuilder!.call(_page ??= page(null), settings) as PageRoute<T>
         : _PageRouteBuilder<T>(
             builder: (context, animation) => _page ??= page(animation),
             settings: settings,
             fullscreenDialog: fullscreenDialog,
             maintainState: maintainState,
             isSubRouteTransition: isSubRouteTransition,
-            customBuildTransitions: transitionsBuilder,
+            customBuildTransitions:
+                transitionsBuilder ?? this.transitionsBuilder,
             transitionDuration: _transitionDuration ??
                 const Duration(
                   milliseconds: 300,
@@ -312,6 +347,15 @@ MaterialApp(
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
+    if (RouterObjects._routerDelegate.containsKey('/') && name != null) {
+      return RouterObjects._routerDelegate['/']!.to<T>(
+        PageSettings(
+          name: name,
+          child: page,
+        ),
+      );
+    }
+
     return navigatorState.push<T>(
       _pageRouteBuilder(
         (_) => page,
@@ -337,6 +381,41 @@ MaterialApp(
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
+
+    // final List<Future<T?>> futures = [];
+    // Map<String, _RouterDelegate> delegates = {};
+    _RouterDelegate? delegate;
+
+    for (final key in RouterObjects._routerDelegate.keys) {
+      final d = RouterObjects._routerDelegate[key]!;
+      delegate = d;
+      if (routeName.startsWith(key)) {
+        delegate = d;
+      }
+    }
+    // for (final key in delegates.keys) {
+    //   final delegate = delegates[key]!;
+    //   final lastRoute = delegate._pageSettingsList.last;
+    //   final f = delegate.to<T>(
+    //     PageSettings(name: routeName, arguments: arguments),
+    //   );
+    //   futures.add(f);
+    // }
+    if (delegate != null) {
+      return delegate.to<T>(
+        PageSettings(name: routeName, arguments: arguments),
+      );
+    }
+
+    // if (futures.isNotEmpty) {
+    //   return futures.last;
+    // }
+
+    // if (RouterObjects._routerDelegate.containsKey('/')) {
+    //   return RouterObjects._routerDelegate['/']!.to<T>(
+    //     PageSettings(name: routeName, arguments: arguments),
+    //   );
+    // }
 
     return navigatorState.pushNamed<T>(
       routeName,
@@ -386,6 +465,13 @@ MaterialApp(
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
+
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.toReplacementNamed<T, TO>(
+        PageSettings(name: routeName, arguments: arguments),
+      );
+    }
+
     return navigatorState.pushReplacementNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -446,6 +532,14 @@ MaterialApp(
       newRouteName =
           Uri(path: newRouteName, queryParameters: queryParams).toString();
     }
+
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.toNamedAndRemoveUntil<T>(
+        PageSettings(name: newRouteName, arguments: arguments),
+        untilRouteName,
+      );
+    }
+
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -468,6 +562,11 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.popUntil]
   void backUntil(String untilRouteName) {
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.backUntil(untilRouteName);
+      return;
+    }
+
     return navigatorState.popUntil(
       ModalRoute.withName(untilRouteName),
     );
@@ -485,6 +584,12 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+    if (RouterObjects._routerDelegate.containsKey('/')) {
+      return RouterObjects._routerDelegate['/']!.backAndToNamed<T, TO>(
+        PageSettings(name: routeName, arguments: arguments),
+        result,
+      );
+    }
     return navigatorState.popAndPushNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -616,45 +721,8 @@ MaterialApp(
   }
 
   void _dispose() {
+    RouterObjects._routers = null;
     transitionsBuilder = null;
     pageRouteBuilder = null;
   }
-}
-
-List<dynamic> _isMatched(Uri route, Uri url) {
-  Map<String, String>? params;
-  if (route.pathSegments.length > url.pathSegments.length) {
-    return [false, null, null];
-  }
-  if (route.pathSegments.length == 0) {
-    if (url.pathSegments.length == 0) {
-      return [true, route, ''];
-    } else {
-      return [false, null, null];
-    }
-  }
-
-  String parsedUrl = '';
-  for (var i = 0; i < route.pathSegments.length; i++) {
-    if (route.pathSegments[i].startsWith(':')) {
-      params ??= {};
-      params[route.pathSegments[i].substring(1)] = url.pathSegments[i];
-    } else {
-      if (route.pathSegments[i] != url.pathSegments[i]) {
-        return [false, params, ''];
-      }
-    }
-    parsedUrl += '/${url.pathSegments[i]}';
-  }
-  return [
-    true,
-    route.replace(path: parsedUrl, queryParameters: params),
-    url.path.replaceFirst(parsedUrl, ''),
-  ];
-}
-
-String _getBaseUrl(String path) {
-  final segments = path.split('/');
-  segments.removeLast();
-  return segments.join('/');
 }

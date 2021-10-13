@@ -11,13 +11,13 @@ class _LikeButton extends StatelessWidget {
     return Row(
       children: <Widget>[
         OnReactive(
-          () => Text('Likes ${postsInj.state.getPostLikes(postId)}'),
+          () => Text('Likes ${postsBloc.getPostLikes(postId)}'),
         ),
         MaterialButton(
           color: Colors.white,
           child: Icon(Icons.thumb_up),
           onPressed: () {
-            postsInj.setState((state) => state.incrementLikes(postId));
+            postsBloc.incrementLikes(postId);
           },
         )
       ],

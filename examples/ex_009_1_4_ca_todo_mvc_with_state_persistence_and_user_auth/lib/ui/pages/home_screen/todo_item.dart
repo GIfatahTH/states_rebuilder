@@ -8,24 +8,24 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todo = todos.item(context)!;
+    final todo = todosBloc.todosRM.item(context)!;
     return OnReactive(
       () => Dismissible(
         key: Key('__${todo.state.id}__'),
         onDismissed: (direction) {
-          removeTodo(todo.state);
+          todosBloc.removeTodo(todo.state);
         },
         child: ListTile(
           onTap: () async {
             final shouldDelete = await RM.navigate.to(
-              todos.item.reInherited(
+              todosBloc.todosRM.item.reInherited(
                 context: context,
                 builder: (context) => DetailScreen(),
               ),
             );
             if (shouldDelete == true) {
               RM.scaffold.context = context;
-              removeTodo(todo.state);
+              todosBloc.removeTodo(todo.state);
             }
           },
           leading: Checkbox(
@@ -48,29 +48,6 @@ class TodoItem extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.subtitle1,
           ),
-        ),
-      ),
-    );
-  }
-
-  void removeTodo(Todo todo) {
-    todos.crud.delete(
-      where: (t) => todo.id == t.id,
-    );
-
-    RM.scaffold.showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 2),
-        content: Text(
-          i18n.of(RM.context!).todoDeleted(todo.task),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        action: SnackBarAction(
-          label: i18n.of(RM.context!).undo,
-          onPressed: () {
-            todos.crud.create(todo);
-          },
         ),
       ),
     );

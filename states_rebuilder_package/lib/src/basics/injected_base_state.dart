@@ -64,6 +64,14 @@ abstract class InjectedBaseState<T> {
     return snap.data as T;
   }
 
+  /// Initialize the state
+  FutureOr<T> initializeState() {
+    if (isWaiting) {
+      return stateAsync;
+    }
+    return state;
+  }
+
   ///The state is initialized and never mutated.
   bool get isIdle {
     OnReactiveState.addToObs?.call(this);
@@ -199,6 +207,10 @@ extension InjectedBaseX<T> on InjectedBaseState<T> {
     return () =>
         () => _reactiveModelState.listeners._sideEffectListeners.remove(fn);
   }
+}
+
+extension InjectedBaseXInternal<T> on InjectedBase<T> {
+  ReactiveModelBase<T> get reactiveModelState => _reactiveModelState;
 }
 
 class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {

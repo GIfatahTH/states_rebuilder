@@ -48,9 +48,9 @@ final helloName = RM.inject<String>(
   ),
   // Execute side effects while notify the state
   //
-  // It take on On objects, it has many named constructor: On.data, On.error,
-  // On.waiting, On.all and On.or
-  onSetState: On.or(
+  // It take on SideEffects objects, it has many named constructor: SideEffects.onData,
+  // SideEffects.onError, SideEffects.onWaiting, SideEffects.onAll and SideEffects.onOrElse
+  sideEffects: SideEffects.onOrElse(
     onWaiting: () => RM.scaffold.showSnackBar(
       SnackBar(
         content: Row(
@@ -72,7 +72,7 @@ final helloName = RM.inject<String>(
       )),
     ),
     // the default case. hide the snackbar
-    or: () => RM.scaffold.hideCurrentSnackBar(),
+    orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
   ),
   //Set the undoStackLength to 5. This will automatically
   // enable doing and undoing of the  state
@@ -96,13 +96,8 @@ final streamedHelloName = RM.injectStream<String>(
     // we use the onInitialized hook to pause it.
     subscription.pause();
   },
-  middleSnapState: (snapState) {
-    snapState.print(preMessage: 'streamedHelloName');
-    //Here we change the state
-    if (snapState.nextSnap.hasData) {
-      return snapState.nextSnap
-          .copyWith(data: snapState.nextSnap.data!.toUpperCase());
-    }
+  stateInterceptor: (currentSnap, nextSnap) {
+    return nextSnap.copyWith(data: nextSnap.data!.toUpperCase());
   },
 );
 //

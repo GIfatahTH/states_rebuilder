@@ -1,6 +1,8 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
+import 'package:states_rebuilder/src/injected/injected_crud/injected_crud.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -94,7 +96,7 @@ String onCRUDMessage = '';
 final products = RM.injectCRUD<Product, Object>(
   () => throw UnimplementedError(),
   readOnInitialization: true,
-  onCRUD: On.crud(
+  onCRUDSideEffects: OnCRUDSideEffects(
     onWaiting: () {
       onCRUDMessage = 'Waiting...';
     },
@@ -130,7 +132,7 @@ void main() {
     products.crud.create(
       Product(id: 2, name: 'product 2'),
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     expect(numberOfonStateMutationCall, 0);
@@ -154,7 +156,7 @@ void main() {
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     await tester.pump();
@@ -178,7 +180,7 @@ void main() {
     products.crud.delete(
       where: (product) => product.id == 2,
       isOptimistic: false,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResultMessage = _,
     );
     await tester.pump();
@@ -259,7 +261,7 @@ void main() {
     onCRUDMessage = '';
     products.crud.create(
       Product(id: 2, name: 'product 2'),
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -286,7 +288,7 @@ void main() {
     products.crud.update(
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -309,7 +311,7 @@ void main() {
     onResult = null;
     products.crud.delete(
       where: (product) => product.id == 2,
-      onSetState: On.data(() => numberOfonStateMutationCall++),
+      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -345,10 +347,10 @@ void main() {
     //
     products.crud.create(
       Product(id: 2, name: 'product 2'),
-      onSetState: On.or(
+      sideEffects: SideEffects.onAll(
           onError: (_, __) => errorMessage = _.message,
-          onData: () => numberOfonStateMutationCall++,
-          or: () {}),
+          onData: (_) => numberOfonStateMutationCall++,
+          onWaiting: null),
       onResult: (_) => onResult = _,
     );
     await tester.pump();
@@ -373,10 +375,10 @@ void main() {
     products.crud.update(
       where: (product) => product.id == 1,
       set: (product) => product.copyWith(name: 'product 1_new'),
-      onSetState: On.or(
+      sideEffects: SideEffects.onAll(
         onError: (_, __) => errorMessage = _.message,
-        onData: () => numberOfonStateMutationCall++,
-        or: () {},
+        onData: (_) => numberOfonStateMutationCall++,
+        onWaiting: null,
       ),
       onResult: (_) => onResult = _,
     );
@@ -400,10 +402,10 @@ void main() {
     errorMessage = null;
     products.crud.delete(
       where: (product) => product.id == 1,
-      onSetState: On.or(
+      sideEffects: SideEffects.onOrElse(
         onError: (err, _) => errorMessage = err.message,
-        onData: () => numberOfonStateMutationCall++,
-        or: () {},
+        onData: (_) => numberOfonStateMutationCall++,
+        orElse: (_) {},
       ),
       onResult: (_) => onResult = _,
     );
@@ -477,11 +479,12 @@ void main() {
   testWidgets('On.crud Optimistically', (tester) async {
     final widget = Directionality(
       textDirection: TextDirection.rtl,
-      child: On.crud(
+      child: OnCRUDBuilder(
+        listenTo: products,
         onWaiting: () => Text('Waiting...'),
         onError: (_, __) => Text(_.message),
         onResult: (r) => Text('Result: $r'),
-      ).listenTo(products),
+      ),
     );
 
     ///READ
@@ -527,11 +530,12 @@ void main() {
       textDirection: TextDirection.rtl,
       child: Column(
         children: [
-          On.crud(
+          OnCRUDBuilder(
+            listenTo: products,
             onWaiting: () => Text('CRUD Waiting...'),
             onError: (_, __) => Text('CRUD' + _.message),
             onResult: (r) => Text('Result: $r'),
-          ).listenTo(products),
+          ),
           On.all(
             onIdle: () => Text('Idel'),
             onWaiting: () => Text('OnAll Waiting...'),
@@ -638,16 +642,14 @@ void main() {
       late void Function() refresher;
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On.crud(
+        child: OnCRUDBuilder(
+          listenTo: products,
           onWaiting: () => Text('Waiting...'),
           onError: (_, refresh) {
             refresher = refresh;
             return Text(_.message);
           },
           onResult: (r) => Text('Result: $r'),
-        ).listenTo(
-          products,
-          // debugPrintWhenRebuild: '',
         ),
       );
 

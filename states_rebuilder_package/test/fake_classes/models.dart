@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 class VanillaModel {
   VanillaModel([this.counter = 0]);
   int counter = 0;
@@ -57,8 +58,8 @@ class VanillaModel {
 
 Future<int> getFuture() => Future.delayed(Duration(seconds: 1), () => 1);
 Stream<int> getStream() {
-  return Stream.periodic(Duration(seconds: 1), (num) {
-    return num;
+  return Stream.periodic(Duration(seconds: 1), (n) {
+    return n;
   }).take(3);
 }
 

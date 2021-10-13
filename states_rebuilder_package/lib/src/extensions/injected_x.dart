@@ -49,14 +49,13 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) {
-    return this.rebuild.call(
-          builder,
-          initState: initState != null ? () => initState() : null,
-          dispose: dispose != null ? () => dispose() : null,
-          shouldRebuild:
-              shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-          watch: watch,
-        );
+    return rebuild.call(
+      builder,
+      initState: initState != null ? () => initState() : null,
+      dispose: dispose != null ? () => dispose() : null,
+      shouldRebuild: shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+      watch: watch,
+    );
     // return On.data(builder).listenTo<T>(
     //   this,
     //   initState: initState != null ? () => initState() : null,
@@ -116,16 +115,16 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      this.rebuild.onAll(
-            onIdle: onIdle,
-            onWaiting: onWaiting,
-            onError: (err, _) => onError(err),
-            onData: (_) => onData(),
-            initState: initState != null ? () => initState() : null,
-            dispose: dispose != null ? () => dispose() : null,
-            shouldRebuild:
-                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-          );
+      rebuild.onAll(
+        onIdle: onIdle,
+        onWaiting: onWaiting,
+        onError: (err, _) => onError(err),
+        onData: (_) => onData(),
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild:
+            shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+      );
 
   /// {@template injected.whenRebuilderOr}
   /// ### This method is deprecated.
@@ -186,18 +185,18 @@ extension InjectedX<T> on ReactiveModel<T> {
     bool Function()? shouldRebuild,
     Key? key,
   }) =>
-      this.rebuild.onOrElse(
-            onIdle: onIdle,
-            onWaiting: onWaiting,
-            onError: onError != null ? (err, _) => onError(err) : null,
-            onData: onData != null ? (_) => onData() : null,
-            orElse: (_) => builder(),
-            initState: initState != null ? () => initState() : null,
-            dispose: dispose != null ? () => dispose() : null,
-            shouldRebuild:
-                shouldRebuild != null ? (_, __) => shouldRebuild() : null,
-            watch: watch,
-          );
+      rebuild.onOrElse(
+        onIdle: onIdle,
+        onWaiting: onWaiting,
+        onError: onError != null ? (err, _) => onError(err) : null,
+        onData: onData != null ? (_) => onData() : null,
+        orElse: (_) => builder(),
+        initState: initState != null ? () => initState() : null,
+        dispose: dispose != null ? () => dispose() : null,
+        shouldRebuild:
+            shouldRebuild != null ? (_, __) => shouldRebuild() : null,
+        watch: watch,
+      );
 
   ///Listen to a future from the injected model and rebuild this widget when it
   ///resolves.
@@ -240,8 +239,9 @@ extension InjectedX<T> on ReactiveModel<T> {
     required Widget Function(dynamic)? onError,
     required Widget Function(F? data) onData,
     void Function()? dispose,
-    On<void>? onSetState,
     Key? key,
+    @Deprecated('Use sideEffects only') On<void>? onSetState,
+    SideEffects<F>? sideEffects,
   }) {
     return StateBuilderBase<_OnAsyncWidget<F>>(
       (widget, setState) {
@@ -253,7 +253,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         F? data = _getPrimitiveNullState<F>();
         dynamic error;
         Future<F?>? f;
-        SnapState<F?> snap = SnapState._nothing(null, '', '');
+        SnapState<F> snap = const SnapState._nothing(null, '', '');
         VoidCallback? disposer;
         if (future != null) {
           f = future(inj._nullableState, inj.stateAsync);
@@ -274,14 +274,20 @@ extension InjectedX<T> on ReactiveModel<T> {
             subscription = f?.asStream().listen.call((d) {
               isWaiting = false;
               setState();
-              onSetState?.call(snap._copyToHasData(d));
+              snap = snap._copyToHasData(d);
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
               if (d is T) {
                 inj._reactiveModelState._snapState = SnapState<T>._withData(
                   ConnectionState.done,
-                  d as T,
+                  d,
                 );
                 if (onSetState?._onData == null) {
-                  inj.onDataForSideEffect?.call(inj._state);
+                  if (inj.onSetState?._onData == null) {
+                    inj.onDataForSideEffect?.call(inj._state);
+                  } else {
+                    inj.onSetState?.call(inj.snapState);
+                  }
                 }
                 disposer?.call();
                 disposer = null;
@@ -290,15 +296,23 @@ extension InjectedX<T> on ReactiveModel<T> {
             }, onError: (e, s) {
               isWaiting = false;
               setState();
-              onSetState?.call(snap._copyToHasError(e, () {}, stackTrace: s));
+              snap = snap._copyToHasError(e, () {}, stackTrace: s);
+              onSetState?.call(snap);
+              sideEffects?.onSetState?.call(snap);
               if (e != inj.error) {
+                inj._reactiveModelState._snapState = inj
+                    ._reactiveModelState._snapState
+                    ._copyToHasError(e, () {});
                 if (onSetState?._onError == null) {
                   inj.onError?.call(e, s);
+                  inj.onSetState?.call(inj.snapState);
                 }
               }
               error = e;
             });
-            onSetState?.call(snap._copyToIsWaiting());
+            snap = snap._copyToIsWaiting();
+            onSetState?.call(snap);
+            sideEffects?.onSetState?.call(snap);
           },
           dispose: (_) {
             disposer?.call();
@@ -369,7 +383,8 @@ extension InjectedX<T> on ReactiveModel<T> {
     required Widget Function(S? data) onData,
     Widget Function(S data)? onDone,
     void Function()? dispose,
-    On<void>? onSetState,
+    @Deprecated('Use sideEffects only') On<void>? onSetState,
+    SideEffects<S>? sideEffects,
     Key? key,
   }) {
     return StateBuilderBase<_OnAsyncWidget<S>>(
@@ -382,7 +397,7 @@ extension InjectedX<T> on ReactiveModel<T> {
         bool isDone = false;
         S? data = _getPrimitiveNullState<S>();
         dynamic error;
-        SnapState<S?> snap = SnapState._nothing(null, '', '');
+        SnapState<S> snap = SnapState<S>._nothing(null, '', '');
 
         return LifeCycleHooks(
           mountedState: (_) {
@@ -391,7 +406,11 @@ extension InjectedX<T> on ReactiveModel<T> {
               (d) {
                 isWaiting = false;
                 setState();
-                onSetState?.call(snap._copyToHasData(d));
+
+                snap = snap._copyToHasData(d);
+                onSetState?.call(snap);
+                sideEffects?.onSetState?.call(snap);
+
                 if (d is T) {
                   inj._reactiveModelState._snapState = SnapState<T>._withData(
                     ConnectionState.done,
@@ -406,7 +425,9 @@ extension InjectedX<T> on ReactiveModel<T> {
               onError: (e, s) {
                 isWaiting = false;
                 setState();
-                onSetState?.call(snap._copyToHasError(e, () {}, stackTrace: s));
+                snap = snap._copyToHasError(e, () {}, stackTrace: s);
+                onSetState?.call(snap);
+                sideEffects?.onSetState?.call(snap);
                 if (e != inj.error) {
                   if (onSetState?._onError == null) {
                     inj.onError?.call(e, s);
@@ -418,7 +439,9 @@ extension InjectedX<T> on ReactiveModel<T> {
                 isDone = true;
               },
             );
-            onSetState?.call(snap._copyToIsWaiting());
+            snap = snap._copyToIsWaiting();
+            onSetState?.call(snap);
+            sideEffects?.onSetState?.call(snap);
           },
           dispose: (_) {
             dispose?.call();

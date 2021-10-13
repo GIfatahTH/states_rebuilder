@@ -95,7 +95,7 @@ class InjectedImp<T> extends Injected<T> {
 
   SnapState<T>? oldSnap;
 
-  bool _isAsyncInjected;
+  final bool _isAsyncInjected;
 
   int undoStackLength = 0;
 
@@ -107,7 +107,7 @@ class InjectedImp<T> extends Injected<T> {
     dynamic Function() crt,
     dynamic Function()? creatorMock,
   ) {
-    final creator = creatorMock == null ? crt : creatorMock;
+    final creator = creatorMock ?? crt;
     if (undoRedoPersistState?.persistanceProvider != null) {
       final val = snapState._infoMessage == kInitMessage
           ? undoRedoPersistState!.persistedCreator()
@@ -136,11 +136,10 @@ class InjectedImp<T> extends Injected<T> {
       }
 
       if (val is Future) {
-        final Function() fn = () async {
+        return () async {
           final r = await val;
           return recreate(r);
-        };
-        return fn();
+        }();
       }
       return recreate(val);
     }
@@ -221,11 +220,11 @@ class InjectedImp<T> extends Injected<T> {
   Future<T?> refresh() async {
     if (inheritedInjects.isNotEmpty) {
       snapState = snapState._copyWith(infoMessage: kRefreshMessage);
-      inheritedInjects.forEach(
-        (e) => e._reactiveModelState._refresh(
+      for (final inj in inheritedInjects) {
+        inj._reactiveModelState._refresh(
           infoMessage: kRecomputing,
-        ),
-      );
+        );
+      }
       snapState = snapState._copyWith(infoMessage: '');
       return snapState.data;
     }
@@ -243,23 +242,28 @@ class InjectedImp<T> extends Injected<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) =>
       middleSnap(
         s,
         onSetState: onSetState,
+        shouldOverrideGlobalSideEffects: shouldOverrideGlobalSideEffects,
         onData: onData,
         onError: onError,
       );
   SnapState<T>? middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {
     final middleSnap = MiddleSnapState(snapState, s);
-    final snap = middleSnapState?.call(middleSnap) ?? s;
+    final snap = _reactiveModelState._isDisposed
+        ? s
+        : middleSnapState?.call(middleSnap) ?? s;
     if (snap is SkipSnapState) {
       return null;
     }
@@ -269,9 +273,10 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnWaiting) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
       onWaiting?.call();
@@ -280,9 +285,10 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnError) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
 
@@ -296,16 +302,17 @@ class InjectedImp<T> extends Injected<T> {
         return null;
       }
       _reactiveModelState._snapState = snap;
-      if (onSetState != null && onSetState._hasOnData) {
+      if (onSetState != null) {
         onSetState.call(snap);
-      } else {
+      }
+      if (!shouldOverrideGlobalSideEffects) {
         this.onSetState?.call(snap);
       }
 
       if (onData != null) {
         onData.call(snap.data as T);
       } else {
-        this.onDataForSideEffect?.call(snap.data as T);
+        onDataForSideEffect?.call(snap.data as T);
       }
       undoRedoPersistState?.call(snap, this);
     } else if (snap.isIdle) {
@@ -334,9 +341,9 @@ class InjectedImp<T> extends Injected<T> {
 
   final _dependentDisposers = <VoidCallback>[];
 
-  void _subscribeForCombinedSnap(Set<Injected> depends) {
+  void _subscribeForCombinedSnap(Set<ReactiveModel> depends) {
     for (var depend in dependsOn!.injected) {
-      final fn = (_) {
+      void fn(_) {
         if (dependsOn!.shouldNotify?.call(_nullableState) == false) {
           return;
         }
@@ -352,10 +359,10 @@ class InjectedImp<T> extends Injected<T> {
               _dependentDebounceTimer = null;
             },
           );
-          return null;
+          return;
         } else if (dependsOn!.throttleDelay > 0) {
           if (_dependentDebounceTimer != null) {
-            return null;
+            return;
           }
           _dependentDebounceTimer = Timer(
             Duration(milliseconds: dependsOn!.throttleDelay),
@@ -367,7 +374,7 @@ class InjectedImp<T> extends Injected<T> {
 
         _setCombinedSnap(dependsOn!.injected);
         // _reactiveModelState._refresh(infoMessage: kRecomputing);
-      };
+      }
 
       void addListenerForRebuild() {
         final disposer =
@@ -406,7 +413,8 @@ class InjectedImp<T> extends Injected<T> {
     }
   }
 
-  void _setCombinedSnap(Set<Injected> depends, {bool shouldRebuild = true}) {
+  void _setCombinedSnap(Set<ReactiveModel> depends,
+      {bool shouldRebuild = true}) {
     bool isIdle = false;
     // bool isWaiting = false;
 
@@ -419,7 +427,8 @@ class InjectedImp<T> extends Injected<T> {
       //to avoid dependent state to subscribe to OnReactive
       if (depend._reactiveModelState.snapState.isWaiting) {
         final snap = _reactiveModelState._snapState._copyToIsWaiting(
-          data: depend._imp.oldSnap?._infoMessage == kRefreshMessage
+          data: depend._reactiveModelState._oldSnapState._infoMessage ==
+                  kRefreshMessage
               ? _reactiveModelState._initialState
               : null,
           infoMessage: kDependsOn,
@@ -513,7 +522,7 @@ class InjectedImp<T> extends Injected<T> {
           debugPrintWhenNotifiedPreMessage,
         ),
       );
-      middleSnapState?.call(middleSnap);
+      // middleSnapState?.call(middleSnap);
 
       assert(
         () {
@@ -529,7 +538,9 @@ class InjectedImp<T> extends Injected<T> {
         }(),
       );
       if (dependsOn != null) {
-        _dependentDisposers.forEach((e) => e());
+        for (final disposer in _dependentDisposers) {
+          disposer();
+        }
       }
       _reactiveModelState._removeFromInjectedList?.call();
       _reactiveModelState._removeFromInjectedList = null;
@@ -635,8 +646,18 @@ class InjectedImp<T> extends Injected<T> {
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
             ?.widget as _InheritedInjected<T>?)
         ?.globalInjected;
-    assert(globalInjected != null,
-        'The provided BuildContext has no Inherited state ancestor');
+    assert(() {
+      if (globalInjected == null) {
+        StatesRebuilerLogger.log(
+          'Can not find and Inherited state ancestor',
+          'The provided BuildContext has no Inherited state ancestor',
+        );
+        return false;
+      }
+
+      return true;
+    }());
+
     return _inherited(
       key: key ?? Key('$context'),
       builder: builder,
@@ -683,7 +704,7 @@ class InjectedImp<T> extends Injected<T> {
             toDebugString: toDebugString,
           );
         }
-        return LifeCycleHooks<NullWidget>(
+        return LifeCycleHooks<_InheritedHelper>(
           mountedState: (context) {
             disposer =
                 injected._reactiveModelState.listeners.addListenerForRebuild(
@@ -723,14 +744,14 @@ class InjectedImp<T> extends Injected<T> {
               injected: injected,
               globalInjected: globalInjected!,
               context: context,
-              child: Builder(builder: (context) => builder(context)),
+              child: Builder(builder: (context) => widget.builder(context)),
             );
           },
         );
       },
       key: key,
-      widget: NullWidget(
-        injects: [],
+      widget: _InheritedHelper(
+        builder: builder,
       ),
     );
   }
@@ -810,4 +831,11 @@ class _InheritedInjected<T> extends InheritedWidget {
   bool updateShouldNotify(_InheritedInjected _) {
     return true;
   }
+}
+
+class _InheritedHelper {
+  final Widget Function(BuildContext) builder;
+  _InheritedHelper({
+    required this.builder,
+  });
 }

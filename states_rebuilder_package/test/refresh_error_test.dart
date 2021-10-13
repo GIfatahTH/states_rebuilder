@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -103,7 +104,7 @@ void main() {
       late void Function() refresher;
       final model = RM.inject<int?>(
         () => shouldThrow ? throw Exception('Error') : 1,
-        onSetState: On.error(
+        sideEffects: SideEffects.onError(
           (errn, refresh) => refresher = refresh,
         ),
       );
@@ -132,9 +133,9 @@ void main() {
       late void Function() refresher;
       final model = RM.inject(
         () => shouldThrow ? throw Exception('Error') : 1,
-        onSetState: On.or(
+        sideEffects: SideEffects.onOrElse(
           onError: (errn, refresh) => refresher = refresh,
-          or: () {},
+          orElse: (_) {},
         ),
       );
       final widget = testWidget(
@@ -238,7 +239,8 @@ void main() {
       late void Function() refresher;
       final model = RM.inject(
         () => 0,
-        onSetState: On.error((errn, refresh) => refresher = refresh),
+        sideEffects:
+            SideEffects.onError((errn, refresh) => refresher = refresh),
       );
 
       final widget = testWidget(

@@ -2,6 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../rm.dart';
 
+bool isObjectOrNull<T>() {
+  return T == Object || T == _typeDef<Object?>();
+}
+
+Type _typeDef<T>() => T;
+
+// ignore: prefer_void_to_null
+extension NullX on Null {
+  ReactiveModel<T> inj<T>({bool autoDisposeWhenNotUsed = true}) {
+    assert(T != dynamic);
+    assert(T != Object);
+    assert(T != _typeDef<Object?>());
+    assert(null is T, '$T is not nullable type. User $T?');
+    return ReactiveModelImp<T>(
+      creator: () => this,
+      initialState: null,
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
+  }
+}
+
 extension IntX on int {
   ReactiveModel<int> inj({bool autoDisposeWhenNotUsed = true}) {
     return ReactiveModelImp(
@@ -54,6 +75,17 @@ extension StringX on String {
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
   }
+
+  Locale locale() {
+    if (contains('_')) {
+      assert(length == 5);
+      final l = split('_');
+      assert(l.length == 2);
+      return Locale(l[0], l[1].toUpperCase());
+    }
+    assert(length == 2);
+    return Locale(this);
+  }
 }
 
 extension BoolX on bool {
@@ -91,6 +123,16 @@ extension MapX<T, D> on Map<T, D> {
     return ReactiveModelImp(
       creator: () => this,
       initialState: <T, D>{},
+      autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    );
+  }
+}
+
+extension Inj<T> on T {
+  ReactiveModel<T> inj({bool autoDisposeWhenNotUsed = true}) {
+    return ReactiveModelImp<T>(
+      creator: () => this,
+      initialState: this,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
     );
   }

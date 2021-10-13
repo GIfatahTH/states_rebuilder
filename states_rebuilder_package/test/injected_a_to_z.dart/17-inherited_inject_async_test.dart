@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 //Fetching a list of counters from a backend service
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,26 +40,28 @@ late List<Counter> _listOfCounters; //Will be initialized id setUp method
 //Global reference to the injected state item
 final injectedCounter = RM.inject<Counter>(
   () => throw UnimplementedError(),
-  onWaiting: () {
-    //Called if any of the counter item is waiting
-  },
-  onError: (err, stack) {
-    //Called if any of the counter item has error
-  },
-  onData: (counter) {
-    //Called if all items have data
-    //
-    //Whenever any of the counter items state is changed this onData is invoked,
-    //with the new value of the counter item.
-    //
-    //get the index of the counter item
-    final index = _listOfCounters.indexOf(
-      _listOfCounters.firstWhere((e) => e.id == counter.id),
-    );
-    //
-    //update the _listOfCounters
-    _listOfCounters[index] = counter;
-  },
+  sideEffects: SideEffects.onAll(
+    onWaiting: () {
+      //Called if any of the counter item is waiting
+    },
+    onError: (err, stack) {
+      //Called if any of the counter item has error
+    },
+    onData: (counter) {
+      //Called if all items have data
+      //
+      //Whenever any of the counter items state is changed this onData is invoked,
+      //with the new value of the counter item.
+      //
+      //get the index of the counter item
+      final index = _listOfCounters.indexOf(
+        _listOfCounters.firstWhere((e) => e.id == counter.id),
+      );
+      //
+      //update the _listOfCounters
+      _listOfCounters[index] = counter;
+    },
+  ),
 );
 
 //Use in test to track the number of rebuild of counter item widgets
@@ -93,20 +96,22 @@ class _App extends StatelessWidget {
 
 class CounterItem extends StatelessWidget {
   const CounterItem();
+  @override
   Widget build(BuildContext context) {
     final counter = injectedCounter(context);
     return Row(
       children: [
-        On.or(
+        OnBuilder.orElse(
+          listenTo: counter,
           onWaiting: () => Text('${counter.state.id}: isWaiting'),
           onError: (e, _) => Text('${counter.state.id}: hasError'),
-          or: () {
+          orElse: (_) {
             //count the number of rebuild
             numberOfRebuild[counter.state.id] =
                 numberOfRebuild[counter.state.id]! + 1;
             return Text('${counter.state.id}: ${counter.state.value}');
           },
-        ).listenTo(counter),
+        ),
         ElevatedButton(
           key: Key(counter.state.id),
           onPressed: () => counter.setState((s) => s.increment()),

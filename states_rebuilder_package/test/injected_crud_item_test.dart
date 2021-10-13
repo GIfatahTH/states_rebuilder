@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -369,23 +370,25 @@ void main() {
       final products = RM.injectCRUD<Product, Object>(
         () => _repo,
         readOnInitialization: true,
-        middleSnapState: (middleSnap) {
-          _snapState = middleSnap.currentSnap;
-          _nextSnapState = middleSnap.nextSnap;
+        stateInterceptor: (current, next) {
+          _snapState = current;
+          _nextSnapState = next;
           if (_nextSnapState.hasData) {
-            return _nextSnapState.copyToHasData([
-              ..._nextSnapState.data!,
-              ..._nextSnapState.data!,
-            ]);
+            return _nextSnapState.copyToHasData(
+              [
+                ..._nextSnapState.data!,
+                ..._nextSnapState.data!,
+              ],
+            );
           }
         },
       );
       expect(products.isWaiting, true);
-      expect(_snapState, isNotNull);
-      expect(_snapState?.isIdle, true);
-      expect(_snapState?.data, []);
-      expect(_nextSnapState.isWaiting, true);
-      expect(_nextSnapState.data, []);
+      expect(_snapState, isNull);
+      // expect(_snapState?.isIdle, true);
+      // expect(_snapState?.data, []);
+      // expect(_nextSnapState.isWaiting, true);
+      // expect(_nextSnapState.data, []);
       await tester.pumpAndSettle(Duration(seconds: 1));
       expect(_snapState?.isWaiting, true);
       expect(_snapState?.data, []);

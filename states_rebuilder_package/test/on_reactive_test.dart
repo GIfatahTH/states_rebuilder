@@ -1,9 +1,11 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class Counter {
+class _Counter {
   final counter1 = 0.inj();
   final counter2 = 0.inj();
   int get sum => counter1.state + counter2.state;
@@ -11,9 +13,12 @@ class Counter {
   void incrementCounter2() => counter2.state++;
 }
 
-final counterState = Counter();
+late _Counter counterState;
 
 void main() {
+  setUp(() {
+    counterState = _Counter();
+  });
   testWidgets(
     'OnReactive get implicit subscribe to observer via state getter',
     (tester) async {
@@ -499,15 +504,15 @@ void main() {
       final switcher = true.inj();
       final counter1 = RM.inject(
         () => 0,
-        onDisposed: (_) {
-          isDisposed1 = true;
-        },
+        sideEffects: SideEffects(
+          dispose: () => isDisposed1 = true,
+        ),
       );
       final counter2 = RM.inject(
         () => 0,
-        onDisposed: (_) {
-          isDisposed2 = true;
-        },
+        sideEffects: SideEffects(
+          dispose: () => isDisposed2 = true,
+        ),
       );
       final counter3 = 0.inj();
       //
@@ -579,14 +584,87 @@ void main() {
       expect(find.text('2'), findsNWidgets(1));
     },
   );
+
+  testWidgets(
+    'WHEN ReactiveStateless is used above MaterialApp'
+    'THEN it will not register states child to MaterialApp',
+    (tester) async {
+      final widget = OnReactive(
+        () => MaterialApp(
+          home: _Widget1(),
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      expect(find.text('0'), findsOneWidget);
+
+      counterState.counter1.state++;
+      await tester.pump();
+      expect(find.text('0'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN ReactiveStateless is used above SliverAppBar, SliverList, SliverGrid '
+    'THEN ',
+    (tester) async {
+      final widget = MaterialApp(
+        home: OnReactive(
+          () => CustomScrollView(
+            slivers: [
+              // SliverToBoxAdapter(child: _Widget1()), // Works
+              SliverAppBar(
+                title: _Widget1(),
+              ),
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    _Widget1(),
+                  ],
+                ),
+              ),
+              SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 1,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                  return _Widget1();
+                }),
+              ),
+            ],
+          ),
+          debugPrintWhenObserverAdd: '',
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      expect(find.text('0'), findsNWidgets(3));
+
+      counterState.counter1.state++;
+      await tester.pump();
+      expect(find.text('0'), findsNWidgets(3));
+    },
+  );
 }
 
 class _ParentWidget extends ReactiveStatelessWidget {
   const _ParentWidget({Key? key}) : super(key: key);
 
   @override
+  void didAddObserverForDebug(List<InjectedBaseState> observers) {
+    // print(observers);
+  }
+
+  @override
+  void didNotifyWidget(SnapState snap) {
+    // print(snap);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
+      // ignore: prefer_const_literals_to_create_immutables
       children: [
         _Widget1(),
         _Widget2(),

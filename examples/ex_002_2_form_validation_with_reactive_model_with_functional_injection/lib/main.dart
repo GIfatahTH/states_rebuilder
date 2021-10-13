@@ -21,19 +21,19 @@ class Password {
 //they are easily mocked and tested (see test folder)
 final email = RM.inject<Email>(
   () => Email(''),
-  middleSnapState: (middleSnap) {
-    //Inside the middleSnapState we can validate the state
+  stateInterceptor: (currentSnap, nextSnap) {
+    //Inside the stateInterceptor we can validate the state
 
     //
-    if (!middleSnap.nextSnap.hasData) {
+    if (!nextSnap.hasData) {
       //At app start and when fields are empty we do not want to validate the field
       //
       //If you want to remove this if
       return null;
     }
-    if (!middleSnap.nextSnap.data!.email.contains("@")) {
+    if (!nextSnap.data!.email.contains("@")) {
       //return a modified state with error
-      return middleSnap.nextSnap.copyToHasError(
+      return nextSnap.copyToHasError(
         Exception("Enter a valid Email"),
       );
     }
@@ -41,17 +41,9 @@ final email = RM.inject<Email>(
 );
 final password = RM.inject<Password>(
   () => Password(''),
-  middleSnapState: (middleSnap) {
-    ////Uncomment to see print logs
-    // middleSnap.print(
-    //   stateToString: (s) => '${s?.password}',
-    // );
-
-    if (!middleSnap.nextSnap.hasData) {
-      return null;
-    }
-    if (middleSnap.nextSnap.data!.password.length < 4) {
-      return middleSnap.nextSnap.copyToHasError(
+  stateInterceptor: (currentSnap, nextSnap) {
+    if (nextSnap.data!.password.length < 4) {
+      return nextSnap.copyToHasError(
         Exception('Enter a valid password'),
         stackTrace: StackTrace.current,
       );

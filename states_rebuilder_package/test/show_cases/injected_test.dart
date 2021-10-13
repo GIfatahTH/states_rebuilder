@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/rm.dart' as sb;
@@ -58,7 +59,7 @@ void main() {
   testWidgets(
     'futureInjected is linked to simple Injected',
     (tester) async {
-      assert(sb.injectedModels.length == 0);
+      assert(sb.injectedModels.isEmpty);
       final counter2Future = RM.injectFuture<int>(
         () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
         dependsOn: DependsOn({counter1}),
@@ -367,6 +368,23 @@ void main() {
   );
 
   testWidgets('Object extension', (tester) async {
+    final model = _Model(0).inj();
+    expect(model.state.count, 0);
+    model.state = _Model(1);
+    expect(model.state.count, 1);
+
+    final injectedNull = null.inj<int?>();
+    expect(injectedNull.state, null);
+    expect(injectedNull.toString(), endsWith('SnapState<int?>(isIdle : null)'));
+    injectedNull.state = 1;
+    expect(injectedNull.state, 1);
+    expect(injectedNull.toString(), endsWith('SnapState<int?>(hasData: 1)'));
+    //
+    expect(() => null.inj<int>(), throwsAssertionError);
+    expect(() => null.inj(), throwsAssertionError);
+    expect(() => null.inj<Object>(), throwsAssertionError);
+    expect(() => null.inj<Object?>(), throwsAssertionError);
+    //
     final injectedInt = 1.inj();
     expect(injectedInt.state, 1);
     injectedInt.state++;
@@ -430,6 +448,13 @@ void main() {
     expect(numberOfNotification, 1);
     injectedMap.state = {'1': _Model(1), '2': _Model(3)};
     expect(numberOfNotification, 2);
+
+    //
+    expect('en'.locale(), const Locale('en'));
+    expect('en_us'.locale(), const Locale('en', 'US'));
+    expect(() => 'ens'.locale(), throwsAssertionError);
+    expect(() => 'en_s'.locale(), throwsAssertionError);
+    expect(() => 'en_US_us'.locale(), throwsAssertionError);
     //
     // numberOfNotification = 0;
     // final injectModel = _Model(5).inj<_Model>();
@@ -635,7 +660,7 @@ void main() {
             return Text(model.state.toString());
           },
           initState: () {
-            print('initState');
+            // print('initState');
           },
           dispose: () {},
           shouldRebuild: () {
@@ -725,7 +750,7 @@ void main() {
             return Text(model.state.toString());
           },
           initState: () {
-            print('initState');
+            // print('initState');
           },
           dispose: () {},
           shouldRebuild: () {

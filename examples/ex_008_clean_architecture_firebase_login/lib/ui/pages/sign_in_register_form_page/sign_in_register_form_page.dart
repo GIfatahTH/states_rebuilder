@@ -9,27 +9,33 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../injected.dart';
 
 final _email = RM.injectTextEditing(
-  validator: (String? val) {
-    if (!Validators.isValidEmail(val!)) {
-      return 'Enter a valid email';
+  validators: [
+    (String? val) {
+      if (!Validators.isValidEmail(val!)) {
+        return 'Enter a valid email';
+      }
     }
-  },
+  ],
 );
 final _password = RM.injectTextEditing(
-  validator: (String? val) {
-    if (!Validators.isValidPassword(val!)) {
-      return 'Enter a valid password';
+  validators: [
+    (String? val) {
+      if (!Validators.isValidPassword(val!)) {
+        return 'Enter a valid password';
+      }
     }
-  },
+  ],
   validateOnTyping: true,
 );
 
 final _confirmationPassword = RM.injectTextEditing(
-  validator: (String? val) {
-    if (_password.text != val) {
-      return 'Passwords do not match';
+  validators: [
+    (String? val) {
+      if (_password.text != val) {
+        return 'Passwords do not match';
+      }
     }
-  },
+  ],
   validateOnTyping: true,
 );
 
@@ -52,8 +58,9 @@ class FormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return On.form(
-      () => Column(
+    return OnFormBuilder(
+      listenTo: _form,
+      builder: () => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -90,78 +97,81 @@ class FormWidget extends StatelessWidget {
             },
           ),
 
-          On(() => Column(
-                children: [
-                  _isRegister.state
-                      ? TextField(
-                          controller: _confirmationPassword.controller,
-                          focusNode: _confirmationPassword.focusNode,
-                          decoration: InputDecoration(
-                            icon: Icon(Icons.lock),
-                            labelText: 'Confirm Password',
-                            errorText: _confirmationPassword.error,
-                          ),
-                          obscureText: true,
-                          autocorrect: false,
-                          onSubmitted: (_) {
-                            _form.submitFocusNode.requestFocus();
-                          },
-                        )
-                      : Container(),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: <Widget>[
-                      Checkbox(
-                        value: _isRegister.state,
-                        onChanged: (value) {
-                          _isRegister.state = value!;
+          OnBuilder(
+            listenTo: _isRegister,
+            builder: () => Column(
+              children: [
+                _isRegister.state
+                    ? TextField(
+                        controller: _confirmationPassword.controller,
+                        focusNode: _confirmationPassword.focusNode,
+                        decoration: InputDecoration(
+                          icon: Icon(Icons.lock),
+                          labelText: 'Confirm Password',
+                          errorText: _confirmationPassword.error,
+                        ),
+                        obscureText: true,
+                        autocorrect: false,
+                        onSubmitted: (_) {
+                          _form.submitFocusNode.requestFocus();
                         },
-                      ),
-                      Text(' I do not have an account')
-                    ],
-                  ),
-                  On.formSubmission(
-                    onSubmitting: () =>
-                        Center(child: CircularProgressIndicator()),
-                    child: ElevatedButton(
-                      focusNode: _form.submitFocusNode,
-                      child: _isRegister.state
-                          ? Text('Register')
-                          : Text('Sign in'),
-                      onPressed: () {
-                        _form.submit(
-                          () async {
-                            if (_isRegister.state) {
-                              await user.auth.signUp(
-                                (_) => UserParam(
-                                  signUp: SignUp.withEmailAndPassword,
-                                  email: _email.state,
-                                  password: _password.state,
-                                ),
-                              );
-                            } else {
-                              await user.auth.signIn(
-                                (_) => UserParam(
-                                  signIn: SignIn.withEmailAndPassword,
-                                  email: _email.state,
-                                  password: _password.state,
-                                ),
-                              );
-                              //Server validation
-                              if (user.error is EmailException) {
-                                _email.error = user.error.message;
-                              }
-                              if (user.error is PasswordException) {
-                                _password.error = user.error.message;
-                              }
-                            }
-                          },
-                        );
+                      )
+                    : Container(),
+                const SizedBox(height: 10),
+                Row(
+                  children: <Widget>[
+                    Checkbox(
+                      value: _isRegister.state,
+                      onChanged: (value) {
+                        _isRegister.state = value!;
                       },
                     ),
-                  ).listenTo(_form),
-                ],
-              ),).listenTo(_isRegister),
+                    Text(' I do not have an account')
+                  ],
+                ),
+                OnFormSubmissionBuilder(
+                  listenTo: _form,
+                  onSubmitting: () =>
+                      Center(child: CircularProgressIndicator()),
+                  child: ElevatedButton(
+                    focusNode: _form.submitFocusNode,
+                    child:
+                        _isRegister.state ? Text('Register') : Text('Sign in'),
+                    onPressed: () {
+                      _form.submit(
+                        () async {
+                          if (_isRegister.state) {
+                            await user.auth.signUp(
+                              (_) => UserParam(
+                                signUp: SignUp.withEmailAndPassword,
+                                email: _email.state,
+                                password: _password.state,
+                              ),
+                            );
+                          } else {
+                            await user.auth.signIn(
+                              (_) => UserParam(
+                                signIn: SignIn.withEmailAndPassword,
+                                email: _email.state,
+                                password: _password.state,
+                              ),
+                            );
+                            //Server validation
+                            if (user.error is EmailException) {
+                              _email.error = user.error.message;
+                            }
+                            if (user.error is PasswordException) {
+                              _password.error = user.error.message;
+                            }
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
           // On(
           //   () {
           //     // Display an error message telling the user what goes wrong.
@@ -178,6 +188,6 @@ class FormWidget extends StatelessWidget {
           // ).listenTo(user),
         ],
       ),
-    ).listenTo(_form);
+    );
   }
 }

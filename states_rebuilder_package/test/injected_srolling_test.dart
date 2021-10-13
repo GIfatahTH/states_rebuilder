@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -15,6 +16,7 @@ void main() {
   bool hasEnded = false;
   final scroll = RM.injectScrolling(
     onScrolling: (scroll) {
+      // ignore: avoid_print
       print(scroll); //used for test coverage
       isTop = scroll.hasReachedMinExtent;
       isBottom = scroll.hasReachedMaxExtent;
@@ -118,7 +120,10 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            leading: On.animation((animate) => Container()).listenTo(animation),
+            leading: OnAnimationBuilder(
+              listenTo: animation,
+              builder: (animate) => Container(),
+            ),
             title: OnScrollBuilder(
               listenTo: scroll,
               builder: (scroll) {
@@ -310,9 +315,13 @@ void main() {
       final widget = MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            leading: On.animation((animate) => Container()).listenTo(animation),
-            title: On.scroll(
-              (scroll) {
+            leading: OnAnimationBuilder(
+              listenTo: animation,
+              builder: (animate) => Container(),
+            ),
+            title: OnScrollBuilder(
+              listenTo: scroll,
+              builder: (scroll) {
                 if (scroll.hasReachedMinExtent) {
                   return Text('isTop');
                 }
@@ -348,7 +357,7 @@ void main() {
                 }
                 return Text('NAN');
               },
-            ).listenTo(scroll),
+            ),
           ),
           body: ListView.builder(
             controller: scroll.controller,

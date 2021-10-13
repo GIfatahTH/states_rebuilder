@@ -1,9 +1,12 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter = RM.inject<int>(
   () => 0,
-  onData: (_) {},
+  sideEffects: SideEffects.onData(
+    (_) {},
+  ),
   undoStackLength: 8,
 );
 

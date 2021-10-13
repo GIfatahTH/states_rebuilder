@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 ///A Wrapper class that encloses the state of the model we want to Inject. The
-///state can be mutable or immutable.
+///state can be mutable or immutable and can also be global or local.
 ///
 ///Injected model can be instantiated globally or as a member of classes. They
 ///can be instantiated inside the build method without losing the state after
@@ -232,7 +232,11 @@ abstract class Injected<T> extends ReactiveModel<T> {
     if (defaultToGlobal) {
       return _state;
     }
-    throw Exception('No InheritedWidget of type $T is found');
+    throw Exception(
+      'No Parent InheritedWidget of type $T is found\n'
+      'If you pushed to new route use reInherited method to provide the state '
+      'to the new route',
+    );
     // return null;
   }
 

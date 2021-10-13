@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,7 +38,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with singleTickerProviderStateMixin ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder(
         observe: () => model,
         mixinWith: MixinWith.singleTickerProviderStateMixin,
@@ -57,7 +58,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with singleTickerProviderStateMixin with generic type ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget =
           StateWithMixinBuilder<SingleTickerProviderStateMixin, dynamic>(
         observe: () => model,
@@ -77,7 +78,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder.singleTickerProvider should  work ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder.singleTickerProvider<Model>(
         observe: () => model,
         initState: (context, Injected<Model>? rm,
@@ -103,7 +104,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with TickerProviderStateMixin ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder(
         observe: () => model,
         mixinWith: MixinWith.tickerProviderStateMixin,
@@ -123,7 +124,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with TickerProviderStateMixin with generic type ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder<TickerProviderStateMixin, dynamic>(
         observe: () => model,
         mixinWith: MixinWith.tickerProviderStateMixin,
@@ -143,7 +144,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder.tickerProvider should  work ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder.tickerProvider<Model>(
         observe: () => model,
         initState:
@@ -169,7 +170,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with automaticKeepAliveClientMixin ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder(
         observe: () => model,
         mixinWith: MixinWith.automaticKeepAliveClientMixin,
@@ -188,7 +189,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with automaticKeepAliveClientMixin with generic type ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget =
           StateWithMixinBuilder<AutomaticKeepAliveClientMixin, dynamic>(
         observe: () => model,
@@ -227,7 +228,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with widgetsBindingObserver ",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder(
         observe: () => model,
         mixinWith: MixinWith.widgetsBindingObserver,
@@ -246,7 +247,7 @@ void main() {
   testWidgets(
     "StateWithMixinBuilder should mixin with widgetsBindingObserver with generic type",
     (WidgetTester tester) async {
-      var ticker;
+      dynamic ticker;
       Widget widget = StateWithMixinBuilder<WidgetsBindingObserver, dynamic>(
         observe: () => model,
         mixinWith: MixinWith.widgetsBindingObserver,
@@ -298,7 +299,7 @@ void main() {
 
       final widget = StateBuilder(
         observe: () => model,
-        tag: ['mainTag'],
+        tag: const ['mainTag'],
         builder: (ctx, _) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -372,8 +373,8 @@ void main() {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.singleTickerProviderStateMixin,
         observe: () => model,
-        initState: (_, ___, __) => null,
-        dispose: (_, __, ___) => null,
+        initState: (_, ___, __) {},
+        dispose: (_, __, ___) {},
         builderWithChild: (ctx, rm, child) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -405,8 +406,8 @@ void main() {
       final widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
         observe: () => model,
-        initState: (_, ___, __) => null,
-        dispose: (_, __, ___) => null,
+        initState: (_, ___, __) {},
+        dispose: (_, __, ___) {},
         builderWithChild: (ctx, rm, child) {
           return Directionality(
             textDirection: TextDirection.ltr,
@@ -450,7 +451,7 @@ void main() {
     (WidgetTester tester) async {
       Widget widget = StateWithMixinBuilder(
         mixinWith: MixinWith.tickerProviderStateMixin,
-        initState: (_, ___, __) => null,
+        initState: (_, ___, __) {},
         observe: () => model,
         builder: (_, __) => Container(),
       );
@@ -476,7 +477,7 @@ void main() {
               mixinWith: MixinWith.automaticKeepAliveClientMixin,
               builder: (_, __) {
                 numberOfKeepAliveRebuild++;
-                return Container(
+                return SizedBox(
                   height: 44.0,
                   child: Text('KeepAlive'),
                 );
@@ -486,14 +487,14 @@ void main() {
             return Builder(
               builder: (_) {
                 numberOfNonKeepAliveRebuild++;
-                return Container(
+                return SizedBox(
                   height: 44.0,
                   child: Text('NonKeepAlive'),
                 );
               },
             );
           } else {
-            return Container(
+            return SizedBox(
               height: 44.0,
               child: Text('Container $index'),
             );

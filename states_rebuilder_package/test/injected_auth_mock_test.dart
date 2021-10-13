@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,8 +53,8 @@ class FakeAuthRepo implements IAuth<String, String> {
   }
 
   Stream<String> onAuthChanged() {
-    return Stream.periodic(Duration(seconds: 1), (num) {
-      if (num < 1) return 'user0';
+    return Stream.periodic(Duration(seconds: 1), (n) {
+      if (n < 1) return 'user0';
       return 'user1';
     });
   }
@@ -62,6 +63,9 @@ class FakeAuthRepo implements IAuth<String, String> {
   void dispose() {
     disposeMessage = 'isDisposed';
   }
+
+  @override
+  Future<String>? refreshToken(String currentUser) {}
 }
 
 int onUnSigned = 0;
@@ -163,8 +167,8 @@ void main() async {
       unsignedUser: 'user0',
       onUnsigned: () => onUnSigned++,
       onSigned: (_) => onSigned++,
-      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (num) {
-        if (num == 1) return 'user1';
+      onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (n) {
+        if (n == 1) return 'user1';
         throw Exception('Stream Error');
       }),
     );
@@ -191,13 +195,13 @@ void main() async {
 
   testWidgets(
     'WHEN onAuthStream is defined'
-    'AND autoSignout is defined '
-    'THEN autoSignout will work',
+    'AND autoRefreshTokenOrSignOut  is defined '
+    'THEN autoRefreshTokenOrSignOut  will work',
     (tester) async {
       final user = RM.injectAuth(
         () => throw UnimplementedError(),
         unsignedUser: 'user0',
-        autoSignOut: (_) => Duration(seconds: 2),
+        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 2),
         onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
       );
       user.injectAuthMock(() => FakeAuthRepo());
@@ -227,7 +231,7 @@ void main() async {
       final user = RM.injectAuth(
         () => throw UnimplementedError(),
         unsignedUser: 'user0',
-        autoSignOut: (_) => Duration(seconds: 1),
+        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 1),
         onAuthStream: (repo) =>
             (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
       );
@@ -235,12 +239,13 @@ void main() async {
 
       final widget = Directionality(
         textDirection: TextDirection.rtl,
-        child: On.auth(
+        child: OnAuthBuilder(
+          listenTo: user,
           onInitialWaiting: () => Text('Initial Waiting...'),
           onWaiting: () => Text('Waiting...'),
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
-        ).listenTo(user),
+        ),
       );
 
       await tester.pumpWidget(widget);

@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -58,7 +60,9 @@ class FirebaseAuth implements IAuthRepository {
 }
 
 class FirebaseCloud implements IProductRepository {
+  @override
   final String token;
+  @override
   final String userId;
   FirebaseCloud({required this.token, required this.userId});
   @override
@@ -142,10 +146,12 @@ final productService = RM.inject<ProductService>(
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return On.or(
+    return OnBuilder.orElse(
+      listenTo: authService,
       onWaiting: () => Text('Waiting for authentication'),
-      or: () => authService.state.user is NullUser ? AuthPage() : ProductPage(),
-    ).listenTo(authService);
+      orElse: (_) =>
+          authService.state.user is NullUser ? AuthPage() : ProductPage(),
+    );
   }
 }
 
@@ -159,17 +165,18 @@ class AuthPage extends StatelessWidget {
 class ProductPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return On.all(
+    return OnBuilder.all(
+      listenTo: productService,
       onIdle: () => Text('onIDel'),
       onWaiting: () => Text('Waiting for products'),
       onError: (e, _) => Text('error : $e'),
-      onData: () => Column(
+      onData: (_) => Column(
         children: productService.state.products.map((p) => Text(p.id)).toList(),
       ),
-    ).listenTo(
-      productService,
-      //fetch for products once the ProductPage is initialized
-      initState: () => productService.setState((s) => s.getProducts()),
+      sideEffects: SideEffects(
+        //fetch for products once the ProductPage is initialized
+        initState: () => productService.setState((s) => s.getProducts()),
+      ),
     );
   }
 }

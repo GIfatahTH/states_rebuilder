@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,13 +68,13 @@ void main() {
             onSetState: On.or(
               onWaiting: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                rm.state.count > 1
-                    ? ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Greater then 1 from SnackBar'),
-                        ),
-                      )
-                    : null;
+                if (rm.state.count > 1) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Greater then 1 from SnackBar'),
+                    ),
+                  );
+                }
               },
               onError: (err, _) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();

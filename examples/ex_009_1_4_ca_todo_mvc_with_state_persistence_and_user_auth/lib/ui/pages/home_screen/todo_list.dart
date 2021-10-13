@@ -7,14 +7,13 @@ class TodoList extends StatelessWidget {
     return OnReactive(
       () {
         return ListView.builder(
-          itemCount: todosFiltered.state.length + 1,
+          itemCount: todosBloc.todosFiltered.state.length + 1,
           itemBuilder: (BuildContext context, int index) {
-            if (index <= todosFiltered.state.length - 1) {
-              return todos.item.inherited(
-                key: Key('${todosFiltered.state[index].id}'),
+            if (index <= todosBloc.todosFiltered.state.length - 1) {
+              return todosBloc.todosRM.item.inherited(
+                key: Key('${todosBloc.todosFiltered.state[index].id}'),
                 item: () {
-                  print('${todosFiltered.state.length} ::$index');
-                  return todosFiltered.state[index];
+                  return todosBloc.todosFiltered.state[index];
                 },
                 builder: (_) => TodoItem(),
                 debugPrintWhenNotifiedPreMessage: 'todo $index',
@@ -22,7 +21,7 @@ class TodoList extends StatelessWidget {
             } else {
               //Add CircularProgressIndicator on bottom of the list
               //while waiting for adding one item
-              return todosFiltered.onOrElse(
+              return todosBloc.todosFiltered.onOrElse(
                 onWaiting: () => Center(child: CircularProgressIndicator()),
                 orElse: (_) => Container(),
               );

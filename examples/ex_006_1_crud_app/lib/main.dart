@@ -18,7 +18,7 @@ final numbers = RM.injectCRUD<Number, NumberParam>(
   param: () => NumberParam(userId: '1', numType: NumType.all),
   readOnInitialization: true,
   debugPrintWhenNotifiedPreMessage: '',
-  onCRUD: OnCRUD(
+  onCRUDSideEffects: OnCRUDSideEffects(
     onWaiting: null,
     onError: (err, refresh) {
       RM.scaffold.showSnackBar(

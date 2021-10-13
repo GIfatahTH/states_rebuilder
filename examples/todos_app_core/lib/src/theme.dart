@@ -15,7 +15,9 @@ class ArchSampleTheme {
       primaryColor: Colors.grey[800],
       accentColor: Colors.cyan[300],
       buttonColor: Colors.grey[800],
-      textSelectionColor: Colors.cyan[100],
+      textSelectionTheme: TextSelectionThemeData(
+        selectionColor: Colors.cyan[100],
+      ),
       toggleableActiveColor: Colors.cyan[300],
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: Colors.cyan[300],
@@ -26,7 +28,7 @@ class ArchSampleTheme {
         actionTextColor: Colors.cyan[300],
       ),
       textTheme: textTheme.copyWith(
-        body1: body1,
+        bodyText2: body1,
       ),
     );
   }

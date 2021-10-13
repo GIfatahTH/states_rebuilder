@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -62,31 +64,38 @@ class CounterApp extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: Column(
         children: [
-          On.data(() {
-            counter1NbrOfRebuilds++;
-            return Text('counter1 :${counter1.state.count}');
-          }).listenTo(counter1),
-          On.all(
+          OnBuilder.data(
+            listenTo: counter1,
+            builder: (_) {
+              counter1NbrOfRebuilds++;
+              return Text('counter1 :${counter1.state.count}');
+            },
+          ),
+          OnBuilder.all(
+            listenTo: counter2,
             onIdle: () => Text('Idle'),
             onWaiting: () => Text('Waiting...'),
             onError: (e, _) => Text(e.message),
-            onData: () {
+            onData: (_) {
               counter2NbrOfRebuilds++;
               return Text('counter2 :${counter2.state.count}');
             },
-          ).listenTo(counter2),
-          On.or(
-              onWaiting: () => Text('Waiting...'),
-              onError: (e, _) {
-                return Text(e.message);
-              },
-              or: () {
-                computedCounterNbrOfRebuilds++;
-                return Text('computedCounter :${computedCounter.state}');
-              }).listenTo(computedCounter),
-          On.data(
-            () => Text('rebuilder :${computedCounter.state}'),
-          ).listenTo(computedCounter),
+          ),
+          OnBuilder.orElse(
+            listenTo: computedCounter,
+            onWaiting: () => Text('Waiting...'),
+            onError: (e, _) {
+              return Text(e.message);
+            },
+            orElse: (_) {
+              computedCounterNbrOfRebuilds++;
+              return Text('computedCounter :${computedCounter.state}');
+            },
+          ),
+          OnBuilder.data(
+            listenTo: computedCounter,
+            builder: (_) => Text('rebuilder :${computedCounter.state}'),
+          ),
         ],
       ),
     );
@@ -94,6 +103,8 @@ class CounterApp extends StatelessWidget {
 }
 
 class CounterApp1 extends StatelessWidget {
+  const CounterApp1({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -101,14 +112,15 @@ class CounterApp1 extends StatelessWidget {
       child: Column(
         children: [
           //this is an example fo a computed counter the depends on another computed counter
-          On.or(
+          OnBuilder.orElse(
+            listenTo: anOtherComputedCounter,
             onWaiting: () => Text('Waiting...'),
             onError: (e, _) => Text(e.message),
-            or: () {
+            orElse: (_) {
               computedCounterNbrOfRebuilds++;
-              return Text('${anOtherComputedCounter.state}');
+              return Text(anOtherComputedCounter.state);
             },
-          ).listenTo(anOtherComputedCounter),
+          ),
         ],
       ),
     );

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-import '../../../data_source/api.dart';
-import '../../../domain/entities/user.dart';
-import '../../../service/common/input_parser.dart';
+import '../../../blocs/user_bloc.dart';
 import '../../common/app_colors.dart';
 import '../../common/text_styles.dart';
 import '../../common/ui_helpers.dart';
 import '../../exceptions/exception_handler.dart';
 
 part 'login_header.dart';
-part 'login_injected.dart';
 
 class LoginPage extends StatelessWidget {
   @override
@@ -22,37 +19,41 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class _LoginBody extends StatelessWidget {
-  final TextEditingController controller = TextEditingController();
+class _LoginBody extends ReactiveStatelessWidget {
+  static TextEditingController? controller;
+
+  @override
+  void didMountWidget() {
+    controller = TextEditingController();
+  }
+
+  @override
+  void didUnmountWidget() {
+    controller?.dispose();
+    controller = null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return OnReactive(
-      () => Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _LoginHeader(controller: controller),
-          userInj.onOrElse(
-            onWaiting: () => CircularProgressIndicator(),
-            orElse: (data) => TextButton(
-              // color: Colors.white,
-              child: Text(
-                'Login',
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () {
-                userInj.auth.signIn(
-                  (_) => InputParser.parse(controller.text),
-                );
-              },
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _LoginHeader(controller: controller!),
+        userBloc.userRM.onOrElse(
+          onWaiting: () => CircularProgressIndicator(),
+          orElse: (data) => TextButton(
+            // color: Colors.white,
+            child: Text(
+              'Login',
+              style: TextStyle(color: Colors.black),
             ),
+            onPressed: () {
+              userBloc.signIn(controller!.text);
+            },
           ),
-        ],
-      ),
-      sideEffects: SideEffects(
-        dispose: () => controller.dispose(),
-      ),
+        ),
+      ],
     );
   }
 }

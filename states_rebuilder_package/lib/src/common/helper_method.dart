@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 
-final deepEquality = const DeepCollectionEquality();
+const deepEquality = DeepCollectionEquality();
 bool isObjectOrNull<T>() {
-  return T != Object && _compareTypes<T, Object?>();
+  return T == Object || T == _typeDef<Object?>();
 }
 
-bool _compareTypes<T1, T2>() => T1 == T2;
+Type _typeDef<T>() => T;

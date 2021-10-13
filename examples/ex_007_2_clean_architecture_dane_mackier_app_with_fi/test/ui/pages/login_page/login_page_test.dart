@@ -1,5 +1,6 @@
-import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
-import 'package:clean_architecture_dane_mackier_app/service/exceptions/input_exception.dart';
+import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/fetch_exception.dart';
+import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/input_exception.dart';
+import 'package:clean_architecture_dane_mackier_app/blocs/user_bloc.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,7 +10,7 @@ import '../../../data_source/fake_api.dart';
 
 void main() {
   setUp(() {
-    userInj.injectAuthMock(() => FakeUserRepository());
+    userBloc.userRM.injectAuthMock(() => FakeUserRepository());
   });
 
   Finder loginBtn = find.byType(TextButton);
@@ -77,7 +78,7 @@ void main() {
   testWidgets(
       'display "A NetWork problem" after showing CircularProgressBarIndictor',
       (tester) async {
-    userInj.injectAuthMock(
+    userBloc.userRM.injectAuthMock(
       () => FakeUserRepository(
         error: NetworkErrorException(),
       ),
@@ -104,7 +105,7 @@ void main() {
   testWidgets(
       'display "No user find with this number" after showing CircularProgressBarIndictor',
       (tester) async {
-    userInj.injectAuthMock(
+    userBloc.userRM.injectAuthMock(
       () => FakeUserRepository(
         error: UserNotFoundException(1),
       ),
@@ -140,8 +141,8 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pump(Duration(seconds: 1));
-    expect(userInj.hasData, isTrue);
-    expect(userInj.state!.id, equals(1));
+    expect(userBloc.userRM.hasData, isTrue);
+    expect(userBloc.userRM.state!.id, equals(1));
 
     //await page animation to finish
     await tester.pumpAndSettle();
@@ -157,8 +158,8 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pump(Duration(seconds: 1));
-    expect(userInj.hasData, isTrue);
-    expect(userInj.state!.id, equals(2));
+    expect(userBloc.userRM.hasData, isTrue);
+    expect(userBloc.userRM.state!.id, equals(2));
 
     //await page animation to finish
     await tester.pumpAndSettle();

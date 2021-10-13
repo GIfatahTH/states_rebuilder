@@ -1,7 +1,8 @@
+import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/fetch_exception.dart';
+import 'package:clean_architecture_dane_mackier_app/blocs/posts_bloc.dart';
+import 'package:clean_architecture_dane_mackier_app/blocs/user_bloc.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
-import 'package:clean_architecture_dane_mackier_app/service/exceptions/fetch_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/posts_page/posts_page.dart';
-import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -23,18 +24,18 @@ void main() {
   );
 
   setUp(() {
-    userInj.injectMock(
+    userBloc.userRM.injectMock(
       () => User(id: 1, name: 'fakeName', username: 'fakeUserName'),
     );
 
-    postsInj.injectCRUDMock(
+    postsBloc.postsRM.injectCRUDMock(
       () => FakePostRepository(),
     );
   });
   testWidgets(
       'display CircularProgressIndicator at startup and show error dialog on NetworkErrorException',
       (tester) async {
-    postsInj.injectCRUDMock(
+    postsBloc.postsRM.injectCRUDMock(
       () => FakePostRepository(
         error: NetworkErrorException(),
       ),
@@ -59,7 +60,7 @@ void main() {
   testWidgets(
       'display CircularProgressIndicator at startup and show error dialog on PostNotFoundException',
       (tester) async {
-    postsInj.injectCRUDMock(() => FakePostRepository(
+    postsBloc.postsRM.injectCRUDMock(() => FakePostRepository(
           error: PostNotFoundException(1),
         ));
 
@@ -124,7 +125,7 @@ void main() {
 
     //Simulate we are tapping on like button
     //This is the logic inside the onPressed of the like button
-    postsInj.setState((s) => s.incrementLikes(1));
+    postsBloc.incrementLikes(1);
 
     //Go back to homePage
     RM.navigate.back();

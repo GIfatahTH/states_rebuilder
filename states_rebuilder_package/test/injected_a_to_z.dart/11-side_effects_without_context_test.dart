@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -15,27 +16,29 @@ NavigatorState? navigatorStateFromOnData;
 
 final model = RM.inject<int>(
   () => 0,
-  onData: (data) {
-    //Here is the right place to call side effects that uses the BuildContext
-    contextFromOnData = RM.context;
-    navigatorStateFromOnData = RM.navigate.navigatorState;
+  sideEffects: SideEffects.onAll(
+    onWaiting: null,
+    onError: (e, s) {
+      RM.scaffold.showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    },
+    onData: (data) {
+      //Here is the right place to call side effects that uses the BuildContext
+      contextFromOnData = RM.context;
+      navigatorStateFromOnData = RM.navigate.navigatorState;
 
-    //Navigation
-    // RM.navigate.to(Page1());
+      //Navigation
+      // RM.navigate.to(Page1());
 
-    //show Alert Dialog
-    RM.navigate.toDialog(
-      AlertDialog(
-        content: Text('Alert'),
-      ),
-    );
-  },
-
-  onError: (e, s) {
-    RM.scaffold.showSnackBar(
-      SnackBar(content: Text(e.message)),
-    );
-  },
+      //show Alert Dialog
+      RM.navigate.toDialog(
+        AlertDialog(
+          content: Text('Alert'),
+        ),
+      );
+    },
+  ),
 
   //valid for onError, onWaiting, onDisposed and onInitialized
 );
@@ -129,11 +132,12 @@ void main() {
     (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
-          body: On.data(
-            () => Text(
+          body: OnBuilder.data(
+            listenTo: model,
+            builder: (_) => Text(
               model.state.toString(),
             ),
-          ).listenTo(model),
+          ),
         ),
       );
 

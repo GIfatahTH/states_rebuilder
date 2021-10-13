@@ -1,3 +1,4 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -33,9 +34,10 @@ class _MyAppState extends State<MyApp> {
       child: Column(
         children: [
           if (!_isHidden)
-            On.data(
-              () => Text('${injectedStream.state}'),
-            ).listenTo(injectedStream)
+            OnBuilder.data(
+              listenTo: injectedStream,
+              builder: (_) => Text('${injectedStream.state}'),
+            )
           else
             Text('Injected stream is disposed'),
           ElevatedButton(
