@@ -202,3 +202,20 @@ class _MaterialPage<T> extends Page<T> {
     );
   }
 }
+
+mixin NavigatorMixin {
+  /// Use
+  late final RouterDelegate<PageSettings> routerDelegate =
+      RouterObjects._routerDelegate['/']!;
+  late final RouteInformationParser<PageSettings> routeInformationParser =
+      RouterObjects._routeInformationParser!;
+
+  Map<String, Widget Function(RouteData)> get routes;
+  Widget Function(String route)? get unknownRoute => null;
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  )? get transitionsBuilder => null;
+}

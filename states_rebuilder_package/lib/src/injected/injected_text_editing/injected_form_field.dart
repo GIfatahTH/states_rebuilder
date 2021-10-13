@@ -73,7 +73,7 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
     });
     return _baseFormField.__focusNode as _FocusNode;
   }
-  
+
   /// Invoke field validators and return true if the field is valid.
   bool validate();
 

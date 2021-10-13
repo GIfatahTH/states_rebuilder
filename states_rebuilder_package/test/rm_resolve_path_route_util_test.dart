@@ -1096,31 +1096,55 @@ void main() {
     },
   );
 
-  testWidgets(
-    'WHEN 88'
-    'THEN',
-    (tester) async {
-      final routes = {
-        '/': (data) => const Text('/'),
-        '/page1': (data) => SubRouteWidget(
-              routes: {
-                '/': (_) => const Text('/page1'),
-              },
-            )
-      };
+  // testWidgets(
+  //   'WHEN 88'
+  //   'THEN',
+  //   (tester) async {
+  //     final routes = {
+  //       '/': (data) => const Text('/'),
+  //       '/page1': (data) => SubRouteWidget(
+  //             routes: {
+  //               '/': (_) => const Text('/page1'),
+  //               '/page11': (_) => const Text('/page1/page11'),
+  //               '/page12': (_) => SubRouteWidget(
+  //                     routes: {
+  //                       '/': (_) => const Text('/page1/page12'),
+  //                       '/page121': (_) => const Text('/page1/page12/page121'),
+  //                     },
+  //                   )
+  //             },
+  //           ),
+  //       '/page2': (data) => SubRouteWidget(
+  //             routes: {
+  //               '/': (_) => const Text('/page2'),
+  //             },
+  //           ),
+  //     };
 
-      final widget = _TopWidget(routers: routes);
-      await tester.pumpWidget(widget);
-      expect(find.text('/'), findsOneWidget);
-      RM.navigate.toNamed('/page1');
-      await tester.pumpAndSettle();
-      find.text('/page1');
-    },
-  );
+  //     final widget = _TopWidget(routers: routes);
+  //     await tester.pumpWidget(widget);
+  //     expect(find.text('/'), findsOneWidget);
+  //     RM.navigate.toNamed('/page1');
+  //     await tester.pumpAndSettle();
+  //     expect(find.text('/page1'), findsOneWidget);
+  //     //
+  //     RM.navigate.toNamed('/page1/page11');
+  //     await tester.pumpAndSettle();
+  //     find.text('/page1/page11');
+  //     //
+  //     RM.navigate.toNamed('/page1/page12/page121');
+  //     await tester.pumpAndSettle();
+  //     find.text('/page1/page12/page121');
+  //     //
+  //     RM.navigate.toNamed('/page2');
+  //     await tester.pumpAndSettle();
+  //     find.text('/page2');
+  //   },
+  // );
 
   testWidgets(
-    'WHEN u '
-    'THEN',
+    'WHEN nested route uri are used without RouteWidget '
+    'THEN it works as expected',
     (tester) async {
       final Map<String, Widget Function(RouteData)> routes = {
         '/': (data) => const Text('/'),
@@ -1135,37 +1159,37 @@ void main() {
               '/page1/${data.pathParams['id']}/page12',
             ),
       };
-      // var r = routePathResolver.getPagesFromRouteSettings(
-      //   routes: routes,
-      //   settings: const RouteSettings(name: '/'),
-      // );
-      // expect((r['/']!.child as Text).data, '/');
-      // //
-      // r = routePathResolver.getPagesFromRouteSettings(
-      //   routes: routes,
-      //   settings: const RouteSettings(name: '/page1'),
-      // );
-      // expect((r['/page1']!.child as Text).data, '/page1');
-
-      // r = routePathResolver.getPagesFromRouteSettings(
-      //   routes: routes,
-      //   settings: const RouteSettings(name: '/page1/1'),
-      // );
-      // expect((r['/page1/1']!.child as Text).data, '/page1/1');
-
       var r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes,
+        settings: const RouteSettings(name: '/'),
+      );
+      expect((r['/']!.child as Text).data, '/');
+      //
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes,
+        settings: const RouteSettings(name: '/page1'),
+      );
+      expect((r['/page1']!.child as Text).data, '/page1');
+
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes,
+        settings: const RouteSettings(name: '/page1/1'),
+      );
+      expect((r['/page1/1']!.child as Text).data, '/page1/1');
+
+      r = routePathResolver.getPagesFromRouteSettings(
         routes: routes,
         settings: const RouteSettings(name: '/page1/1/page11'),
         skipHomeSlash: true,
       );
-      print(r);
-      // expect((r['/page1/1/page11']!.child as Text).data, '/page1/1/page11');
 
-      // r = routePathResolver.getPagesFromRouteSettings(
-      //   routes: routes,
-      //   settings: const RouteSettings(name: '/page1/1/page12'),
-      // );
-      // expect((r['/page1/1/page12']!.child as Text).data, '/page1/1/page12');
+      expect((r['/page1/1/page11']!.child as Text).data, '/page1/1/page11');
+
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes,
+        settings: const RouteSettings(name: '/page1/1/page12'),
+      );
+      expect((r['/page1/1/page12']!.child as Text).data, '/page1/1/page12');
     },
   );
   testWidgets(
@@ -1196,7 +1220,6 @@ void main() {
         settings: const RouteSettings(name: '/page1'),
       );
 
-      print(r);
       print(r['/']!.isBaseUrlChanged);
       print(r['/page1']!.isBaseUrlChanged);
       //
@@ -1205,7 +1228,6 @@ void main() {
         settings: const RouteSettings(name: '/page1/page11'),
       );
 
-      print(r);
       print(r['/']!.isBaseUrlChanged);
       print(r['/page1']!.isBaseUrlChanged);
       print(r['/page1/page11']!.isBaseUrlChanged);
@@ -1215,7 +1237,6 @@ void main() {
         settings: const RouteSettings(name: '/page1/page12'),
       );
 
-      print(r);
       print(r['/']!.isBaseUrlChanged);
       print(r['/page1']!.isBaseUrlChanged);
       print(r['/page1/page12']!.isBaseUrlChanged);

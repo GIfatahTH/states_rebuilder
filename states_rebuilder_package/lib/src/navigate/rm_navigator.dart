@@ -382,11 +382,40 @@ MaterialApp(
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
 
-    if (RouterObjects._routerDelegate.containsKey('/')) {
-      return RouterObjects._routerDelegate['/']!.to<T>(
+    // final List<Future<T?>> futures = [];
+    // Map<String, _RouterDelegate> delegates = {};
+    _RouterDelegate? delegate;
+
+    for (final key in RouterObjects._routerDelegate.keys) {
+      final d = RouterObjects._routerDelegate[key]!;
+      delegate = d;
+      if (routeName.startsWith(key)) {
+        delegate = d;
+      }
+    }
+    // for (final key in delegates.keys) {
+    //   final delegate = delegates[key]!;
+    //   final lastRoute = delegate._pageSettingsList.last;
+    //   final f = delegate.to<T>(
+    //     PageSettings(name: routeName, arguments: arguments),
+    //   );
+    //   futures.add(f);
+    // }
+    if (delegate != null) {
+      return delegate.to<T>(
         PageSettings(name: routeName, arguments: arguments),
       );
     }
+
+    // if (futures.isNotEmpty) {
+    //   return futures.last;
+    // }
+
+    // if (RouterObjects._routerDelegate.containsKey('/')) {
+    //   return RouterObjects._routerDelegate['/']!.to<T>(
+    //     PageSettings(name: routeName, arguments: arguments),
+    //   );
+    // }
 
     return navigatorState.pushNamed<T>(
       routeName,
@@ -696,21 +725,4 @@ MaterialApp(
     transitionsBuilder = null;
     pageRouteBuilder = null;
   }
-}
-
-mixin NavigatorMixin {
-  /// Use
-  late final RouterDelegate<PageSettings> routerDelegate =
-      RouterObjects._routerDelegate['/']!;
-  late final RouteInformationParser<PageSettings> routeInformationParser =
-      RouterObjects._routeInformationParser!;
-
-  Map<String, Widget Function(RouteData)> get routes;
-  Widget Function(String route)? get unknownRoute => null;
-  Widget Function(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  )? get transitionsBuilder => null;
 }

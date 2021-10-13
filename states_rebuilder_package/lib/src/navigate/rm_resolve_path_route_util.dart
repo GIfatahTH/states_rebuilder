@@ -1,23 +1,17 @@
 part of '../rm.dart';
 
 class ResolvePathRouteUtil {
-  late Map<String, Widget Function(RouteData data)> _routes =
-      RouterObjects._routers!;
-  final Map<String, _RouteData> _routeData = {};
-  RouteData? routeData;
   String absolutePath = '';
   String baseUrl = '/';
   String baseRouteUri = '/';
-  String remainingUrlPathToResolve = '';
-
+  List<String> remainingUrlSegments = [];
   bool _isPagesFound = true;
+
   final Map<String, String> _pathParams = {};
   void _resetFields() {
-    _routeData.clear();
-    routeData = null;
     _pathParams.clear();
     absolutePath = '';
-    remainingUrlPathToResolve = '';
+    remainingUrlSegments = [];
     _isPagesFound = true;
   }
 
@@ -54,8 +48,6 @@ class ResolvePathRouteUtil {
   Map<String, RouteSettingsWithChildAndData> getPagesFromRouteSettings({
     required Map<String, Widget Function(RouteData)> routes,
     required RouteSettings settings,
-    // String baseUrlPath = '/',
-    // String? baseRouteUri,
     Widget Function(String routeName)? unknownRoute,
     bool skipHomeSlash = false,
   }) {
@@ -64,7 +56,7 @@ class ResolvePathRouteUtil {
     assert(uri.path.isNotEmpty);
     final queryParameters = uri.queryParameters;
     final arguments = settings.arguments;
-    remainingUrlPathToResolve = absolutePath;
+    remainingUrlSegments = [...Uri.parse(absolutePath).pathSegments];
     final pages = resolve(
       routes: routes,
       // settings: settings.copyWith(name: absolutePath),
@@ -78,7 +70,7 @@ class ResolvePathRouteUtil {
     );
 
     if (pages.values.last.isPagesFound) {
-      if (Uri.parse(remainingUrlPathToResolve).pathSegments.isNotEmpty) {
+      if (remainingUrlSegments.any((e) => e.isNotEmpty)) {
         _isPagesFound = false;
         pages[absolutePath] = RouteSettingsWithChildAndData(
           name: absolutePath,
@@ -113,7 +105,6 @@ class ResolvePathRouteUtil {
   }) {
     String subPath = path;
     final matched = <String, RouteSettingsWithChildAndData>{};
-
     bool isRouteNotFound = true;
     if (baseUrlPath != '/') {
       final newName = path.replaceFirst(baseUrlPath, '');
@@ -123,6 +114,7 @@ class ResolvePathRouteUtil {
       // }
     }
 
+    final pathUrlSegments = Uri.parse(subPath).pathSegments;
     for (final route in routes.keys) {
       // assert(route.startsWith('/'));
       if (skipHomeSlash) {
@@ -135,7 +127,7 @@ class ResolvePathRouteUtil {
 
       routeData = _getRouteData(
         routeUriSegments: routeUriSegments,
-        pathUrl: subPath,
+        pathUrlSegments: pathUrlSegments,
         arguments: arguments,
         queryParameters: queryParameters,
         baseUrlPath: baseUrlPath,
@@ -223,6 +215,11 @@ class ResolvePathRouteUtil {
             }
           });
         } else {
+          // if (page is SubRouteWidget) {
+          //   _SubRouteWidgetState.initialRoute =
+          //       '/${remainingUrlSegments.join('/')}';
+          //   remainingUrlSegments.clear();
+          // }
           matched[routeData.urlPath] = RouteSettingsWithChildAndData(
             name: routeData.urlPath,
             routeUriPath: routeData.routePath,
@@ -254,13 +251,12 @@ class ResolvePathRouteUtil {
 
   RouteData? _getRouteData({
     required List<String> routeUriSegments,
-    required String pathUrl,
+    required List<String> pathUrlSegments,
     required Object? arguments,
     required Map<String, String> queryParameters,
     required String baseUrlPath,
     required String baseRouteUri,
   }) {
-    final pathUrlSegments = Uri.parse(pathUrl).pathSegments;
     if (routeUriSegments.length > pathUrlSegments.length) {
       return null;
     }
@@ -290,8 +286,7 @@ class ResolvePathRouteUtil {
 
       parsedRouteUri += '/${routeUriSegments[i]}';
       parsedPathUrl += '/${pathUrlSegments[i]}';
-      remainingUrlPathToResolve =
-          remainingUrlPathToResolve.replaceFirst('/${pathUrlSegments[i]}', '');
+      remainingUrlSegments.remove(pathUrlSegments[i]);
     }
     _pathParams.addAll(params);
 
@@ -303,16 +298,6 @@ class ResolvePathRouteUtil {
       queryParams: queryParameters,
       pathParams: _pathParams,
     );
-    final p = routeData.baseUrl == '/'
-        ? routeData.urlPath
-        : routeData.baseUrl + routeData.urlPath;
-    // if (cachedPages.containsKey(routeData.urlPath)) {
-    //   routeData._isBaseUrlChanged = false;
-    // } else {
-    //   routeData._isBaseUrlChanged = true;
-    // }
-    //  !baseUrlPath.startsWith(routeData.baseUrl);
-
     return routeData;
   }
 }

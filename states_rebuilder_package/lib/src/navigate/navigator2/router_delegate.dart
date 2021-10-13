@@ -26,12 +26,11 @@ abstract class RouterObjects {
     final delegate = _RouterDelegate(
       key: null,
       routes: _routers!,
-      transitionsBuilder: transitionsBuilder,
+      baseRouteName: '',
+      transitionsBuilder: RM.navigate.transitionsBuilder = transitionsBuilder,
     );
     _routerDelegate['/'] = delegate;
-    _routeInformationParser = _RouteInformationParser(
-      delegate._pageSettingsList,
-    );
+    _routeInformationParser = _RouteInformationParser(delegate);
     _unknownRoute = unknownRoute;
   }
 }
@@ -43,12 +42,14 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
   _RouterDelegate({
     required GlobalKey<NavigatorState>? key,
     required this.routes,
+    required this.baseRouteName,
     this.transitionsBuilder,
   }) : _navigatorKey = key ?? _navigate.navigatorKey {
     // _pageSettingsList.clear();
   }
   final List<PageSettings> _pageSettingsList = [];
   final Map<String, Widget Function(RouteData)> routes;
+  final String baseRouteName;
   final GlobalKey<NavigatorState> _navigatorKey;
   final Widget Function(
     BuildContext,
@@ -123,17 +124,27 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
     );
   }
 
+  Map<String, RouteSettingsWithChildAndData> getPagesFromRouteSettings({
+    required PageSettings settings,
+    bool skipHomeSlash = false,
+  }) {
+    return resolvePathRouteUtil.getPagesFromRouteSettings(
+      routes: routes,
+      settings: settings,
+      skipHomeSlash: skipHomeSlash,
+      unknownRoute: RouterObjects._unknownRoute,
+    );
+  }
+
   _MaterialPage _createPage(
     PageSettings settings,
   ) {
     late _MaterialPage m;
     late Widget child;
     if (settings.child == null) {
-      final p = resolvePathRouteUtil.getPagesFromRouteSettings(
-        routes: routes,
+      final p = getPagesFromRouteSettings(
         settings: settings,
         skipHomeSlash: true,
-        unknownRoute: RouterObjects._unknownRoute,
       );
       final child = getWidgetFromPages(pages: p);
 
@@ -212,7 +223,11 @@ class _RouterDelegate extends RouterDelegate<PageSettings>
   Future<T?> to<T extends Object?>(PageSettings settings) async {
     final completer = Completer<T?>();
     _completers[_pageSettingsList.last] = completer;
-    _pageSettingsList.add(settings);
+    _pageSettingsList.add(
+      settings.copyWith(
+        name: settings.name!.replaceFirst(baseRouteName, ''),
+      ),
+    );
     updatePages();
     return completer.future;
   }
