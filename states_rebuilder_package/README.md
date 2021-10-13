@@ -472,6 +472,62 @@ class MyWidget extends ReactiveStatelessWidget {
 }
 ```
 
+**LIMITATION**: 
+
+`ReactiveStatelessWidget` and` OnReactive` cannot update `const` widgets, widgets inside the` builder` of `ListView.builder` and widgets inside` Slivers`.
+```dart
+OnReactive(
+  ()=> Column(
+     children: [
+       // const will not update
+       const _Widget(), 
+       Expanded(
+         child: ListView.builder(
+           itemCount: 1,
+           itemBuilder: (context, index) {
+             // Inside builder will not register to OnReactive
+             // To make it reactive wrap it with OnReactive
+             return _Widget(); 
+           },
+         ),
+       ),
+       Expanded(
+         child: CustomScrollView(
+           slivers: [
+             SliverAppBar(
+               // Inside SliverAppBar will not register to OnReactive
+              // To make it reactive wrap it with OnReactive
+               title: _Widget(), 
+             ),
+             SliverList(
+               delegate: SliverChildListDelegate(
+                 [
+                   // Inside SliverList will not register to OnReactive
+                   // To make it reactive wrap it with OnReactive
+                   _Widget(), 
+                 ],
+               ),
+             ),
+             SliverGrid(
+               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                 crossAxisCount: 1,
+               ),
+               delegate: SliverChildBuilderDelegate(
+                   (BuildContext context, int index) {
+                     // Inside SliverChildBuilderDelegate will not register to OnReactive
+                     // To make it reactive wrap it with OnReactive
+                     return _Widget();  
+                   },
+               ),
+             ),
+           ],
+         ),
+       ),
+     ],
+  ),
+);
+```
+
 - [🔍 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
 
 - [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection).
