@@ -141,8 +141,11 @@ class ViewModel {
 // The state of counter1 and counter2 will be auto-disposed when no longer in use.
 // NOTE: They are testable and mockable.
 
+// States inject like this have global scope and can be reached from anywhere.
 final viewModel = ViewModel();
-
+// To create many independent instances of viewModel and inject them into the widget 
+// tree using the concept of InheretedWidget, see the section on global and local 
+// state below.
 
 /* --------------------  👀 UI -------------------- */
 ///🚀 Just use [ReactiveStatelessWidget] widget instead of StatelessWidget.
