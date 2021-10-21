@@ -480,6 +480,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       if (snapState.isWaiting) {
         return null;
       }
+      snapState = s;
       onSetState?.call(s);
       return s;
     }
@@ -487,6 +488,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       if (s.error == snapState.error) {
         return null;
       }
+      snapState = s;
       onSetState?.call(s);
       onError?.call(s.error);
       return s;
@@ -496,6 +498,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       if (s._isImmutable == true && s == snapState) {
         return null;
       }
+      snapState = s;
       onSetState?.call(s);
       onData?.call(s.data as T);
     }
