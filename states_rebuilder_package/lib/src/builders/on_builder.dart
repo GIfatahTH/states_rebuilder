@@ -220,7 +220,7 @@ class OnBuilder<T> extends StatelessWidget {
             onData: onBuilder.onData != null
                 ? () => onBuilder.onData!(listenTo!.state)
                 : null,
-            or: () => onBuilder.orElse(listenTo!.state),
+            or: () => onBuilder.orElse(listenTo!._state),
           );
     return on.listenTo(
       listenTo!,
