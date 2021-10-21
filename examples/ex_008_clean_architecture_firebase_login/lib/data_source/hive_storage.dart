@@ -12,7 +12,7 @@ class HiveStorage implements IPersistStore {
   }
 
   @override
-  Object read(String key) {
+  Object? read(String key) {
     return box.get(key);
   }
 
