@@ -10,12 +10,12 @@ Type _typeDef<T>() => T;
 
 // ignore: prefer_void_to_null
 extension NullX on Null {
-  ReactiveModel<T> inj<T>({bool autoDisposeWhenNotUsed = true}) {
+  ReactiveModel<T?> inj<T>({bool autoDisposeWhenNotUsed = true}) {
     assert(T != dynamic);
     assert(T != Object);
     assert(T != _typeDef<Object?>());
-    assert(null is T, '$T is not nullable type. User $T?');
-    return ReactiveModelImp<T>(
+    // assert(null is T, '$T is not nullable type. User $T?');
+    return ReactiveModelImp<T?>(
       creator: () => this,
       initialState: null,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
