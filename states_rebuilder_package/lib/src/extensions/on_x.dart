@@ -69,7 +69,8 @@ extension OnX on On<Widget> {
           mountedState: (_) {
             final autoDisposeWhenNotUsed =
                 (inj is InjectedImp || inj is InjectedBaseBaseImp) &&
-                    (inj as dynamic).autoDisposeWhenNotUsed;
+                    !(inj as dynamic).autoDisposeWhenNotUsed;
+
             disposer = inj._reactiveModelState.listeners.addListenerForRebuild(
               (snap) {
                 if (shouldRebuild != null &&
@@ -99,7 +100,7 @@ extension OnX on On<Widget> {
                   return true;
                 }());
               },
-              clean: autoDisposeWhenNotUsed ? () => inj.dispose() : null,
+              clean: autoDisposeWhenNotUsed ? null : () => inj.dispose(),
             );
             assert(() {
               if (debugPrintWhenRebuild != null) {
