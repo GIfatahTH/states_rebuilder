@@ -217,7 +217,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     if (_validator == null) {
       //If the field is not validate then set its snapshot to hasData, so that
       //in the [InjectedForm.isValid] consider it as a valid field
-      snapState = snapState.copyToHasData(initialValue);
+      snapState = snapState.copyToHasData(snapState.data);
     }
   }
 

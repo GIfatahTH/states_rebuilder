@@ -633,4 +633,45 @@ void main() {
       expect(check.isReadOnly, false);
     },
   );
+  testWidgets(
+    'issue 238',
+    (tester) async {
+      final isCheckedField = RM.injectFormField(false, autoDispose: false);
+
+      final widget = MaterialApp(
+        navigatorKey: RM.navigate.navigatorKey,
+        onGenerateRoute: RM.navigate.onGenerateRoute(
+          {
+            '/': (_) => Scaffold(
+                  body: OnFormFieldBuilder<bool>(
+                    listenTo: isCheckedField,
+                    builder: (val, onChanged) {
+                      return Checkbox(value: val, onChanged: onChanged);
+                    },
+                  ),
+                ),
+            '/other': (_) => Text('other: ${isCheckedField.state}'),
+          },
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      final isChecked = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      expect(isChecked, findsNothing);
+      //
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+      //
+      RM.navigate.toReplacementNamed('/other');
+      await tester.pumpAndSettle();
+      expect(find.text('other: true'), findsOneWidget);
+      //
+      RM.navigate.toReplacementNamed('/');
+      await tester.pumpAndSettle();
+      expect(isChecked, findsOneWidget);
+    },
+  );
 }
