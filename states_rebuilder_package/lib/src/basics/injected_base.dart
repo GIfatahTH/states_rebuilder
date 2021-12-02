@@ -20,9 +20,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///If the state is not bool, it will throw an assertion error.
   void toggle() {
     assert(T == bool);
-    final snap =
-        _reactiveModelState.snapState._copyToHasData(!(_state as bool) as T);
-    _reactiveModelState.setSnapStateAndRebuild = snap;
+    setState((s) => !(_state as bool));
   }
 
   ///Subscribe to the state

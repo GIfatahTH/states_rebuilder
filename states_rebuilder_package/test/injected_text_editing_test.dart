@@ -1353,4 +1353,44 @@ void main() {
       expect(isEnabled, findsNothing);
     },
   );
+
+  testWidgets(
+    '# issue 241',
+    (tester) async {
+      final pwdInj = RM.injectTextEditing(autoDispose: true); // <-
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OnReactive(
+            () => Scaffold(
+              appBar: AppBar(
+                title: Text("wow"),
+              ),
+              body: Center(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: pwdInj.controller,
+                    ),
+                    ElevatedButton(
+                      child: Text("states_rebuilder test"),
+                      onPressed: () {
+                        pwdInj.controller.text =
+                            pwdInj.controller.text + " Really?";
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+    },
+  );
 }

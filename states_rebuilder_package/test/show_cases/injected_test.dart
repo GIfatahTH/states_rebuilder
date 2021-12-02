@@ -380,7 +380,7 @@ void main() {
     expect(injectedNull.state, 1);
     expect(injectedNull.toString(), endsWith('SnapState<int?>(hasData: 1)'));
     //
-    expect(() => null.inj<int>(), throwsAssertionError);
+    expect(null.inj<int>(), isA<ReactiveModel<int?>>());
     expect(() => null.inj(), throwsAssertionError);
     expect(() => null.inj<Object>(), throwsAssertionError);
     expect(() => null.inj<Object?>(), throwsAssertionError);
