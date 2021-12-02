@@ -7,9 +7,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
 import 'builders/on_reactive.dart';
-import 'builders/top_stateless_widget.dart';
 import 'common/consts.dart';
 import 'common/helper_method.dart';
 import 'common/logger.dart';
@@ -17,6 +17,7 @@ import 'injected/injected_animation/injected_animation.dart';
 import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
+import 'injected/injected_navigator/injected_navigator.dart';
 import 'injected/injected_scrolling/injected_scrolling.dart';
 import 'injected/injected_tab/injected_page_tab.dart';
 import 'injected/injected_text_editing/injected_text_editing.dart';
@@ -48,6 +49,7 @@ part 'navigate/build_context_x.dart';
 part 'navigate/navigator2/page_settings.dart';
 part 'navigate/navigator2/route_information_parser.dart';
 part 'navigate/navigator2/router_delegate.dart';
+part 'navigate/navigator2/router_objects.dart';
 part 'navigate/page_route_builder.dart';
 part 'navigate/rm_navigator.dart';
 part 'navigate/rm_resolve_path_route_util.dart';
@@ -1885,6 +1887,40 @@ abstract class RM {
       duration: duration,
       keepPage: keepPage,
       viewportFraction: viewportFraction,
+    );
+  }
+
+  static InjectedNavigator injectNavigator({
+    //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
+    required Map<String, Widget Function(RouteData data)> routes,
+    Widget Function(String)? unknownRoute,
+    Widget Function(
+      BuildContext,
+      Animation<double>,
+      Animation<double>,
+      Widget,
+    )?
+        transitionsBuilder,
+    // Duration transitionDuration,//TODO
+    Widget Function(Widget child)? builder,
+    String? initialLocation,
+    bool shouldUseCupertinoPage = false,
+    Redirect? Function(RouteData data)? onNavigate,
+    bool? Function(RouteData data)? onNavigateBack,
+    bool debugPrintWhenRouted = false,
+    Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
+  }) {
+    return InjectedNavigatorImp(
+      routes: routes,
+      unknownRoute: unknownRoute,
+      transitionsBuilder: transitionsBuilder,
+      builder: builder,
+      initialRoute: initialLocation,
+      shouldUseCupertinoPage: shouldUseCupertinoPage,
+      redirectTo: onNavigate,
+      debugPrintWhenRouted: debugPrintWhenRouted,
+      pageBuilder: pageBuilder,
+      onBack: onNavigateBack,
     );
   }
 

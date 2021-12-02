@@ -59,18 +59,26 @@ extension BuildContextX on BuildContext {
     return r!.routeData.pathParams;
   }
 
+  RouteData get routeData {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    assert(r?.routeData != null);
+
+    return r!.routeData;
+  }
+
+//TODO to deprecate
   String get routeBaseUrl {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
-    assert(r?.routeData.baseUrl != null);
-
-    return r!.routeData.baseUrl;
+    assert(r?.routeData.baseLocation != null);
+    return r!.routeData.baseLocation;
   }
 
   String get routePath {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
-    return r!.routeData.routePath;
+    return r!.routeData.path;
   }
 
   static Animation<double>? ofRouteAnimation(BuildContext context) {

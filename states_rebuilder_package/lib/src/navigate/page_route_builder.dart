@@ -1,12 +1,5 @@
 part of '../rm.dart';
 
-Widget Function(
-  BuildContext context,
-  Animation<double> animation,
-  Animation<double> secondaryAnimation,
-  Widget child,
-)? _getThemeTransition;
-
 class _PageRouteBuilder<T> extends PageRoute<T>
     with MaterialRouteTransitionMixin<T> {
   _PageRouteBuilder({
@@ -93,7 +86,7 @@ class _PageRouteBuilder<T> extends PageRoute<T>
     Widget child,
   ) {
     if (isSubRouteTransition) {
-      _getThemeTransition = super.buildTransitions;
+      // _getThemeTransition = super.buildTransitions;
       return child;
     }
     if (customBuildTransitions != null) {

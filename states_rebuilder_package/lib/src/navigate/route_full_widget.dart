@@ -1,24 +1,22 @@
 part of '../rm.dart';
 
-class _RouteFullWidget1 extends StatefulWidget {
+class _RouteFullWidget extends StatefulWidget {
   final Map<String, RouteSettingsWithChildAndData> pages;
 
   final Animation<double>? animation;
   final void Function()? initState;
   final void Function()? dispose;
 
-  _RouteFullWidget1({
+  const _RouteFullWidget({
     Key? key,
     required this.pages,
     this.animation,
     this.initState,
     this.dispose,
-  }) : super(key: key) {
-    print('');
-  }
+  }) : super(key: key);
 
   @override
-  __RouteFullWidget1State createState() => __RouteFullWidget1State();
+  _RouteFullWidgetState createState() => _RouteFullWidgetState();
 }
 
 Widget get routeNotDefinedAssertion {
@@ -54,32 +52,29 @@ Widget getWidgetFromPages({
     var key = keys.last;
     final lastPage = pages[key]!;
     var c = lastPage.child;
-    if (c is RouteWidget) {
-      route ??= (lastPage as RouteSettingsWithChildAndSubRoute).subRoute ??
-          routeNotDefinedAssertion;
+    if (c is RouteWidget && c.builder != null) {
+      return child = c;
     }
     child = SubRoute._(
       child: () {
-        if (lastPage is RouteSettingsWithChildAndSubRoute) {
+        if (c is RouteWidget && c.builder != null) {
+          return c;
+        }
+
+        if (lastPage is RouteSettingsWithRouteWidget) {
           if (c is RouteWidget) {
             if (c.builder != null) {
-              return c.builder!(route!);
+              return c;
             }
           }
           return lastPage.subRoute!;
         }
+        assert(c != null, '"${lastPage.name}" route is not found');
         return c!;
       }(),
       route: route,
       lastSubRoute: lastSubRoute,
-      routeData: RouteData(
-        arguments: lastPage.arguments,
-        urlPath: lastPage.name!,
-        routePath: lastPage.routeUriPath,
-        baseUrl: lastPage.baseUrlPath,
-        queryParams: lastPage.queryParams,
-        pathParams: lastPage.pathParams,
-      ),
+      routeData: lastPage.routeData,
       animation: animation,
       transitionsBuilder: lastPage.child is RouteWidget
           ? (lastPage.child as RouteWidget).transitionsBuilder
@@ -99,9 +94,9 @@ Widget getWidgetFromPages({
       break;
     }
     final r = pages[keys.last];
-    if (r is RouteSettingsWithChildAndSubRoute) {
+    if (r is RouteSettingsWithRouteWidget) {
       final c = r.child as RouteWidget;
-      if (c.builder != null && c.routes.isNotEmpty) {
+      if (c.builder != null && c._routes.isNotEmpty) {
         getChild(
           keys: keys,
           route: child,
@@ -114,7 +109,7 @@ Widget getWidgetFromPages({
   return child;
 }
 
-class __RouteFullWidget1State extends State<_RouteFullWidget1> {
+class _RouteFullWidgetState extends State<_RouteFullWidget> {
   Widget? child;
 
   @override

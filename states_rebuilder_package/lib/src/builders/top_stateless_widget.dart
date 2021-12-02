@@ -139,15 +139,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
   List<Future<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
-  void didMountWidget() {
-    if (this is NavigatorMixin) {
-      RouterObjects.initialize(
-        routes: (this as NavigatorMixin).routes,
-        unknownRoute: (this as NavigatorMixin).unknownRoute,
-        transitionsBuilder: (this as NavigatorMixin).transitionsBuilder,
-      );
-    }
-  }
+  void didMountWidget() {}
 
   ///Called when the widget is  removed from the widget tree
   void didUnmountWidget() {}

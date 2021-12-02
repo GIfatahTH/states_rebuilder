@@ -1,46 +1,62 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, prefer_function_declarations_over_variables
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/src/common/logger.dart';
+import 'package:states_rebuilder/src/injected/injected_navigator/injected_navigator.dart';
+import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-class _TopWidget extends TopStatelessWidget with NavigatorMixin {
+SimpleRouteInformationProvider? _provider;
+_RouteInformationParserTest? informationParser;
+BackButtonDispatcher dispatcher = RootBackButtonDispatcher();
+
+late InjectedNavigator _navigator;
+
+class _TopWidget extends TopStatelessWidget {
   _TopWidget({
     Key? key,
     required this.routers,
     this.initialRoute,
-    this.initialRouteSettings,
-  }) : super(key: key);
+    Redirect? Function(RouteData)? routeInterceptor,
+    bool debugPrintWhenRouted = false,
+    Page<dynamic> Function(MaterialPageArgument)? pageBuilder,
+    Widget Function(Widget)? builder,
+    bool? Function(RouteData)? onBack,
+  }) : super(key: key) {
+    _navigator = RM.injectNavigator(
+      routes: routers,
+      unknownRoute: (route) => Text('404 $route'),
+      transitionsBuilder: _transitionsBuilder,
+      onNavigate: routeInterceptor,
+      debugPrintWhenRouted: debugPrintWhenRouted,
+      pageBuilder: pageBuilder,
+      onNavigateBack: onBack,
+      initialLocation: initialRoute,
+      builder: builder,
+    );
+  }
   final Map<String, Widget Function(RouteData p1)> routers;
   final String? initialRoute;
-  final PageSettings? initialRouteSettings;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routeInformationParser: initialRoute == null
-          ? routeInformationParser
-          : routeInformationParser.setInitialRoute(initialRoute!),
-      routerDelegate: initialRouteSettings == null
-          ? routerDelegate
-          : (routerDelegate..setInitialRoutePath(initialRouteSettings!)),
+      routeInformationProvider: _provider,
+      routeInformationParser: _provider != null
+          ? informationParser = _RouteInformationParserTest(
+              _navigator.routerDelegate as RouterDelegateImp,
+            )
+          : _navigator.routeInformationParser,
+      routerDelegate: _navigator.routerDelegate,
+      backButtonDispatcher: dispatcher,
     );
   }
-
-  @override
-  Map<String, Widget Function(RouteData p1)> get routes => routers;
-
-  @override
-  Widget Function(String route) get unknownRoute =>
-      (route) => Text('404 $route');
-  @override
-  Widget Function(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  )? get transitionsBuilder => _transitionsBuilder;
 }
 
 Widget Function(
@@ -93,15 +109,16 @@ class _Route2State extends State<Route2> {
 _TopWidget get app => _TopWidget(
       routers: {
         '/': (_) => Text('Home'),
-        'Route1': (data) => Route1(data.arguments as String),
-        'Route2': (data) => Route2(data.arguments as String),
-        'Route3': (_) => Text('Route3'),
+        '/Route1': (data) => Route1(data.arguments as String),
+        '/Route2': (data) => Route2(data.arguments as String),
+        '/Route3': (_) => Text('Route3'),
       },
     );
 
 void main() {
   setUp(() {
     _transitionsBuilder = null;
+    _provider = null;
   });
   testWidgets('navigate to', (tester) async {
     await tester.pumpWidget(app);
@@ -121,7 +138,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Route2: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -130,7 +147,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed(
+    _navigator.to(
       'Route1',
       arguments: 'data',
       fullscreenDialog: true,
@@ -139,7 +156,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Route1: data'), findsOneWidget);
     //
-    RM.navigate.toReplacementNamed(
+    _navigator.toReplacement(
       'Route2',
       arguments: 'data',
       result: '',
@@ -149,7 +166,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Route2: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -158,9 +175,9 @@ void main() {
   //   await tester.pumpWidget(app);
 
   //   expect(find.text('Home'), findsOneWidget);
-  //   RM.navigate.toNamed('Route1', arguments: 'data');
+  //   _navigator.to('Route1', arguments: 'data');
   //   await tester.pumpAndSettle();
-  //   RM.navigate.toNamed('Route3', arguments: 'data');
+  //   _navigator.to('Route3', arguments: 'data');
   //   await tester.pumpAndSettle();
   //   //
   //   RM.navigate.toAndRemoveUntil(
@@ -173,7 +190,7 @@ void main() {
   //   await tester.pumpAndSettle();
   //   expect(find.text('Route2: data'), findsOneWidget);
   //   //
-  //   RM.navigate.back();
+  //   _navigator.back();
   //   await tester.pumpAndSettle();
   //   expect(find.text('Home'), findsOneWidget);
   //   //With route name
@@ -182,9 +199,9 @@ void main() {
   //     name: 'ROUTE2',
   //     untilRouteName: '/',
   //   );
-  //   RM.navigate.toNamed('Route1', arguments: 'data');
+  //   _navigator.to('Route1', arguments: 'data');
   //   await tester.pumpAndSettle();
-  //   RM.navigate.toNamed('Route3', arguments: 'data');
+  //   _navigator.to('Route3', arguments: 'data');
   //   await tester.pumpAndSettle();
   //   //
   //   RM.navigate.toAndRemoveUntil(
@@ -193,11 +210,11 @@ void main() {
   //   );
   //   await tester.pumpAndSettle();
   //   expect(find.text('Route1: '), findsOneWidget);
-  //   RM.navigate.back();
+  //   _navigator.back();
   //   await tester.pumpAndSettle();
   //   expect(find.text('Route2: data'), findsOneWidget);
   //   //
-  //   RM.navigate.back();
+  //   _navigator.back();
   //   await tester.pumpAndSettle();
   //   expect(find.text('Home'), findsOneWidget);
   // });
@@ -206,9 +223,9 @@ void main() {
   //   await tester.pumpWidget(app);
 
   //   expect(find.text('Home'), findsOneWidget);
-  //   RM.navigate.toNamed('Route1', arguments: 'data');
+  //   _navigator.to('Route1', arguments: 'data');
   //   await tester.pumpAndSettle();
-  //   RM.navigate.toNamed('Route3', arguments: 'data');
+  //   _navigator.to('Route3', arguments: 'data');
   //   await tester.pumpAndSettle();
   //   //
   //   RM.navigate.toAndRemoveUntil(
@@ -220,7 +237,7 @@ void main() {
   //   await tester.pumpAndSettle();
   //   expect(find.text('Route2: data'), findsOneWidget);
   //   //
-  //   RM.navigate.back();
+  //   _navigator.back();
   //   await tester.pumpAndSettle();
   //   expect(find.text('Route2: data'), findsNothing);
   //   expect(find.text('Home'), findsNothing);
@@ -230,25 +247,25 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.to(Route1(''), name: 'ROUTE1');
+    _navigator.to('Route1', arguments: '');
     await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route2', arguments: '');
+    _navigator.to('Route2', arguments: '');
     await tester.pumpAndSettle();
     //
-    RM.navigate.toNamedAndRemoveUntil(
+    _navigator.toAndRemoveUntil(
       'Route3',
       arguments: 'data',
-      untilRouteName: 'ROUTE1',
+      untilRouteName: '/Route1',
       fullscreenDialog: true,
       maintainState: false,
     );
     await tester.pumpAndSettle();
     expect(find.text('Route3'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Route1: '), findsOneWidget);
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -257,19 +274,19 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    _navigator.to('Route1', arguments: 'data');
     await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route2', arguments: 'data');
+    _navigator.to('Route2', arguments: 'data');
     await tester.pumpAndSettle();
     //
-    RM.navigate.toNamedAndRemoveUntil(
+    _navigator.toAndRemoveUntil(
       'Route3',
       arguments: 'data',
     );
     await tester.pumpAndSettle();
     expect(find.text('Route3'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     // only one route so it can not pop
     expect(find.text('Route3'), findsOneWidget);
@@ -279,23 +296,23 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    _navigator.to('Route1', arguments: 'data');
     await tester.pumpAndSettle();
 
-    RM.navigate.toNamed('Route2', arguments: 'data');
+    _navigator.to('Route2', arguments: 'data');
     await tester.pumpAndSettle();
 
-    RM.navigate.toNamed('Route3', arguments: 'data');
+    _navigator.to('Route3', arguments: 'data');
     await tester.pumpAndSettle();
     expect(find.text('Route3'), findsOneWidget);
     //
-    RM.navigate.backUntil('/Route1');
+    _navigator.backUntil('/Route1');
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(Duration(seconds: 1));
 
     expect(find.text('Route1: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -304,11 +321,11 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    _navigator.to('Route1', arguments: 'data');
     await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route2', arguments: 'data');
+    _navigator.to('Route2', arguments: 'data');
     await tester.pumpAndSettle();
-    RM.navigate.toNamed('Route3', arguments: 'data');
+    _navigator.to('Route3', arguments: 'data');
     await tester.pumpAndSettle();
     expect(find.text('Route3'), findsOneWidget);
     //
@@ -322,7 +339,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Route1: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Route2: data'), findsOneWidget);
   });
@@ -396,7 +413,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    _navigator.to('Route1', arguments: 'data');
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Route1: data'), findsNothing);
@@ -404,14 +421,14 @@ void main() {
     expect(find.text('Route1: data'), findsOneWidget);
 
     //
-    RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    _navigator.toReplacement('Route2', arguments: 'data', result: '');
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Route1: data'), findsOneWidget);
     expect(find.text('Route2: data'), findsNothing);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Route2: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -442,7 +459,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Route2: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -458,7 +475,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('Route1', arguments: 'data');
+    _navigator.to('Route1', arguments: 'data');
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Route1: data'), findsNothing);
@@ -466,14 +483,14 @@ void main() {
     expect(find.text('Route1: data'), findsOneWidget);
 
     //
-    RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    _navigator.toReplacement('Route2', arguments: 'data', result: '');
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Route1: data'), findsOneWidget);
     expect(find.text('Route2: data'), findsNothing);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Route2: data'), findsOneWidget);
     //
-    RM.navigate.back();
+    _navigator.back();
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
   });
@@ -497,9 +514,9 @@ void main() {
       'THEN it will work', (tester) async {
     final app = _TopWidget(routers: {
       '/': (_) => Text('Home'),
-      'Route1': (data) => Route1(data.arguments as String),
-      'Route2': (data) => Route2(data.arguments as String),
-      'Route3': (_) => Text('Route3'),
+      '/Route1': (data) => Route1(data.arguments as String),
+      '/Route2': (data) => Route2(data.arguments as String),
+      '/Route3': (_) => Text('Route3'),
     });
 
     _transitionsBuilder = RM.transitions.rightToLeft(
@@ -509,7 +526,7 @@ void main() {
     await tester.pumpWidget(app);
 
     // expect(find.text('Home'), findsOneWidget);
-    // RM.navigate.toNamed('Route1', arguments: 'data');
+    // _navigator.to('Route1', arguments: 'data');
     // await tester.pump(Duration(seconds: 1));
     // expect(find.text('Home'), findsOneWidget);
     // expect(find.text('Route1: data'), findsNothing);
@@ -517,14 +534,14 @@ void main() {
     // expect(find.text('Route1: data'), findsOneWidget);
 
     // //
-    // RM.navigate.toReplacementNamed('Route2', arguments: 'data', result: '');
+    // _navigator.toReplacement('Route2', arguments: 'data', result: '');
     // await tester.pump(Duration(seconds: 1));
     // expect(find.text('Route1: data'), findsOneWidget);
     // expect(find.text('Route2: data'), findsNothing);
     // await tester.pump(Duration(seconds: 1));
     // expect(find.text('Route2: data'), findsOneWidget);
     // //
-    // RM.navigate.back();
+    // _navigator.back();
     // await tester.pumpAndSettle();
     // expect(find.text('Home'), findsOneWidget);
   });
@@ -547,7 +564,7 @@ void main() {
   //   await tester.pumpWidget(app);
 
   //   expect(find.text('Home'), findsOneWidget);
-  //   RM.navigate.toNamed('/NAN');
+  //   _navigator.to('/NAN');
   //   await tester.pumpAndSettle();
 
   //   expect(find.text('No route defined for /NAN'), findsOneWidget);
@@ -560,7 +577,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toNamed('/NAN');
+    _navigator.to('/NAN');
     await tester.pumpAndSettle();
 
     expect(find.text('404 /NAN'), findsOneWidget);
@@ -599,15 +616,15 @@ void main() {
 
   //     expect(find.text('Home'), findsOneWidget);
 
-  //     RM.navigate.toNamed('Route1/1');
+  //     _navigator.to('Route1/1');
   //     await tester.pumpAndSettle();
   //     expect(find.text('Route1: Parsed data : 1'), findsOneWidget);
   //     //
-  //     RM.navigate.toNamed('Route1/2');
+  //     _navigator.to('Route1/2');
   //     await tester.pumpAndSettle();
   //     expect(find.text('Unknown Route'), findsOneWidget);
   //     //
-  //     RM.navigate.toNamed(Uri(path: 'Route1', queryParameters: {
+  //     _navigator.to(Uri(path: 'Route1', queryParameters: {
   //       'id': '2',
   //     }).toString());
   //     await tester.pumpAndSettle();
@@ -622,29 +639,29 @@ void main() {
       final app = _TopWidget(
         routers: {
           '/': (_) => Text('Home'),
-          'Route1/:id': (param) {
+          '/Route1/:id': (param) {
             final map = {...param.queryParams, ...param.pathParams};
             return Route1((map['id'] ?? '') + (map['data'] ?? ''));
           },
-          'Route2': (param) => Route2(param as String),
+          '/Route2': (param) => Route2(param as String),
         },
       );
       await tester.pumpWidget(app);
 
       expect(find.text('Home'), findsOneWidget);
 
-      RM.navigate.toNamed('Route1/Parsed data : 1');
+      _navigator.to('Route1/Parsed data : 1');
       await tester.pumpAndSettle();
       expect(find.text('Route1: Parsed data : 1'), findsOneWidget);
 
-      RM.navigate.toNamed(
+      _navigator.to(
         'Route1/toNamed,',
         queryParams: {'data': ' Parsed data : 2'},
       );
       await tester.pumpAndSettle();
       expect(find.text('Route1: toNamed, Parsed data : 2'), findsOneWidget);
 
-      RM.navigate.toReplacementNamed(
+      _navigator.toReplacement(
         'Route1/toReplacementNamed,',
         queryParams: {'data': ' Parsed data : 2'},
       );
@@ -652,7 +669,7 @@ void main() {
       expect(find.text('Route1: toReplacementNamed, Parsed data : 2'),
           findsOneWidget);
 
-      RM.navigate.toNamedAndRemoveUntil(
+      _navigator.toAndRemoveUntil(
         'Route1/toNamedAndRemoveUntil,',
         queryParams: {'data': ' Parsed data : 2'},
       );
@@ -726,8 +743,8 @@ void main() {
                       builder: (__) {
                         queryParams = data.queryParams;
                         pathParams = data.pathParams;
-                        routePath = data.routePath;
-                        baseUrl = data.baseUrl;
+                        routePath = data.path;
+                        baseUrl = data.baseLocation;
                         return page5(data.arguments);
                       },
                     ),
@@ -742,30 +759,33 @@ void main() {
                     },
                   );
                 },
-                '/page52/:page52ID': (_) => RouteWidget(
-                      routes: {
-                        '/': (_) {
-                          return Builder(
+                '/page52/:page52ID': (_) {
+                  return RouteWidget(
+                    routes: {
+                      '/': (_) {
+                        return Builder(
+                          builder: (ctx) {
+                            queryParams = ctx.routeQueryParams;
+                            pathParams = ctx.routePathParams;
+                            routePath = ctx.routePath;
+                            baseUrl = ctx.routeBaseUrl;
+                            return page52(ctx.routeArguments);
+                          },
+                        );
+                      },
+                      '/:page521ID': (_) => Builder(
                             builder: (ctx) {
                               queryParams = ctx.routeQueryParams;
+                              assert(_.queryParams == queryParams);
                               pathParams = ctx.routePathParams;
                               routePath = ctx.routePath;
                               baseUrl = ctx.routeBaseUrl;
-                              return page52(ctx.routeArguments);
+                              return page521(ctx.routeArguments);
                             },
-                          );
-                        },
-                        '/:page521ID': (_) => Builder(
-                              builder: (ctx) {
-                                queryParams = ctx.routeQueryParams;
-                                pathParams = ctx.routePathParams;
-                                routePath = ctx.routePath;
-                                baseUrl = ctx.routeBaseUrl;
-                                return page521(ctx.routeArguments);
-                              },
-                            ),
-                      },
-                    )
+                          ),
+                    },
+                  );
+                }
               },
             )
       };
@@ -775,94 +795,94 @@ void main() {
       expect(find.text('/'), findsOneWidget);
 
       Future navigateAndExpect(String name, [bool isFound = true]) async {
-        RM.navigate.toNamed(name, arguments: name);
+        _navigator.to(name, arguments: name);
         await tester.pumpAndSettle();
         if (isFound) {
           expect(find.text(name), findsOneWidget);
         }
       }
 
-      // await navigateAndExpect('/page0/page00');
+      await navigateAndExpect('/page0/page00');
 
-      // await navigateAndExpect('/page1');
+      await navigateAndExpect('/page1');
       // await navigateAndExpect('/page1/');
       await navigateAndExpect('page1/page1', false);
       expect(find.text('404 /page1/page1'), findsOneWidget);
-      // await navigateAndExpect('/page1/');
-      // await navigateAndExpect('page11/');
-      // //
-      // await navigateAndExpect('page12', false);
-      // expect(find.text('404 /page1/page11/page12'), findsOneWidget);
-      // await navigateAndExpect('page111');
-      // await navigateAndExpect('page11/page111');
-      // await navigateAndExpect('page112/page1121');
-      // await navigateAndExpect('page1122');
-      // await navigateAndExpect('/page1/page11/page112/page1122');
-      // await navigateAndExpect('page1/page12');
-      // await navigateAndExpect('page1/page13');
-      // await navigateAndExpect('/page2');
-      // await navigateAndExpect('page4');
-      // await navigateAndExpect('page3');
+      await navigateAndExpect('/page1/');
+      await navigateAndExpect('page11/');
+      //
+      await navigateAndExpect('page12', false);
+      expect(find.text('404 /page1/page11/page12'), findsOneWidget);
+      await navigateAndExpect('page111');
+      await navigateAndExpect('page11/page111');
+      await navigateAndExpect('page112/page1121');
+      await navigateAndExpect('page1122');
+      await navigateAndExpect('/page1/page11/page112/page1122');
+      await navigateAndExpect('page1/page12');
+      await navigateAndExpect('page1/page13');
+      await navigateAndExpect('/page2');
+      await navigateAndExpect('page4');
+      await navigateAndExpect('page3');
 
-      // await navigateAndExpect('/page5', false);
-      // expect(find.text('404 /page5'), findsOneWidget);
-      // await navigateAndExpect('/page5/id-1');
+      await navigateAndExpect('/page5', false);
+      expect(find.text('404 /page5'), findsOneWidget);
+      await navigateAndExpect('/page5/id-1');
 
-      // expect(baseUrl, '/page5/id-1');
-      // expect(routePath, '/page5/:page5ID');
-      // expect(pathParams, {'page5ID': 'id-1'});
+      expect(baseUrl, '/');
+      expect(routePath, '/page5/:page5ID');
+      expect(pathParams, {'page5ID': 'id-1'});
 
-      // await navigateAndExpect('page5/id-2/');
+      await navigateAndExpect('page5/id-2/');
 
-      // expect(baseUrl, '/page5/id-2');
-      // expect(routePath, '/page5/:page5ID');
-      // expect(pathParams, {'page5ID': 'id-2'});
-      // //
-      // await navigateAndExpect('page51');
+      expect(baseUrl, '/page5/id-2');
+      expect(routePath, '/page5/:page5ID');
+      expect(pathParams, {'page5ID': 'id-2'});
+      //
+      await navigateAndExpect('page51');
 
-      // expect(baseUrl, '/page5/id-2');
-      // expect(routePath, '/page5/:page5ID/page51');
-      // expect(pathParams, {'page5ID': 'id-2'});
+      expect(baseUrl, '/page5/id-2');
+      expect(routePath, '/page5/:page5ID/page51');
+      expect(pathParams, {'page5ID': 'id-2'});
 
-      // await navigateAndExpect('page52/id-3');
+      await navigateAndExpect('page52/id-3/');
 
-      // expect(baseUrl, '/page5/id-2/page52/id-3');
-      // expect(routePath, '/page5/:page5ID/page52/:page52ID');
-      // expect(pathParams, {'page5ID': 'id-2', 'page52ID': 'id-3'});
-      // // //
-      // await navigateAndExpect(baseUrl + '/page52/id-4');
-      // RM.navigate.toNamed(
-      //   baseUrl + '/page52/id-5',
-      //   arguments: 'id-5',
-      //   queryParams: {
-      //     'queryId': 'id-6',
-      //   },
-      // );
-      // await tester.pumpAndSettle();
-      // expect(find.text('id-5'), findsOneWidget);
+      expect(baseUrl, '/page5/id-2/page52/id-3');
+      expect(routePath, '/page5/:page5ID/page52/:page52ID');
+      expect(pathParams, {'page5ID': 'id-2', 'page52ID': 'id-3'});
+      //
+      await navigateAndExpect('id-4');
+      _navigator.to(
+        baseUrl + '/id-5/',
+        arguments: 'id-5',
+        queryParams: {
+          'queryId': 'id-6',
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('id-5'), findsOneWidget);
 
-      // // expect(baseUrl, '/page5/id-2/page52/id-3');
-      // // expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
-      // // expect(pathParams,
-      // //     {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-4'});
-      // // expect(queryParams, {'queryId': 'id-6'});
+      expect(baseUrl, '/page5/id-2/page52/id-3');
+      expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
+      expect(pathParams,
+          {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-5'});
+      expect(queryParams, {'queryId': 'id-6'});
 
-      // RM.navigate.toNamed('/', arguments: '/');
-      // RM.navigate.toNamed('/page1/', arguments: '/page1');
-      // RM.navigate.toNamed('page11/', arguments: 'page11');
-      // RM.navigate.toNamed('page112/page1122', arguments: 'page112/page1122');
-      // await tester.pumpAndSettle();
-      // expect(find.text('page112/page1122'), findsOneWidget);
-      // //
-      // RM.navigate.back();
-      // await tester.pumpAndSettle();
-      // expect(find.text('page11'), findsOneWidget);
-      // RM.navigate.back();
-      // await tester.pumpAndSettle();
-      // expect(find.text('/page1'), findsOneWidget);
-      // RM.navigate.back();
-      // await tester.pumpAndSettle();
-      // expect(find.text('/'), findsOneWidget);
+      _navigator.to('/', arguments: '/');
+      _navigator.to('/page1/', arguments: '/page1');
+      _navigator.to('page11/', arguments: 'page11');
+      _navigator.to('page112/page1122', arguments: 'page112/page1122');
+      await tester.pumpAndSettle();
+      expect(find.text('page112/page1122'), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('page11'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
     },
   );
 
@@ -883,52 +903,55 @@ void main() {
 
       final routes = {
         '/': home,
-        '/page1': (_) => RouteWidget(
-              builder: (child) {
-                return getSubRoute
-                    ? Builder(
-                        builder: (context) {
-                          assert(child == context.routeWidget);
-                          return context.routeWidget;
-                        },
-                      )
-                    : page1('/page1');
-              },
-              routes: {
-                '/page12': (_) {
-                  return Builder(
-                    builder: (context) {
-                      return page12(_.arguments);
-                    },
-                  );
-                },
-                '/page11': (_) => RouteWidget(
-                      routes: {
-                        '/': (_) => Builder(
-                              builder: (context) {
-                                return page11(context.routeArguments);
-                              },
-                            ),
-                        '/page111': (_) => page111(_.arguments),
-                        '/page112': (_) {
-                          return RouteWidget(
-                            builder: (_) => getSubRoute
-                                ? Builder(
-                                    builder: (context) {
-                                      return context.routeWidget;
-                                    },
-                                  )
-                                : page112('/page112'),
-                            routes: {
-                              '/page1121': (_) => page1121(_.arguments),
-                              '/page1122': (_) => page1122(_.arguments),
-                            },
-                          );
-                        },
+        '/page1': (_) {
+          return RouteWidget(
+            builder: (child) {
+              return getSubRoute
+                  ? Builder(
+                      builder: (context) {
+                        assert(child == context.routeWidget);
+                        return context.routeWidget;
                       },
-                    ),
+                    )
+                  : page1('/page1');
+            },
+            routes: {
+              '/page12': (_) {
+                return Builder(
+                  builder: (context) {
+                    return page12(_.arguments);
+                  },
+                );
               },
-            ),
+              '/page11': (_) => RouteWidget(
+                    builder: (_) => _,
+                    routes: {
+                      '/': (_) => Builder(
+                            builder: (context) {
+                              return page11(context.routeArguments);
+                            },
+                          ),
+                      '/page111': (_) => page111(_.arguments),
+                      '/page112': (_) {
+                        return RouteWidget(
+                          builder: (_) => getSubRoute
+                              ? Builder(
+                                  builder: (context) {
+                                    return context.routeWidget;
+                                  },
+                                )
+                              : page112('/page112'),
+                          routes: {
+                            '/page1121': (_) => page1121(_.arguments),
+                            '/page1122': (_) => page1122(_.arguments),
+                          },
+                        );
+                      },
+                    },
+                  ),
+            },
+          );
+        },
         '/page2': (_) => Builder(
               builder: (context) {
                 return context.routeWidget;
@@ -941,22 +964,22 @@ void main() {
       expect(find.text('/'), findsOneWidget);
 
       Future navigateAndExpect(String name, [bool isFound = true]) async {
-        RM.navigate.toNamed(name, arguments: name);
+        _navigator.to(name, arguments: name);
         await tester.pumpAndSettle();
         if (isFound) {
           expect(find.text(name), findsOneWidget);
         }
       }
 
-      RM.navigate.toNamed('page1/page12', arguments: 'page1/page12');
+      _navigator.to('page1/page12', arguments: 'page1/page12');
       await tester.pumpAndSettle();
       expect(find.text('/page1'), findsOneWidget);
 
       getSubRoute = true;
       //TODO check pushing the same route more than once,
-      await navigateAndExpect('page1/page12', false);
+      await navigateAndExpect('page1/page11');
 
-      await navigateAndExpect('page1/page11', true);
+      await navigateAndExpect('page1/page12');
 
       await navigateAndExpect('page1/page11/page112', false);
       expect(find.text('404 /page1/page11/page112'), findsOneWidget);
@@ -1005,9 +1028,9 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(tester.takeException(), isAssertionError);
-      // RM.navigate.toNamed('/page1');
-      // await tester.pump();
-      // expect(tester.takeException(), isAssertionError);
+      _navigator.to('/page1');
+      await tester.pump();
+      expect(tester.takeException(), isAssertionError);
     },
   );
 
@@ -1044,15 +1067,15 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text('builder/'), findsOneWidget);
       //
-      RM.navigate.toNamed('/page1');
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('builder/page1'), findsOneWidget);
+
+      _navigator.to('/page1/page11');
       await tester.pumpAndSettle();
       expect(find.text('builder/page1'), findsOneWidget);
       //
-      RM.navigate.toNamed('/page1/page11');
-      await tester.pumpAndSettle();
-      expect(find.text('builder/page1'), findsOneWidget);
-      //
-      RM.navigate.toNamed('/page1/notFound');
+      _navigator.to('/page1/notFound');
       await tester.pumpAndSettle();
       expect(find.text('builder/page1'), findsOneWidget);
     },
@@ -1061,73 +1084,196 @@ void main() {
   testWidgets(
     'context.routeBaseUrl get the right value',
     (tester) async {
-      String? path1;
-      String? path2;
-      String? path3;
+      RouteData? data1;
+      RouteData? data2;
+      RouteData? data3;
       final Map<String, Widget Function(RouteData)> routes = {
-        '/page1/:id': (data) => RouteWidget(
-              builder: (route) {
-                final id = data.pathParams['id'];
-                return Column(
-                  children: [
-                    Text('page1/$id'),
-                    Builder(builder: (context) {
-                      path1 = context.routeBaseUrl;
-                      return route;
-                    }),
-                  ],
-                );
-              },
-              routes: {
-                '/': (data) => RouteWidget(
-                      builder: (route) {
-                        return Builder(
-                          builder: (context) {
-                            path2 = context.routeBaseUrl;
-                            return context.routeWidget;
-                          },
-                        );
-                      },
-                      routes: {
-                        '/': (data) {
-                          return Text('page1/' + data.pathParams['id']!);
-                        },
-                        '/page11/:user': (data) => RouteWidget(
-                              builder: (route) {
-                                return Builder(
-                                  builder: (context) {
-                                    path3 = context.routeBaseUrl;
-                                    return context.routeWidget;
-                                  },
-                                );
-                              },
-                              routes: {
-                                '/': (data) =>
-                                    Text('page11/' + data.pathParams['user']!),
-                              },
-                            ),
+        '/page1/:id': (data) {
+          return RouteWidget(
+            builder: (route) {
+              final id = data.pathParams['id'];
+              return Column(
+                children: [
+                  Text('page1/$id'),
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        data1 = context.routeData;
+                        // assert(data1.toString() == data.toString());
+                        return route;
                       },
                     ),
+                  ),
+                ],
+              );
+            },
+            routes: {
+              '/': (data) {
+                return RouteWidget(
+                  builder: (route) {
+                    return Builder(
+                      builder: (context) {
+                        data2 = context.routeData;
+                        // assert(data2.toString() == data.toString());
+                        return context.routeWidget;
+                      },
+                    );
+                  },
+                  routes: {
+                    '/': (data) {
+                      return Text('page1/' + data.pathParams['id']!);
+                    },
+                    '/page11/:user': (data) {
+                      return RouteWidget(
+                        builder: (route) {
+                          return Builder(
+                            builder: (context) {
+                              data3 = context.routeData;
+                              // assert(data3.toString() == data.toString());
+                              return context.routeWidget;
+                            },
+                          );
+                        },
+                        routes: {
+                          '/': (data) {
+                            return Text('page11/' + data.pathParams['user']!);
+                          },
+                        },
+                      );
+                    },
+                  },
+                );
               },
-            ),
+            },
+          );
+        },
+        '/page2/:id': (data) {
+          return RouteWidget(
+            routes: {
+              '/': (data) {
+                return RouteWidget(
+                  routes: {
+                    '/': (data) {
+                      return Builder(
+                        builder: (context) {
+                          data1 = context.routeData;
+                          data2 = context.routeData;
+                          // assert(data1.toString() == data.toString());
+                          // assert(data2.toString() == data.toString());
+                          return Text('page2/' + data.pathParams['id']!);
+                        },
+                      );
+                    },
+                    '/page21/:user': (data) => RouteWidget(
+                          routes: {
+                            '/': (data) => Builder(
+                                  builder: (context) {
+                                    data3 = context.routeData;
+                                    // assert(data3.toString() == data.toString());
+                                    return Text(
+                                        'page21/' + data.pathParams['user']!);
+                                  },
+                                ),
+                          },
+                        )
+                  },
+                );
+              },
+            },
+          );
+        },
       };
 
       final widget = _TopWidget(routers: routes);
       await tester.pumpWidget(widget);
+
+      await tester.pumpWidget(widget);
       expect(find.text('404 /'), findsOneWidget);
 
-      RM.navigate.toNamed('/page1/1');
+      _navigator.to('/page1/1');
       await tester.pumpAndSettle();
       expect(find.text('page1/1'), findsNWidgets(2));
-      expect(path1, '/');
-      expect(path2, '/page1/1');
-      expect(path3, null);
+      expect(data1!.baseLocation, '/');
+      expect(data1!.location, '/page1/1');
+      expect(data2!.baseLocation, '/');
+      expect(data2!.location, '/page1/1');
+      expect(data3, null);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      data1 = data2 = data3 = null;
+      _navigator.to('/page1/1/');
+      await tester.pumpAndSettle();
+      expect(find.text('page1/1'), findsNWidgets(2));
+      expect(data1!.baseLocation, '/page1/1');
+      expect(data1!.location, '/page1/1');
+      expect(data2!.baseLocation, '/page1/1');
+      expect(data2!.location, '/page1/1');
+      expect(data3, null);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      data1 = data2 = data3 = null;
+      _navigator.to('/page1/1/page11/user1');
+      await tester.pumpAndSettle();
+      expect(data1!.baseLocation, '/page1/1');
+      expect(data1!.location, '/page1/1');
+      expect(data2!.baseLocation, '/page1/1');
+      expect(data2!.location, '/page1/1/page11/user1');
+      expect(data3!.baseLocation, '/page1/1');
+      expect(data3!.location, '/page1/1/page11/user1');
+      _navigator.back();
+      await tester.pumpAndSettle();
+      data1 = data2 = data3 = null;
+      _navigator.to('/page1/1/page11/user1/');
+      await tester.pumpAndSettle();
+      expect(data1!.baseLocation, '/page1/1');
+      expect(data1!.location, '/page1/1');
+      expect(data2!.baseLocation, '/page1/1/page11/user1');
+      expect(data2!.location, '/page1/1/page11/user1');
+      expect(data3!.baseLocation, '/page1/1/page11/user1');
+      expect(data3!.location, '/page1/1/page11/user1');
 
-      // RM.navigate.toNamed('/page1/1/page11/user1');
-      // await tester.pumpAndSettle();
-      // expect(path1, '/');
-      // expect(path2, '/page1/1');
-      // expect(path3, '/page1/1');
+      data1 = data2 = data3 = null;
+      _navigator.to('/page2/1');
+      await tester.pumpAndSettle();
+      expect(find.text('page2/1'), findsNWidgets(1));
+      expect(data1!.baseLocation, '/');
+      expect(data1!.location, '/page2/1');
+      expect(data2!.baseLocation, '/');
+      expect(data2!.location, '/page2/1');
+      expect(data3, null);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      data1 = data2 = data3 = null;
+      _navigator.to('/page2/1/');
+      await tester.pumpAndSettle();
+      expect(find.text('page2/1'), findsNWidgets(1));
+      expect(data1!.baseLocation, '/page2/1');
+      expect(data1!.location, '/page2/1');
+      expect(data2!.baseLocation, '/page2/1');
+      expect(data2!.location, '/page2/1');
+      expect(data3, null);
+      //
+      data1 = data2 = data3 = null;
+      _navigator.to('/page2/1/page21/user1');
+      await tester.pumpAndSettle();
+      expect(data1, null);
+      expect(data2, null);
+      expect(data3!.baseLocation, '/page2/1');
+      expect(data3!.location, '/page2/1/page21/user1');
+
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      data1 = data2 = data3 = null;
+      _navigator.to('/page2/1/page21/user1/');
+      await tester.pumpAndSettle();
+      expect(data1, null);
+      expect(data2, null);
+      expect(data3!.baseLocation, '/page2/1/page21/user1');
+      expect(data3!.location, '/page2/1/page21/user1');
     },
   );
   testWidgets(
@@ -1165,35 +1311,2273 @@ void main() {
 
       await tester.pumpWidget(widget);
       expect(find.text('404 /'), findsOneWidget);
-      RM.navigate.toNamed('/page1/notFound');
+      _navigator.to('/page1/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page1/notFound'), findsOneWidget);
       //
-      RM.navigate.toNamed('/page2/notFound');
+      _navigator.to('/page2/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page2/notFound'), findsOneWidget);
       //
-      RM.navigate.toNamed('/page3/notFound');
+      _navigator.to('/page3/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page3/notFound'), findsOneWidget);
-      RM.navigate.toNamed('/page3/page31/notFound');
+      _navigator.to('/page3/page31/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page3/page31/notFound'), findsOneWidget);
       //
-      RM.navigate.toNamed('/page4/notFound');
+      _navigator.to('/page4/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page4/notFound'), findsOneWidget);
-      RM.navigate.toNamed('/page4/page41/notFound');
+      _navigator.to('/page4/page41/notFound');
       await tester.pumpAndSettle();
       expect(find.text('404 /page4/page41/notFound'), findsOneWidget);
     },
   );
-}
-/*
- RoutePage(
-  routes: {
-    '/': (_)=> page1(_),
-  },
-)
 
-*/
+  testWidgets(
+    'Check we get the right baseUrl',
+    (tester) async {
+      RouteData? routeData;
+      final routes = {
+        '/': (data) => Text('/'),
+        '/page1': (data) => RouteWidget(
+              builder: (r) {
+                return r;
+              },
+              routes: {
+                '/': (d) {
+                  return Builder(
+                    builder: (context) {
+                      routeData = d;
+                      final ctxData = context.routeData;
+                      assert(routeData == ctxData);
+                      return Text('/page1');
+                    },
+                  );
+                },
+                '/page11': (d) {
+                  return Builder(
+                    builder: (context) {
+                      routeData = d;
+                      final ctxData = context.routeData;
+                      assert(routeData == ctxData);
+                      return Text('/page1/page11');
+                    },
+                  );
+                },
+              },
+            ),
+        '/page2/:id': (_) => RouteWidget(
+              builder: (r) {
+                return r;
+              },
+              routes: {
+                '/': (d) {
+                  return Builder(
+                    builder: (context) {
+                      routeData = d;
+                      final ctxData = context.routeData;
+                      assert(routeData == ctxData);
+                      return Text('/page2: id=' + ctxData.pathParams['id']!);
+                    },
+                  );
+                },
+                '/page21': (d) {
+                  return Builder(
+                    builder: (context) {
+                      routeData = d;
+                      final ctxData = context.routeData;
+                      assert(routeData == ctxData);
+                      return Text(
+                          '/page2/1/page21: id=' + ctxData.pathParams['id']!);
+                    },
+                  );
+                },
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+
+      await tester.pumpWidget(widget);
+      // expect(RouterObjects.routerDelegates.length, 1);
+      // expect(
+      //     RouterObjects.routerDelegates.containsKey(RouterObjects.root), true);
+      // //
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/');
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.containsKey('/page1'), true);
+      routeData = null;
+      _navigator.to('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page1');
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.containsKey('/page1'), true);
+      routeData = null;
+      _navigator.to('/page1/');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page1');
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.containsKey('/page1'), true);
+      routeData = null;
+      _navigator.to('/page1/page11/');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page1');
+      expect(find.text('/page1/page11'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.containsKey('/page1'), true);
+      //
+      routeData = null;
+      _navigator.to('/page2/1');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/');
+      expect(find.text('/page2: id=1'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 3);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), true);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page2: id=1'), findsNothing);
+      expect(find.text('/page1/page11'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), false);
+      routeData = null;
+      _navigator.to('/page2/1/');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page2/1');
+      expect(find.text('/page2: id=1'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 3);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), true);
+      //
+      routeData = null;
+      _navigator.to('/page2/1/page21');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page2/1');
+      expect(find.text('/page2/1/page21: id=1'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 3);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), true);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      // expect(RouterObjects.routerDelegates.length, 3);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), true);
+      routeData = null;
+      _navigator.to('/page2/1/page21/');
+      await tester.pumpAndSettle();
+      expect(routeData!.baseLocation, '/page2/1');
+      _navigator.to('/page2/1/page21/');
+      // expect(RouterObjects.routerDelegates.length, 3);
+      // expect(RouterObjects.routerDelegates.containsKey('/page2/1'), true);
+    },
+  );
+
+  testWidgets(
+    'WHEN the same route is pushed twice'
+    'THEN the new route is ignored',
+    (tester) async {
+      final routes = {
+        '/': (_) {
+          return Builder(
+            builder: (context) {
+              return Text('/');
+            },
+          );
+        },
+        '/page1': (_) => Text('/page1'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.to('/');
+      await tester.pumpAndSettle();
+      //
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      _navigator.to('/');
+      await tester.pumpAndSettle();
+      _navigator.to('/');
+      await tester.pumpAndSettle();
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'when back is called it will resolves the future and returns the result'
+    'case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) {
+          return Builder(
+            builder: (context) {
+              return Text('/');
+            },
+          );
+        },
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page2'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      dynamic message;
+      _navigator.to('/page1').then((value) {
+        return message = '$value page1';
+      });
+
+      await tester.pumpAndSettle();
+      expect(message, null);
+      _navigator.to('page2').then((value) {
+        return message = '$value page2';
+      });
+      await tester.pumpAndSettle();
+      _navigator.to('page3');
+      await tester.pumpAndSettle();
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, null);
+      //
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, 'message from page2');
+      //
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, 'message from page1');
+      //
+      message = null;
+      _navigator.to('/page1').then((value) {
+        return message = '$value page1';
+      });
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      _navigator.toReplacement('/page2', result: 'message from').then((value) {
+        return message = '$value page2';
+      });
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(message, 'message from page1');
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(message, 'message from page2');
+      //
+    },
+  );
+  testWidgets(
+    'when back is called it will resolves the future and returns the result'
+    'case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) {
+          return Builder(
+            builder: (context) {
+              return Text('/');
+            },
+          );
+        },
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      dynamic message;
+      _navigator.to('/page1').then((value) {
+        return message = '$value page1';
+      });
+
+      await tester.pumpAndSettle();
+      expect(message, null);
+      _navigator.to('page2').then((value) {
+        return message = '$value page2';
+      });
+      await tester.pumpAndSettle();
+      _navigator.to('page3');
+      await tester.pumpAndSettle();
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, null);
+      //
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, 'message from page2');
+      //
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(message, 'message from page1');
+      //
+      message = null;
+      _navigator.to('/page1').then((value) {
+        return message = '$value page1';
+      });
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      _navigator.toReplacement('/page2', result: 'message from').then((value) {
+        return message = '$value page2';
+      });
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(message, 'message from page1');
+      _navigator.back('message from');
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(message, 'message from page2');
+      //
+    },
+  );
+
+  testWidgets(
+    'Check backUntil'
+    'Case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page3'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      _navigator.to('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      //
+      _navigator.backUntil('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.backUntil('/404');
+      await tester.pumpAndSettle();
+      // expect(RouterObjects.routerDelegates.length, 1);
+      // expect(RouterObjects.routerDelegates.keys, ['/RoOoT']);
+    },
+  );
+  testWidgets(
+    'Check backUntil'
+    'Case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      dynamic message;
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      _navigator.to('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      //
+      _navigator.backUntil('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.keys, ['/RoOoT', '/page1']);
+      //
+      _navigator.backUntil('/404');
+      await tester.pumpAndSettle();
+      // expect(RouterObjects.routerDelegates.length, 2);
+      // expect(RouterObjects.routerDelegates.keys, ['/RoOoT', '/page1']);
+    },
+  );
+
+  testWidgets(
+    'Check toReplacement'
+    'Case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page3'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      _navigator.toReplacement('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      //
+    },
+  );
+  testWidgets(
+    'Check toReplacement'
+    'Case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+                '/page21': (_) => Text('/page21'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2/page21');
+      await tester.pumpAndSettle();
+      _navigator.toReplacement('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      //
+    },
+  );
+
+  testWidgets(
+    'Check toNamedAndRemoveUntil'
+    'Case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page3'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      _navigator.toAndRemoveUntil('/page3', untilRouteName: '/');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 2);
+      //
+    },
+  );
+  testWidgets(
+    'Check toNamedAndRemoveUntil with no untilRoute'
+    'Case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page3'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      _navigator.toAndRemoveUntil('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
+      // expect(
+      //     RouterObjects.routerDelegates[RouterObjects.root]!.values.last
+      //         .routeStack.first.name,
+      //     '/page3');
+      //
+    },
+  );
+
+  testWidgets(
+    'Check toNamedAndRemoveUntil'
+    'Case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+                '/page21': (_) => Text('/page21'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      // expect(RouterObjects.routerDelegates.length, 3);
+      _navigator.toAndRemoveUntil('/page3', untilRouteName: '/');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      // expect(RouterObjects.routerDelegates.length, 2);
+      //
+    },
+  );
+
+  testWidgets(
+    'Check toNamedAndRemoveUntil with no untilRoute'
+    'Case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+                '/page21': (_) => Text('/page21'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      _navigator.toAndRemoveUntil('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
+      // expect(
+      //     RouterObjects.routerDelegates[RouterObjects.root]!.values.last
+      //         .routeStack.first.name,
+      //     '/page3');
+    },
+  );
+
+  testWidgets(
+    'WHEN a dialog is pushed and back is invoked'
+    'THEN the dialog is popped'
+    'case without sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => Text('/page1'),
+        '/page2': (_) => Text('/page2'),
+        '/page3': (_) => Text('/page3'),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      RM.navigate.toDialog(AboutDialog());
+      await tester.pumpAndSettle();
+      expect(find.byType(AboutDialog), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(AboutDialog), findsNothing);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'WHEN a dialog is pushed and back is invoked'
+    'THEN the dialog is popped'
+    'case with sub routes',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page2'),
+                '/page21': (_) => Text('/page21'),
+              },
+            ),
+        '/page3': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page3'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      _navigator.to('/page2/page21');
+      await tester.pumpAndSettle();
+      expect(find.text('/page21'), findsOneWidget);
+      RM.navigate.toDialog(AboutDialog());
+      await tester.pumpAndSettle();
+      expect(find.byType(AboutDialog), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page21'), findsOneWidget);
+      expect(find.byType(AboutDialog), findsNothing);
+
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test setRouteStack',
+    (tester) async {
+      final widget = _TopWidget(
+        routers: {
+          '/': (_) => Text('/'),
+          '/page1': (_) => Text('/page1${_.arguments}${_.queryParams['id']}'),
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.setRouteStack((pages) => [
+            ...pages,
+            PageSettings(
+              name: '/page1',
+              arguments: 'arg',
+              queryParams: const {'id': '1'},
+            ),
+            PageSettings(
+              name: 'new-page',
+              child: Text('New page'),
+            ),
+          ]);
+      await tester.pumpAndSettle();
+      expect(find.text('New page'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1arg1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      //
+      _navigator.setRouteStack(
+        (pages) => pages.to(
+          '/page1',
+          arguments: 'arg',
+          queryParams: const {'id': '1'},
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page1arg1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      //
+      _navigator.setRouteStack(
+        (pages) {
+          final p = pages.to(
+            '/page1',
+            arguments: 'arg',
+            queryParams: const {'id': '1'},
+          );
+          return p..add(PageSettings(name: '/name', child: Text('/name')));
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/name'), findsOneWidget);
+      _navigator.setRouteStack(
+        (pages) => pages.to(
+          '/page1',
+          isStrickMode: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page1nullnull'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      //
+    },
+  );
+
+  testWidgets(
+    'Global base url is updated when back is called'
+    'THEN',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              builder: (_) => _,
+              routes: {
+                '/': (_) => Text('/page1'),
+                '/page11': (_) => Text('/page11'),
+              },
+            ),
+      };
+      final widget = _TopWidget(routers: routes);
+      await tester.pumpWidget(widget);
+      expect(ResolvePathRouteUtil.globalBaseUrl, '/');
+      _navigator.to('/page1/');
+      await tester.pumpAndSettle();
+      expect(ResolvePathRouteUtil.globalBaseUrl, '/page1');
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(ResolvePathRouteUtil.globalBaseUrl, '/');
+    },
+  );
+
+  testWidgets(
+    'RouteInformationParser work as expected',
+    (tester) async {
+      StatesRebuilerLogger.isTestMode = false;
+      final routes = {
+        '/': (_) {
+          return Text('/');
+        },
+        '/page1': (_) {
+          return RouteWidget(
+            builder: (_) => Builder(builder: (context) {
+              return _;
+            }),
+            routes: {
+              '/': (_) {
+                return Text('/page1');
+              },
+              '/page11': (_) {
+                return Text('/page11-${_.queryParams['q']}');
+              },
+            },
+          );
+        },
+        '/page2': (_) {
+          return RouteWidget(
+            builder: (_) => Builder(builder: (context) {
+              return _;
+            }),
+            routes: {
+              '/': (_) {
+                return Text('/page2-${_.queryParams['q']}');
+              },
+            },
+          );
+        },
+      };
+
+      _provider = SimpleRouteInformationProvider();
+
+      _provider!.value = const RouteInformation(
+        location: '/',
+      );
+      final widget = _TopWidget(
+        routers: routes,
+        debugPrintWhenRouted: true,
+        routeInterceptor: (data) {
+          if (data.queryParams['q'] == '10') {
+            return data.redirectTo('/page1/page11?q=1');
+          }
+          if (data.queryParams['q'] == '15') {
+            return data.redirectTo('/page2?q=1');
+          }
+        },
+      );
+      await tester.pumpWidget(widget);
+
+      //
+      expect(find.text('/'), findsOneWidget);
+      expect(informationParser!.info!.location, '/');
+      expect(StatesRebuilerLogger.message.endsWith('DeepLink to: /'), true);
+      //
+      _provider!.value = const RouteInformation(
+        location: '/page1/page11',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-null'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11');
+      expect(
+        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11'),
+        true,
+      );
+
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1');
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(informationParser!.info!.location, '/');
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+
+      _provider!.value = const RouteInformation(
+        location: '/page1/page11?q=1',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-1'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11?q=1');
+      expect(
+        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        true,
+      );
+
+      _navigator.to('/page1/page11?q=2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-2'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11?q=2');
+      expect(
+        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        true,
+      );
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-1'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11?q=1');
+      expect(
+          StatesRebuilerLogger.message.endsWith('Back to: /page1/page11?q=1'),
+          true);
+
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1');
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(informationParser!.info!.location, '/');
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+
+      _navigator.to('/page1/page11?q=1');
+      await tester.pumpAndSettle();
+      expect(
+        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=1'),
+        true,
+      );
+      _navigator.to('/page1/page11?q=2');
+      await tester.pumpAndSettle();
+      expect(
+        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        true,
+      );
+      _navigator.to('/page1/page11?q=3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-3'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11?q=3');
+      expect(
+        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=3'),
+        true,
+      );
+      //
+      _provider!.value = const RouteInformation(
+        location: '/page1/page11?q=2',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page11-2'), findsOneWidget);
+      expect(informationParser!.info!.location, '/page1/page11?q=2');
+      expect(
+        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=2'),
+        true,
+      );
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+
+      _provider!.value = const RouteInformation(
+        location: '/page1/page11?q=10',
+      );
+      await tester.pumpAndSettle();
+      expect(informationParser!.info!.location, '/page1/page11?q=1');
+      expect(find.text('/page11-1'), findsOneWidget);
+      expect(
+        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        true,
+      );
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+
+      _provider!.value = const RouteInformation(
+        location: '/page2?q=15',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page2-1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test pageBuilder',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/login': (_) => Text('/login'),
+      };
+      bool useCupertino = true;
+      final widget = _TopWidget(
+        routers: routes,
+        pageBuilder: (arg) {
+          if (useCupertino) {
+            return CupertinoPage(
+              child: arg.child,
+              arguments: arg.arguments,
+              fullscreenDialog: arg.fullscreenDialog,
+              key: arg.key,
+              maintainState: arg.maintainState,
+              name: arg.name,
+              title: arg.name,
+            );
+          }
+          return _MyPage(
+            name: arg.name,
+            key: arg.key,
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(
+          (_navigator.routerDelegate as RouterDelegateImp).pages.last
+              is CupertinoPage,
+          true);
+      useCupertino = false;
+      _navigator.to('/login');
+      await tester.pumpAndSettle();
+      expect(find.text('_myPage'), findsOneWidget);
+      expect(
+          (_navigator.routerDelegate as RouterDelegateImp).pages.last
+              is _MyPage,
+          true);
+    },
+  );
+
+  testWidgets(
+    'test onBack',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/form': (_) => Text('/form'),
+        '/page1': (_) => Text('/page1'),
+      };
+      bool isFormDirty = true;
+      bool showDialog = false;
+      bool showOtherDialog = false;
+      final widget = _TopWidget(
+        routers: routes,
+        onBack: (data) {
+          if (data.location == '/form' && isFormDirty) {
+            if (showDialog) {
+              RM.navigate.toDialog(
+                AlertDialog(content: Text('')),
+                postponeToNextFrame: true,
+              );
+            }
+
+            RM.scaffold.showSnackBar(SnackBar(content: Text('')));
+            return false;
+          }
+          if (showOtherDialog) {
+            RM.navigate.toBottomSheet(
+              Text('toBottomSheet'),
+              postponeToNextFrame: true,
+            );
+
+            RM.navigate.toCupertinoDialog(
+              Text('toCupertinoDialog'),
+              postponeToNextFrame: true,
+            );
+            RM.navigate.toCupertinoModalPopup(
+              Text('toCupertinoModalPopup'),
+              postponeToNextFrame: true,
+            );
+          }
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.to('/form');
+      await tester.pumpAndSettle();
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/form'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/form'), findsOneWidget);
+      showDialog = true;
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      isFormDirty = false;
+      showDialog = false;
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/form'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      showOtherDialog = true;
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('toBottomSheet'), findsOneWidget);
+      expect(find.text('toCupertinoDialog'), findsOneWidget);
+      expect(find.text('toCupertinoModalPopup'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Text back button'
+    'THEN',
+    (tester) async {
+      final routes = {
+        '/': (_) => Text('/'),
+        '/page1': (_) => RouteWidget(
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+        '/page2': (_) => Text('/page2'),
+      };
+      final widget = _TopWidget(
+        routers: routes,
+        debugPrintWhenRouted: true,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      //TODO check whether should exit app here
+    },
+  );
+
+  group(
+    'redirect',
+    () {
+      testWidgets(
+        'test cyclic redirect infinite loop',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/': (_) => Text('/'),
+            '/page1': (_) => Text('/page1'),
+            '/page2': (_) => Text('/page2'),
+            '/page3': (_) => Text('/page3'),
+            '/page4': (_) => _.redirectTo('/page5'),
+            '/page5': (_) => Text('/page3'),
+            '/page6': (_) => Text('/page6'),
+            '/page7': (_) => RouteWidget(
+                  routes: {
+                    '/': (_) => _.redirectTo('page7/0'),
+                    '/:id': (_) => Text('/page7/${_.pathParams['id']}'),
+                  },
+                ),
+            '/page8': (_) => _.redirectTo('page8/0'),
+            '/page8/:id': (_) => Text('/page8/${_.pathParams['id']}'),
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              if (data.location == '/') {
+                return data.redirectTo('/');
+              }
+              if (data.location == '/page1') {
+                return data.redirectTo('/page2');
+              }
+              if (data.location == '/page2') {
+                return data.redirectTo('/page3');
+              }
+              if (data.location == '/page3') {
+                return data.redirectTo('/page1');
+              }
+              if (data.location == '/page5') {
+                return data.redirectTo('/page4');
+              }
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('404 Infinite redirect loop: /'), findsOneWidget);
+
+          _navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(
+              find.text('404 Infinite redirect loop: /page1'), findsOneWidget);
+          //
+          _navigator.to('/page4');
+          await tester.pumpAndSettle();
+          expect(
+              find.text('404 Infinite redirect loop: /page4'), findsOneWidget);
+
+          _navigator.to('/page6');
+          await tester.pumpAndSettle();
+          expect(find.text('/page6'), findsOneWidget);
+          //
+          _navigator.to('/unknown');
+          await tester.pumpAndSettle();
+          expect(find.text('404 /unknown'), findsOneWidget);
+          _navigator.to('/page7/10');
+          await tester.pumpAndSettle();
+          expect(find.text('/page7/10'), findsOneWidget);
+          //
+          _navigator.to('/page8/10');
+          await tester.pumpAndSettle();
+          expect(find.text('/page8/10'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'Test global redirect with navigation on data of an other state'
+        'THEN',
+        (tester) async {
+          final isLogged = RM.inject<bool>(
+            () => false,
+            sideEffects: SideEffects.onData(
+              (data) {
+                if (!data) {
+                  _navigator.toAndRemoveUntil('/login');
+                } else {
+                  _navigator.toAndRemoveUntil('/');
+                }
+              },
+            ),
+          );
+          final routes = {
+            '/': (_) => Text('/'),
+            '/login': (_) => Text('/login'),
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            routeInterceptor: (data) {
+              if (!isLogged.state && data.location != '/login') {
+                return data.redirectTo('/login');
+              }
+
+              if (isLogged.state && data.location == '/login') {
+                return data.redirectTo('/');
+              }
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/login'), findsOneWidget);
+          isLogged.toggle();
+          await tester.pumpAndSettle();
+          expect(find.text('/'), findsOneWidget);
+          //
+          isLogged.toggle();
+          await tester.pumpAndSettle();
+          expect(find.text('/login'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'Text global redirection',
+        (tester) async {
+          final routes = {
+            '/': (_) => Text('Not reached'),
+            '/home': (_) => Text('/home'),
+            '/home1': (_) => Text('/home1'),
+            '/home2': (_) => Text('/home2'),
+            '/home3': (_) => Text('Not reached'),
+            '/home4': (_) => Text('Not reached'),
+            '/home5': (_) => Text('Not reached'),
+            '/page1': (_) => RouteWidget(
+                  builder: (_) => Builder(builder: (context) {
+                    return _;
+                  }),
+                  routes: {
+                    '/': (_) => Text('/page1'),
+                    '/page11': (_) => Text('/page11'),
+                  },
+                ),
+            '/page2': (_) => RouteWidget(
+                  builder: (_) => Builder(builder: (context) {
+                    return _;
+                  }),
+                  routes: {
+                    '/': (_) => Text('/page2'),
+                    '/page21': (_) => Text('/page21'),
+                  },
+                ),
+          };
+
+          _provider = SimpleRouteInformationProvider();
+
+          _provider!.value = const RouteInformation(
+            location: '/',
+          );
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              if (data.location == '/') {
+                return data.redirectTo('/home');
+              }
+
+              if (data.location == '/home3') {
+                return data.redirectTo(null);
+              }
+              if (data.location == '/home4') {
+                return data.redirectTo('/');
+              }
+              if (data.location == '/home5') {
+                return data.redirectTo('/page1');
+              }
+              if (data.location == '/page2') {
+                return data.redirectTo('/');
+              }
+              if (data.location == '/page1/page11') {
+                return data.redirectTo('/home');
+              }
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/home'), findsOneWidget);
+          expect(_navigator.routeData.redirectedFrom, '/');
+          _navigator.to('/home1');
+          await tester.pumpAndSettle();
+          expect(find.text('/home1'), findsOneWidget);
+          _navigator.to('/home2');
+          await tester.pumpAndSettle();
+          expect(find.text('/home2'), findsOneWidget);
+
+          _navigator.to('/home3');
+          await tester.pumpAndSettle();
+          expect(find.text('/home2'), findsOneWidget);
+          expect(_navigator.routeData.redirectedFrom, null);
+
+          //
+          _navigator.to('/home4?q=1');
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+          expect(_navigator.routeData.redirectedFrom, '/home4?q=1');
+
+          // //
+          _navigator.to('/home5?q=1');
+          await tester.pumpAndSettle();
+          expect(find.text('/page1'), findsOneWidget);
+          expect(_navigator.routeData.redirectedFrom, '/home5?q=1');
+
+          _navigator.to('/page1/page11');
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+
+          _navigator.to('/page2?q=1');
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+          expect(_navigator.routeData.redirectedFrom, '/page2?q=1');
+          //
+          _navigator.toAndRemoveUntil('/');
+          await tester.pumpAndSettle();
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+
+          _provider!.value = const RouteInformation(
+            location: '/',
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+
+          _provider!.value = const RouteInformation(
+            location: '/home4',
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+          _provider!.value = const RouteInformation(
+            location: '/home5',
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('/page1'), findsOneWidget);
+          expect(informationParser!.info!.location, '/page1');
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('/home'), findsOneWidget);
+          expect(informationParser!.info!.location, '/home');
+        },
+      );
+
+      testWidgets(
+        'The default home route is redirected to another route',
+        (tester) async {
+          final widget = _TopWidget(
+            routers: {
+              '/': (_) {
+                return _.redirectTo('/page1');
+              },
+              '/page1': (_) => RouteWidget(
+                    builder: (_) => _,
+                    routes: {
+                      '/': (_) {
+                        return _.redirectTo(_.location + '/page11');
+                      },
+                      '/page11': (_) {
+                        return RouteWidget(
+                          routes: {
+                            '/': (_) {
+                              return _.redirectTo(_.location + '/page111');
+                            },
+                            '/page111': (_) {
+                              return Text('/page1');
+                            },
+                          },
+                        );
+                      },
+                    },
+                  ),
+            },
+            routeInterceptor: (data) {
+              data.log();
+              print('');
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/page1'), findsOneWidget);
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('/page1'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'WHEN sdf'
+        'THEN',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/': (_) {
+              return RouteWidget(
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/page1');
+                  },
+                  '/page1': (_) {
+                    return _.redirectTo('/page1/popular');
+                  },
+                  '/page1/:kind(all|popular)': (_) =>
+                      Text(_.pathParams['kind']!),
+                },
+              );
+            },
+            '/login': (data) => Text('login'),
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            initialRoute: '/login',
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              data.log();
+              print('');
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('login'), findsOneWidget);
+          _navigator.to('/');
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+          _navigator.to('/page1/all');
+          await tester.pumpAndSettle();
+          expect(find.text('all'), findsOneWidget);
+          _navigator.to('/');
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+          //
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('all'), findsOneWidget);
+          //
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+          //
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('login'), findsOneWidget);
+          //
+          _navigator.back();
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+        },
+      );
+      testWidgets(
+        'WHEN redirect is used inside a "/" routeWidget'
+        'THEN',
+        (tester) async {
+          bool isSignedIn = false;
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/signIn': (data) => Text('signIn'),
+            '/': (_) {
+              return RouteWidget(
+                builder: (_) {
+                  return Center(child: _);
+                },
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/books');
+                  },
+                  '/books': (_) {
+                    return RouteWidget(
+                      routes: {
+                        '/': (_) {
+                          return _.redirectTo('/books/popular');
+                        }
+                      },
+                    );
+                  },
+                  '/books/:kind(all|popular)': (_) =>
+                      Text(_.pathParams['kind']!),
+                },
+              );
+            }
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              final signingIn = data.location == '/signIn';
+
+              if (!isSignedIn && !signingIn) {
+                return data.redirectTo('/signIn');
+              } else if (isSignedIn && signingIn) {
+                return data.redirectTo('/books');
+              }
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('signIn'), findsOneWidget);
+          isSignedIn = true;
+          _navigator.to('/signIn');
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'WHEN redirect is used inside a "/" routeWidget with builder'
+        'THEN',
+        (tester) async {
+          bool isSignedIn = false;
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/signIn': (data) => Text('signIn'),
+            '/': (_) {
+              return RouteWidget(
+                builder: (_) {
+                  return Center(child: _);
+                },
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/books');
+                  },
+                  '/books': (_) {
+                    return RouteWidget(
+                      routes: {
+                        '/': (_) {
+                          return _.redirectTo('/books/popular');
+                        }
+                      },
+                    );
+                  },
+                  '/books/:kind(all|popular)': (_) =>
+                      Text(_.pathParams['kind']!),
+                },
+              );
+            }
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              final signingIn = data.location == '/signIn';
+              if (!isSignedIn && !signingIn) {
+                return data.redirectTo('/signIn');
+              } else if (isSignedIn && signingIn) {
+                return data.redirectTo('/books');
+              }
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('signIn'), findsOneWidget);
+          isSignedIn = true;
+          _navigator.to('/signIn');
+          await tester.pumpAndSettle();
+          expect(find.text('popular'), findsOneWidget);
+          expect(find.byType(Center), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'WHEN redirect form RouteWidget to an outside route',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/': (data) => Text('/'),
+            '/page1': (_) {
+              return RouteWidget(
+                builder: (_) {
+                  return Center(child: _);
+                },
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/books');
+                  },
+                },
+              );
+            },
+            // '/books': (data) {
+            //   return const Text('/books');
+            // },
+            '/books': (data) {
+              return RouteWidget(
+                builder: (_) {
+                  return SizedBox(child: _);
+                },
+                routes: {
+                  '/': (data) => const Text('/books'),
+                },
+              );
+            },
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              data.log();
+              print('');
+            },
+          );
+          await tester.pumpWidget(widget);
+          _navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.byType(Center), findsNothing);
+          expect(find.byType(SizedBox), findsOneWidget);
+          expect(find.text('/books'), findsOneWidget);
+        },
+      );
+      testWidgets(
+        'WHEN redirect form RouteWidget to an inside route',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/': (data) => Text('/'),
+            '/page1': (_) {
+              return RouteWidget(
+                builder: (_) {
+                  return Center(child: _);
+                },
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/page1/books');
+                  },
+                  '/books': (data) {
+                    // return const Text('/books');
+                    return RouteWidget(
+                      builder: (_) {
+                        return SizedBox(child: _);
+                      },
+                      routes: {
+                        '/': (data) => _.redirectTo('/page1/books/1'),
+                      },
+                    );
+                  },
+                  '/books/:id': (data) {
+                    // return const Text('/books');
+                    return RouteWidget(
+                      builder: (_) {
+                        return Container(child: _);
+                      },
+                      routes: {
+                        '/': (_) => Text('/books/${_.pathParams['id']}'),
+                      },
+                    );
+                  },
+                },
+              );
+            },
+          };
+          final widget = _TopWidget(
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              data.log();
+              print('');
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.byType(Container), findsNothing);
+          _navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.byType(Center), findsOneWidget);
+          expect(find.byType(SizedBox), findsNothing);
+          expect(find.byType(Container), findsOneWidget);
+          expect(find.text('/books/1'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'WHEN redirect form RouteWidget to an inside route (case "/")',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/signIn': (data) => const Text('/signIn'),
+            '/': (_) {
+              return RouteWidget(
+                builder: (_) {
+                  return Center(child: _);
+                },
+                routes: {
+                  '/': (_) {
+                    return _.redirectTo('/books');
+                  },
+                  '/books': (data) {
+                    // return const Text('/books');
+                    // return _.redirectTo('/books/1');
+                    return RouteWidget(
+                      builder: (_) {
+                        return SizedBox(child: _);
+                      },
+                      routes: {
+                        '/': (data) => _.redirectTo('/books/1'),
+                      },
+                    );
+                  },
+                  '/books/:id': (data) {
+                    // return const Text('/books');
+                    return RouteWidget(
+                      builder: (_) {
+                        return Container(child: _);
+                      },
+                      routes: {
+                        '/': (_) => Text('/books/${_.pathParams['id']}'),
+                      },
+                    );
+                  },
+                },
+              );
+            },
+          };
+          final widget = _TopWidget(
+            initialRoute: 'signIn',
+            routers: routes,
+            debugPrintWhenRouted: true,
+            routeInterceptor: (data) {
+              data.log();
+              print('');
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/signIn'), findsOneWidget);
+          _navigator.to('/');
+          await tester.pumpAndSettle();
+          expect(find.byType(Center), findsOneWidget);
+          expect(find.byType(Container), findsOneWidget);
+          expect(find.text('/books/1'), findsOneWidget);
+          //
+          _navigator.to('/books/2');
+          await tester.pumpAndSettle();
+          expect(find.byType(Center), findsOneWidget);
+          expect(find.byType(Container), findsOneWidget);
+          expect(find.text('/books/2'), findsOneWidget);
+          //
+          _navigator.to('/books');
+          await tester.pumpAndSettle();
+          expect(find.byType(Center), findsOneWidget);
+          expect(find.byType(Container), findsOneWidget);
+          expect(find.text('/books/1'), findsOneWidget);
+        },
+      );
+    },
+  );
+
+  testWidgets(
+    'WHEN RouteWidget with "/" only are nested '
+    'THEN it works ',
+    (tester) async {
+      final Map<String, Widget Function(RouteData)> routes = {
+        '/': (_) {
+          return RouteWidget(
+            routes: {
+              '/': (_) => RouteWidget(
+                    routes: {
+                      '/': (_) => RouteWidget(
+                            routes: {
+                              '/': (_) => Text('/'),
+                              '/page1': (_) => Text('/page1'),
+                            },
+                          ),
+                      //shadowed by the above route
+                      '/page1': (_) => Text('/page1-bis'),
+                      '/page2': (_) => RouteWidget(
+                            routes: {
+                              '/': (data) => Text('/page2'),
+                              '/page22': (data) => Text('/page22'),
+                            },
+                          ),
+                    },
+                  ),
+            },
+          );
+        },
+      };
+      final widget = _TopWidget(
+        routers: routes,
+        debugPrintWhenRouted: true,
+        routeInterceptor: (data) {},
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      _navigator.to('/page2/');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      _navigator.to('page22');
+      await tester.pumpAndSettle();
+      expect(find.text('/page22'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test delegateImplyLeadingToParent',
+    (tester) async {
+      final routes = {
+        '/': (data) => Text('/'),
+        '/page1': (data) => Scaffold(
+              appBar: AppBar(),
+              body: Text('/page1'),
+            ),
+        '/page2': (data) => RouteWidget(
+              routes: {
+                '/': (_) => Scaffold(
+                      appBar: AppBar(),
+                      body: Text('/page2'),
+                    ),
+              },
+            ),
+        '/page3': (data) => RouteWidget(
+              routes: {
+                '/': (_) => RouteWidget(
+                      routes: {
+                        '/': (_) => Scaffold(
+                              appBar: AppBar(),
+                              body: Text('/page3'),
+                            ),
+                      },
+                    ),
+              },
+            ),
+        '/page4': (data) => RouteWidget(
+              routes: {
+                '/': (_) => RouteWidget(
+                      delegateImplyLeadingToParent: false,
+                      routes: {
+                        '/': (_) => Scaffold(
+                              appBar: AppBar(),
+                              body: Text('/page4'),
+                            ),
+                      },
+                    ),
+              },
+            ),
+      };
+      final widget = _TopWidget(
+        routers: routes,
+        debugPrintWhenRouted: true,
+        routeInterceptor: (data) {},
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      _navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      _navigator.to('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('/page2'), findsOneWidget);
+
+      _navigator.toAndRemoveUntil('/page3');
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      _navigator.to('/page4');
+      await tester.pumpAndSettle();
+      expect(find.text('/page4'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Check InjectedNavigator.builder works',
+    (tester) async {
+      final routes = {
+        '/': (data) => Redirect('/page1'),
+        '/page1': (data) => RouteWidget(
+              routes: {
+                '/': (data) => Scaffold(
+                      appBar: AppBar(),
+                      body: Text('/page1'),
+                    ),
+              },
+            ),
+        '/page2': (data) => RouteWidget(
+              routes: {
+                '/': (data) => Scaffold(
+                      appBar: AppBar(),
+                      body: Text('/page2'),
+                    ),
+              },
+            ),
+      };
+
+      _transitionsBuilder = RM.transitions.rightToLeft(
+        duration: Duration(seconds: 1),
+      );
+
+      final widget = _TopWidget(
+        routers: routes,
+        builder: (_) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    key: Key('Center'),
+                    child: Builder(
+                      builder: (context) {
+                        return context.routeWidget;
+                      },
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => _navigator.to('page1'),
+                  child: Text('ToPage1'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _navigator.to('page2'),
+                  child: Text('ToPage2'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(find.byKey(Key('Center')), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.byType(BackButton), findsNothing);
+      //
+      await tester.tap(find.text('ToPage2'));
+      await tester.pump();
+      await tester.pump(500.milliseconds);
+      expect(find.byKey(Key('Center')), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.byType(BackButton), findsOneWidget);
+
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key('Center')), findsOneWidget);
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.byType(BackButton), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Check that back is reactive',
+    (tester) async {
+      final routes = {
+        '/': (data) => Redirect('/page1/1'),
+        '/page1/:id': (data) => RouteWidget(
+              delegateImplyLeadingToParent: false,
+              builder: (_) => Scaffold(
+                appBar: AppBar(
+                  key: Key('AppBar/page1'),
+                ),
+                body: _,
+              ),
+              routes: {
+                '/': (data) => Scaffold(
+                      appBar: AppBar(
+                        key: Key('AppBar/page1/'),
+                      ),
+                      body: Builder(
+                        builder: (context) {
+                          return Text('/page1/${data.pathParams['id']}');
+                        },
+                      ),
+                    ),
+                '/page2/:id': (data) => RouteWidget(
+                      delegateImplyLeadingToParent: false,
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(
+                          key: Key('AppBar/page2'),
+                        ),
+                        body: _,
+                      ),
+                      routes: {
+                        '/': (data) => Scaffold(
+                              appBar: AppBar(
+                                key: Key('AppBar/page2/'),
+                              ),
+                              body: Text('/page2/${data.pathParams['id']}'),
+                            ),
+                      },
+                    ),
+              },
+            ),
+      };
+
+      final widget = _TopWidget(
+        routers: routes,
+        builder: (_) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: OnReactive(() {
+                if (_navigator.canPop) {
+                  return BackButton(
+                    key: Key('BackButton'),
+                    onPressed: () => _navigator.back(),
+                  );
+                }
+                return Container();
+              }),
+              title: OnReactive(
+                  () => Text('Title: ${_navigator.routeData.location}')),
+            ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: Builder(
+                    builder: (context) => context.routeWidget,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      //
+      final backPage1 = find.descendant(
+        of: find.byKey(Key('AppBar/page1')),
+        matching: find.byType(BackButton),
+      );
+      final backPage1Home = find.descendant(
+        of: find.byKey(Key('AppBar/page1/')),
+        matching: find.byType(BackButton),
+      );
+      final backPage2 = find.descendant(
+        of: find.byKey(Key('AppBar/page2')),
+        matching: find.byType(BackButton),
+      );
+
+      final backPage2Home = find.descendant(
+        of: find.byKey(Key('AppBar/page2/')),
+        matching: find.byType(BackButton),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/page1/1'), findsOneWidget);
+      expect(find.text('Title: /page1/1'), findsOneWidget);
+      expect(backPage1, findsNothing);
+      expect(backPage1Home, findsNothing);
+      expect(backPage2, findsNothing);
+      expect(backPage2Home, findsNothing);
+      //
+      _navigator.to('/page1/2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/2'), findsOneWidget);
+      expect(find.text('Title: /page1/2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      expect(backPage1, findsOneWidget);
+      expect(backPage1Home, findsNothing);
+      expect(backPage2, findsNothing);
+      expect(backPage2Home, findsNothing);
+      //
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/1'), findsOneWidget);
+      expect(find.text('Title: /page1/1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(0));
+      expect(backPage1, findsNothing);
+      expect(backPage1Home, findsNothing);
+      expect(backPage2, findsNothing);
+      expect(backPage2Home, findsNothing);
+      //
+      _navigator.to('/page1/2');
+      _navigator.to('/page1/2/page2/1');
+      _navigator.to('/page1/2/page2/2');
+      _navigator.to('/page1/3');
+      _navigator.to('/page1/3/page2/1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/1'), findsOneWidget);
+      expect(find.text('Title: /page1/3/page2/1'), findsOneWidget);
+      _navigator.to('/page1/3/page2/2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/2'), findsOneWidget);
+      expect(find.text('Title: /page1/3/page2/2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(3));
+      expect(find.byKey(Key('BackButton')), findsOneWidget);
+      expect(backPage1, findsOneWidget);
+      expect(backPage2, findsOneWidget);
+      //
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/1'), findsOneWidget);
+      expect(find.text('Title: /page1/3/page2/1'), findsOneWidget);
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/3'), findsOneWidget);
+      expect(find.text('Title: /page1/3'), findsOneWidget);
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/2'), findsOneWidget);
+      expect(find.text('Title: /page1/2/page2/2'), findsOneWidget);
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/1'), findsOneWidget);
+      expect(find.text('Title: /page1/2/page2/1'), findsOneWidget);
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/2'), findsOneWidget);
+      expect(find.text('Title: /page1/2'), findsOneWidget);
+      await tester.tap(find.byKey(Key('BackButton')));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/1'), findsOneWidget);
+      expect(find.text('Title: /page1/1'), findsOneWidget);
+      expect(find.byKey(Key('BackButton')), findsNothing);
+      //
+      _navigator.to('/page1/2');
+      _navigator.to('/page1/2/page2/1');
+      _navigator.to('/page1/2/page2/2');
+      _navigator.to('/page1/3');
+      _navigator.to('/page1/3/page2/1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/1'), findsOneWidget);
+      _navigator.to('/page1/3/page2/2');
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/2'), findsOneWidget);
+      expect(find.text('Title: /page1/3/page2/2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(3));
+      expect(find.byKey(Key('BackButton')), findsOneWidget);
+      expect(backPage1, findsOneWidget);
+      expect(backPage2, findsOneWidget);
+      //
+      await tester.tap(backPage1);
+      await tester.pumpAndSettle();
+      expect(find.text('/page2/2'), findsOneWidget);
+      expect(find.text('Title: /page1/2/page2/2'), findsOneWidget);
+      await tester.tap(backPage1);
+      await tester.pumpAndSettle();
+      expect(find.text('/page1/1'), findsOneWidget);
+      expect(find.text('Title: /page1/1'), findsOneWidget);
+      expect(find.byKey(Key('BackButton')), findsNothing);
+    },
+  );
+}
+
+class _RouteInformationParserTest extends RouteInformationParserImp {
+  _RouteInformationParserTest(RouterDelegateImp routerDelegate)
+      : super(routerDelegate);
+  RouteInformation? info;
+  @override
+  RouteInformation restoreRouteInformation(PageSettings configuration) {
+    info = super.restoreRouteInformation(configuration);
+    return info!;
+  }
+}
+
+class SimpleRouteInformationProvider extends RouteInformationProvider
+    with ChangeNotifier {
+  SimpleRouteInformationProvider({
+    this.onRouterReport,
+  });
+
+  void Function(RouteInformation, bool)? onRouterReport;
+
+  @override
+  RouteInformation get value => _value;
+  late RouteInformation _value;
+  set value(RouteInformation newValue) {
+    _value = newValue;
+    notifyListeners();
+  }
+
+  @override
+  void routerReportsNewRouteInformation(RouteInformation routeInformation,
+      {bool isNavigation = true}) {
+    _value = routeInformation;
+  }
+}
+
+class _MyPage extends Page {
+  const _MyPage({
+    String? name,
+    LocalKey? key,
+  }) : super(
+          name: name,
+          key: key,
+        );
+  @override
+  Route createRoute(BuildContext context) {
+    return MaterialPageRoute(
+      builder: (_) => Text('_myPage'),
+      settings: this,
+    );
+  }
+}

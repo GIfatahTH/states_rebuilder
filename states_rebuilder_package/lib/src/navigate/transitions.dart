@@ -268,4 +268,16 @@ class _Transitions {
       );
     };
   }
+
+  Widget Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  ) none() {
+    _Navigate._transitionDuration = const Duration(microseconds: 1);
+    return (context, animation, secondaryAnimation, child) {
+      return child;
+    };
+  }
 }

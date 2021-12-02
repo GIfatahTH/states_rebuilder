@@ -1,49 +1,87 @@
 part of '../../rm.dart';
 
-extension RouteInformationParserX on RouteInformationParser<PageSettings> {
-  RouteInformationParser<PageSettings> setInitialRoute(String route) {
-    RouterObjects._setInitialRoute(route);
-    return this;
-  }
-}
+class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
+  RouteInformationParserImp(this._routerDelegate, [this.resolvedPages]);
 
-class _RouteInformationParser extends RouteInformationParser<PageSettings> {
-  const _RouteInformationParser(
-    this._routerDelegate,
-  );
+  final RouterDelegateImp _routerDelegate;
+  final void Function(Map<String, RouteSettingsWithChildAndData>? pages)?
+      resolvedPages;
+  String? _restoredRouteInformationName;
 
-  final _RouterDelegate _routerDelegate;
   @override
   Future<PageSettings> parseRouteInformation(
-      RouteInformation routeInformation) async {
+    RouteInformation routeInformation,
+  ) async {
+    dynamic arguments;
+    Map<String, String> queryParams = {};
+    bool skipHomeSlash = false;
+    RouteData? routeData;
+    if (routeInformation.state is Map<String, dynamic>) {
+      routeData = (routeInformation.state
+          as Map<String, dynamic>?)?['routeData'] as RouteData?;
+      arguments = routeData?.arguments;
+      queryParams =
+          (routeInformation.state as Map<String, dynamic>?)?['queryParams'] ??
+              {};
+      skipHomeSlash =
+          (routeInformation.state as Map<String, dynamic>?)?['skipHomeSlash'] ??
+              false;
+    }
     List<PageSettings> _pageSettingsList = _routerDelegate._pageSettingsList;
     final settings = PageSettings(
       name:
           RouterObjects._initialRouteValue ?? routeInformation.location ?? '/',
+      arguments: arguments,
+      queryParams: queryParams,
     );
     RouterObjects._initialRouteValue = null;
-    RouterObjects._isInitialRouteSet = true;
     final pages = _routerDelegate.getPagesFromRouteSettings(
       settings: settings,
+      skipHomeSlash: skipHomeSlash,
+      redirectedFrom: routeData?._redirectedFrom ?? [],
     );
-    _pageSettingsList.clear();
-    _pageSettingsList.addAll(pages.values);
+    resolvedPages?.call(pages);
+    if (pages != null) {
+      _pageSettingsList.clear();
+      _pageSettingsList.addAll(pages.values);
+    }
+
+    if (_routerDelegate == RouterObjects.rootDelegate) {
+      _routerDelegate._useTransition = false;
+      RouterObjects.rootDelegate!._message = 'DeepLink';
+    }
     return SynchronousFuture(settings);
   }
 
   @override
   RouteInformation restoreRouteInformation(PageSettings configuration) {
+    _routerDelegate._useTransition = true;
+
+    var name = configuration.name;
     if (configuration.queryParams.isNotEmpty) {
       final uri = Uri(
         path: configuration.name,
         queryParameters: configuration.queryParams,
       );
-      return RouteInformation(
-        location: '$uri',
-      );
+      name = '$uri';
     }
+    assert(_routerDelegate.delegateName == 'rootDelegate');
+
+    assert(() {
+      if ((!_routerDelegate._ignoreConfiguration ||
+              _routerDelegate._message == 'Back') &&
+          _restoredRouteInformationName != configuration.name) {
+        if (RouterObjects.injectedNavigator!.debugPrintWhenRouted) {
+          StatesRebuilerLogger.log('${_routerDelegate._message} to: $name');
+        }
+        _routerDelegate._message = 'Navigate';
+        _restoredRouteInformationName = name;
+      }
+      return true;
+    }());
+
     return RouteInformation(
-      location: configuration.name,
+      location: name,
     );
   }
 }

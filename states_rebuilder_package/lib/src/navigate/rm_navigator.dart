@@ -51,6 +51,7 @@ MaterialApp(
 
   bool _fullscreenDialog = false;
   bool _maintainState = true;
+  final _resolvePathRouteUtil = ResolvePathRouteUtil();
 
   ///It takes the map of routes and return the onGenerateRoute to be used
   ///in the [MaterialApp.onGenerateRoute]
@@ -76,38 +77,36 @@ MaterialApp(
     if (transitionsBuilder != null) {
       this.transitionsBuilder = transitionsBuilder;
     }
-    RouterObjects._routers = routes_;
+    RouterObjects._routers = RouterObjects.transformRoutes(routes_);
     pageRouteBuilder = null;
 
-    final resolvePathRouteUtil = ResolvePathRouteUtil();
-
     return (RouteSettings settings) {
-      final pages = resolvePathRouteUtil.getPagesFromRouteSettings(
-        routes: routes_,
+      final pages = _resolvePathRouteUtil.getPagesFromRouteSettings(
+        routes: RouterObjects._routers!,
         settings: settings,
         unknownRoute: unknownRoute,
         skipHomeSlash: true,
-      );
+      )!;
 
       if (pages.isNotEmpty) {
         bool isSubRouteTransition = pages.values.any(
           (e) {
-            if (e is RouteSettingsWithChildAndSubRoute) {
-              return !e.isBaseUrlChanged;
+            if (e is RouteSettingsWithRouteWidget) {
+              // return !e.isBaseUrlChanged;//TODO
             }
             return false;
           },
         );
         final r = _pageRouteBuilder(
           (animation) {
-            return _RouteFullWidget1(
+            return _RouteFullWidget(
               pages: pages,
               animation: animation,
               // key: Key(pages.keys.toString()),
             );
           },
           RouteSettings(
-            name: resolvePathRouteUtil.absolutePath,
+            name: _resolvePathRouteUtil.absolutePath,
             arguments: settings.arguments,
           ),
           _fullscreenDialog,
@@ -120,177 +119,7 @@ MaterialApp(
         return r;
       }
     };
-    // return (RouteSettings settings) {
-    //   _resetFields();
-
-    //   final page = _resolvePageFromRouteSettings(settings);
-
-    //   if (page != null) {
-    //     bool isSubRouteTransition = _routeData.values.any(
-    //       (e) {
-    //         return !e.routeData._isBaseUrlChanged;
-    //       },
-    //     );
-    //     final _routeDataCopy = {..._routeData};
-
-    //     final r = _pageRouteBuilder(
-    //       (animation) {
-    //         return _RouteFullWidget(
-    //           child: page,
-    //           routeData: _routeDataCopy,
-    //           animation: animation,
-    //           key: Key(_routeDataCopy.keys.toString()),
-    //         );
-    //       },
-    //       RouteSettings(
-    //         name: absolutePath,
-    //         arguments: _routeArguments,
-    //       ),
-    //       _fullscreenDialog,
-    //       _maintainState,
-    //       isSubRouteTransition: isSubRouteTransition,
-    //     );
-    //     //set to default
-    //     _fullscreenDialog = false;
-    //     _maintainState = true;
-    //     return r;
-    //   } else {
-    //     return unknownRoute != null
-    //         ? _pageRouteBuilder(
-    //             (_) => unknownRoute(absolutePath), settings, false, true)
-    //         : null;
-    //   }
-    // };
   }
-
-  // Widget? _resolvePageFromRouteSettings(RouteSettings settings) {
-  //   if (settings.name!.startsWith('/')) {
-  //     absolutePath = settings.name!;
-  //   } else {
-  //     if (_baseUrl == '') {
-  //       absolutePath = '/' + settings.name!;
-  //     } else {
-  //       String relativeBasePath = _getBaseUrl('/' + settings.name!);
-  //       String? p;
-  //       while (relativeBasePath.isNotEmpty) {
-  //         // add '/' to ensure the route name and not a stirng containing the name
-  //         final r = (_baseUrl + '/').split(relativeBasePath + '/');
-  //         if (r.length > 1) {
-  //           r.removeLast();
-  //           p = r.join('/');
-  //         }
-  //         if (p != null) {
-  //           break;
-  //         }
-  //         relativeBasePath = _getBaseUrl(relativeBasePath);
-  //       }
-
-  //       absolutePath = (p ?? _baseUrl) + '/' + settings.name!;
-  //     }
-  //   }
-
-  //   settings = settings.copyWith(name: absolutePath);
-  //   return _resolvePage(settings);
-  // }
-
-  // Widget? _resolvePage(RouteSettings settings) {
-  //   assert(settings.name != null);
-
-  //   final uri = Uri.parse(settings.name!);
-  //   late Uri routeUri;
-  //   late String childName;
-
-  //   var name = _routes.keys.firstWhereOrNull(
-  //     (key) {
-  //       final matcher = _isMatched(
-  //         Uri.parse(key),
-  //         uri,
-  //       );
-  //       if (matcher.first == true) {
-  //         routeUri = matcher[1];
-  //         childName = matcher[2];
-
-  //         return true;
-  //       }
-  //       return false;
-  //     },
-  //   );
-
-  //   final route = _routes[name];
-  //   if (route != null) {
-  //     _routeArguments = settings.arguments;
-  //     if (uri.queryParameters.isNotEmpty) {
-  //       _routeQueryParams.addAll(uri.queryParameters);
-  //     }
-  //     if (routeUri.queryParameters.isNotEmpty) {
-  //       _routePathParams.addAll(routeUri.queryParameters);
-  //     }
-
-  //     _urlPath += routeUri.path;
-  //     _routePath += name!;
-  //     routeData = RouteData(
-  //       baseUrl: _getBaseUrl(_urlPath),
-  //       urlPath: _urlPath,
-  //       routePath: _routePath,
-  //       arguments: _routeArguments,
-  //       queryParams: {..._routeQueryParams},
-  //       pathParams: {..._routePathParams},
-  //     );
-  //     routeData!._isBaseUrlChanged =
-  //         _baseUrl.isEmpty ? true : !_baseUrl.startsWith(routeData!.baseUrl);
-
-  //     Widget page = route(routeData!);
-
-  //     if (page is RouteWidget) {
-  //       if (page.routes.isEmpty) {
-  //         name = _routeData.containsKey(name)
-  //             ? name + '${_routeData.length}'
-  //             : name;
-  //         _routeData[name] = _RouteData(
-  //           builder: page.builder,
-  //           subRoute: null,
-  //           transitionsBuilder: page.transitionsBuilder,
-  //           routeData: routeData!,
-  //         );
-  //         return page.builder!(Container());
-  //       } else {
-  //         if (page.builder != null) {
-  //           name = _routeData.containsKey(name)
-  //               ? name + '${_routeData.length}'
-  //               : name;
-  //           _routeData[name] = _RouteData(
-  //             builder: page.builder,
-  //             subRoute: null,
-  //             transitionsBuilder: page.transitionsBuilder,
-  //             routeData: routeData!,
-  //           );
-  //         }
-
-  //         final n = childName.startsWith('/') ? childName : '/$childName';
-  //         _routes = page.routes;
-  //         final p = _resolvePage(settings.copyWith(name: n));
-  //         _routes = Routers.routers!;
-  //         if (p != null) {
-  //           if (page.builder != null) {
-  //             _routeData[name] = _routeData[name]!.copyWith(subRoute: p);
-  //           }
-  //           return p;
-  //         }
-  //         return null;
-  //       }
-  //     }
-  //     name =
-  //         _routeData.containsKey(name) ? name + '${_routeData.length}' : name;
-  //     _routeData[name] = _RouteData(
-  //       builder: (_) => page,
-  //       routeData: routeData!,
-  //       subRoute: null,
-  //       transitionsBuilder: null,
-  //     );
-  //     return page;
-  //   }
-  //   return null;
-  // }
 
   static Duration? _transitionDuration;
   PageRoute<T> _pageRouteBuilder<T>(
@@ -335,6 +164,23 @@ MaterialApp(
     //   );
   }
 
+  String _setRouteStack = RouterObjects.root;
+  void setRouteStack(
+    List<PageSettings> Function(List<PageSettings> pages) stack,
+  ) {
+    //TODO
+    // RouterObjects.routerDelegates[_setRouteStack]!.values.last
+    //     .setRouteStack(stack);
+
+    RouterObjects.rootDelegate!.setRouteStack(stack);
+    _setRouteStack = RouterObjects.root;
+  }
+
+  _Navigate call([String? subRoute]) {
+    _setRouteStack = subRoute ?? RouterObjects.root;
+    return this;
+  }
+
   ///navigate to the given page.
   ///
   ///You can specify a name to the route  (e.g., "/settings"). It will be used with
@@ -347,8 +193,8 @@ MaterialApp(
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (RouterObjects._routerDelegate.containsKey('/') && name != null) {
-      return RouterObjects._routerDelegate['/']!.to<T>(
+    if (RouterObjects.rootDelegate != null && name != null) {
+      return RouterObjects.rootDelegate!.to<T>(
         PageSettings(
           name: name,
           child: page,
@@ -378,45 +224,21 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+
+    if (RouterObjects.rootDelegate != null) {
+      final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
+      final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+      return delegate!.to<T>(
+        PageSettings(
+          name: absoluteName,
+          arguments: arguments,
+          queryParams: queryParams ?? {},
+        ),
+      );
+    }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
-
-    // final List<Future<T?>> futures = [];
-    // Map<String, _RouterDelegate> delegates = {};
-    _RouterDelegate? delegate;
-
-    for (final key in RouterObjects._routerDelegate.keys) {
-      final d = RouterObjects._routerDelegate[key]!;
-      delegate = d;
-      if (routeName.startsWith(key)) {
-        delegate = d;
-      }
-    }
-    // for (final key in delegates.keys) {
-    //   final delegate = delegates[key]!;
-    //   final lastRoute = delegate._pageSettingsList.last;
-    //   final f = delegate.to<T>(
-    //     PageSettings(name: routeName, arguments: arguments),
-    //   );
-    //   futures.add(f);
-    // }
-    if (delegate != null) {
-      return delegate.to<T>(
-        PageSettings(name: routeName, arguments: arguments),
-      );
-    }
-
-    // if (futures.isNotEmpty) {
-    //   return futures.last;
-    // }
-
-    // if (RouterObjects._routerDelegate.containsKey('/')) {
-    //   return RouterObjects._routerDelegate['/']!.to<T>(
-    //     PageSettings(name: routeName, arguments: arguments),
-    //   );
-    // }
-
     return navigatorState.pushNamed<T>(
       routeName,
       arguments: arguments,
@@ -462,16 +284,41 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
-    if (queryParams != null) {
-      routeName = Uri(path: routeName, queryParameters: queryParams).toString();
-    }
 
-    if (RouterObjects._routerDelegate.containsKey('/')) {
-      return RouterObjects._routerDelegate['/']!.toReplacementNamed<T, TO>(
-        PageSettings(name: routeName, arguments: arguments),
+    if (RouterObjects.rootDelegate != null) {
+      final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
+
+      bool isDone = RouterObjects._back<TO>(result);
+      if (!isDone) {
+        final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+        return delegate!.toReplacementNamed<T, TO>(
+          PageSettings(
+            name: absoluteName,
+            arguments: arguments,
+            queryParams: queryParams ?? {},
+          ),
+          result: result,
+        );
+      }
+      return toNamed(
+        absoluteName,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
       );
     }
 
+    // final delegate = RouterObjects._getNavigator2Delegate(routeName);
+    // if (delegate != null) {
+    //   return delegate.toReplacementNamed<T, TO>(
+    //     PageSettings(name: routeName, arguments: arguments),
+    //     result: result,
+    //   );
+    // }
+    if (queryParams != null) {
+      routeName = Uri(path: routeName, queryParameters: queryParams).toString();
+    }
     return navigatorState.pushReplacementNamed<T, TO>(
       routeName,
       arguments: arguments,
@@ -528,18 +375,45 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
+
+    //TODO check logic
+    if (RouterObjects.rootDelegate != null) {
+      final absoluteName =
+          _resolvePathRouteUtil.setAbsoluteUrlPath(newRouteName);
+
+      bool isDone = false;
+      if (untilRouteName != null) {
+        isDone = RouterObjects._backUntil(untilRouteName);
+      } else {
+        RouterObjects.rootDelegate!._pageSettingsList.clear();
+        isDone = true;
+      }
+      if (!isDone) {
+        final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+        if (delegate != null) {
+          return delegate.toNamedAndRemoveUntil<T>(
+            PageSettings(
+              name: absoluteName,
+              arguments: arguments,
+              queryParams: queryParams ?? {},
+            ),
+            untilRouteName,
+          );
+        }
+      }
+      return toNamed(
+        absoluteName,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+      );
+    }
+
     if (queryParams != null) {
       newRouteName =
           Uri(path: newRouteName, queryParameters: queryParams).toString();
     }
-
-    if (RouterObjects._routerDelegate.containsKey('/')) {
-      return RouterObjects._routerDelegate['/']!.toNamedAndRemoveUntil<T>(
-        PageSettings(name: newRouteName, arguments: arguments),
-        untilRouteName,
-      );
-    }
-
     return navigatorState.pushNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName != null
@@ -554,7 +428,16 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.pop]
   void back<T extends Object>([T? result]) {
+    final cache = RouterObjects.rootDelegate?.delegateImplyLeadingToParent;
+    RouterObjects.rootDelegate?.delegateImplyLeadingToParent = true;
     navigatorState.pop<T>(result);
+    RouterObjects.rootDelegate?.delegateImplyLeadingToParent = cache ?? true;
+
+    // final isDone = RouterObjects._back<T>(result);
+
+    // if (!isDone) {
+    //   navigatorState.pop<T>(result);
+    // }
   }
 
   ///Navigate back and remove all the previous routes until meeting the route
@@ -562,8 +445,8 @@ MaterialApp(
   ///
   ///Equivalent to: [NavigatorState.popUntil]
   void backUntil(String untilRouteName) {
-    if (RouterObjects._routerDelegate.containsKey('/')) {
-      return RouterObjects._routerDelegate['/']!.backUntil(untilRouteName);
+    if (RouterObjects.rootDelegate != null) {
+      RouterObjects._backUntil(untilRouteName);
       return;
     }
 
@@ -584,8 +467,10 @@ MaterialApp(
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
-    if (RouterObjects._routerDelegate.containsKey('/')) {
-      return RouterObjects._routerDelegate['/']!.backAndToNamed<T, TO>(
+
+    final delegate = RouterObjects._getNavigator2Delegate(routeName);
+    if (delegate != null) {
+      return delegate.backAndToNamed<T, TO>(
         PageSettings(name: routeName, arguments: arguments),
         result,
       );
@@ -617,14 +502,24 @@ MaterialApp(
     bool barrierDismissible = true,
     Color? barrierColor,
     bool useSafeArea = true,
+    bool postponeToNextFrame = false,
   }) {
-    return showDialog<T>(
-      context: navigatorState.context,
-      builder: (_) => dialog,
-      barrierDismissible: barrierDismissible,
-      barrierColor: barrierColor,
-      useSafeArea: useSafeArea,
-    );
+    Future<T?> fn() => showDialog<T>(
+          context: navigatorState.context,
+          builder: (_) => dialog,
+          barrierDismissible: barrierDismissible,
+          barrierColor: barrierColor,
+          useSafeArea: useSafeArea,
+        );
+    if (postponeToNextFrame) {
+      Completer<T?> completer = Completer<T?>();
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        final r = fn();
+        completer.complete(r);
+      });
+      return completer.future;
+    }
+    return fn();
   }
 
   ///Displays an iOS-style dialog above the current contents of the app, with
@@ -641,12 +536,22 @@ MaterialApp(
   Future<T?> toCupertinoDialog<T>(
     Widget dialog, {
     bool barrierDismissible = false,
+    bool postponeToNextFrame = false,
   }) {
-    return showCupertinoDialog<T>(
-      context: navigatorState.context,
-      builder: (_) => dialog,
-      barrierDismissible: barrierDismissible,
-    );
+    Future<T?> fn() => showCupertinoDialog<T>(
+          context: navigatorState.context,
+          builder: (_) => dialog,
+          barrierDismissible: barrierDismissible,
+        );
+    if (postponeToNextFrame) {
+      Completer<T?> completer = Completer<T?>();
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        final r = fn();
+        completer.complete(r);
+      });
+      return completer.future;
+    }
+    return fn();
   }
 
   ///Shows a modal material design bottom sheet that prevents the user from
@@ -685,19 +590,29 @@ MaterialApp(
     ShapeBorder? shape,
     Clip? clipBehavior,
     Color? barrierColor,
+    bool postponeToNextFrame = false,
   }) {
-    return showModalBottomSheet<T>(
-      context: navigatorState.context,
-      builder: (_) => bottomSheet,
-      backgroundColor: backgroundColor,
-      elevation: elevation,
-      shape: shape,
-      clipBehavior: clipBehavior,
-      barrierColor: barrierColor,
-      isScrollControlled: isScrollControlled,
-      isDismissible: isDismissible,
-      enableDrag: enableDrag,
-    );
+    Future<T?> fn() => showModalBottomSheet<T>(
+          context: navigatorState.context,
+          builder: (_) => bottomSheet,
+          backgroundColor: backgroundColor,
+          elevation: elevation,
+          shape: shape,
+          clipBehavior: clipBehavior,
+          barrierColor: barrierColor,
+          isScrollControlled: isScrollControlled,
+          isDismissible: isDismissible,
+          enableDrag: enableDrag,
+        );
+    if (postponeToNextFrame) {
+      Completer<T?> completer = Completer<T?>();
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        final r = fn();
+        completer.complete(r);
+      });
+      return completer.future;
+    }
+    return fn();
   }
 
   ///Shows a modal iOS-style popup that slides up from the bottom of the screen.
@@ -711,17 +626,27 @@ MaterialApp(
     Widget cupertinoModalPopup, {
     ImageFilter? filter,
     bool? semanticsDismissible,
+    bool postponeToNextFrame = false,
   }) {
-    return showCupertinoModalPopup<T>(
-      context: navigatorState.context,
-      builder: (_) => cupertinoModalPopup,
-      semanticsDismissible: semanticsDismissible,
-      filter: filter,
-    );
+    Future<T?> fn() => showCupertinoModalPopup<T>(
+          context: navigatorState.context,
+          builder: (_) => cupertinoModalPopup,
+          semanticsDismissible: semanticsDismissible,
+          filter: filter,
+        );
+    if (postponeToNextFrame) {
+      Completer<T?> completer = Completer<T?>();
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        final r = fn();
+        completer.complete(r);
+      });
+      return completer.future;
+    }
+    return fn();
   }
 
   void _dispose() {
-    RouterObjects._routers = null;
+    RouterObjects._dispose();
     transitionsBuilder = null;
     pageRouteBuilder = null;
   }
