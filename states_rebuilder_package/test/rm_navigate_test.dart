@@ -926,8 +926,8 @@ void main() {
                 return getSubRoute
                     ? Builder(
                         builder: (context) {
-                          assert(child == context.routeWidget);
-                          return context.routeWidget;
+                          assert(child == context.routerOutlet);
+                          return context.routerOutlet;
                         },
                       )
                     : page1('/page1');
@@ -953,7 +953,7 @@ void main() {
                             builder: (_) => getSubRoute
                                 ? Builder(
                                     builder: (context) {
-                                      return context.routeWidget;
+                                      return context.routerOutlet;
                                     },
                                   )
                                 : page112('/page112'),
@@ -969,7 +969,7 @@ void main() {
             ),
         '/page2': (_) => Builder(
               builder: (context) {
-                return context.routeWidget;
+                return context.routerOutlet;
               },
             ),
       };
@@ -1037,7 +1037,7 @@ void main() {
               builder: (route) {
                 return Builder(
                   builder: (context) {
-                    return context.routeWidget;
+                    return context.routerOutlet;
                   },
                 );
               },
@@ -1144,7 +1144,7 @@ void main() {
                         data2 = context.routeData;
                         assert(data2.toString() == data.toString());
 
-                        return context.routeWidget;
+                        return context.routerOutlet;
                       },
                     );
                   },
@@ -1159,7 +1159,7 @@ void main() {
                             builder: (context) {
                               data3 = context.routeData;
                               assert(data3.toString() == data.toString());
-                              return context.routeWidget;
+                              return context.routerOutlet;
                             },
                           );
                         },

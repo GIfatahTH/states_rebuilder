@@ -63,6 +63,7 @@ extension PageSettingsX on List<PageSettings> {
   }
 }
 
+///Data that might be useful in constructing a [Page].
 class PageSettings extends RouteSettings {
   final Widget? child;
   final String? routePattern;

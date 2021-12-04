@@ -1,7 +1,9 @@
 part of '../rm.dart';
 
 extension BuildContextX on BuildContext {
-  Widget get routeWidget {
+  /// Get the scoped router outlet widget. It looks up the widget tree for the
+  /// closest sub route and returns its router outlet widget.
+  Widget get routerOutlet {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
     assert(r?.route != null);
@@ -38,6 +40,7 @@ extension BuildContextX on BuildContext {
     // );
   }
 
+  @Deprecated('User routeData instead')
   dynamic get routeArguments {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
@@ -45,6 +48,7 @@ extension BuildContextX on BuildContext {
     return r!.routeData.arguments;
   }
 
+  @Deprecated('User routeData instead')
   Map<String, String> get routeQueryParams {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
@@ -52,6 +56,7 @@ extension BuildContextX on BuildContext {
     return r!.routeData.queryParams;
   }
 
+  @Deprecated('User routeData instead')
   Map<String, String> get routePathParams {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
@@ -59,6 +64,10 @@ extension BuildContextX on BuildContext {
     return r!.routeData.pathParams;
   }
 
+  /// Get the scoped [RouteData]. It looks up the widget tree for the
+  /// closest sub route and returns its[RouteData].
+  ///
+  /// See also [InjectedNavigator.routeData]
   RouteData get routeData {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
@@ -67,7 +76,7 @@ extension BuildContextX on BuildContext {
     return r!.routeData;
   }
 
-//TODO to deprecate
+  @Deprecated('User routeData instead')
   String get routeBaseUrl {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
@@ -75,6 +84,7 @@ extension BuildContextX on BuildContext {
     return r!.routeData.baseLocation;
   }
 
+  @Deprecated('User routeData instead')
   String get routePath {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;

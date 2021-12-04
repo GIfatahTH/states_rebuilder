@@ -4,23 +4,61 @@ import 'package:flutter/widgets.dart';
 import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
+///{@template InjectedNavigator}
+/// Injecting a Navigator 2 that holds a [RouteData] state.
+///
+/// ```dart
+///  final myNavigator = RM.injectNavigator(
+///    routes: {
+///      '/': (RouteData data) => HomePage(),
+///      '/page1': (RouteData data) => Page1(),
+///    },
+///  );
+///
+///  class MyApp extends StatelessWidget {
+///    const MyApp({Key? key}) : super(key: key);
+///
+///    @override
+///    Widget build(BuildContext context) {
+///      return MaterialApp.router(
+///        routeInformationParser: myNavigator.routeInformationParser,
+///        routerDelegate: myNavigator.routerDelegate,
+///      );
+///    }
+///  }
+/// ```
+///
+/// {@endtemplate}
 abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
+  /// [RouterDelegate] implementation
   late final RouterDelegate<PageSettings> routerDelegate =
       RouterObjects.rootDelegate!;
+
+  /// [RouteInformationParser] delegate.
   late final RouteInformationParser<PageSettings> routeInformationParser =
       RouterObjects.routeInformationParser!;
 
+  /// Set the route stack. It exposes the current [PageSettings] stack.
   void setRouteStack(
     List<PageSettings> Function(List<PageSettings> pages) stack,
   ) {
     return RM.navigate.setRouteStack(stack);
   }
 
+  /// Get the [PageSettings] stack.
   List<PageSettings> get pageStack =>
       (routerDelegate as RouterDelegateImp).pageSettingsList;
 
+  /// Get the current [RouteData]
   RouteData get routeData => state;
 
+  /// Find the page with given routeName and add it to the route stack and trigger
+  /// route transition.
+  ///
+  /// If the page belongs to a sub route the page is added to it and only this
+  /// particular sub route is triggered to animate transition.
+  ///
+  /// It is similar to `RM.navigate.toNamed` method.
   Future<T?> to<T extends Object?>(
     String routeName, {
     Object? arguments,
@@ -45,11 +83,36 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     );
   }
 
+  /// Whether a page can be popped off from the root route stack or sub route
+  /// stacks.
   bool get canPop {
     OnReactiveState.addToObs?.call(this);
     return RouterObjects.canPop(RouterObjects.rootDelegate!);
   }
 
+  /// Deeply navigate to the given routeName. Deep navigation means that the
+  /// root stack is cleaned and pages corresponding to sub paths are added to
+  /// the stack.
+  ///
+  /// Example:
+  /// Suppose our navigator is :
+  /// ```dart
+  ///  final myNavigator = RM.injectNavigator(
+  ///    routes: {
+  ///      '/': (RouteData data) => HomePage(),
+  ///      '/page1': (RouteData data) => Page1(),
+  ///      '/page1/page11': (RouteData data) => Page11(),
+  ///      '/page1/page11/page111': (RouteData data) => Page111(),
+  ///    },
+  ///  );
+  /// ```
+  /// On app start up, the route stack is `['/']`.
+  ///
+  /// If we call `myNavigator.to('/page1/page11/page111')`, the route stack is
+  /// `['/', '/page1/page11/page111']`.
+  ///
+  /// In contrast, if we invoke myNavigator.toDeeply('/page1/page11/page111'),
+  /// the route stack is `['/', '/page1', '/page1/page11', '/page1/page11/page111']`.
 // TODO to test
   void toDeeply(
     String routeName, {
@@ -86,6 +149,10 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     }
   }
 
+  /// Find the page with given routeName and remove the current route and
+  /// replace it with the new one.
+  ///
+  /// It is similar to `RM.navigate.toReplacementNamed` method.
   Future<T?> toReplacement<T extends Object?, TO extends Object?>(
     String routeName, {
     TO? result,
@@ -104,6 +171,12 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     );
   }
 
+  /// Find the page with given routeName and then remove all the previous routes
+  /// until meeting the route with defined route name [untilRouteName].
+  /// If no route name is given ([untilRouteName] is null) , all routes will be
+  /// removed except the new page route.
+  ///
+  /// It is similar to `RM.navigate.toNamedAndRemoveUntil` method.
   Future<T?> toAndRemoveUntil<T extends Object?>(
     String newRouteName, {
     String? untilRouteName,
@@ -122,12 +195,25 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     );
   }
 
+  /// Navigate back and remove all the previous routes until meeting the route
+  /// with defined name
+  ///
+  /// It is similar to `RM.navigate.backUntil` method.
   void backUntil(String untilRouteName) {
     return RM.navigate.backUntil(untilRouteName);
   }
 
+  /// Navigate back to the last page, ie Pop the top-most route off the navigator.
+  ///
+  /// It is similar to `RM.navigate.back` method.
   void back<T extends Object>([T? result]) {
     return RM.navigate.back<T>(result);
+  }
+
+  /// {@macro forceBack}
+  /// It is similar to `RM.navigate.forceBack` method.
+  void forceBack<T extends Object>([T? result]) {
+    return RM.navigate.forceBack<T>(result);
   }
 }
 
