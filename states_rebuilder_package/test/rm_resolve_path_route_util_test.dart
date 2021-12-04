@@ -1615,15 +1615,17 @@ void main() {
         '/four/:id(one|two|three)': (data) => Text(data.location),
         '/five/:id(*)': (data) => Text(data.location),
         '/six/:id(one|(two))': (data) => Text(data.location),
+        '/seven/*': (data) => Text(data.location),
+        '*': (data) => Text('404 ' + data.location),
       };
+      String? getValue(RouteSettingsWithChildAndData data) {
+        return (data.child as Text?)?.data;
+      }
+
       var r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: 'one/5'),
       )!;
-
-      String? getValue(RouteSettingsWithChildAndData data) {
-        return (data.child as Text?)?.data;
-      }
 
       expect(getValue(r.values.last), '/one/5');
       //
@@ -1637,7 +1639,7 @@ void main() {
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/three/one'),
       )!;
-      expect(getValue(r.values.last), null);
+      expect(getValue(r.values.last), '404 /three/one');
       //
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
@@ -1655,18 +1657,18 @@ void main() {
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/four/four'),
       )!;
-      expect(getValue(r.values.last), null);
+      expect(getValue(r.values.last), '404 /four/four');
       //
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/five/5'),
       )!;
-      expect(getValue(r.values.last), null);
+      expect(getValue(r.values.last), '404 /five/5');
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/six/6'),
       )!;
-      expect(getValue(r.values.last), null);
+      expect(getValue(r.values.last), '404 /six/6');
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/six/one'),
@@ -1682,6 +1684,18 @@ void main() {
         settings: const RouteSettings(name: '/six/one-two'),
       )!;
       expect(getValue(r.values.last), '/six/one-two');
+
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
+        settings: const RouteSettings(name: '/seven/one/two/three'),
+      )!;
+      expect(getValue(r.values.last), '/seven/one/two/three');
+      //
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
+        settings: const RouteSettings(name: '/eight/one/two/three'),
+      )!;
+      expect(getValue(r.values.last), '404 /eight/one/two/three');
     },
   );
 
