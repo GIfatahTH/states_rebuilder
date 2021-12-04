@@ -10,6 +10,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     required this.delegateName,
     this.hasBuilder = true,
     required this.transitionsBuilder,
+    required this.transitionDuration,
     required this.delegateImplyLeadingToParent,
   })  : _builder = builder,
         _routes = routes,
@@ -28,6 +29,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     Animation<double>,
     Widget,
   )? transitionsBuilder;
+  Duration? transitionDuration;
   final String delegateName;
   final bool hasBuilder;
 
@@ -110,6 +112,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                   maintainState: isLast ?? _navigate._maintainState,
                   useTransition: useTransition,
                   customBuildTransitions: transitionsBuilder,
+                  transitionDuration: transitionDuration,
                 )
               : //A custom pageBuilder is defined
               RouterObjects.injectedNavigator!.pageBuilder!(
@@ -201,7 +204,21 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   void setRouteStack(
     List<PageSettings> Function(List<PageSettings> pages) stack,
   ) {
-    final s = stack(routeStack);
+    print('');
+    final s = stack(routeStack).map(
+      (e) {
+        final name = e.name!;
+        if (name.startsWith('/')) {
+          return e;
+        }
+        return e.copyWith(
+          name: _resolvePathRouteUtil.urlName == '/'
+              ? '/$name'
+              : _resolvePathRouteUtil.urlName + '/$name',
+        );
+      },
+    );
+
     _pageSettingsList
       ..clear()
       ..addAll(s);
@@ -519,6 +536,7 @@ class _MaterialPage1<T> extends MaterialPage<T> {
   const _MaterialPage1({
     required Widget child,
     required this.customBuildTransitions,
+    required this.transitionDuration,
     bool maintainState = true,
     bool fullscreenDialog = false,
     LocalKey? key,
@@ -542,6 +560,7 @@ class _MaterialPage1<T> extends MaterialPage<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  final Duration? transitionDuration;
   final bool useTransition;
 
   @override
@@ -550,12 +569,14 @@ class _MaterialPage1<T> extends MaterialPage<T> {
       return _PageBasedCupertinoPageRoute<T>(
         page: this,
         customBuildTransitions: customBuildTransitions,
+        transitionDuration: transitionDuration,
       );
     }
     return _PageBasedMaterialPageRoute<T>(
       page: this,
       useTransition: useTransition,
       customBuildTransitions: customBuildTransitions,
+      transitionDuration: transitionDuration,
     );
   }
 }
@@ -565,8 +586,10 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
   _PageBasedMaterialPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
+    required Duration? transitionDuration,
     this.useTransition = false,
-  }) : super(settings: page) {
+  })  : _transitionDuration = transitionDuration,
+        super(settings: page) {
     assert(opaque);
   }
   final bool useTransition;
@@ -599,6 +622,13 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  )? _transitionBuilder;
+  final Duration? _transitionDuration;
 
   @override
   Duration get transitionDuration {
@@ -606,6 +636,7 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
         (RouterObjects.isTransitionAnimated != false ||
             _Navigate._transitionDuration != null)) {
       return _Navigate._transitionDuration ??
+          _transitionDuration ??
           const Duration(
             milliseconds: 300,
           );
@@ -659,7 +690,9 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
   _PageBasedCupertinoPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
-  }) : super(settings: page) {
+    required Duration? transitionDuration,
+  })  : _transitionDuration = transitionDuration,
+        super(settings: page) {
     assert(opaque);
   }
 
@@ -687,9 +720,12 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  final Duration? _transitionDuration;
+
   @override
   Duration get transitionDuration =>
       _Navigate._transitionDuration ??
+      _transitionDuration ??
       const Duration(
         milliseconds: 300,
       );

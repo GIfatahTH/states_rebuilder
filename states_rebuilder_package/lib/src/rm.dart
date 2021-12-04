@@ -2028,6 +2028,7 @@ abstract class RM {
       Widget child,
     )?
         transitionsBuilder,
+    Duration? transitionDuration,
     Redirect? Function(RouteData data)? onNavigate,
     bool? Function(RouteData data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
@@ -2037,6 +2038,7 @@ abstract class RM {
       routes: routes,
       unknownRoute: unknownRoute,
       transitionsBuilder: transitionsBuilder,
+      transitionDuration: transitionDuration,
       builder: builder,
       initialRoute: initialLocation,
       shouldUseCupertinoPage: shouldUseCupertinoPage,
