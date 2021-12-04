@@ -27,6 +27,13 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )?
+        transitionsBuilder,
   }) {
     return RM.navigate.toNamed<T>(
       routeName,
@@ -34,6 +41,7 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
       queryParams: queryParams,
       fullscreenDialog: fullscreenDialog,
       maintainState: maintainState,
+      transitionsBuilder: transitionsBuilder,
     );
   }
 

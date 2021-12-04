@@ -1895,10 +1895,10 @@ abstract class RM {
     required Map<String, Widget Function(RouteData data)> routes,
     Widget Function(String)? unknownRoute,
     Widget Function(
-      BuildContext,
-      Animation<double>,
-      Animation<double>,
-      Widget,
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
     )?
         transitionsBuilder,
     // Duration transitionDuration,//TODO

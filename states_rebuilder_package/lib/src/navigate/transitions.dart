@@ -274,8 +274,10 @@ class _Transitions {
     Animation<double>,
     Animation<double>,
     Widget,
-  ) none() {
-    _Navigate._transitionDuration = const Duration(microseconds: 1);
+  ) none({
+    Duration? duration,
+  }) {
+    _Navigate._transitionDuration = duration ?? const Duration(microseconds: 1);
     return (context, animation, secondaryAnimation, child) {
       return child;
     };

@@ -221,6 +221,13 @@ MaterialApp(
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )?
+        transitionsBuilder,
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
@@ -228,13 +235,17 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
       final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-      return delegate!.to<T>(
+      final cache = delegate!.transitionsBuilder;
+      delegate.transitionsBuilder = transitionsBuilder ?? cache;
+      final r = delegate.to<T>(
         PageSettings(
           name: absoluteName,
           arguments: arguments,
           queryParams: queryParams ?? {},
         ),
       );
+      delegate.transitionsBuilder = cache;
+      return r;
     }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
