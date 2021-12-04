@@ -182,12 +182,6 @@ MaterialApp(
       }
       delegate!.setRouteStack(stack);
     }
-    _setRouteStack = RouterObjects.root;
-  }
-
-  _Navigate call([String? subRoute]) {
-    _setRouteStack = subRoute ?? RouterObjects.root;
-    return this;
   }
 
   ///navigate to the given page.
