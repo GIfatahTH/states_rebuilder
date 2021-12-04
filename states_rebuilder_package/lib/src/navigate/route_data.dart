@@ -1,15 +1,82 @@
 part of '../rm.dart';
 
+/// Object that holds information about the active route.
 class RouteData {
+  /// The current Base location.
+  /// Example :
+  /// * if the current location is `'/page1'` baseLocation will be `'/'`.
+  /// * if the current location is `'/page1/'` baseLocation will be `'/page1'`.
+  /// * if the current location is `'/page1/page2'` baseLocation will be `'/page1'`.
+  /// * if the current location is `'/page1/page2/'` baseLocation will be
+  /// `'/page1/page2`'.
+  ///
+  /// Notice that the ending slash changes the baseLocation.
   String get baseLocation =>
       _pathEndsWithSlash ? location : _getBaseUrl(location, path);
+
+  /// The current used route.
+  ///
+  /// For example if our route map is:
+  /// ```dart
+  /// route: {
+  ///    '/': (RouteData data) => Home(),
+  ///    '/page1/:id': (RouteData data) => Page1(),
+  /// }
+  /// ```
+  /// * if we navigate to `'/'`, the path is `'/'` and the location is `'/'`.
+  /// * if we navig`ate to '/page1/1', the path is '/page1/:id' and the location
+  /// is `'/page1/1'.
+  ///
   final String path;
+
+  /// The current resolved location.
+  ///
+  /// For example if our route map is:
+  /// ```dart
+  /// route: {
+  ///    '/': (RouteData data) => Home(),
+  ///    '/page1/:id': (RouteData data) => Page1(),
+  /// }
+  /// ```
+  /// * if we navigate to `'/'`, the location is `'/'` and the path is `'/'`.
+  /// * if we navigate to '/page1/1', the location is '/page1/1' and the path
+  /// is `'/page1/:id'.
+  ///
   final String location;
+
+  /// A map of query parameters extracted from the url link.
+  ///
+  /// Example if the link is `/products?id=1` the `queryParams` is `{'id': '1'}`
   final Map<String, String> queryParams;
+
+  /// A map of path parameters extracted from the url link.
+  ///
+  /// Example if the route is `/products/:id` and the url link is `/products/1`
+  /// the `pathParams` is `{'id': '1'}`
   final Map<String, String> pathParams;
+
+  /// Arguments passed when pushing a route.
   final dynamic arguments;
-  final bool _pathEndsWithSlash;
-  final List<String> _redirectedFrom;
+
+  /// Holds the url location the route is redirected from.
+  ///
+  /// For Example if our routes are:
+  /// ```dart
+  ///   routes: {
+  ///       '/login': (RouteData data) => LoginPage(),
+  ///       '/home': (RouteData data) {
+  ///           if(notSigned) {
+  ///              return date.redirectTo(/login);
+  ///           } else {
+  ///             return HomePage();
+  ///           }
+  ///         },
+  ///   }
+  /// ```
+  ///
+  /// If an unsigned user routes to '/home', he will be redirect to `LoginPage`.
+  /// The `redirectedFrom` will hold '/home' so we can route to it.
+  ///
   String? get redirectedFrom {
     if (_redirectedFrom.isEmpty) {
       return null;
@@ -17,11 +84,13 @@ class RouteData {
     return _redirectedFrom.first;
   }
 
-  // ignore: prefer_final_fields
+  /// redirect to the given route
   Redirect redirectTo(String? route) {
     return Redirect(route);
   }
 
+  final bool _pathEndsWithSlash;
+  final List<String> _redirectedFrom;
   const RouteData({
     required this.path,
     required this.location,
@@ -33,6 +102,7 @@ class RouteData {
   })  : _pathEndsWithSlash = pathEndsWithSlash,
         _redirectedFrom = redirectedFrom;
 
+  /// log the detailed of the navigation steps.
   void log() {
     String l = '';
     if (queryParams.isNotEmpty) {

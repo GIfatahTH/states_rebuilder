@@ -423,21 +423,35 @@ MaterialApp(
     );
   }
 
-  ///Navigate back to the last page, ie
-  ///Pop the top-most route off the navigator.
+  /// Navigate back to the last page, ie
+  /// Pop the top-most route off the navigator.
   ///
-  ///Equivalent to: [NavigatorState.pop]
+  /// Equivalent to: [NavigatorState.pop]
+  ///
+  /// See also: [forceBack]
   void back<T extends Object>([T? result]) {
     final cache = RouterObjects.rootDelegate?.delegateImplyLeadingToParent;
     RouterObjects.rootDelegate?.delegateImplyLeadingToParent = true;
     navigatorState.pop<T>(result);
     RouterObjects.rootDelegate?.delegateImplyLeadingToParent = cache ?? true;
+  }
 
-    // final isDone = RouterObjects._back<T>(result);
+  ///{@template forceBack}
 
-    // if (!isDone) {
-    //   navigatorState.pop<T>(result);
-    // }
+  /// Navigate Back by popping the top-most page route with all pagesless route
+  /// associated with it and without calling `onNavigateBack` hook.
+  ///
+  /// For example:
+  /// In case a `Dialog` (a `Dialog` is an example pageless route) is displayed and
+  /// we invoke `forceBack`, the dialog and the last page are popped from route stack.
+  /// Contrast this with the case when we call [back] where only the dialog is popped.
+  /// {@endtemplate}
+  /// See also: [back]
+  ///
+  void forceBack<T extends Object>([T? result]) {
+    RouterObjects.rootDelegate!
+      ..forceBack = true
+      ..rootDelegatePop(result);
   }
 
   ///Navigate back and remove all the previous routes until meeting the route

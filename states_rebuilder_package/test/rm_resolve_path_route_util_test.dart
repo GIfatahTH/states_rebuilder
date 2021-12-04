@@ -921,7 +921,7 @@ void main() {
               builder: (_) {
                 return Builder(
                   builder: (context) {
-                    return context.routeWidget;
+                    return context.routerOutlet;
                   },
                 );
               },
@@ -1194,7 +1194,7 @@ void main() {
         '/': (data) => const Text('/'),
         '/page1': (data) => RouteWidget(
               builder: (_) => Builder(builder: (context) {
-                return context.routeWidget;
+                return context.routerOutlet;
               }),
               routes: {
                 '/': (_) => const Text('/page1'),

@@ -156,6 +156,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   bool _isDirty = false;
+  bool forceBack = false;
   bool _useTransition = true;
   String? _message;
   bool _ignoreConfiguration = false;
@@ -353,16 +354,17 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     );
   }
 
-  bool _onPopPage(Route<dynamic> route, result) {
+  void rootDelegatePop(dynamic result) {
+    _message = 'Back';
+    _ignoreConfiguration = false;
+    if (!RouterObjects._back(result)) {
+      _message = 'Navigate';
+    }
+  }
+
+  bool _onPopPage(Route<dynamic> route, dynamic result) {
     if (delegateImplyLeadingToParent && this == RouterObjects.rootDelegate) {
-      _message = 'Back';
-      _ignoreConfiguration = false;
-      if (!RouterObjects._back(result)) {
-        _message = 'Navigate';
-      } else {
-        RouterObjects.injectedNavigator!.routeData =
-            _lastLeafConfiguration!.rData!;
-      }
+      rootDelegatePop(result);
       return false;
     }
 
@@ -375,23 +377,15 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
     /// Otherwise, check to see if we can remove the top page and remove the page from the list of pages.
     if (_canPop) {
-      _pageSettingsList.removeLast();
-      _completers[_pageSettingsList.last.key]?.complete(result);
-      _updateRouteStack();
-      RouterObjects.injectedNavigator!.routeData =
-          _lastLeafConfiguration!.rData!;
+      back(result);
       return true;
     } else {
       if (delegateImplyLeadingToParent) {
         RouterObjects.rootDelegate!
           .._message = 'Back'
           .._ignoreConfiguration = false;
-        ;
         if (!RouterObjects._back(result)) {
           RouterObjects.rootDelegate!._message = 'Navigate';
-        } else {
-          RouterObjects.injectedNavigator!.routeData =
-              RouterObjects.rootDelegate!._lastLeafConfiguration!.rData!;
         }
       }
       return false;
@@ -458,8 +452,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
   bool? back<T extends Object?>([T? result]) {
     if (_canPop) {
-      _completers.remove(_pageSettingsList.last.name!)?.complete(result);
-      if (RouterObjects.injectedNavigator!.onBack != null) {
+      if (!forceBack && RouterObjects.injectedNavigator!.onBack != null) {
         final canBack = RouterObjects.injectedNavigator!.onBack?.call(
           _pageSettingsList.last.rData!,
         );
@@ -467,8 +460,12 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           return null;
         }
       }
+      forceBack = false;
+      _completers.remove(_pageSettingsList.last.name!)?.complete(result);
       _pageSettingsList.removeLast();
       _updateRouteStack();
+      RouterObjects.injectedNavigator!.routeData =
+          _lastLeafConfiguration!.rData!;
       return true;
     } else {
       return false;

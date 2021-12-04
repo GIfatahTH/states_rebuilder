@@ -1890,10 +1890,137 @@ abstract class RM {
     );
   }
 
+  /// {@macro InjectedNavigator}
+  ///
+  /// ## Parameters:
+  ///
+  /// ### `routes`: Required [Map<String, Widget Function(RouteData data)>].
+  /// A map of route names and a callbacks that return the corresponding widget.
+  /// The callback exposes a [RouteData] object. [RouteData] objects holds
+  /// information about routing data such as [RouteData.location], [RouteData.path],
+  /// [RouteData.pathParams] and [RouteData.queryParams].
+  ///
+  ///
+  /// Example:
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     routes: {
+  ///       '/': (RouteData data) => Home(),
+  ///        // redirect all paths that starts with '/home' to '/' path
+  ///       '/home/*': (RouteData data) => data.redirectTo('/'),
+  ///       '/page1': (RouteData data) => Page1(),
+  ///       '/page1/page11': (RouteData data) => Page11(),
+  ///       '/page2/:id': (RouteData data) {
+  ///         // Extract path parameters from dynamic links
+  ///         final id = data.pathParams['id'];
+  ///         // OR inside Page2 you can use `context.routeData.pathParams['id']`
+  ///         return Page2(id: id);
+  ///        },
+  ///       '/page3/:kind(all|popular|favorite)': (RouteData data) {
+  ///         // Use custom regular expression
+  ///         final kind = data.pathParams['kind'];
+  ///         return Page3(kind: kind);
+  ///        },
+  ///       '/page4': (RouteData data) {
+  ///         // Extract query parameters from links
+  ///         // Ex link is `/page4?age=4`
+  ///         final age = data.queryParams['age'];
+  ///         // OR inside Page4 you can use `context.routeData.queryParams['age']`
+  ///         return Page4(age: age);
+  ///        },
+  ///        // Using sub routes
+  ///        '/page5': (RouteData data) => RouteWidget(
+  ///              routes: {
+  ///                '/': (RouteData data) => Page5(),
+  ///                '/page51': (RouteData data) => Page51(),
+  ///              },
+  ///            ),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `initialLocation`: Optional [String]. Defaults to '/'.
+  /// The initial location the app route to when first starts.
+  ///
+  /// ### `unknownRoute`: Optional callback that exposes the location to navigate to.
+  /// Define the widgets to display if the location can not be resolved to known route.
+  ///
+  /// ### `builder`: Optional callback that exposes the router outlet widget.
+  /// Used to display the matched widget inside another widget.
+  ///
+  /// In the following example, all pages will be rendered inside `Padding` widget.
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     builder: (routerOutlet) {
+  ///       return Padding(
+  ///         padding: const EdgeInsets.all(8.0),
+  ///         child: routerOutlet,
+  ///       );
+  ///     },
+  ///     routes: {
+  ///       '/': (RouteData data) => Home(),
+  ///       '/page1': (RouteData data) => Page1(),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `pageBuilder`: Optional callback that exposes [MaterialPageArgument] object.
+  /// By default, app pages are wrapped with [MaterialPage] widget. If you want to get
+  /// more options, you can define your implementation.
+  ///
+  /// Used to display the matched widget inside another widget.
+  ///
+  /// In the following example, all pages will be rendered inside `Padding` widget.
+  /// ```dart
+  ///   pageBuilder: (MaterialPageArgument arg) {
+  ///      return MaterialPage(
+  ///        key: arg.key,
+  ///        child: arg.child,
+  ///      );
+  ///    },
+  /// ```
+  ///
+  /// ### `shouldUseCupertinoPage`: Optional callback that exposes [MaterialPageArgument] object.
+  /// By default, app pages are wrapped with [MaterialPage] widget. If you want to
+  /// use [CupertinoPage] instead, set `shouldUseCupertinoPage` to true.
+  /// You can use `pageBuilder` for more customization.
+  ///
+  /// ### `transitionsBuilder`: Optional callback.
+  /// Define the page transition animation. You can use predefined transition
+  /// using [RM.transitions] or just define yours.
+  ///
+  /// The animation transition defined here are global and will be used for each
+  /// page transition. You can override this default behavior for a particular route
+  /// using [RouteWidget.transitionsBuilder].
+  ///
+  /// You can also define a particular page transition animation for a single navigation
+  /// call:
+  /// ```dart
+  ///  myNavigator.to('/page1', transitionsBuilder: RM.transitions.rightToLeft())
+  /// ```
+  /// ### `onNavigate`: Optional callback that exposes [RouteData] object.
+  /// Callback fired after a location is resolved and just before navigation.
+  ///
+  /// It can be used for route guarding and global redirection.
+  ///
+  /// Example:
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     onNavigate: (RouteData data) {
+  ///       final toLocation = data.location;
+  ///       if (toLocation == '/homePage' && userIsNotSigned) {
+  ///         return data.redirectTo('/signInPage');
+  ///       }
+  ///       if (toLocation == '/signInPage' && userIsSigned) {
+  ///
   static InjectedNavigator injectNavigator({
     //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
     required Map<String, Widget Function(RouteData data)> routes,
+    String? initialLocation,
     Widget Function(String)? unknownRoute,
+    Widget Function(Widget routerOutlet)? builder,
+    Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
+    bool shouldUseCupertinoPage = false,
     Widget Function(
       BuildContext,
       Animation<double>,
@@ -1901,14 +2028,10 @@ abstract class RM {
       Widget,
     )?
         transitionsBuilder,
-    // Duration transitionDuration,//TODO
-    Widget Function(Widget child)? builder,
-    String? initialLocation,
-    bool shouldUseCupertinoPage = false,
     Redirect? Function(RouteData data)? onNavigate,
     bool? Function(RouteData data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
-    Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
+    // Duration transitionDuration,//TODO
   }) {
     return InjectedNavigatorImp(
       routes: routes,
