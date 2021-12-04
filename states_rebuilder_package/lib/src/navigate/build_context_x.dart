@@ -96,4 +96,10 @@ extension BuildContextX on BuildContext {
         as SubRoute?;
     return r?.animation;
   }
+
+  Animation<double>? get secondaryAnimation {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    return r?.secondaryAnimation;
+  }
 }
