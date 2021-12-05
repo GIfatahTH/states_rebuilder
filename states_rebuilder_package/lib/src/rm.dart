@@ -2012,7 +2012,60 @@ abstract class RM {
   ///         return data.redirectTo('/signInPage');
   ///       }
   ///       if (toLocation == '/signInPage' && userIsSigned) {
+  ///         return data.redirectTo('/homePage');
+  ///       }
   ///
+  ///       //You can also check query or path parameters
+  ///       if (data.queryParams['userId'] == '1') {
+  ///         return data.redirectTo('/superUserPage');
+  ///       }
+  ///     },
+  ///     routes: {
+  ///       '/signInPage': (RouteData data) => SignInPage(),
+  ///       '/homePage': (RouteData data) => HomePage(),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `onNavigateBack`: Optional callback that exposes [RouteData] object.
+  /// Called when the route is popping back. It can be used to prevent leaving
+  /// a page if returns false value.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  ///  final myNavigator = RM.injectNavigator(
+  ///    onNavigateBack: (RouteData data) {
+  ///      final backFrom = data.location;
+  ///      if (backFrom == '/SingInFormPage' && formIsNotSaved) {
+  ///        RM.navigate.toDialog(
+  ///          AlertDialog(
+  ///            content: Text('The form is not saved yet! Do you want to exit?'),
+  ///            actions: [
+  ///              ElevatedButton(
+  ///                onPressed: () => RM.navigate.forceBack(),
+  ///                child: Text('Yes'),
+  ///              ),
+  ///              ElevatedButton(
+  ///                onPressed: () => RM.navigate.back(),
+  ///                child: Text('No'),
+  ///              ),
+  ///            ],
+  ///          ),
+  ///        );
+  ///
+  ///        return false;
+  ///      }
+  ///    },
+  ///    routes: {
+  ///      '/SingInFormPage': (RouteData data) => SingInFormPage(),
+  ///      '/homePage': (RouteData data) => HomePage(),
+  ///    },
+  ///  );
+  /// ```
+  ///
+  /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
+  /// Print log a debug message when the state of the navigator is changed.
   static InjectedNavigator injectNavigator({
     //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
     required Map<String, Widget Function(RouteData data)> routes,
