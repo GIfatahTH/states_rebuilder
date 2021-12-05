@@ -1,20 +1,171 @@
 part of '../rm.dart';
 
+/// {@template RouteWidget}
+/// Widget use to define sub routes or just for better organization or add custom
+/// transition to a particular route.
+///
+/// For example let's take this routes
+/// ```dart
+///  final myNavigator = RM.injectNavigator(
+///    routes: {
+///      '/': (_) => HomePage(),
+///      '/Page1': (_) => Page1(),
+///      '/Page1/:id': (data) => Page1(id: data.pathParam['id']),
+///      '/Page1/page12': (_) => Page12(),
+///    },
+///  );
+/// ```
+///
+/// The above routes definition can be written like this:
+///
+/// ```dart
+///  final myNavigator = RM.injectNavigator(
+///    routes: {
+///      '/': (_) => HomePage(),
+///      '/Page1': (_) => RouteWidget(
+///            routes: {
+///              '/': (_) => Page1(),
+///              '/:id': (data) => Page1(id: data.pathParam['id']),
+///              '/page12': (_) => Page12(),
+///            },
+///          )
+///    },
+///  );
+/// ```
+///
+/// You can also use the builder property to wrap the route outlet widget inside
+/// an other widget.
+///
+/// ```dart
+///  final myNavigator = RM.injectNavigator(
+///    routes: {
+///      '/': (_) => HomePage(),
+///      '/Page1': (_) => RouteWidget(
+///            // Inside widget tree, you can get the router outlet widget using
+///            // `context.routerOutlet`
+///            builder: (routeOutlet) {
+///               // If you extract this Scaffold to a Widget class, you do not
+///               // need to use the Builder widget
+///              return Scaffold(
+///                appBar: AppBar(
+///                  title: OnReactive( // It reactive to routeData
+///                    () => Builder( // Needed only to get a child BuildContext
+///                      builder: (context) {
+///                        final location = context.routeData.location;
+///                        return Text('Routing to: $location');
+///                      },
+///                    ),
+///                  ),
+///                ),
+///                body: routeOutlet,
+///              );
+///            },
+///            routes: {
+///              '/': (_) => Page1(),
+///              '/:id': (data) => Page1(id: data.pathParam['id']),
+///              '/page12': (_) => Page12(),
+///            },
+///          )
+///    },
+///  );
+/// ```
+///
+/// Inside widget tree, you can get the router outlet widget using
+/// `context.routerOutlet`
+///
+/// RouteWidget can be just used to add custom page transition animation.
+///
+/// In the following example Page1 will be animated using the custom definition,
+/// whereas all other pages will use the default animation.
+/// ```dart
+///  final myNavigator = RM.injectNavigator(
+///    // Default transition
+///    transitionDuration: RM.transitions.leftToRight(),
+///    routes: {
+///      '/': (_) => HomePage(),
+///      '/Page1': (_) => RouteWidget(
+///            builder: (_) => Page1(),
+///            // You can use one of the predefined transitions
+///            transitionsBuilder: (context, animation, secondAnimation, child) {
+///              // Custom transition implementation
+///              return ...;
+///            },
+///          ),
+///      '/page2': (_) => Page2(),
+///    },
+///  );
+/// ```
+///
+/// See Also [RouteData] and [InjectedNavigator]
+/// {@endtemplate}
 class RouteWidget extends StatefulWidget {
-  final Widget Function(Widget child)? builder;
+  /// Used to wrap the the router outlet widget inside another widget.
+  ///
+  /// ```dart
+  ///  final myNavigator = RM.injectNavigator(
+  ///    routes: {
+  ///      '/': (_) => HomePage(),
+  ///      '/Page1': (_) => RouteWidget(
+  ///            builder: (routeOutlet) {
+  ///               // If you extract this Scaffold to a Widget class, you do not
+  ///               // need to use the Builder widget
+  ///              return Scaffold(
+  ///                appBar: AppBar(
+  ///                  title: OnReactive( // It reactive to routeData
+  ///                    () => Builder( // Needed only to get a child BuildContext
+  ///                      builder: (context) {
+  ///                        final location = context.routeData.location;
+  ///                        return Text('Routing to: $location');
+  ///                      },
+  ///                    ),
+  ///                  ),
+  ///                ),
+  ///                body: routeOutlet,
+  ///              );
+  ///            },
+  ///            routes: {
+  ///              '/': (_) => Page1(),
+  ///              '/:id': (data) => Page1(id: data.pathParam['id']),
+  ///              '/page12': (_) => Page12(),
+  ///            },
+  ///          )
+  ///    },
+  ///  );
+  /// ```
+  ///
+  final Widget Function(Widget routerOutlet)? builder;
 
+  /// Define a transition builder to be used for the sub route.
+  ///
+  /// In the follwing example Page1 will be animated using the custom definition,
+  /// whereas all other pages will use the default animation.
+  /// ```dart
+  ///  final myNavigator = RM.injectNavigator(
+  ///    // Default transition
+  ///    transitionDuration: RM.transitions.leftToRight(),
+  ///    routes: {
+  ///      '/': (_) => HomePage(),
+  ///      '/Page1': (_) => RouteWidget(
+  ///            builder: (_) => Page1(),
+  ///            // You can use one of the predefined transitions
+  ///            transitionsBuilder: (context, animation, secondAnimation, child) {
+  ///              // Custom transition implementation
+  ///              return ...;
+  ///            },
+  ///          ),
+  ///      '/page2': (_) => Page2(),
+  ///    },
+  ///  );
+  /// ```
   final Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
   )? transitionsBuilder;
-
-  final Map<Uri, Widget Function(RouteData data)> _routes;
-  final List<String> _routeKeys;
-  final _ParentToSubRouteMessage _parentToSubRouteMessage;
-  final bool _hasBuilder;
   final bool delegateImplyLeadingToParent;
+
+  /// {@macro RouteWidget}
   RouteWidget({
     this.builder,
     Map<String, Widget Function(RouteData data)> routes = const {},
@@ -52,6 +203,11 @@ class RouteWidget extends StatefulWidget {
                 _RouteWidgetState.parentToSubRouteMessage.signature,
               ),
         );
+
+  final Map<Uri, Widget Function(RouteData data)> _routes;
+  final List<String> _routeKeys;
+  final _ParentToSubRouteMessage _parentToSubRouteMessage;
+  final bool _hasBuilder;
   RouteWidget copyWith(Widget Function(Widget child)? builder) {
     return RouteWidget._(
       builder: builder,

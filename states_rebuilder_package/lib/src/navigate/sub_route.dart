@@ -1,5 +1,6 @@
 part of '../rm.dart';
 
+/// SubRoute inherited widget
 class SubRoute extends InheritedWidget {
   const SubRoute._({
     Key? key,

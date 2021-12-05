@@ -1,13 +1,19 @@
 part of '../../rm.dart';
 
 extension PageSettingsX on List<PageSettings> {
+  /// Add the page of routeName to PageSettings
+  ///
+  /// if `isStrictMode` is true and if the add page already exists in the route
+  /// stack then all pages above the added page will be removed and the add page
+  /// is displayed.
+  ///
   List<PageSettings> to(
     String routeName, {
     Object? arguments,
     Map<String, String> queryParams = const {},
-    bool isStrickMode = false,
+    bool isStrictMode = false,
   }) {
-    if (isStrickMode) {
+    if (isStrictMode) {
       bool isThere = false;
       final l = where(
         (e) {
@@ -32,6 +38,7 @@ extension PageSettingsX on List<PageSettings> {
     return this;
   }
 
+  /// Add the page with the given `routeName` and remove the last page.
   List<PageSettings> toReplacement(String routeName) {
     if (isNotEmpty) {
       removeLast();
@@ -41,6 +48,8 @@ extension PageSettingsX on List<PageSettings> {
     return this;
   }
 
+  /// Add the page with the given `routeName` and remove all pages until the
+  /// page with `untilRouteName` name.
   List<PageSettings> toAndRemoveUntil(String routeName,
       [String? untilRouteName]) {
     if (untilRouteName == null) {
@@ -63,15 +72,16 @@ extension PageSettingsX on List<PageSettings> {
   }
 }
 
-///Data that might be useful in constructing a [Page].
+/// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
 class PageSettings extends RouteSettings {
   final Widget? child;
-  final String? routePattern;
   final Map<String, String> queryParams;
   final ValueKey? key;
+  final String? routePattern;
   final RouteData? rData;
   final String? _delegateName;
 
+  /// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
   const PageSettings({
     required String name,
     this.routePattern,

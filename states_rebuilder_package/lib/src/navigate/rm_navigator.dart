@@ -99,10 +99,9 @@ MaterialApp(
         );
         final r = _pageRouteBuilder(
           (animation) {
-            return _RouteFullWidget(
+            return getWidgetFromPages(
               pages: pages,
               animation: animation,
-              // key: Key(pages.keys.toString()),
             );
           },
           RouteSettings(

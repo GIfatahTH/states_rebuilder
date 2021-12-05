@@ -28,6 +28,7 @@ import '../../rm.dart';
 ///  }
 /// ```
 ///
+/// See also [RouteData] and [RouteWidget]
 /// {@endtemplate}
 abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   /// [RouterDelegate] implementation

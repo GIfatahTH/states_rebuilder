@@ -2096,7 +2096,7 @@ void main() {
       _navigator.setRouteStack(
         (pages) => pages.to(
           '/page1',
-          isStrickMode: true,
+          isStrictMode: true,
         ),
       );
       await tester.pumpAndSettle();
@@ -3901,6 +3901,17 @@ class _MyPage extends Page {
     return MaterialPageRoute(
       builder: (_) => Text('_myPage'),
       settings: this,
+    );
+  }
+}
+
+class name extends StatelessWidget {
+  const name({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return OnReactive(
+      () => Text('${context.routeData.location}'),
     );
   }
 }

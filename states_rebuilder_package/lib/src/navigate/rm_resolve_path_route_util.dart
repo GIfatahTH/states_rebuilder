@@ -593,6 +593,10 @@ class _ResolveLocation {
       }
 
       for (var i = 0; i < routeUriSegments.length; i++) {
+        if (routeUriSegments[i] == '*') {
+          hasLocation = true;
+          break;
+        }
         if (routeUriSegments[i].startsWith(':')) {
           final _parameterRegExp = RegExp(r':(\w+)(\(.+\))?');
           final match = _parameterRegExp.firstMatch(routeUriSegments[i]);

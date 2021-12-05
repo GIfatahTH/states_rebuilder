@@ -1930,6 +1930,12 @@ abstract class RM {
   ///        },
   ///        // Using sub routes
   ///        '/page5': (RouteData data) => RouteWidget(
+  ///              builder: (Widget routerOutlet) {
+  ///                return MyParentWidget(
+  ///                  child: routerOutlet;
+  ///                  // OR inside MyParentWidget you can use `context.routerOutlet`
+  ///                )
+  ///              },
   ///              routes: {
   ///                '/': (RouteData data) => Page5(),
   ///                '/page51': (RouteData data) => Page51(),
@@ -1968,9 +1974,6 @@ abstract class RM {
   /// By default, app pages are wrapped with [MaterialPage] widget. If you want to get
   /// more options, you can define your implementation.
   ///
-  /// Used to display the matched widget inside another widget.
-  ///
-  /// In the following example, all pages will be rendered inside `Padding` widget.
   /// ```dart
   ///   pageBuilder: (MaterialPageArgument arg) {
   ///      return MaterialPage(

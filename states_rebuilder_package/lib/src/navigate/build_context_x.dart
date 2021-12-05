@@ -40,6 +40,30 @@ extension BuildContextX on BuildContext {
     // );
   }
 
+  /// Get the scoped [RouteData]. It looks up the widget tree for the
+  /// closest sub route and returns its[RouteData].
+  ///
+  /// See also [InjectedNavigator.routeData]
+  RouteData get routeData {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    assert(r?.routeData != null);
+
+    return r!.routeData;
+  }
+
+  Animation<double>? get animation {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    return r?.animation;
+  }
+
+  Animation<double>? get secondaryAnimation {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    return r?.secondaryAnimation;
+  }
+
   @Deprecated('User routeData instead')
   dynamic get routeArguments {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
@@ -64,18 +88,6 @@ extension BuildContextX on BuildContext {
     return r!.routeData.pathParams;
   }
 
-  /// Get the scoped [RouteData]. It looks up the widget tree for the
-  /// closest sub route and returns its[RouteData].
-  ///
-  /// See also [InjectedNavigator.routeData]
-  RouteData get routeData {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    assert(r?.routeData != null);
-
-    return r!.routeData;
-  }
-
   @Deprecated('User routeData instead')
   String get routeBaseUrl {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
@@ -89,17 +101,5 @@ extension BuildContextX on BuildContext {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
     return r!.routeData.path;
-  }
-
-  Animation<double>? get animation {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    return r?.animation;
-  }
-
-  Animation<double>? get secondaryAnimation {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    return r?.secondaryAnimation;
   }
 }

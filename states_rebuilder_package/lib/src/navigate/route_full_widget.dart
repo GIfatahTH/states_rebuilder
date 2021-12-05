@@ -1,23 +1,23 @@
 part of '../rm.dart';
 
-class _RouteFullWidget extends StatefulWidget {
-  final Map<String, RouteSettingsWithChildAndData> pages;
+// class _RouteFullWidget extends StatefulWidget {
+//   final Map<String, RouteSettingsWithChildAndData> pages;
 
-  final Animation<double>? animation;
-  final void Function()? initState;
-  final void Function()? dispose;
+//   final Animation<double>? animation;
+//   final void Function()? initState;
+//   final void Function()? dispose;
 
-  const _RouteFullWidget({
-    Key? key,
-    required this.pages,
-    this.animation,
-    this.initState,
-    this.dispose,
-  }) : super(key: key);
+//   const _RouteFullWidget({
+//     Key? key,
+//     required this.pages,
+//     this.animation,
+//     this.initState,
+//     this.dispose,
+//   }) : super(key: key);
 
-  @override
-  _RouteFullWidgetState createState() => _RouteFullWidgetState();
-}
+//   @override
+//   _RouteFullWidgetState createState() => _RouteFullWidgetState();
+// }
 
 Widget get routeNotDefinedAssertion {
   return Builder(
@@ -109,23 +109,23 @@ Widget getWidgetFromPages({
   return child;
 }
 
-class _RouteFullWidgetState extends State<_RouteFullWidget> {
-  Widget? child;
+// class _RouteFullWidgetState extends State<_RouteFullWidget> {
+//   Widget? child;
 
-  @override
-  void initState() {
-    super.initState();
-    child = getWidgetFromPages(
-      pages: widget.pages,
-      animation: widget.animation,
-    );
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     child = getWidgetFromPages(
+//       pages: widget.pages,
+//       animation: widget.animation,
+//     );
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return child!;
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return child!;
+//   }
+// }
 
 // class _RouteFullWidget extends StatefulWidget {
 //   final Widget child;

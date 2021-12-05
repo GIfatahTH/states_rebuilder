@@ -1,6 +1,11 @@
 part of '../rm.dart';
 
 /// Object that holds information about the active route.
+///
+/// Inside the widget tree you can get the scoped [RouteData] using
+/// `context.routeData`.
+///
+/// See also [InjectedNavigator] and [RouteWidget]
 class RouteData {
   /// The current Base location.
   /// Example :
@@ -91,6 +96,8 @@ class RouteData {
 
   final bool _pathEndsWithSlash;
   final List<String> _redirectedFrom;
+
+  /// Object that holds information about the active route.
   const RouteData({
     required this.path,
     required this.location,
