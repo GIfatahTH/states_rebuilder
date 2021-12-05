@@ -121,6 +121,7 @@ class RouteWidget extends StatefulWidget {
         resolvePathRouteUtil: routePathResolver,
         hasBuilder: _hasBuilder,
         transitionsBuilder: transition,
+        transitionDuration: null,
         delegateImplyLeadingToParent: delegateImplyLeadingToParent,
       );
       isInitialized[0] = true;

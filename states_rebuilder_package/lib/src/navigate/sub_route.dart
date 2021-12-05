@@ -7,6 +7,7 @@ class SubRoute extends InheritedWidget {
     required this.route,
     required this.lastSubRoute,
     required this.animation,
+    this.secondaryAnimation,
     required this.shouldAnimate,
     required this.routeData,
     this.transitionsBuilder,
@@ -15,6 +16,7 @@ class SubRoute extends InheritedWidget {
   final Widget? lastSubRoute;
   final RouteData routeData;
   final Animation<double>? animation;
+  final Animation<double>? secondaryAnimation;
   final bool shouldAnimate;
   final Widget Function(
     BuildContext,
@@ -22,6 +24,21 @@ class SubRoute extends InheritedWidget {
     Animation<double>,
     Widget,
   )? transitionsBuilder;
+
+  SubRoute copyWith({
+    Animation<double>? animation,
+    Animation<double>? secondaryAnimation,
+  }) {
+    return SubRoute._(
+      child: child,
+      route: route,
+      lastSubRoute: lastSubRoute,
+      animation: animation ?? this.animation,
+      secondaryAnimation: secondaryAnimation ?? this.secondaryAnimation,
+      shouldAnimate: shouldAnimate,
+      routeData: routeData,
+    );
+  }
 
   @override
   bool updateShouldNotify(SubRoute oldWidget) {

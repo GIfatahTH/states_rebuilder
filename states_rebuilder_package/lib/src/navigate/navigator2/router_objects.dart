@@ -24,6 +24,7 @@ abstract class RouterObjects {
     required Widget Function(
             BuildContext, Animation<double>, Animation<double>, Widget)?
         transitionsBuilder,
+    required Duration? transitionDuration,
     required Widget Function(Widget child)? builder,
     required String? initialRoute,
     required bool shouldUseCupertinoPage,
@@ -55,6 +56,7 @@ abstract class RouterObjects {
           : null,
       resolvePathRouteUtil: _navigate._resolvePathRouteUtil,
       transitionsBuilder: RM.navigate.transitionsBuilder = transitionsBuilder,
+      transitionDuration: transitionDuration,
       delegateName: 'rootDelegate',
       delegateImplyLeadingToParent: false,
     );

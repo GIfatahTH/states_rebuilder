@@ -40,9 +40,10 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
 
   /// Set the route stack. It exposes the current [PageSettings] stack.
   void setRouteStack(
-    List<PageSettings> Function(List<PageSettings> pages) stack,
-  ) {
-    return RM.navigate.setRouteStack(stack);
+    List<PageSettings> Function(List<PageSettings> pages) stack, {
+    String? subRouteName,
+  }) {
+    return RM.navigate.setRouteStack(stack, subRouteName: subRouteName);
   }
 
   /// Get the [PageSettings] stack.
@@ -65,6 +66,13 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )?
+        transitionsBuilder,
   }) {
     return RM.navigate.toNamed<T>(
       routeName,
@@ -72,6 +80,7 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
       queryParams: queryParams,
       fullscreenDialog: fullscreenDialog,
       maintainState: maintainState,
+      transitionsBuilder: transitionsBuilder,
     );
   }
 
@@ -105,7 +114,6 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   ///
   /// In contrast, if we invoke myNavigator.toDeeply('/page1/page11/page111'),
   /// the route stack is `['/', '/page1', '/page1/page11', '/page1/page11/page111']`.
-// TODO to test
   void toDeeply(
     String routeName, {
     Object? arguments,
@@ -217,6 +225,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     required Widget Function(
             BuildContext, Animation<double>, Animation<double>, Widget)?
         transitionsBuilder,
+    required Duration? transitionDuration,
     required Widget Function(Widget child)? builder,
     required String? initialRoute,
     required bool shouldUseCupertinoPage,
@@ -240,6 +249,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
       routes: routes,
       unknownRoute: unknownRoute,
       transitionsBuilder: transitionsBuilder,
+      transitionDuration: transitionDuration,
       builder: builder,
       initialRoute: initialRoute,
       shouldUseCupertinoPage: shouldUseCupertinoPage,

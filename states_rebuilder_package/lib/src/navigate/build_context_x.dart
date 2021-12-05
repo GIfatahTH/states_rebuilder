@@ -91,10 +91,15 @@ extension BuildContextX on BuildContext {
     return r!.routeData.path;
   }
 
-  static Animation<double>? ofRouteAnimation(BuildContext context) {
-    final r = context
-        .getElementForInheritedWidgetOfExactType<SubRoute>()
-        ?.widget as SubRoute?;
+  Animation<double>? get animation {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
     return r?.animation;
+  }
+
+  Animation<double>? get secondaryAnimation {
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
+    return r?.secondaryAnimation;
   }
 }

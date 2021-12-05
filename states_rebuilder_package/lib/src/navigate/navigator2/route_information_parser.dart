@@ -47,15 +47,15 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
     }
 
     if (_routerDelegate == RouterObjects.rootDelegate) {
-      _routerDelegate._useTransition = false;
-      RouterObjects.rootDelegate!._message = 'DeepLink';
+      _routerDelegate.useTransition = false;
+      RouterObjects.rootDelegate!.message = 'DeepLink';
     }
     return SynchronousFuture(settings);
   }
 
   @override
   RouteInformation restoreRouteInformation(PageSettings configuration) {
-    _routerDelegate._useTransition = true;
+    _routerDelegate.useTransition = true;
 
     var name = configuration.name;
     if (configuration.queryParams.isNotEmpty) {
@@ -68,13 +68,13 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
     assert(_routerDelegate.delegateName == 'rootDelegate');
 
     assert(() {
-      if ((!_routerDelegate._ignoreConfiguration ||
-              _routerDelegate._message == 'Back') &&
+      if ((!_routerDelegate.canLogMessage ||
+              _routerDelegate.message == 'Back') &&
           _restoredRouteInformationName != configuration.name) {
         if (RouterObjects.injectedNavigator!.debugPrintWhenRouted) {
-          StatesRebuilerLogger.log('${_routerDelegate._message} to: $name');
+          StatesRebuilerLogger.log('${_routerDelegate.message} to: $name');
         }
-        _routerDelegate._message = 'Navigate';
+        _routerDelegate.message = 'Navigate';
         _restoredRouteInformationName = name;
       }
       return true;

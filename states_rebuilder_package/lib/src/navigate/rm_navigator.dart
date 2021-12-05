@@ -164,21 +164,24 @@ MaterialApp(
     //   );
   }
 
-  String _setRouteStack = RouterObjects.root;
   void setRouteStack(
-    List<PageSettings> Function(List<PageSettings> pages) stack,
-  ) {
-    //TODO
-    // RouterObjects.routerDelegates[_setRouteStack]!.values.last
-    //     .setRouteStack(stack);
-
-    RouterObjects.rootDelegate!.setRouteStack(stack);
-    _setRouteStack = RouterObjects.root;
-  }
-
-  _Navigate call([String? subRoute]) {
-    _setRouteStack = subRoute ?? RouterObjects.root;
-    return this;
+    List<PageSettings> Function(List<PageSettings> pages) stack, {
+    String? subRouteName,
+  }) {
+    if (subRouteName == null) {
+      RouterObjects.rootDelegate!.setRouteStack(stack);
+    } else {
+      final absoluteName =
+          _resolvePathRouteUtil.setAbsoluteUrlPath(subRouteName);
+      final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+      if (delegate == null) {
+        StatesRebuilerLogger.log(
+          '',
+          'There are no sub route with $subRouteName name',
+        );
+      }
+      delegate!.setRouteStack(stack);
+    }
   }
 
   ///navigate to the given page.
@@ -221,6 +224,13 @@ MaterialApp(
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )?
+        transitionsBuilder,
   }) {
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
@@ -228,13 +238,17 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
       final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-      return delegate!.to<T>(
+      final cache = delegate!.transitionsBuilder;
+      delegate.transitionsBuilder = transitionsBuilder ?? cache;
+      final r = delegate.to<T>(
         PageSettings(
           name: absoluteName,
           arguments: arguments,
           queryParams: queryParams ?? {},
         ),
       );
+      delegate.transitionsBuilder = cache;
+      return r;
     }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
@@ -518,13 +532,27 @@ MaterialApp(
     bool useSafeArea = true,
     bool postponeToNextFrame = false,
   }) {
-    Future<T?> fn() => showDialog<T>(
+    Future<T?> fn() {
+      try {
+        return showDialog<T>(
           context: navigatorState.context,
           builder: (_) => dialog,
           barrierDismissible: barrierDismissible,
           barrierColor: barrierColor,
           useSafeArea: useSafeArea,
         );
+      } catch (e) {
+        if (!postponeToNextFrame) {
+          StatesRebuilerLogger.log(
+            'Try setting `toDialog.postponeToNextFrame` argument to true',
+            e,
+          );
+        }
+        rethrow;
+      }
+    }
+
+    ;
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
@@ -552,11 +580,24 @@ MaterialApp(
     bool barrierDismissible = false,
     bool postponeToNextFrame = false,
   }) {
-    Future<T?> fn() => showCupertinoDialog<T>(
+    Future<T?> fn() {
+      try {
+        return showCupertinoDialog<T>(
           context: navigatorState.context,
           builder: (_) => dialog,
           barrierDismissible: barrierDismissible,
         );
+      } catch (e) {
+        if (!postponeToNextFrame) {
+          StatesRebuilerLogger.log(
+            'Try setting `toCupertinoDialog.postponeToNextFrame` argument to true',
+            e,
+          );
+        }
+        rethrow;
+      }
+    }
+
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
@@ -606,7 +647,9 @@ MaterialApp(
     Color? barrierColor,
     bool postponeToNextFrame = false,
   }) {
-    Future<T?> fn() => showModalBottomSheet<T>(
+    Future<T?> fn() {
+      try {
+        return showModalBottomSheet<T>(
           context: navigatorState.context,
           builder: (_) => bottomSheet,
           backgroundColor: backgroundColor,
@@ -618,6 +661,17 @@ MaterialApp(
           isDismissible: isDismissible,
           enableDrag: enableDrag,
         );
+      } catch (e) {
+        if (!postponeToNextFrame) {
+          StatesRebuilerLogger.log(
+            'Try setting `toBottomSheet.postponeToNextFrame` argument to true',
+            e,
+          );
+        }
+        rethrow;
+      }
+    }
+
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
@@ -642,12 +696,25 @@ MaterialApp(
     bool? semanticsDismissible,
     bool postponeToNextFrame = false,
   }) {
-    Future<T?> fn() => showCupertinoModalPopup<T>(
+    Future<T?> fn() {
+      try {
+        return showCupertinoModalPopup<T>(
           context: navigatorState.context,
           builder: (_) => cupertinoModalPopup,
           semanticsDismissible: semanticsDismissible,
           filter: filter,
         );
+      } catch (e) {
+        if (!postponeToNextFrame) {
+          StatesRebuilerLogger.log(
+            'Try setting `toCupertinoModalPopup.postponeToNextFrame` argument to true',
+            e,
+          );
+        }
+        rethrow;
+      }
+    }
+
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
@@ -662,6 +729,7 @@ MaterialApp(
   void _dispose() {
     RouterObjects._dispose();
     transitionsBuilder = null;
+    _transitionDuration = null;
     pageRouteBuilder = null;
   }
 }

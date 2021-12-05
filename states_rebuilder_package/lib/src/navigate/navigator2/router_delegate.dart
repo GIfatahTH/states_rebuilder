@@ -9,41 +9,37 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     required ResolvePathRouteUtil resolvePathRouteUtil,
     required this.delegateName,
     this.hasBuilder = true,
-    required Widget Function(
-      BuildContext,
-      Animation<double>,
-      Animation<double>,
-      Widget,
-    )?
-        transitionsBuilder,
+    required this.transitionsBuilder,
+    required this.transitionDuration,
     required this.delegateImplyLeadingToParent,
   })  : _builder = builder,
         _routes = routes,
         _resolvePathRouteUtil = resolvePathRouteUtil,
-        _transitionsBuilder = transitionsBuilder,
         _navigatorKey = key;
-
-  final List<PageSettings> _pageSettingsList = [];
-  List<PageSettings> get pageSettingsList => [..._pageSettingsList];
 
   final Map<Uri, Widget Function(RouteData)> _routes;
   final Widget Function(Widget)? _builder;
   final ResolvePathRouteUtil _resolvePathRouteUtil;
   final GlobalKey<NavigatorState> _navigatorKey;
-  final Widget Function(
+  @override
+  GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;
+  Widget Function(
     BuildContext,
     Animation<double>,
     Animation<double>,
     Widget,
-  )? _transitionsBuilder;
+  )? transitionsBuilder;
+  Duration? transitionDuration;
   final String delegateName;
   final bool hasBuilder;
-  bool delegateImplyLeadingToParent;
-  @override
-  GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;
+
+  final List<PageSettings> _pageSettingsList = [];
+  List<PageSettings> get pageSettingsList => [..._pageSettingsList];
   final _pages = <Page<dynamic>>[];
   List<Page<dynamic>> get pages => [..._pages];
+
   final Map<String, Completer> _completers = {};
+  bool delegateImplyLeadingToParent;
 
   void _updateRouteStack([bool notify = true]) {
     final pages = [..._pages];
@@ -53,6 +49,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       final isLast = i == _pageSettingsList.length - 1 ? null : false;
       PageSettings settings = _pageSettingsList[i];
       if (pages.length > i) {
+        // In case custom pageBuilder is used, check for has child
         bool hasChild = true;
         try {
           hasChild = (pages[i] as dynamic).child is Object;
@@ -60,6 +57,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           hasChild = false;
         }
         if (hasChild) {
+          // CASE The PageSettings holds the same child
           if (settings.child == (pages[i] as dynamic).child) {
             _pages.add(pages[i]);
             continue;
@@ -68,6 +66,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       }
       final childMap = _getChild(settings);
       if (childMap == null) {
+        // CASE The PageSettings can not have a resolved child
         _pageSettingsList.removeAt(i);
         continue;
       }
@@ -96,6 +95,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       if (i > 0 &&
           _pageSettingsList[i - 1]._signatureWithChild ==
               settings._signatureWithChild) {
+        // Do not allow pages with the same signutre to pile up on top of each other
         _pageSettingsList.removeAt(i);
         continue;
       }
@@ -110,10 +110,12 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                   arguments: settings.arguments,
                   fullscreenDialog: isLast ?? _navigate._fullscreenDialog,
                   maintainState: isLast ?? _navigate._maintainState,
-                  useTransition: _useTransition,
-                  customBuildTransitions: _transitionsBuilder,
+                  useTransition: useTransition,
+                  customBuildTransitions: transitionsBuilder,
+                  transitionDuration: transitionDuration,
                 )
-              : RouterObjects.injectedNavigator!.pageBuilder!(
+              : //A custom pageBuilder is defined
+              RouterObjects.injectedNavigator!.pageBuilder!(
                   MaterialPageArgument(
                     child: settings.child!,
                     key: settings.key,
@@ -139,27 +141,31 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _navigate._maintainState = false;
     assert(_pages.length == _pageSettingsList.length);
     assert(_pages.isNotEmpty, '$delegateName has empty pages');
+    // Set globalBaseUrl
     ResolvePathRouteUtil.globalBaseUrl =
         _pageSettingsList.last.rData!.baseLocation;
 
     if (this != RouterObjects.rootDelegate) {
+      // If this is a subRoute
       if (notify) {
+        // Notify the subRoute
         notifyListeners();
       }
+      // Notify the root route without logging
       RouterObjects.rootDelegate!
-        .._ignoreConfiguration = false
+        ..canLogMessage = false
         .._notifyListeners();
     } else if (notify) {
-      _ignoreConfiguration = _pageSettingsList.last.child is RouteWidget;
+      canLogMessage = _pageSettingsList.last.child is RouteWidget;
       notifyListeners();
     }
   }
 
   bool _isDirty = false;
+  bool useTransition = true;
   bool forceBack = false;
-  bool _useTransition = true;
-  String? _message;
-  bool _ignoreConfiguration = false;
+  String? message;
+  bool canLogMessage = false;
 
   void _notifyListeners() {
     if (!_isDirty) {
@@ -198,7 +204,21 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   void setRouteStack(
     List<PageSettings> Function(List<PageSettings> pages) stack,
   ) {
-    final s = stack(routeStack);
+    print('');
+    final s = stack(routeStack).map(
+      (e) {
+        final name = e.name!;
+        if (name.startsWith('/')) {
+          return e;
+        }
+        return e.copyWith(
+          name: _resolvePathRouteUtil.urlName == '/'
+              ? '/$name'
+              : _resolvePathRouteUtil.urlName + '/$name',
+        );
+      },
+    );
+
     _pageSettingsList
       ..clear()
       ..addAll(s);
@@ -210,6 +230,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     }
   }
 
+  // Get the configuration of the deepest active sub route
   PageSettings? get _lastLeafConfiguration {
     if (_pageSettingsList.isEmpty) {
       return null;
@@ -228,14 +249,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   @override
   PageSettings? get currentConfiguration {
     if (this == RouterObjects.rootDelegate) {
-      // final c = RouterObjects._activeSubRoutes()?.last._lastConfiguration;
       final c = _lastLeafConfiguration;
-
       if (c != null) {
         RouterObjects.injectedNavigator!.notify();
-        // if (_restoredRouteInformationName == c.name) {
-        //   return null;
-        // }
       }
       return c;
     }
@@ -251,7 +267,6 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   @override
   Future<void> setNewRoutePath(PageSettings configuration) {
     _updateRouteStack();
-
     return SynchronousFuture(null);
   }
 
@@ -355,10 +370,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   void rootDelegatePop(dynamic result) {
-    _message = 'Back';
-    _ignoreConfiguration = false;
+    message = 'Back';
+    canLogMessage = false;
     if (!RouterObjects._back(result)) {
-      _message = 'Navigate';
+      message = 'Navigate';
     }
   }
 
@@ -382,10 +397,11 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     } else {
       if (delegateImplyLeadingToParent) {
         RouterObjects.rootDelegate!
-          .._message = 'Back'
-          .._ignoreConfiguration = false;
+          ..message = 'Back'
+          ..canLogMessage = false;
+        ;
         if (!RouterObjects._back(result)) {
-          RouterObjects.rootDelegate!._message = 'Navigate';
+          RouterObjects.rootDelegate!.message = 'Navigate';
         }
       }
       return false;
@@ -520,6 +536,7 @@ class _MaterialPage1<T> extends MaterialPage<T> {
   const _MaterialPage1({
     required Widget child,
     required this.customBuildTransitions,
+    required this.transitionDuration,
     bool maintainState = true,
     bool fullscreenDialog = false,
     LocalKey? key,
@@ -543,6 +560,7 @@ class _MaterialPage1<T> extends MaterialPage<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  final Duration? transitionDuration;
   final bool useTransition;
 
   @override
@@ -551,12 +569,14 @@ class _MaterialPage1<T> extends MaterialPage<T> {
       return _PageBasedCupertinoPageRoute<T>(
         page: this,
         customBuildTransitions: customBuildTransitions,
+        transitionDuration: transitionDuration,
       );
     }
     return _PageBasedMaterialPageRoute<T>(
       page: this,
       useTransition: useTransition,
       customBuildTransitions: customBuildTransitions,
+      transitionDuration: transitionDuration,
     );
   }
 }
@@ -566,8 +586,10 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
   _PageBasedMaterialPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
+    required Duration? transitionDuration,
     this.useTransition = false,
-  }) : super(settings: page) {
+  })  : _transitionDuration = transitionDuration,
+        super(settings: page) {
     assert(opaque);
   }
   final bool useTransition;
@@ -575,6 +597,12 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
 
   @override
   Widget buildContent(BuildContext context) {
+    if (_page.child is SubRoute) {
+      return (_page.child as SubRoute).copyWith(
+        animation: _animation,
+        secondaryAnimation: _secondaryAnimation,
+      );
+    }
     return _page.child;
   }
 
@@ -586,13 +614,21 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
 
   @override
   String get debugLabel => '${super.debugLabel}(${_page.name})';
-
+  Animation<double>? _animation;
+  Animation<double>? _secondaryAnimation;
   final Widget Function(
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  )? _transitionBuilder;
+  final Duration? _transitionDuration;
 
   @override
   Duration get transitionDuration {
@@ -600,6 +636,7 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
         (RouterObjects.isTransitionAnimated != false ||
             _Navigate._transitionDuration != null)) {
       return _Navigate._transitionDuration ??
+          _transitionDuration ??
           const Duration(
             milliseconds: 300,
           );
@@ -619,6 +656,8 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    _animation = animation;
+    _secondaryAnimation = secondaryAnimation;
     if (!useTransition) {
       RouterObjects.isTransitionAnimated = false;
       return child;
@@ -651,7 +690,9 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
   _PageBasedCupertinoPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
-  }) : super(settings: page) {
+    required Duration? transitionDuration,
+  })  : _transitionDuration = transitionDuration,
+        super(settings: page) {
     assert(opaque);
   }
 
@@ -679,9 +720,12 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
+  final Duration? _transitionDuration;
+
   @override
   Duration get transitionDuration =>
       _Navigate._transitionDuration ??
+      _transitionDuration ??
       const Duration(
         milliseconds: 300,
       );

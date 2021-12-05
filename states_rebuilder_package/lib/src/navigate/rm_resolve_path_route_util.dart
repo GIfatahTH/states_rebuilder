@@ -514,6 +514,15 @@ class _ResolveLocation {
     String parsedRouteUri = routeUri.length > 1 ? routeUri : '';
 
     for (var i = 0; i < routeUriSegments.length; i++) {
+      if (routeUriSegments[i] == '*') {
+        parsedRouteUri += '/${routeUriSegments[i]}';
+        for (var j = i; j < pathUrlSegments.length; j++) {
+          parsedPathUrl += '/${pathUrlSegments[j]}';
+        }
+        util.remainingUrlSegments.clear();
+        break;
+      }
+
       if (routeUriSegments[i].startsWith(':')) {
         final _parameterRegExp = RegExp(r':(\w+)(\(.+\))?');
         final match = _parameterRegExp.firstMatch(routeUriSegments[i]);

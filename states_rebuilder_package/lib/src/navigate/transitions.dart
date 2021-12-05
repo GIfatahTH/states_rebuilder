@@ -42,6 +42,7 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
+    final cache = _Navigate._transitionDuration;
     _Navigate._transitionDuration = duration;
     return (context, animation, secondaryAnimation, child) {
       positionTween ??= Tween<Offset>(
@@ -59,7 +60,7 @@ class _Transitions {
           CurveTween(curve: opacityCurve ?? Curves.easeIn),
         ),
       );
-
+      _Navigate._transitionDuration = cache;
       return SlideTransition(
         position: _positionAnimation,
         child: FadeTransition(
@@ -109,27 +110,31 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
+    final cache = _Navigate._transitionDuration;
     _Navigate._transitionDuration = duration;
+    positionTween ??= Tween<Offset>(
+      begin: const Offset(-0.25, 0),
+      end: Offset.zero,
+    );
+    Animation<Offset>? _positionAnimation;
+    opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
+    Animation<double>? _opacityAnimation;
     return (context, animation, secondaryAnimation, child) {
-      positionTween ??= Tween<Offset>(
-        begin: const Offset(-0.25, 0),
-        end: Offset.zero,
-      );
-      opacityTween ??= Tween<double>(begin: 0.0, end: 1.0);
-      final Animation<Offset> _positionAnimation = animation.drive(
+      _positionAnimation ??= animation.drive(
         positionTween!.chain(
           CurveTween(curve: positionCurve ?? Curves.fastOutSlowIn),
         ),
       );
-      final Animation<double> _opacityAnimation = animation.drive(
+      _opacityAnimation ??= animation.drive(
         opacityTween!.chain(
           CurveTween(curve: opacityCurve ?? Curves.easeIn),
         ),
       );
-      return SlideTransition(
-        position: _positionAnimation,
+      _Navigate._transitionDuration = cache;
+      return FractionalTranslation(
+        translation: _positionAnimation!.value,
         child: FadeTransition(
-          opacity: _opacityAnimation,
+          opacity: _opacityAnimation!,
           child: child,
         ),
       );
@@ -175,6 +180,7 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
+    final cache = _Navigate._transitionDuration;
     _Navigate._transitionDuration = duration;
     return (context, animation, secondaryAnimation, child) {
       positionTween ??= Tween<Offset>(
@@ -192,6 +198,7 @@ class _Transitions {
           CurveTween(curve: opacityCurve ?? Curves.easeIn),
         ),
       );
+      _Navigate._transitionDuration = cache;
       return SlideTransition(
         position: _positionAnimation,
         child: FadeTransition(
@@ -241,6 +248,7 @@ class _Transitions {
     Curve? opacityCurve,
     Duration? duration,
   }) {
+    final cache = _Navigate._transitionDuration;
     _Navigate._transitionDuration = duration;
     return (context, animation, secondaryAnimation, child) {
       positionTween ??= Tween<Offset>(
@@ -259,6 +267,7 @@ class _Transitions {
         ),
       );
 
+      _Navigate._transitionDuration = cache;
       return SlideTransition(
         position: _positionAnimation,
         child: FadeTransition(
@@ -274,9 +283,13 @@ class _Transitions {
     Animation<double>,
     Animation<double>,
     Widget,
-  ) none() {
-    _Navigate._transitionDuration = const Duration(microseconds: 1);
+  ) none({
+    Duration? duration,
+  }) {
+    final cache = _Navigate._transitionDuration;
+    _Navigate._transitionDuration = duration ?? const Duration(microseconds: 1);
     return (context, animation, secondaryAnimation, child) {
+      _Navigate._transitionDuration = cache;
       return child;
     };
   }
