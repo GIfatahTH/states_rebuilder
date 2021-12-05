@@ -736,66 +736,152 @@ Note: you should first set `undoStackLength:` from RM.inject
 
 ## Route management
 
-To navigate, show dialogs and snackBars without `BuildContext`:
+To use Navigator version 2,
+ ```dart
+   final InjectedNavigator myNavigator = RM.injectNavigator(
+     // Define your routes map
+     routes: {
+       '/': (RouteData data) => Home(),
+        // redirect all paths that starts with '/home' to '/' path
+       '/home/*': (RouteData data) => data.redirectTo('/'),
+       '/page1': (RouteData data) => Page1(),
+       '/page1/page11': (RouteData data) => Page11(),
+       '/page2/:id': (RouteData data) {
+         // Extract path parameters from dynamic links
+         final id = data.pathParams['id'];
+         // OR inside Page2 you can use `context.routeData.pathParams['id']`
+         return Page2(id: id);
+        },
+       '/page3/:kind(all|popular|favorite)': (RouteData data) {
+         // Use custom regular expression
+         final kind = data.pathParams['kind'];
+         return Page3(kind: kind);
+        },
+       '/page4': (RouteData data) {
+         // Extract query parameters from links
+         // Ex link is `/page4?age=4`
+         final age = data.queryParams['age'];
+         // OR inside Page4 you can use `context.routeData.queryParams['age']`
+         return Page4(age: age);
+        },
+        // Using sub routes
+        '/page5': (RouteData data) => RouteWidget(
+              builder: (Widget routerOutlet) {
+                return MyParentWidget(
+                  child: routerOutlet;
+                  // OR inside MyParentWidget you can use `context.routerOutlet`
+                )
+              },
+              routes: {
+                '/': (RouteData data) => Page5(),
+                '/page51': (RouteData data) => Page51(),
+              },
+            ),
+     },
+     //
+     // Called after a location is resolved and just before navigation.
+     // It is used for route guarding and global redirection.
+     onNavigate: (RouteData data) {
+       final toLocation = data.location;
+       if (toLocation == '/homePage' && userIsNotSigned) {
+         return data.redirectTo('/signInPage');
+       }
+       if (toLocation == '/signInPage' && userIsSigned) {
+         return data.redirectTo('/homePage');
+       }
+     
+       //You can also check query or path parameters
+       if (data.queryParams['userId'] == '1') {
+         return data.redirectTo('/superUserPage');
+       }
+     },
+     //
+     // Called when route is going back.
+     // It is used to prevent leaving pages before date is validated
+     onNavigateBack: (RouteData data) {
+       final backFrom = data.location;
+       if (backFrom == '/SingInFormPage' && formIsNotSaved) {
+         RM.navigate.toDialog(
+           AlertDialog(
+             content: Text('The form is not saved yet! Do you want to exit?'),
+             actions: [
+               ElevatedButton(
+                 onPressed: () => RM.navigate.forceBack(),
+                 child: Text('Yes'),
+               ),
+               ElevatedButton(
+                 onPressed: () => RM.navigate.back(),
+                 child: Text('No'),
+               ),
+             ],
+           ),
+         );
+ 
+         return false;
+       }
+     },
+   );
+ ```
+
+In the widget tree, use `MaterialApp.router` widget: 
+  ```dart
+  class MyApp extends StatelessWidget {
+     const MyApp({Key? key}) : super(key: key);
+ 
+     @override
+     Widget build(BuildContext context) {
+       return MaterialApp.router(
+         routeInformationParser: myNavigator.routeInformationParser,
+         routerDelegate: myNavigator.routerDelegate,
+       );
+     }
+   }
+  ```
+
+To navigate imperatively:
+
+  ```dart
+  myNavigator.to('/page1');
+  myNavigator.toReplacement('/page1', argument: 'myArgument');
+  myNavigator.toAndRemoveUntil('/page1', queryParam: {'id':'1'});
+  myNavigator.back();
+  myNavigator.backUntil('/page1');
+  ```
+
+To navigate declaratively:
+
+  ```dart
+  myNavigator.setRouteStack(
+    (pages){
+      // exposes a copy of the current route stack
+      return [...newPagesList];
+    }
+  )
+  ```
+
+To navigate to pageless routes, show dialogs and snackBars without `BuildContext`:
 
   ```dart
   RM.navigate.to(HomePage());
-
-  RM.navigate.to('/namePage');
-
   RM.navigate.toDialog(AlertDialog( ... ));
-
   RM.scaffoldShow.snackbar(SnackBar( ... ));
+  ```
+
+`InjectedNavigator` is a reactive model so you can listen to it using `ReactiveStatelessWidget`:
+
+  ```dart
+  @override
+  Widget build(BuildContext context) {
+    return OnReactive(
+      () => Text('${context.routeData.location}'),
+    );
+  }
   ```
 
   > You can easily change page transition animation, using one of the predefined TransitionBuilder or just define yours.
 
-  You can use dynamic segments with named routing
 
-  ```dart
-    return MaterialApp(
-        navigatorKey: RM.navigate.navigatorKey,
-        onGenerateRoute: RM.navigate.onGenerateRoute({
-          '/': (_) => LoginPage(),
-          '/posts': (_) => RouteWidget(
-                routes: {
-                  '/:author': (RouteData data) {
-                      final queryParams = data.queryParams;
-                      final pathParams = data.pathParams;
-                      final arguments = data.arguments;
-                      
-                      // Or:
-                      // Inside a child widget of AuthorWidget :
-                      //
-                      // context.routeQueryParams;
-                      // context.routePathParams;
-                      // context.routeArguments;
-                      
-                      return  AuthorWidget();
-
-                  },
-                  '/postDetails': (_) => PostDetailsWidget(),
-                },
-              ),
-          '/settings': (_) => SettingsPage(),
-        }),
-      );
-  ```
-
-  In the UI:
-
-  ```dart
-    RM.navigate.to('/'); // => renders LoginPage()
-    RM.navigate.to('/posts'); // => 404 error
-    RM.navigate.to('/posts/foo'); // => renders AuthorWidget(), with pathParams = {'author' : 'foo' }
-    RM.navigate.to('/posts/postDetails'); // => renders PostDetailsWidget(),
-
-    // If you are in AuthorWidget you can use relative path (name without the back slash at the beginning)
-    RM.navigate.to('postDetails'); // => renders PostDetailsWidget(),
-    RM.navigate.to('postDetails', queryParams : {'postId': '1'}); // => renders PostDetailsWidget(),
-  ```
-
-- [🔍 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/navigation_dialog_scaffold_without_BuildContext_api).
+- [🔍 See more detailed information about router](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_navigator_api).
 
 </br>
 

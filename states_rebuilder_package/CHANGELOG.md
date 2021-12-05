@@ -1,4 +1,7 @@
 ## 5.0.0 (2021-10-10)
+ * Add Navigator 2 support.
+ * Fix issue #241
+## 5.0.0 (2021-10-10)
   ### New features
   * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
   * Add `refreshToken` method to `IAuth` interface. It is used to refresh token (See issue #228).
