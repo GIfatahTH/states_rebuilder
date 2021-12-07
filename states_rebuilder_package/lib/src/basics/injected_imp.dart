@@ -340,6 +340,11 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   final _dependentDisposers = <VoidCallback>[];
+  @override
+  void notify() {
+    super.notify();
+    onSetState?.call(snapState);
+  }
 
   void _subscribeForCombinedSnap(Set<ReactiveModel> depends) {
     for (var depend in dependsOn!.injected) {
