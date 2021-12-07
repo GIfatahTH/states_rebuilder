@@ -56,7 +56,7 @@ abstract class RouterObjects {
       builder: builder != null
           ? (route) {
               final r = injectedNavigator?.routeData ??
-                  _RouteWidgetState.parentToSubRouteMessage.routeData;
+                  RouteWidget.parentToSubRouteMessage.routeData;
               return SubRoute._(
                 key: ValueKey(
                   r._subLocation,

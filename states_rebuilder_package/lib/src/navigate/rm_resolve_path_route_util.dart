@@ -249,7 +249,7 @@ class _ResolveLocation {
       RouteData routeData,
     ) {
       final matched = <String, RouteSettingsWithChildAndData>{};
-      _RouteWidgetState.parentToSubRouteMessage = _ParentToSubRouteMessage(
+      RouteWidget.parentToSubRouteMessage = _ParentToSubRouteMessage(
         toPath: path!,
         routeData: routeData,
         skipHomeSlash: skipHomeSlash!,
@@ -269,11 +269,10 @@ class _ResolveLocation {
           }
         }
       }
-
+      RouterObjects.injectedNavigator?.routeData = routeData;
       if (page is! Redirect && path is! RouteWidget) {
         page = RouterObjects.injectedNavigator?.redirectTo?.call(routeData) ??
             page;
-        RouterObjects.injectedNavigator?.routeData = routeData;
       }
       if (page is Redirect) {
         if (page.isUnknownRoute) {

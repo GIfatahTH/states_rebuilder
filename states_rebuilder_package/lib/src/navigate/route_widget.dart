@@ -98,7 +98,7 @@ part of '../rm.dart';
 ///
 /// See Also [RouteData] and [InjectedNavigator]
 /// {@endtemplate}
-class RouteWidget extends StatefulWidget {
+class RouteWidget extends StatelessWidget {
   /// Used to wrap the the router outlet widget inside another widget.
   ///
   /// ```dart
@@ -174,7 +174,7 @@ class RouteWidget extends StatefulWidget {
     this.delegateImplyLeadingToParent,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
-        _parentToSubRouteMessage = _RouteWidgetState.parentToSubRouteMessage,
+        _parentToSubRouteMessage = RouteWidget.parentToSubRouteMessage,
         _routes = RouterObjects.transformRoutes(routes),
         _routeKeys = routes.keys.toList(),
         _hasBuilder = builder != null,
@@ -183,7 +183,7 @@ class RouteWidget extends StatefulWidget {
         super(
           key: key ??
               Key(
-                _RouteWidgetState.parentToSubRouteMessage.signature,
+                RouteWidget.parentToSubRouteMessage.signature,
               ),
         );
 
@@ -196,7 +196,7 @@ class RouteWidget extends StatefulWidget {
     required this.delegateImplyLeadingToParent,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
-        _parentToSubRouteMessage = _RouteWidgetState.parentToSubRouteMessage,
+        _parentToSubRouteMessage = RouteWidget.parentToSubRouteMessage,
         _routes = routes,
         _routeKeys = routeKeys,
         _hasBuilder = canAnimateTransition,
@@ -205,7 +205,7 @@ class RouteWidget extends StatefulWidget {
         super(
           key: key ??
               Key(
-                _RouteWidgetState.parentToSubRouteMessage.signature,
+                RouteWidget.parentToSubRouteMessage.signature,
               ),
         );
 
@@ -339,9 +339,6 @@ class RouteWidget extends StatefulWidget {
     return pages;
   }
 
-  @override
-  _RouteWidgetState createState() => _RouteWidgetState();
-
   PageSettings? _getLeafConfig() {
     if (isInitialized.first == null) {
       return null;
@@ -376,9 +373,7 @@ class RouteWidget extends StatefulWidget {
     }
     return '\nRouteWidget[$routeName](\n$str)\n';
   }
-}
 
-class _RouteWidgetState extends State<RouteWidget> {
   // late final routePathResolver = ResolvePathRouteUtil(
   //   urlName: urlName,
   //   routeName: routeName,
@@ -386,45 +381,36 @@ class _RouteWidgetState extends State<RouteWidget> {
   // late Widget route;
   static late _ParentToSubRouteMessage parentToSubRouteMessage;
 
-  late RouteWidget _widget = widget;
-
-  @override
-  void didUpdateWidget(RouteWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _widget = widget;
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_widget.builder != null) {
-      if (_widget._routes.isEmpty) {
-        if (_widget.urlName != _widget._path) {
-          final route = _widget._parentToSubRouteMessage.unknownRoute
-                  ?.call(_widget._path) ??
+    if (builder != null) {
+      if (_routes.isEmpty) {
+        if (urlName != _path) {
+          final route = _parentToSubRouteMessage.unknownRoute?.call(_path) ??
               routeNotDefinedAssertion;
           return route;
         }
-        return _widget.builder!(routeNotDefinedAssertion);
+        return builder!(routeNotDefinedAssertion);
       }
       final isNavigator2 = RouterObjects.rootDelegate != null;
 
       if (isNavigator2) {
         return Router(
-          key: ValueKey(_widget.urlName + _widget._path),
-          routerDelegate: _widget._routerDelegate,
-          routeInformationParser: _widget._routeInformationParser,
+          key: ValueKey(urlName + _path),
+          routerDelegate: _routerDelegate,
+          routeInformationParser: _routeInformationParser,
         );
       }
 
       return SubRoute._(
-        child: _widget.builder!(_widget.route),
-        route: _widget.route,
+        child: builder!(route),
+        route: route,
         lastSubRoute: null,
-        routeData: _widget._routeData,
+        routeData: _routeData,
         animation: null,
-        transitionsBuilder: _widget.transitionsBuilder,
+        transitionsBuilder: transitionsBuilder,
         shouldAnimate: true,
-        key: Key(_widget.urlName),
+        key: Key(urlName),
       );
     }
     throw UnimplementedError();

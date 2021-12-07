@@ -3926,12 +3926,10 @@ void main() {
         builder: (routerOutlet) {
           return Builder(
             builder: (context) {
-              return OnReactive(() {
-                assert(context.routerOutlet == routerOutlet);
-                location = context.routeData.location;
-                location3 = _navigator.routeData.location;
-                return routerOutlet;
-              });
+              assert(context.routerOutlet == routerOutlet);
+              location = context.routeData.location;
+              location3 = _navigator.routeData.location;
+              return routerOutlet;
             },
           );
         },
@@ -3967,7 +3965,7 @@ void main() {
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/page11'), findsOneWidget);
-      expect(location, '/page1/page11/page12');
+      expect(location, '/page1/page11');
       expect(location3, '/page1/page11');
       expect(location1, '/page1/page11');
       expect(location2, location1);
