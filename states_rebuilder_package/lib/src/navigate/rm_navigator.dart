@@ -42,19 +42,13 @@ MaterialApp(
   ///* [_Transitions.leftToRight]
   ///* [_Transitions.upToBottom]
   ///* [_Transitions.bottomToUp]
-  late Widget Function(
+  Widget Function(
     BuildContext,
     Animation<double>,
     Animation<double>,
     Widget,
   )? transitionsBuilder;
 
-  static Widget? Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  )? _globalTransitionsBuilder;
   static Duration? _transitionDuration;
 
   bool _fullscreenDialog = false;
