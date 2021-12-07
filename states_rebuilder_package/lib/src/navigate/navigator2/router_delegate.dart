@@ -75,7 +75,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         settings = settings.copyWith(
           key: ValueKey(childMap.values.last.key.toString() + '$i'),
           child: childMap.values.last,
-          name: r.location,
+          name: r._subLocation,
           delegateName: childMap.keys.last.name,
           routeData: r,
           queryParams: r.queryParams,
@@ -110,7 +110,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                   arguments: settings.arguments,
                   fullscreenDialog: isLast ?? _navigate._fullscreenDialog,
                   maintainState: isLast ?? _navigate._maintainState,
-                  useTransition: useTransition,
+                  useTransition: isLast ?? useTransition,
                   customBuildTransitions: transitionsBuilder,
                   transitionDuration: transitionDuration,
                 )
@@ -140,10 +140,12 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _navigate._fullscreenDialog = false;
     _navigate._maintainState = false;
     assert(_pages.length == _pageSettingsList.length);
-    assert(_pages.isNotEmpty, '$delegateName has empty pages');
+    // assert(_pages.isNotEmpty, '$delegateName has empty pages');
     // Set globalBaseUrl
-    ResolvePathRouteUtil.globalBaseUrl =
-        _pageSettingsList.last.rData!.baseLocation;
+    if (_pages.isNotEmpty) {
+      ResolvePathRouteUtil.globalBaseUrl =
+          _pageSettingsList.last.rData!.baseLocation;
+    }
 
     if (this != RouterObjects.rootDelegate) {
       // If this is a subRoute
@@ -185,7 +187,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     if (_pages.isEmpty) {
       _updateRouteStack(false);
     }
-    assert(_pages.isNotEmpty);
+    // assert(_pages.isNotEmpty);
+    if (_pages.isEmpty) {
+      return [const MaterialPage(child: SizedBox.shrink())];
+    }
     // TODO test _pages.length <= 2
     if (_pages.length <= 2 &&
         delegateImplyLeadingToParent &&
@@ -309,6 +314,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       final s = RouteSettingsWithChildAndData(
         routeData: RouteData(
           location: settings.name!,
+          subLocation: settings is RouteSettingsWithChildAndData
+              ? settings.routeData._subLocation
+              : '/',
           arguments: settings.arguments,
           path: settings.routePattern ?? '/',
           pathParams: settings is RouteSettingsWithChildAndData
@@ -537,13 +545,13 @@ class _MaterialPage1<T> extends MaterialPage<T> {
     required Widget child,
     required this.customBuildTransitions,
     required this.transitionDuration,
+    this.useTransition = true,
     bool maintainState = true,
     bool fullscreenDialog = false,
     LocalKey? key,
     String? name,
     Object? arguments,
     String? restorationId,
-    this.useTransition = true,
   }) : super(
           child: child,
           maintainState: maintainState,
@@ -565,11 +573,16 @@ class _MaterialPage1<T> extends MaterialPage<T> {
 
   @override
   Route<T> createRoute(BuildContext context) {
-    if (useTransition && RouterObjects._shouldUseCupertinoPage) {
+    final _shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||
+        Localizations.of<MaterialLocalizations>(
+                context, MaterialLocalizations) ==
+            null;
+    if (_shouldUseCupertinoPage) {
       return _PageBasedCupertinoPageRoute<T>(
         page: this,
         customBuildTransitions: customBuildTransitions,
         transitionDuration: transitionDuration,
+        useTransition: useTransition,
       );
     }
     return _PageBasedMaterialPageRoute<T>(
@@ -622,21 +635,13 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   )? customBuildTransitions;
-  Widget Function(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  )? _transitionBuilder;
+
   final Duration? _transitionDuration;
 
   @override
   Duration get transitionDuration {
-    if (useTransition &&
-        (RouterObjects.isTransitionAnimated != false ||
-            _Navigate._transitionDuration != null)) {
-      return _Navigate._transitionDuration ??
-          _transitionDuration ??
+    if (useTransition && RouterObjects.isTransitionAnimated != false) {
+      return _transitionDuration ??
           const Duration(
             milliseconds: 300,
           );
@@ -659,9 +664,10 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
     _animation = animation;
     _secondaryAnimation = secondaryAnimation;
     if (!useTransition) {
-      RouterObjects.isTransitionAnimated = false;
+      // RouterObjects.isTransitionAnimated = false;
       return child;
     }
+
     if (customBuildTransitions != null) {
       RouterObjects.isTransitionAnimated = true;
       return customBuildTransitions!(
@@ -691,15 +697,24 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     required MaterialPage<T> page,
     required this.customBuildTransitions,
     required Duration? transitionDuration,
+    this.useTransition = false,
   })  : _transitionDuration = transitionDuration,
         super(settings: page) {
     assert(opaque);
   }
-
+  final bool useTransition;
+  Animation<double>? _animation;
+  Animation<double>? _secondaryAnimation;
   MaterialPage<T> get _page => settings as MaterialPage<T>;
 
   @override
   Widget buildContent(BuildContext context) {
+    if (_page.child is SubRoute) {
+      return (_page.child as SubRoute).copyWith(
+        animation: _animation,
+        secondaryAnimation: _secondaryAnimation,
+      );
+    }
     return _page.child;
   }
 
@@ -723,12 +738,15 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
   final Duration? _transitionDuration;
 
   @override
-  Duration get transitionDuration =>
-      _Navigate._transitionDuration ??
-      _transitionDuration ??
-      const Duration(
-        milliseconds: 300,
-      );
+  Duration get transitionDuration {
+    if (useTransition && RouterObjects.isTransitionAnimated != false) {
+      return _transitionDuration ??
+          const Duration(
+            milliseconds: 300,
+          );
+    }
+    return const Duration(microseconds: 1);
+  }
 
   @override
   Duration get reverseTransitionDuration => transitionDuration;
@@ -740,6 +758,14 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    _animation = animation;
+    _secondaryAnimation = secondaryAnimation;
+
+    if (!useTransition) {
+      // RouterObjects.isTransitionAnimated = false;
+      return child;
+    }
+
     if (customBuildTransitions != null) {
       return customBuildTransitions!(
         context,

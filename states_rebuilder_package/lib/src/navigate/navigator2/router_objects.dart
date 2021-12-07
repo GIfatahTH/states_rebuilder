@@ -5,7 +5,21 @@ abstract class RouterObjects {
   static String? _initialRouteValue;
   static RouteInformationParserImp? routeInformationParser;
   static Map<Uri, Widget Function(RouteData routeData)>? _routers;
-  static Widget Function(String route)? _unknownRoute;
+  // ignore: prefer_function_declarations_over_variables
+  static Widget Function(String route) _unknownRoute = (location) {
+    return Material(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('$location not found'),
+          TextButton(
+            onPressed: () => RM.navigate.back(),
+            child: const Text('Go Back'),
+          ),
+        ],
+      ),
+    );
+  };
   static bool _shouldUseCupertinoPage = false;
   static bool? isTransitionAnimated;
   static InjectedNavigatorImp? injectedNavigator;
@@ -32,21 +46,24 @@ abstract class RouterObjects {
     _dispose();
     _routers = transformRoutes(routes);
     _initialRouteValue = initialRoute;
-    _unknownRoute = unknownRoute;
+    _unknownRoute = unknownRoute ?? _unknownRoute;
     _shouldUseCupertinoPage = shouldUseCupertinoPage;
+    RM.navigate.transitionsBuilder = transitionsBuilder;
 
     rootDelegate = RouterDelegateImp(
       key: _navigate.navigatorKey,
       routes: _routers!,
       builder: builder != null
           ? (route) {
+              final r = injectedNavigator?.routeData ??
+                  _RouteWidgetState.parentToSubRouteMessage.routeData;
               return SubRoute._(
                 key: ValueKey(
-                  _RouteWidgetState.parentToSubRouteMessage.routeData.location,
+                  r._subLocation,
                 ),
                 child: builder(route),
                 route: route,
-                routeData: _RouteWidgetState.parentToSubRouteMessage.routeData,
+                routeData: r,
                 animation: null,
                 shouldAnimate: true,
                 lastSubRoute: null,
@@ -55,8 +72,8 @@ abstract class RouterObjects {
             }
           : null,
       resolvePathRouteUtil: _navigate._resolvePathRouteUtil,
-      transitionsBuilder: RM.navigate.transitionsBuilder = transitionsBuilder,
-      transitionDuration: transitionDuration,
+      transitionsBuilder: transitionsBuilder,
+      transitionDuration: transitionDuration ?? _Navigate._transitionDuration,
       delegateName: 'rootDelegate',
       delegateImplyLeadingToParent: false,
     );

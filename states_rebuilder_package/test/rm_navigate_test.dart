@@ -1247,9 +1247,9 @@ void main() {
       RM.navigate.toNamed('/page1/1/page11/user1');
       await tester.pumpAndSettle();
       expect(data1!.baseLocation, '/page1/1');
-      expect(data1!.location, '/page1/1');
+      expect(data1!.location, '/page1/1/page11/user1');
       expect(data2!.baseLocation, '/page1/1');
-      expect(data2!.location, '/page1/1');
+      expect(data2!.location, '/page1/1/page11/user1');
       expect(data3!.baseLocation, '/page1/1');
       expect(data3!.location, '/page1/1/page11/user1');
 
@@ -1257,9 +1257,9 @@ void main() {
       RM.navigate.toNamed('/page1/1/page11/user1/');
       await tester.pumpAndSettle();
       expect(data1!.baseLocation, '/page1/1');
-      expect(data1!.location, '/page1/1');
+      expect(data1!.location, '/page1/1/page11/user1');
       expect(data2!.baseLocation, '/page1/1');
-      expect(data2!.location, '/page1/1');
+      expect(data2!.location, '/page1/1/page11/user1');
       expect(data3!.baseLocation, '/page1/1/page11/user1');
       expect(data3!.location, '/page1/1/page11/user1');
 

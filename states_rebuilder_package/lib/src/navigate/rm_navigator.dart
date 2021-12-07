@@ -42,12 +42,20 @@ MaterialApp(
   ///* [_Transitions.leftToRight]
   ///* [_Transitions.upToBottom]
   ///* [_Transitions.bottomToUp]
-  Widget Function(
+  late Widget Function(
     BuildContext,
     Animation<double>,
     Animation<double>,
     Widget,
   )? transitionsBuilder;
+
+  static Widget? Function(
+    BuildContext,
+    Animation<double>,
+    Animation<double>,
+    Widget,
+  )? _globalTransitionsBuilder;
+  static Duration? _transitionDuration;
 
   bool _fullscreenDialog = false;
   bool _maintainState = true;
@@ -120,7 +128,6 @@ MaterialApp(
     };
   }
 
-  static Duration? _transitionDuration;
   PageRoute<T> _pageRouteBuilder<T>(
     Widget Function(Animation<double>? animation) page,
     RouteSettings? settings,

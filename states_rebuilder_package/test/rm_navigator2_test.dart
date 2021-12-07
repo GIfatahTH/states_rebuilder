@@ -1101,7 +1101,7 @@ void main() {
                     child: Builder(
                       builder: (context) {
                         data1 = context.routeData;
-                        // assert(data1.toString() == data.toString());
+                        assert(data1!.location == data.location);
                         return route;
                       },
                     ),
@@ -1116,7 +1116,7 @@ void main() {
                     return Builder(
                       builder: (context) {
                         data2 = context.routeData;
-                        // assert(data2.toString() == data.toString());
+                        assert(data2!.location == data.location);
                         return context.routerOutlet;
                       },
                     );
@@ -1131,7 +1131,7 @@ void main() {
                           return Builder(
                             builder: (context) {
                               data3 = context.routeData;
-                              // assert(data3.toString() == data.toString());
+                              assert(data3!.location == data.location);
                               return context.routerOutlet;
                             },
                           );
@@ -1160,8 +1160,8 @@ void main() {
                         builder: (context) {
                           data1 = context.routeData;
                           data2 = context.routeData;
-                          // assert(data1.toString() == data.toString());
-                          // assert(data2.toString() == data.toString());
+                          assert(data1.toString() == data.toString());
+                          assert(data2.toString() == data.toString());
                           return Text('page2/' + data.pathParams['id']!);
                         },
                       );
@@ -1171,7 +1171,7 @@ void main() {
                             '/': (data) => Builder(
                                   builder: (context) {
                                     data3 = context.routeData;
-                                    // assert(data3.toString() == data.toString());
+                                    assert(data3.toString() == data.toString());
                                     return Text(
                                         'page21/' + data.pathParams['user']!);
                                   },
@@ -1212,25 +1212,26 @@ void main() {
       expect(data2!.baseLocation, '/page1/1');
       expect(data2!.location, '/page1/1');
       expect(data3, null);
-      //
       _navigator.back();
       await tester.pumpAndSettle();
+      //
       data1 = data2 = data3 = null;
       _navigator.to('/page1/1/page11/user1');
       await tester.pumpAndSettle();
       expect(data1!.baseLocation, '/page1/1');
-      expect(data1!.location, '/page1/1');
+      expect(data1!.location, '/page1/1/page11/user1');
       expect(data2!.baseLocation, '/page1/1');
       expect(data2!.location, '/page1/1/page11/user1');
       expect(data3!.baseLocation, '/page1/1');
       expect(data3!.location, '/page1/1/page11/user1');
       _navigator.back();
       await tester.pumpAndSettle();
-      data1 = data2 = data3 = null;
+      //
+      // data1 = data2 = data3 = null;
       _navigator.to('/page1/1/page11/user1/');
       await tester.pumpAndSettle();
       expect(data1!.baseLocation, '/page1/1');
-      expect(data1!.location, '/page1/1');
+      expect(data1!.location, '/page1/1/page11/user1');
       expect(data2!.baseLocation, '/page1/1/page11/user1');
       expect(data2!.location, '/page1/1/page11/user1');
       expect(data3!.baseLocation, '/page1/1/page11/user1');
@@ -3213,6 +3214,32 @@ void main() {
                     ),
               },
             ),
+        '/page5': (data) => RouteWidget(
+              routes: {
+                '/': (_) => RouteWidget(
+                      builder: (_) => _,
+                      routes: {
+                        '/': (_) => Scaffold(
+                              appBar: AppBar(),
+                              body: Text('/page5'),
+                            ),
+                      },
+                    ),
+              },
+            ),
+        '/page6': (data) => RouteWidget(
+              builder: (_) {
+                return RouteWidget(
+                  builder: (_) => _,
+                  routes: {
+                    '/': (_) => Scaffold(
+                          appBar: AppBar(),
+                          body: Text('/page6'),
+                        ),
+                  },
+                );
+              },
+            ),
       };
       final widget = _TopWidget(
         routers: routes,
@@ -3253,6 +3280,16 @@ void main() {
       _navigator.to('/page4');
       await tester.pumpAndSettle();
       expect(find.text('/page4'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      _navigator.to('/page5');
+      await tester.pumpAndSettle();
+      expect(find.text('/page5'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      _navigator.to('/page6');
+      await tester.pumpAndSettle();
+      expect(find.text('/page6'), findsOneWidget);
       expect(find.byType(BackButton), findsNothing);
     },
   );
@@ -3850,6 +3887,90 @@ void main() {
       expect(find.text('/'), findsNothing);
       expect(find.text('/page1'), findsOneWidget);
       expect(animation!.status, AnimationStatus.completed);
+    },
+  );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      String location = '';
+      String location1 = '';
+      String location2 = '';
+      String location3 = '';
+      final routes = {
+        '/': (data) => Text('/'),
+        '/page1': (data) => Text('/page1'),
+        '/page1/page11': (data) {
+          return RouteWidget(
+            builder: (routerOutlet) {
+              return Builder(
+                builder: (context) {
+                  assert(context.routerOutlet == routerOutlet);
+                  location1 = context.routeData.location;
+                  location2 = _navigator.routeData.location;
+                  return routerOutlet;
+                },
+              );
+            },
+            routes: {
+              '/': (data) => Text('/page11'),
+              '/page12': (data) => Text('/page12'),
+            },
+          );
+        },
+        '/page1/page11/page111': (data) => Text('/page111'),
+      };
+      final widget = _TopWidget(
+        routers: routes,
+        builder: (routerOutlet) {
+          return Builder(
+            builder: (context) {
+              return OnReactive(() {
+                assert(context.routerOutlet == routerOutlet);
+                location = context.routeData.location;
+                location3 = _navigator.routeData.location;
+                return routerOutlet;
+              });
+            },
+          );
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(location, '/');
+      expect(location3, location);
+      _navigator.to('/page1/page11/page111');
+      await tester.pumpAndSettle();
+      expect(find.text('/page111'), findsOneWidget);
+      expect(location, '/page1/page11/page111');
+      expect(location3, location);
+      expect(location1, '');
+      expect(location2, '');
+      _navigator.to('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      expect(location, '/page1/page11');
+      expect(location3, location);
+      expect(location1, '/page1/page11');
+      expect(location2, location1);
+      location1 = '';
+      _navigator.to('/page1/page11/page12');
+      await tester.pumpAndSettle();
+      expect(find.text('/page12'), findsOneWidget);
+      expect(location, '/page1/page11/page12');
+      expect(location3, location);
+      expect(location1, '/page1/page11');
+      expect(location2, '/page1/page11/page12');
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      expect(location, '/page1/page11/page12');
+      expect(location3, '/page1/page11');
+      expect(location1, '/page1/page11');
+      expect(location2, location1);
     },
   );
 }

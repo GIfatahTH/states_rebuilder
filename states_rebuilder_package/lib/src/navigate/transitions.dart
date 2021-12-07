@@ -286,7 +286,9 @@ class _Transitions {
   ) none({
     Duration? duration,
   }) {
-    final cache = _Navigate._transitionDuration;
+    final cache = _Navigate._transitionDuration ??
+        duration ??
+        const Duration(microseconds: 1);
     _Navigate._transitionDuration = duration ?? const Duration(microseconds: 1);
     return (context, animation, secondaryAnimation, child) {
       _Navigate._transitionDuration = cache;

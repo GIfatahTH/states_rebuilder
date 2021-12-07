@@ -17,7 +17,7 @@ class RouteData {
   ///
   /// Notice that the ending slash changes the baseLocation.
   String get baseLocation =>
-      _pathEndsWithSlash ? location : _getBaseUrl(location, path);
+      _pathEndsWithSlash ? _subLocation : _getBaseUrl(_subLocation, path);
 
   /// The current used route.
   ///
@@ -48,6 +48,7 @@ class RouteData {
   /// is `'/page1/:id'.
   ///
   final String location;
+  final String _subLocation;
 
   /// A map of query parameters extracted from the url link.
   ///
@@ -86,8 +87,17 @@ class RouteData {
     if (_redirectedFrom.isEmpty) {
       return null;
     }
-    return _redirectedFrom.first;
+    final path = _redirectedFrom.first;
+    if (path == '/') {
+      return path;
+    }
+    if (path.endsWith('/')) {
+      return path.substring(0, path.length - 1);
+    }
+    return path;
   }
+
+  Widget get unKnownRoute => const Redirect(null, isUnknownRoute: true);
 
   /// redirect to the given route
   Redirect redirectTo(String? route) {
@@ -106,16 +116,18 @@ class RouteData {
     required this.arguments,
     required bool pathEndsWithSlash,
     required List<String> redirectedFrom,
+    required String subLocation,
   })  : _pathEndsWithSlash = pathEndsWithSlash,
-        _redirectedFrom = redirectedFrom;
+        _redirectedFrom = redirectedFrom,
+        _subLocation = subLocation;
 
   /// log the detailed of the navigation steps.
   void log() {
     String l = '';
     if (queryParams.isNotEmpty) {
-      l = Uri(path: location, queryParameters: queryParams).toString();
+      l = Uri(path: _subLocation, queryParameters: queryParams).toString();
     } else {
-      l = location;
+      l = _subLocation;
     }
     String m = 'Routing to location: "$l" (Path is:"$path"). ';
     if (redirectedFrom != null) {
@@ -127,9 +139,9 @@ class RouteData {
   @override
   String toString() {
     if (redirectedFrom == null) {
-      return 'RouteData(urlPath: $location, baseUrl: $baseLocation, routePath: $path, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
+      return 'RouteData(urlPath: $_subLocation, baseUrl: $baseLocation, routePath: $path, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
     }
-    return 'RouteData(directedFrom: $redirectedFrom, urlPath: $location, baseUrl: $baseLocation, routePath: $path, urlPath: $location, '
+    return 'RouteData(directedFrom: $redirectedFrom, urlPath: $_subLocation, baseUrl: $baseLocation, routePath: $path, '
         'queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
   }
 
@@ -139,7 +151,7 @@ class RouteData {
 
     return other is RouteData &&
         other.path == path &&
-        other.location == location &&
+        other._subLocation == _subLocation &&
         mapEquals(other.queryParams, queryParams) &&
         mapEquals(other.pathParams, pathParams) &&
         other.arguments == arguments &&
@@ -149,7 +161,7 @@ class RouteData {
   @override
   int get hashCode {
     return path.hashCode ^
-        location.hashCode ^
+        _subLocation.hashCode ^
         queryParams.hashCode ^
         pathParams.hashCode ^
         arguments.hashCode ^
@@ -167,14 +179,19 @@ class RouteData {
       arguments: arguments,
       pathEndsWithSlash: pathEndsWithSlash ?? _pathEndsWithSlash,
       redirectedFrom: _redirectedFrom,
+      subLocation: _subLocation,
     );
   }
 }
 
 class Redirect extends Widget {
   final String? to;
+  final bool isUnknownRoute;
   // ignore: use_key_in_widget_constructors
-  const Redirect(this.to);
+  const Redirect(
+    this.to, {
+    this.isUnknownRoute = false,
+  });
   @override
   Element createElement() {
     throw UnimplementedError();

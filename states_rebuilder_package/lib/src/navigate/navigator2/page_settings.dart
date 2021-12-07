@@ -160,7 +160,7 @@ class RouteSettingsWithChildAndData extends PageSettings {
     Widget? child,
   }) : super._(
           child: child,
-          name: routeData.location,
+          name: routeData._subLocation,
           arguments: routeData.arguments,
           queryParams: routeData.queryParams,
           rData: routeData,

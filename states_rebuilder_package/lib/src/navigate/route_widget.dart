@@ -163,20 +163,23 @@ class RouteWidget extends StatefulWidget {
     Animation<double> secondaryAnimation,
     Widget child,
   )? transitionsBuilder;
-  final bool delegateImplyLeadingToParent;
+  final bool? delegateImplyLeadingToParent;
+  late final bool _delegateImplyLeadingToParent;
 
   /// {@macro RouteWidget}
   RouteWidget({
     this.builder,
     Map<String, Widget Function(RouteData data)> routes = const {},
     this.transitionsBuilder,
-    this.delegateImplyLeadingToParent = true,
+    this.delegateImplyLeadingToParent,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
         _parentToSubRouteMessage = _RouteWidgetState.parentToSubRouteMessage,
         _routes = RouterObjects.transformRoutes(routes),
         _routeKeys = routes.keys.toList(),
         _hasBuilder = builder != null,
+        _delegateImplyLeadingToParent =
+            delegateImplyLeadingToParent ?? builder == null,
         super(
           key: key ??
               Key(
@@ -197,6 +200,8 @@ class RouteWidget extends StatefulWidget {
         _routes = routes,
         _routeKeys = routeKeys,
         _hasBuilder = canAnimateTransition,
+        _delegateImplyLeadingToParent =
+            delegateImplyLeadingToParent ?? !canAnimateTransition,
         super(
           key: key ??
               Key(
@@ -226,7 +231,7 @@ class RouteWidget extends StatefulWidget {
   final isInitialized = List.from({null}, growable: false);
   RouteData get _routeData => _routeDataList.first;
   late final String _path = _parentToSubRouteMessage.toPath;
-  late final String urlName = _routeData.location;
+  late final String urlName = _routeData._subLocation;
   late final String routeName = _routeData.path;
   late final routePathResolver = ResolvePathRouteUtil(
     urlName: urlName,
@@ -257,12 +262,12 @@ class RouteWidget extends StatefulWidget {
       Map<String, RouteSettingsWithChildAndData>? pages;
       final transition = transitionsBuilder ?? RM.navigate.transitionsBuilder;
       _routerDelegate = RouterDelegateImp(
-        delegateName: _routeData.location,
+        delegateName: _routeData._subLocation,
         key: key,
         builder: builder != null
             ? (route) {
                 return SubRoute._(
-                  key: ValueKey(_routeData.location),
+                  key: ValueKey(_routeData._subLocation),
                   child: builder!(route),
                   route: route,
                   routeData: _routeData,
@@ -277,8 +282,9 @@ class RouteWidget extends StatefulWidget {
         resolvePathRouteUtil: routePathResolver,
         hasBuilder: _hasBuilder,
         transitionsBuilder: transition,
-        transitionDuration: null,
-        delegateImplyLeadingToParent: delegateImplyLeadingToParent,
+        transitionDuration: _Navigate._transitionDuration ??
+            RouterObjects.rootDelegate!.transitionDuration,
+        delegateImplyLeadingToParent: _delegateImplyLeadingToParent,
       );
       isInitialized[0] = true;
       _routeInformationParser =
@@ -361,12 +367,12 @@ class RouteWidget extends StatefulWidget {
     String str = '';
     try {
       for (final p in _routerDelegate._pageSettingsList) {
-        final l = p.rData!.location;
+        final l = p.rData!._subLocation;
         final c = p.child;
         str += '\t($l)=>${c is SubRoute ? c.child : c}\n';
       }
     } catch (e) {
-      return 'RouteWidget[$routeName](${_routeData.location})';
+      return 'RouteWidget[$routeName](${_routeData._subLocation})';
     }
     return '\nRouteWidget[$routeName](\n$str)\n';
   }

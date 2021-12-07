@@ -239,6 +239,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
           creator: () => const RouteData(
             path: '/',
             location: '/',
+            subLocation: '/',
             queryParams: {},
             pathParams: {},
             arguments: null,

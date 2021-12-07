@@ -107,6 +107,7 @@ class ResolvePathRouteUtil {
         pages[absolutePath] = RouteSettingsWithChildAndData(
           routeData: RouteData(
             location: absolutePath,
+            subLocation: absolutePath,
             path: absolutePath,
             arguments: null,
             pathParams: {},
@@ -197,6 +198,7 @@ class _ResolveLocation {
     }
     final pathUrl = Uri.parse(subPath);
     var results = getLocation(
+      toLocation: path,
       routes: routes,
       pathUrl: pathUrl,
       baseUrlPath: baseUrlPath,
@@ -214,6 +216,7 @@ class _ResolveLocation {
         matched[path] = RouteSettingsWithChildAndData(
           routeData: RouteData(
             location: path,
+            subLocation: path,
             path: path,
             arguments: null,
             pathParams: {},
@@ -253,57 +256,55 @@ class _ResolveLocation {
         unknownRoute: unknownRoute,
         queryParams: queryParams!,
       );
-      RouterObjects.injectedNavigator?.routeData = routeData;
 
-      Widget? page;
-      page = RouterObjects.injectedNavigator?.redirectTo?.call(routeData);
+      Widget? page = routes![route]!(routeData);
+      if (route.path != '/') {
+        if (routeData._pathEndsWithSlash && util.remainingUrlSegments.isEmpty) {
+          if (page is! RouteWidget) {
+            routeData = routeData.copyWith(pathEndsWithSlash: false);
+            page = routes[route]!(routeData);
+          } else if (!page._routeKeys.contains('/')) {
+            routeData = routeData.copyWith(pathEndsWithSlash: false);
+            page = routes[route]!(routeData);
+          }
+        }
+      }
 
+      if (page is! Redirect && path is! RouteWidget) {
+        page = RouterObjects.injectedNavigator?.redirectTo?.call(routeData) ??
+            page;
+        RouterObjects.injectedNavigator?.routeData = routeData;
+      }
       if (page is Redirect) {
+        if (page.isUnknownRoute) {
+          matched[path] = RouteSettingsWithChildAndData(
+            routeData: RouteData(
+              location: path,
+              subLocation: path,
+              path: path,
+              arguments: null,
+              pathParams: {},
+              queryParams: {},
+              pathEndsWithSlash: false,
+              redirectedFrom: [],
+            ),
+            child: unknownRoute != null ? unknownRoute!(path) : null,
+            isPagesFound: false,
+          );
+          return matched;
+        }
         if (page.to == null) {
           return null;
         }
         final resolvedMatch = _resolveRedirect(
           route: route,
           to: page.to!,
-          routeRedirectedFrom: routeData.location,
+          routeRedirectedFrom: routeData._subLocation,
         );
         if (resolvedMatch != null) {
           matched.addAll(resolvedMatch);
         }
         return matched;
-      }
-
-      if (page == null) {
-        page = routes![route]!(routeData);
-        if (route.path != '/') {
-          if (routeData._pathEndsWithSlash &&
-              util.remainingUrlSegments.isEmpty) {
-            if (page is! RouteWidget) {
-              RouterObjects.injectedNavigator?.routeData = routeData;
-              page = routes[route]!(
-                  routeData = routeData.copyWith(pathEndsWithSlash: false));
-            } else if (!page._routeKeys.contains('/')) {
-              RouterObjects.injectedNavigator?.routeData = routeData;
-              page = routes[route]!(
-                  routeData = routeData.copyWith(pathEndsWithSlash: false));
-            }
-          }
-        }
-        if (page is Redirect) {
-          final to = page.to;
-          if (to == null) {
-            return null;
-          }
-          final resolvedMatch = _resolveRedirect(
-            route: route,
-            to: page.to!,
-            routeRedirectedFrom: routeData.location,
-          );
-          if (resolvedMatch != null) {
-            matched.addAll(resolvedMatch);
-          }
-          return matched;
-        }
       }
       if (page is RouteWidget) {
         if (page.builder == null) {
@@ -317,7 +318,7 @@ class _ResolveLocation {
         if (pages?.isNotEmpty == true) {
           matched.addAll(pages!);
         } else {
-          matched[routeData.location] = RouteSettingsWithRouteWidget(
+          matched[routeData._subLocation] = RouteSettingsWithRouteWidget(
             routeData: routeData,
             child: page,
             isPagesFound: util._isPagesFound,
@@ -328,7 +329,7 @@ class _ResolveLocation {
       } else {
         ResolvePathRouteUtil.globalBaseUrl = routeData.baseLocation;
         util.globalBaseRouteUri = routeData.path;
-        matched[routeData.location] = RouteSettingsWithChildAndData(
+        matched[routeData._subLocation] = RouteSettingsWithChildAndData(
           routeData: routeData,
           child: page,
           isPagesFound: util._isPagesFound,
@@ -355,6 +356,7 @@ class _ResolveLocation {
   }
 
   Map<Uri, RouteData> getLocation({
+    required String toLocation,
     required Map<Uri, Widget Function(RouteData)> routes,
     required Uri pathUrl,
     required String baseUrlPath,
@@ -365,6 +367,11 @@ class _ResolveLocation {
 
     for (final route in routes.keys) {
       final routeData = _getRouteData(
+        toLocation: skipHomeSlash
+            ? toLocation.length > 1 && toLocation.endsWith('/')
+                ? toLocation.substring(0, toLocation.length - 1)
+                : toLocation
+            : null,
         route: route,
         routeUriSegments: route.pathSegments,
         pathUrl: pathUrl,
@@ -385,7 +392,7 @@ class _ResolveLocation {
           if (toAppend == '/' && routes == RouterObjects._routers) {
             toAppend = '';
           }
-          if (redirectedFrom.contains(routeData.location + toAppend)) {
+          if (redirectedFrom.contains(routeData._subLocation + toAppend)) {
             isInfiniteRedirectLoop = true;
             continue;
           }
@@ -409,7 +416,7 @@ class _ResolveLocation {
         }
 
         results[route] = routeData;
-        if (subPath == routeData.location) {
+        if (subPath == routeData._subLocation) {
           break;
         }
       }
@@ -478,6 +485,7 @@ class _ResolveLocation {
   }
 
   RouteData? _getRouteData({
+    required String? toLocation,
     required Uri route,
     required List<String> routeUriSegments,
     required Uri pathUrl,
@@ -499,7 +507,8 @@ class _ResolveLocation {
       return RouteData(
         pathEndsWithSlash:
             util.remainingUrlSegments.isNotEmpty || pathEndsWithSlash,
-        location: baseUrlPath,
+        location: toLocation ?? baseUrlPath,
+        subLocation: baseUrlPath,
         path: routeUri,
         arguments: arguments,
         queryParams: addQueryParam ? {...queryParams} : const {},
@@ -556,7 +565,8 @@ class _ResolveLocation {
     pathParam.addAll(params);
 
     return RouteData(
-      location: parsedPathUrl,
+      location: toLocation ?? parsedPathUrl,
+      subLocation: parsedPathUrl,
       pathEndsWithSlash:
           util.remainingUrlSegments.isNotEmpty || pathEndsWithSlash,
       path: parsedRouteUri,

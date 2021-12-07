@@ -43,6 +43,6 @@ class SubRoute extends InheritedWidget {
 
   @override
   bool updateShouldNotify(SubRoute oldWidget) {
-    return false;
+    return true;
   }
 }
