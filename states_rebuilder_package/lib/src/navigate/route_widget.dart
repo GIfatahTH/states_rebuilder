@@ -274,7 +274,8 @@ class RouteWidget extends StatelessWidget {
         key: key,
         builder: builder != null
             ? (route) {
-                final r = RouterObjects.injectedNavigator!.routeData;
+                final r =
+                    RouterObjects.injectedNavigator?.routeData ?? _routeData;
                 return SubRoute._(
                   key: ValueKey(r._subLocation),
                   child: builder!(route),
