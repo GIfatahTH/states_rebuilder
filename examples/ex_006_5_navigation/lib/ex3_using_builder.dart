@@ -59,11 +59,15 @@ class HomeScreen extends StatelessWidget {
     final location = context.routeData.location;
     return Scaffold(
       appBar: AppBar(
-        leading: navigator.canPop
-            ? BackButton(
-                onPressed: () => navigator.back(),
-              )
-            : const SizedBox.shrink(),
+        leading: IgnorePointer(
+          ignoring: !navigator.canPop,
+          child: BackButton(
+            onPressed: () => navigator.back(),
+            color: navigator.canPop
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+          ),
+        ),
         title: Row(
           children: [
             TextButton(
@@ -126,7 +130,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: Colors.white70,
+        backgroundColor: Colors.white,
       ),
       body: context.routerOutlet,
     );
