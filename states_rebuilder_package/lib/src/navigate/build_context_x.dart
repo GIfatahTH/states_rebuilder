@@ -4,7 +4,8 @@ extension BuildContextX on BuildContext {
   /// Get the scoped router outlet widget. It looks up the widget tree for the
   /// closest sub route and returns its router outlet widget.
   Widget get routerOutlet {
-    final r = dependOnInheritedWidgetOfExactType<SubRoute>();
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
     assert(r?.route != null);
     return r!.route!;
     // if (r!.animation == null || !r.shouldAnimate) {
@@ -44,10 +45,11 @@ extension BuildContextX on BuildContext {
   ///
   /// See also [InjectedNavigator.routeData]
   RouteData get routeData {
-    final r = dependOnInheritedWidgetOfExactType<SubRoute>();
+    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+        as SubRoute?;
     assert(r?.routeData != null);
     if (RouterObjects.injectedNavigator != null) {
-      OnReactiveState.addToObs?.call(RouterObjects.injectedNavigator!);
+      // OnReactiveState.addToObs?.call(RouterObjects.injectedNavigator!);
     }
     return r!.routeData;
   }

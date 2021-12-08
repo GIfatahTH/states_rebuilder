@@ -163,6 +163,7 @@ class RouteWidget extends StatelessWidget {
     Animation<double> secondaryAnimation,
     Widget child,
   )? transitionsBuilder;
+  final Duration? _transitionDuration;
   final bool? delegateImplyLeadingToParent;
   late final bool _delegateImplyLeadingToParent;
 
@@ -180,6 +181,8 @@ class RouteWidget extends StatelessWidget {
         _hasBuilder = builder != null,
         _delegateImplyLeadingToParent =
             delegateImplyLeadingToParent ?? builder == null,
+        _transitionDuration =
+            transitionsBuilder != null ? _Navigate._transitionDuration : null,
         super(
           key: key ??
               Key(
@@ -194,14 +197,17 @@ class RouteWidget extends StatelessWidget {
     this.transitionsBuilder,
     required bool canAnimateTransition,
     required this.delegateImplyLeadingToParent,
+    required Duration? transitionDuration,
+    required _ParentToSubRouteMessage message,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
-        _parentToSubRouteMessage = RouteWidget.parentToSubRouteMessage,
+        _parentToSubRouteMessage = message,
         _routes = routes,
         _routeKeys = routeKeys,
         _hasBuilder = canAnimateTransition,
         _delegateImplyLeadingToParent =
             delegateImplyLeadingToParent ?? !canAnimateTransition,
+        _transitionDuration = transitionDuration,
         super(
           key: key ??
               Key(
@@ -222,6 +228,8 @@ class RouteWidget extends StatelessWidget {
       key: key,
       canAnimateTransition: _hasBuilder,
       delegateImplyLeadingToParent: delegateImplyLeadingToParent,
+      transitionDuration: _transitionDuration,
+      message: _parentToSubRouteMessage,
     );
   }
 
@@ -266,11 +274,12 @@ class RouteWidget extends StatelessWidget {
         key: key,
         builder: builder != null
             ? (route) {
+                final r = RouterObjects.injectedNavigator!.routeData;
                 return SubRoute._(
-                  key: ValueKey(_routeData._subLocation),
+                  key: ValueKey(r._subLocation),
                   child: builder!(route),
                   route: route,
-                  routeData: _routeData,
+                  routeData: r,
                   animation: null,
                   shouldAnimate: true,
                   lastSubRoute: null,

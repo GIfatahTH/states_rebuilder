@@ -238,17 +238,27 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
       final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-      final cache = delegate!.transitionsBuilder;
-      delegate.transitionsBuilder = transitionsBuilder ?? cache;
-      final r = delegate.to<T>(
-        PageSettings(
-          name: absoluteName,
-          arguments: arguments,
-          queryParams: queryParams ?? {},
-        ),
-      );
-      delegate.transitionsBuilder = cache;
-      return r;
+      Future<T?> fn() {
+        return delegate!.to<T>(
+          PageSettings(
+            name: absoluteName,
+            arguments: arguments,
+            queryParams: queryParams ?? {},
+          ),
+        );
+      }
+
+      if (transitionsBuilder != null) {
+        final cacheTransitionsBuilder = delegate!.transitionsBuilder;
+        final cacheTransitionDuration = delegate.transitionDuration;
+        delegate.transitionsBuilder = transitionsBuilder;
+        delegate.transitionDuration = _Navigate._transitionDuration;
+        final r = fn();
+        delegate.transitionsBuilder = cacheTransitionsBuilder;
+        delegate.transitionDuration = cacheTransitionDuration;
+        return r;
+      }
+      return fn();
     }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();

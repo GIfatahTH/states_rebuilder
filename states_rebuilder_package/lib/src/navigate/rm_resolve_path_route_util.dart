@@ -66,7 +66,7 @@ class ResolvePathRouteUtil {
     Map<String, String> queryParams = const {},
     Widget Function(String routeName)? unknownRoute,
     bool skipHomeSlash = false,
-    List<String> redirectedFrom = const [],
+    List<RouteData> redirectedFrom = const [],
   }) {
     final absolutePath = setAbsoluteUrlPath(settings.name!);
     final uri = Uri.parse(absolutePath);
@@ -155,7 +155,7 @@ class _ResolveLocation {
   final Widget Function(String routeName)? unknownRoute;
   final bool skipHomeSlash;
   final bool isAbsolutePath;
-  final List<String> redirectedFrom;
+  final List<RouteData> redirectedFrom;
   final ResolvePathRouteUtil util;
   _ResolveLocation({
     required this.routes,
@@ -211,7 +211,8 @@ class _ResolveLocation {
         util._isPagesFound = false;
         String message = '';
         if (isInfiniteRedirectLoop) {
-          message = 'Infinite redirect loop: ';
+          message =
+              'Infinite redirect loop: ${redirectedFrom.map((e) => e._subLocation)}';
         }
         matched[path] = RouteSettingsWithChildAndData(
           routeData: RouteData(
@@ -219,12 +220,14 @@ class _ResolveLocation {
             subLocation: path,
             path: path,
             arguments: null,
-            pathParams: {},
-            queryParams: {},
+            pathParams: const {},
+            queryParams: const {},
             pathEndsWithSlash: false,
-            redirectedFrom: [],
+            redirectedFrom: const [],
           ),
-          child: unknownRoute != null ? unknownRoute!('$message$path') : null,
+          child: unknownRoute != null
+              ? unknownRoute!(message.isNotEmpty ? message : path)
+              : null,
           isPagesFound: false,
         );
         assert(() {
@@ -299,6 +302,7 @@ class _ResolveLocation {
           route: route,
           to: page.to!,
           routeRedirectedFrom: routeData._subLocation,
+          routeData: routeData,
         );
         if (resolvedMatch != null) {
           matched.addAll(resolvedMatch);
@@ -391,7 +395,9 @@ class _ResolveLocation {
           if (toAppend == '/' && routes == RouterObjects._routers) {
             toAppend = '';
           }
-          if (redirectedFrom.contains(routeData._subLocation + toAppend)) {
+          if (redirectedFrom.any(
+            (e) => e.uri.toString() == routeData.uri.toString() + toAppend,
+          )) {
             isInfiniteRedirectLoop = true;
             continue;
           }
@@ -427,6 +433,7 @@ class _ResolveLocation {
     required Uri route,
     required String to,
     required String routeRedirectedFrom,
+    required RouteData routeData,
   }) {
     final toAppend = route.path == '/'
         ? routes == RouterObjects._routers
@@ -434,17 +441,21 @@ class _ResolveLocation {
             : '/'
         : '';
 
-    if (queryParams.isEmpty) {
-      // assert(!redirectedFrom.contains(path));
-      redirectedFrom.add(routeRedirectedFrom + toAppend);
-    } else {
-      final uri = Uri(
-        path: routeRedirectedFrom,
-        queryParameters: queryParams,
-      );
-      // assert(!redirectedFrom.contains(path));
-      redirectedFrom.add('$uri$toAppend');
-    }
+    // if (queryParams.isEmpty) {
+    // assert(!redirectedFrom.contains(path));
+    redirectedFrom.add(
+      routeData.copyWith(subLocation: routeRedirectedFrom + toAppend),
+    );
+    // } else {
+    //   final uri = Uri(
+    //     path: routeRedirectedFrom,
+    //     queryParameters: queryParams,
+    //   );
+    //   // assert(!redirectedFrom.contains(path));
+    //   redirectedFrom.add(
+    //     routeData.copyWith(subLocation: '$uri$toAppend'),
+    //   );
+    // }
 
     final absolutePath = util.setAbsoluteUrlPath(to);
     final uri = Uri.parse(absolutePath);

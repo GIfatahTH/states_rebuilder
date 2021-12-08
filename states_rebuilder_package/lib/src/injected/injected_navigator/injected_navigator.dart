@@ -236,7 +236,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     required this.onBack,
   })  : _redirectTo = redirectTo,
         super(
-          creator: () => const RouteData(
+          creator: () => RouteData(
             path: '/',
             location: '/',
             subLocation: '/',

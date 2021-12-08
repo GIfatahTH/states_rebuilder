@@ -6,6 +6,7 @@ part of '../rm.dart';
 /// `context.routeData`.
 ///
 /// See also [InjectedNavigator] and [RouteWidget]
+@immutable
 class RouteData {
   /// The current Base location.
   /// Example :
@@ -48,7 +49,12 @@ class RouteData {
   /// is `'/page1/:id'.
   ///
   final String location;
-  final String _subLocation;
+
+  /// Get the [Uri] representation of the resolved location
+
+  late final Uri uri;
+
+  String get _subLocation => uri.path;
 
   /// A map of query parameters extracted from the url link.
   ///
@@ -83,18 +89,11 @@ class RouteData {
   /// If an unsigned user routes to '/home', he will be redirect to `LoginPage`.
   /// The `redirectedFrom` will hold '/home' so we can route to it.
   ///
-  String? get redirectedFrom {
+  RouteData? get redirectedFrom {
     if (_redirectedFrom.isEmpty) {
       return null;
     }
-    final path = _redirectedFrom.first;
-    if (path == '/') {
-      return path;
-    }
-    if (path.endsWith('/')) {
-      return path.substring(0, path.length - 1);
-    }
-    return path;
+    return _redirectedFrom.first;
   }
 
   Widget get unKnownRoute => const Redirect(null, isUnknownRoute: true);
@@ -105,30 +104,31 @@ class RouteData {
   }
 
   final bool _pathEndsWithSlash;
-  final List<String> _redirectedFrom;
+  final List<RouteData> _redirectedFrom;
 
   /// Object that holds information about the active route.
-  const RouteData({
+  RouteData({
     required this.path,
     required this.location,
     required this.queryParams,
     required this.pathParams,
     required this.arguments,
     required bool pathEndsWithSlash,
-    required List<String> redirectedFrom,
+    required List<RouteData> redirectedFrom,
     required String subLocation,
   })  : _pathEndsWithSlash = pathEndsWithSlash,
-        _redirectedFrom = redirectedFrom,
-        _subLocation = subLocation;
+        _redirectedFrom = redirectedFrom {
+    if (queryParams.isEmpty) {
+      uri = Uri(path: subLocation);
+    } else {
+      uri = Uri(path: subLocation, queryParameters: queryParams);
+    }
+  }
 
   /// log the detailed of the navigation steps.
   void log() {
-    String l = '';
-    if (queryParams.isNotEmpty) {
-      l = Uri(path: _subLocation, queryParameters: queryParams).toString();
-    } else {
-      l = _subLocation;
-    }
+    String l = uri.toString();
+
     String m = 'Routing to location: "$l" (Path is:"$path"). ';
     if (redirectedFrom != null) {
       m += 'RedirectedFrom: $_redirectedFrom';
@@ -170,6 +170,7 @@ class RouteData {
 
   RouteData copyWith({
     bool? pathEndsWithSlash,
+    String? subLocation,
   }) {
     return RouteData(
       path: path,
@@ -179,7 +180,7 @@ class RouteData {
       arguments: arguments,
       pathEndsWithSlash: pathEndsWithSlash ?? _pathEndsWithSlash,
       redirectedFrom: _redirectedFrom,
-      subLocation: _subLocation,
+      subLocation: subLocation ?? _subLocation,
     );
   }
 }

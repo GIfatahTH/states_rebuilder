@@ -70,6 +70,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         _pageSettingsList.removeAt(i);
         continue;
       }
+
+      var routeWidgetTransitionsBuilder;
+      var routeWidgetTransitionDuration;
       if (childMap.values.last is RouteWidget) {
         final r = (childMap.values.last as RouteWidget)._routeData;
         settings = settings.copyWith(
@@ -81,6 +84,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           queryParams: r.queryParams,
           arguments: r.arguments,
         );
+        routeWidgetTransitionsBuilder =
+            (childMap.values.last as RouteWidget).transitionsBuilder;
+        routeWidgetTransitionDuration =
+            (childMap.values.last as RouteWidget)._transitionDuration;
       } else {
         settings = settings.copyWith(
           key: ValueKey(childMap.keys.last.signature + '$i'),
@@ -111,8 +118,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                   fullscreenDialog: isLast ?? _navigate._fullscreenDialog,
                   maintainState: isLast ?? _navigate._maintainState,
                   useTransition: isLast ?? useTransition,
-                  customBuildTransitions: transitionsBuilder,
-                  transitionDuration: transitionDuration,
+                  customBuildTransitions:
+                      routeWidgetTransitionsBuilder ?? transitionsBuilder,
+                  transitionDuration:
+                      routeWidgetTransitionDuration ?? transitionDuration,
                 )
               : //A custom pageBuilder is defined
               RouterObjects.injectedNavigator!.pageBuilder!(
@@ -278,7 +287,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   Map<String, RouteSettingsWithChildAndData>? getPagesFromRouteSettings({
     required PageSettings settings,
     bool skipHomeSlash = false,
-    required List<String> redirectedFrom,
+    required List<RouteData> redirectedFrom,
   }) {
     return _resolvePathRouteUtil.getPagesFromRouteSettings(
       routes: _routes,
