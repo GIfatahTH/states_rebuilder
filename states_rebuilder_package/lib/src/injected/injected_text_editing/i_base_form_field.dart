@@ -6,6 +6,7 @@ abstract class _BaseFormField<T> {
   late T? initialValue;
   late bool? _validateOnLoseFocus;
   late bool _isValidOnLoseFocusDefined;
+  late bool isDirty;
 
   ///Input text validator
   late List<String? Function(T value)>? _validator;

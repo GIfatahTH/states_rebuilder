@@ -114,6 +114,8 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///True if all text fields of the form are valid.
   bool get isValid;
 
+  bool get isDirty;
+
   /// Resets the fields to their initial values.
   ///
   /// If any TextField is autoFocused, than it gets focused after reset.
@@ -201,6 +203,10 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
 
   @override
   bool get isValid => _fields.every((e) => e.isValid);
+  @override
+  bool get isDirty => _fields.any((e) {
+        return e.isDirty;
+      });
 
   @override
   bool validate() {
@@ -238,6 +244,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
+    _fields.every((e) => e.isDirty = false);
     Future<void> setState(Function()? call) async {
       dynamic result = call?.call();
       try {

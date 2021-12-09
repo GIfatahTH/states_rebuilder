@@ -77,6 +77,8 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
   /// Invoke field validators and return true if the field is valid.
   bool validate();
 
+  bool get isDirty;
+
   /// If true the [TextField] is clickable and selectable but not editable.
   late bool isReadOnly;
   late bool _isEnabled;
@@ -143,6 +145,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       _hasFocus = null;
       this.isReadOnly = _initialIsReadOnly = isReadOnly;
       this.isEnabled = _initialIsEnabled = isEnabled;
+      isDirty = false;
     };
     _resetDefaultState();
     _validator = validator;
@@ -230,6 +233,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     if (v == value) {
       return;
     }
+    isDirty = v != initialValue;
     snapState = snapState.copyToHasData(v);
     onValueChange?.call(this);
 
