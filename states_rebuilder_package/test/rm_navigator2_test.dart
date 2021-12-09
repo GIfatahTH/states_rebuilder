@@ -1012,7 +1012,7 @@ void main() {
       final routes = {
         '/': (data) => RouteWidget(
               builder: (route) {
-                return route;
+                return Text('');
               },
             ),
         '/page1': (data) => RouteWidget(
@@ -1029,7 +1029,7 @@ void main() {
       final widget = _TopWidget(routers: routes);
 
       await tester.pumpWidget(widget);
-      expect(tester.takeException(), isAssertionError);
+      // expect(tester.takeException(), isAssertionError);
       _navigator.to('/page1');
       await tester.pump();
       expect(tester.takeException(), isAssertionError);
@@ -2358,7 +2358,10 @@ void main() {
     (tester) async {
       final routes = {
         '/': (_) => Text('/'),
-        '/form': (_) => Text('/form'),
+        '/form': (_) => Scaffold(
+              appBar: AppBar(),
+              body: Text('/form'),
+            ),
         '/page1': (_) => Text('/page1'),
       };
       bool isFormDirty = true;
@@ -2405,7 +2408,8 @@ void main() {
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/form'), findsOneWidget);
-      _navigator.back();
+      // _navigator.back();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text('/form'), findsOneWidget);
       showDialog = true;
@@ -3411,7 +3415,7 @@ void main() {
         builder: (_) {
           return Scaffold(
             appBar: AppBar(
-              leading: OnReactive(() {
+              leading: () {
                 if (_navigator.canPop) {
                   return BackButton(
                     key: Key('BackButton'),
@@ -3419,9 +3423,8 @@ void main() {
                   );
                 }
                 return Container();
-              }),
-              title: OnReactive(
-                  () => Text('Title: ${_navigator.routeData.location}')),
+              }(),
+              title: Text('Title: ${_navigator.routeData.location}'),
             ),
             body: Column(
               children: [
@@ -3457,6 +3460,7 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text('/page1/1'), findsOneWidget);
       expect(find.text('Title: /page1/1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
       expect(backPage1, findsNothing);
       expect(backPage1Home, findsNothing);
       expect(backPage2, findsNothing);
@@ -3481,7 +3485,7 @@ void main() {
       expect(backPage1Home, findsNothing);
       expect(backPage2, findsNothing);
       expect(backPage2Home, findsNothing);
-      //
+
       _navigator.to('/page1/2');
       _navigator.to('/page1/2/page2/1');
       _navigator.to('/page1/2/page2/2');
@@ -3561,6 +3565,7 @@ void main() {
         '/page1': (data) => Text('/page1'),
       };
       final widget = _TopWidget(
+        builder: (_) => _,
         routers: routes,
         debugPrintWhenRouted: true,
         onBack: (data) {
@@ -3772,13 +3777,15 @@ void main() {
             ),
         '/page2': (data) => RouteWidget(
               routes: {
-                '/': (data) => Builder(
-                      builder: (context) {
-                        animation = context.animation;
-                        secondaryAnimation = context.secondaryAnimation;
-                        return Text('/page2');
-                      },
-                    ),
+                '/': (data) {
+                  return Builder(
+                    builder: (context) {
+                      animation = context.animation;
+                      secondaryAnimation = context.secondaryAnimation;
+                      return Text('/page2');
+                    },
+                  );
+                },
               },
             ),
       };

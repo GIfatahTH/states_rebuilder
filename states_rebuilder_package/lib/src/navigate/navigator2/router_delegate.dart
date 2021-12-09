@@ -71,8 +71,13 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         continue;
       }
 
-      var routeWidgetTransitionsBuilder;
-      var routeWidgetTransitionDuration;
+      Widget Function(
+        BuildContext context,
+        Animation<double> animation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+      )? routeWidgetTransitionsBuilder;
+      Duration? routeWidgetTransitionDuration;
       if (childMap.values.last is RouteWidget) {
         final r = (childMap.values.last as RouteWidget)._routeData;
         settings = settings.copyWith(
@@ -218,7 +223,6 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   void setRouteStack(
     List<PageSettings> Function(List<PageSettings> pages) stack,
   ) {
-    print('');
     final s = stack(routeStack).map(
       (e) {
         final name = e.name!;
@@ -356,19 +360,46 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _isDirty = true;
     if (_builder != null) {
       if (this == RouterObjects.rootDelegate) {
-        return Navigator(
-          onGenerateRoute: (_) => MaterialPageRoute(
-            builder: (_) {
-              return _builder!(
-                Navigator(
-                  key: navigatorKey,
-                  onPopPage: _onPopPage,
-                  pages: _routeStack,
-                ),
-              );
-            },
-          ),
+        return Overlay(
+          initialEntries: [
+            OverlayEntry(
+              builder: (_) {
+                return _builder!(
+                  Navigator(
+                    key: navigatorKey,
+                    onPopPage: _onPopPage,
+                    pages: _routeStack,
+                  ),
+                );
+              },
+            ),
+          ],
         );
+
+        // Navigator(
+        //   onPopPage: (_, __) {
+        //     print('ldsj');
+        //     return false;
+        //   },
+        //   pages: [
+        //     MaterialPage(
+        //       child: _builder!(
+        //         Navigator(
+        //           key: navigatorKey,
+        //           onPopPage: _onPopPage,
+        //           pages: _routeStack,
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // );
+        // _builder!(
+        //   Navigator(
+        //     key: navigatorKey,
+        //     onPopPage: _onPopPage,
+        //     pages: _routeStack,
+        //   ),
+        // );
       }
 
       return _builder!(
@@ -389,40 +420,74 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   void rootDelegatePop(dynamic result) {
     message = 'Back';
     canLogMessage = false;
-    if (!RouterObjects._back(result)) {
+    if (RouterObjects._back(result, this)) {
       message = 'Navigate';
+    } else {
+      back(result);
     }
   }
 
   bool _onPopPage(Route<dynamic> route, dynamic result) {
     if (delegateImplyLeadingToParent && this == RouterObjects.rootDelegate) {
-      rootDelegatePop(result);
+      // rootDelegatePop(result);
+      message = 'Back';
+      canLogMessage = false;
+      final r = RouterObjects._back(result, this);
+
+      if (r) {
+        return false;
+      }
+
+      if (_canPop) {
+        if (back(result) == true) {
+          final didPop = route.didPop(result);
+          if (!didPop) {
+            return false;
+          }
+          message = 'Navigate';
+          return true;
+        }
+        return false;
+        // return true;
+      }
       return false;
+    }
+    if (delegateImplyLeadingToParent) {
+      var r = RouterObjects._back(result, this);
+      if (r) {
+        return false;
+      }
     }
 
     /// There’s a request to pop the route. If the route can’t handle it internally,
     /// it returns false.
-    final didPop = route.didPop(result);
-    if (!didPop) {
-      return false;
-    }
+
+    // return false;
 
     /// Otherwise, check to see if we can remove the top page and remove the page from the list of pages.
     if (_canPop) {
-      back(result);
-      return true;
-    } else {
-      if (delegateImplyLeadingToParent) {
-        RouterObjects.rootDelegate!
-          ..message = 'Back'
-          ..canLogMessage = false;
-        ;
-        if (!RouterObjects._back(result)) {
-          RouterObjects.rootDelegate!.message = 'Navigate';
+      if (back(result) == true) {
+        final didPop = route.didPop(result);
+        if (!didPop) {
+          return false;
         }
+        return true;
       }
       return false;
+      // return true;
     }
+    // else {
+    //   if (delegateImplyLeadingToParent) {
+    //     RouterObjects.rootDelegate!
+    //       ..message = 'Back'
+    //       ..canLogMessage = false;
+    //     if (!RouterObjects._back(result)) {
+    //       RouterObjects.rootDelegate!.message = 'Navigate';
+    //     }
+    //   }
+    //   return false;
+    // }
+    return false;
   }
 
   bool get _canPop {

@@ -143,7 +143,7 @@ abstract class RouterObjects {
     return delegate;
   }
 
-  static bool _back<T extends Object?>(T? result) {
+  static bool _back<T extends Object?>(T? result, [RouterDelegateImp? d]) {
     final activeSubRoutes = _activeSubRoutes();
     if (activeSubRoutes == null) {
       return false;
@@ -153,15 +153,22 @@ abstract class RouterObjects {
     int index = activeSubRoutes.length - 1;
     while (true) {
       final delegate = activeSubRoutes[index];
-      isDone = delegate.back<T>(result);
-      if (isDone == null) {
+      if (delegate._canPop && delegate == d) {
+        isDone = false;
         break;
       }
+
+      isDone = delegate._canPop;
+      if (isDone) {
+        delegate.navigatorKey!.currentState!.pop<T>(result);
+        break;
+      }
+
       if (isDone || --index < 0) {
         break;
       }
     }
-    return isDone ?? false;
+    return isDone;
   }
 
   static bool canPop(RouterDelegateImp delegate) {

@@ -240,11 +240,11 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
             path: '/',
             location: '/',
             subLocation: '/',
-            queryParams: {},
-            pathParams: {},
+            queryParams: const {},
+            pathParams: const {},
             arguments: null,
             pathEndsWithSlash: false,
-            redirectedFrom: [],
+            redirectedFrom: const [],
           ),
         ) {
     RouterObjects.initialize(
