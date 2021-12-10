@@ -169,7 +169,13 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     this.sideEffects,
     Future<void> Function()? submit,
   })  : _submit = submit,
-        super(creator: () => null) {
+        super(
+          creator: () => null,
+          initialState: null,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
+        ) {
     _resetDefaultState = () {
       this.autovalidateMode = autovalidateMode;
       _submitFocusNode = null;
@@ -204,9 +210,11 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
   @override
   bool get isValid => _fields.every((e) => e.isValid);
   @override
-  bool get isDirty => _fields.any((e) {
-        return e.isDirty;
-      });
+  bool get isDirty {
+    return _fields.any((e) {
+      return e.isDirty;
+    });
+  }
 
   @override
   bool validate() {
@@ -244,7 +252,9 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
-    _fields.every((e) => e.isDirty = false);
+    for (var e in _fields) {
+      e.isDirty = false;
+    }
     Future<void> setState(Function()? call) async {
       dynamic result = call?.call();
       try {

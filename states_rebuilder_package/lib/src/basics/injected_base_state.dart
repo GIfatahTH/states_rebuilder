@@ -216,13 +216,15 @@ extension InjectedBaseXInternal<T> on InjectedBase<T> {
 class InjectedBaseBaseImp<T> extends InjectedBaseState<T> {
   InjectedBaseBaseImp({
     required T Function() creator,
-    bool autoDisposeWhenNotUsed = true,
-    VoidCallback? onInitialized,
-    VoidCallback? onDisposed,
+    required T? initialState,
+    required bool autoDisposeWhenNotUsed,
+    required VoidCallback? onInitialized,
+    required VoidCallback? onDisposed,
   }) {
     _reactiveModelState = ReactiveModelBase<T>(
       creator: creator,
       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+      initialState: initialState,
       initializer: () {
         if (_reactiveModelState._isInitialized) {
           return;

@@ -138,6 +138,10 @@ class InjectedScrollingImp extends InjectedBaseBaseImp<double>
     this.onScrollEndedDelay = 300,
   }) : super(
           creator: () => initialScrollOffset,
+          initialState: initialScrollOffset,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       _controller = null;

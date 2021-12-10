@@ -166,6 +166,10 @@ class InjectedAnimationImp extends InjectedBaseBaseImp<double>
     this.endAnimationListener,
   }) : super(
           creator: () => 0.0,
+          initialState: 0.0,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       this.duration = duration;

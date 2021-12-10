@@ -130,13 +130,16 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   }) : super(
           creator: () => initialValue,
           autoDisposeWhenNotUsed: autoDispose,
+          initialState: initialValue,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       this.initialValue = initialValue;
       form = null;
       _formIsSet = false;
       _removeFromInjectedList = null;
-      formTextFieldDisposer = null;
+      formFieldDisposer = null;
       _validateOnLoseFocus = validateOnLoseFocus;
       _isValidOnLoseFocusDefined = false;
       _validator = validator;
@@ -156,7 +159,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   late bool _formIsSet;
 
   ///Remove this InjectedTextEditing from the associated InjectedForm,
-  late VoidCallback? formTextFieldDisposer;
+  late VoidCallback? formFieldDisposer;
   late VoidCallback? _removeFromInjectedList;
 
   late bool? _hasFocus;
@@ -192,8 +195,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       form ??= InjectedFormImp._currentInitializedForm;
       if (form != null) {
         _formIsSet = true;
-        formTextFieldDisposer =
-            (form as InjectedFormImp).addTextFieldToForm(this);
+        formFieldDisposer = (form as InjectedFormImp).addTextFieldToForm(this);
 
         if (form!.autovalidateMode == AutovalidateMode.always) {
           //When initialized and always auto validated, then validate in the next
@@ -253,6 +255,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   void dispose() {
     super.dispose();
     _removeFromInjectedList?.call();
+    formFieldDisposer?.call();
     _resetDefaultState();
   }
 }

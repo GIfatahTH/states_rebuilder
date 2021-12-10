@@ -38,10 +38,9 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
               late ReactiveModelBase rm;
               if (inj is InjectedImp) {
                 inj.initialize();
-                rm = inj._reactiveModelState;
-              } else if (inj is ReactiveModel) {
-                rm = (inj as ReactiveModelImp).reactiveModelState;
               }
+              rm = inj._reactiveModelState;
+
               final disposer = rm.listeners.addListenerForRebuild(
                 (s) {
                   var snapFormType = injects.firstWhereOrNull(
@@ -97,7 +96,7 @@ extension OnCombinedX on OnCombined<dynamic, Widget> {
                 },
                 clean: inj is InjectedImp && inj.autoDisposeWhenNotUsed
                     ? () => inj.dispose()
-                    : null,
+                    : () => inj.dispose(),
               );
               disposers.add(disposer);
             }

@@ -5,14 +5,14 @@ class ReactiveModelBase<T> {
   ReactiveModelBase({
     required this.creator,
     required this.initializer,
-    T? initialState,
+    required T? initialState,
     required this.autoDisposeWhenNotUsed,
     this.debugPrintWhenNotifiedPreMessage,
   }) {
     //Set initial state on construction
-    if (initialState != null) {
-      _initialState = initialState;
-    }
+    // if (initialState != null) {
+    _initialState = initialState;
+    // }
 
     // else if (null is! T) {
     //   final resolvedInitialState = _getPrimitiveNullState<T>();
