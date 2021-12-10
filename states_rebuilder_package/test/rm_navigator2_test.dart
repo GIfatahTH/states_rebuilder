@@ -3996,7 +3996,7 @@ class SimpleRouteInformationProvider extends RouteInformationProvider
 
   @override
   void routerReportsNewRouteInformation(RouteInformation routeInformation,
-      {bool isNavigation = true}) {
+      {required RouteInformationReportingType type}) {
     _value = routeInformation;
   }
 }
