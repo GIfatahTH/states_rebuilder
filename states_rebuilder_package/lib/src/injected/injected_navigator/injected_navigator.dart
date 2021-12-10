@@ -222,7 +222,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     with InjectedNavigator {
   InjectedNavigatorImp({
     required Map<String, Widget Function(RouteData data)> routes,
-    required Widget Function(String)? unknownRoute,
+    required Widget Function(RouteData)? unknownRoute,
     required Widget Function(
             BuildContext, Animation<double>, Animation<double>, Widget)?
         transitionsBuilder,
@@ -236,16 +236,11 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     required this.onBack,
   })  : _redirectTo = redirectTo,
         super(
-          creator: () => RouteData(
-            path: '/',
-            location: '/',
-            subLocation: '/',
-            queryParams: const {},
-            pathParams: const {},
-            arguments: null,
-            pathEndsWithSlash: false,
-            redirectedFrom: const [],
-          ),
+          creator: () => initialState,
+          initialState: initialState,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     RouterObjects.initialize(
       routes: routes,
@@ -260,6 +255,16 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     _resetDefaultState();
     RouterObjects.injectedNavigator = this;
   }
+  static final initialState = RouteData(
+    path: '/',
+    location: '/',
+    subLocation: '/',
+    queryParams: const {},
+    pathParams: const {},
+    arguments: null,
+    pathEndsWithSlash: false,
+    redirectedFrom: const [],
+  );
   final Redirect? Function(RouteData data)? _redirectTo;
   Redirect? Function(RouteData data)? get redirectTo {
     if (_redirectTo == null) {

@@ -1732,7 +1732,7 @@ class _TopWidget extends TopStatelessWidget {
   }) : super(key: key) {
     _navigator = RM.injectNavigator(
       routes: routers,
-      unknownRoute: (route) => Text('404 $route'),
+      unknownRoute: (route) => Text('404 ${route.location}'),
       initialLocation: initialRoute ?? initialRouteSettings?.name,
     );
   }

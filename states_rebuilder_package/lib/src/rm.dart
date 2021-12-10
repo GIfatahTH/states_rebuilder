@@ -2073,7 +2073,7 @@ abstract class RM {
     //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
     required Map<String, Widget Function(RouteData data)> routes,
     String? initialLocation,
-    Widget Function(String)? unknownRoute,
+    Widget Function(RouteData data)? unknownRoute,
     Widget Function(Widget routerOutlet)? builder,
     Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
     bool shouldUseCupertinoPage = false,

@@ -64,7 +64,7 @@ class ResolvePathRouteUtil {
     required Map<Uri, Widget Function(RouteData)> routes,
     required RouteSettings settings,
     Map<String, String> queryParams = const {},
-    Widget Function(String routeName)? unknownRoute,
+    Widget Function(RouteData routeData)? unknownRoute,
     bool skipHomeSlash = false,
     List<RouteData> redirectedFrom = const [],
   }) {
@@ -104,18 +104,19 @@ class ResolvePathRouteUtil {
     if (pages.values.last.isPagesFound) {
       if (remainingUrlSegments.any((e) => e.isNotEmpty)) {
         _isPagesFound = false;
+        final routeData = RouteData(
+          location: absolutePath,
+          subLocation: absolutePath,
+          path: absolutePath,
+          arguments: null,
+          pathParams: {},
+          queryParams: {},
+          pathEndsWithSlash: false,
+          redirectedFrom: [],
+        );
         pages[absolutePath] = RouteSettingsWithChildAndData(
-          routeData: RouteData(
-            location: absolutePath,
-            subLocation: absolutePath,
-            path: absolutePath,
-            arguments: null,
-            pathParams: {},
-            queryParams: {},
-            pathEndsWithSlash: false,
-            redirectedFrom: [],
-          ),
-          child: unknownRoute != null ? unknownRoute(absolutePath) : null,
+          routeData: routeData,
+          child: unknownRoute != null ? unknownRoute(routeData) : null,
           isPagesFound: false,
         );
         StatesRebuilerLogger.log('Page "$absolutePath" is not found');
@@ -152,7 +153,7 @@ class _ResolveLocation {
   final Map<String, String> pathParam;
   final String baseUrlPath;
   final String routeUri;
-  final Widget Function(String routeName)? unknownRoute;
+  final Widget Function(RouteData data)? unknownRoute;
   final bool skipHomeSlash;
   final bool isAbsolutePath;
   final List<RouteData> redirectedFrom;
@@ -214,20 +215,20 @@ class _ResolveLocation {
           message =
               'Infinite redirect loop: ${redirectedFrom.map((e) => e._subLocation)}';
         }
+
+        final routeData = RouteData(
+          location: message.isNotEmpty ? message : path,
+          subLocation: message.isNotEmpty ? message : path,
+          path: path,
+          arguments: null,
+          pathParams: const {},
+          queryParams: const {},
+          pathEndsWithSlash: false,
+          redirectedFrom: const [],
+        );
         matched[path] = RouteSettingsWithChildAndData(
-          routeData: RouteData(
-            location: path,
-            subLocation: path,
-            path: path,
-            arguments: null,
-            pathParams: const {},
-            queryParams: const {},
-            pathEndsWithSlash: false,
-            redirectedFrom: const [],
-          ),
-          child: unknownRoute != null
-              ? unknownRoute!(message.isNotEmpty ? message : path)
-              : null,
+          routeData: routeData,
+          child: unknownRoute != null ? unknownRoute!(routeData) : null,
           isPagesFound: false,
         );
         assert(() {
@@ -278,23 +279,24 @@ class _ResolveLocation {
             page;
       }
       if (page is Redirect) {
-        if (page.isUnknownRoute) {
-          matched[path] = RouteSettingsWithChildAndData(
-            routeData: RouteData(
-              location: path,
-              subLocation: path,
-              path: path,
-              arguments: null,
-              pathParams: {},
-              queryParams: {},
-              pathEndsWithSlash: false,
-              redirectedFrom: [],
-            ),
-            child: unknownRoute != null ? unknownRoute!(path) : null,
-            isPagesFound: false,
-          );
-          return matched;
-        }
+        // if (page.isUnknownRoute) {
+        //   final routeData = RouteData(
+        //     location: path,
+        //     subLocation: path,
+        //     path: path,
+        //     arguments: null,
+        //     pathParams: {},
+        //     queryParams: {},
+        //     pathEndsWithSlash: false,
+        //     redirectedFrom: [],
+        //   );
+        //   matched[path] = RouteSettingsWithChildAndData(
+        //     routeData: routeData,
+        //     child: unknownRoute?.call(routeData),
+        //     isPagesFound: false,
+        //   );
+        //   return matched;
+        // }
         if (page.to == null) {
           return null;
         }

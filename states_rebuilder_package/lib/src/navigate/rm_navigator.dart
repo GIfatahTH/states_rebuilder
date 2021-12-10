@@ -86,7 +86,8 @@ MaterialApp(
       final pages = _resolvePathRouteUtil.getPagesFromRouteSettings(
         routes: RouterObjects._routers!,
         settings: settings,
-        unknownRoute: unknownRoute,
+        unknownRoute:
+            unknownRoute != null ? (data) => unknownRoute(data.location) : null,
         skipHomeSlash: true,
       )!;
 

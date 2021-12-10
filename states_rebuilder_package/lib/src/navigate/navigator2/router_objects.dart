@@ -6,12 +6,12 @@ abstract class RouterObjects {
   static RouteInformationParserImp? routeInformationParser;
   static Map<Uri, Widget Function(RouteData routeData)>? _routers;
   // ignore: prefer_function_declarations_over_variables
-  static Widget Function(String route) _unknownRoute = (location) {
+  static Widget Function(RouteData data) _unknownRoute = (data) {
     return Material(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('$location not found'),
+          Text('${data.location} not found'),
           TextButton(
             onPressed: () => RM.navigate.back(),
             child: const Text('Go Back'),
@@ -34,7 +34,7 @@ abstract class RouterObjects {
 
   static void initialize({
     required Map<String, Widget Function(RouteData data)> routes,
-    required Widget Function(String route)? unknownRoute,
+    required Widget Function(RouteData data)? unknownRoute,
     required Widget Function(
             BuildContext, Animation<double>, Animation<double>, Widget)?
         transitionsBuilder,

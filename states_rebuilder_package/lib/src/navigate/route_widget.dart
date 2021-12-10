@@ -339,7 +339,7 @@ class RouteWidget extends StatelessWidget {
       queryParams: _parentToSubRouteMessage.queryParams,
       skipHomeSlash: _parentToSubRouteMessage.skipHomeSlash,
       unknownRoute: _parentToSubRouteMessage.unknownRoute != null
-          ? (_) => _parentToSubRouteMessage.unknownRoute!(_path)
+          ? (_) => _parentToSubRouteMessage.unknownRoute!(_routeData)
           : null,
     );
 
@@ -396,8 +396,9 @@ class RouteWidget extends StatelessWidget {
     if (builder != null) {
       if (_routes.isEmpty) {
         if (urlName != _path) {
-          final route = _parentToSubRouteMessage.unknownRoute?.call(_path) ??
-              routeNotDefinedAssertion;
+          final route =
+              _parentToSubRouteMessage.unknownRoute?.call(_routeData) ??
+                  routeNotDefinedAssertion;
           return route;
         }
         return builder!(routeNotDefinedAssertion);
@@ -431,7 +432,7 @@ class _ParentToSubRouteMessage {
   final String toPath;
   final RouteData routeData;
   final bool skipHomeSlash;
-  final Widget Function(String route)? unknownRoute;
+  final Widget Function(RouteData data)? unknownRoute;
   final Map<String, String> queryParams;
   String get signature => '$toPath${routeData.arguments}$queryParams';
   _ParentToSubRouteMessage({

@@ -144,7 +144,10 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         _selection = selection,
         super(
           creator: () => text,
+          initialState: text,
           autoDisposeWhenNotUsed: autoDispose,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       initialValue = text;

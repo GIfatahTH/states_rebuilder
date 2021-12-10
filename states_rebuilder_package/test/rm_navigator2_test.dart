@@ -4,10 +4,8 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
-import 'package:states_rebuilder/src/injected/injected_navigator/injected_navigator.dart';
 import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -29,10 +27,11 @@ class _TopWidget extends TopStatelessWidget {
     Widget Function(Widget)? builder,
     bool? Function(RouteData)? onBack,
     Duration? transitionDuration,
+    Widget Function(RouteData)? unknownRoute,
   }) : super(key: key) {
     _navigator = RM.injectNavigator(
       routes: routers,
-      unknownRoute: (route) => Text('404 $route'),
+      unknownRoute: unknownRoute ?? (data) => Text('404 ${data.location}'),
       transitionsBuilder: _transitionsBuilder,
       transitionDuration: transitionDuration,
       onNavigate: routeInterceptor,
@@ -3105,6 +3104,53 @@ void main() {
           expect(find.text('/books/1'), findsOneWidget);
         },
       );
+
+      // testWidgets(
+      //   'WHEN redirect unknown route',
+      //   (tester) async {
+      //     final Map<String, Widget Function(RouteData)> routes = {
+      //       '/': (data) => data.redirectTo('/home'),
+      //       '/home': (data) => Text('Home'),
+      //       '/page1': (data) => Text('page1'),
+      //       '/page2': (data) => RouteWidget(
+      //             builder: (_) => Center(child: _),
+      //             routes: {
+      //               '/': (data) => data.redirectTo('/page2/page21/404'),
+      //               '/page1': (data) => data.redirectTo('/page3'),
+      //             },
+      //           ),
+      //     };
+      //     String location = '';
+      //     final widget = _TopWidget(
+      //       initialRoute: '/signIn',
+      //       routers: routes,
+      //       unknownRoute: (data) {
+      //         location = data.location;
+      //         return data.redirectTo('/');
+      //       },
+      //       routeInterceptor: (data) {
+      //         data.log();
+      //       },
+      //     );
+      //     await tester.pumpWidget(widget);
+      //     expect(find.text('Home'), findsOneWidget);
+      //     expect(location, '/signIn');
+      //     //
+      //     _navigator.to('/page1');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('page1'), findsOneWidget);
+      //     _navigator.to('/404');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('Home'), findsOneWidget);
+      //     expect(location, '/404');
+      //     //
+      //     _navigator.to('/page2/404');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('Home'), findsOneWidget);
+      //     expect(location, '/page2/404');
+      //     expect(find.byType(Center), findsOneWidget);
+      //   },
+      // );
     },
   );
 
