@@ -6,6 +6,23 @@ void main() {
 }
 
 final navigator = RM.injectNavigator(
+  builder: (routerOutlet) {
+    return Builder(
+      builder: (context) {
+        return Scaffold(
+          body: routerOutlet,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => navigator.toAndRemoveUntil('/'),
+            child: Icon(
+              Icons.home,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            backgroundColor: Theme.of(context).colorScheme.onSecondary,
+          ),
+        );
+      },
+    );
+  },
   routes: {
     '/': (data) => const HomePage(),
     '/page1': (data) => const PageWidget(title: 'Page1'),

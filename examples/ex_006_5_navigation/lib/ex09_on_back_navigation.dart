@@ -6,12 +6,6 @@ void main() {
 }
 
 final navigator = RM.injectNavigator(
-  builder: (_) => Scaffold(
-    body: _,
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {},
-    ),
-  ),
   routes: {
     '/': (data) => const HomePage(),
     '/signin': (data) => const SignInPage(),
@@ -70,7 +64,6 @@ class HomePage extends StatelessWidget {
               onPressed: () => navigator.to('/signin'),
               child: const Text('Sign in'),
             ),
-            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -89,7 +82,19 @@ class SignInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: OnBuilder(
+          listenToMany: [userName, password, acceptAgreement, form],
+          builder: () {
+            if (form.isDirty) {
+              return const Text(
+                'Form is modified and not submitted yet. \nYou can not exit without confirmation',
+              );
+            }
+            return const Text('You can exit safely');
+          },
+        ),
+      ),
       body: OnFormBuilder(
         listenTo: form,
         builder: () {
@@ -110,6 +115,10 @@ class SignInPage extends StatelessWidget {
                     title: const Text('Do you accept the license agreements?'),
                   );
                 },
+              ),
+              ElevatedButton(
+                onPressed: () => form.submit(() async {}),
+                child: const Text('Submit'),
               )
             ],
           );
