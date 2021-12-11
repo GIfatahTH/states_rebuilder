@@ -149,6 +149,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       this.isReadOnly = _initialIsReadOnly = isReadOnly;
       this.isEnabled = _initialIsEnabled = isEnabled;
       isDirty = false;
+      _initialIsDirtyText = initialValue;
     };
     _resetDefaultState();
     _validator = validator;
@@ -235,7 +236,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     if (v == value) {
       return;
     }
-    isDirty = v != initialValue;
+    isDirty = v != _initialIsDirtyText;
     snapState = snapState.copyToHasData(v);
     onValueChange?.call(this);
 

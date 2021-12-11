@@ -1393,4 +1393,80 @@ void main() {
       await tester.pump();
     },
   );
+
+  testWidgets(
+    'Test is dirty',
+    (tester) async {
+      final form = RM.injectForm();
+      final email = RM.injectTextEditing();
+      final password = RM.injectTextEditing();
+      final widget = OnFormBuilder(
+        listenTo: form,
+        builder: () {
+          return Column(
+            children: [
+              OnBuilder(
+                listenToMany: [email, password, form],
+                builder: () {
+                  return Text('Form is dirty: ${form.isDirty}');
+                },
+              ),
+              TextField(
+                controller: email.controller,
+              ),
+              TextField(
+                controller: password.controller,
+              ),
+            ],
+          );
+        },
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: widget,
+          ),
+        ),
+      );
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(password.isDirty, false);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      form.submit(() async {});
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text1');
+      await tester.enterText(find.byType(TextField).last, 'text');
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(password.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).last, '');
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
+    },
+  );
 }

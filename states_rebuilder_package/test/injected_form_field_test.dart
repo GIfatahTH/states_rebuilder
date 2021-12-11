@@ -674,4 +674,94 @@ void main() {
       expect(isChecked, findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Test is dirty',
+    (tester) async {
+      final form = RM.injectForm();
+      final email = RM.injectFormField('');
+      final isValid = RM.injectFormField(false);
+      final widget = OnFormBuilder(
+        listenTo: form,
+        builder: () {
+          return Column(
+            children: [
+              OnBuilder(
+                listenToMany: [email, isValid, form],
+                builder: () {
+                  return Text('Form is dirty: ${form.isDirty}');
+                },
+              ),
+              OnFormFieldBuilder<String>(
+                  listenTo: email,
+                  builder: (value, onChanged) {
+                    return TextFormField(
+                      initialValue: value,
+                      onChanged: onChanged,
+                    );
+                  }),
+              OnFormFieldBuilder<bool>(
+                listenTo: isValid,
+                builder: (value, onChanged) {
+                  return CheckboxListTile(
+                    value: value,
+                    onChanged: onChanged,
+                    title: Text('Check me'),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: widget,
+          ),
+        ),
+      );
+      expect(email.isDirty, false);
+      expect(isValid.isDirty, false);
+      expect(form.isDirty, false);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pump();
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(isValid.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      form.submit(() async {});
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(isValid.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text1');
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(isValid.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(isValid.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(isValid.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
+    },
+  );
 }

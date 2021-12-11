@@ -62,6 +62,10 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///Whether it passes the validation test
   bool get isValid;
 
+  /// Whether the the value of the field is modified and not submitted yet;
+  ///
+  /// Submission is done using [InjectedForm.submit] method.
+  bool get isDirty;
   String get value => state;
 
   ///The range of text that is currently selected.
@@ -164,6 +168,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       this.isReadOnly = _initialIsReadOnly = isReadOnly;
       _isEnabled = _initialIsEnabled = isEnabled;
       isDirty = false;
+      _initialIsDirtyText = text;
     };
     _resetDefaultState();
   }
@@ -182,6 +187,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   late VoidCallback? formTextFieldDisposer;
   late bool _initialIsEnabled;
   late bool _initialIsReadOnly;
+
   //
   late final VoidCallback _resetDefaultState;
 
@@ -268,7 +274,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         notify();
         return;
       }
-      isDirty = _controller!.text.trim() != initialValue?.trim();
+      isDirty = _controller!.text.trim() != _initialIsDirtyText.trim();
       snapState = snapState.copyWith(data: _controller!.text);
       if (form != null) {
         //If form is not null than override the autoValidate of this Injected

@@ -252,9 +252,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
-    for (var e in _fields) {
-      e.isDirty = false;
-    }
+
     Future<void> setState(Function()? call) async {
       dynamic result = call?.call();
       try {
@@ -282,6 +280,11 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
           if (firstErrorField != null) {
             firstErrorField._focusNode?.requestFocus();
           }
+        }
+        for (var e in _fields) {
+          e
+            ..isDirty = false
+            .._initialIsDirtyText = e.value;
         }
         notify();
       } catch (e, s) {

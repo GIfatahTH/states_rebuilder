@@ -3998,35 +3998,34 @@ void main() {
       expect(find.text('/page1'), findsOneWidget);
       expect(animation!.status, AnimationStatus.completed);
       //
-      // _navigator.back();
-      // await tester.pump();
-      // await tester.pump(1000.milliseconds);
-      // expect(find.text('/'), findsOneWidget);
-      // expect(find.text('/page1'), findsOneWidget);
-      // expect(animation!.value, 0.5);
-      // expect(animation!.status, AnimationStatus.reverse);
-      // await tester.pumpAndSettle();
-      // expect(find.text('/'), findsOneWidget);
-      // expect(find.text('/page1'), findsNothing);
-      // expect(animation!.status, AnimationStatus.dismissed);
-      // //
-      // _navigator.to('/page1');
-      // await tester.pump();
-      // await tester.pump(500.milliseconds);
-      // expect(find.text('/'), findsOneWidget);
-      // expect(find.text('/page1'), findsOneWidget);
-      // expect(animation!.value, 0.5);
-      // expect(animation!.status, AnimationStatus.forward);
-      // await tester.pumpAndSettle();
-      // expect(find.text('/'), findsNothing);
-      // expect(find.text('/page1'), findsOneWidget);
-      // expect(animation!.status, AnimationStatus.completed);
+      _navigator.back();
+      await tester.pump();
+      await tester.pump(1000.milliseconds);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(animation!.value, 0.5);
+      expect(animation!.status, AnimationStatus.reverse);
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsNothing);
+      expect(animation!.status, AnimationStatus.dismissed);
+      //
+      _navigator.to('/page1');
+      await tester.pump();
+      await tester.pump(500.milliseconds);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(animation!.value, 0.5);
+      expect(animation!.status, AnimationStatus.forward);
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(animation!.status, AnimationStatus.completed);
     },
   );
 
   testWidgets(
-    'WHEN'
-    'THEN',
+    'test context.routeData',
     (tester) async {
       String location = '';
       String location1 = '';
@@ -4103,6 +4102,82 @@ void main() {
       expect(location3, '/page1/page11');
       expect(location1, '/page1/page11');
       expect(location2, location1);
+    },
+  );
+
+  testWidgets(
+    'test InjectedNavigator.onNavigate'
+    'THEN',
+    (tester) async {
+      final routes = {
+        '/': (data) => Text('/'),
+        '/page1': (data) => Text('/page1'),
+        '/page1/page11': (data) {
+          return RouteWidget(
+            builder: (routerOutlet) {
+              return Builder(
+                builder: (context) {
+                  return routerOutlet;
+                },
+              );
+            },
+            routes: {
+              '/': (data) => Text('/page11'),
+              '/page12': (data) => Text('/page12'),
+            },
+          );
+        },
+      };
+
+      String to = '';
+      final widget = _TopWidget(
+        routers: routes,
+        builder: (routerOutlet) {
+          return Builder(
+            builder: (context) {
+              return routerOutlet;
+            },
+          );
+        },
+        routeInterceptor: (data) {
+          final location = data.location;
+          if (to == '/') {
+            return data.redirectTo('/');
+          }
+          if (to == '/page1' && location != '/page1') {
+            return data.redirectTo('/page1');
+          }
+          if (to == '/page1/page11' && location != '/page1/page11') {
+            return data.redirectTo('/page1/page11');
+          }
+          if (to == '/page1/page11/page12' &&
+              location != '/page1/page11/page12') {
+            return data.redirectTo('/page1/page11/page12');
+          }
+        },
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      _navigator.onNavigate();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      to = '/page1';
+      _navigator.onNavigate();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      to = '/page1/page11';
+      _navigator.onNavigate();
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      to = '/page1/page11/page12';
+      _navigator.onNavigate();
+      await tester.pumpAndSettle();
+      expect(find.text('/page12'), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page12'), findsOneWidget);
     },
   );
 }
