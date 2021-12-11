@@ -171,22 +171,29 @@ abstract class RouterObjects {
     return isDone;
   }
 
-  static bool canPop(RouterDelegateImp delegate) {
+  static RouterDelegateImp? getDelegateToPop([
+    RouterDelegateImp? delegate,
+    String? untilRouteName,
+  ]) {
     final activeSubRoutes = _activeSubRoutes(delegate);
-    if (activeSubRoutes == null || !activeSubRoutes.contains(delegate)) {
-      return false;
+    if (activeSubRoutes == null ||
+        delegate != null && !activeSubRoutes.contains(delegate)) {
+      return null;
     }
 
-    bool? isDone = false;
     int index = activeSubRoutes.length - 1;
     while (true) {
       final delegate = activeSubRoutes[index];
-      isDone = delegate._canPop;
-      if (isDone || --index < 0) {
-        break;
+      final canPop = untilRouteName == null
+          ? delegate._canPop
+          : delegate._canPopUntil(untilRouteName);
+      if (canPop) {
+        return delegate;
+      }
+      if (--index < 0) {
+        return null;
       }
     }
-    return isDone;
   }
 
   static bool _backUntil(String untilRouteName) {

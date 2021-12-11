@@ -43,7 +43,6 @@ Widget getWidgetFromPages({
   required Map<String, RouteSettingsWithChildAndData> pages,
   Animation<double>? animation,
 }) {
-  late Widget child;
   Widget getChild({
     required List<String> keys,
     required Widget? route,
@@ -53,22 +52,22 @@ Widget getWidgetFromPages({
     final lastPage = pages[key]!;
     var c = lastPage.child;
     if (c is RouteWidget && c.builder != null) {
-      return child = c;
+      return c;
     }
-    child = SubRoute._(
+    return SubRoute._(
       child: () {
         if (c is RouteWidget && c.builder != null) {
           return c;
         }
 
-        if (lastPage is RouteSettingsWithRouteWidget) {
-          if (c is RouteWidget) {
-            if (c.builder != null) {
-              return c;
-            }
-          }
-          return lastPage.subRoute!;
-        }
+        // if (lastPage is RouteSettingsWithRouteWidget) {
+        //   if (c is RouteWidget) {
+        //     if (c.builder != null) {
+        //       return c;
+        //     }
+        //   }
+        //   return lastPage.subRoute!;
+        // }
         assert(c != null, '"${lastPage.name}" route is not found');
         return c!;
       }(),
@@ -82,31 +81,30 @@ Widget getWidgetFromPages({
       shouldAnimate: true,
       key: Key(key),
     );
-    return child;
   }
 
   var keys = pages.keys.toList();
-  getChild(keys: keys, route: null, lastSubRoute: null);
-  while (true) {
-    keys.removeLast();
+  return getChild(keys: keys, route: null, lastSubRoute: null);
+  // while (true) {
+  //   keys.removeLast();
 
-    if (keys.isEmpty) {
-      break;
-    }
-    final r = pages[keys.last];
-    if (r is RouteSettingsWithRouteWidget) {
-      final c = r.child as RouteWidget;
-      if (c.builder != null && c._routes.isNotEmpty) {
-        getChild(
-          keys: keys,
-          route: child,
-          lastSubRoute: null,
-        );
-      }
-    }
-  }
+  //   if (keys.isEmpty) {
+  //     break;
+  //   }
+  //   // final r = pages[keys.last];
+  //   // if (r is RouteSettingsWithRouteWidget) {
+  //   //   final c = r.child as RouteWidget;
+  //   //   if (c.builder != null && c._routes.isNotEmpty) {
+  //   //     getChild(
+  //   //       keys: keys,
+  //   //       route: child,
+  //   //       lastSubRoute: null,
+  //   //     );
+  //   //   }
+  //   // }
+  // }
 
-  return child;
+  // return child;
 }
 
 // class _RouteFullWidgetState extends State<_RouteFullWidget> {

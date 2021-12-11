@@ -89,7 +89,7 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   /// stacks.
   bool get canPop {
     OnReactiveState.addToObs?.call(this);
-    return RouterObjects.canPop(RouterObjects.rootDelegate!);
+    return RouterObjects.getDelegateToPop(RouterObjects.rootDelegate!) != null;
   }
 
   /// Deeply navigate to the given routeName. Deep navigation means that the
@@ -216,6 +216,8 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   void forceBack<T extends Object>([T? result]) {
     return RM.navigate.forceBack<T>(result);
   }
+
+  void onNavigate();
 }
 
 class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
@@ -273,6 +275,24 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     return (RouteData data) {
       return _redirectTo!(data);
     };
+  }
+
+  @override
+  void onNavigate() {
+    final toLocation = _redirectTo?.call(routeData);
+    if (toLocation is Redirect && toLocation.to != null) {
+      setRouteStack(
+        (pages) {
+          pages.clear();
+          return pages.to(
+            toLocation.to!,
+            arguments: routeData.arguments,
+            queryParams: routeData.queryParams,
+            isStrictMode: true,
+          );
+        },
+      );
+    }
   }
 
   final bool debugPrintWhenRouted;

@@ -50,20 +50,18 @@ extension PageSettingsX on List<PageSettings> {
 
   /// Add the page with the given `routeName` and remove all pages until the
   /// page with `untilRouteName` name.
-  List<PageSettings> toAndRemoveUntil(String routeName,
-      [String? untilRouteName]) {
-    if (untilRouteName == null) {
-      clear();
-    } else {
-      while (true) {
-        if (last.name == untilRouteName) {
-          break;
-        }
-        if (isNotEmpty) {
-          removeLast();
-        } else {
-          break;
-        }
+  List<PageSettings> toAndRemoveUntil(
+    String routeName,
+    String untilRouteName,
+  ) {
+    while (true) {
+      if (last.name == untilRouteName) {
+        break;
+      }
+      if (isNotEmpty) {
+        removeLast();
+      } else {
+        break;
       }
     }
 

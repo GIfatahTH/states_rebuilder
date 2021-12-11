@@ -115,7 +115,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       _pageSettingsList[i] = settings;
       final Page<dynamic> p =
           RouterObjects.injectedNavigator?.pageBuilder == null
-              ? _MaterialPage1(
+              ? MaterialPageImp(
                   child: settings.child!,
                   key: settings.key,
                   name: settings.name ?? _resolvePathRouteUtil.absolutePath,
@@ -152,7 +152,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       // }
     }
     _navigate._fullscreenDialog = false;
-    _navigate._maintainState = false;
+    _navigate._maintainState = true;
     assert(_pages.length == _pageSettingsList.length);
     // assert(_pages.isNotEmpty, '$delegateName has empty pages');
     // Set globalBaseUrl
@@ -208,7 +208,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     // TODO test _pages.length <= 2
     if (_pages.length <= 2 &&
         delegateImplyLeadingToParent &&
-        RouterObjects.canPop(this)) {
+        RouterObjects.getDelegateToPop(this) != null) {
       return [const MaterialPage(child: SizedBox.shrink()), ..._pages];
     }
 
@@ -243,6 +243,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _updateRouteStack();
     for (var name in [..._completers.keys]) {
       if (!_pageSettingsList.any((e) => e.name == name)) {
+        final completer = _completers[name];
+        if (!completer!.isCompleted) {
+          completer.complete(null);
+        }
         _completers.remove(name);
       }
     }
@@ -375,31 +379,6 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
             ),
           ],
         );
-
-        // Navigator(
-        //   onPopPage: (_, __) {
-        //     print('ldsj');
-        //     return false;
-        //   },
-        //   pages: [
-        //     MaterialPage(
-        //       child: _builder!(
-        //         Navigator(
-        //           key: navigatorKey,
-        //           onPopPage: _onPopPage,
-        //           pages: _routeStack,
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // );
-        // _builder!(
-        //   Navigator(
-        //     key: navigatorKey,
-        //     onPopPage: _onPopPage,
-        //     pages: _routeStack,
-        //   ),
-        // );
       }
 
       return _builder!(
@@ -515,38 +494,38 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     return completer.future;
   }
 
-  Future<T?> toReplacementNamed<T extends Object?, TO extends Object?>(
-    PageSettings settings, {
-    TO? result,
-  }) async {
-    _completers.remove(_pageSettingsList.last.name!)?.complete(result);
-    _pageSettingsList.removeLast();
-    return to(settings);
-  }
+  // Future<T?> toReplacementNamed<T extends Object?, TO extends Object?>(
+  //   PageSettings settings, {
+  //   TO? result,
+  // }) async {
+  //   _completers.remove(_pageSettingsList.last.name!)?.complete(result);
+  //   _pageSettingsList.removeLast();
+  //   return to(settings);
+  // }
 
-  Future<T?> toNamedAndRemoveUntil<T extends Object?>(
-    PageSettings settings,
-    String? untilRouteName,
-  ) async {
-    if (untilRouteName == null) {
-      _pageSettingsList.clear();
-    } else {
-      if (!_canPopUntil(untilRouteName)) {
-        return Future.value(null);
-      }
-      while (true) {
-        if (_pageSettingsList.last.name == untilRouteName) {
-          break;
-        }
-        if (_canPop) {
-          _pageSettingsList.removeLast();
-        } else {
-          break;
-        }
-      }
-    }
-    return to(settings);
-  }
+  // Future<T?> toNamedAndRemoveUntil<T extends Object?>(
+  //   PageSettings settings,
+  //   String? untilRouteName,
+  // ) async {
+  //   if (untilRouteName == null) {
+  //     _pageSettingsList.clear();
+  //   } else {
+  //     if (!_canPopUntil(untilRouteName)) {
+  //       return Future.value(null);
+  //     }
+  //     while (true) {
+  //       if (_pageSettingsList.last.name == untilRouteName) {
+  //         break;
+  //       }
+  //       if (_canPop) {
+  //         _pageSettingsList.removeLast();
+  //       } else {
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   return to(settings);
+  // }
 
   bool? back<T extends Object?>([T? result]) {
     if (_canPop) {
@@ -589,7 +568,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
   bool backUntil(String untilRouteName) {
     bool isDone = _backUntil(untilRouteName);
-    _updateRouteStack();
+    if (isDone) {
+      _updateRouteStack();
+    }
     return isDone;
   }
 
@@ -614,8 +595,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 }
 
-class _MaterialPage1<T> extends MaterialPage<T> {
-  const _MaterialPage1({
+class MaterialPageImp<T> extends MaterialPage<T> {
+  // ignore: prefer_const_constructors_in_immutables
+  MaterialPageImp({
     required Widget child,
     required this.customBuildTransitions,
     required this.transitionDuration,
@@ -644,14 +626,14 @@ class _MaterialPage1<T> extends MaterialPage<T> {
   )? customBuildTransitions;
   final Duration? transitionDuration;
   final bool useTransition;
-
+  late final bool shouldUseCupertinoPage;
   @override
   Route<T> createRoute(BuildContext context) {
-    final _shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||
+    shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||
         Localizations.of<MaterialLocalizations>(
                 context, MaterialLocalizations) ==
             null;
-    if (_shouldUseCupertinoPage) {
+    if (shouldUseCupertinoPage) {
       return _PageBasedCupertinoPageRoute<T>(
         page: this,
         customBuildTransitions: customBuildTransitions,

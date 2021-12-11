@@ -313,18 +313,18 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
 
-      bool isDone = RouterObjects._back<TO>(result);
-      if (!isDone) {
-        final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-        return delegate!.toReplacementNamed<T, TO>(
-          PageSettings(
-            name: absoluteName,
-            arguments: arguments,
-            queryParams: queryParams ?? {},
-          ),
-          result: result,
-        );
-      }
+      RouterObjects._back<TO>(result);
+      // if (!isDone) {
+      //   final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+      //   return delegate!.toReplacementNamed<T, TO>(
+      //     PageSettings(
+      //       name: absoluteName,
+      //       arguments: arguments,
+      //       queryParams: queryParams ?? {},
+      //     ),
+      //     result: result,
+      //   );
+      // }
       return toNamed(
         absoluteName,
         arguments: arguments,
@@ -333,14 +333,6 @@ MaterialApp(
         maintainState: maintainState,
       );
     }
-
-    // final delegate = RouterObjects._getNavigator2Delegate(routeName);
-    // if (delegate != null) {
-    //   return delegate.toReplacementNamed<T, TO>(
-    //     PageSettings(name: routeName, arguments: arguments),
-    //     result: result,
-    //   );
-    // }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
     }
@@ -401,7 +393,6 @@ MaterialApp(
     _fullscreenDialog = fullscreenDialog;
     _maintainState = maintainState;
 
-    //TODO check logic
     if (RouterObjects.rootDelegate != null) {
       final absoluteName =
           _resolvePathRouteUtil.setAbsoluteUrlPath(newRouteName);
@@ -414,17 +405,18 @@ MaterialApp(
         isDone = true;
       }
       if (!isDone) {
-        final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-        if (delegate != null) {
-          return delegate.toNamedAndRemoveUntil<T>(
-            PageSettings(
-              name: absoluteName,
-              arguments: arguments,
-              queryParams: queryParams ?? {},
-            ),
-            untilRouteName,
-          );
-        }
+        return Future.value(null);
+        // final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+        // if (delegate != null) {
+        //   return delegate.toNamedAndRemoveUntil<T>(
+        //     PageSettings(
+        //       name: absoluteName,
+        //       arguments: arguments,
+        //       queryParams: queryParams ?? {},
+        //     ),
+        //     untilRouteName,
+        //   );
+        // }
       }
       return toNamed(
         absoluteName,

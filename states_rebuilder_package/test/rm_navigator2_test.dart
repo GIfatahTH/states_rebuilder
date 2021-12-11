@@ -28,6 +28,7 @@ class _TopWidget extends TopStatelessWidget {
     bool? Function(RouteData)? onBack,
     Duration? transitionDuration,
     Widget Function(RouteData)? unknownRoute,
+    bool shouldUseCupertinoPage = false,
   }) : super(key: key) {
     _navigator = RM.injectNavigator(
       routes: routers,
@@ -40,6 +41,7 @@ class _TopWidget extends TopStatelessWidget {
       onNavigateBack: onBack,
       initialLocation: initialRoute,
       builder: builder,
+      shouldUseCupertinoPage: shouldUseCupertinoPage,
     );
   }
   final Map<String, Widget Function(RouteData p1)> routers;
@@ -2471,6 +2473,72 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Text shouldUseCupertinoPage',
+    (tester) async {
+      bool shouldUseCupertinoPage = false;
+      final routes = {
+        '/': (_) => Builder(builder: (context) {
+              shouldUseCupertinoPage =
+                  (ModalRoute.of(context)?.settings as MaterialPageImp)
+                      .shouldUseCupertinoPage;
+
+              return Text('/');
+            }),
+        '/page1': (_) => RouteWidget(
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+      };
+      final widget = _TopWidget(
+        routers: routes,
+        shouldUseCupertinoPage: true,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(shouldUseCupertinoPage, true);
+      _navigator.to('/page1');
+      await tester.pumpAndSettle();
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'Text shouldUseCupertinoPage with CupertinoApp.router',
+    (tester) async {
+      bool shouldUseCupertinoPage = false;
+      final routes = {
+        '/': (_) => Builder(builder: (context) {
+              shouldUseCupertinoPage =
+                  (ModalRoute.of(context)?.settings as MaterialPageImp)
+                      .shouldUseCupertinoPage;
+
+              return Text('/');
+            }),
+        '/page1': (_) => RouteWidget(
+              routes: {
+                '/': (_) => Text('/page1'),
+              },
+            ),
+      };
+      final navigator = RM.injectNavigator(routes: routes);
+      final widget = CupertinoApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(shouldUseCupertinoPage, true);
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
   group(
     'redirect',
     () {
@@ -3751,6 +3819,7 @@ void main() {
                 '/page22': (data) => Text('/page22'),
               },
             ),
+        '/page3': (data) => Text('/page3'),
       };
       final widget = _TopWidget(
         routers: routes,
@@ -3798,6 +3867,31 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('/page2'), findsOneWidget);
+      _navigator.setRouteStack(
+        (pages) {
+          return pages.toReplacement('page3');
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page12'), findsOneWidget);
+      //
+      String? isCompleted = '';
+      _navigator.to('page2').then((value) => isCompleted = value as String?);
+      await tester.pumpAndSettle();
+      _navigator.setRouteStack(
+        (pages) {
+          return pages.toAndRemoveUntil('page3', '/');
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      _navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(isCompleted, isNull);
     },
   );
 
