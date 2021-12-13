@@ -842,6 +842,7 @@ To navigate imperatively:
 
   ```dart
   myNavigator.to('/page1');
+  myNavigator.toDeeply('/page1');
   myNavigator.toReplacement('/page1', argument: 'myArgument');
   myNavigator.toAndRemoveUntil('/page1', queryParam: {'id':'1'});
   myNavigator.back();
@@ -862,7 +863,7 @@ To navigate declaratively:
 To navigate to pageless routes, show dialogs and snackBars without `BuildContext`:
 
   ```dart
-  RM.navigate.to(HomePage());
+  myNavigator.toPageless(HomePage());
   RM.navigate.toDialog(AlertDialog( ... ));
   RM.scaffoldShow.snackbar(SnackBar( ... ));
   ```
