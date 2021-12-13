@@ -85,6 +85,31 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     );
   }
 
+  /// Push a pageless route
+  ///
+  /// Similar to `RM.navigate.to`
+  Future<T?> toPageless<T extends Object?>(
+    Widget page, {
+    String? name,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
+    // Widget Function(//TODO
+    //   BuildContext context,
+    //   Animation<double> animation,
+    //   Animation<double> secondAnimation,
+    //   Widget child,
+    // )?
+    //     transitionsBuilder,
+  }) {
+    return RM.navigate.to<T>(
+      page,
+      name: name,
+      fullscreenDialog: fullscreenDialog,
+      maintainState: maintainState,
+      // transitionsBuilder: transitionsBuilder,
+    );
+  }
+
   /// Whether a page can be popped off from the root route stack or sub route
   /// stacks.
   bool get canPop {
