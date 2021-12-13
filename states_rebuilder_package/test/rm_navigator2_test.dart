@@ -4106,8 +4106,7 @@ void main() {
   );
 
   testWidgets(
-    'test InjectedNavigator.onNavigate'
-    'THEN',
+    'test InjectedNavigator.onNavigate',
     (tester) async {
       final routes = {
         '/': (data) => Text('/'),
@@ -4178,6 +4177,65 @@ void main() {
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/page12'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test unKnownRoute',
+    (tester) async {
+      final datum = ['1', '2'];
+      final Map<String, Widget Function(RouteData)> routes = {
+        '/': (data) => Text('/'),
+        '/page1/:id': (data) {
+          try {
+            final index = int.parse(data.pathParams['id']!);
+            final d = datum[index];
+            return Text('/page1-$d');
+          } catch (e) {
+            return data.unKnownRoute;
+          }
+        },
+        '/page2/:id': (data) => Builder(
+              builder: (context) {
+                {
+                  try {
+                    final index = int.parse(data.pathParams['id']!);
+                    final d = datum[index];
+                    return Text('/page2-$d');
+                  } catch (e) {
+                    return context.routeData.unKnownRoute;
+                  }
+                }
+              },
+            ),
+      };
+
+      final widget = _TopWidget(
+        routers: routes,
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      //
+      _navigator.to('/page1/1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1-2'), findsOneWidget);
+      //
+      _navigator.to('/page1/2');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page1/2'), findsOneWidget);
+      //
+      _navigator.to('/page1/NaN');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page1/NaN'), findsOneWidget);
+      //
+      _navigator.to('/page2/2');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page2/2'), findsOneWidget);
+      //
+      _navigator.to('/page2/NaN');
+      await tester.pumpAndSettle();
+      expect(find.text('404 /page2/NaN'), findsOneWidget);
     },
   );
 }
