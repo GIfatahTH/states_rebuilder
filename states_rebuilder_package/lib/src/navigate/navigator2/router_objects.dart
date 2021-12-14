@@ -217,7 +217,9 @@ abstract class RouterObjects {
 
   static void _dispose() {
     injectedNavigator?.dispose();
-    injectedNavigator = null;
+    // injectedNavigator = null;
+    rootDelegate?._pageSettingsList.clear();
+    rootDelegate?._pages.clear();
     ResolvePathRouteUtil.globalBaseUrl = '/';
   }
 }

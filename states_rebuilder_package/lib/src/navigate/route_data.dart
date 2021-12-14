@@ -106,6 +106,8 @@ class RouteData {
   final bool _pathEndsWithSlash;
   final List<RouteData> _redirectedFrom;
 
+  String get signature => '$uri$arguments${redirectedFrom?.uri}';
+
   /// Object that holds information about the active route.
   RouteData({
     required this.path,
