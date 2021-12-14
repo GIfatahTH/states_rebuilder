@@ -4238,6 +4238,46 @@ void main() {
       expect(find.text('404 /page2/NaN'), findsOneWidget);
     },
   );
+  group(
+    'InjectedNavigator is disposed between tests',
+    () {
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => Text('/page1'),
+        },
+      );
+
+      testWidgets(
+        'test1',
+        (tester) async {
+          final widget = MaterialApp.router(
+            routeInformationParser: navigator.routeInformationParser,
+            routerDelegate: navigator.routerDelegate,
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/'), findsOneWidget);
+          navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.text('/page1'), findsOneWidget);
+        },
+      );
+      testWidgets(
+        'the same test1',
+        (tester) async {
+          final widget = MaterialApp.router(
+            routeInformationParser: navigator.routeInformationParser,
+            routerDelegate: navigator.routerDelegate,
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('/'), findsOneWidget);
+          navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.text('/page1'), findsOneWidget);
+        },
+      );
+    },
+  );
 }
 
 class _RouteInformationParserTest extends RouteInformationParserImp {

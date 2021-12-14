@@ -41,7 +41,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   final Map<String, Completer> _completers = {};
   bool delegateImplyLeadingToParent;
 
-  void _updateRouteStack([bool notify = true]) {
+  void updateRouteStack([bool notify = true]) {
     final pages = [..._pages];
     _pages.clear();
 
@@ -159,6 +159,8 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     if (_pages.isNotEmpty) {
       ResolvePathRouteUtil.globalBaseUrl =
           _pageSettingsList.last.rData!.baseLocation;
+      RouterObjects.injectedNavigator!.routeData =
+          _pageSettingsList.last.rData!;
     }
 
     if (this != RouterObjects.rootDelegate) {
@@ -199,12 +201,13 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
   List<Page<dynamic>> get _routeStack {
     if (_pages.isEmpty) {
-      _updateRouteStack(false);
+      updateRouteStack(false);
     }
     // assert(_pages.isNotEmpty);
     if (_pages.isEmpty) {
       return [const MaterialPage(child: SizedBox.shrink())];
     }
+
     // TODO test _pages.length <= 2
     if (_pages.length <= 2 &&
         delegateImplyLeadingToParent &&
@@ -240,7 +243,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _pageSettingsList
       ..clear()
       ..addAll(s);
-    _updateRouteStack();
+    updateRouteStack();
     for (var name in [..._completers.keys]) {
       if (!_pageSettingsList.any((e) => e.name == name)) {
         final completer = _completers[name];
@@ -288,7 +291,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
   @override
   Future<void> setNewRoutePath(PageSettings configuration) {
-    _updateRouteStack();
+    updateRouteStack();
     return SynchronousFuture(null);
   }
 
@@ -333,7 +336,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           location: settings.name!,
           subLocation: settings is RouteSettingsWithChildAndData
               ? settings.routeData._subLocation
-              : '/',
+              : settings.name!,
           arguments: settings.arguments,
           path: settings.routePattern ?? '/',
           pathParams: settings is RouteSettingsWithChildAndData
@@ -364,20 +367,23 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _isDirty = true;
     if (_builder != null) {
       if (this == RouterObjects.rootDelegate) {
-        return Overlay(
-          initialEntries: [
-            OverlayEntry(
-              builder: (_) {
-                return _builder!(
-                  Navigator(
-                    key: navigatorKey,
-                    onPopPage: _onPopPage,
-                    pages: _routeStack,
-                  ),
-                );
-              },
-            ),
-          ],
+        return _RootRouterWidget(
+          child: Overlay(
+            initialEntries: [
+              OverlayEntry(
+                builder: (_) {
+                  return _builder!(
+                    Navigator(
+                      key: navigatorKey,
+                      onPopPage: _onPopPage,
+                      pages: _routeStack,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          dispose: RouterObjects._dispose,
         );
       }
 
@@ -389,10 +395,15 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         ),
       );
     }
-    return Navigator(
-      key: navigatorKey,
-      onPopPage: _onPopPage,
-      pages: _routeStack,
+    assert(this == RouterObjects.rootDelegate);
+
+    return _RootRouterWidget(
+      child: Navigator(
+        key: navigatorKey,
+        onPopPage: _onPopPage,
+        pages: _routeStack,
+      ),
+      dispose: RouterObjects._dispose,
     );
   }
 
@@ -490,7 +501,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     _pageSettingsList.add(settings);
     Completer<T?>? completer = Completer<T?>();
     _completers[_pageSettingsList.last.name!] = completer;
-    _updateRouteStack();
+    updateRouteStack();
     return completer.future;
   }
 
@@ -540,7 +551,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       forceBack = false;
       _completers.remove(_pageSettingsList.last.name!)?.complete(result);
       _pageSettingsList.removeLast();
-      _updateRouteStack();
+      updateRouteStack();
       RouterObjects.injectedNavigator!.routeData =
           _lastLeafConfiguration!.rData!;
       return true;
@@ -569,7 +580,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   bool backUntil(String untilRouteName) {
     bool isDone = _backUntil(untilRouteName);
     if (isDone) {
-      _updateRouteStack();
+      updateRouteStack();
     }
     return isDone;
   }
@@ -840,5 +851,31 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
 
     RouterObjects.isTransitionAnimated = c != child;
     return c;
+  }
+}
+
+class _RootRouterWidget extends StatefulWidget {
+  const _RootRouterWidget({
+    Key? key,
+    required this.dispose,
+    required this.child,
+  }) : super(key: key);
+  final VoidCallback dispose;
+  final Widget child;
+
+  @override
+  _RootRouterWidgetState createState() => _RootRouterWidgetState();
+}
+
+class _RootRouterWidgetState extends State<_RootRouterWidget> {
+  @override
+  void dispose() {
+    super.dispose();
+    widget.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
