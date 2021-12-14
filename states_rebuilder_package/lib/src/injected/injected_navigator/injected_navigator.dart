@@ -242,7 +242,16 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     return RM.navigate.forceBack<T>(result);
   }
 
+  /// Invoke `onNavigate` callback and navigate according the logic defined there.
   void onNavigate();
+
+  /// Used in test to simulate a deep link call.
+  void deepLinkTest(String url) {
+    routeInformationParser.parseRouteInformation(
+      RouteInformation(location: url),
+    );
+    (routerDelegate as RouterDelegateImp).updateRouteStack();
+  }
 }
 
 class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
@@ -292,6 +301,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     pathEndsWithSlash: false,
     redirectedFrom: const [],
   );
+
   final Redirect? Function(RouteData data)? _redirectTo;
   Redirect? Function(RouteData data)? get redirectTo {
     if (_redirectTo == null) {
@@ -327,7 +337,9 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
   late final VoidCallback _resetDefaultState;
 
   set routeData(RouteData value) {
-    snapState = SnapState.data(value);
+    if (state.signature != value.signature) {
+      snapState = SnapState.data(value);
+    }
   }
 
   @override
