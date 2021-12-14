@@ -25,7 +25,7 @@ final navigator = RM.injectNavigator(
             ),
             TextButton(
               onPressed: () => RM.navigate.forceBack(),
-              child: const Text('yes'),
+              child: const Text('Yes'),
             ),
           ],
         ),

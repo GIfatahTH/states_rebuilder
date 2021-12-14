@@ -11,7 +11,7 @@ final navigator = RM.injectNavigator(
     '/home': (data) => const HomePage(),
     '/redirect-page': (data) => const RedirectPage(),
     //
-    // All routes bellow redirect to the same page ('/redirect-page')
+    // All routes below redirect to the same page ('/redirect-page')
     // From page '/redirect-page' we can know the route that has redirected to it.
     '/page1': (data) => data.redirectTo('/redirect-page'),
     '/page1/:id': (data) => data.redirectTo('/redirect-page'),

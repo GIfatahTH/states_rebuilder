@@ -63,9 +63,12 @@ class AuthBloc {
       if (user != null) {
         final toLocation = navigator.routeData.redirectedFrom?.location;
         if (toLocation != null) {
+          // If we are redirected from a deep link to the sign in page, than
+          // continue to the deep link location after signing.
           navigator.toAndRemoveUntil(toLocation);
         }
       }
+      // execute onNavigate callback and navigate according the logic defined there
       navigator.onNavigate();
     }),
   );

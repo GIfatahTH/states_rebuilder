@@ -10,7 +10,9 @@ final navigator = RM.injectNavigator(
     return Builder(
       builder: (context) {
         return Scaffold(
-          body: routerOutlet,
+          body: routerOutlet, // The routes are displayed here
+          //
+          // This FloatingActionButton is always displayed above routes
           floatingActionButton: FloatingActionButton(
             onPressed: () => navigator.toAndRemoveUntil('/'),
             child: Icon(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// The same as example ex04_to_deeply1 ad ex05_to_deeply2 but written using
+// RouteWidget and with static helper methods.
+
 void main() {
   runApp(const MyApp());
 }

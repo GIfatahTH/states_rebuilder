@@ -62,12 +62,12 @@ class BooksListScreen extends StatelessWidget {
                   (pages) {
                     return [
                       PageSettings(
-                        name: '/',
+                        name: '/books',
                         child: BooksListScreen(books: books),
                       ),
                       if (bookId < books.length)
                         PageSettings(
-                          name: '/book/$bookId',
+                          name: '/books/$bookId',
                           child: BookDetailsScreen(book: books[bookId]),
                         )
                       else
