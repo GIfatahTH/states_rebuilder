@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/src/common/logger.dart';
+import 'package:states_rebuilder/src/injected/injected_navigator/injected_navigator.dart';
 import 'package:states_rebuilder/src/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -29,7 +30,10 @@ class _TopWidget extends TopStatelessWidget {
     Duration? transitionDuration,
     Widget Function(RouteData)? unknownRoute,
     bool shouldUseCupertinoPage = false,
+    bool ignoreSingleRouteMapAssertion = true,
   }) : super(key: key) {
+    InjectedNavigatorImp.ignoreSingleRouteMapAssertion =
+        ignoreSingleRouteMapAssertion;
     _navigator = RM.injectNavigator(
       routes: routers,
       unknownRoute: unknownRoute ?? (data) => Text('404 ${data.location}'),
@@ -2555,11 +2559,11 @@ void main() {
             '/page6': (_) => Text('/page6'),
             '/page7': (_) => RouteWidget(
                   routes: {
-                    '/': (_) => _.redirectTo('page7/0'),
+                    '/': (_) => _.redirectTo('/page7/0'),
                     '/:id': (_) => Text('/page7/${_.pathParams['id']}'),
                   },
                 ),
-            '/page8': (_) => _.redirectTo('page8/0'),
+            '/page8': (_) => _.redirectTo('/page8/0'),
             '/page8/:id': (_) => Text('/page8/${_.pathParams['id']}'),
           };
           final widget = _TopWidget(
@@ -2844,12 +2848,15 @@ void main() {
                   '/page1': (_) {
                     return _.redirectTo('/page1/popular');
                   },
-                  '/page1/:kind(all|popular)': (_) =>
-                      Text(_.pathParams['kind']!),
+                  '/page1/:kind(all|popular)': (_) {
+                    return Text(_.pathParams['kind']!);
+                  },
                 },
               );
             },
-            '/login': (data) => Text('login'),
+            '/login': (data) {
+              return Text('login');
+            },
           };
           final widget = _TopWidget(
             routers: routes,
@@ -2890,8 +2897,7 @@ void main() {
         },
       );
       testWidgets(
-        'WHEN redirect is used inside a "/" routeWidget'
-        'THEN',
+        'WHEN redirect is used inside a "/" routeWidget',
         (tester) async {
           bool isSignedIn = false;
           final Map<String, Widget Function(RouteData)> routes = {
@@ -2910,12 +2916,12 @@ void main() {
                       routes: {
                         '/': (_) {
                           return _.redirectTo('/books/popular');
-                        }
+                        },
+                        '/:kind(all|popular)': (_) =>
+                            Text(_.pathParams['kind']!),
                       },
                     );
                   },
-                  '/books/:kind(all|popular)': (_) =>
-                      Text(_.pathParams['kind']!),
                 },
               );
             }
@@ -2923,6 +2929,7 @@ void main() {
           final widget = _TopWidget(
             routers: routes,
             debugPrintWhenRouted: true,
+            ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
               final signingIn = data.location == '/signIn';
 
@@ -2943,8 +2950,7 @@ void main() {
       );
 
       testWidgets(
-        'WHEN redirect is used inside a "/" routeWidget with builder'
-        'THEN',
+        'WHEN redirect is used inside a "/" routeWidget with builder',
         (tester) async {
           bool isSignedIn = false;
           final Map<String, Widget Function(RouteData)> routes = {
@@ -2962,13 +2968,13 @@ void main() {
                     return RouteWidget(
                       routes: {
                         '/': (_) {
-                          return _.redirectTo('/books/popular');
-                        }
+                          return _.redirectTo('/popular');
+                        },
+                        '/:kind(all|popular)': (_) =>
+                            Text(_.pathParams['kind']!),
                       },
                     );
                   },
-                  '/books/:kind(all|popular)': (_) =>
-                      Text(_.pathParams['kind']!),
                 },
               );
             }
@@ -2976,6 +2982,7 @@ void main() {
           final widget = _TopWidget(
             routers: routes,
             debugPrintWhenRouted: true,
+            ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
               final signingIn = data.location == '/signIn';
               if (!isSignedIn && !signingIn) {
@@ -3054,7 +3061,7 @@ void main() {
                 },
                 routes: {
                   '/': (_) {
-                    return _.redirectTo('/page1/books');
+                    return _.redirectTo('/books');
                   },
                   '/books': (data) {
                     // return const Text('/books');
@@ -3063,18 +3070,18 @@ void main() {
                         return SizedBox(child: _);
                       },
                       routes: {
-                        '/': (data) => _.redirectTo('/page1/books/1'),
-                      },
-                    );
-                  },
-                  '/books/:id': (data) {
-                    // return const Text('/books');
-                    return RouteWidget(
-                      builder: (_) {
-                        return Container(child: _);
-                      },
-                      routes: {
-                        '/': (_) => Text('/books/${_.pathParams['id']}'),
+                        '/': (data) => data.redirectTo('/1'),
+                        '/:id': (data) {
+                          // return const Text('/books');
+                          return RouteWidget(
+                            builder: (_) {
+                              // ignore: avoid_unnecessary_containers
+                              return Container(
+                                child: Text('/books/${data.pathParams['id']}'),
+                              );
+                            },
+                          );
+                        },
                       },
                     );
                   },
@@ -3085,6 +3092,7 @@ void main() {
           final widget = _TopWidget(
             routers: routes,
             debugPrintWhenRouted: true,
+            ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
               data.log();
               print('');
@@ -3095,7 +3103,7 @@ void main() {
           _navigator.to('/page1');
           await tester.pumpAndSettle();
           expect(find.byType(Center), findsOneWidget);
-          expect(find.byType(SizedBox), findsNothing);
+          expect(find.byType(SizedBox), findsOneWidget);
           expect(find.byType(Container), findsOneWidget);
           expect(find.text('/books/1'), findsOneWidget);
         },
@@ -3120,24 +3128,24 @@ void main() {
                     // return _.redirectTo('/books/1');
                     return RouteWidget(
                       builder: (_) {
-                        return SizedBox(child: _);
-                      },
-                      routes: {
-                        '/': (data) => _.redirectTo('/books/1'),
-                      },
-                    );
-                  },
-                  '/books/:id': (data) {
-                    // return const Text('/books');
-                    return RouteWidget(
-                      builder: (_) {
                         return Container(child: _);
                       },
                       routes: {
-                        '/': (_) => Text('/books/${_.pathParams['id']}'),
+                        '/': (data) => _.redirectTo('/books/1'),
+                        '/:id': (_) => Text('/books/${_.pathParams['id']}'),
                       },
                     );
                   },
+                  // '/books/:id': (data) {
+                  //   // return const Text('/books');
+                  //   return RouteWidget(
+                  //     builder: (_) {
+                  //       return Container(child: _);
+                  //     },
+                  //     routes: {
+                  //     },
+                  //   );
+                  // },
                 },
               );
             },
@@ -3170,6 +3178,57 @@ void main() {
           expect(find.byType(Center), findsOneWidget);
           expect(find.byType(Container), findsOneWidget);
           expect(find.text('/books/1'), findsOneWidget);
+        },
+      );
+      testWidgets(
+        'Redirect to unknown route',
+        (tester) async {
+          final Map<String, Widget Function(RouteData)> routes = {
+            '/': (data) => Text('Home'),
+            '/page1': (data) => RouteWidget(
+                  builder: (_) {
+                    return Center(child: _);
+                  },
+                  routes: {
+                    '/': (data) => data.redirectTo('/page3'),
+                    '/page11': (data) => data.redirectTo('/page1/page11'),
+                    '/page12': (data) => data.redirectTo('/page1/page13'),
+                  },
+                ),
+          };
+
+          final widget = _TopWidget(
+            routers: routes,
+            routeInterceptor: (data) {
+              data.log();
+            },
+            unknownRoute: (data) {
+              return Text('404 ${data.location}');
+            },
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('Home'), findsOneWidget);
+          //
+          _navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.text('404 /page3'), findsOneWidget);
+          expect(find.byType(Center), findsNothing);
+          //
+          _navigator.to('/page1/page11');
+          await tester.pumpAndSettle();
+          expect(
+            find.text('404 Infinite redirect loop: (/page1/page11)'),
+            findsOneWidget,
+          );
+          expect(find.byType(Center), findsOneWidget);
+
+          _navigator.to('/page1/page12');
+          await tester.pumpAndSettle();
+          expect(
+            find.text('404 /page1/page13'),
+            findsOneWidget,
+          );
+          expect(find.byType(Center), findsOneWidget);
         },
       );
 
@@ -4238,46 +4297,46 @@ void main() {
       expect(find.text('404 /page2/NaN'), findsOneWidget);
     },
   );
-  group(
-    'InjectedNavigator is disposed between tests',
-    () {
-      final navigator = RM.injectNavigator(
-        routes: {
-          '/': (data) => Text('/'),
-          '/page1': (data) => Text('/page1'),
-        },
-      );
+  // group(
+  //   'InjectedNavigator is disposed between tests',
+  //   () {
+  //     final navigator = RM.injectNavigator(
+  //       routes: {
+  //         '/': (data) => Text('/'),
+  //         '/page1': (data) => Text('/page1'),
+  //       },
+  //     );
 
-      testWidgets(
-        'test1',
-        (tester) async {
-          final widget = MaterialApp.router(
-            routeInformationParser: navigator.routeInformationParser,
-            routerDelegate: navigator.routerDelegate,
-          );
-          await tester.pumpWidget(widget);
-          expect(find.text('/'), findsOneWidget);
-          navigator.to('/page1');
-          await tester.pumpAndSettle();
-          expect(find.text('/page1'), findsOneWidget);
-        },
-      );
-      testWidgets(
-        'the same test1',
-        (tester) async {
-          final widget = MaterialApp.router(
-            routeInformationParser: navigator.routeInformationParser,
-            routerDelegate: navigator.routerDelegate,
-          );
-          await tester.pumpWidget(widget);
-          expect(find.text('/'), findsOneWidget);
-          navigator.to('/page1');
-          await tester.pumpAndSettle();
-          expect(find.text('/page1'), findsOneWidget);
-        },
-      );
-    },
-  );
+  //     testWidgets(
+  //       'test1',
+  //       (tester) async {
+  //         final widget = MaterialApp.router(
+  //           routeInformationParser: navigator.routeInformationParser,
+  //           routerDelegate: navigator.routerDelegate,
+  //         );
+  //         await tester.pumpWidget(widget);
+  //         expect(find.text('/'), findsOneWidget);
+  //         navigator.to('/page1');
+  //         await tester.pumpAndSettle();
+  //         expect(find.text('/page1'), findsOneWidget);
+  //       },
+  //     );
+  //     testWidgets(
+  //       'the same test1',
+  //       (tester) async {
+  //         final widget = MaterialApp.router(
+  //           routeInformationParser: navigator.routeInformationParser,
+  //           routerDelegate: navigator.routerDelegate,
+  //         );
+  //         await tester.pumpWidget(widget);
+  //         expect(find.text('/'), findsOneWidget);
+  //         navigator.to('/page1');
+  //         await tester.pumpAndSettle();
+  //         expect(find.text('/page1'), findsOneWidget);
+  //       },
+  //     );
+  //   },
+  // );
 }
 
 class _RouteInformationParserTest extends RouteInformationParserImp {
@@ -4331,13 +4390,13 @@ class _MyPage extends Page {
   }
 }
 
-class name extends StatelessWidget {
-  const name({Key? key}) : super(key: key);
+// class name extends StatelessWidget {
+//   const name({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return OnReactive(
-      () => Text('${context.routeData.location}'),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return OnReactive(
+//       () => Text('${context.routeData.location}'),
+//     );
+//   }
+// }

@@ -102,9 +102,9 @@ class PageSettings extends RouteSettings {
   })  : _delegateName = delegateName,
         super(name: name, arguments: arguments);
 
-  String get signature => '$name$arguments$queryParams';
+  String get signature => '${rData?.signature}';
   String get _signatureWithChild =>
-      '$name$arguments$queryParams${child is RouteWidget ? (child as RouteWidget)._getLeafConfig()?.child?.key : child?.key}';
+      '$signature${child is RouteWidget ? (child as RouteWidget)._getLeafConfig()?.child?.key : child?.key}';
 
   @override
   PageSettings copyWith({

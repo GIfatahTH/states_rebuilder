@@ -1,7 +1,7 @@
 part of '../../rm.dart';
 
 abstract class RouterObjects {
-  static const String root = '/RoOoT';
+  static const String rootName = '/RoOoTName';
   static String? _initialRouteValue;
   static RouteInformationParserImp? routeInformationParser;
   static Map<Uri, Widget Function(RouteData routeData)>? _routers;
@@ -74,7 +74,7 @@ abstract class RouterObjects {
       resolvePathRouteUtil: _navigate._resolvePathRouteUtil,
       transitionsBuilder: transitionsBuilder,
       transitionDuration: transitionDuration ?? _Navigate._transitionDuration,
-      delegateName: 'rootDelegate',
+      delegateName: rootName,
       delegateImplyLeadingToParent: false,
     );
     routeInformationParser = RouteInformationParserImp(rootDelegate!);
@@ -135,7 +135,7 @@ abstract class RouterObjects {
         if (canHandle) {
           delegate = d;
         }
-      } else if (routeName.startsWith(name)) {
+      } else if (routeName.startsWith(name + '/')) {
         delegate = d;
       }
     }

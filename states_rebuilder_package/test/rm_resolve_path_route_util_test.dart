@@ -5,6 +5,7 @@ import 'package:states_rebuilder/src/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
+  InjectedNavigatorImp.ignoreSingleRouteMapAssertion = true;
   late ResolvePathRouteUtil routePathResolver;
   setUp(() {
     routePathResolver = ResolvePathRouteUtil();

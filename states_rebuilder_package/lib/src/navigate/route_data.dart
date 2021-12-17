@@ -100,6 +100,7 @@ class RouteData {
 
   /// redirect to the given route
   Redirect redirectTo(String? route) {
+    assert(route == null || route.startsWith('/'));
     return Redirect(route);
   }
 

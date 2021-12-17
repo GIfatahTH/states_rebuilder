@@ -713,7 +713,7 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
             milliseconds: 300,
           );
     }
-    return const Duration(microseconds: 1);
+    return Duration.zero;
   }
 
   @override
@@ -812,7 +812,7 @@ class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
             milliseconds: 300,
           );
     }
-    return const Duration(microseconds: 1);
+    return Duration.zero;
   }
 
   @override

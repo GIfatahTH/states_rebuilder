@@ -175,6 +175,9 @@ class RouteWidget extends StatelessWidget {
     this.delegateImplyLeadingToParent,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
+        assert(InjectedNavigatorImp.ignoreSingleRouteMapAssertion ||
+            routes.isEmpty ||
+            routes.length > 1),
         _parentToSubRouteMessage = RouteWidget.parentToSubRouteMessage,
         _routes = RouterObjects.transformRoutes(routes),
         _routeKeys = routes.keys.toList(),
@@ -239,11 +242,11 @@ class RouteWidget extends StatelessWidget {
   final isInitialized = List.from({null}, growable: false);
   RouteData get _routeData => _routeDataList.first;
   late final String _path = _parentToSubRouteMessage.toPath;
-  late final String urlName = _routeData._subLocation;
-  late final String routeName = _routeData.path;
+  late final String routeLocation = _routeData._subLocation;
+  late final String routePath = _routeData.path;
   late final routePathResolver = ResolvePathRouteUtil(
-    urlName: urlName,
-    routeName: routeName,
+    urlName: routeLocation,
+    routeName: routePath,
   );
   // Navigator 2
   late final RouterDelegateImp _routerDelegate;
@@ -311,9 +314,12 @@ class RouteWidget extends StatelessWidget {
       }
       final c = pages!.values.last.child;
       _routeDataList[0] = pages!.values.last.routeData;
+      if (!pages!.keys.last.startsWith(routeLocation)) {
+        return pages;
+      }
       if (c is! RouteWidget ||
-          c._path == _path ||
-          routeName == '/' && c.routeName != routeName) {
+          c._path.startsWith(_path) ||
+          routeLocation == '/' && c.routeLocation != routeLocation) {
         route = c!;
         return {};
       } else {
@@ -379,9 +385,9 @@ class RouteWidget extends StatelessWidget {
         str += '\t($l)=>${c is SubRoute ? c.child : c}\n';
       }
     } catch (e) {
-      return 'RouteWidget[$routeName](${_routeData._subLocation})';
+      return 'RouteWidget[$routePath](${_routeData._subLocation})';
     }
-    return '\nRouteWidget[$routeName](\n$str)\n';
+    return '\nRouteWidget[$routePath](\n$str)\n';
   }
 
   // late final routePathResolver = ResolvePathRouteUtil(
@@ -395,7 +401,7 @@ class RouteWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (builder != null) {
       if (_routes.isEmpty) {
-        if (urlName != _path) {
+        if (routeLocation != _path) {
           final route =
               _parentToSubRouteMessage.unknownRoute?.call(_routeData) ??
                   routeNotDefinedAssertion;
@@ -407,7 +413,7 @@ class RouteWidget extends StatelessWidget {
 
       if (isNavigator2) {
         return Router(
-          key: ValueKey(urlName + _path),
+          key: ValueKey(routeLocation + _path),
           routerDelegate: _routerDelegate,
           routeInformationParser: _routeInformationParser,
         );
@@ -421,7 +427,7 @@ class RouteWidget extends StatelessWidget {
         animation: null,
         transitionsBuilder: transitionsBuilder,
         shouldAnimate: true,
-        key: Key(urlName),
+        key: Key(routeLocation),
       );
     }
     throw UnimplementedError();

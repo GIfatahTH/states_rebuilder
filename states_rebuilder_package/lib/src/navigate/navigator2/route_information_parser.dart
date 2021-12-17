@@ -65,7 +65,7 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
       );
       name = '$uri';
     }
-    assert(_routerDelegate.delegateName == 'rootDelegate');
+    assert(_routerDelegate.delegateName == RouterObjects.rootName);
 
     assert(() {
       if ((!_routerDelegate.canLogMessage ||

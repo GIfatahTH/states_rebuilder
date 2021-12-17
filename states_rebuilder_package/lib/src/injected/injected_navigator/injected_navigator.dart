@@ -301,6 +301,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     pathEndsWithSlash: false,
     redirectedFrom: const [],
   );
+  static bool ignoreSingleRouteMapAssertion = false;
 
   final Redirect? Function(RouteData data)? _redirectTo;
   Redirect? Function(RouteData data)? get redirectTo {

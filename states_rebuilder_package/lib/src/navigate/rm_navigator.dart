@@ -172,8 +172,9 @@ MaterialApp(
     if (subRouteName == null) {
       RouterObjects.rootDelegate!.setRouteStack(stack);
     } else {
-      final absoluteName =
-          _resolvePathRouteUtil.setAbsoluteUrlPath(subRouteName);
+      var absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(subRouteName);
+      absoluteName =
+          absoluteName.endsWith('/') ? absoluteName : absoluteName + '/';
       final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
       if (delegate == null) {
         StatesRebuilerLogger.log(
@@ -238,14 +239,33 @@ MaterialApp(
 
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
-      final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+      var delegate = RouterObjects._getNavigator2Delegate(absoluteName);
+
+      final child = delegate!.getPagesFromRouteSettings(
+        settings: PageSettings(
+          name: absoluteName,
+          arguments: arguments,
+          queryParams: queryParams ?? {},
+        ),
+        redirectedFrom: [],
+        skipHomeSlash: true,
+      );
+      final page = child?.values.last;
+      if (page == null) {
+        return Future.value(null);
+      }
+      if (delegate.delegateName != RouterObjects.rootName &&
+          !page.name!.startsWith(delegate.delegateName)) {
+        delegate = RouterObjects._getNavigator2Delegate(page.name!);
+      }
       Future<T?> fn() {
         return delegate!.to<T>(
-          PageSettings(
-            name: absoluteName,
-            arguments: arguments,
-            queryParams: queryParams ?? {},
-          ),
+          child!.values.last,
+          // PageSettings(
+          //   name: absoluteName,
+          //   arguments: arguments,
+          //   queryParams: queryParams ?? {},
+          // ),
         );
       }
 

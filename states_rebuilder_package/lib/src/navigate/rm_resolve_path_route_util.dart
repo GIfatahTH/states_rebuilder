@@ -464,11 +464,21 @@ class _ResolveLocation {
     assert(uri.path.isNotEmpty);
     var r = RouterObjects._routers!;
     var inRouteName = ResolvePathRouteUtil.inRouteName;
-    bool _canHandleLocation = canHandleLocation(
-      routes: routes,
-      routeName: util.routeName,
-      uri: uri,
-    );
+
+    String path = uri.path;
+    late bool _canHandleLocation;
+    if (to.startsWith(baseUrlPath)) {
+      _canHandleLocation = true;
+    } else {
+      _canHandleLocation = canHandleLocation(
+        routes: routes,
+        routeName: util.routeName,
+        uri: uri,
+      );
+      if (_canHandleLocation) {
+        path = baseUrlPath + to;
+      }
+    }
 
     if (_canHandleLocation) {
       r = routes;
@@ -488,7 +498,7 @@ class _ResolveLocation {
 
     return call(
       routes: r,
-      path: uri.path,
+      path: path,
       baseUrlPath: _canHandleLocation ? inRouteName ?? baseUrlPath : '/',
       routeUri: _canHandleLocation ? routeUri : '/',
       skipHomeSlash: true,
