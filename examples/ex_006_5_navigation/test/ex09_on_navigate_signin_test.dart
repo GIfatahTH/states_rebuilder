@@ -45,7 +45,7 @@ void main() {
       expect(navigator.routeData.uri.toString(), '/sign-in');
       expect(
           navigator.routeData.redirectedFrom?.uri.toString(), '/user-info?q=1');
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(find.byType(SignInScreen), findsOneWidget);
       //
       final userNameField = find.byWidgetPredicate(
@@ -56,10 +56,14 @@ void main() {
         (widget) =>
             widget is TextField && widget.decoration?.labelText == 'Password',
       );
-      await tester.enterText(userNameField, 'user2');
       await tester.enterText(passwordField, '123');
+      await tester.pumpAndSettle();
+      await tester.enterText(userNameField, '25');
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(TextButton));
       await tester.pumpAndSettle();
+      // expect(find.byType(SignInScreen), findsOneWidget);
+      // expect(find.byType(HomePage), findsOneWidget);
       expect(find.byType(UserInfo), findsOneWidget);
       expect(find.text('UserName: user2'), findsOneWidget);
     },

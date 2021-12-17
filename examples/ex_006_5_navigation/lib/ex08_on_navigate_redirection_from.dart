@@ -18,6 +18,7 @@ final navigator = RM.injectNavigator(
     '/page2': (data) => RouteWidget(
           routes: {
             '/': (data) => data.redirectTo('/redirect-page'),
+            '/page21': (data) => const PageWidget(title: '/page21'),
           },
         ),
     '/page3': (data) => const PageWidget(title: '/page3'),

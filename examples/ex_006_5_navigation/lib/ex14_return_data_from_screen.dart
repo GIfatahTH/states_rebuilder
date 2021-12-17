@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
-  runApp(
-    MaterialApp.router(
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
       title: 'Returning Data',
       routerDelegate: navigator.routerDelegate,
       routeInformationParser: navigator.routeInformationParser,
-    ),
-  );
+    );
+  }
 }
 
 final navigator = RM.injectNavigator(

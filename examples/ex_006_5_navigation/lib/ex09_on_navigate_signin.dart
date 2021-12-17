@@ -65,7 +65,7 @@ class AuthBloc {
         if (toLocation != null) {
           // If we are redirected from a deep link to the sign in page, than
           // continue to the deep link location after signing.
-          navigator.toAndRemoveUntil(toLocation);
+          navigator.toDeeply(toLocation);
         }
       }
       // execute onNavigate callback and navigate according the logic defined there
@@ -101,10 +101,18 @@ class SignInScreen extends StatelessWidget {
     ),
   );
   static final _username = RM.injectTextEditing(
-    validators: [(value) => value!.isEmpty ? 'Required' : null],
+    validators: [
+      (value) {
+        return value!.isEmpty ? 'Required' : null;
+      }
+    ],
   );
   static final _password = RM.injectTextEditing(
-    validators: [(value) => value!.isEmpty ? 'Required' : null],
+    validators: [
+      (value) {
+        return value!.isEmpty ? 'Required' : null;
+      }
+    ],
   );
 
   @override
@@ -143,7 +151,9 @@ class SignInScreen extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: TextButton(
-                          onPressed: _form.submit,
+                          onPressed: () {
+                            _form.submit();
+                          },
                           child: const Text('Sign in'),
                         ),
                       ),

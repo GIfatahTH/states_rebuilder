@@ -41,7 +41,7 @@ class FirstPage extends StatelessWidget {
           navigator.to(
             'secondPage',
             transitionsBuilder: RM.transitions.none(
-              duration: 1.seconds,
+              duration: const Duration(seconds: 1),
             ),
           );
         },

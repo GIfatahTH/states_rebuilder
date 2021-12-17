@@ -32,7 +32,7 @@ final navigator = RM.injectNavigator(
           return const PageWidget(title: 'Page3');
         },
         transitionsBuilder: RM.transitions.leftToRight(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 400),
         ),
       );
     },
