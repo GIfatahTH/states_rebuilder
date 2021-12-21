@@ -202,6 +202,7 @@ class RouteWidget extends StatelessWidget {
     required this.delegateImplyLeadingToParent,
     required Duration? transitionDuration,
     required _ParentToSubRouteMessage message,
+    required List<String> remainingUrlSegments,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
         _parentToSubRouteMessage = message,
@@ -211,6 +212,7 @@ class RouteWidget extends StatelessWidget {
         _delegateImplyLeadingToParent =
             delegateImplyLeadingToParent ?? !canAnimateTransition,
         _transitionDuration = transitionDuration,
+        _remainingUrlSegments = remainingUrlSegments,
         super(
           key: key ??
               Key(
@@ -222,7 +224,10 @@ class RouteWidget extends StatelessWidget {
   final List<String> _routeKeys;
   final _ParentToSubRouteMessage _parentToSubRouteMessage;
   final bool _hasBuilder;
-  RouteWidget copyWith(Widget Function(Widget child)? builder) {
+  RouteWidget copyWith(
+    Widget Function(Widget child)? builder,
+    // List<String> _remainingUrlSegments,
+  ) {
     return RouteWidget._(
       builder: builder,
       routes: _routes,
@@ -233,6 +238,7 @@ class RouteWidget extends StatelessWidget {
       delegateImplyLeadingToParent: delegateImplyLeadingToParent,
       transitionDuration: _transitionDuration,
       message: _parentToSubRouteMessage,
+      remainingUrlSegments: [],
     );
   }
 
@@ -244,9 +250,11 @@ class RouteWidget extends StatelessWidget {
   late final String _path = _parentToSubRouteMessage.toPath;
   late final String routeLocation = _routeData._subLocation;
   late final String routePath = _routeData.path;
+  late final List<String> _remainingUrlSegments;
   late final routePathResolver = ResolvePathRouteUtil(
     urlName: routeLocation,
     routeName: routePath,
+    remainingUrlSegments: _remainingUrlSegments,
   );
   // Navigator 2
   late final RouterDelegateImp _routerDelegate;

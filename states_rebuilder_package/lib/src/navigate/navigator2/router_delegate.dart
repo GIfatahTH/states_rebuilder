@@ -38,7 +38,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   final _pages = <Page<dynamic>>[];
   List<Page<dynamic>> get pages => [..._pages];
 
-  final Map<String, Completer> _completers = {};
+  static final Map<String, Completer> _completers = {};
   bool delegateImplyLeadingToParent;
 
   void updateRouteStack([bool notify = true]) {
@@ -49,20 +49,33 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       final isLast = i == _pageSettingsList.length - 1 ? null : false;
       PageSettings settings = _pageSettingsList[i];
       if (pages.length > i) {
+        // if ((pages[i] as MaterialPageImp).name != settings.name) {
+        //   pages.removeAt(i);
+        // }
         // In case custom pageBuilder is used, check for has child
-        bool hasChild = true;
-        try {
-          hasChild = (pages[i] as dynamic).child is Object;
-        } catch (e) {
-          hasChild = false;
-        }
-        if (hasChild) {
-          // CASE The PageSettings holds the same child
-          if (settings.child == (pages[i] as dynamic).child) {
-            _pages.add(pages[i]);
-            continue;
+        // bool hasChild = true;
+        // try {
+        //   hasChild = (pages[i] as dynamic).child is Object;
+        // } catch (e) {
+        //   hasChild = false;
+        // }
+        // if (hasChild) {
+        // CASE The PageSettings holds the same child
+        final skip = pages.any((p) {
+          if (settings.child == (p as dynamic).child) {
+            _pages.add(p);
+            return true;
           }
+          return false;
+        });
+        if (skip) {
+          continue;
         }
+        // if (settings.child == (pages[i] as dynamic).child) {
+        //   _pages.add(pages[i]);
+        //   continue;
+        // }
+        // }
       }
       final childMap = _getChild(settings);
       if (childMap == null) {
@@ -78,25 +91,26 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         Widget child,
       )? routeWidgetTransitionsBuilder;
       Duration? routeWidgetTransitionDuration;
-      if (childMap.values.last is RouteWidget) {
-        final r = (childMap.values.last as RouteWidget)._routeData;
+      final child = childMap.values.last;
+      if (child is RouteWidget) {
+        final r = child._routeData;
+        final hash = child.hashCode;
         settings = settings.copyWith(
-          key: ValueKey(childMap.values.last.key.toString() + '$i'),
-          child: childMap.values.last,
+          key: ValueKey(child.key.toString() + '$hash'),
+          child: child,
           name: r._subLocation,
           delegateName: childMap.keys.last.name,
           routeData: r,
           queryParams: r.queryParams,
           arguments: r.arguments,
         );
-        routeWidgetTransitionsBuilder =
-            (childMap.values.last as RouteWidget).transitionsBuilder;
-        routeWidgetTransitionDuration =
-            (childMap.values.last as RouteWidget)._transitionDuration;
+        routeWidgetTransitionsBuilder = child.transitionsBuilder;
+        routeWidgetTransitionDuration = child._transitionDuration;
       } else {
+        final hash = child is SubRoute ? child.child.hashCode : child.hashCode;
         settings = settings.copyWith(
-          key: ValueKey(childMap.keys.last.signature + '$i'),
-          child: childMap.values.last,
+          key: ValueKey(childMap.keys.last.signature + '$hash'),
+          child: child,
           name: childMap.keys.last.name,
           routeData: childMap.keys.last.routeData,
           queryParams: childMap.keys.last.queryParams,
@@ -139,6 +153,21 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                     maintainState: isLast ?? _navigate._maintainState,
                   ),
                 );
+      assert(
+        () {
+          bool hasChild = true;
+          try {
+            hasChild = (p as dynamic).child is Widget;
+          } catch (e) {
+            hasChild = false;
+          }
+          if (!hasChild) {
+            throw 'Custom "pageBuilder" must have a child argument';
+          }
+          return true;
+        }(),
+      );
+
       _pages.add(p);
       // if (settings.child != null) {
       //   continue;
@@ -307,6 +336,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       skipHomeSlash: skipHomeSlash,
       unknownRoute: RouterObjects._unknownRoute,
       redirectedFrom: redirectedFrom,
+      ignoreUnknownRoutes: RouterObjects.rootDelegate!._pageSettingsList.isEmpty
+          ? false
+          : RouterObjects.injectedNavigator!.ignoreUnknownRoutes,
     );
   }
 
@@ -485,10 +517,11 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   bool _canPopUntil(String untilRouteName) {
-    if (!_pageSettingsList.any((e) => e.name == untilRouteName)) {
-      return false;
+    if (_pageSettingsList
+        .any((e) => e.name! == RouterObjects.trimLastSlash(untilRouteName))) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   // @override
@@ -537,6 +570,17 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   //   }
   //   return to(settings);
   // }
+
+  void remove<T extends Object?>(String routeName, [T? result]) {
+    final page = _pageSettingsList.firstWhereOrNull((e) => e.name == routeName);
+    if (page == null || !_canPop) {
+      return;
+    }
+    _completers.remove(routeName)?.complete(result);
+    _pageSettingsList.remove(page);
+    updateRouteStack();
+    RouterObjects.injectedNavigator!.routeData = _lastLeafConfiguration!.rData!;
+  }
 
   bool? back<T extends Object?>([T? result]) {
     if (_canPop) {
@@ -872,6 +916,7 @@ class _RootRouterWidgetState extends State<_RootRouterWidget> {
   void dispose() {
     super.dispose();
     widget.dispose();
+    RouterObjects.injectedNavigator?.dispose();
   }
 
   @override

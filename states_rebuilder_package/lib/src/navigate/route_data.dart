@@ -96,7 +96,11 @@ class RouteData {
     return _redirectedFrom.first;
   }
 
-  Widget get unKnownRoute => RouterObjects._unknownRoute(this);
+  Widget get unKnownRoute =>
+      RouterObjects.rootDelegate!._lastConfiguration != null &&
+              RouterObjects.injectedNavigator!.ignoreUnknownRoutes
+          ? const Redirect(null)
+          : RouterObjects._unknownRoute(this);
 
   /// redirect to the given route
   Redirect redirectTo(String? route) {

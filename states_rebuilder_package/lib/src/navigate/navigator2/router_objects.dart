@@ -77,13 +77,14 @@ abstract class RouterObjects {
       delegateName: rootName,
       delegateImplyLeadingToParent: false,
     );
+    RouterDelegateImp._completers.clear();
     routeInformationParser = RouteInformationParserImp(rootDelegate!);
   }
 
   static RouterDelegateImp? rootDelegate;
   static void clearStack() => rootDelegate?._pageSettingsList.clear();
 
-  static List<RouterDelegateImp>? _activeSubRoutes(
+  static List<RouterDelegateImp>? getActiveSubRoutes(
       [RouterDelegateImp? untilDelegate]) {
     RouterDelegateImp? delegate = rootDelegate;
     if (delegate == null) {
@@ -111,7 +112,7 @@ abstract class RouterObjects {
   }
 
   static RouterDelegateImp? _getNavigator2Delegate(String routeName) {
-    final activeSubRoutes = _activeSubRoutes();
+    final activeSubRoutes = getActiveSubRoutes();
     return _getNavigator2Delegate2(activeSubRoutes, routeName);
   }
 
@@ -143,39 +144,93 @@ abstract class RouterObjects {
     return delegate;
   }
 
-  static bool _back<T extends Object?>(T? result, [RouterDelegateImp? d]) {
-    final activeSubRoutes = _activeSubRoutes();
+  static void removePage<T extends Object?>({
+    required String routeName,
+    required List<RouterDelegateImp>? activeSubRoutes,
+    T? result,
+  }) {
     if (activeSubRoutes == null) {
-      return false;
+      return;
     }
-
-    bool? isDone = false;
+    RouterDelegateImp? delegate;
     int index = activeSubRoutes.length - 1;
     while (true) {
-      final delegate = activeSubRoutes[index];
-      if (delegate._canPop && delegate == d) {
-        isDone = false;
+      delegate = activeSubRoutes[index];
+
+      if (delegate._pageSettingsList.any((e) => e.name == routeName)) {
         break;
       }
 
-      isDone = delegate._canPop;
-      if (isDone) {
-        delegate.navigatorKey!.currentState!.pop<T>(result);
-        break;
-      }
-
-      if (isDone || --index < 0) {
+      if (--index < 0) {
         break;
       }
     }
-    return isDone;
+    delegate.remove(routeName, result);
+  }
+
+  static RouterDelegateImp? _toBack(RouterDelegateImp? d) {
+    final activeSubRoutes = getActiveSubRoutes();
+    if (activeSubRoutes == null) {
+      return null;
+    }
+    RouterDelegateImp? delegate;
+    int index = activeSubRoutes.length - 1;
+    while (true) {
+      delegate = activeSubRoutes[index];
+      if (delegate._canPop && delegate == d) {
+        break;
+      }
+
+      if (delegate._canPop) {
+        break;
+      }
+
+      if (--index < 0) {
+        break;
+      }
+    }
+    return delegate;
+  }
+
+  static bool _back<T extends Object?>(T? result, [RouterDelegateImp? d]) {
+    final delegate = _toBack(d);
+    if (delegate == null || delegate == d) {
+      return false;
+    }
+    delegate.navigatorKey!.currentState!.pop<T>(result);
+    return true;
+    // final activeSubRoutes = _activeSubRoutes();
+    // if (activeSubRoutes == null) {
+    //   return false;
+    // }
+
+    // bool? isDone = false;
+    // int index = activeSubRoutes.length - 1;
+    // while (true) {
+    //   final delegate = activeSubRoutes[index];
+    //   if (delegate._canPop && delegate == d) {
+    //     isDone = false;
+    //     break;
+    //   }
+
+    //   isDone = delegate._canPop;
+    //   if (isDone) {
+    //     delegate.navigatorKey!.currentState!.pop<T>(result);
+    //     break;
+    //   }
+
+    //   if (isDone || --index < 0) {
+    //     break;
+    //   }
+    // }
+    // return isDone;
   }
 
   static RouterDelegateImp? getDelegateToPop([
     RouterDelegateImp? delegate,
     String? untilRouteName,
   ]) {
-    final activeSubRoutes = _activeSubRoutes(delegate);
+    final activeSubRoutes = getActiveSubRoutes(delegate);
     if (activeSubRoutes == null ||
         delegate != null && !activeSubRoutes.contains(delegate)) {
       return null;
@@ -196,8 +251,18 @@ abstract class RouterObjects {
     }
   }
 
+  static String trimLastSlash(String name) {
+    if (name == '/') {
+      return name;
+    }
+    if (name.endsWith('/')) {
+      return name.substring(0, name.length - 1);
+    }
+    return name;
+  }
+
   static bool _backUntil(String untilRouteName) {
-    final activeSubRoutes = RouterObjects._activeSubRoutes();
+    final activeSubRoutes = RouterObjects.getActiveSubRoutes();
     if (activeSubRoutes == null) {
       return false;
     }
@@ -216,10 +281,7 @@ abstract class RouterObjects {
   }
 
   static void _dispose() {
-    injectedNavigator?.dispose();
-    // injectedNavigator = null;
-    rootDelegate?._pageSettingsList.clear();
-    rootDelegate?._pages.clear();
+    rootDelegate = null;
     ResolvePathRouteUtil.globalBaseUrl = '/';
   }
 }

@@ -2088,7 +2088,7 @@ abstract class RM {
     Redirect? Function(RouteData data)? onNavigate,
     bool? Function(RouteData data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
-    // Duration transitionDuration,//TODO
+    bool ignoreUnknownRoutes = false,
   }) {
     return InjectedNavigatorImp(
       routes: routes,
@@ -2102,6 +2102,7 @@ abstract class RM {
       debugPrintWhenRouted: debugPrintWhenRouted,
       pageBuilder: pageBuilder,
       onBack: onNavigateBack,
+      ignoreUnknownRoutes: ignoreUnknownRoutes,
     );
   }
 

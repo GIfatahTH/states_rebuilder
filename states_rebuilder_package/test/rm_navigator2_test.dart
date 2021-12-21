@@ -2348,13 +2348,13 @@ void main() {
               is CupertinoPage,
           true);
       useCupertino = false;
-      _navigator.to('/login');
-      await tester.pumpAndSettle();
-      expect(find.text('_myPage'), findsOneWidget);
-      expect(
-          (_navigator.routerDelegate as RouterDelegateImp).pages.last
-              is _MyPage,
-          true);
+      String error = '';
+      try {
+        await _navigator.to('/login');
+      } catch (e) {
+        error = e as String;
+      }
+      expect(error, 'Custom "pageBuilder" must have a child argument');
     },
   );
 
@@ -4297,6 +4297,360 @@ void main() {
       expect(find.text('404 /page2/NaN'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Text Mocking InjectedNavigator',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        routes: {'/': (data) => Text('/'), '/page1': (date) => Text('Page1')},
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      final mock = NavigatorMock();
+      navigator.injectMock(mock);
+      //
+      navigator.canPop;
+      expect(mock.message, 'canPop');
+      navigator.pageStack;
+      expect(mock.message, 'pageStack');
+      try {
+        navigator.routeData;
+        expect(mock.message, 'routeData');
+      } catch (e) {
+        expect(e is UnimplementedError, true);
+      }
+      navigator.back();
+      expect(mock.message, 'back');
+      navigator.backUntil('untilRouteName');
+      expect(mock.message, 'backUntil');
+      navigator.forceBack();
+      expect(mock.message, 'forceBack');
+      navigator.setRouteStack((pages) => pages);
+      expect(mock.message, 'setRouteStack');
+      navigator.to('routeName');
+      expect(mock.message, 'to');
+      navigator.toAndRemoveUntil('routeName');
+      expect(mock.message, 'toAndRemoveUntil');
+      navigator.toDeeply('routeName');
+      expect(mock.message, 'toDeeply');
+      navigator.toPageless(Text(''));
+      expect(mock.message, 'toPageless');
+      navigator.toReplacement('routeName');
+      expect(mock.message, 'toReplacement');
+    },
+  );
+  testWidgets(
+    'Test InjectedNavigator.toReplacement for nested routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (date) => Text('Page1'),
+                  '/page11': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) => Text('Page11'),
+                          '/page111': (data) => Text('Page111'),
+                        },
+                      ),
+                },
+              ),
+          '/page2': (data) => Text('Page2'),
+        },
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.toReplacement('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      //
+      navigator.toDeeply('/page1/page11/page111');
+      await tester.pumpAndSettle();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.toReplacement('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page11'), findsOneWidget);
+      //
+      navigator.toReplacement('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page1'), findsOneWidget);
+      //
+      navigator.toReplacement('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test InjectedNavigator.toAndRemoveUntil for nested routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (date) => Text('Page1'),
+                  '/page11': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) => Text('Page11'),
+                          '/page111': (data) => Text('Page111'),
+                        },
+                      ),
+                },
+              ),
+          '/page2': (data) => Text('Page2'),
+        },
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.toAndRemoveUntil('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      //
+      navigator.toDeeply('/page1/page11/page111');
+      await tester.pumpAndSettle();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/page2', untilRouteName: '/page1/page11/');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page11'), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/page2', untilRouteName: '/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page1'), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/page2', untilRouteName: '/');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test InjectedNavigator.navigator for nested routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        initialLocation: '/page1/page11/page111',
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (date) => Text('Page1'),
+                  '/page11': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) => Text('Page11'),
+                          '/page111': (data) => Text('Page111'),
+                        },
+                      ),
+                },
+              ),
+        },
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.removePage('/');
+      await tester.pump();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.removePage('/page1');
+      await tester.pump();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+
+      navigator.removePage('/page1/page11');
+      await tester.pump();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      navigator.removePage('/page1/page11/page111');
+      await tester.pump();
+      expect(find.text('Page111'), findsOneWidget);
+      //
+      String futureResult = '';
+      navigator.to('/page1').then((value) => futureResult = value as String);
+      await tester.pumpAndSettle();
+      expect(find.text('Page1'), findsOneWidget);
+      navigator.to('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('Page11'), findsOneWidget);
+      //
+      navigator.removePage<String>('/page1', 'Return Result');
+      await tester.pump();
+      expect(find.text('Page11'), findsOneWidget);
+      expect(futureResult, 'Return Result');
+    },
+  );
+
+  group(
+    'unknown routes',
+    () {
+      testWidgets(
+        'Check different unknown route scenarios',
+        (tester) async {
+          final navigator = RM.injectNavigator(
+            initialLocation: '/page1/page2/page22/404',
+            unknownRoute: (data) => Text('404'),
+            routes: {
+              '/': (data) => Text('/'),
+              '/page1': (data) => data.redirectTo('/404'),
+              '/page1/page11': (data) => Text('Page11'),
+              '/page2': (data) => RouteWidget(
+                    routes: {
+                      '/': (data) => data.redirectTo('/page21'),
+                      '/page21': (data) => data.redirectTo('/404'),
+                      '/page22': (data) => RouteWidget(
+                            routes: {
+                              '/': (data) => Text('Page22'),
+                              '/page23': (data) => Text('Page23'),
+                            },
+                          ),
+                    },
+                  ),
+            },
+          );
+
+          final widget = MaterialApp.router(
+            routeInformationParser: navigator.routeInformationParser,
+            routerDelegate: navigator.routerDelegate,
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('404'), findsOneWidget);
+          navigator.to('/404');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page1/page11');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page1/page11/404');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page2');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page2/page22/404');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page2/page22/page23/404');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+        },
+      );
+      testWidgets(
+        'Check ignore unknown route scenarios',
+        (tester) async {
+          final navigator = RM.injectNavigator(
+            initialLocation: '/page1/page2/page22/404',
+            ignoreUnknownRoutes: true,
+            unknownRoute: (data) => Text('404'),
+            routes: {
+              '/': (data) => Text('/'),
+              '/page1': (data) => data.redirectTo('/404'),
+              '/page1/page11': (data) => Text('Page11'),
+              '/page2': (data) => RouteWidget(
+                    routes: {
+                      '/': (data) => data.redirectTo('/page21'),
+                      '/page21': (data) => data.redirectTo('/404'),
+                      '/page22': (data) => RouteWidget(
+                            routes: {
+                              '/': (data) => Text('Page22'),
+                              '/page23': (data) => Text('Page23'),
+                            },
+                          ),
+                    },
+                  ),
+            },
+          );
+
+          final widget = MaterialApp.router(
+            routeInformationParser: navigator.routeInformationParser,
+            routerDelegate: navigator.routerDelegate,
+          );
+          await tester.pumpWidget(widget);
+          expect(find.text('404'), findsOneWidget);
+          //
+          navigator.to('/page1/page11');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page1');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page1/page11/404');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page2');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page2/page22/404');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+          //
+          navigator.to('/page2/page22/page23/404');
+          await tester.pumpAndSettle();
+          expect(find.text('Page11'), findsOneWidget);
+        },
+      );
+    },
+  );
   // group(
   //   'InjectedNavigator is disposed between tests',
   //   () {
@@ -4400,3 +4754,101 @@ class _MyPage extends Page {
 //     );
 //   }
 // }
+
+class NavigatorMock extends InjectedNavigator {
+  String message = '';
+  @override
+  void back<T extends Object>([T? result]) {
+    message = 'back';
+  }
+
+  @override
+  void backUntil(String untilRouteName) {
+    message = 'backUntil';
+  }
+
+  @override
+  bool get canPop {
+    message = 'canPop';
+    return true;
+  }
+
+  @override
+  void deepLinkTest(String url) {
+    message = 'deepLinkTest';
+  }
+
+  @override
+  void forceBack<T extends Object>([T? result]) {
+    message = 'forceBack';
+  }
+
+  @override
+  List<PageSettings> get pageStack {
+    message = 'pageStack';
+    return [];
+  }
+
+  @override
+  RouteData get routeData {
+    message = 'routeData';
+    throw UnimplementedError();
+  }
+
+  @override
+  void setRouteStack(
+      List<PageSettings> Function(List<PageSettings> pages) stack,
+      {String? subRouteName}) {
+    message = 'setRouteStack';
+  }
+
+  @override
+  Future<T?> to<T extends Object?>(String routeName,
+      {Object? arguments,
+      Map<String, String>? queryParams,
+      bool fullscreenDialog = false,
+      bool maintainState = true,
+      Widget Function(BuildContext context, Animation<double> animation,
+              Animation<double> secondAnimation, Widget child)?
+          transitionsBuilder}) async {
+    message = 'to';
+  }
+
+  @override
+  Future<T?> toAndRemoveUntil<T extends Object?>(String newRouteName,
+      {String? untilRouteName,
+      Object? arguments,
+      Map<String, String>? queryParams,
+      bool fullscreenDialog = false,
+      bool maintainState = true}) async {
+    message = 'toAndRemoveUntil';
+  }
+
+  @override
+  void toDeeply(String routeName,
+      {Object? arguments,
+      Map<String, String>? queryParams,
+      bool fullscreenDialog = false,
+      bool maintainState = true}) {
+    message = 'toDeeply';
+  }
+
+  @override
+  Future<T?> toPageless<T extends Object?>(Widget page,
+      {String? name,
+      bool fullscreenDialog = false,
+      bool maintainState = true}) async {
+    message = 'toPageless';
+  }
+
+  @override
+  Future<T?> toReplacement<T extends Object?, TO extends Object?>(
+      String routeName,
+      {TO? result,
+      Object? arguments,
+      Map<String, String>? queryParams,
+      bool fullscreenDialog = false,
+      bool maintainState = true}) async {
+    message = 'toReplacement';
+  }
+}

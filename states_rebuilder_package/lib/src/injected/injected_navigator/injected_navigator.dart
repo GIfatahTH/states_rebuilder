@@ -30,13 +30,13 @@ import '../../rm.dart';
 ///
 /// See also [RouteData] and [RouteWidget]
 /// {@endtemplate}
-abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
+abstract class InjectedNavigator {
   /// [RouterDelegate] implementation
-  late final RouterDelegate<PageSettings> routerDelegate =
+  RouterDelegate<PageSettings> get routerDelegate =>
       RouterObjects.rootDelegate!;
 
   /// [RouteInformationParser] delegate.
-  late final RouteInformationParser<PageSettings> routeInformationParser =
+  RouteInformationParser<PageSettings> get routeInformationParser =>
       RouterObjects.routeInformationParser!;
 
   /// Set the route stack. It exposes the current [PageSettings] stack.
@@ -44,15 +44,22 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     List<PageSettings> Function(List<PageSettings> pages) stack, {
     String? subRouteName,
   }) {
+    if (_mock != null) {
+      return _mock!.setRouteStack(stack, subRouteName: subRouteName);
+    }
     return RM.navigate.setRouteStack(stack, subRouteName: subRouteName);
   }
 
   /// Get the [PageSettings] stack.
-  List<PageSettings> get pageStack =>
-      (routerDelegate as RouterDelegateImp).pageSettingsList;
+  List<PageSettings> get pageStack {
+    if (_mock != null) {
+      return _mock!.pageStack;
+    }
+    return (routerDelegate as RouterDelegateImp).pageSettingsList;
+  }
 
   /// Get the current [RouteData]
-  RouteData get routeData => state;
+  RouteData get routeData => throw UnimplementedError();
 
   /// Find the page with given routeName and add it to the route stack and trigger
   /// route transition.
@@ -75,6 +82,17 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     )?
         transitionsBuilder,
   }) {
+    if (_mock != null) {
+      return _mock!.to<T>(
+        routeName,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+        transitionsBuilder: transitionsBuilder,
+      );
+    }
+
     return RM.navigate.toNamed<T>(
       routeName,
       arguments: arguments,
@@ -101,6 +119,16 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     // )?
     //     transitionsBuilder,
   }) {
+    if (_mock != null) {
+      return _mock!.toPageless<T>(
+        page,
+        name: name,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+        // transitionsBuilder: transitionsBuilder,
+      );
+    }
+
     return RM.navigate.to<T>(
       page,
       name: name,
@@ -112,10 +140,7 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
 
   /// Whether a page can be popped off from the root route stack or sub route
   /// stacks.
-  bool get canPop {
-    OnReactiveState.addToObs?.call(this);
-    return RouterObjects.getDelegateToPop(RouterObjects.rootDelegate!) != null;
-  }
+  bool get canPop => throw UnimplementedError();
 
   /// Deeply navigate to the given routeName. Deep navigation means that the
   /// root stack is cleaned and pages corresponding to sub paths are added to
@@ -147,6 +172,16 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
+    if (_mock != null) {
+      return _mock!.toDeeply(
+        routeName,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+      );
+    }
+
     RouterObjects.clearStack();
     final pathSegments = Uri.parse(routeName).pathSegments;
 
@@ -187,6 +222,17 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
+    if (_mock != null) {
+      return _mock!.toReplacement<T, TO>(
+        routeName,
+        result: result,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+      );
+    }
+
     return RM.navigate.toReplacementNamed<T, TO>(
       routeName,
       result: result,
@@ -211,6 +257,16 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
+    if (_mock != null) {
+      return _mock!.toAndRemoveUntil<T>(
+        newRouteName,
+        untilRouteName: untilRouteName,
+        arguments: arguments,
+        queryParams: queryParams,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+      );
+    }
     return RM.navigate.toNamedAndRemoveUntil<T>(
       newRouteName,
       untilRouteName: untilRouteName,
@@ -226,6 +282,9 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   ///
   /// It is similar to `RM.navigate.backUntil` method.
   void backUntil(String untilRouteName) {
+    if (_mock != null) {
+      return _mock!.backUntil(untilRouteName);
+    }
     return RM.navigate.backUntil(untilRouteName);
   }
 
@@ -233,17 +292,34 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
   ///
   /// It is similar to `RM.navigate.back` method.
   void back<T extends Object>([T? result]) {
+    if (_mock != null) {
+      return _mock!.back<T>(result);
+    }
     return RM.navigate.back<T>(result);
   }
 
   /// {@macro forceBack}
   /// It is similar to `RM.navigate.forceBack` method.
   void forceBack<T extends Object>([T? result]) {
+    if (_mock != null) {
+      return _mock!.forceBack<T>(result);
+    }
     return RM.navigate.forceBack<T>(result);
   }
 
+  void removePage<T extends Object>(String routeName, [T? result]) {
+    if (_mock != null) {
+      return _mock!.removePage<T>(routeName, result);
+    }
+    RouterObjects.removePage<T>(
+      routeName: routeName,
+      activeSubRoutes: RouterObjects.getActiveSubRoutes(),
+      result: result,
+    );
+  }
+
   /// Invoke `onNavigate` callback and navigate according the logic defined there.
-  void onNavigate();
+  void onNavigate() => throw UnimplementedError();
 
   /// Used in test to simulate a deep link call.
   void deepLinkTest(String url) {
@@ -251,6 +327,16 @@ abstract class InjectedNavigator implements InjectedBaseState<RouteData> {
       RouteInformation(location: url),
     );
     (routerDelegate as RouterDelegateImp).updateRouteStack();
+  }
+
+  InjectedNavigator? _mock;
+
+  //
+  void injectMock(InjectedNavigator mock) {
+    assert(() {
+      _mock = mock;
+      return true;
+    }());
   }
 }
 
@@ -270,6 +356,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     required this.debugPrintWhenRouted,
     required this.pageBuilder,
     required this.onBack,
+    required this.ignoreUnknownRoutes,
   })  : _redirectTo = redirectTo,
         super(
           creator: () => initialState,
@@ -278,18 +365,19 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
           onDisposed: null,
           onInitialized: null,
         ) {
-    RouterObjects.initialize(
-      routes: routes,
-      unknownRoute: unknownRoute,
-      transitionsBuilder: transitionsBuilder,
-      transitionDuration: transitionDuration,
-      builder: builder,
-      initialRoute: initialRoute,
-      shouldUseCupertinoPage: shouldUseCupertinoPage,
-    );
-    _resetDefaultState = () {};
+    _resetDefaultState = () {
+      RouterObjects.initialize(
+        routes: routes,
+        unknownRoute: unknownRoute,
+        transitionsBuilder: transitionsBuilder,
+        transitionDuration: transitionDuration,
+        builder: builder,
+        initialRoute: initialRoute,
+        shouldUseCupertinoPage: shouldUseCupertinoPage,
+      );
+      RouterObjects.injectedNavigator = this;
+    };
     _resetDefaultState();
-    RouterObjects.injectedNavigator = this;
   }
   static final initialState = RouteData(
     path: '/',
@@ -302,6 +390,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
     redirectedFrom: const [],
   );
   static bool ignoreSingleRouteMapAssertion = false;
+  final bool ignoreUnknownRoutes;
 
   final Redirect? Function(RouteData data)? _redirectTo;
   Redirect? Function(RouteData data)? get redirectTo {
@@ -347,5 +436,22 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
   void dispose() {
     _resetDefaultState();
     super.dispose();
+  }
+
+  @override
+  bool get canPop {
+    if (_mock != null) {
+      return _mock!.canPop;
+    }
+    OnReactiveState.addToObs?.call(this);
+    return RouterObjects.getDelegateToPop(RouterObjects.rootDelegate!) != null;
+  }
+
+  @override
+  RouteData get routeData {
+    if (_mock != null) {
+      return _mock!.routeData;
+    }
+    return state;
   }
 }

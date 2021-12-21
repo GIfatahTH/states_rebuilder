@@ -4,6 +4,7 @@ class ResolvePathRouteUtil {
   ResolvePathRouteUtil({
     this.urlName = '/',
     this.routeName = '/',
+    this.remainingUrlSegments = const [],
   });
   final String urlName;
   final String routeName;
@@ -11,7 +12,7 @@ class ResolvePathRouteUtil {
   static String globalBaseUrl = '/';
 
   String globalBaseRouteUri = '/';
-  List<String> remainingUrlSegments = [];
+  List<String> remainingUrlSegments;
   bool _isPagesFound = true;
 
   final Map<String, String> _pathParams = {};
@@ -21,7 +22,7 @@ class ResolvePathRouteUtil {
       ..clear()
       ..addAll(_initialPathParams);
     absolutePath = '';
-    remainingUrlSegments = [];
+    // remainingUrlSegments = [];
     _isPagesFound = true;
   }
 
@@ -67,6 +68,7 @@ class ResolvePathRouteUtil {
     Widget Function(RouteData routeData)? unknownRoute,
     bool skipHomeSlash = false,
     List<RouteData> redirectedFrom = const [],
+    bool ignoreUnknownRoutes = false,
   }) {
     final absolutePath = setAbsoluteUrlPath(settings.name!);
     final uri = Uri.parse(absolutePath);
@@ -93,6 +95,7 @@ class ResolvePathRouteUtil {
       skipHomeSlash: skipHomeSlash,
       isAbsolutePath: settings.name!.startsWith('/'),
       redirectedFrom: redirectedFrom,
+      ignoreUnknownRoutes: ignoreUnknownRoutes,
       util: this,
     ).call();
     inRoutes = null;
@@ -104,6 +107,9 @@ class ResolvePathRouteUtil {
     if (pages.values.last.isPagesFound) {
       if (remainingUrlSegments.any((e) => e.isNotEmpty)) {
         _isPagesFound = false;
+        if (ignoreUnknownRoutes) {
+          return null;
+        }
         final routeData = RouteData(
           location: absolutePath,
           subLocation: absolutePath,
@@ -158,6 +164,7 @@ class _ResolveLocation {
   final bool isAbsolutePath;
   final List<RouteData> redirectedFrom;
   final ResolvePathRouteUtil util;
+  final bool ignoreUnknownRoutes;
   _ResolveLocation({
     required this.routes,
     required this.path,
@@ -171,6 +178,7 @@ class _ResolveLocation {
     required this.isAbsolutePath,
     required this.redirectedFrom,
     required this.util,
+    required this.ignoreUnknownRoutes,
   });
 
   late String subPath;
@@ -207,7 +215,15 @@ class _ResolveLocation {
       queryParams: queryParams,
     );
 
-    if (results.isEmpty) {
+    if (results
+            .isEmpty /* ||
+        path != baseUrlPath &&
+            !skipHomeSlash &&
+            results.keys.last.path == '/'*/
+        ) {
+      if (ignoreUnknownRoutes) {
+        return null;
+      }
       if (isRouteNotFound) {
         util._isPagesFound = false;
         String message = '';
@@ -248,13 +264,14 @@ class _ResolveLocation {
       };
     }
 
-    Map<String, RouteSettingsWithChildAndData>? fn(
-      Uri route,
-      RouteData routeData,
-    ) {
+    Map<String, RouteSettingsWithChildAndData>? fn({
+      required String toPath,
+      required Uri route,
+      required RouteData routeData,
+    }) {
       final matched = <String, RouteSettingsWithChildAndData>{};
       RouteWidget.parentToSubRouteMessage = _ParentToSubRouteMessage(
-        toPath: path!,
+        toPath: toPath,
         routeData: routeData,
         skipHomeSlash: skipHomeSlash!,
         unknownRoute: unknownRoute,
@@ -312,9 +329,7 @@ class _ResolveLocation {
         return matched;
       }
       if (page is RouteWidget) {
-        if (page.builder == null) {
-          page = page.copyWith((_) => _);
-        }
+        page = page.copyWith(page.builder ?? (_) => _);
         final pages = page.initialize();
         if (pages == null && page._routes.isNotEmpty) {
           return null;
@@ -330,7 +345,11 @@ class _ResolveLocation {
           );
         }
 
-        util.remainingUrlSegments = [];
+        for (final e in page._path.split('/')) {
+          util.remainingUrlSegments.remove(e);
+        }
+
+        // util.remainingUrlSegments = [];
       } else {
         ResolvePathRouteUtil.globalBaseUrl = routeData.baseLocation;
         util.globalBaseRouteUri = routeData.path;
@@ -345,8 +364,18 @@ class _ResolveLocation {
     }
 
     Map<String, RouteSettingsWithChildAndData> m = {};
+    final Uri? lastRoute = !skipHomeSlash ? results.keys.last : null;
     results.forEach((route, routeData) {
-      final r = fn(route, routeData);
+      final r = fn(
+        toPath: () {
+          if (lastRoute == null) {
+            return path!;
+          }
+          return lastRoute == route ? path! : routeData.location;
+        }(),
+        route: route,
+        routeData: routeData,
+      );
       if (redirectedFrom.isNotEmpty) {
         redirectedFrom.clear();
       }

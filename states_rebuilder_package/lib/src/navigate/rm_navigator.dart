@@ -332,26 +332,19 @@ MaterialApp(
 
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
-
-      RouterObjects._back<TO>(result);
-      // if (!isDone) {
-      //   final delegate = RouterObjects._getNavigator2Delegate(absoluteName);
-      //   return delegate!.toReplacementNamed<T, TO>(
-      //     PageSettings(
-      //       name: absoluteName,
-      //       arguments: arguments,
-      //       queryParams: queryParams ?? {},
-      //     ),
-      //     result: result,
-      //   );
-      // }
-      return toNamed(
+      final delegate = RouterObjects._toBack(null);
+      final config = delegate?._lastConfiguration;
+      final r = toNamed<T>(
         absoluteName,
         arguments: arguments,
         queryParams: queryParams,
         fullscreenDialog: fullscreenDialog,
         maintainState: maintainState,
       );
+      if (delegate?._canPop == true) {
+        delegate!.remove<TO>(config!.name!, result);
+      }
+      return r;
     }
     if (queryParams != null) {
       routeName = Uri(path: routeName, queryParameters: queryParams).toString();
