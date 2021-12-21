@@ -96,18 +96,18 @@ class SignInScreen extends StatelessWidget {
 
   static final _form = RM.injectForm(
     submit: () => authBloc.signIn(
-      _username.text,
-      _password.text,
+      username.text,
+      password.text,
     ),
   );
-  static final _username = RM.injectTextEditing(
+  static final username = RM.injectTextEditing(
     validators: [
       (value) {
         return value!.isEmpty ? 'Required' : null;
       }
     ],
   );
-  static final _password = RM.injectTextEditing(
+  static final password = RM.injectTextEditing(
     validators: [
       (value) {
         return value!.isEmpty ? 'Required' : null;
@@ -134,19 +134,19 @@ class SignInScreen extends StatelessWidget {
                       TextField(
                         decoration: InputDecoration(
                           labelText: 'Username',
-                          errorText: _username.error,
+                          errorText: username.error,
                         ),
-                        controller: _username.controller,
-                        focusNode: _username.focusNode,
+                        controller: username.controller,
+                        focusNode: username.focusNode,
                       ),
                       TextField(
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          errorText: _password.error,
+                          errorText: password.error,
                         ),
                         obscureText: true,
-                        controller: _password.controller,
-                        focusNode: _password.focusNode,
+                        controller: password.controller,
+                        focusNode: password.focusNode,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(16),

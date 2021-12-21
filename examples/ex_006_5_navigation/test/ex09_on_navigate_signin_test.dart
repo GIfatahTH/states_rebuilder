@@ -56,16 +56,18 @@ void main() {
         (widget) =>
             widget is TextField && widget.decoration?.labelText == 'Password',
       );
+
       await tester.enterText(passwordField, '123');
       await tester.pumpAndSettle();
-      await tester.enterText(userNameField, '25');
+      await tester.enterText(userNameField, 'user2');
       await tester.pumpAndSettle();
       await tester.tap(find.byType(TextButton));
       await tester.pumpAndSettle();
-      // expect(find.byType(SignInScreen), findsOneWidget);
-      // expect(find.byType(HomePage), findsOneWidget);
       expect(find.byType(UserInfo), findsOneWidget);
       expect(find.text('UserName: user2'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomePage), findsOneWidget);
     },
   );
 }

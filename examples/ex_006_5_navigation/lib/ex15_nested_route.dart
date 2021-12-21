@@ -4,8 +4,17 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() => runApp(const MyApp());
 
 final navigator = RM.injectNavigator(
+  // initialLocation: '/dashboard/invoices/1/2/3',
   builder: (_) => const Home(),
   transitionsBuilder: RM.transitions.none(),
+  // transitionsBuilder: (_, animation, __, child) {
+  //   return ScaleTransition(
+  //     scale: animation,
+  //     child: child,
+  //   );
+  // },
+  // transitionDuration: 1.seconds,
+  // shouldUseCupertinoPage: true,
   routes: {
     '/': (data) => data.redirectTo('/dashboard'),
     '/dashboard': (data) => RouteWidget(
@@ -130,10 +139,13 @@ class Team extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Team',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.red,
+      child: Center(
+        child: Text(
+          'Team Page',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -144,10 +156,13 @@ class About extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'About',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.blue,
+      child: Center(
+        child: Text(
+          'About Page',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -158,10 +173,13 @@ class Support extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Support',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.green,
+      child: Center(
+        child: Text(
+          'Support Page',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -172,10 +190,13 @@ class DailyInvoices extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Daily Invoices',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.yellow,
+      child: Center(
+        child: Text(
+          'Daily Invoices',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -186,10 +207,13 @@ class WeeklyInvoices extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Weekly Invoices',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.orange,
+      child: Center(
+        child: Text(
+          'Weekly Invoices',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -200,10 +224,13 @@ class MonthlyInvoices extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Monthly Invoices',
-        style: Theme.of(context).textTheme.headline1,
+    return Container(
+      color: Colors.purple,
+      child: Center(
+        child: Text(
+          'Monthly Invoices',
+          style: Theme.of(context).textTheme.headline2,
+        ),
       ),
     );
   }
@@ -222,8 +249,6 @@ class NavLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = navigator.routeData.location;
-    print('location $location');
-    print('to $to');
     final isActive = exact ? location == to : location.startsWith(to);
     return TextButton(
       onPressed: () => navigator.to(to),
