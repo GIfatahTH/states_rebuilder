@@ -386,7 +386,9 @@ class InjectedImp<T> extends Injected<T> {
             depend._reactiveModelState.listeners.addListenerForRebuild(
           fn,
           clean: () {
-            depend.dispose();
+            if (depend.autoDisposeWhenNotUsed && !depend.hasObservers) {
+              depend.dispose();
+            }
           },
         );
         _dependentDisposers.add(disposer);
@@ -398,7 +400,9 @@ class InjectedImp<T> extends Injected<T> {
           depend._reactiveModelState.listeners.addListenerForSideEffect(
         fn,
         clean: () {
-          depend.dispose();
+          if (depend.autoDisposeWhenNotUsed && !depend.hasObservers) {
+            depend.dispose();
+          }
         },
       );
       _reactiveModelState.listeners.onFirstListerAdded = () {
