@@ -1543,10 +1543,6 @@ void main() {
                 routeData = data;
                 return Builder(
                   builder: (context) {
-                    print(context.routeData);
-                    print(data);
-                    //TODO
-                    // assert(data == context.routeData);
                     return _;
                   },
                 );

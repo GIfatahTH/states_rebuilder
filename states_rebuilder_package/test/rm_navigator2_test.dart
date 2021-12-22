@@ -983,7 +983,6 @@ void main() {
       expect(find.text('/page1'), findsOneWidget);
 
       getSubRoute = true;
-      //TODO check pushing the same route more than once,
       await navigateAndExpect('page1/page11');
 
       await navigateAndExpect('page1/page12');
@@ -2484,9 +2483,7 @@ void main() {
       final routes = {
         '/': (_) => Builder(builder: (context) {
               shouldUseCupertinoPage =
-                  (ModalRoute.of(context)?.settings as MaterialPageImp)
-                      .shouldUseCupertinoPage;
-
+                  ModalRoute.of(context) is PageBasedCupertinoPageRoute;
               return Text('/');
             }),
         '/page1': (_) => RouteWidget(
@@ -2516,14 +2513,13 @@ void main() {
       final routes = {
         '/': (_) => Builder(builder: (context) {
               shouldUseCupertinoPage =
-                  (ModalRoute.of(context)?.settings as MaterialPageImp)
-                      .shouldUseCupertinoPage;
-
+                  ModalRoute.of(context) is PageBasedCupertinoPageRoute;
               return Text('/');
             }),
         '/page1': (_) => RouteWidget(
               routes: {
                 '/': (_) => Text('/page1'),
+                '/page11': (_) => Text('/page11'),
               },
             ),
       };
@@ -4578,6 +4574,11 @@ void main() {
         return pages;
       });
       await tester.pump();
+      expect(find.text('Page2'), findsOneWidget);
+      expect(navigator.pageStack.map((e) => e.name).toString(), '(/, /page2)');
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
       expect(find.text('Page2'), findsOneWidget);
       expect(navigator.pageStack.map((e) => e.name).toString(), '(/, /page2)');
     },

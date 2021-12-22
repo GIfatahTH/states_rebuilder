@@ -1,10 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/legacy/inject.dart';
-import 'package:states_rebuilder/src/legacy/injector.dart';
-import 'package:states_rebuilder/src/rm.dart';
-
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
