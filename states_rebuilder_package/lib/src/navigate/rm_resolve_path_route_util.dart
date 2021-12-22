@@ -115,10 +115,10 @@ class ResolvePathRouteUtil {
           subLocation: absolutePath,
           path: absolutePath,
           arguments: null,
-          pathParams: {},
-          queryParams: {},
+          pathParams: const {},
+          queryParams: const {},
           pathEndsWithSlash: false,
-          redirectedFrom: [],
+          redirectedFrom: const [],
         );
         pages[absolutePath] = RouteSettingsWithChildAndData(
           routeData: routeData,

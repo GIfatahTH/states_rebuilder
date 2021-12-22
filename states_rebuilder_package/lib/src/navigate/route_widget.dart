@@ -238,7 +238,7 @@ class RouteWidget extends StatelessWidget {
       delegateImplyLeadingToParent: delegateImplyLeadingToParent,
       transitionDuration: _transitionDuration,
       message: _parentToSubRouteMessage,
-      remainingUrlSegments: [],
+      remainingUrlSegments: const [],
     );
   }
 
