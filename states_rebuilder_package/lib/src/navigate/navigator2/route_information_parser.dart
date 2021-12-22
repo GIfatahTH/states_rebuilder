@@ -42,7 +42,7 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
     );
     resolvedPages?.call(pages);
     if (pages != null) {
-      _pageSettingsList.clear();
+      _pageSettingsList.clear(); // TODO May remove me
       _pageSettingsList.addAll(pages.values);
     }
 

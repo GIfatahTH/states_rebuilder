@@ -49,33 +49,18 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       final isLast = i == _pageSettingsList.length - 1 ? null : false;
       PageSettings settings = _pageSettingsList[i];
       if (pages.length > i) {
-        // if ((pages[i] as MaterialPageImp).name != settings.name) {
-        //   pages.removeAt(i);
-        // }
-        // In case custom pageBuilder is used, check for has child
-        // bool hasChild = true;
-        // try {
-        //   hasChild = (pages[i] as dynamic).child is Object;
-        // } catch (e) {
-        //   hasChild = false;
-        // }
-        // if (hasChild) {
-        // CASE The PageSettings holds the same child
-        final skip = pages.any((p) {
+        bool skip = false;
+        for (var j = i; j < pages.length; j++) {
+          final p = pages[j];
           if (settings.child == (p as dynamic).child) {
             _pages.add(p);
-            return true;
+            skip = true;
+            break;
           }
-          return false;
-        });
+        }
         if (skip) {
           continue;
         }
-        // if (settings.child == (pages[i] as dynamic).child) {
-        //   _pages.add(pages[i]);
-        //   continue;
-        // }
-        // }
       }
       final childMap = _getChild(settings);
       if (childMap == null) {
@@ -92,9 +77,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       )? routeWidgetTransitionsBuilder;
       Duration? routeWidgetTransitionDuration;
       final child = childMap.values.last;
+      final hash = child.hashCode;
       if (child is RouteWidget) {
         final r = child._routeData;
-        final hash = child.hashCode;
         settings = settings.copyWith(
           key: ValueKey(child.key.toString() + '$hash'),
           child: child,
@@ -107,7 +92,6 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         routeWidgetTransitionsBuilder = child.transitionsBuilder;
         routeWidgetTransitionDuration = child._transitionDuration;
       } else {
-        final hash = child is SubRoute ? child.child.hashCode : child.hashCode;
         settings = settings.copyWith(
           key: ValueKey(childMap.keys.last.signature + '$hash'),
           child: child,
@@ -681,7 +665,7 @@ class MaterialPageImp<T> extends MaterialPage<T> {
   )? customBuildTransitions;
   final Duration? transitionDuration;
   final bool useTransition;
-  late final bool shouldUseCupertinoPage;
+  late bool shouldUseCupertinoPage;
   @override
   Route<T> createRoute(BuildContext context) {
     shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||

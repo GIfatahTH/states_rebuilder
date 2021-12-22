@@ -4528,6 +4528,61 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Fix bug two pages have the same key',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (_) => const Text('Page1'),
+          '/page2': (_) => const Text('Page2'),
+        },
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(navigator.pageStack.length, 1);
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('Page1'), findsOneWidget);
+      expect(navigator.pageStack.length, 2);
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      expect(navigator.pageStack.length, 3);
+      //
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('Page1'), findsOneWidget);
+      expect(navigator.pageStack.length, 4);
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.text('Page2'), findsOneWidget);
+      expect(navigator.pageStack.length, 5);
+      expect(navigator.pageStack.map((e) => e.name).toString(),
+          '(/, /page1, /page2, /page1, /page2)');
+      navigator.removePage('/page1');
+      await tester.pump();
+      expect(find.text('Page2'), findsOneWidget);
+      expect(navigator.pageStack.map((e) => e.name).toString(),
+          '(/, /page2, /page1, /page2)');
+      navigator.setRouteStack((pages) {
+        pages.removeAt(1);
+        pages.removeAt(1);
+        return pages;
+      });
+      await tester.pump();
+      expect(find.text('Page2'), findsOneWidget);
+      expect(navigator.pageStack.map((e) => e.name).toString(), '(/, /page2)');
+    },
+  );
+
   group(
     'unknown routes',
     () {
