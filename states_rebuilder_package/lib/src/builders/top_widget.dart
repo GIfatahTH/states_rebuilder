@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../states_rebuilder.dart';
-import '../injected/injected_i18n/injected_i18n.dart';
-import '../injected/injected_theme/injected_theme.dart';
 
 ///# Prefer using [TopStatelessWidget] instead.
 ///
