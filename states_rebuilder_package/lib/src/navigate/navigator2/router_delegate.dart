@@ -665,22 +665,21 @@ class MaterialPageImp<T> extends MaterialPage<T> {
   )? customBuildTransitions;
   final Duration? transitionDuration;
   final bool useTransition;
-  late bool shouldUseCupertinoPage;
   @override
   Route<T> createRoute(BuildContext context) {
-    shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||
+    final shouldUseCupertinoPage = RouterObjects._shouldUseCupertinoPage ||
         Localizations.of<MaterialLocalizations>(
                 context, MaterialLocalizations) ==
             null;
     if (shouldUseCupertinoPage) {
-      return _PageBasedCupertinoPageRoute<T>(
+      return PageBasedCupertinoPageRoute<T>(
         page: this,
         customBuildTransitions: customBuildTransitions,
         transitionDuration: transitionDuration,
         useTransition: useTransition,
       );
     }
-    return _PageBasedMaterialPageRoute<T>(
+    return PageBasedMaterialPageRoute<T>(
       page: this,
       useTransition: useTransition,
       customBuildTransitions: customBuildTransitions,
@@ -689,9 +688,9 @@ class MaterialPageImp<T> extends MaterialPage<T> {
   }
 }
 
-class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
+class PageBasedMaterialPageRoute<T> extends PageRoute<T>
     with MaterialRouteTransitionMixin<T> {
-  _PageBasedMaterialPageRoute({
+  PageBasedMaterialPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
     required Duration? transitionDuration,
@@ -786,9 +785,9 @@ class _PageBasedMaterialPageRoute<T> extends PageRoute<T>
   }
 }
 
-class _PageBasedCupertinoPageRoute<T> extends PageRoute<T>
+class PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     with CupertinoRouteTransitionMixin<T> {
-  _PageBasedCupertinoPageRoute({
+  PageBasedCupertinoPageRoute({
     required MaterialPage<T> page,
     required this.customBuildTransitions,
     required Duration? transitionDuration,
