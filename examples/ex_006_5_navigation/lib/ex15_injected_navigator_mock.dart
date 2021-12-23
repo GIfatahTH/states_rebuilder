@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// If your business logic depends on InjectedNavigator, you can mock it for
+// unit tests
+
 void main() {
   runApp(const MyApp());
 }

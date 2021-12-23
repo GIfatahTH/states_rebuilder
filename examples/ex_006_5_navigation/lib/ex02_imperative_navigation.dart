@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// The same example as the last one using imperative navigation
 void main() {
   runApp(const BooksApp());
 }
@@ -20,7 +21,10 @@ class Book {
 
 final navigator = RM.injectNavigator(
   shouldUseCupertinoPage: true,
-  // initialLocation: '/books/3',
+  // You can try defining the initialLocation the app must land on when
+  // first started (TODO: Uncomment the next line and restart the app)
+  //
+  // initialLocation: '/books/2',
   routes: {
     '/': (data) => data.redirectTo('/books'),
     '/books': (data) => BooksListScreen(books: books),

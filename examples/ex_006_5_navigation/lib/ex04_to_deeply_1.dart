@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// This example show the difference between InjectedNavigator.to and
+// InjectedNavigator.toDeeply methods
 void main() {
   runApp(const MyApp());
 }

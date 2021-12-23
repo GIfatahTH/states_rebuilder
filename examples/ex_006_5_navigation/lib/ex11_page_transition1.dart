@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// Show case on how to custom page transition animation
 void main() {
   runApp(const MyApp());
 }

@@ -182,13 +182,31 @@ void main() {
       expect(book2Bold, findsNothing);
       expect(book3Bold, findsNothing);
       //
+      //
       navigator.back();
       await tester.pumpAndSettle();
-      expect(find.byType(BooksListScreen), findsOneWidget);
-      expect(backButtonTransparent, findsOneWidget);
+      expect(find.byType(BookDetailsScreen), findsOneWidget);
+      expect(find.text('Octavia E. Butler'), findsOneWidget);
+      expect(find.text('Kindred'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(navigator.routeData.location, '/books/2');
+      expect(backButtonTransparent, findsNothing);
       expect(book1Bold, findsNothing);
       expect(book2Bold, findsNothing);
+      expect(book3Bold, findsOneWidget);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(BookDetailsScreen), findsOneWidget);
+      expect(find.text('Ada Palmer'), findsOneWidget);
+      expect(find.text('Too Like the Lightning'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(navigator.routeData.location, '/books/1');
+      expect(backButtonTransparent, findsNothing);
+      expect(book1Bold, findsNothing);
+      expect(book2Bold, findsOneWidget);
       expect(book3Bold, findsNothing);
+      //
     },
   );
 }

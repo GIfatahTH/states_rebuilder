@@ -13,6 +13,8 @@ import 'ex16_books_app/screens/settings_page/settings_page.dart';
 import 'ex16_books_app/screens/sign_in_page/sign_in_bloc.dart';
 import 'ex16_books_app/screens/sign_in_page/sign_in_page.dart';
 
+// The flutter example book app rewritten using states_rebuilder
+
 Widget fadeTransitionBuilder(context, animation, secondaryAnimation, child) {
   var curveTween = CurveTween(curve: Curves.easeIn);
   return FadeTransition(
@@ -74,14 +76,20 @@ final navigator = RM.injectNavigator(
       }
     });
 
-class App extends StatelessWidget {
+class App extends TopStatelessWidget {
   const App({Key? key}) : super(key: key);
+  @override
+  void didUnmountWidget() {
+    signInBloc.dispose();
+  }
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
-      );
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routeInformationParser: navigator.routeInformationParser,
+      routerDelegate: navigator.routerDelegate,
+    );
+  }
 }
 
 void main() => runApp(const App());

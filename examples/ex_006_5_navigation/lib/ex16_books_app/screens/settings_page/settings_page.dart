@@ -75,11 +75,11 @@ class SettingsContent extends StatelessWidget {
                 content: const Text('The alert description goes here.'),
                 actions: <Widget>[
                   TextButton(
-                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    onPressed: () => RM.navigate.back('Cancel'),
                     child: const Text('Cancel'),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.pop(context, 'OK'),
+                    onPressed: () => navigator.back('OK'),
                     child: const Text('OK'),
                   ),
                 ],

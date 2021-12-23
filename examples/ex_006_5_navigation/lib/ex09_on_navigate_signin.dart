@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// Example of the used of InjectedNavigator.onNavigate and redirection to gard
+// routes
+
 void main() {
   runApp(const MyApp());
 }

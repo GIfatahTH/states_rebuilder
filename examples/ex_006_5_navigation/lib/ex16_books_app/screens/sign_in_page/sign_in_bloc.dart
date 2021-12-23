@@ -11,7 +11,7 @@ class _SignInBloc {
     sideEffects: SideEffects.onData(
       (data) {
         if (navigator.routeData.redirectedFrom != null) {
-          navigator.toReplacement(navigator.routeData.redirectedFrom!.location);
+          navigator.toDeeply(navigator.routeData.redirectedFrom!.location);
         } else {
           navigator.onNavigate();
         }
@@ -32,6 +32,10 @@ class _SignInBloc {
     // Sign in. Allow any password.
     _signedIn.state = true;
     return _signedIn.state;
+  }
+
+  void dispose() {
+    _signedIn.dispose();
   }
 }
 

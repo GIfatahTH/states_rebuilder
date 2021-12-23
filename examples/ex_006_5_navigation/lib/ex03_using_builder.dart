@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// In this example, show the use of the InjectedNavigator.builder method to wrap
+// the app inside the body of the scaffold and the appBar is used a a fixed
+// navigation menu
+
 void main() {
   runApp(const BooksApp());
 }
@@ -19,9 +23,14 @@ class Book {
 }
 
 final navigator = RM.injectNavigator(
+  // Use Cupertin0Page instead of the default MaterialPage
   shouldUseCupertinoPage: true,
+
+  // You can ignore all unknown routes and just display the last known route
+  // (TODO uncomment the next line and try with web and enter some unknown routes)
+  // ignoreUnknownRoutes: true,
   builder: (routerOutlet) {
-    return const HomeScreen();
+    return const AppScaffold();
   },
   routes: {
     '/': (data) => data.redirectTo('/books'),
@@ -51,8 +60,8 @@ class BooksApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class AppScaffold extends StatelessWidget {
+  const AppScaffold({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// This example show the use of InjectedNavigator.onNavigateBack method to prevent
+// leaving a page before validating its data.
+
 void main() {
   runApp(const MyApp());
 }
@@ -10,26 +13,19 @@ final navigator = RM.injectNavigator(
     '/': (data) => const HomePage(),
     '/signin': (data) => const SignInPage(),
   },
-  onNavigateBack: (RouteData data) {
+  onNavigateBack: (RouteData? data) {
+    if (data == null) {
+      // The Android back button is pressed and there are no route to pop
+      // We prevent app form closing unless confirmed by the user.
+      MyDialogs.alertDialog(
+        title: 'You are about to close the app. Do you want to continue?',
+      );
+      return false;
+    }
     final fromLocation = data.location;
     if (fromLocation == '/signin' && SignInPage.form.isDirty) {
-      RM.navigate.toDialog(
-        AlertDialog(
-          title: const Text(
-            'Form is changed and not submitted yet. Do you want to exit?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => RM.navigate.back(),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () => RM.navigate.forceBack(),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
-        postponeToNextFrame: true,
+      MyDialogs.alertDialog(
+        title: 'Form is changed and not submitted yet. Do you want to exit?',
       );
       return false;
     }
@@ -124,6 +120,29 @@ class SignInPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class MyDialogs {
+  static Future<T?> alertDialog<T>({
+    required String title,
+  }) {
+    return RM.navigate.toDialog<T>(
+      AlertDialog(
+        title: Text(title),
+        actions: [
+          TextButton(
+            onPressed: () => RM.navigate.back(),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => RM.navigate.forceBack(),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+      postponeToNextFrame: true,
     );
   }
 }

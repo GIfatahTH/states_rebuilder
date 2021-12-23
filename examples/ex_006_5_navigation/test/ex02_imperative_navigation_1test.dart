@@ -93,9 +93,24 @@ void main() {
       expect(find.text('Kindred'), findsOneWidget);
       expect(find.byType(BackButton), findsOneWidget);
       expect(navigator.routeData.location, '/books/2');
+      //
       navigator.back();
       await tester.pumpAndSettle();
-      expect(find.byType(BooksListScreen), findsOneWidget);
+      expect(find.byType(BookDetailsScreen), findsOneWidget);
+      expect(find.text('Ada Palmer'), findsOneWidget);
+      expect(find.text('Too Like the Lightning'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(navigator.routeData.location, '/books/1');
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      navigator.deepLinkTest('/books/0');
+      await tester.pumpAndSettle();
+      expect(find.byType(BookDetailsScreen), findsOneWidget);
+      expect(find.text('Ursula K. Le Guin'), findsOneWidget);
+      expect(find.text('Left Hand of Darkness'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(navigator.routeData.location, '/books/0');
       //
       navigator.deepLinkTest('/books/3');
       await tester.pumpAndSettle();

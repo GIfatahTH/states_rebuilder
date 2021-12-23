@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// You can define your unknownRoute implementation
+
 void main() => runApp(const MyApp());
 
 final _myDummyItems = ['Item 1', 'Item 2'];

@@ -32,7 +32,7 @@ void main() {
     expect(find.text('Redirected From: /page2'), findsOneWidget);
     expect(find.text('Path parameters : {}'), findsOneWidget);
     expect(find.text('Query parameters : {}'), findsOneWidget);
-    expect(find.text('Full uri: /page2/'), findsOneWidget);
+    expect(find.text('Full uri: /page2'), findsOneWidget);
     Navigator.of(RM.context!).pop();
     await tester.pumpAndSettle();
     //

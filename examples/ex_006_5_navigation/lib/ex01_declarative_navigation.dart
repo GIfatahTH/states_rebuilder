@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+// This is an example of declarative navigation using InjectedNavigator.setRouteStack
+//
 void main() {
   runApp(const BooksApp());
 }
@@ -19,6 +21,8 @@ class Book {
 }
 
 final navigator = RM.injectNavigator(
+  // At least one route must be defined. This is the home page of the app
+  // In this example deep link wont't work (See the nex example)
   routes: {
     '/': (data) => BooksListScreen(books: books),
   },
@@ -57,7 +61,6 @@ class BooksListScreen extends StatelessWidget {
               subtitle: Text(book.author),
               onTap: () {
                 final bookId = books.indexOf(book);
-
                 navigator.setRouteStack(
                   (pages) {
                     return [

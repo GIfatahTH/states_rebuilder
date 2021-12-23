@@ -68,21 +68,6 @@ void main() {
       //
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Page1/Page11/Page111'), findsNWidgets(2));
-      expect(navigator.routeData.location, '/page1/page11/page111');
-      //
-      await tester.tap(find.byType(BackButton));
-      await tester.pumpAndSettle();
-      expect(find.text('Page1/Page11'), findsNWidgets(2));
-      expect(navigator.routeData.location, '/page1/page11');
-      //
-      await tester.tap(find.byType(BackButton));
-      await tester.pumpAndSettle();
-      expect(find.text('Page1'), findsNWidgets(2));
-      expect(navigator.routeData.location, '/page1');
-      //
-      await tester.tap(find.byType(BackButton));
-      await tester.pumpAndSettle();
       expect(find.byType(HomePage), findsOneWidget);
       expect(navigator.routeData.location, '/');
     },
