@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'builders/on_reactive.dart';
 import 'common/consts.dart';
@@ -2084,7 +2085,7 @@ abstract class RM {
         transitionsBuilder,
     Duration? transitionDuration,
     Redirect? Function(RouteData data)? onNavigate,
-    bool? Function(RouteData data)? onNavigateBack,
+    bool? Function(RouteData? data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
     bool ignoreUnknownRoutes = false,
   }) {

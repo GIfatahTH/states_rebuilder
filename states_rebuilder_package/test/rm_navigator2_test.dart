@@ -26,7 +26,7 @@ class _TopWidget extends TopStatelessWidget {
     bool debugPrintWhenRouted = false,
     Page<dynamic> Function(MaterialPageArgument)? pageBuilder,
     Widget Function(Widget)? builder,
-    bool? Function(RouteData)? onBack,
+    bool? Function(RouteData?)? onBack,
     Duration? transitionDuration,
     Widget Function(RouteData)? unknownRoute,
     bool shouldUseCupertinoPage = false,
@@ -868,7 +868,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('id-5'), findsOneWidget);
 
-      expect(baseUrl, '/page5/id-2/page52/id-3');
+      expect(baseUrl, '/page5/id-2/page52/id-3/id-5');
       expect(routePath, '/page5/:page5ID/page52/:page52ID/:page521ID');
       expect(pathParams,
           {'page5ID': 'id-2', 'page52ID': 'id-3', 'page521ID': 'id-5'});
@@ -1422,7 +1422,7 @@ void main() {
       routeData = null;
       _navigator.to('/page1/page11/');
       await tester.pumpAndSettle();
-      expect(routeData!.baseLocation, '/page1');
+      expect(routeData!.baseLocation, '/page1/page11');
       expect(find.text('/page1/page11'), findsOneWidget);
       //
       routeData = null;
@@ -1452,7 +1452,7 @@ void main() {
       routeData = null;
       _navigator.to('/page2/1/page21/');
       await tester.pumpAndSettle();
-      expect(routeData!.baseLocation, '/page2/1');
+      expect(routeData!.baseLocation, '/page2/1/page21');
       _navigator.to('/page2/1/page21/');
     },
   );
@@ -2190,11 +2190,11 @@ void main() {
 
       _navigator.back();
       await tester.pumpAndSettle();
-      expect(find.text('/page1'), findsOneWidget);
-      expect(informationParser!.info!.location, '/page1');
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
-      _navigator.back();
-      await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // expect(informationParser!.info!.location, '/page1');
+      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // _navigator.back();
+      // await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
       expect(informationParser!.info!.location, '/');
       expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
@@ -2227,18 +2227,18 @@ void main() {
           StatesRebuilerLogger.message.endsWith('Back to: /page1/page11?q=1'),
           true);
 
-      _navigator.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/page1'), findsOneWidget);
-      expect(informationParser!.info!.location, '/page1');
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // _navigator.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // expect(informationParser!.info!.location, '/page1');
+      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
 
-      //
-      _navigator.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/'), findsOneWidget);
-      expect(informationParser!.info!.location, '/');
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      // //
+      // _navigator.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/'), findsOneWidget);
+      // expect(informationParser!.info!.location, '/');
+      // expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
 
       _navigator.to('/page1/page11?q=1');
       await tester.pumpAndSettle();
@@ -2261,6 +2261,8 @@ void main() {
         true,
       );
       //
+      _navigator.backUntil('/');
+      await tester.pumpAndSettle();
       _provider!.value = const RouteInformation(
         location: '/page1/page11?q=2',
       );
@@ -2271,10 +2273,10 @@ void main() {
         StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=2'),
         true,
       );
-      _navigator.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/page1'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // _navigator.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
@@ -2291,10 +2293,10 @@ void main() {
         StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
         true,
       );
-      _navigator.back();
-      await tester.pumpAndSettle();
-      expect(find.text('/page1'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // _navigator.back();
+      // await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
@@ -2374,6 +2376,9 @@ void main() {
       final widget = _TopWidget(
         routers: routes,
         onBack: (data) {
+          if (data == null) {
+            return false;
+          }
           if (data.location == '/form' && isFormDirty) {
             if (showDialog) {
               RM.navigate.toDialog(
@@ -2440,39 +2445,94 @@ void main() {
   );
 
   testWidgets(
-    'Text back button'
-    'THEN',
+    'Text back button',
     (tester) async {
+      RouteData? backData;
+      bool exitApp = false;
       final routes = {
         '/': (_) => Text('/'),
         '/page1': (_) => RouteWidget(
               routes: {
                 '/': (_) => Text('/page1'),
+                '/page11': (_) => Text('/page11'),
               },
             ),
         '/page2': (_) => Text('/page2'),
       };
-      final widget = _TopWidget(
-        routers: routes,
-        debugPrintWhenRouted: true,
+      final navigator = RM.injectNavigator(
+        routes: routes,
+        onNavigateBack: (data) {
+          backData = data;
+          if (data == null) {
+            if (exitApp) return exitApp;
+            RM.navigate.toDialog(AlertDialog());
+            return exitApp;
+          }
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+        backButtonDispatcher: dispatcher,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
-      _navigator.to('/page1');
+      navigator.to('/page1');
       await tester.pumpAndSettle();
-      _navigator.to('/page2');
+      navigator.to('/page2');
       await tester.pumpAndSettle();
       expect(find.text('/page2'), findsOneWidget);
       dispatcher.invokeCallback(SynchronousFuture<bool>(true));
       await tester.pumpAndSettle();
       expect(find.text('/page1'), findsOneWidget);
+      expect(backData!.location, '/page2');
       dispatcher.invokeCallback(SynchronousFuture<bool>(true));
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
+      expect(backData!.location, '/page1');
       dispatcher.invokeCallback(SynchronousFuture<bool>(true));
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
-      //TODO check whether should exit app here
+      expect(backData?.location, null);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      //
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      //
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(backData?.location, null);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      //
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(backData?.location, null);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      //
+      navigator.forceBack();
+      await tester.pumpAndSettle();
+      // expect(find.text('/'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+
+      exitApp = true;
+      dispatcher.invokeCallback(SynchronousFuture<bool>(true));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      // expect(find.text('/'), findsOneWidget);
     },
   );
 
@@ -3738,6 +3798,9 @@ void main() {
         routers: routes,
         debugPrintWhenRouted: true,
         onBack: (data) {
+          if (data == null) {
+            return false;
+          }
           if (data.location == '/page1') {
             RM.navigate.toDialog(
               AlertDialog(
@@ -4601,14 +4664,17 @@ void main() {
                     routes: {
                       '/': (data) => data.redirectTo('/page21'),
                       '/page21': (data) => data.redirectTo('/404'),
-                      '/page22': (data) => RouteWidget(
-                            routes: {
-                              '/': (data) => Text('Page22'),
-                              '/page23': (data) => Text('Page23'),
-                            },
-                          ),
+                      '/page22': (data) {
+                        return RouteWidget(
+                          routes: {
+                            '/': (data) => Text('Page22'),
+                            '/page23': (data) => Text('Page23'),
+                          },
+                        );
+                      },
                     },
                   ),
+              '/page3': (data) => data.redirectTo('/page1/page11'),
             },
           );
 
@@ -4643,6 +4709,10 @@ void main() {
           expect(find.text('404'), findsOneWidget);
           //
           navigator.to('/page2/page22/page23/404');
+          await tester.pumpAndSettle();
+          expect(find.text('404'), findsOneWidget);
+
+          navigator.to('/page3/404');
           await tester.pumpAndSettle();
           expect(find.text('404'), findsOneWidget);
         },

@@ -194,7 +194,7 @@ abstract class RouterObjects {
 
   static bool _back<T extends Object?>(T? result, [RouterDelegateImp? d]) {
     final delegate = _toBack(d);
-    if (delegate == null || delegate == d) {
+    if (delegate == null || delegate == d || !delegate._canPop) {
       return false;
     }
     delegate.navigatorKey!.currentState!.pop<T>(result);
@@ -225,6 +225,9 @@ abstract class RouterObjects {
     // }
     // return isDone;
   }
+
+  static bool get canPop =>
+      RouterObjects.getDelegateToPop(RouterObjects.rootDelegate!) != null;
 
   static RouterDelegateImp? getDelegateToPop([
     RouterDelegateImp? delegate,

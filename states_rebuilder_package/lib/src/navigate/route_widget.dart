@@ -212,7 +212,6 @@ class RouteWidget extends StatelessWidget {
         _delegateImplyLeadingToParent =
             delegateImplyLeadingToParent ?? !canAnimateTransition,
         _transitionDuration = transitionDuration,
-        _remainingUrlSegments = remainingUrlSegments,
         super(
           key: key ??
               Key(
@@ -250,11 +249,9 @@ class RouteWidget extends StatelessWidget {
   late final String _path = _parentToSubRouteMessage.toPath;
   late final String routeLocation = _routeData._subLocation;
   late final String routePath = _routeData.path;
-  late final List<String> _remainingUrlSegments;
   late final routePathResolver = ResolvePathRouteUtil(
     urlName: routeLocation,
     routeName: routePath,
-    remainingUrlSegments: _remainingUrlSegments,
   );
   // Navigator 2
   late final RouterDelegateImp _routerDelegate;

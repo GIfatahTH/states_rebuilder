@@ -479,9 +479,14 @@ MaterialApp(
   /// See also: [back]
   ///
   void forceBack<T extends Object>([T? result]) {
-    RouterObjects.rootDelegate!
-      ..forceBack = true
-      ..rootDelegatePop(result);
+    if (RouterObjects.canPop) {
+      RouterObjects.rootDelegate!
+        ..forceBack = true
+        ..rootDelegatePop(result);
+    } else {
+      RouterObjects.rootDelegate!.navigatorKey!.currentState!.pop();
+      SystemNavigator.pop();
+    }
   }
 
   ///Navigate back and remove all the previous routes until meeting the route

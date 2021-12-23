@@ -319,7 +319,6 @@ void main() {
       );
       await tester.pumpWidget(widget2);
       expect(find.text(routeSetting.name!), findsOneWidget);
-      print(_navigator.pageStack);
       RM.navigate.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
@@ -1643,6 +1642,14 @@ void main() {
         settings: const RouteSettings(name: '/four/one'),
       )!;
       expect(getValue(r.values.last), '/four/one');
+
+      //
+      r = routePathResolver.getPagesFromRouteSettings(
+        routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
+        settings: const RouteSettings(name: '/four/one1'),
+      )!;
+      expect(getValue(r.values.last), '404 /four/one1');
+
       //
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
@@ -1680,7 +1687,7 @@ void main() {
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),
         settings: const RouteSettings(name: '/six/one-two'),
       )!;
-      expect(getValue(r.values.last), '/six/one-two');
+      expect(getValue(r.values.last), '404 /six/one-two');
 
       r = routePathResolver.getPagesFromRouteSettings(
         routes: routes.map((key, value) => MapEntry(Uri.parse(key), value)),

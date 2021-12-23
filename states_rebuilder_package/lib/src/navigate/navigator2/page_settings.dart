@@ -79,6 +79,13 @@ class PageSettings extends RouteSettings {
   final RouteData? rData;
   final String? _delegateName;
 
+  List<PageSettings> get getSubPages {
+    if (child is RouteWidget) {
+      return (child as RouteWidget)._routerDelegate._pageSettingsList;
+    }
+    return const [];
+  }
+
   /// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
   const PageSettings({
     required String name,

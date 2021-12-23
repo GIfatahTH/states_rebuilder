@@ -464,13 +464,6 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         return false;
       }
     }
-
-    /// There’s a request to pop the route. If the route can’t handle it internally,
-    /// it returns false.
-
-    // return false;
-
-    /// Otherwise, check to see if we can remove the top page and remove the page from the list of pages.
     if (_canPop) {
       if (back(result) == true) {
         final didPop = route.didPop(result);
@@ -482,17 +475,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       return false;
       // return true;
     }
-    // else {
-    //   if (delegateImplyLeadingToParent) {
-    //     RouterObjects.rootDelegate!
-    //       ..message = 'Back'
-    //       ..canLogMessage = false;
-    //     if (!RouterObjects._back(result)) {
-    //       RouterObjects.rootDelegate!.message = 'Navigate';
-    //     }
-    //   }
-    //   return false;
-    // }
+
     return false;
   }
 
@@ -508,11 +491,26 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     return false;
   }
 
-  // @override
-  // Future<bool> popRoute() async {
-  //   print(await super.popRoute());
-  //   return SynchronousFuture(true);
-  // }
+  @override
+  Future<bool> popRoute() async {
+    // print(await super.popRoute());
+
+    final isBack = RouterObjects._back(null);
+    if (isBack) {
+      return SynchronousFuture(true);
+    }
+
+    final canPop = navigatorKey!.currentState!.canPop();
+    if (canPop) {
+      navigatorKey!.currentState!.pop();
+      return SynchronousFuture(true);
+    }
+    final exitApp = RouterObjects.injectedNavigator!.onBack?.call(null);
+    if (exitApp == true) {
+      return super.popRoute();
+    }
+    return SynchronousFuture(true);
+  }
 
   Future<T?> to<T extends Object?>(PageSettings settings) async {
     _pageSettingsList.add(settings);

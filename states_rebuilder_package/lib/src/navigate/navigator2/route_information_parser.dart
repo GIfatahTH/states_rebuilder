@@ -37,17 +37,21 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
     RouterObjects._initialRouteValue = null;
     final pages = _routerDelegate.getPagesFromRouteSettings(
       settings: settings,
-      skipHomeSlash: skipHomeSlash,
+      skipHomeSlash: _pageSettingsList.isNotEmpty ? true : skipHomeSlash,
       redirectedFrom: routeData?._redirectedFrom ?? [],
     );
     resolvedPages?.call(pages);
     if (pages != null) {
-      _pageSettingsList.clear(); // TODO May remove me
+      // if (_pageSettingsList.isNotEmpty) {
+      //   _pageSettingsList.add(pages.values.last);
+      // } else {
       _pageSettingsList.addAll(pages.values);
+      // }
     }
 
     if (_routerDelegate == RouterObjects.rootDelegate) {
-      _routerDelegate.useTransition = false;
+      _routerDelegate.useTransition =
+          _pageSettingsList.isNotEmpty ? true : false;
       RouterObjects.rootDelegate!.message = 'DeepLink';
     }
     return SynchronousFuture(settings);

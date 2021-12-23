@@ -377,8 +377,27 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
       );
       RouterObjects.injectedNavigator = this;
     };
-    _resetDefaultState();
   }
+  bool _isInitialized = false;
+
+  @override
+  RouterDelegate<PageSettings> get routerDelegate {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      _resetDefaultState();
+    }
+    return super.routerDelegate;
+  }
+
+  @override
+  RouteInformationParser<PageSettings> get routeInformationParser {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      _resetDefaultState();
+    }
+    return super.routeInformationParser;
+  }
+
   static final initialState = RouteData(
     path: '/',
     location: '/',
@@ -422,7 +441,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
 
   final bool debugPrintWhenRouted;
   final Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder;
-  final bool? Function(RouteData data)? onBack;
+  final bool? Function(RouteData? data)? onBack;
 
   late final VoidCallback _resetDefaultState;
 
@@ -434,7 +453,8 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
 
   @override
   void dispose() {
-    _resetDefaultState();
+    _isInitialized = false;
+    // _resetDefaultState();
     super.dispose();
   }
 
@@ -444,7 +464,7 @@ class InjectedNavigatorImp extends InjectedBaseBaseImp<RouteData>
       return _mock!.canPop;
     }
     OnReactiveState.addToObs?.call(this);
-    return RouterObjects.getDelegateToPop(RouterObjects.rootDelegate!) != null;
+    return RouterObjects.canPop;
   }
 
   @override
