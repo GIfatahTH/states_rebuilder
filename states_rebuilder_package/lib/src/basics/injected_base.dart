@@ -1,7 +1,21 @@
 part of '../rm.dart';
 
 abstract class InjectedBase<T> extends InjectedBaseState<T> {
+  /// Sync state mutation.
+  ///
+  /// Use setState for more options
+  ///
+  /// See: [stateAsync] for async state mutation
   set state(T s) {
+    setState((_) => s);
+  }
+
+  /// Async state mutation.
+  ///
+  /// User setState for mor options
+  ///
+  /// See: [state] for sync state mutation
+  set stateAsync(Future<T> s) {
     setState((_) => s);
   }
 
