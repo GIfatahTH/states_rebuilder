@@ -296,7 +296,7 @@ class SnapState<T> {
   ///Similar to [data] with the particularity that it is non nullable.
   T get state {
     assert(data is T);
-    return data!;
+    return data as T;
   }
 
   /// Returns whether this snapshot contains a non-null [data] value.

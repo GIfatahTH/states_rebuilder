@@ -361,10 +361,10 @@ class ReactiveModelBase<T> {
   ///Dispose the state
   void dispose() {
     _isDisposed = true;
-    if (_endStreamCompleter != null &&
-        _endStreamCompleter!.isCompleted == false) {
-      _endStreamCompleter!.complete();
-    }
+    // if (_endStreamCompleter != null &&
+    //     _endStreamCompleter!.isCompleted == false) {
+    //   _endStreamCompleter!.complete();
+    // }
 
     _cancelSubscription();
     _isInitialized = false;

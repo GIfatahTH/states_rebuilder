@@ -223,7 +223,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     }
 
     final snap = await call();
-    return snap.data as T;
+    return snap.state;
   }
 
   ///IF the state is in the hasError status, The last callback that causes the
