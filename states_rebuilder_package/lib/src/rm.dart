@@ -62,6 +62,8 @@ part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
 
+typedef AddObsCallback = void Function(InjectedBaseState);
+
 abstract class RM {
   RM._();
 
