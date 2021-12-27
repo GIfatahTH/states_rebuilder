@@ -65,6 +65,38 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     }
   }
 
+  void setToIsIdle() {
+    _reactiveModelState.setToIsIdle(middleSnap: _middleSnap);
+    notify();
+  }
+
+  void setToIsWaiting() {
+    _reactiveModelState.setToIsWaiting(
+      middleSnap: _middleSnap,
+      infoMessage: kFuture,
+    );
+  }
+
+  void setToHasData(T data) {
+    _reactiveModelState.setToHasData(
+      middleSnap: _middleSnap,
+      data: data,
+    );
+  }
+
+  void setToHasError(
+    dynamic error, {
+    StackTrace? stackTrace,
+    VoidCallback? refresher,
+  }) {
+    _reactiveModelState.setToHasError(
+      middleSnap: _middleSnap,
+      error: error,
+      stackTrace: stackTrace,
+      refresher: refresher ?? () {},
+    );
+  }
+
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,

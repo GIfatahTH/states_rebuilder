@@ -149,6 +149,49 @@ class ReactiveModelBase<T> {
     }
   }
 
+  void setToIsIdle({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState.copyToIsIdle(),
+    );
+  }
+
+  void setToIsWaiting({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    String? infoMessage,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToIsWaiting(
+        infoMessage: infoMessage,
+      ),
+    );
+  }
+
+  void setToHasData({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    required dynamic data,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToHasData(data),
+    );
+  }
+
+  void setToHasError({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    required dynamic error,
+    required StackTrace? stackTrace,
+    required VoidCallback refresher,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToHasError(
+        error,
+        refresher,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
+
   ///Mutate the state
   Future<SnapState<T>> Function() setStateFn(
     dynamic Function(T? state) fn, {
@@ -161,6 +204,8 @@ class ReactiveModelBase<T> {
       try {
         // ignore: prefer_typing_uninitialized_variables
         var _stream;
+        bool isWaitingForAsyncTask =
+            snapState._infoMessage != kRecomputing && snapState.isWaiting;
         dynamic result = fn(snapState.data);
         if (result is Future) {
           _stream = result.asStream();
@@ -168,17 +213,17 @@ class ReactiveModelBase<T> {
           _stream = result;
         }
         if (_stream != null) {
+          isWaitingForAsyncTask = false;
           final dataFuture = _streamSubscription(
             _stream!,
             middleState,
             () => call(), //used for refresh
           );
-          if (!_snapState.isWaiting) {
-            setSnapStateAndRebuild = middleState(
-              _snapState._copyToIsWaiting(
-                infoMessage:
-                    debugMessage ?? (result is Future ? kFuture : kStream),
-              ),
+          if (!_snapState.isWaiting && !skipWaiting) {
+            setToIsWaiting(
+              middleSnap: middleState,
+              infoMessage:
+                  debugMessage ?? (result is Future ? kFuture : kStream),
             );
           }
 
@@ -208,10 +253,14 @@ class ReactiveModelBase<T> {
 
           return true;
         }());
-
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasData(result),
-        );
+        if (isWaitingForAsyncTask) {
+          setSnapStateAndRebuild = _snapState.copyWith(data: result);
+        } else {
+          setToHasData(
+            middleSnap: middleState,
+            data: result,
+          );
+        }
 
         return _snapState;
       } catch (err, s) {
@@ -221,12 +270,11 @@ class ReactiveModelBase<T> {
           rethrow;
         }
         //In the other hand Exception are handled
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasError(
-            err,
-            () => call(),
-            stackTrace: s,
-          ),
+        setToHasError(
+          middleSnap: middleState,
+          error: err,
+          stackTrace: s,
+          refresher: call,
         );
 
         return _snapState;
@@ -257,9 +305,7 @@ class ReactiveModelBase<T> {
             _endStreamCompleter?.complete(data);
           }
         } else {
-          setSnapStateAndRebuild = middleState(
-            _snapState._copyToHasData(data),
-          );
+          setToHasData(middleSnap: middleState, data: data);
         }
       },
       onError: (err, s) {
@@ -272,12 +318,11 @@ class ReactiveModelBase<T> {
           throw err;
         }
         //In the other hand Exception are handled
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasError(
-            err,
-            refresher,
-            stackTrace: s,
-          ),
+        setToHasError(
+          middleSnap: middleState,
+          error: err,
+          stackTrace: s,
+          refresher: refresher,
         );
         if (_endStreamCompleter?.isCompleted == false) {
           _endStreamCompleter?.complete();
