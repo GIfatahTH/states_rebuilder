@@ -123,7 +123,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   /// [setState].
   ///  * **throttleDelay**: time in milliseconds to throttle the execution of
   /// [setState].
-  ///  * **skipWaiting**: Wether to notify observers on the waiting state.
+  ///  * **skipWaiting**: Wether to skip waiting state.
   ///  * **shouldAwait**: Wether to await of any existing async call.
   ///  * **silent**: Whether to silent the error of no observers is found.
   ///  * **context**: The [BuildContext] to be used for side effects
@@ -172,9 +172,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
                   stateInterceptor(middle.currentSnap, middle.nextSnap)
               : null,
         );
-        if (skipWaiting && snap != null && snap.isWaiting) {
-          return null;
-        }
+
         if (snap != null && snap.hasData) {
           if (sideEffects?.onAfterBuild != null) {
             sideEffects!.onAfterBuild!();
@@ -189,6 +187,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
       onDone: (s) {
         return s;
       },
+      skipWaiting: skipWaiting,
       debugMessage: debugMessage,
     );
     if (debounceDelay > 0) {
