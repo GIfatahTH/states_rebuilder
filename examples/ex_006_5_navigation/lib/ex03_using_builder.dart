@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // In this example, show the use of the InjectedNavigator.builder method to wrap
-// the app inside the body of the scaffold and the appBar is used a a fixed
+// the app inside the body of the scaffold and the appBar that used a fixed
 // navigation menu
 
 void main() {
