@@ -100,6 +100,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    SnapState<T>? Function(MiddleSnapState<T>)? middleSnapState,
     bool shouldOverrideGlobalSideEffects,
     void Function(T)? onData,
     void Function(dynamic)? onError,
@@ -137,6 +138,8 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     @Deprecated('User sideEffects instead') On<void>? onSetState,
     @Deprecated('User sideEffects instead') void Function()? onRebuildState,
     SideEffects<T>? sideEffects,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
     int debounceDelay = 0,
     int throttleDelay = 0,
     bool shouldAwait = false,
@@ -164,6 +167,10 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
                   sideEffects!.onSetState!(s);
                 })
               : onSetState,
+          middleSnapState: stateInterceptor != null
+              ? (middle) =>
+                  stateInterceptor(middle.currentSnap, middle.nextSnap)
+              : null,
         );
         if (skipWaiting && snap != null && snap.isWaiting) {
           return null;
