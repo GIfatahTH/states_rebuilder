@@ -5,8 +5,6 @@ import '../common/logger.dart';
 import '../rm.dart';
 import 'on_reactive.dart';
 
-typedef AddObsCallback = void Function(InjectedBaseState);
-
 /// Use it instead of [StatelessWidget] to make the hole sub tree reactive.
 ///
 /// Any state consumed in any widget child of the widget where the

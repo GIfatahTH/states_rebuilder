@@ -74,8 +74,17 @@ class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
     super.dispose();
   }
 
+  AddObsCallback? cachedAddToObs;
+
+  @override
+  void afterBuild() {
+    OnReactiveState.addToObs = cachedAddToObs;
+  }
+
   @override
   Widget build(BuildContext context) {
+    cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     return _builder.builder(context, widget.widget);
   }
 }
