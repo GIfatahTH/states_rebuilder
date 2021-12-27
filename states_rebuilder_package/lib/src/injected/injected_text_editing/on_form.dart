@@ -208,7 +208,7 @@ class OnFormBuilder extends StatelessWidget {
   final ReactiveModel<bool?>? isReadOnlyRM;
   @override
   Widget build(BuildContext context) {
-    return OnForm(builder).listenTo(
+    return OnForm(() => OnReactive(builder)).listenTo(
       listenTo,
       isEnabled: isEnabledRM,
       isReadOnly: isReadOnlyRM,
