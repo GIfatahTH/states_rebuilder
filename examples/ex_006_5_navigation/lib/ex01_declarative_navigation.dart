@@ -22,7 +22,7 @@ class Book {
 
 final navigator = RM.injectNavigator(
   // At least one route must be defined. This is the home page of the app
-  // In this example deep link wont't work (See the nex example)
+  // In this example deep link wont't work (See the next example)
   routes: {
     '/': (data) => BooksListScreen(books: books),
   },
