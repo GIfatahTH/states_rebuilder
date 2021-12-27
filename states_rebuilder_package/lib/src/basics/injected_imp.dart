@@ -592,19 +592,53 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   void undoState() {
-    _reactiveModelState.setSnapStateAndRebuild =
-        undoRedoPersistState?.undoState();
+    final snap = undoRedoPersistState?.undoState();
+    if (snap == null) {
+      return;
+    }
+    assert(() {
+      if (toDebugString != null) {
+        MiddleSnapState(snapState, snap).print(
+          stateToString: toDebugString,
+          preMessage: debugPrintWhenNotifiedPreMessage! + " (UndoState)",
+        );
+      } else if (debugPrintWhenNotifiedPreMessage != null) {
+        MiddleSnapState(snapState, snap).print(
+            preMessage: debugPrintWhenNotifiedPreMessage! + " (UndoState)");
+      }
+
+      return true;
+    }());
+    // if (snap != snapState) {}
+    _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
   @override
   void redoState() {
-    _reactiveModelState.setSnapStateAndRebuild =
-        undoRedoPersistState?.redoState();
+    final snap = undoRedoPersistState?.redoState();
+    if (snap == null) {
+      return;
+    }
+    assert(() {
+      if (toDebugString != null) {
+        MiddleSnapState(snapState, snap).print(
+          stateToString: toDebugString,
+          preMessage: debugPrintWhenNotifiedPreMessage! + " (RedoState)",
+        );
+      } else if (debugPrintWhenNotifiedPreMessage != null) {
+        MiddleSnapState(snapState, snap).print(
+            preMessage: debugPrintWhenNotifiedPreMessage! + " (RedoState)");
+      }
+
+      return true;
+    }());
+    _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
   @override
   void clearUndoStack() {
     undoRedoPersistState?.clearUndoStack();
+    notify();
   }
 
   @override
