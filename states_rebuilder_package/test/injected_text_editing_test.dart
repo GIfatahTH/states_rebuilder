@@ -1031,23 +1031,21 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: OnReactive(
-            () => OnFormBuilder(
-              listenTo: form,
-              builder: () {
-                return Column(
-                  children: [
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: password.controller,
+                  ),
+                  if (isRegister.state)
                     TextField(
-                      controller: password.controller,
+                      controller: confirmPassword.controller,
                     ),
-                    if (isRegister.state)
-                      TextField(
-                        controller: confirmPassword.controller,
-                      ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
           ),
         ),
       );
