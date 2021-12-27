@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This example is a show case that when a route redirect ot another route, the
+// This example is a show case that when a route redirect at another route, the
 // latter will have all information about the route it is redirected from
 
 void main() {
