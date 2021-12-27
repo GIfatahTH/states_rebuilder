@@ -198,6 +198,7 @@ class ReactiveModelBase<T> {
     required SnapState<T>? Function(SnapState<T> snap) middleState,
     required SnapState<T>? Function(SnapState<T> snap) onDone,
     String? debugMessage,
+    bool skipWaiting = false,
   }) {
     late Future<SnapState<T>> Function() call;
     call = () async {
