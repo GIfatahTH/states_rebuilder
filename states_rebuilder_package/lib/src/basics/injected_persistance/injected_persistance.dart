@@ -95,6 +95,7 @@ class PersistState<T> {
     this.persistStateProvider,
     this.shouldRecreateTheState,
   }) {
+    assert(T != dynamic && !isObjectOrNull<T>());
     fromJson ??= _getFromJsonOfPrimitive<T>();
     toJson ??= _getToJsonOfPrimitive<T>();
   }
@@ -144,8 +145,7 @@ await RM.storageInitializerMock();\n\n
     }
 
     try {
-      final dynamic r =
-          cachedJson ?? _persistStateSingleton!.read(key) as dynamic;
+      final Object? r = cachedJson ?? _persistStateSingleton!.read(key);
       if (r == null) {
         return null;
       }

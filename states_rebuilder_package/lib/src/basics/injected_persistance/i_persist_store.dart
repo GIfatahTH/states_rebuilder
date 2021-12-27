@@ -50,7 +50,7 @@ part of '../../rm.dart';
 ///  }
 ///
 ///  @override
-///  Object? read(String key) async {
+///  Object? read(String key) {
 ///      return box.get(key);
 ///  }
 ///
@@ -85,7 +85,8 @@ abstract class IPersistStore {
   Future<void> delete(String key);
 
   ///Purge localStorage
-  Future<void> deleteAll();
+  @mustCallSuper
+  Future<void> deleteAll() async {}
 
   static T getRepo<T extends IPersistStore>() =>
       (_persistStateGlobalTest ?? _persistStateGlobal) as T;
