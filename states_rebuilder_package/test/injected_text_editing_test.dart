@@ -1059,6 +1059,36 @@ void main() {
   );
 
   testWidgets(
+    'Test controllerWithInitialText',
+    (tester) async {
+      final form = RM.injectForm();
+      final password = RM.injectTextEditing();
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: password.controllerWithInitialText('zero'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('zero'), findsOneWidget);
+      password.controller.text = 'one';
+      await tester.pump();
+      expect(find.text('one'), findsOneWidget);
+    },
+  );
+  testWidgets(
     'WHEN a field is autoFocused'
     'THEN the it is assigned to the form autoFocusedNode'
     'AND it is auto validated when lost focus',

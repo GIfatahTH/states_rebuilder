@@ -51,6 +51,39 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///A controller for an editable text field.
   TextEditingControllerImp get controller;
 
+  /// Initializes a controller with the given initial text.
+  ///
+  /// It is useful when the initial value is obtained in the build method of
+  /// the widget tree. (We can not initialize the controller when creating the
+  /// injectedTextEditingController)
+  ///
+  /// **Don't do**
+  /// ```dart
+  /// final myInjectedController= RM.injectTextEditingController();
+  ///
+  /// // In the widget tree
+  /// Widget builder(BuildContext context){
+  ///   final initialValue = ...;
+  ///    return TextField(
+  ///      controller: myInjectedController.controller..text = initialValue,
+  ///    )
+  /// }
+  /// ```
+  ///
+  /// **Do**
+  /// ```dart
+  /// final myInjectedController= RM.injectTextEditingController();
+  ///
+  /// // In the widget tree
+  /// Widget builder(BuildContext context){
+  ///   final initialValue = ...;
+  ///    return TextField(
+  ///      controller: myInjectedController.controllerWithInitialText(initialValue) ,
+  ///    )
+  /// }
+  /// ```
+  TextEditingControllerImp controllerWithInitialText(String text);
+
   ///The current text being edited.
   String get text => state;
 
@@ -187,6 +220,14 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
 
   //
   late final VoidCallback _resetDefaultState;
+
+  @override
+  TextEditingControllerImp controllerWithInitialText(String text) {
+    if (_controller == null) {
+      return controller..text = text;
+    }
+    return controller;
+  }
 
   @override
   TextEditingControllerImp get controller {
