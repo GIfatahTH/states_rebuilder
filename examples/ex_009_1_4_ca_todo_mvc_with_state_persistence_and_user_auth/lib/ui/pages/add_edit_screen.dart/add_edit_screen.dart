@@ -11,7 +11,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../../domain/entities/todo.dart';
 
 final _task = RM.injectTextEditing(
-  text: 'hhhhhhh',
+  text: '',
   validators: [
     (val) {
       if (val!.trim().isEmpty) {
@@ -46,33 +46,38 @@ class AddEditPage extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         child: OnFormBuilder(
           listenTo: _form,
-          builder: () => ListView(
-            children: [
-              TextField(
-                key: Key('__TaskField'),
-                controller: _task.controller
-                  ..text = todo != null ? todo.state.task : '',
-
-                autofocus: isEditing ? false : true,
-                style: Theme.of(context).textTheme.headline5,
-                decoration: InputDecoration(hintText: _i18n.newTodoHint),
-                // validator: (val) =>
-                //     val!.trim().isEmpty ? _i18n.emptyTodoError : null,
-                // onSaved: (value) => _task = value,
-              ),
-              TextField(
-                key: Key('__NoteField'),
-                controller: _note.controller
-                  ..text = todo != null ? todo.state.note : '',
-                maxLines: 10,
-                style: Theme.of(context).textTheme.subtitle1,
-                decoration: InputDecoration(
-                  hintText: _i18n.notesHint,
+          builder: () {
+            print(_task.text);
+            print(_note.text);
+            return ListView(
+              children: [
+                TextField(
+                  key: Key('__TaskField'),
+                  controller: _task.controllerWithInitialText(
+                    todo != null ? todo.state.task : '',
+                  ),
+                  autofocus: isEditing ? false : true,
+                  style: Theme.of(context).textTheme.headline5,
+                  decoration: InputDecoration(hintText: _i18n.newTodoHint),
+                  // validator: (val) =>
+                  //     val!.trim().isEmpty ? _i18n.emptyTodoError : null,
+                  // onSaved: (value) => _task = value,
                 ),
-                // onSaved: (value) => _note = value,
-              )
-            ],
-          ),
+                TextField(
+                  key: Key('__NoteField'),
+                  controller: _note.controllerWithInitialText(
+                    todo != null ? todo.state.note : '',
+                  ),
+                  maxLines: 10,
+                  style: Theme.of(context).textTheme.subtitle1,
+                  decoration: InputDecoration(
+                    hintText: _i18n.notesHint,
+                  ),
+                  // onSaved: (value) => _note = value,
+                )
+              ],
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
