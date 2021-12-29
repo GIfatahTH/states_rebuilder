@@ -868,20 +868,24 @@ class InjectedImp<T> extends Injected<T> {
 }
 
 class _InheritedInjected<T> extends InheritedWidget {
-  const _InheritedInjected({
+  _InheritedInjected({
     Key? key,
     required Widget child,
     required this.injected,
     required this.globalInjected,
     required this.context,
-  }) : super(key: key, child: child);
+  }) : super(key: key, child: child) {
+    final data = injected._reactiveModelState.snapState.data;
+    state = data;
+  }
   final Injected<T> injected;
+  late final T? state;
   final Injected<T> globalInjected;
   final BuildContext context;
 
   @override
   bool updateShouldNotify(_InheritedInjected _) {
-    return true;
+    return _.state != state;
   }
 }
 

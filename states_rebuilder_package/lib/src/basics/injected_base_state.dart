@@ -65,11 +65,12 @@ abstract class InjectedBaseState<T> {
   }
 
   /// Initialize the state
-  FutureOr<T> initializeState() {
+  FutureOr<T?> initializeState() {
+    final data = _reactiveModelState.snapState.data;
     if (isWaiting) {
       return stateAsync;
     }
-    return state;
+    return data;
   }
 
   ///The state is initialized and never mutated.
