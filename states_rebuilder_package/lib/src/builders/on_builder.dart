@@ -76,6 +76,32 @@ class OnBuilder<T> extends StatelessWidget {
     onBuilder = _On(orElse: (_) => builder());
   }
 
+  factory OnBuilder.create({
+    Key? key,
+    required ReactiveModel<T> Function() create,
+    required Widget Function(ReactiveModel<T> rm) builder,
+  }) {
+    return OnBuilder.orElse(
+      onIdle: () => StateBuilderBase<Widget Function(ReactiveModel<T> rm)>(
+        (widget, setState) {
+          late ReactiveModel<T> rm = create();
+          final disposer =
+              rm._reactiveModelState.listeners.addListenerForRebuild(
+            (_) => setState(),
+          );
+          return LifeCycleHooks(
+            builder: (_, builder) {
+              return builder(rm);
+            },
+            dispose: (_) => disposer(),
+          );
+        },
+        widget: builder,
+      ),
+      orElse: (_) => throw UnimplementedError(),
+    );
+  }
+
   OnBuilder.data({
     Key? key,
     this.listenTo,
@@ -199,6 +225,13 @@ class OnBuilder<T> extends StatelessWidget {
         key: key,
         debugPrintWhenRebuild: debugPrintWhenRebuild,
       );
+    }
+
+    if (listenTo == null && onBuilder.onIdle != null) {
+      final child = onBuilder.onIdle!();
+      if (child is StateBuilderBase) {
+        return child;
+      }
     }
     assert(() {
       if (listenTo == null) {
