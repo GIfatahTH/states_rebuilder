@@ -2,6 +2,7 @@
  * Add Navigator 2 support.
  * Add `statesInterceptor` to `setState` method.
  * Add `setToIsIdle`, `setToIsWaiting`, `setToHasData`, `setToHasError` methods.
+ * Add `OnBuilder.create` listener.
  * Fix issues #241 #248
  * Improve internal logic
 ## 5.0.0 (2021-10-10)
