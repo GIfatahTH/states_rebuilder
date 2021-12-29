@@ -661,17 +661,17 @@ class _CRUDService<T, P> {
 class _Item<T, P> {
   final InjectedCRUD<T, P> injectedList;
   late final Injected<T> injected;
-  bool _isUpdating = false;
-  bool _isRefreshing = false;
+  // bool _isUpdating = false;
+  // bool _isRefreshing = false;
   _Item(this.injectedList) {
     injected = RM.inject(
       () => injectedList._state.first,
       sideEffects: SideEffects.onData(
         (_) async {
-          if (_isRefreshing) {
-            return;
-          }
-          _isUpdating = true;
+          // if (_isRefreshing) {
+          //   return;
+          // }
+          // _isUpdating = true;
           try {
             await injectedList.crud.update(
               where: (t) {
@@ -679,9 +679,9 @@ class _Item<T, P> {
               },
               set: (t) => getInjectedState(injected),
             );
-            _isUpdating = false;
+            // _isUpdating = false;
           } catch (e) {
-            _isUpdating = false;
+            // _isUpdating = false;
           }
         },
       ),
@@ -690,12 +690,12 @@ class _Item<T, P> {
   }
 
   void _refresh() async {
-    if (_isUpdating || _isRefreshing) {
-      return;
-    }
-    _isRefreshing = true;
+    // if (_isUpdating || _isRefreshing) {
+    //   return;
+    // }
+    // _isRefreshing = true;
     await injected.refresh();
-    _isRefreshing = false;
+    // _isRefreshing = false;
   }
 
   ///Provide the an item using an [InheritedWidget] to the sub-branch widget tree.
