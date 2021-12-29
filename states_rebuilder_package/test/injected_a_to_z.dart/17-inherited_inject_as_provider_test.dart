@@ -3,28 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final counter1 = RM.inject<int>(() => 10);
-final counter2 = RM.inject<int>(() => 20);
+final counter1 = RM.inject<int>(
+  () => 10,
+  debugPrintWhenNotifiedPreMessage: '1',
+);
+final counter2 = RM.inject<int>(
+  () => 20,
+  debugPrintWhenNotifiedPreMessage: '2',
+);
 final counter3 =
     RM.injectFuture<int>(() => Future.delayed(Duration(seconds: 1), () => 30));
 
 class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // return counter1.inherited(
-    //   builder: (context) => counter2.inherited(
-    //     builder: (context) => counter3.inherited(
-    //       builder: (context) => _MyHomePage(),
-    //       // debugPrintWhenNotifiedPreMessage: 'counter3',
-    //     ),
-    //     // debugPrintWhenNotifiedPreMessage: 'counter2',
-    //   ),
-    //   // debugPrintWhenNotifiedPreMessage: 'counter1',
-    // );
-
-    return [counter1, counter2, counter3].inherited(
-      builder: (context) => _MyHomePage(),
+    return counter1.inherited(
+      builder: (context) => counter2.inherited(
+        builder: (context) => counter3.inherited(
+          builder: (context) => _MyHomePage(),
+          // debugPrintWhenNotifiedPreMessage: 'counter3',
+        ),
+        // debugPrintWhenNotifiedPreMessage: 'counter2',
+      ),
+      // debugPrintWhenNotifiedPreMessage: 'counter1',
     );
+
+    // return [counter1, counter2, counter3].inherited(
+    //   builder: (context) => _MyHomePage(),
+    // );
   }
 }
 
@@ -35,8 +41,8 @@ class _MyHomePage extends StatelessWidget {
         textDirection: TextDirection.ltr,
         child: Column(
           children: [
-            Text('counter1: ${counter1.of(context)}'),
             Text('counter2: ${counter2.of(context)}'),
+            Text('counter1: ${counter1.of(context)}'),
             if (counter3(context).isWaiting == false)
               Text('counter3: ${counter3.of(context)}')
             else

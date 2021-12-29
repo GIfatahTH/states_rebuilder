@@ -203,6 +203,7 @@ void main() {
       //
       onWaitingValue = null;
       model.refresh();
+      await tester.pump();
       expect(model.isWaiting, true);
       expect(model.state, 1);
       expect(onWaitingValue, 'Waiting...');

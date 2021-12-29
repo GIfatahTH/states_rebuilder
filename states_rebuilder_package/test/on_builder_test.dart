@@ -436,4 +436,34 @@ void main() {
       expect(numberOfRebuild, 4);
     },
   );
+
+  testWidgets(
+    'Text OnBuilder.create'
+    'THEN',
+    (tester) async {
+      late ReactiveModel<int> rm;
+      bool switcher = true;
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnBuilder<int>.create(
+          create: () => 0.inj(),
+          builder: (r) {
+            rm = r;
+            return switcher ? Text(rm.state.toString()) : Container();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      rm.state++;
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+      //
+      switcher = false;
+      rm.notify();
+      await tester.pump();
+      expect(find.text('1'), findsNothing);
+      expect(find.byType(Container), findsOneWidget);
+    },
+  );
 }
