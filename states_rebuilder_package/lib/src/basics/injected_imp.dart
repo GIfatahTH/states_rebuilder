@@ -166,6 +166,13 @@ class InjectedImp<T> extends Injected<T> {
       middleState: (snap) {
         if (isInitializing) {
           isInitializing = false;
+          if (snap.data is ChangeNotifier) {
+            (snap.data as ChangeNotifier).addListener(notify);
+            _reactiveModelState.listeners.addCleaner(() {
+              (snap.data as ChangeNotifier).removeListener(notify);
+            });
+            return snap;
+          }
           if (snapState._infoMessage == kRecomputing) {
             return middleSnap(snap);
           }
