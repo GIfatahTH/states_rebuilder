@@ -261,11 +261,12 @@ class ReactiveModelBase<T> {
             middleSnap: middleState,
             data: result,
           );
+          return Future.sync(() => _snapState);
         }
 
         return _snapState;
       } catch (err, s) {
-        if (err is Error) {
+        if (err is Error && err is! UnimplementedError) {
           //Error are not supposed to be captured and handled
           StatesRebuilerLogger.log('', err, s);
           rethrow;
@@ -312,10 +313,7 @@ class ReactiveModelBase<T> {
       onError: (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
-          // ignore: avoid_print
-          print(err);
-          // ignore: avoid_print
-          print(s);
+          StatesRebuilerLogger.log('', err, s);
           throw err;
         }
         //In the other hand Exception are handled

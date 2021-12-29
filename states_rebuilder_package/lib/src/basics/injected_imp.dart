@@ -748,7 +748,16 @@ class InjectedImp<T> extends Injected<T> {
           injected = reInheritedInject ?? this;
         } else {
           injected = InjectedImp<T>(
-            creator: stateOverride,
+            creator: () {
+              try {
+                return stateOverride();
+              } catch (e) {
+                if (e is RangeError) {
+                  return injected.snapState.data;
+                }
+                rethrow;
+              }
+            },
             // initialState: state,
             onInitialized: (_) {
               if (connectWithGlobal) {
