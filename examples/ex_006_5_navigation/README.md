@@ -32,7 +32,7 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
 
 - [02 (B): imperative_navigation (declarative & imperative)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation.dart)
    <br /><b> Description: </b>
-  To use Nav2 in a combination of declarative and imperative approaches, and remove a hidden a page from stack.
+  To use Nav2 in a combination of declarative and imperative approaches, and remove a hidden page from stack.
 
 - [03: Using builder_navigator](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex03_using_builder.dart)
   <br /><b> Description: </b>
