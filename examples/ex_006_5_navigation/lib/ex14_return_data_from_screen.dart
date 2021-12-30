@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Show case for returning date from screen
+// Example of returning data from screen
+
 void main() {
   runApp(const MyApp());
 }
