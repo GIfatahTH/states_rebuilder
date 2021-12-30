@@ -104,16 +104,15 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   Example of data return from a screen.
   
-   
 - [15: Nested Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
   <br /><b> Description: </b>
   Example of nested routes.
   
-- [15: Nested Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
+- [16: Unit Testing Nav2](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
   <br /><b> Description: </b>
-  Example of nested routes for dealing with multiple sub routes and their components.  
+  Example of how can mock the routes into unit testing, and keep the code dry by extracting business logic depends on `InjectedNavigator`.
   
-- [15: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
+- [17: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
   <br /><b> Description: </b>
   Using states_rebuilder rewrite the flutter book app demo.
     
