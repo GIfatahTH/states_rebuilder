@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of navigation guard that used the API `InjectedNavigator.onNavigateBack` to
-// prevent leaving a page before validating its data.
+// Example of navigation guard that used the API `InjectedNavigator.onNavigateBack`
+// to prevent leaving a page before validating its data.
 
 void main() {
   runApp(const MyApp());
