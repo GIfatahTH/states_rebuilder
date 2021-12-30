@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of the used of InjectedNavigator.onNavigate and redirection to gard
-// routes
+// Example of navigation guard that used the API InjectedNavigator.onNavigate to achive redirection when auth status is invaild.
 
 void main() {
   runApp(const MyApp());
