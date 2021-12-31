@@ -676,24 +676,26 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   final inheritedInjects = <Injected<T>>{};
-
+  bool? _shouldContextWithGlobal;
   @override
   Widget inherited({
     required Widget Function(BuildContext) builder,
     Key? key,
-    FutureOr<T> Function()? stateOverride,
-    bool connectWithGlobal = true,
+    required FutureOr<T> Function()? stateOverride,
+    bool? connectWithGlobal,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
-  }) =>
-      _inherited(
-        builder: builder,
-        key: key,
-        stateOverride: stateOverride,
-        connectWithGlobal: connectWithGlobal,
-        debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-        toDebugString: toDebugString,
-      );
+    if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
+      initializeState();
+      _shouldContextWithGlobal = _reactiveModelState._snapState.data == null;
+    }
+
+    return _inherited(
+      builder: builder,
+      key: key,
+      stateOverride: stateOverride,
+      connectWithGlobal: connectWithGlobal ?? _shouldContextWithGlobal!,
+      sideEffects: sideEffects,
 
   @override
   Widget reInherited({

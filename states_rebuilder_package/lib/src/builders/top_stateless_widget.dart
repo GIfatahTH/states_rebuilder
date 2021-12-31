@@ -256,6 +256,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
         return getOnWaitingWidget();
       }
       return injectedI18N!.inherited(
+        stateOverride: null,
         builder: (context) {
           return child ?? widget.build(context);
         },

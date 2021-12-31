@@ -756,6 +756,7 @@ class _Item<T, P> {
     return injected.inherited(
       key: key,
       stateOverride: item,
+      connectWithGlobal: true,
       builder: builder,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,

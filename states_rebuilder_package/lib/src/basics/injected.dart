@@ -186,9 +186,9 @@ abstract class Injected<T> extends ReactiveModel<T> {
   /// model is primitive to distinguish
   /// {@endtemplate}
   Widget inherited({
-    required Widget Function(BuildContext) builder,
     Key? key,
-    FutureOr<T> Function()? stateOverride,
+    required Widget Function(BuildContext) builder,
+    required FutureOr<T> Function()? stateOverride,
     bool connectWithGlobal = true,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
