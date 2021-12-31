@@ -48,6 +48,7 @@ class CounterState {
 
 @immutable
 class CounterViewModel {
+  MyRepository get repository => myRepository.state;
   // This is our injected CounterState.
   // It is private because we want to control it via getters and setters
   final _counterState = RM.inject(() => CounterState.idle());
@@ -69,7 +70,7 @@ class CounterViewModel {
       // Set the CounterState to the waiting state and notify listeners
       // Widget listeners will display a CircularProgressIndicator
       _counterState.state = _counterState.state.setToIsWaiting();
-      final result = await myRepository.state.incrementAsync(counter);
+      final result = await repository.incrementAsync(counter);
       // Set the Counter state with valid data
       _counterState.state = _counterState.state.setToHasData(result);
     } catch (e) {
@@ -87,7 +88,7 @@ class CounterViewModel {
   Future<void> refreshCounter() async {
     try {
       // Skipping the waiting state
-      final result = await myRepository.state.incrementAsync(counter);
+      final result = await repository.incrementAsync(counter);
       _counterState.state = _counterState.state.setToHasData(result);
     } catch (e) {
       if (e is Error) {

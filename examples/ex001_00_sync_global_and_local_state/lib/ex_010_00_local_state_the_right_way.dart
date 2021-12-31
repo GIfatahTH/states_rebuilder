@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // Fixes the last local state example
+
+// In this example both global and local state are used together.
+//
+// We will create a global state and override it for a particular branches of
+// the widget tree
+//
 void main() {
   runApp(const MyApp());
 }
@@ -21,8 +27,15 @@ class CounterViewModel {
   }
 }
 
+// You can define one global instance of CounterViewModel.
+// and overrides it with local instances in the UI
+//
+// The global instance is obtained using counterViewModel.state,
+//
+// The local instance is obtained using counterViewModel.of(context) or,
+// counterViewModel(context).state
 final counterViewModel = RM.inject<CounterViewModel>(
-  () => throw UnimplementedError(),
+  () => CounterViewModel('1'),
 );
 
 class MyApp extends StatelessWidget {
@@ -35,12 +48,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: counterViewModel.inherited(
-        stateOverride: () => CounterViewModel('1'),
-        builder: (context) {
-          return const CounterView(counterId: 1);
-        },
-      ),
+      home: const CounterView(counterId: 1),
     );
   }
 }
@@ -54,7 +62,13 @@ class CounterView extends ReactiveStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _counterViewModel = counterViewModel.of(context);
+    // Get the local instance
+    final _counterViewModel = counterViewModel.of(
+      context,
+      // If no CounterViewModel is found using InheritedWidget, then just return
+      // the global instance
+      defaultToGlobal: true, // Default to false
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -87,6 +101,26 @@ class CounterView extends ReactiveStatelessWidget {
               ),
               child: const Text('Go to next counter'),
             ),
+            const SizedBox(height: 24),
+            //
+            // Get the global instance
+            if (_counterViewModel != counterViewModel.state)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'The global counter is ${counterViewModel.state.counter}',
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                  TextButton(
+                    onPressed: counterViewModel.state.increment,
+                    child: const Icon(
+                      Icons.add,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

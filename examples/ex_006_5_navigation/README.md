@@ -42,15 +42,15 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   To use of the `InjectedNavigator.builder` method to wrap the app inside the body of the `Scaffold` and the `AppBar` that used a fixed navigation menu.
 
-- [04: Deep-linking Naviation (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex04_to_deeply_1.dart)
+- [04: Deep-linking Navigation (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex04_to_deeply_1.dart)
   <br /><b> Description: </b>
   To know the difference between `InjectedNavigator.to` and `InjectedNavigator.toDeeply` methods.
   
-- [05: Deep-linking Naviation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex05_to_deeply_2.dart)
+- [05: Deep-linking Navigation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex05_to_deeply_2.dart)
   <br /><b> Description: </b>
   The same as pervious example 04, but written using a `RouteWidget`
 
-- [06: Deep-linking Naviation (Advanced)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex06_to_deeply_3.dart)
+- [06: Deep-linking Navigation (Advanced)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex06_to_deeply_3.dart)
   <br /><b> Description: </b>
   The same as pervious example 04 & 05, it is using `RouteWidget` with static helper methods to decentralize the route logic from one place to belonging page widget.
 
@@ -64,7 +64,7 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
 
 - [09: Authentication Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex09_on_navigate_signin.dart)
   <br /><b> Description: </b>
-  This example will show you how to easily build up a redirection guard when auth status is invaild, it is all done by a tiny API `InjectedNavigator.onNavigate`.
+  This example will show you how to easily build up a redirection guard when auth status is invalid, it is all done by a tiny API `InjectedNavigator.onNavigate`.
   
 - [10: Pop Validation & Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex10_on_back_navigation.dart)
   <br /><b> Description: </b>
@@ -107,16 +107,20 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
 - [14: Data Return from a Screen (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex14_return_data_from_screen.dart)
   <br /><b> Description: </b>
   Example of data return from a screen.
+
+- [15: Provide InheritedWidget to new route](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_provide_inherited_widget_to_new_route.dart)
+  <br /><b> Description: </b>
+  This example solves a comment issue encountered using some packages that rely on `InheritedWidget` such as `Provider` and `states_rebuilder`. Now you can provide your model to a new route without being forced to make it global.
   
-- [15: Nested Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
+- [16: Nested Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
   <br /><b> Description: </b>
   Example of nested routes.
   
-- [16: Unit Testing](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
+- [17: Unit Testing](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
   <br /><b> Description: </b>
   Example of how can mock the routes into unit testing, and keep the code dry by extracting business logic depends on `InjectedNavigator`.
   
-- [17: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
+- [18: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
   <br /><b> Description: </b>
   To use states_rebuilder rewriting flutter book app demo within 70 lines of code for the entire route settings.
 

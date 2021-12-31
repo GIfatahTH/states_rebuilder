@@ -17,12 +17,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Counter 2 view'), findsOneWidget);
       expect(find.text('0'), findsOneWidget);
+      expect(find.text('The global counter is 1'), findsOneWidget);
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pump();
       expect(find.text('1'), findsOneWidget);
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pump();
       expect(find.text('2'), findsOneWidget);
+      expect(find.text('The global counter is 1'), findsOneWidget);
       //
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();

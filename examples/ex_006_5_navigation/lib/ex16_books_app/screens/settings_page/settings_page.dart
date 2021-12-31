@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:url_launcher/link.dart';
 
-import '../../../ex16_books_app.dart';
+import '../../../ex18_books_app.dart';
 import '../sign_in_page/sign_in_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {

@@ -1,4 +1,4 @@
-import 'package:ex_006_5_navigation/ex15_injected_navigator_mock.dart';
+import 'package:ex_006_5_navigation/ex17_injected_navigator_mock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -61,6 +61,7 @@ class NavigatorMock extends InjectedNavigator {
     bool maintainState = true,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transitionsBuilder,
+    Widget Function(Widget)? builder,
   }) async {
     //Mock to method to return 100 after one seconds of wait
     await Future.delayed(const Duration(seconds: 1));
