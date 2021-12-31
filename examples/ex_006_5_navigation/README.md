@@ -1,12 +1,16 @@
 # ex_006_5_navigation
 
 ## Getting Started
-First, make sure you have installed states_rebuilder package, please check out the [installation guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
+First, make sure you have installed states_rebuilder package, please check out the [Installation Guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
+<Br />
 
-[Introduction to API `RM.injectNavigator` and Migration from Nav1 to Nav2](https://github.com/GIfatahTH/states_rebuilder/issues/249)
-<Br> </Br>
+Second, if you are from Old Navgiation 1.0, please take a took at [Introduction to `RM.injectNavigator` and Migration Guide from Nav1](https://github.com/GIfatahTH/states_rebuilder/issues/249).
+
+
+## Objective
 
 In this example, you will learn how to work on Flutter Navigation 2.0 (Nav2) more easily with states_rebuilder's API `RM.injectNavigator`.
+
 
 Basic in use: [Quick demo of below code](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex14_return_data_from_screen.dart)
 
@@ -116,5 +120,6 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   To use states_rebuilder rewriting flutter book app demo within 70 lines of code for the entire route settings.
 
-
+## Question & Suggestion
+Please feel free to post an issue or PR, as always, your feedback makes this libary become better and better.
 
