@@ -114,7 +114,7 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   
 - [17: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
   <br /><b> Description: </b>
-  Using states_rebuilder rewrites the flutter book app demo within 70 lines of code for the entire route settings.
+  To use states_rebuilder rewriting flutter book app demo within 70 lines of code for the entire route settings.
 
 
 
