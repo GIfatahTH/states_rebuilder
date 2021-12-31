@@ -4,7 +4,6 @@ import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
 import '../rm.dart';
 import 'on_reactive.dart';
-import 'reactive_state_less_widget.dart';
 
 /// Used instead of [StatelessWidget] on top of [MaterialApp] widget to listen
 /// to [InjectedI18N] and [InjectedTheme]

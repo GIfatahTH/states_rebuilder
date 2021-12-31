@@ -190,6 +190,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
     required Widget Function(BuildContext) builder,
     required FutureOr<T> Function()? stateOverride,
     bool connectWithGlobal = true,
+    SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
   });
