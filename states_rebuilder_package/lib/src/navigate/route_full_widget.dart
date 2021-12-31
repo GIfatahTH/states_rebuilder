@@ -69,7 +69,7 @@ Widget getWidgetFromPages({
         //   return lastPage.subRoute!;
         // }
         assert(c != null, '"${lastPage.name}" route is not found');
-        return c!;
+        return lastPage._getChildWithBuilder();
       }(),
       route: route,
       lastSubRoute: lastSubRoute,

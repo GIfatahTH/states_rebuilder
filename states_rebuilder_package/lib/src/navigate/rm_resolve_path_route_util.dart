@@ -89,6 +89,7 @@ class ResolvePathRouteUtil {
       isAbsolutePath: settings.name!.startsWith('/'),
       redirectedFrom: redirectedFrom,
       ignoreUnknownRoutes: ignoreUnknownRoutes,
+      builder: settings is PageSettings ? settings.builder : null,
       util: this,
     ).call();
     inRoutes = null;
@@ -96,7 +97,6 @@ class ResolvePathRouteUtil {
     if (pages == null || pages.isEmpty) {
       return null;
     }
-
     return pages;
   }
 }
@@ -134,6 +134,7 @@ class _ResolveLocation {
   final List<RouteData> redirectedFrom;
   final ResolvePathRouteUtil util;
   final bool ignoreUnknownRoutes;
+  final Widget Function(Widget route)? builder;
   _ResolveLocation({
     required this.routes,
     required this.path,
@@ -148,6 +149,7 @@ class _ResolveLocation {
     required this.redirectedFrom,
     required this.util,
     required this.ignoreUnknownRoutes,
+    required this.builder,
   });
 
   late String subPath;
@@ -211,6 +213,7 @@ class _ResolveLocation {
       matched[path] = RouteSettingsWithChildAndData(
         routeData: routeData,
         child: unknownRoute != null ? unknownRoute!(routeData) : null,
+        builder: builder,
         isPagesFound: false,
       );
       assert(() {
@@ -294,6 +297,7 @@ class _ResolveLocation {
         matched[routeData._subLocation] = RouteSettingsWithChildAndData(
           routeData: routeData,
           child: page,
+          builder: builder,
           isPagesFound: util._isPagesFound,
         );
       }

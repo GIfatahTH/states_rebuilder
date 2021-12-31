@@ -226,6 +226,7 @@ MaterialApp(
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(Widget route)? builder,
     Widget Function(
       BuildContext context,
       Animation<double> animation,
@@ -246,6 +247,7 @@ MaterialApp(
           name: absoluteName,
           arguments: arguments,
           queryParams: queryParams ?? {},
+          builder: builder,
         ),
         redirectedFrom: [],
         skipHomeSlash: true,

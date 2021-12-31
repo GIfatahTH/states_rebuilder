@@ -74,6 +74,7 @@ abstract class InjectedNavigator {
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(Widget route)? builder,
     Widget Function(
       BuildContext context,
       Animation<double> animation,
@@ -87,6 +88,7 @@ abstract class InjectedNavigator {
         routeName,
         arguments: arguments,
         queryParams: queryParams,
+        builder: builder,
         fullscreenDialog: fullscreenDialog,
         maintainState: maintainState,
         transitionsBuilder: transitionsBuilder,
@@ -95,6 +97,7 @@ abstract class InjectedNavigator {
 
     return RM.navigate.toNamed<T>(
       routeName,
+      builder: builder,
       arguments: arguments,
       queryParams: queryParams,
       fullscreenDialog: fullscreenDialog,

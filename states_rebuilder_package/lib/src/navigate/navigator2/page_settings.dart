@@ -78,6 +78,11 @@ class PageSettings extends RouteSettings {
   final String? routePattern;
   final RouteData? rData;
   final String? _delegateName;
+  final Widget Function(Widget route)? builder;
+
+  Widget _getChildWithBuilder() {
+    return builder != null ? builder!(child!) : child!;
+  }
 
   List<PageSettings> get getSubPages {
     if (child is RouteWidget) {
@@ -92,6 +97,7 @@ class PageSettings extends RouteSettings {
     this.routePattern,
     Object? arguments,
     this.child,
+    this.builder,
     this.queryParams = const {},
   })  : key = null,
         rData = null,
@@ -104,6 +110,7 @@ class PageSettings extends RouteSettings {
     this.rData,
     Object? arguments,
     this.child,
+    this.builder,
     this.queryParams = const {},
     String? delegateName,
   })  : _delegateName = delegateName,
@@ -123,6 +130,7 @@ class PageSettings extends RouteSettings {
     Widget? child,
     Map<String, String>? queryParams,
     RouteData? routeData,
+    Widget Function(Widget route)? builder,
   }) {
     return PageSettings._(
       name: name ?? super.name!,
@@ -131,6 +139,7 @@ class PageSettings extends RouteSettings {
       rData: routeData ?? rData,
       arguments: arguments ?? super.arguments,
       child: child ?? this.child,
+      builder: builder ?? this.builder,
       queryParams: queryParams ?? this.queryParams,
       delegateName: delegateName ?? _delegateName ?? name ?? super.name,
     );
@@ -163,8 +172,10 @@ class RouteSettingsWithChildAndData extends PageSettings {
     required this.routeData,
     this.isPagesFound = true,
     Widget? child,
+    Widget Function(Widget route)? builder,
   }) : super._(
           child: child,
+          builder: builder,
           name: routeData._subLocation,
           arguments: routeData.arguments,
           queryParams: routeData.queryParams,
@@ -183,10 +194,12 @@ class RouteSettingsWithRouteWidget extends RouteSettingsWithChildAndData {
     required RouteData routeData,
     this.subRoute,
     Widget? child,
+    Widget Function(Widget route)? builder,
     bool isPagesFound = true,
   }) : super(
           routeData: routeData,
           child: child,
+          builder: builder,
           isPagesFound: isPagesFound,
         );
 
