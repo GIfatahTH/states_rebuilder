@@ -168,9 +168,8 @@ extension InjectedListX on List<ReactiveModel<dynamic>> {
   }) {
     assert(this is List<Injected<dynamic>>);
     final self = this as List<Injected<dynamic>>;
-    final lastWidget = self[length - 1].inherited(
-        stateOverride: () => null,
-        builder: (ctx) => builder(ctx));
+    final lastWidget = self[length - 1]
+        .inherited(stateOverride: () => null, builder: (ctx) => builder(ctx));
     if (length == 1) {
       return lastWidget;
     }

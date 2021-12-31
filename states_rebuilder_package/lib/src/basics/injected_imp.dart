@@ -683,8 +683,10 @@ class InjectedImp<T> extends Injected<T> {
     Key? key,
     required FutureOr<T> Function()? stateOverride,
     bool? connectWithGlobal,
+    SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+  }) {
     if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
       initializeState();
       _shouldContextWithGlobal = _reactiveModelState._snapState.data == null;
@@ -696,6 +698,10 @@ class InjectedImp<T> extends Injected<T> {
       stateOverride: stateOverride,
       connectWithGlobal: connectWithGlobal ?? _shouldContextWithGlobal!,
       sideEffects: sideEffects,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      toDebugString: toDebugString,
+    );
+  }
 
   @override
   Widget reInherited({
@@ -736,6 +742,7 @@ class InjectedImp<T> extends Injected<T> {
     Injected<T>? reInheritedInject,
     Injected<T>? globalInjected,
     bool connectWithGlobal = true,
+    SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     Object? Function(T?)? toDebugString,
   }) {
@@ -760,6 +767,9 @@ class InjectedImp<T> extends Injected<T> {
                 rethrow;
               }
             },
+            onSetState: sideEffects != null
+                ? On(() => sideEffects.onSetState?.call(injected.snapState))
+                : null,
             // initialState: state,
             onInitialized: (_) {
               if (connectWithGlobal) {
