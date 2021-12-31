@@ -4777,6 +4777,37 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => Text('/page1'),
+        },
+      );
+
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.to(
+        '/page1',
+        builder: (route) {
+          return Center(
+            child: route,
+          );
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(Center), findsOneWidget);
+    },
+  );
   // group(
   //   'InjectedNavigator is disposed between tests',
   //   () {
@@ -4934,6 +4965,7 @@ class NavigatorMock extends InjectedNavigator {
       Map<String, String>? queryParams,
       bool fullscreenDialog = false,
       bool maintainState = true,
+      Widget Function(Widget route)? builder,
       Widget Function(BuildContext context, Animation<double> animation,
               Animation<double> secondAnimation, Widget child)?
           transitionsBuilder}) async {

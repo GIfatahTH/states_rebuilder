@@ -12,12 +12,15 @@ void main() {
     late BuildContext context1;
     late BuildContext context2;
     final widget = counter1.inherited(
+      stateOverride: null,
       builder: (ctx) {
         context1 = ctx;
-        return counter2.inherited(builder: (ctx) {
-          context2 = ctx;
-          return Container();
-        });
+        return counter2.inherited(
+            stateOverride: null,
+            builder: (ctx) {
+              context2 = ctx;
+              return Container();
+            });
       },
     );
 
@@ -35,12 +38,15 @@ void main() {
     late BuildContext context1;
     late BuildContext context2;
     final widget = counter1.inherited(
+      stateOverride: () => counter1.state,
       builder: (ctx) {
         context1 = ctx;
-        return counter2.inherited(builder: (ctx) {
-          context2 = ctx;
-          return Container();
-        });
+        return counter2.inherited(
+            stateOverride: () => counter2.state,
+            builder: (ctx) {
+              context2 = ctx;
+              return Container();
+            });
       },
     );
 
@@ -58,6 +64,7 @@ void main() {
     late BuildContext context1;
     final widget = counter1.inherited(
       stateOverride: () => counter1.state * 10,
+      connectWithGlobal: true,
       builder: (ctx) {
         context1 = ctx;
         return Container();
@@ -85,6 +92,7 @@ void main() {
   testWidgets('mutate global with inherited is waiting  ', (tester) async {
     final counter1 = RM.inject(
       () => 1,
+
       // debugPrintWhenNotifiedPreMessage: 'counter1',
     );
     late BuildContext context1;
@@ -92,6 +100,7 @@ void main() {
       stateOverride: () => Future.delayed(Duration(seconds: 1), () {
         return 10;
       }),
+      connectWithGlobal: true,
       builder: (ctx) {
         context1 = ctx;
         return Container();
@@ -122,6 +131,7 @@ void main() {
     late BuildContext context1;
     final widget = counter1.inherited(
       stateOverride: () => throw Exception('Error'),
+      connectWithGlobal: true,
       builder: (ctx) {
         context1 = ctx;
         return Container();
@@ -155,6 +165,7 @@ void main() {
     late BuildContext context2;
     final widget1 = counter.inherited(
       stateOverride: () => 2,
+      connectWithGlobal: true,
       builder: (ctx) {
         context = ctx;
         return Text('Inherited: ${counter(ctx).state}');
@@ -264,6 +275,8 @@ void main() {
     late BuildContext context1;
     late BuildContext context2;
     final widget1 = counter.inherited(
+      stateOverride: null,
+      connectWithGlobal: true,
       builder: (ctx) {
         context = ctx;
         return Text('Inherited: ${counter(ctx).state}');

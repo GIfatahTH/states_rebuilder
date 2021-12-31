@@ -982,6 +982,7 @@ class StatesRebuilder extends Injected {
       Key? key,
       Function()? stateOverride,
       bool connectWithGlobal = true,
+      SideEffects? sideEffects,
       String? debugPrintWhenNotifiedPreMessage,
       String Function(dynamic s)? toDebugString}) {
     throw UnimplementedError();

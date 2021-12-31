@@ -18,8 +18,11 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return counter1.inherited(
+      stateOverride: null,
       builder: (context) => counter2.inherited(
+        stateOverride: null,
         builder: (context) => counter3.inherited(
+          stateOverride: null,
           builder: (context) => _MyHomePage(),
           // debugPrintWhenNotifiedPreMessage: 'counter3',
         ),
