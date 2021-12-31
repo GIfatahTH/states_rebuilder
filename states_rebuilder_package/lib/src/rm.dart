@@ -279,7 +279,7 @@ abstract class RM {
     //
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
@@ -352,7 +352,7 @@ abstract class RM {
     bool isLazy = true,
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
@@ -426,7 +426,7 @@ abstract class RM {
     bool isLazy = true,
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     Object? Function(T? s)? watch,
     @Deprecated('Use stateInterceptor instead')
@@ -689,7 +689,7 @@ abstract class RM {
     SideEffects<T>? sideEffects,
     //
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
@@ -1108,7 +1108,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
@@ -2138,7 +2138,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) {
     late final InjectedImp<T> inj;
     return inj = InjectedImp<T>(

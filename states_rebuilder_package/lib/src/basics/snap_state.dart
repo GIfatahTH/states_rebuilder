@@ -467,7 +467,7 @@ class MiddleSnapState<T> {
   //   nextState = nextSnap.data;
 
   String log({
-    String Function(T? s)? stateToString,
+    Object? Function(T? s)? stateToString,
     String preMessage = '',
   }) {
     // if (currentSnap.isIdle &&
@@ -495,7 +495,7 @@ class MiddleSnapState<T> {
   }
 
   String print({
-    String Function(T? s)? stateToString,
+    Object? Function(T? s)? stateToString,
     String preMessage = '',
   }) {
     final l = log(

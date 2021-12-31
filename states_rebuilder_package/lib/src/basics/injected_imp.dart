@@ -48,7 +48,7 @@ class InjectedImp<T> extends Injected<T> {
   final SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState;
   final On<void>? onSetState;
   final String? debugPrintWhenNotifiedPreMessage;
-  final String Function(T?)? toDebugString;
+  final Object? Function(T?)? toDebugString;
 
   void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
@@ -735,7 +735,7 @@ class InjectedImp<T> extends Injected<T> {
     Injected<T>? globalInjected,
     bool connectWithGlobal = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) {
     return StateBuilderBase(
       (widget, setState) {

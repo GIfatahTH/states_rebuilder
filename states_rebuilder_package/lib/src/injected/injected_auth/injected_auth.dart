@@ -98,7 +98,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     //
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) : super(
           creator: () => unsignedUser,
           initialState: unsignedUser,
