@@ -22,47 +22,47 @@ final navigator = RM.injectNavigator(
 ## Exploring Use-cases
 Here it provides a bundle of use-cases of Nav2 from simple to complex:
 
-- [01:_declarative_navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex01_declarative_navigation.dart)
+- [01:_Declarative_Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex01_declarative_navigation.dart)
    <br /><b> Description: </b>
   To use Nav2 remain in declarative approach.
 
-- [02 (A): imperative_navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation.dart)
+- [02 (A): Imperative_Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation.dart)
    <br /><b> Description: </b>
   Refactoring example 01 into imperative approach.
 
-- [02 (B): imperative & imperative_navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation1.dart)
+- [02 (B): Imperative & Imperative Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation1.dart)
    <br /><b> Description: </b>
   To use Nav2 in a combination of declarative and imperative approaches, and remove a hidden page from stack.
 
-- [03: Using builder_navigator](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex03_using_builder.dart)
+- [03: Navigation & Widgets](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex03_using_builder.dart)
   <br /><b> Description: </b>
   To use of the `InjectedNavigator.builder` method to wrap the app inside the body of the `Scaffold` and the `AppBar` that used a fixed navigation menu.
 
-- [04: Deep linking naviation (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex04_to_deeply_1.dart)
+- [04: Deep-linking Naviation (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex04_to_deeply_1.dart)
   <br /><b> Description: </b>
   To know the difference between `InjectedNavigator.to` and `InjectedNavigator.toDeeply` methods.
   
-- [05: Deep linking naviation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex05_to_deeply_2.dart)
+- [05: Deep-linking Naviation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex05_to_deeply_2.dart)
   <br /><b> Description: </b>
   The same as pervious example 04, but written using a `RouteWidget`
 
-- [06: Deep linking naviation (Advanced)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex06_to_deeply_3.dart)
+- [06: Deep-linking Naviation (Advanced)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex06_to_deeply_3.dart)
   <br /><b> Description: </b>
   The same as pervious example 04 & 05, it is using `RouteWidget` with static helper methods to decentralize the route logic from one place to belonging page widget.
 
-- [07: Cyclic_Redirect (No fair)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex07_on_navigate_cyclic_redirect.dart)
+- [07: Cyclic_Redirection](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex07_on_navigate_cyclic_redirect.dart)
   <br /><b> Description: </b>
   After reading of this example say no fear to cyclic redirect.
 
-- [08: Redirection & Return Information](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex08_on_navigate_redirection_from.dart)
+- [08: Redirection Information](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex08_on_navigate_redirection_from.dart)
   <br /><b> Description: </b>
   This example is a show case that when a route redirect at another route, the latter will have all information about the route it is redirected from.
 
-- [09: Authentication & Navigation Guards](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex09_on_navigate_signin.dart)
+- [09: Authentication Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex09_on_navigate_signin.dart)
   <br /><b> Description: </b>
   This example will show you how to easily build up a redirection guard when auth status is invaild, it is all done by a tiny API `InjectedNavigator.onNavigate`.
   
-- [10: Pop Validation & Navigation Guards](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex10_on_back_navigation.dart)
+- [10: Pop Validation & Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex10_on_back_navigation.dart)
   <br /><b> Description: </b>
   This example will show you how to prevent leaving from a page without validating its data.
 
@@ -91,14 +91,14 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
       }
   ```
   
-- [12: Re-implementation Page Transition Animation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex10_on_back_navigation.dart)
+- [12: Page Transition Animation (Normal)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex10_on_back_navigation.dart)
   <br /><b> Description: </b>
-  This example is funny, you will learn how to re-implementation a staggered animation demo example from ResoCoder.
+  Are you ready? Let's learn how to re-implementation a staggered animation demo example from ResoCoder.
   
     
-- [13: 404 Unknown_Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex13_unknown_routes.dart)
+- [13: 404 Unknown Routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex13_unknown_routes.dart)
   <br /><b> Description: </b>
-  Sometimes, you know, the application doesn't go to next page until crashed, Ladies and gentlemen, it's the right place for you to define 404.
+  Ladies and gentlemen, it's the right place for you to define 404 page.
   
 - [14: Data Return from a Screen (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex14_return_data_from_screen.dart)
   <br /><b> Description: </b>
@@ -108,17 +108,13 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   Example of nested routes.
   
-- [16: Unit Testing Nav2](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
+- [16: Unit Testing](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex15_nested_route.dart)
   <br /><b> Description: </b>
   Example of how can mock the routes into unit testing, and keep the code dry by extracting business logic depends on `InjectedNavigator`.
   
 - [17: Books App](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex16_books_app.dart)
   <br /><b> Description: </b>
-  Using states_rebuilder rewrite the flutter book app demo.
-    
-  
-  
-  
-  
+  Using states_rebuilder rewrites the flutter book app demo within 70 lines of code for its route logic.
+
 
 
