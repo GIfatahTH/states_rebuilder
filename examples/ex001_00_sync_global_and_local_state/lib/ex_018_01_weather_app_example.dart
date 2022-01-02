@@ -2,11 +2,13 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* This is a rewrite of the weather app from ResoCoder tutorial using the new
+* states_rebuilder_api.
+*
+* In this example we will use the predefined states_rebuilder flags
+*/
 
-// This is a rewrite of the weather app from ResoCoder tutorial using the new
-// states_rebuilder_api.
-
-// In this example we will use the predefined states_rebuilder flags
 // Models
 class Weather {
   final String cityName;

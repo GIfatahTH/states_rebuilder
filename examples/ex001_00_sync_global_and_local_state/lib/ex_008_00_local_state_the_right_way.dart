@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Fixing the last example.
-// The right way of injecting local states
+/*
+* Fixing the last example.
+*
+* The right way of injecting local states
+*/
+
 void main() {
   runApp(const MyApp());
 }
@@ -60,6 +64,7 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // use of inherited method to scop local states
             counterViewModel.inherited(
               stateOverride: () => CounterViewModel('1'),
               builder: (context) {

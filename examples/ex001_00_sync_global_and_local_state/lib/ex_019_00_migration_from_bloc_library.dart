@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-
-// This is an example of event driven design (BloC library way)
-// See the original implementation using bloc library
-// https://github.com/felangel/bloc/tree/master/examples/flutter_timer
-//
-// state classes in Bloc library => Named constructor here
-// events in Bloc library => methods here
+/*
+* This is an example of event driven design (BloC library way)
+* See the original implementation using bloc library
+* https:*github.com/felangel/bloc/tree/master/examples/flutter_timer
+*
+* state classes in Bloc library => Named constructor here
+* events in Bloc library => methods here
+*/
 
 class Ticker {
   const Ticker();

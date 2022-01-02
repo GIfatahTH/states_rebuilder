@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of state persistance using Hive
-// The state to persist is a list of Objects
+/*
+* Example of state persistance using Hive
+* The state to persist is a list of Objects
+*/
 
+// Implement IPersistStore interface
 class HiveImp implements IPersistStore {
   late Box box;
 

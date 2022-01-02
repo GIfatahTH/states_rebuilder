@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of state persistance SharedPreferences
-// The state to persist is a simple integer
+/*
+* Example of state persistance SharedPreferences
+* 
+* The state to persist is a simple integer
+*/
 
+// We have to implement the IPersistStore
 class SharedPreferencesImp implements IPersistStore {
   late SharedPreferences _sharedPreferences;
 
@@ -68,6 +72,9 @@ final counterViewModel = CounterViewModel();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize the local store provider
+  //
+  // See the test folder to see how it is mocked
   await RM.storageInitializer(SharedPreferencesImp());
   runApp(const MyApp());
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* states even if instantiated globally, have life cycle. This is an example of
+* state cleaning (disposing off)
+*/
 
-// Example of state cleaning (disposing off)
 void main() {
   runApp(const MyApp());
 }

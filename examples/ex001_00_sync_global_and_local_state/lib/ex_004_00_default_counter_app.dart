@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* The use of ObBuilder widget
+*/
 
 final counter = RM.inject(() => 0);
 
-// Rebuild optimization using OnBuilder widget
 void main() {
   runApp(const MyApp());
 }

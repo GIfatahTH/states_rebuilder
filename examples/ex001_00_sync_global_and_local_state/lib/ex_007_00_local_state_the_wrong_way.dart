@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* Example of local states displayed in a ListView. Although states are supposed 
+* to be independent, they wrongly interact with each other.
+*
+* See the next example for the proper way to use local states.
+*/
 
-// Example of local state done the wrong way
 void main() {
   runApp(const MyApp());
 }

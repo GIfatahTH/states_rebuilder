@@ -3,10 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This is a show case on how to limit the rebuild to the widget really need to
-// update its view.
+/*
+* This is a show case on how to limit the rebuild to the widget really need to
+* update its view.
+*
+* The example is inspired from provider_shopper in flutter examples repo
+*/
 
-// The example is inspired from provider_shopper in flutter examples repo
 @immutable
 class CartModel {
   final List<String> items;

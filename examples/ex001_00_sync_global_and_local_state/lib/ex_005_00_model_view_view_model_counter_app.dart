@@ -1,23 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+/*
+* Organize the code to separate the business logic from the UI logic.
+*/
 void main() {
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
 }
 
 // Here lays all the business logic related to MyHomePage.
@@ -36,6 +24,21 @@ class MyHomePageViewModel {
 // As this is a global state, and MyHomePageViewModel is immutable,
 // it is safe to instantiate it globally.
 final myHomePageViewModel = MyHomePageViewModel();
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
 
 // No logic inside MyHomePage
 class MyHomePage extends ReactiveStatelessWidget {

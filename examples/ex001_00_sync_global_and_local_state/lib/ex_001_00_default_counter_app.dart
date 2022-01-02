@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This is the default flutter counter app rewritten using states_rebuilder.
-
+/*
+* This is the default flutter counter app rewritten using states_rebuilder.
+*/
 void main() {
   runApp(const MyApp());
 }

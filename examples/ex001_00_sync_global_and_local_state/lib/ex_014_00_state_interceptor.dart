@@ -3,7 +3,15 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This example show how to use state interceptor
+/*
+* This example show how to use state interceptor
+*
+* In the demo, depending on the weather conditions, we want to change the theme. 
+* We will use the state interceptor to optimize the theme modification call and 
+* limit it only when the weather conditions are changed.
+*
+* The example is inspired from weather example of Flutter Bloc library
+*/
 
 enum WeatherCondition {
   clear,
@@ -14,6 +22,7 @@ enum WeatherCondition {
 }
 const defaultColor = Color(0xFF2196F3);
 
+// Set primary color theme depending on the weather condition
 Color setColor(WeatherCondition condition) {
   switch (condition) {
     case WeatherCondition.clear:
@@ -30,6 +39,7 @@ Color setColor(WeatherCondition condition) {
   }
 }
 
+// Weather data class
 class Weather {
   final WeatherCondition condition;
   final String location;
@@ -78,7 +88,10 @@ class WeatherService {
   );
   Weather? get weather => weatherRM.state;
   Color get themeColor => weather?.themeColor ?? defaultColor;
+  //
+
   void getWeather() {
+    // simple sync weather search method
     final result = dummyWeathers[Random().nextInt(dummyWeathers.length)];
     weatherRM.state = weatherRM.state?.copyWith(
           location: result.location,
@@ -90,7 +103,7 @@ class WeatherService {
 }
 
 final weatherService = WeatherService();
-
+// Inject the theme
 final theme = RM.inject(() => ThemeData.light());
 
 void main() {

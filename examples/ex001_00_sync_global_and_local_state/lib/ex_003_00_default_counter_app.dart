@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* The use of OnReactive to limit the part of the widget to rebuild
+*/
 
-// Our state is type ReactiveModel<int>
 final counter = 0.inj();
 
-// Rebuild optimization
 void main() {
   runApp(const MyApp());
 }
@@ -62,10 +63,6 @@ class MyHomePage extends ReactiveStatelessWidget {
                 );
               },
             ),
-            // You can extract the Text widget to its own widget that
-            // extends the ReactiveStatelessWidget
-            // TODO comment the OnReactive widget and uncomment the next line
-            // const CounterWidget(),
           ],
         ),
       ),
@@ -78,20 +75,7 @@ class MyHomePage extends ReactiveStatelessWidget {
   }
 }
 
-// Here we use ReactiveStatelessWidget
-// Even if the CounterWidget is used with const modifier, it will rebuild
-class CounterWidget extends ReactiveStatelessWidget {
-  const CounterWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '${counter.state}',
-      style: Theme.of(context).textTheme.headline4,
-    );
-  }
-}
-
-
-// state when the widget is building, will look up the widget tree for the nearest 
-// ReactiveStateless widget to resister it.
+/*
+* state when the widget is building, will look up the widget tree for the nearest 
+* ReactiveStateless widget to resister it.
+*/ 

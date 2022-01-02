@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This is another use case of local state.
-// This is the wrong version. see next example for the right one.
+/*
+* Example of local states supposed to not interact with local states created in 
+* other route stack.
+*
+* This is the wrong version. see next example for the right one.
+*/
 void main() {
   runApp(const MyApp());
 }
@@ -69,6 +73,7 @@ class CounterView extends ReactiveStatelessWidget {
               style: Theme.of(context).textTheme.headline4,
             ),
             const SizedBox(height: 12),
+            // Pushing the next route
             ElevatedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(

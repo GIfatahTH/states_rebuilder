@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Fixes the last local state example
+/*
+* Fixes the last local state example
+*
+* In this example both global and local state are used together.
+*
+* We will create a global state and override it for a particular branches of
+* the widget tree.
+*/
 
-// In this example both global and local state are used together.
-//
-// We will create a global state and override it for a particular branches of
-// the widget tree
-//
 void main() {
   runApp(const MyApp());
 }
@@ -90,6 +92,7 @@ class CounterView extends ReactiveStatelessWidget {
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) {
+                    // Use inherited to scop the state
                     return counterViewModel.inherited(
                       stateOverride: () => CounterViewModel('${counterId + 1}'),
                       builder: (context) {

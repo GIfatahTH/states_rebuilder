@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of undo redo immutable state
+/*
+* Example of undo redo immutable state
+*/
+
 void main() {
   runApp(const MyApp());
 }
@@ -12,9 +15,11 @@ class CounterViewModel {
   final _counter = RM.inject(
     () => 0,
     debugPrintWhenNotifiedPreMessage: '_counter',
+    // Set the stack length to a value greater than 0
     undoStackLength: 5,
   );
 
+  // Undo and redo the state mutation (state must be immutable)
   bool get canRedo => _counter.canRedoState;
   bool get canUndo => _counter.canUndoState;
   void redo() => _counter.redoState();

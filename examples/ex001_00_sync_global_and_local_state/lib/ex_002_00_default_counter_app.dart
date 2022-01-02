@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// This is similar to the last example except that counter Text widget is extracted
-// to its own widget class.
+/*
+* This is similar to the last example except that counter Text widget is extracted
+* to its own widget class.
+*
+*/
 void main() {
   runApp(const MyApp());
 }
@@ -55,7 +58,8 @@ class MyHomePage extends ReactiveStatelessWidget {
             // Notice wh ignore const modifier.
             // In this example, adding const modifier will prevent
             // CounterWidget from rebuild.
-            // TODO: Try add const modifer and notice that it is not rebuilt.
+            //
+            // TODO: Try add const modifer and notice that it is not rebuilding.
             // ignore: prefer_const_constructors
             /*const*/ CounterWidget(),
           ],
@@ -97,6 +101,10 @@ class CounterWidget extends StatelessWidget {
   }
 }
 
-
-// ReactiveStateless widget can resister to any state consumed in its child widget 
-// provided that the child widget is not lazily loaded as in ListView.builder items
+/*
+* ReactiveStateless widget can resister to any state consumed in its child widget 
+* provided that the child widget is not lazily loaded as in ListView.builder items
+*
+* Child widget declared with const modifier can not register to parent 
+* ReactiveStatelessWidget
+*/
