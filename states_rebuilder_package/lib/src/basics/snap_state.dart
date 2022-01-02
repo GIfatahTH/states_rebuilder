@@ -295,7 +295,14 @@ class SnapState<T> {
 
   ///Similar to [data] with the particularity that it is non nullable.
   T get state {
-    assert(data is T);
+    assert(() {
+      if (data is! T) {
+        throw Exception(
+            'state is not of type $T. It may be null, use data getter instead');
+      }
+      return true;
+    }());
+
     return data as T;
   }
 
