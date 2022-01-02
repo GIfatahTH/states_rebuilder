@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../injected/injected_i18n/injected_i18n.dart';
@@ -133,7 +135,7 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 
   ///List of future (plugins initialization) to wait for, and display a
   ///waiting screen while waiting
-  List<Future<void>>? ensureInitialization() {}
+  List<FutureOr<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
   void didMountWidget() {}
@@ -202,7 +204,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       error = null;
     });
     try {
-      await Future.wait(toInitialize, eagerError: true);
+      await Future.wait(toInitialize.whereType<Future>(), eagerError: true);
       setState(() {
         isWaiting = false;
         error = null;

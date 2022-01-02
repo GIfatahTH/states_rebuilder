@@ -1,10 +1,10 @@
 part of '../rm.dart';
 
 ///{@template OnBuilder}
-///Explicitly listenTo one or more injected state and reinvoke its
-///onBuilder callback each time an injected state emits a notification.
+/// Explicitly listenTo one or more injected state and reinvoke its
+/// onBuilder callback each time an injected state emits a notification.
 ///
-///For each OnBuilder widget flavor there is method like equivalent:
+/// For each OnBuilder widget flavor there is method like equivalent:
 /// ```dart
 /// //Widget-like
 /// OnBuilder(
@@ -75,7 +75,7 @@ class OnBuilder<T> extends StatelessWidget {
   }) : super(key: key) {
     onBuilder = _On(orElse: (_) => builder());
   }
-
+  // Create a Reactive state, listen to it and expose it in the builder method
   factory OnBuilder.create({
     Key? key,
     required ReactiveModel<T> Function() create,
@@ -102,6 +102,7 @@ class OnBuilder<T> extends StatelessWidget {
     );
   }
 
+  ///{@macro OnBuilder}
   OnBuilder.data({
     Key? key,
     this.listenTo,
@@ -115,6 +116,7 @@ class OnBuilder<T> extends StatelessWidget {
     onBuilder = _On.data(builder);
   }
 
+  ///{@macro OnBuilder}
   OnBuilder.all({
     Key? key,
     this.listenTo,
@@ -137,6 +139,7 @@ class OnBuilder<T> extends StatelessWidget {
     );
   }
 
+  ///{@macro OnBuilder}
   OnBuilder.orElse({
     Key? key,
     this.listenTo,
