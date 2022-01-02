@@ -2,11 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-
-// This is a rewrite of the weather app from ResoCoder tutorial using the new
-// states_rebuilder_api
-
-// In this example, we will use the async state mutation api
+/*
+* This is a rewrite of the weather app from ResoCoder tutorial using the new
+* states_rebuilder_api
+*
+* In this example, we will use the async state mutation api
+*/
 
 // Models
 class Weather {

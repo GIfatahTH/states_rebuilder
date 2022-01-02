@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'common_widgets/refresh_widget.dart';
-
-// This is similar to the two previous examples. Here we will use the full
-// states_rebuilder api for async state mutation.
+/*
+* This is similar to the two previous examples. Here we will use the full
+* states_rebuilder api for async state mutation.
+*/
 
 // class CounterState {
 //   final int data;
@@ -70,9 +71,7 @@ class CounterViewModel {
       stateInterceptor: (currentSnap, nextSnap) {
         // if the next state will be the waiting or the error state,
         // just return the current sate
-        if (nextSnap.isWaiting || nextSnap.hasError) {
-          return currentSnap;
-        }
+        if (!nextSnap.hasData) return currentSnap;
         //
         // This is the right place to do some state validation before mutation
       },
@@ -166,10 +165,11 @@ class MyHomePage extends ReactiveStatelessWidget {
                         style: Theme.of(context).textTheme.headline4,
                       ),
                       const SizedBox(height: 12),
+                      // Custom defined widget
                       RefreshWidget(
                         child: const Icon(Icons.refresh),
                         onPressed: counterViewModel.refreshCounter,
-                      )
+                      ),
                     ],
                   ),
       ),

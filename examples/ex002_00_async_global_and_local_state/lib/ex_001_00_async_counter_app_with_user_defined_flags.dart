@@ -5,13 +5,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'common_widgets/refresh_widget.dart';
 
-// The async counter app, rewritten using costume user flag for initial, loading
-// data, and error status.
-
-// Using the approach defined here, you can build the most complex app. This
-// approach is similar to the BloC approach
-
-// Define our Counter state,
+/*
+* The async counter app, rewritten using costume user flag for initial, loading
+* data, and error status.
+*
+* Using the approach defined here, you can build the most complex app. This
+* approach is similar to the BloC approach
+*
+* Define our Counter state,
+*/
 class CounterState {
   // the Counter state holds the data, the error and its status flags
   final int data;
@@ -172,6 +174,7 @@ class MyHomePage extends ReactiveStatelessWidget {
                       const SizedBox(height: 12),
                       RefreshWidget(
                         child: const Icon(Icons.refresh),
+                        // Refresh the counter, waiting and error status are skipped
                         onPressed: counterViewModel.refreshCounter,
                       )
                     ],

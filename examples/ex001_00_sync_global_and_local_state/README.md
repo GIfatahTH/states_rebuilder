@@ -11,7 +11,7 @@ These examples are intended to serve as tutorials and can be used for reference 
 # Sync mutation of global and local state
 
 
-In this first set of examples, you will learn how to work with global and local states. You will also learn how to mutate the state synchronously. [See here for more advanced async state mutation]()
+In this first set of examples, you will learn how to work with global and local states. You will also learn how to mutate the state synchronously. [See here for more advanced async state mutation](./../ex002_00_async_global_and_local_state)
 
 ## Newbie level
 

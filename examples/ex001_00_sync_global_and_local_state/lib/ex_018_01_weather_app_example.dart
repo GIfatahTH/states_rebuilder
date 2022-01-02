@@ -7,6 +7,9 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 * states_rebuilder_api.
 *
 * In this example we will use the predefined states_rebuilder flags
+*
+* In the next set of examples (async global and local state mutation) we will 
+* rewrite the same app using the full power of states_rebuilder api.
 */
 
 // Models

@@ -4,17 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'common_widgets/refresh_widget.dart';
-
-// This is similar to the last async counter app. Here we will use the states_rebuild
-// flags.
-
-// In most useful cases, we are interested in four state flags:
-// 1. the initial state ( isIdle )
-// 2. the loading state ( isWaiting )
-// 1. the error state ( hasError )
-// 1. the data state ( hasData )
-
-// states_rebuilder provide you with these four state flags
+/*
+* This is similar to the last async counter app. Here we will use the states_rebuild
+* flags.
+*
+* In most useful cases, we are interested in four state flags:
+* 1. the initial state ( isIdle )
+* 2. the loading state ( isWaiting )
+* 1. the error state ( hasError )
+* 1. the data state ( hasData )
+*
+* states_rebuilder provide you with these four state flags
+*/
 
 // We no longer need the CounterState
 //
@@ -163,6 +164,7 @@ class MyHomePage extends ReactiveStatelessWidget {
                       const SizedBox(height: 12),
                       RefreshWidget(
                         child: const Icon(Icons.refresh),
+                        // refresh the counter. isWaiting and hasError are skipped
                         onPressed: counterViewModel.refreshCounter,
                       )
                     ],

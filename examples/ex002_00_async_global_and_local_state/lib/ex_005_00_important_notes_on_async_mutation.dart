@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-
-// In async state mutation, the state is supposed to wait only for one async task.
-//
-// If the state is waiting for an async task, and another async task is called,
-// the state will cancel the old async task and start waiting for the new task.
-
-// To let both async tasks work together, you have to await for the first async task
-// before invoking the second, or just use two injected state of the same type and
-// link them.
+/*
+* In async state mutation, the state is supposed to wait only for one async task.
+*
+* If the state is waiting for an async task, and another async task is called,
+* the state will cancel the old async task and start waiting for the new task.
+*
+* To let both async tasks work together, you have to await for the first async task
+* before invoking the second, or just use two injected state of the same type and
+* link them.
+*/
 
 // case1 waiting for the first async task to finish
 @immutable
@@ -37,6 +38,8 @@ class CounterLogic1 {
 }
 
 // case2: creating two state for the same object and link them
+// see ex_016/00 (pessimistic update) of a concrete example of this case
+
 @immutable
 class CounterLogic2 {
   final _counter = RM.inject(() => 1);

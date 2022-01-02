@@ -2,18 +2,18 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
+/*
+* Example of state cleaning (disposing off).
+* It is important to be aware of state disposing off
+*/
 
-// Example of state cleaning (disposing off)
 void main() {
   runApp(const MyApp());
 }
 
 @immutable
 class CounterViewModel {
-  final MyRepository repository;
-  CounterViewModel({
-    required this.repository,
-  });
+  MyRepository get repository => myRepository.state;
 
   // By default injected state is disposed of when no longer listened to.
   //
@@ -59,10 +59,12 @@ class MyRepository {
   }
 }
 
+final myRepository = RM.inject(() => MyRepository());
+
 // Although _counter is used only in a part of the app (in CounterView), it is
 // considered as global state. because only one instance of it is active at any
 // instant.
-final counterViewModel = CounterViewModel(repository: MyRepository());
+final counterViewModel = CounterViewModel();
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

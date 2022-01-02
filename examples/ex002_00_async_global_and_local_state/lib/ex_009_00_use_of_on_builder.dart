@@ -3,7 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// Example of use of OnBuilder widget with async state
+/*
+* Example of use of OnBuilder widget with async state
+*/
+
 void main() {
   runApp(const MyApp());
 }
