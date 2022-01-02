@@ -688,16 +688,28 @@ class InjectedImp<T> extends Injected<T> {
     String Function(T?)? toDebugString,
   }) {
     if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
-      try {
-        final s = _reactiveModelState.creator();
-        initializeState();
-        // if (s is T) {
-        //   _reactiveModelState._snapState.copyToHasData(s);
-        // } else {
-        // }
-      } catch (e) {
-        if (e is! UnimplementedError) {
-          rethrow;
+      if (!_reactiveModelState._isInitialized) {
+        try {
+          final s = _reactiveModelState.creator();
+          _reactiveModelState
+            .._isInitialized = true
+            .._isDisposed = false;
+          if (s is T) {
+            snapState = snapState._copyWith(data: s);
+          }
+          _reactiveModelState.setStateFn(
+            (_) => s,
+            middleState: (snap) => _middleSnap(snap),
+            onDone: (_) {},
+          )();
+          // if (s is T) {
+          //   _reactiveModelState._snapState.copyToHasData(s);
+          // } else {
+          // }
+        } catch (e) {
+          if (e is! UnimplementedError) {
+            rethrow;
+          }
         }
       }
 
