@@ -26,11 +26,11 @@ final navigator = RM.injectNavigator(
 ## Exploring Use-cases
 Here it provides a bundle of use-cases of Nav2 from simple to complex:
 
-- [01:_Declarative_Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex01_declarative_navigation.dart)
+- [01: Declarative Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex01_declarative_navigation.dart)
    <br /><b> Description: </b>
   To use Nav2 remain in declarative approach.
 
-- [02 (A): Imperative_Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation.dart)
+- [02 (A): Imperative Navigation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex02_imperative_navigation.dart)
    <br /><b> Description: </b>
   Refactoring example 01 into imperative approach.
 
