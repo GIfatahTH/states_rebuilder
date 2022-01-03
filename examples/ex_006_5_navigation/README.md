@@ -54,7 +54,7 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   The same as pervious example 04 & 05, it is using `RouteWidget` with static helper methods to decentralize the route logic from one place to belonging page widget.
 
-- [07: Cyclic_Redirection](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex07_on_navigate_cyclic_redirect.dart)
+- [07: Cyclic Redirection](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation/lib/ex07_on_navigate_cyclic_redirect.dart)
   <br /><b> Description: </b>
   After reading of this example say no fear to cyclic redirect.
 
