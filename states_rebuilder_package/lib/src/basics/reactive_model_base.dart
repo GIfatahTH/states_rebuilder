@@ -199,13 +199,14 @@ class ReactiveModelBase<T> {
     required SnapState<T>? Function(SnapState<T> snap) onDone,
     String? debugMessage,
     bool skipWaiting = false,
+    bool? isWaitingForAsyncTask,
   }) {
     late Future<SnapState<T>> Function() call;
     call = () async {
       try {
         // ignore: prefer_typing_uninitialized_variables
         var _stream;
-        bool isWaitingForAsyncTask =
+        isWaitingForAsyncTask ??=
             snapState._infoMessage != kRecomputing && snapState.isWaiting;
         dynamic result = fn(snapState.data);
         if (result is Future) {
@@ -254,7 +255,7 @@ class ReactiveModelBase<T> {
 
           return true;
         }());
-        if (isWaitingForAsyncTask) {
+        if (isWaitingForAsyncTask!) {
           setSnapStateAndRebuild = _snapState.copyWith(data: result);
         } else {
           setToHasData(

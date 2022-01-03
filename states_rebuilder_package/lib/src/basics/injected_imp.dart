@@ -203,7 +203,7 @@ class InjectedImp<T> extends Injected<T> {
     if (dependsOn != null) {
       _setCombinedSnap(
         dependsOn!.injected,
-        shouldRebuild: false,
+        isInitializing: true,
       );
 
       _subscribeForCombinedSnap(dependsOn!.injected);
@@ -438,8 +438,10 @@ class InjectedImp<T> extends Injected<T> {
     }
   }
 
-  void _setCombinedSnap(Set<ReactiveModel> depends,
-      {bool shouldRebuild = true}) {
+  void _setCombinedSnap(
+    Set<ReactiveModel> depends, {
+    bool isInitializing = false,
+  }) {
     bool isIdle = false;
     // bool isWaiting = false;
 
@@ -458,12 +460,12 @@ class InjectedImp<T> extends Injected<T> {
               : null,
           infoMessage: kDependsOn,
         );
-        if (shouldRebuild) {
-          _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
-        } else {
+        if (isInitializing) {
           _reactiveModelState
             .._snapState = middleSnap(snap) ?? snap
             ..setSnapStateAndRebuild = null;
+        } else {
+          _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
         }
         return;
       }
@@ -484,25 +486,28 @@ class InjectedImp<T> extends Injected<T> {
         refresher,
         stackTrace: stackTrace,
       );
-      if (shouldRebuild) {
-        _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
-      } else {
+      if (isInitializing) {
         _reactiveModelState
           .._snapState = middleSnap(snap) ?? snap
           ..setSnapStateAndRebuild = null;
+      } else {
+        _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
       }
 
       return;
     }
 
-    if (isIdle) {
-      _reactiveModelState._refresh(
-        infoMessage: shouldRebuild ? kRecomputing : kInitMessage,
-      );
-      return;
+    if (isInitializing) {
+      _reactiveModelState._refresh(infoMessage: kInitMessage);
+    } else {
+      final creator = cachedCreatorMocks.last ?? _reactiveModelState.creator;
+      _reactiveModelState.setStateFn(
+        (state) => creator(),
+        middleState: _middleSnap,
+        onDone: (_) => _,
+        isWaitingForAsyncTask: false,
+      )();
     }
-
-    _reactiveModelState._refresh(infoMessage: kRecomputing);
   }
 
   @override
@@ -699,13 +704,9 @@ class InjectedImp<T> extends Injected<T> {
           }
           _reactiveModelState.setStateFn(
             (_) => s,
-            middleState: (snap) => _middleSnap(snap),
+            middleState: _middleSnap,
             onDone: (_) {},
           )();
-          // if (s is T) {
-          //   _reactiveModelState._snapState.copyToHasData(s);
-          // } else {
-          // }
         } catch (e) {
           if (e is! UnimplementedError) {
             rethrow;
