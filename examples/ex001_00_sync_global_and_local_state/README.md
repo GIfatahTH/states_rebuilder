@@ -52,7 +52,7 @@ In this first set of examples, you will learn how to work with global and local 
      We are interested in using local state primarily in two scenarios:
       * List of independent states of the same type:
          - [:x: DO NOT: Directly use local state into each item from ListView](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_007_00_local_state_the_wrong_way.dart)
-         - [:white_check_mark: DO: Allocate the independent state for each item by `Widget-Wise Injection`](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_008_00_local_state_the_right_way.dart)
+         - [:white_check_mark: DO: Allocate the independent state for each item by `Widget-wise Injection`](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_008_00_local_state_the_right_way.dart)
       * Set of independent states of the same type living in stacked routes:
          - [:x: DO NOT: Local states intreacted with outside routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_009_00_local_state_the_wrong_way.dart)
          - [:white_check_mark: DO: Should decare a global state with local state together](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_010_00_local_state_the_right_way.dart)
