@@ -4,7 +4,7 @@
 First, make sure you have installed states_rebuilder package, please check out the [Installation Guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
 <Br />
 
-Second, if you are from Old Navgiation 1.0, please take a took at [Introduction to `RM.injectNavigator` and Migration Guide from Nav1](https://github.com/GIfatahTH/states_rebuilder/issues/249).
+Second, if you are from Old Navigation 1.0, please take a took at [Introduction to `RM.injectNavigator` and Migration Guide from Nav1](https://github.com/GIfatahTH/states_rebuilder/issues/249).
 
 
 ## Objective
@@ -125,5 +125,5 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   To use states_rebuilder rewriting flutter book app demo within 70 lines of code for the entire route settings.
 
 ## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this libary become better and better.
+Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
 
