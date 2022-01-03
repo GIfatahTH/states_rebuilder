@@ -7,7 +7,7 @@ This catalog of examples is the first of a series of others, which intends to co
 First, make sure you have installed states_rebuilder package, please check out the [installation guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
 
 
-## Let's Go
+## Step-by-step
 In this first set of examples, you will learn how to work with global and local states. You will also learn how to mutate the state synchronously. [See here for more advanced async state mutation](./../ex002_00_async_global_and_local_state)
 
 ### Newbie Level :nerd_face:
