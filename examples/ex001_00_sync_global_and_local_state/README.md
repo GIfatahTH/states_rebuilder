@@ -77,7 +77,7 @@ In this first set of examples, you will learn how to work with global and local 
 
  - [11: State Interceptor](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_014_00_state_interceptor.dart)
    <br />**Description:**
-  You can capture the state after it is calculated and just before state mutation. You can perform state validation or emit some side effects. Furthermore, you can also change how the state will be mutated. [state interceptor has other important use in async state mutation]().
+  You can capture the state after it is calculated and just before state mutation. You can perform state validation or emit some side effects. Furthermore, you can also change how the state will be mutated. Also, State interceptor has [other important use in async state mutation]().
 
  - [13: Rebuild Optimization and Performance Boost](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_016_00_performance_optimization.dart)
    <br />**Description:**
