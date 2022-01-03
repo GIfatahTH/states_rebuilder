@@ -93,4 +93,4 @@ In this first set of examples, you will learn how to work with global and local 
 
  - [15: BloC Library Approach](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_019_00_migration_from_bloc_library.dart)
    <br />**Description:**
-   By creating one of the examples from BloC library and using its approach of building apps with states_rebuilder. You will realize that you can happly keep **`mindset`** and **`code-style`** from BloC, all totheger applying into states_rebuilder.
+   By creating one of the examples from BloC library and using its approach of building apps with states_rebuilder. You will realize that you can happly keep the **`mindset`** and **`code-style`** from BloC, all totheger applying into states_rebuilder.
