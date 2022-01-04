@@ -117,7 +117,7 @@ abstract class ReactiveStatelessWidget extends MyStatefulWidget {
   const ReactiveStatelessWidget({Key? key}) : super(key: key);
 
   ///Called when the widget is first inserted in the widget tree
-  void didMountWidget() {}
+  void didMountWidget(BuildContext context) {}
 
   ///Called when the widget is  removed from the widget tree
   void didUnmountWidget() {}
@@ -147,6 +147,7 @@ class _ReactiveStatelessWidgetState
   late VoidCallback removeFromContextSet;
   Map<InjectedBaseState, VoidCallback> _obs1 = {};
   Map<InjectedBaseState, VoidCallback>? _obs2 = {};
+  late bool _isInitializing;
   void _addToObs(InjectedBaseState inj) {
     final value = _obs1.remove(inj);
     if (value != null) {
@@ -193,8 +194,18 @@ class _ReactiveStatelessWidgetState
   @override
   void initState() {
     super.initState();
-    widget.didMountWidget();
+    _isInitializing = true;
+
     removeFromContextSet = addToContextSet(context);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInitializing) {
+      _isInitializing = false;
+      widget.didMountWidget(context);
+    }
   }
 
   @override
