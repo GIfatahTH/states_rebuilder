@@ -89,7 +89,12 @@ class MyApp extends StatelessWidget {
 
 class Home extends ReactiveStatelessWidget {
   const Home({Key? key}) : super(key: key);
-  static final newTodoController = TextEditingController();
+  static late TextEditingController newTodoController;
+  @override
+  void didMountWidget(BuildContext context) {
+    newTodoController = TextEditingController();
+  }
+
   @override
   void didUnmountWidget() {
     newTodoController.dispose();
@@ -256,4 +261,17 @@ class Todo {
       completed: completed ?? this.completed,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Todo &&
+        other.id == id &&
+        other.description == description &&
+        other.completed == completed;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ description.hashCode ^ completed.hashCode;
 }

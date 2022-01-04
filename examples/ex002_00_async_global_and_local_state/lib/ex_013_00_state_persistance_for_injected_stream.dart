@@ -67,8 +67,10 @@ final counterRM2 = RM.injectStream<int>(
   ),
   persist: () => PersistState(
     key: 'counter2',
-    shouldRecreateTheState: false,
+    shouldRecreateTheState:
+        false, // default to true for injectStream and false for injectFuture
   ),
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
 void main() async {

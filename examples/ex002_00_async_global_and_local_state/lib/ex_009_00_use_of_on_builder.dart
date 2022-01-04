@@ -13,10 +13,8 @@ void main() {
 
 @immutable
 class CounterViewModel {
-  final MyRepository repository;
-  CounterViewModel({
-    required this.repository,
-  });
+  final MyRepository repository = myRepository.state;
+
   late final counterRM = RM.inject(
     () => 0,
     debugPrintWhenNotifiedPreMessage: '_counter',
@@ -44,7 +42,9 @@ class MyRepository {
   }
 }
 
-final counterViewModel = CounterViewModel(repository: MyRepository());
+final myRepository = RM.inject(() => MyRepository());
+
+final counterViewModel = CounterViewModel();
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -120,7 +120,7 @@ class CounterView extends StatelessWidget {
                 'You have pushed the button this many times:',
               ),
               Text(
-                '$data ',
+                '$data',
                 style: Theme.of(context).textTheme.headline4,
               ),
             ],

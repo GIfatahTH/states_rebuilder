@@ -7,10 +7,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 * It is important to be aware of state disposing off
 */
 
-void main() {
-  runApp(const MyApp());
-}
-
 @immutable
 class CounterViewModel {
   MyRepository get repository => myRepository.state;
@@ -23,7 +19,7 @@ class CounterViewModel {
     // See the console log
     debugPrintWhenNotifiedPreMessage: '_counter',
     //
-    // IF you set autoDisposeWhenNotUsed to false, initState is called once
+    // IF you set autoDisposeWhenNotUsed to false, initState is called one time
     sideEffects: SideEffects(
       initState: () => increment(),
     ),
@@ -65,6 +61,10 @@ final myRepository = RM.inject(() => MyRepository());
 // considered as global state. because only one instance of it is active at any
 // instant.
 final counterViewModel = CounterViewModel();
+
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

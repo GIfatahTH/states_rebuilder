@@ -10,10 +10,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 * the widget tree
 */
 
-void main() {
-  runApp(const MyApp());
-}
-
 @immutable
 class CounterViewModel {
   CounterViewModel(this.counterName);
@@ -66,6 +62,10 @@ final counterViewModel = RM.inject<CounterViewModel>(
   () => CounterViewModel('1'),
 );
 
+void main() {
+  runApp(const MyApp());
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -87,6 +87,17 @@ class CounterView extends ReactiveStatelessWidget {
     this.counterId = 1,
   }) : super(key: key);
   final int counterId;
+
+  @override
+  void didMountWidget(BuildContext context) {
+    final _counterViewModel = counterViewModel.of(
+      context,
+      // If no CounterViewModel is found using InheritedWidget, then just return
+      // the global instance
+      defaultToGlobal: true, // Default to false
+    );
+    _counterViewModel.init();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,8 +133,7 @@ class CounterView extends ReactiveStatelessWidget {
                 MaterialPageRoute(
                   builder: (context) {
                     return counterViewModel.inherited(
-                      stateOverride: () =>
-                          CounterViewModel('${counterId + 1}')..init(),
+                      stateOverride: () => CounterViewModel('${counterId + 1}'),
                       builder: (context) {
                         return CounterView(counterId: counterId + 1);
                       },

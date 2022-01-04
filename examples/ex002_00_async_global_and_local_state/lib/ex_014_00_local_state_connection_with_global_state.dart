@@ -100,7 +100,12 @@ class MyApp extends StatelessWidget {
 
 class Home extends ReactiveStatelessWidget {
   const Home({Key? key}) : super(key: key);
-  static final newTodoController = TextEditingController();
+  static late TextEditingController newTodoController;
+  @override
+  void didMountWidget(BuildContext context) {
+    newTodoController = TextEditingController();
+  }
+
   @override
   void didUnmountWidget() {
     newTodoController.dispose();

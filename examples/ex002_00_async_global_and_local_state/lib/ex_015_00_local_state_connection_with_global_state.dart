@@ -14,8 +14,6 @@ class TodosViewModel {
   final Injected<List<Todo>> _todosRM = RM.inject(
     () => [
       Todo(id: 'todo-0', description: 'Learn States_rebuilder'),
-      Todo(id: 'todo-1', description: 'Learn Provider'),
-      Todo(id: 'todo-2', description: 'Learn Bloc library'),
     ],
   );
 
@@ -86,6 +84,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Column(
         children: [
+          const Title(),
           Expanded(child: Home()),
           Expanded(
             // Create the local TodosViewModel
@@ -119,7 +118,6 @@ class Home extends ReactiveStatelessWidget {
         controller: ScrollController(),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         children: [
-          const Title(),
           TextField(
             controller: newTodoController,
             decoration: const InputDecoration(
@@ -156,14 +154,18 @@ class Title extends ReactiveStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'todos',
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        color: Color.fromARGB(38, 47, 47, 247),
-        fontSize: 100,
-        fontWeight: FontWeight.w100,
-        fontFamily: 'Helvetica Neue',
+    return const Material(
+      child: Center(
+        child: Text(
+          'todos',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color.fromARGB(38, 47, 47, 247),
+            fontSize: 80,
+            fontWeight: FontWeight.w100,
+            fontFamily: 'Helvetica Neue',
+          ),
+        ),
       ),
     );
   }
