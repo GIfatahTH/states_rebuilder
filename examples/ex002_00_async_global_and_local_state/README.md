@@ -1,4 +1,4 @@
-# ex002_00_async_global_and_local_state
+# Example 002 - Async Global and Local State
 This is the second part of a series of what I called example catalog.
 
 ## Getting Started
