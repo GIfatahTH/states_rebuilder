@@ -4,7 +4,7 @@ class _Comments extends ReactiveStatelessWidget {
   final int postId;
   _Comments(this.postId);
   @override
-  void didMountWidget() {
+  void didMountWidget(context) {
     commentsBloc.read(postId);
   }
 

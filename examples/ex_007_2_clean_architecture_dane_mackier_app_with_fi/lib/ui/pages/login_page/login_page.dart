@@ -23,7 +23,7 @@ class _LoginBody extends ReactiveStatelessWidget {
   static TextEditingController? controller;
 
   @override
-  void didMountWidget() {
+  void didMountWidget(context) {
     controller = TextEditingController();
   }
 
