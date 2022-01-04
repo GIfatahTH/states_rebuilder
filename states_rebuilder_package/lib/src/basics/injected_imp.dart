@@ -543,7 +543,9 @@ class InjectedImp<T> extends Injected<T> {
         cachedCreatorMocks.removeLast();
       }
       undoRedoPersistState?.clearUndoStack();
-      undoRedoPersistState?.persistOnDispose(_state);
+      if (null is T || snapState.data != null) {
+        undoRedoPersistState?.persistOnDispose(_state);
+      }
       final middleSnap = MiddleSnapState(
         snapState,
         SnapState._nothing(
