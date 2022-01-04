@@ -30,7 +30,7 @@ We will go form basic to advanced async global and local state mutation.
   <br />**Description:**
   Read some of the important notes about the limitation of async state mutation.
 
-## Intermediate concepts
+## Intermediate concepts 🧐
 
 - [06: Working repositories and external service provider](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_006_00_repositories_and_service_provider.dart)
   <br />**Description:**
@@ -64,7 +64,7 @@ We will go form basic to advanced async global and local state mutation.
    <br />**Description:**
   Example of stream state persistance. By default the state is persisted on stream data emission. Once the app restart the state starts with the last persisted state and the stream continues to emit data. 
 
-## Advanced concepts
+## Advanced concepts 🧐
 
 - [14: Local state connection with global state](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_014_00_local_state_connection_with_global_state.dart)
    <br />**Description:**
