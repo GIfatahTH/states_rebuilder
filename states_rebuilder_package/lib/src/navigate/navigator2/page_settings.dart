@@ -84,12 +84,12 @@ class PageSettings extends RouteSettings {
     return builder != null ? builder!(child!) : child!;
   }
 
-  // List<PageSettings> get getSubPages {
-  //   if (child is RouteWidget) {
-  //     return (child as RouteWidget)._routerDelegate._pageSettingsList;
-  //   }
-  //   return const [];
-  // }
+  List<PageSettings> get getSubPages {
+    if (child is RouteWidget) {
+      return (child as RouteWidget)._routerDelegate._pageSettingsList;
+    }
+    return const [];
+  }
 
   /// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
   const PageSettings({

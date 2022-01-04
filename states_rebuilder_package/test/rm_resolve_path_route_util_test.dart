@@ -240,6 +240,7 @@ void main() {
       final widget2 = _TopWidget(routers: routes);
       await tester.pumpWidget(widget2);
       expect(find.text(routeSetting.name!), findsOneWidget);
+      expect(_navigator.pageStack.last.getSubPages.length, 1);
     },
   );
 
@@ -399,9 +400,11 @@ void main() {
       );
       await tester.pumpWidget(widget2);
       expect(find.text(routeSetting.name!), findsOneWidget);
+      expect(_navigator.pageStack.last.getSubPages.length, 1);
       RM.navigate.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
+      expect(_navigator.pageStack.last.getSubPages.length, 0);
     },
   );
 
