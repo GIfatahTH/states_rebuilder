@@ -52,24 +52,24 @@ class PersistState<T> {
   final bool catchPersistError;
 
   ///Determines whether the state builder function should be invoked after the
-  ///persistant state has been loaded or not.
+  ///persistent state has been loaded or not.
   ///
-  ///If no persistant state has been found, the builder function is re-invoked
-  ///in any case. Upon completing to load the persistant state, the states
+  ///If no persistent state has been found, the builder function is re-invoked
+  ///in any case. Upon completing to load the persistent state, the states
   ///`isWaiting` value is `true` which indicates that the builder function is
   ///re-invoked and the state waits for data. Use `hasData` to verify if
-  ///persistant data exists.
+  ///persistent data exists.
   ///
   ///The default value is `false` except for [RM.injectedStream] which is `true`.
   ///
-  ///Re-invoking the builder function upon loading the persistant state is
+  ///Re-invoking the builder function upon loading the persistent state is
   ///especially useful for async states. Imagine you are developing an IoT app:
   ///You have a state that streams data from the IoT devices and displays them
-  ///in the app. The streamed state should be persistant to show previous data
+  ///in the app. The streamed state should be persistent to show previous data
   ///of the IoT devices upon re-opening the app (re-initializing the state).
-  ///The persistant state ensures that the user does not see "no data" from the
+  ///The persistent state ensures that the user does not see "no data" from the
   ///devices or a loading spinner until the current data has ben retrieved.
-  ///However, after loading the persistant state, the stream (builder function)
+  ///However, after loading the persistent state, the stream (builder function)
   ///should be re-invoked to start listening to the current data from the IoT devices.
   final bool? shouldRecreateTheState;
 
