@@ -113,3 +113,15 @@ class MyHomePage extends ReactiveStatelessWidget {
     );
   }
 }
+
+class CounterWidget extends ReactiveStatelessWidget {
+  const CounterWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '${counter.state}',
+      style: Theme.of(context).textTheme.headline4,
+    );
+  }
+}
