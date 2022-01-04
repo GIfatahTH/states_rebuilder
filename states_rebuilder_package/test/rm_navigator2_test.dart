@@ -4808,6 +4808,36 @@ void main() {
       expect(find.byType(Center), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'test deepLinkTest'
+    'THEN',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        debugPrintWhenRouted: true,
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => Text('/page1'),
+          '/page1/page11': (data) => Text('/page11'),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.deepLinkTest('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      print(navigator.pageStack);
+      navigator.back();
+      await tester.pumpAndSettle();
+      // expect(find.text('/page1'), findsOneWidget);
+      // As the routeStack is not empty the skipHome is true. page1 is not rendred
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
   // group(
   //   'InjectedNavigator is disposed between tests',
   //   () {

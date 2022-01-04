@@ -226,12 +226,12 @@ class _ResolveLocation {
       return matched;
     }
 
-    if (results.length > 1 && skipHomeSlash) {
-      final route = results.keys.last;
-      results = {
-        route: results[route]!,
-      };
-    }
+    // if (results.length > 1 && skipHomeSlash) {
+    //   final route = results.keys.last;
+    //   results = {
+    //     route: results[route]!,
+    //   };
+    // }
 
     Map<String, RouteSettingsWithChildAndData>? fn({
       required Widget? page,

@@ -162,24 +162,24 @@ extension InjectedListX on List<ReactiveModel<dynamic>> {
   }
 
   ///{@macro inherited}
-  Widget inherited({
-    Key? key,
-    required Widget Function(BuildContext) builder,
-  }) {
-    assert(this is List<Injected<dynamic>>);
-    final self = this as List<Injected<dynamic>>;
-    final lastWidget = self[length - 1]
-        .inherited(stateOverride: () => null, builder: (ctx) => builder(ctx));
-    if (length == 1) {
-      return lastWidget;
-    }
+  // Widget inherited({
+  //   Key? key,
+  //   required Widget Function(BuildContext) builder,
+  // }) {
+  //   assert(this is List<Injected<dynamic>>);
+  //   final self = this as List<Injected<dynamic>>;
+  //   final lastWidget = self[length - 1]
+  //       .inherited(stateOverride: () => null, builder: (ctx) => builder(ctx));
+  //   if (length == 1) {
+  //     return lastWidget;
+  //   }
 
-    Widget? widget;
-    for (var i = length - 2; i >= 0; i--) {
-      var temp = widget ?? lastWidget;
-      widget =
-          self[i].inherited(stateOverride: () => null, builder: (ctx) => temp);
-    }
-    return widget!;
-  }
+  //   Widget? widget;
+  //   for (var i = length - 2; i >= 0; i--) {
+  //     var temp = widget ?? lastWidget;
+  //     widget =
+  //         self[i].inherited(stateOverride: () => null, builder: (ctx) => temp);
+  //   }
+  //   return widget!;
+  // }
 }
