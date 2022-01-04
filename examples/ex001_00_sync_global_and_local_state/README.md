@@ -1,6 +1,6 @@
-# Example 001 - Sync mutation of global and local state
+# Example 001 - Sync Mutation of Global and Local State
 
-This catalog of examples is the first of a series of others, which intends to cover all the features of `states_rebuilder` from basic to very advanced. Therefore, it is hoped that you can get some inspirations from here and for the reference in the future. :+1:
+This catalog of examples is the first of a series of others, which intends to cover all the features of `states_rebuilder` from basic to very advanced. Therefore, it is hoped that you can get some inspirations from here and for the reference in the future. :+1:Cancel changes
 
 
 ## Getting Started
