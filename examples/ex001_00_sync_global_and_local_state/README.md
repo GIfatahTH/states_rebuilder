@@ -51,11 +51,11 @@ In this first set of examples, you will learn how to work with global and local 
 
      We are interested in using local state primarily in two scenarios:
       * List of independent states of the same type:
-         - [:x: DO NOT: Directly use local state into each item from ListView](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_007_00_local_state_the_wrong_way.dart)
+         - [:x: DO NOT: Directly use global state into each item from ListView](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_007_00_local_state_the_wrong_way.dart)
          - [:white_check_mark: DO: Allocate the independent state for each item by `Widget-wise Injection`](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_008_00_local_state_the_right_way.dart)
       * Set of independent states of the same type living in stacked routes:
-         - [:x: DO NOT: Local states intreacted with outside routes](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_009_00_local_state_the_wrong_way.dart)
-         - [:white_check_mark: DO: Should decare a global state with local state together](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_010_00_local_state_the_right_way.dart)
+         - [:x: DO NOT: Global state living across route pages](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_009_00_local_state_the_wrong_way.dart)
+         - [:white_check_mark: DO: Local state should be scoped using `inherited` method](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_010_00_local_state_the_right_way.dart)
     > Local states are states of the same type living together but independent of each other.
     > 
     > Local state is created and injected in the widget tree based on the `InheritedWidget` principle.
@@ -77,7 +77,7 @@ In this first set of examples, you will learn how to work with global and local 
 
  - [11: State Interceptor](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_014_00_state_interceptor.dart)
    <br />**Description:**
-  You can capture the state after it is calculated and just before state mutation. You can perform state validation or emit some side effects. Furthermore, you can also change how the state will be mutated. Also, State interceptor has [other important use in async state mutation]().
+  You can capture the state after it is calculated and just before state mutation. You can perform state validation or emit some side effects. Furthermore, you can also change how the state will be mutated. Also, State interceptor has [other important use in async state mutation](./../ex002_00_async_global_and_local_state).
 
  - [13: Rebuild Optimization and Performance Boost](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_016_00_performance_optimization.dart)
    <br />**Description:**
@@ -85,7 +85,7 @@ In this first set of examples, you will learn how to work with global and local 
 
  - [14: Refactoring of The Weather App - Ver. 1](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_018_00_weather_app_example.dart)
    <br />**Description:**
-    We will going to refactor The Weather App from ResoCoder using the new states_rebuilder's API. In this version we will define our only state flags (initial, loading, error, data)
+    We will going to refactor The Weather App from ResoCoder using the new states_rebuilder's API. In this version we will define our custom state flags (initial, loading, error, data)
 
  - [15: Refactoring of The Weather App - Ver. 2](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_018_01_weather_app_example.dart)
    <br />**Description:**
@@ -93,4 +93,7 @@ In this first set of examples, you will learn how to work with global and local 
 
  - [15: BloC Library Approach](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_019_00_migration_from_bloc_library.dart)
    <br />**Description:**
-   By creating one of the examples from BloC library and using its approach of building apps with states_rebuilder. You will realize that you can happly keep the **`mindset`** and **`code-style`** from BloC, all totheger applying into states_rebuilder.
+   By creating one of the examples from BloC library and using its approach of building apps with states_rebuilder. You will realize that you can happily keep the **`mindset`** and **`code-style`** from BloC, all together applying into states_rebuilder.
+
+
+This is the end this part. Take another step and see [here for more advanced async state mutation](./../ex002_00_async_global_and_local_state)

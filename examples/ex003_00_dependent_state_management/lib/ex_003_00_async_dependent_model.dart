@@ -3,6 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+/*
+* In this example sumCounter depends on counter1 and counter2 which changes 
+* asynchronously.
+*
+* The state of sumCounter is a combination of the state of the two others.
+*/
 class CounterViewModel {
   final counter1 = 0.inj();
 
@@ -12,6 +18,12 @@ class CounterViewModel {
     () {
       return counter1.state + counter2.state;
     },
+    // sumCounter depends on counter1 and counter2.
+    // the state of the sumCounter is a combination of counter1 and counter2:
+    //
+    // sumCounter isWaiting when any of the counters isWaiting.
+    // sumCounter hasError when no counter is waiting and at least one of them has error
+    // sumCounter hasData when all of the counters have data.
     dependsOn: DependsOn(
       {counter1, counter2},
       // // Try shouldNotify.

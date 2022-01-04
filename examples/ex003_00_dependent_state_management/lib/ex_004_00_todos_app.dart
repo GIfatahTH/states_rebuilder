@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:uuid/uuid.dart';
 
+/*
+* Todo app example
+*
+* This example is a rewrite of todo app example from riverpod library
+*/
+
 /** Models **/
 
 /// The different ways to filter the list of todos
@@ -13,7 +19,6 @@ enum TodoFilter {
 
 const _uuid = Uuid();
 
-/// A read-only description of a todo-item
 class Todo {
   Todo({
     required this.description,
@@ -44,17 +49,10 @@ class Todo {
 }
 
 /* View models*/
-abstract class TodosRepository {
-  Future<List> getTodos();
-  Future<Todo> addTodo(Todo todo);
-  Future<bool> edit(Todo todo);
-  Future<bool> remove(int index);
-  Future<bool> toggleTodos(bool to);
-}
 
+// It is important to keep our view model immutable
 @immutable
-class TodosModelView {
-  TodosModelView();
+class TodosViewModel {
   final Injected<List<Todo>> _todosRM = RM.inject(
     () => [
       Todo(id: 'todo-0', description: 'hi'),
@@ -63,7 +61,7 @@ class TodosModelView {
     ],
   );
 
-  late final _todoListFilterRM = RM.inject<TodoFilter>(
+  final _todoListFilterRM = RM.inject<TodoFilter>(
     () => TodoFilter.all,
   );
   TodoFilter get filter => _todoListFilterRM.state;
@@ -71,9 +69,11 @@ class TodosModelView {
 
   late final _uncompletedTodosCount = RM.inject<int>(
     () {
-      final completed = _todosRM.state.where((todo) => !todo.completed);
-      return completed.length;
+      final uncompleted = _todosRM.state.where((todo) => !todo.completed);
+      return uncompleted.length;
     },
+    // uncompletedTodosCount depends on _todosRM. When the state of _todosRM changes
+    // the uncompletedTodosCount is recalculated to get the new uncompleted count
     dependsOn: DependsOn({_todosRM}),
   );
   int get uncompletedTodosCount => _uncompletedTodosCount.state;
@@ -90,10 +90,13 @@ class TodosModelView {
           return _todosRM.state;
       }
     },
+    // the filteredTodosRM depended on two states. When any of them changes the
+    // filteredTodosRM is recalculated
     dependsOn: DependsOn({_todosRM, _todoListFilterRM}),
   );
   List<Todo> get filteredTodos => [..._filteredTodosRM.state];
 
+  // Methods to add, edit, remove and toggle todos item
   void add(String description) {
     _todosRM.state = [
       ..._todosRM.state,
@@ -128,18 +131,24 @@ class TodosModelView {
     currentTodo.refresh();
   }
 
+  // currentTodo used for local state todo items
   static final currentTodo = RM.inject<CurrentTodo>(
     () => throw UnimplementedError(),
     sideEffects: SideEffects.onData(
       (todo) {
-        todoList.edit(todo.value);
+        todosViewModel.edit(todo.value);
       },
     ),
   );
 }
 
-final todoList = TodosModelView();
+// TodoViewModel is a global state
+final todosViewModel = TodosViewModel();
 
+// We create a custom object for each todo items.
+//
+// Each todo item will have the Todo object with two FocusNode and one TextEditingController
+// It will be used in the UI
 @immutable
 class CurrentTodo {
   final Todo value;
@@ -191,14 +200,17 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final newTodoController = TextEditingController();
-
 class Home extends ReactiveStatelessWidget {
   const Home({Key? key}) : super(key: key);
+  static final newTodoController = TextEditingController();
+  @override
+  void didUnmountWidget() {
+    newTodoController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final todos = todoList.filteredTodos;
+    final todos = todosViewModel.filteredTodos;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -213,7 +225,7 @@ class Home extends ReactiveStatelessWidget {
                 labelText: 'What needs to be done?',
               ),
               onSubmitted: (value) {
-                todoList.add(value);
+                todosViewModel.add(value);
                 newTodoController.clear();
               },
             ),
@@ -225,12 +237,12 @@ class Home extends ReactiveStatelessWidget {
               Dismissible(
                 key: ValueKey(todos[i].id),
                 onDismissed: (_) {
-                  todoList.remove(i);
+                  todosViewModel.remove(i);
                 },
-                child: TodosModelView.currentTodo.inherited(
+                child: TodosViewModel.currentTodo.inherited(
                   stateOverride: () {
                     return CurrentTodo(
-                      value: todoList.filteredTodos[i],
+                      value: todosViewModel.filteredTodos[i],
                       itemFocusNode: FocusNode(),
                       textFocusNode: FocusNode(),
                       textEditingController: TextEditingController(),
@@ -254,7 +266,7 @@ class Toolbar extends ReactiveStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filter = todoList.filter;
+    final filter = todosViewModel.filter;
 
     Color? textColorFor(TodoFilter value) {
       return filter == value ? Colors.blue : Colors.black;
@@ -267,17 +279,17 @@ class Toolbar extends ReactiveStatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: OnBuilder<bool>.create(
-              create: () => todoList.isAllCompleted.inj(),
+              create: () => todosViewModel.isAllCompleted.inj(),
               builder: (rm) {
                 return Tooltip(
                   key: allFilterKey,
                   message:
                       'Toggle All todos to ${rm.state ? 'uncompleted' : 'completed'}',
                   child: Checkbox(
-                    value: todoList.isAllCompleted,
+                    value: todosViewModel.isAllCompleted,
                     onChanged: (value) {
                       rm.state = value!;
-                      todoList.toggleAll(value);
+                      todosViewModel.toggleAll(value);
                     },
                   ),
                 );
@@ -286,7 +298,7 @@ class Toolbar extends ReactiveStatelessWidget {
           ),
           Expanded(
             child: Text(
-              '${todoList.uncompletedTodosCount} items left',
+              '${todosViewModel.uncompletedTodosCount} items left',
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -294,7 +306,7 @@ class Toolbar extends ReactiveStatelessWidget {
             key: allFilterKey,
             message: 'All todos',
             child: TextButton(
-              onPressed: () => todoList.filter = TodoFilter.all,
+              onPressed: () => todosViewModel.filter = TodoFilter.all,
               style: ButtonStyle(
                 visualDensity: VisualDensity.compact,
                 foregroundColor:
@@ -307,7 +319,7 @@ class Toolbar extends ReactiveStatelessWidget {
             key: activeFilterKey,
             message: 'Only uncompleted todos',
             child: TextButton(
-              onPressed: () => todoList.filter = TodoFilter.active,
+              onPressed: () => todosViewModel.filter = TodoFilter.active,
               style: ButtonStyle(
                 visualDensity: VisualDensity.compact,
                 foregroundColor: MaterialStateProperty.all(
@@ -321,7 +333,7 @@ class Toolbar extends ReactiveStatelessWidget {
             key: completedFilterKey,
             message: 'Only completed todos',
             child: TextButton(
-              onPressed: () => todoList.filter = TodoFilter.completed,
+              onPressed: () => todosViewModel.filter = TodoFilter.completed,
               style: ButtonStyle(
                 visualDensity: VisualDensity.compact,
                 foregroundColor: MaterialStateProperty.all(
@@ -359,8 +371,8 @@ class TodoItem extends ReactiveStatelessWidget {
   const TodoItem({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    TodosModelView.currentTodo.of(context);
-    final todoRM = TodosModelView.currentTodo(context);
+    TodosViewModel.currentTodo.of(context);
+    final todoRM = TodosViewModel.currentTodo(context);
 
     final itemFocusNode = todoRM.state.itemFocusNode;
     final isFocused = itemFocusNode.hasFocus;

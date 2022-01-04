@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+/*
+* In this example the sumCounter depends on the other two counter. When any of 
+* the counter state changes, the sumCounter state will be recalculated.
+*/
 class CounterViewModel {
   final _counter1 = 0.inj();
   int get counter1 => _counter1.state;
@@ -8,10 +12,12 @@ class CounterViewModel {
   final _counter2 = 0.inj();
   int get counter2 => _counter2.state;
 
+  // the _sumCounter depends on counter1 and counter2
   late final _sumCounter = RM.inject<int>(
     () {
       return _counter1.state + _counter2.state;
     },
+    // the _sumCounter will listen to _counter1 and _counter2
     dependsOn: DependsOn(
       {_counter1, _counter2},
       // TODO try debounceDelay and throttleDelay
