@@ -26,3 +26,11 @@ First, make sure you have installed states_rebuilder package, please check out t
 - [04: todo app](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex003_00_dependent_state_management/lib/ex_003_00_async_dependent_model.dart)
    <br />**Description:**
   A todo app example that uses state dependence.
+
+
+## Documentation
+[🔍 See more detailed information state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+
+
+## Question & Suggestion
+Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.

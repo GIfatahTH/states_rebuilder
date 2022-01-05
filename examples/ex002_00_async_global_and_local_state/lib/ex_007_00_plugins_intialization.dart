@@ -67,18 +67,16 @@ class MyApp extends TopStatelessWidget {
 
   @override
   Widget? splashScreen() {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 
   @override
   Widget? errorScreen(error, VoidCallback refresh) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('Error')),
+    return const Scaffold(
+      body: Center(
+        child: Text('Error'),
       ),
     );
   }

@@ -9,10 +9,10 @@ Get the foundation of state management from very basic to more advanced concepts
 * [Dependent state management](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex003_00_dependent_state_management).
 
 ## Navigation
-* [Navigation using intuitive facade of Navigator 2 API](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex_006_5_navigation)
+* [Navigation using intuitive facade of Navigator 2 API](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation)
 
 ## Devolvement booster (coming soon).
-Based on state management principles and some good abstraction techniques, I created dedication injected state to automatize the most repetitive tasks a developer do.
+Based on state management principles and some good programing principles and abstraction techniques, I created dedication injected state to automatize the most repetitive tasks a developer do.
 
 * Create, Read, Update and delete (CRUD) from a list of items; 
 * Authentication and authorization;
@@ -22,6 +22,11 @@ Based on state management principles and some good abstraction techniques, I cre
 * Form fields and form validation;
 * Working with scrolling list views;
 * Pages and tab views;
+
+
+## Documentation
+[🔍 See the official documentation](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+
 
 ## Question & Suggestion
 * Each example is a seed for a tutorial. It would be very encouraging if you wrote one.

@@ -1,6 +1,6 @@
-# Example 001 - Sync Mutation of Global and Local State
+# Example 001 - Sync mutation of global and local state
 
-This catalog of examples is the first of a series of others, which intends to cover all the features of `states_rebuilder` from basic to very advanced. Therefore, it is hoped that you can get some inspirations from here and for the reference in the future. :+1:Cancel changes
+This catalog of examples is the first of a series of others, which intends to cover all the features of `states_rebuilder` from basic to very advanced. Therefore, it is hoped that you can get some inspirations from here and for the reference in the future. :+1:
 
 
 ## Getting Started
@@ -13,7 +13,7 @@ In this first set of examples, you will learn how to work with global and local 
 ### Newbie Level :nerd_face:
 
 - [01: Hello counter app](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_001_00_default_counter_app.dart)
-   <br /><b> Description: </b>
+   <br />**Description:**
   The default Flutter counter app rewritten using States_rebuilder. You will come across `ReactiveStatelessWidget` for the widget subscription in the injected state.
 
 - [02: Hello Counter App - Ver. 2](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_002_00_default_counter_app.dart)
@@ -53,7 +53,7 @@ In this first set of examples, you will learn how to work with global and local 
       * List of independent states of the same type:
          - [:x: DO NOT: Directly use global state into each item from ListView](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_007_00_local_state_the_wrong_way.dart)
          - [:white_check_mark: DO: Allocate the independent state for each item by `Widget-wise Injection`](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_008_00_local_state_the_right_way.dart)
-      * Set of independent states of the same type living in stacked routes:
+      * Set of independent states of the same type living in different stacked routes:
          - [:x: DO NOT: Global state living across route pages](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_009_00_local_state_the_wrong_way.dart)
          - [:white_check_mark: DO: Local state should be scoped using `inherited` method](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_010_00_local_state_the_right_way.dart)
     > Local states are states of the same type living together but independent of each other.
@@ -94,6 +94,14 @@ In this first set of examples, you will learn how to work with global and local 
  - [15: BloC Library Approach](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_019_00_migration_from_bloc_library.dart)
    <br />**Description:**
    By creating one of the examples from BloC library and using its approach of building apps with states_rebuilder. You will realize that you can happily keep the **`mindset`** and **`code-style`** from BloC, all together applying into states_rebuilder.
+
+
+## Documentation
+[🔍 See more detailed information about state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+
+
+## Question & Suggestion
+Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
 
 
 This is the end this part. Take another step and see [here for more advanced async state mutation](./../ex002_00_async_global_and_local_state)

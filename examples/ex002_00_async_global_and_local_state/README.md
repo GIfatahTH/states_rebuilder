@@ -81,3 +81,11 @@ We will go form basic to advanced async global and local state mutation.
 - [17: Optimistic async update](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_017_00_optimistic_update.dart)
    <br />**Description:**
   In this example we will see how to optimistically update a list of items. We will update the ui with the new state instantly. If an error occurs, we will revert back to the last state before update. (state interceptor with stream is used)
+
+
+## Documentation
+[🔍 See more detailed information state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+
+
+## Question & Suggestion
+Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
