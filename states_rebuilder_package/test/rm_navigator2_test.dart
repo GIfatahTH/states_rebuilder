@@ -3542,7 +3542,9 @@ void main() {
         routers: routes,
         builder: (_) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              title: Text('title'),
+            ),
             body: Column(
               children: [
                 Expanded(
@@ -4835,6 +4837,56 @@ void main() {
       await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
       // As the routeStack is not empty the skipHome is true. page1 is not rendred
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test Navigator2 with TopStatelessWidget',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        debugPrintWhenRouted: true,
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => Text('/page1'),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      bool shouldThrow = true;
+      await tester.pumpWidget(
+        TopAppWidget(
+          ensureInitialization: () => [
+            Future.delayed(
+              1.seconds,
+              () => shouldThrow ? throw Exception('error') : 1,
+            )
+          ],
+          onWaiting: () => Scaffold(
+            body: Text('Waiting...'),
+          ),
+          onError: (err, refresh) => Scaffold(
+            body: ElevatedButton(
+              child: Text('Error'),
+              onPressed: refresh,
+            ),
+          ),
+          builder: (context) {
+            return widget;
+          },
+        ),
+      );
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(find.text('Error'), findsOneWidget);
+      shouldThrow = false;
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      //
+      expect(find.text('Waiting...'), findsOneWidget);
+      await tester.pump(1.seconds);
       expect(find.text('/'), findsOneWidget);
     },
   );

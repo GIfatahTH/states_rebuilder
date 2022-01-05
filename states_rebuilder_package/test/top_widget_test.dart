@@ -151,10 +151,7 @@ void main() {
         Future.delayed(Duration(seconds: 1)),
         Future.delayed(Duration(seconds: 2)),
       ],
-      onWaiting: () => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Text('Waiting...'),
-      ),
+      onWaiting: () => Text('Waiting...'),
       builder: (ctx) {
         return Directionality(
           textDirection: TextDirection.ltr,
@@ -184,9 +181,8 @@ void main() {
         Future.delayed(Duration(seconds: 2)),
         i18n.stateAsync,
       ],
-      onWaiting: () => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Text('Waiting...'),
+      onWaiting: () => MaterialApp(
+        home: Text('Waiting...'),
       ),
       builder: (ctx) {
         return Builder(builder: (context) {
@@ -244,16 +240,10 @@ void main() {
             () => shouldThrow ? throw Exception('Error') : 1),
         Future.delayed(Duration(seconds: 2), () => 2),
       ],
-      onWaiting: () => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Text('Waiting...'),
-      ),
+      onWaiting: () => Text('Waiting...'),
       onError: (err, refresher) {
         refresh = refresher;
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Text('Error'),
-        );
+        return Text('Error');
       },
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,

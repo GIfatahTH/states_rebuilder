@@ -693,6 +693,7 @@ class InjectedImp<T> extends Injected<T> {
     SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+    // bool keepAlive = false,
   }) {
     if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
       if (!_reactiveModelState._isInitialized) {
@@ -727,6 +728,7 @@ class InjectedImp<T> extends Injected<T> {
       sideEffects: sideEffects,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
+      // keepAlive: keepAlive,
     );
   }
 
@@ -735,6 +737,7 @@ class InjectedImp<T> extends Injected<T> {
     Key? key,
     required BuildContext context,
     required Widget Function(BuildContext) builder,
+    // bool keepAlive = false,
   }) {
     final globalInjected = (context
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
@@ -759,6 +762,7 @@ class InjectedImp<T> extends Injected<T> {
       reInheritedInject: globalInjected!(context),
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
+      // keepAlive: keepAlive,
     );
   }
 
@@ -772,6 +776,7 @@ class InjectedImp<T> extends Injected<T> {
     SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     Object? Function(T?)? toDebugString,
+    // bool keepAlive = false,
   }) {
     return StateBuilderBase(
       (widget, setState) {
@@ -857,6 +862,7 @@ class InjectedImp<T> extends Injected<T> {
         );
       },
       key: key,
+      // keepAlive: keepAlive,
       widget: _InheritedHelper(
         builder: builder,
       ),

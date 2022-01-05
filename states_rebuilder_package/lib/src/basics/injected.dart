@@ -193,6 +193,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
     SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
+    // bool keepAlive = false,
   });
 
   ///Provide the Injected model to another widget tree branch.
@@ -200,6 +201,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
     Key? key,
     required BuildContext context,
     required Widget Function(BuildContext) builder,
+    // bool keepAlive = false,
     // String? debugPrintWhenNotifiedPreMessage,
     // String Function(T?)? toDebugString,
   });

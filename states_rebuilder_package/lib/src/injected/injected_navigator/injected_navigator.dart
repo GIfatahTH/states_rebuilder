@@ -310,6 +310,7 @@ abstract class InjectedNavigator {
     return RM.navigate.forceBack<T>(result);
   }
 
+  /// Remove a pages from the route stack.
   void removePage<T extends Object>(String routeName, [T? result]) {
     if (_mock != null) {
       return _mock!.removePage<T>(routeName, result);
@@ -334,7 +335,7 @@ abstract class InjectedNavigator {
 
   InjectedNavigator? _mock;
 
-  //
+  /// Mock InjectedNavigator
   void injectMock(InjectedNavigator mock) {
     assert(() {
       _mock = mock;

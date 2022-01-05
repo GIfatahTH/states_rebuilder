@@ -82,12 +82,10 @@ import 'on_reactive.dart';
 ///
 ///   @override
 ///   Widget? splashScreen() {
-///     return Material(
-///       child: Scaffold(
+///     return Scaffold(
 ///         body: Center(
 ///           child: CircularProgressIndicator(),
 ///         ),
-///       ),
 ///     );
 ///   }
 ///
@@ -227,6 +225,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     super.dispose();
   }
 
+  late final _materialAppKe = UniqueKey();
   Widget getOnWaitingWidget() {
     final child = widget.splashScreen();
     if (child == null) {
@@ -234,7 +233,23 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
           'you have to define a waiting screen using the onWaiting '
           'parameter of the TopWidget');
     }
-    return child;
+    return MaterialApp(
+      key: _materialAppKe,
+      debugShowCheckedModeBanner: false,
+      home: child,
+    );
+  }
+
+  Widget getErrorWidget(BuildContext context) {
+    final child = widget.errorScreen(error, _ensureInitialization);
+    if (child == null) {
+      widget.build(context);
+    }
+    return MaterialApp(
+      key: _materialAppKe,
+      debugShowCheckedModeBanner: false,
+      home: child,
+    );
   }
 
   @override
@@ -243,8 +258,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       return getOnWaitingWidget();
     }
     if (error != null) {
-      return widget.errorScreen(error, _ensureInitialization) ??
-          widget.build(context);
+      return getErrorWidget(context);
     }
     Widget? child;
     if (!isInitialized) {

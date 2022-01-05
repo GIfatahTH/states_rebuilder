@@ -104,12 +104,10 @@ class TopAppWidget extends TopStatelessWidget {
   ///      injectedI18N: i18n,
   ///      //If the translation is obtained asynchronously, we must define
   ///      //the onWaiting widget.
-  ///      onWaiting: () => MaterialApp(
-  ///        home: Scaffold(
+  ///      onWaiting: () =>  Scaffold(
   ///          body: Center(
   ///            child: CircularProgressIndicator(),
   ///          ),
-  ///        ),
   ///      ),
   ///      builder: (context) {
   ///        return MaterialApp(
