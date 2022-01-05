@@ -31,7 +31,7 @@ jobs:
           cd ex002_00_async_global_and_local_state && flutter test
         working-directory: ./examples
       - run: |
-          cd ex_006_5_navigation && flutter test
+          cd ex004_00_navigation && flutter test
         working-directory: ./examples
       - run: |
           cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
