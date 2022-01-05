@@ -83,7 +83,7 @@ class InjectedThemeImp<KEY> extends InjectedImp<KEY> with InjectedTheme<KEY> {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(KEY?)? toDebugString,
+    Object? Function(KEY?)? toDebugString,
   })  : _themeMode = themeModel,
         super(
           creator: () => lightThemes.keys.first,

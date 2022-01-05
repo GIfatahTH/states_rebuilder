@@ -9,18 +9,25 @@ final counter = RM.inject<int>(
     (_) {},
   ),
   undoStackLength: 8,
+  debugPrintWhenNotifiedPreMessage: '',
 );
 
-class MyApp extends StatelessWidget {
+class MyApp extends ReactiveStatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: OnBuilder.data(
-          listenTo: counter,
-          builder: (_) {
-            return Text('${counter.state}');
-          }),
+      child: Column(
+        children: [
+          if (counter.canRedoState) Text('CanRedoState'),
+          if (counter.canUndoState) Text('CanUndoState'),
+          OnBuilder.data(
+              listenTo: counter,
+              builder: (_) {
+                return Text('${counter.state}');
+              }),
+        ],
+      ),
     );
   }
 }
@@ -34,6 +41,8 @@ void main() {
     await tester.pumpWidget(MyApp());
     //first build
     expect(find.text('0'), findsOneWidget);
+    expect(find.text('CanRedoState'), findsNothing);
+    expect(find.text('CanUndoState'), findsNothing);
 
     //first increment
     counter.state++;
@@ -44,6 +53,9 @@ void main() {
     //still we can not redo it.
     expect(counter.canUndoState, isTrue);
     expect(counter.canRedoState, isFalse);
+    //
+    expect(find.text('CanRedoState'), findsNothing);
+    expect(find.text('CanUndoState'), findsOneWidget);
 
     //Second increment
     counter.state++;
@@ -54,7 +66,8 @@ void main() {
     //still we can not redo it.
     expect(counter.canUndoState, isTrue);
     expect(counter.canRedoState, isFalse);
-
+    expect(find.text('CanRedoState'), findsNothing);
+    expect(find.text('CanUndoState'), findsOneWidget);
     //First call of undoState
     counter.undoState();
     await tester.pump();
@@ -65,7 +78,8 @@ void main() {
     //We can continue undoState and we can redo the last undo
     expect(counter.canUndoState, isTrue);
     expect(counter.canRedoState, isTrue);
-
+    expect(find.text('CanRedoState'), findsOneWidget);
+    expect(find.text('CanUndoState'), findsOneWidget);
     //Second call of undoState
     counter.undoState();
     await tester.pump();
@@ -77,7 +91,8 @@ void main() {
     expect(counter.canUndoState, isFalse);
     //We can redo the undos
     expect(counter.canRedoState, isTrue);
-
+    expect(find.text('CanUndoState'), findsNothing);
+    expect(find.text('CanRedoState'), findsOneWidget);
     //First redo
     counter.redoState();
     await tester.pump();
@@ -87,7 +102,8 @@ void main() {
     //We can both undo and redo
     expect(counter.canUndoState, isTrue);
     expect(counter.canRedoState, isTrue);
-
+    expect(find.text('CanUndoState'), findsOneWidget);
+    expect(find.text('CanRedoState'), findsOneWidget);
     //First redo
     counter.redoState();
     await tester.pump();
@@ -97,6 +113,8 @@ void main() {
     //We can undo but not redo
     expect(counter.canUndoState, isTrue);
     expect(counter.canRedoState, isFalse);
+    expect(find.text('CanUndoState'), findsOneWidget);
+    expect(find.text('CanRedoState'), findsNothing);
   });
 
   testWidgets('Redo is reset when the counter is incremented', (tester) async {

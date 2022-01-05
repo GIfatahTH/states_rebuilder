@@ -1,18 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
-import '../../builders/on_reactive.dart';
 
+import '../../builders/on_reactive.dart';
 import '../../rm.dart';
 
-part 'on_form_field_builder.dart';
+part 'i_base_form_field.dart';
 part 'injected_form.dart';
 part 'injected_form_field.dart';
 part 'on_form.dart';
+part 'on_form_field_builder.dart';
 part 'on_form_submission.dart';
-part 'i_base_form_field.dart';
 
 ///{@template InjectedTextEditing}
 ///Inject a [TextEditingController]
@@ -54,6 +51,39 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///A controller for an editable text field.
   TextEditingControllerImp get controller;
 
+  /// Initializes a controller with the given initial text.
+  ///
+  /// It is useful when the initial value is obtained in the build method of
+  /// the widget tree. (We can not initialize the controller when creating the
+  /// injectedTextEditingController)
+  ///
+  /// **Don't do**
+  /// ```dart
+  /// final myInjectedController= RM.injectTextEditingController();
+  ///
+  /// // In the widget tree
+  /// Widget builder(BuildContext context){
+  ///   final initialValue = ...;
+  ///    return TextField(
+  ///      controller: myInjectedController.controller..text = initialValue,
+  ///    )
+  /// }
+  /// ```
+  ///
+  /// **Do**
+  /// ```dart
+  /// final myInjectedController= RM.injectTextEditingController();
+  ///
+  /// // In the widget tree
+  /// Widget builder(BuildContext context){
+  ///   final initialValue = ...;
+  ///    return TextField(
+  ///      controller: myInjectedController.controllerWithInitialText(initialValue) ,
+  ///    )
+  /// }
+  /// ```
+  TextEditingControllerImp controllerWithInitialText(String text);
+
   ///The current text being edited.
   String get text => state;
 
@@ -62,6 +92,10 @@ abstract class InjectedTextEditing implements InjectedBaseState<String> {
   ///Whether it passes the validation test
   bool get isValid;
 
+  /// Whether the the value of the field is modified and not submitted yet;
+  ///
+  /// Submission is done using [InjectedForm.submit] method.
+  bool get isDirty;
   String get value => state;
 
   ///The range of text that is currently selected.
@@ -144,7 +178,10 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         _selection = selection,
         super(
           creator: () => text,
+          initialState: text,
           autoDisposeWhenNotUsed: autoDispose,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       initialValue = text;
@@ -160,6 +197,8 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       _focusNode = null;
       this.isReadOnly = _initialIsReadOnly = isReadOnly;
       _isEnabled = _initialIsEnabled = isEnabled;
+      isDirty = false;
+      _initialIsDirtyText = text;
     };
     _resetDefaultState();
   }
@@ -178,8 +217,17 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
   late VoidCallback? formTextFieldDisposer;
   late bool _initialIsEnabled;
   late bool _initialIsReadOnly;
+
   //
   late final VoidCallback _resetDefaultState;
+
+  @override
+  TextEditingControllerImp controllerWithInitialText(String text) {
+    if (_controller == null) {
+      return controller..text = text;
+    }
+    return controller;
+  }
 
   @override
   TextEditingControllerImp get controller {
@@ -227,6 +275,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
       }
     }
     if (_controller != null) {
+      state; //TODO fix issue 241
       return _controller!;
     }
     _removeFromInjectedList = addToInjectedModels(this);
@@ -263,6 +312,7 @@ class InjectedTextEditingImp extends InjectedBaseBaseImp<String>
         notify();
         return;
       }
+      isDirty = _controller!.text.trim() != _initialIsDirtyText.trim();
       snapState = snapState.copyWith(data: _controller!.text);
       if (form != null) {
         //If form is not null than override the autoValidate of this Injected

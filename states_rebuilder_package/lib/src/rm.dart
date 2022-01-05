@@ -6,10 +6,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import 'builders/on_reactive.dart';
-import 'builders/top_stateless_widget.dart';
 import 'common/consts.dart';
 import 'common/helper_method.dart';
 import 'common/logger.dart';
@@ -17,6 +16,7 @@ import 'injected/injected_animation/injected_animation.dart';
 import 'injected/injected_auth/injected_auth.dart';
 import 'injected/injected_crud/injected_crud.dart';
 import 'injected/injected_i18n/injected_i18n.dart';
+import 'injected/injected_navigator/injected_navigator.dart';
 import 'injected/injected_scrolling/injected_scrolling.dart';
 import 'injected/injected_tab/injected_page_tab.dart';
 import 'injected/injected_text_editing/injected_text_editing.dart';
@@ -48,6 +48,7 @@ part 'navigate/build_context_x.dart';
 part 'navigate/navigator2/page_settings.dart';
 part 'navigate/navigator2/route_information_parser.dart';
 part 'navigate/navigator2/router_delegate.dart';
+part 'navigate/navigator2/router_objects.dart';
 part 'navigate/page_route_builder.dart';
 part 'navigate/rm_navigator.dart';
 part 'navigate/rm_resolve_path_route_util.dart';
@@ -60,6 +61,8 @@ part 'navigate/transitions.dart';
 part 'on_listeners/on.dart';
 part 'on_listeners/on_combined.dart';
 part 'on_listeners/on_future.dart';
+
+typedef AddObsCallback = void Function(InjectedBaseState);
 
 abstract class RM {
   RM._();
@@ -276,7 +279,7 @@ abstract class RM {
     //
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
@@ -349,7 +352,7 @@ abstract class RM {
     bool isLazy = true,
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
     @Deprecated('Use sideEffects instead') void Function(T s)? onDisposed,
@@ -423,7 +426,7 @@ abstract class RM {
     bool isLazy = true,
     bool autoDisposeWhenNotUsed = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     Object? Function(T? s)? watch,
     @Deprecated('Use stateInterceptor instead')
@@ -686,7 +689,7 @@ abstract class RM {
     SideEffects<T>? sideEffects,
     //
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
@@ -1105,7 +1108,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
     //
     @Deprecated('Use stateInterceptor instead')
         SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState,
@@ -1888,6 +1891,222 @@ abstract class RM {
     );
   }
 
+  /// {@macro InjectedNavigator}
+  ///
+  /// ## Parameters:
+  ///
+  /// ### `routes`: Required [Map<String, Widget Function(RouteData data)>].
+  /// A map of route names and a callbacks that return the corresponding widget.
+  /// The callback exposes a [RouteData] object. [RouteData] objects holds
+  /// information about routing data such as [RouteData.location], [RouteData.path],
+  /// [RouteData.pathParams] and [RouteData.queryParams].
+  ///
+  ///
+  /// Example:
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     routes: {
+  ///       '/': (RouteData data) => Home(),
+  ///        // redirect all paths that starts with '/home' to '/' path
+  ///       '/home/*': (RouteData data) => data.redirectTo('/'),
+  ///       '/page1': (RouteData data) => Page1(),
+  ///       '/page1/page11': (RouteData data) => Page11(),
+  ///       '/page2/:id': (RouteData data) {
+  ///         // Extract path parameters from dynamic links
+  ///         final id = data.pathParams['id'];
+  ///         // OR inside Page2 you can use `context.routeData.pathParams['id']`
+  ///         return Page2(id: id);
+  ///        },
+  ///       '/page3/:kind(all|popular|favorite)': (RouteData data) {
+  ///         // Use custom regular expression
+  ///         final kind = data.pathParams['kind'];
+  ///         return Page3(kind: kind);
+  ///        },
+  ///       '/page4': (RouteData data) {
+  ///         // Extract query parameters from links
+  ///         // Ex link is `/page4?age=4`
+  ///         final age = data.queryParams['age'];
+  ///         // OR inside Page4 you can use `context.routeData.queryParams['age']`
+  ///         return Page4(age: age);
+  ///        },
+  ///        // Using sub routes
+  ///        '/page5': (RouteData data) => RouteWidget(
+  ///              builder: (Widget routerOutlet) {
+  ///                return MyParentWidget(
+  ///                  child: routerOutlet;
+  ///                  // OR inside MyParentWidget you can use `context.routerOutlet`
+  ///                )
+  ///              },
+  ///              routes: {
+  ///                '/': (RouteData data) => Page5(),
+  ///                '/page51': (RouteData data) => Page51(),
+  ///              },
+  ///            ),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `initialLocation`: Optional [String]. Defaults to '/'.
+  /// The initial location the app route to when first starts.
+  ///
+  /// ### `unknownRoute`: Optional callback that exposes the location to navigate to.
+  /// Define the widgets to display if the location can not be resolved to known route.
+  ///
+  /// ### `builder`: Optional callback that exposes the router outlet widget.
+  /// Used to display the matched widget inside another widget.
+  ///
+  /// In the following example, all pages will be rendered inside `Padding` widget.
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     builder: (routerOutlet) {
+  ///       return Padding(
+  ///         padding: const EdgeInsets.all(8.0),
+  ///         child: routerOutlet,
+  ///       );
+  ///     },
+  ///     routes: {
+  ///       '/': (RouteData data) => Home(),
+  ///       '/page1': (RouteData data) => Page1(),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `pageBuilder`: Optional callback that exposes [MaterialPageArgument] object.
+  /// By default, app pages are wrapped with [MaterialPage] widget. If you want to get
+  /// more options, you can define your implementation.
+  ///
+  /// ```dart
+  ///   pageBuilder: (MaterialPageArgument arg) {
+  ///      return MaterialPage(
+  ///        key: arg.key,
+  ///        child: arg.child,
+  ///      );
+  ///    },
+  /// ```
+  ///
+  /// ### `shouldUseCupertinoPage`: Optional callback that exposes [MaterialPageArgument] object.
+  /// By default, app pages are wrapped with [MaterialPage] widget. If you want to
+  /// use [CupertinoPage] instead, set `shouldUseCupertinoPage` to true.
+  /// You can use `pageBuilder` for more customization.
+  ///
+  /// ### `transitionsBuilder`: Optional callback.
+  /// Define the page transition animation. You can use predefined transition
+  /// using [RM.transitions] or just define yours.
+  ///
+  /// The animation transition defined here are global and will be used for each
+  /// page transition. You can override this default behavior for a particular route
+  /// using [RouteWidget.transitionsBuilder].
+  ///
+  /// You can also define a particular page transition animation for a single navigation
+  /// call:
+  /// ```dart
+  ///  myNavigator.to('/page1', transitionsBuilder: RM.transitions.rightToLeft())
+  /// ```
+  /// ### `onNavigate`: Optional callback that exposes [RouteData] object.
+  /// Callback fired after a location is resolved and just before navigation.
+  ///
+  /// It can be used for route guarding and global redirection.
+  ///
+  /// Example:
+  /// ```dart
+  ///   final myNavigator = RM.injectNavigator(
+  ///     onNavigate: (RouteData data) {
+  ///       final toLocation = data.location;
+  ///       if (toLocation == '/homePage' && userIsNotSigned) {
+  ///         return data.redirectTo('/signInPage');
+  ///       }
+  ///       if (toLocation == '/signInPage' && userIsSigned) {
+  ///         return data.redirectTo('/homePage');
+  ///       }
+  ///
+  ///       //You can also check query or path parameters
+  ///       if (data.queryParams['userId'] == '1') {
+  ///         return data.redirectTo('/superUserPage');
+  ///       }
+  ///     },
+  ///     routes: {
+  ///       '/signInPage': (RouteData data) => SignInPage(),
+  ///       '/homePage': (RouteData data) => HomePage(),
+  ///     },
+  ///   );
+  /// ```
+  ///
+  /// ### `onNavigateBack`: Optional callback that exposes [RouteData] object.
+  /// Called when the route is popping back. It can be used to prevent leaving
+  /// a page if returns false value.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  ///  final myNavigator = RM.injectNavigator(
+  ///    onNavigateBack: (RouteData data) {
+  ///      final backFrom = data.location;
+  ///      if (backFrom == '/SingInFormPage' && formIsNotSaved) {
+  ///        RM.navigate.toDialog(
+  ///          AlertDialog(
+  ///            content: Text('The form is not saved yet! Do you want to exit?'),
+  ///            actions: [
+  ///              ElevatedButton(
+  ///                onPressed: () => RM.navigate.forceBack(),
+  ///                child: Text('Yes'),
+  ///              ),
+  ///              ElevatedButton(
+  ///                onPressed: () => RM.navigate.back(),
+  ///                child: Text('No'),
+  ///              ),
+  ///            ],
+  ///          ),
+  ///        );
+  ///
+  ///        return false;
+  ///      }
+  ///    },
+  ///    routes: {
+  ///      '/SingInFormPage': (RouteData data) => SingInFormPage(),
+  ///      '/homePage': (RouteData data) => HomePage(),
+  ///    },
+  ///  );
+  /// ```
+  ///
+  /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
+  /// Print log a debug message when the state of the navigator is changed.
+  static InjectedNavigator injectNavigator({
+    //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
+    required Map<String, Widget Function(RouteData data)> routes,
+    String? initialLocation,
+    Widget Function(RouteData data)? unknownRoute,
+    Widget Function(Widget routerOutlet)? builder,
+    Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
+    bool shouldUseCupertinoPage = false,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )?
+        transitionsBuilder,
+    Duration? transitionDuration,
+    Redirect? Function(RouteData data)? onNavigate,
+    bool? Function(RouteData? data)? onNavigateBack,
+    bool debugPrintWhenRouted = false,
+    bool ignoreUnknownRoutes = false,
+  }) {
+    return InjectedNavigatorImp(
+      routes: routes,
+      unknownRoute: unknownRoute,
+      transitionsBuilder: transitionsBuilder,
+      transitionDuration: transitionDuration,
+      builder: builder,
+      initialRoute: initialLocation,
+      shouldUseCupertinoPage: shouldUseCupertinoPage,
+      redirectTo: onNavigate,
+      debugPrintWhenRouted: debugPrintWhenRouted,
+      pageBuilder: pageBuilder,
+      onBack: onNavigateBack,
+      ignoreUnknownRoutes: ignoreUnknownRoutes,
+    );
+  }
+
   ///Static variable the holds the chosen working environment or flavor.
   static dynamic env;
   static int? _envMapLength;
@@ -1919,7 +2138,7 @@ abstract class RM {
     bool autoDisposeWhenNotUsed = true,
     bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) {
     late final InjectedImp<T> inj;
     return inj = InjectedImp<T>(

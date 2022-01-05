@@ -77,6 +77,8 @@ abstract class InjectedFormField<T> implements InjectedBaseState<T> {
   /// Invoke field validators and return true if the field is valid.
   bool validate();
 
+  bool get isDirty;
+
   /// If true the [TextField] is clickable and selectable but not editable.
   late bool isReadOnly;
   late bool _isEnabled;
@@ -128,13 +130,16 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   }) : super(
           creator: () => initialValue,
           autoDisposeWhenNotUsed: autoDispose,
+          initialState: initialValue,
+          onDisposed: null,
+          onInitialized: null,
         ) {
     _resetDefaultState = () {
       this.initialValue = initialValue;
       form = null;
       _formIsSet = false;
       _removeFromInjectedList = null;
-      formTextFieldDisposer = null;
+      formFieldDisposer = null;
       _validateOnLoseFocus = validateOnLoseFocus;
       _isValidOnLoseFocusDefined = false;
       _validator = validator;
@@ -143,6 +148,8 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       _hasFocus = null;
       this.isReadOnly = _initialIsReadOnly = isReadOnly;
       this.isEnabled = _initialIsEnabled = isEnabled;
+      isDirty = false;
+      _initialIsDirtyText = initialValue;
     };
     _resetDefaultState();
     _validator = validator;
@@ -153,7 +160,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   late bool _formIsSet;
 
   ///Remove this InjectedTextEditing from the associated InjectedForm,
-  late VoidCallback? formTextFieldDisposer;
+  late VoidCallback? formFieldDisposer;
   late VoidCallback? _removeFromInjectedList;
 
   late bool? _hasFocus;
@@ -189,8 +196,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
       form ??= InjectedFormImp._currentInitializedForm;
       if (form != null) {
         _formIsSet = true;
-        formTextFieldDisposer =
-            (form as InjectedFormImp).addTextFieldToForm(this);
+        formFieldDisposer = (form as InjectedFormImp).addTextFieldToForm(this);
 
         if (form!.autovalidateMode == AutovalidateMode.always) {
           //When initialized and always auto validated, then validate in the next
@@ -217,7 +223,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     if (_validator == null) {
       //If the field is not validate then set its snapshot to hasData, so that
       //in the [InjectedForm.isValid] consider it as a valid field
-      snapState = snapState.copyToHasData(initialValue);
+      snapState = snapState.copyToHasData(snapState.data);
     }
   }
 
@@ -230,6 +236,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
     if (v == value) {
       return;
     }
+    isDirty = v != _initialIsDirtyText;
     snapState = snapState.copyToHasData(v);
     onValueChange?.call(this);
 
@@ -249,6 +256,7 @@ class InjectedFormFieldImp<T> extends InjectedBaseBaseImp<T>
   void dispose() {
     super.dispose();
     _removeFromInjectedList?.call();
+    formFieldDisposer?.call();
     _resetDefaultState();
   }
 }

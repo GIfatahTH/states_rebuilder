@@ -110,7 +110,7 @@ class LocalizationsApp extends StatelessWidget {
           //In real app we use localizationsDelegates for Material and widget
           //Localizations
           //
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],

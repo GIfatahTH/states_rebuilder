@@ -317,4 +317,49 @@ void main() {
       expect(modelB.state, 8);
     },
   );
+
+  testWidgets(
+    'Fix issue #248'
+    'autoDisposeWhenNotUsed=false work for dependent states',
+    (tester) async {
+      bool isModel1Disposed = false;
+      bool isModel2Disposed = false;
+      final model1 = RM.inject(
+        () => 0,
+        autoDisposeWhenNotUsed: false,
+        sideEffects: SideEffects(
+          dispose: () {
+            isModel1Disposed = true;
+          },
+        ),
+      );
+      final model2 = RM.inject(
+        () => model1.state,
+        dependsOn: DependsOn({model1}),
+        autoDisposeWhenNotUsed: false,
+        sideEffects: SideEffects(
+          dispose: () => isModel2Disposed = true,
+        ),
+      );
+      expect(model1.isIdle, true);
+      expect(model2.isIdle, true);
+      model1.state = 1;
+      expect(model2.state, 1);
+      model1.dispose();
+      expect(isModel1Disposed, true);
+      expect(isModel2Disposed, false);
+
+      model2.dispose();
+      isModel1Disposed = false;
+      isModel2Disposed = false;
+      expect(model1.isIdle, true);
+      expect(model2.isIdle, true);
+      //
+      model1.state = 2;
+      expect(model2.state, 2);
+      model2.dispose();
+      expect(isModel1Disposed, false);
+      expect(isModel2Disposed, true);
+    },
+  );
 }

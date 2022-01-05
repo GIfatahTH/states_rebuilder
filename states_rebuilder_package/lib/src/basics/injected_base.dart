@@ -1,7 +1,21 @@
 part of '../rm.dart';
 
 abstract class InjectedBase<T> extends InjectedBaseState<T> {
+  /// Sync state mutation.
+  ///
+  /// Use setState for more options
+  ///
+  /// See: [stateAsync] for async state mutation
   set state(T s) {
+    setState((_) => s);
+  }
+
+  /// Async state mutation.
+  ///
+  /// User setState for mor options
+  ///
+  /// See: [state] for sync state mutation
+  set stateAsync(Future<T> s) {
     setState((_) => s);
   }
 
@@ -20,9 +34,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   ///If the state is not bool, it will throw an assertion error.
   void toggle() {
     assert(T == bool);
-    final snap =
-        _reactiveModelState.snapState._copyToHasData(!(_state as bool) as T);
-    _reactiveModelState.setSnapStateAndRebuild = snap;
+    setState((s) => !(_state as bool));
   }
 
   ///Subscribe to the state
@@ -53,9 +65,42 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     }
   }
 
+  void setToIsIdle() {
+    _reactiveModelState.setToIsIdle(middleSnap: _middleSnap);
+    notify();
+  }
+
+  void setToIsWaiting() {
+    _reactiveModelState.setToIsWaiting(
+      middleSnap: _middleSnap,
+      infoMessage: kFuture,
+    );
+  }
+
+  void setToHasData(T data) {
+    _reactiveModelState.setToHasData(
+      middleSnap: _middleSnap,
+      data: data,
+    );
+  }
+
+  void setToHasError(
+    dynamic error, {
+    StackTrace? stackTrace,
+    VoidCallback? refresher,
+  }) {
+    _reactiveModelState.setToHasError(
+      middleSnap: _middleSnap,
+      error: error,
+      stackTrace: stackTrace,
+      refresher: refresher ?? () {},
+    );
+  }
+
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    SnapState<T>? Function(MiddleSnapState<T>)? middleSnapState,
     bool shouldOverrideGlobalSideEffects,
     void Function(T)? onData,
     void Function(dynamic)? onError,
@@ -78,7 +123,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
   /// [setState].
   ///  * **throttleDelay**: time in milliseconds to throttle the execution of
   /// [setState].
-  ///  * **skipWaiting**: Wether to notify observers on the waiting state.
+  ///  * **skipWaiting**: Wether to skip waiting state.
   ///  * **shouldAwait**: Wether to await of any existing async call.
   ///  * **silent**: Whether to silent the error of no observers is found.
   ///  * **context**: The [BuildContext] to be used for side effects
@@ -93,6 +138,8 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     @Deprecated('User sideEffects instead') On<void>? onSetState,
     @Deprecated('User sideEffects instead') void Function()? onRebuildState,
     SideEffects<T>? sideEffects,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+        stateInterceptor,
     int debounceDelay = 0,
     int throttleDelay = 0,
     bool shouldAwait = false,
@@ -120,10 +167,12 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
                   sideEffects!.onSetState!(s);
                 })
               : onSetState,
+          middleSnapState: stateInterceptor != null
+              ? (middle) =>
+                  stateInterceptor(middle.currentSnap, middle.nextSnap)
+              : null,
         );
-        if (skipWaiting && snap != null && snap.isWaiting) {
-          return null;
-        }
+
         if (snap != null && snap.hasData) {
           if (sideEffects?.onAfterBuild != null) {
             sideEffects!.onAfterBuild!();
@@ -138,6 +187,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
       onDone: (s) {
         return s;
       },
+      skipWaiting: skipWaiting,
       debugMessage: debugMessage,
     );
     if (debounceDelay > 0) {
@@ -173,7 +223,7 @@ abstract class InjectedBase<T> extends InjectedBaseState<T> {
     }
 
     final snap = await call();
-    return snap.data as T;
+    return snap.state;
   }
 
   ///IF the state is in the hasError status, The last callback that causes the

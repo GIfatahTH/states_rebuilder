@@ -7,6 +7,7 @@ class ExtraActionsButton extends StatelessWidget {
   );
   @override
   Widget build(BuildContext context) {
+    print(todosBloc.todosStats.connectionState);
     return OnReactive(
       () {
         return PopupMenuButton<ExtraAction>(
@@ -31,8 +32,9 @@ class ExtraActionsButton extends StatelessWidget {
             }
           },
           itemBuilder: (BuildContext context) {
+            print(todosBloc.todosStats);
             return <PopupMenuItem<ExtraAction>>[
-              if (todosBloc.todosStats.hasData)
+              if (!todosBloc.todosStats.isWaiting)
                 PopupMenuItem<ExtraAction>(
                   key: Key('__toggleAll__'),
                   value: ExtraAction.toggleAllComplete,

@@ -57,7 +57,12 @@ void main() async {
     //
     //Enter some text
     await tester.enterText(find.byKey(Key('__TaskField')), 'Task1');
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
     await tester.enterText(find.byKey(Key('__NoteField')), 'Note1');
+    await tester.pump();
     //
     //Tap on FloatingActionButton to add  the todo
     await tester.tap(find.byType(FloatingActionButton));

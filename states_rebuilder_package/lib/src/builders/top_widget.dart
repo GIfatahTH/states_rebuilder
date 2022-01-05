@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../states_rebuilder.dart';
-import '../injected/injected_i18n/injected_i18n.dart';
-import '../injected/injected_theme/injected_theme.dart';
 
 ///# Prefer using [TopStatelessWidget] instead.
 ///
@@ -106,12 +104,10 @@ class TopAppWidget extends TopStatelessWidget {
   ///      injectedI18N: i18n,
   ///      //If the translation is obtained asynchronously, we must define
   ///      //the onWaiting widget.
-  ///      onWaiting: () => MaterialApp(
-  ///        home: Scaffold(
+  ///      onWaiting: () =>  Scaffold(
   ///          body: Center(
   ///            child: CircularProgressIndicator(),
   ///          ),
-  ///        ),
   ///      ),
   ///      builder: (context) {
   ///        return MaterialApp(

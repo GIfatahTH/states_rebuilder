@@ -1031,23 +1031,21 @@ void main() {
 
       final widget = MaterialApp(
         home: Scaffold(
-          body: OnReactive(
-            () => OnFormBuilder(
-              listenTo: form,
-              builder: () {
-                return Column(
-                  children: [
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: password.controller,
+                  ),
+                  if (isRegister.state)
                     TextField(
-                      controller: password.controller,
+                      controller: confirmPassword.controller,
                     ),
-                    if (isRegister.state)
-                      TextField(
-                        controller: confirmPassword.controller,
-                      ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
           ),
         ),
       );
@@ -1060,6 +1058,36 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Test controllerWithInitialText',
+    (tester) async {
+      final form = RM.injectForm();
+      final password = RM.injectTextEditing();
+
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: password.controllerWithInitialText('zero'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(find.text('zero'), findsOneWidget);
+      password.controller.text = 'one';
+      await tester.pump();
+      expect(find.text('one'), findsOneWidget);
+    },
+  );
   testWidgets(
     'WHEN a field is autoFocused'
     'THEN the it is assigned to the form autoFocusedNode'
@@ -1351,6 +1379,122 @@ void main() {
       field.isEnabled = false;
       await tester.pump();
       expect(isEnabled, findsNothing);
+    },
+  );
+
+  testWidgets(
+    '# issue 241',
+    (tester) async {
+      final pwdInj = RM.injectTextEditing(autoDispose: true); // <-
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OnReactive(
+            () => Scaffold(
+              appBar: AppBar(
+                title: Text("wow"),
+              ),
+              body: Center(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: pwdInj.controller,
+                    ),
+                    ElevatedButton(
+                      child: Text("states_rebuilder test"),
+                      onPressed: () {
+                        pwdInj.controller.text =
+                            pwdInj.controller.text + " Really?";
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+    },
+  );
+
+  testWidgets(
+    'Test is dirty',
+    (tester) async {
+      final form = RM.injectForm();
+      final email = RM.injectTextEditing();
+      final password = RM.injectTextEditing();
+      final widget = OnFormBuilder(
+        listenTo: form,
+        builder: () {
+          return Column(
+            children: [
+              OnBuilder(
+                listenToMany: [email, password, form],
+                builder: () {
+                  return Text('Form is dirty: ${form.isDirty}');
+                },
+              ),
+              TextField(
+                controller: email.controller,
+              ),
+              TextField(
+                controller: password.controller,
+              ),
+            ],
+          );
+        },
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: widget,
+          ),
+        ),
+      );
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(password.isDirty, false);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      form.submit(() async {});
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text1');
+      await tester.enterText(find.byType(TextField).last, 'text');
+      await tester.pump();
+      expect(email.isDirty, true);
+      expect(password.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).first, 'text');
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, true);
+      expect(form.isDirty, true);
+      expect(find.text('Form is dirty: true'), findsOneWidget);
+      //
+      await tester.enterText(find.byType(TextField).last, '');
+      await tester.pump();
+      expect(email.isDirty, false);
+      expect(password.isDirty, false);
+      expect(form.isDirty, false);
+      expect(find.text('Form is dirty: false'), findsOneWidget);
     },
   );
 }

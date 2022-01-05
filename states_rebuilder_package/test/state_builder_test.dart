@@ -982,6 +982,8 @@ class StatesRebuilder extends Injected {
       Key? key,
       Function()? stateOverride,
       bool connectWithGlobal = true,
+      SideEffects? sideEffects,
+      // bool keepAlive = false,
       String? debugPrintWhenNotifiedPreMessage,
       String Function(dynamic s)? toDebugString}) {
     throw UnimplementedError();
@@ -1003,6 +1005,7 @@ class StatesRebuilder extends Injected {
   Widget reInherited(
       {Key? key,
       required BuildContext context,
+      // bool keepAlive = false,
       required Widget Function(BuildContext p1) builder}) {
     throw UnimplementedError();
   }

@@ -48,7 +48,7 @@ class InjectedImp<T> extends Injected<T> {
   final SnapState<T>? Function(MiddleSnapState<T> middleSnap)? middleSnapState;
   final On<void>? onSetState;
   final String? debugPrintWhenNotifiedPreMessage;
-  final String Function(T?)? toDebugString;
+  final Object? Function(T?)? toDebugString;
 
   void Function(T? s)? onInitialized;
   final void Function(T s)? onDisposed;
@@ -166,6 +166,13 @@ class InjectedImp<T> extends Injected<T> {
       middleState: (snap) {
         if (isInitializing) {
           isInitializing = false;
+          if (snap.data is ChangeNotifier) {
+            (snap.data as ChangeNotifier).addListener(notify);
+            _reactiveModelState.listeners.addCleaner(() {
+              (snap.data as ChangeNotifier).removeListener(notify);
+            });
+            return snap;
+          }
           if (snapState._infoMessage == kRecomputing) {
             return middleSnap(snap);
           }
@@ -196,7 +203,7 @@ class InjectedImp<T> extends Injected<T> {
     if (dependsOn != null) {
       _setCombinedSnap(
         dependsOn!.injected,
-        shouldRebuild: false,
+        isInitializing: true,
       );
 
       _subscribeForCombinedSnap(dependsOn!.injected);
@@ -242,6 +249,7 @@ class InjectedImp<T> extends Injected<T> {
   SnapState<T>? _middleSnap(
     SnapState<T> s, {
     On<void>? onSetState,
+    SnapState<T>? Function(MiddleSnapState<T>)? middleSnapState,
     bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
@@ -252,18 +260,26 @@ class InjectedImp<T> extends Injected<T> {
         shouldOverrideGlobalSideEffects: shouldOverrideGlobalSideEffects,
         onData: onData,
         onError: onError,
+        middleSnapState: middleSnapState,
       );
   SnapState<T>? middleSnap(
-    SnapState<T> s, {
+    SnapState<T> snap, {
     On<void>? onSetState,
+    SnapState<T>? Function(MiddleSnapState<T>)? middleSnapState,
     bool shouldOverrideGlobalSideEffects = false,
     void Function(T data)? onData,
     void Function(dynamic error)? onError,
   }) {
-    final middleSnap = MiddleSnapState(snapState, s);
-    final snap = _reactiveModelState._isDisposed
-        ? s
-        : middleSnapState?.call(middleSnap) ?? s;
+    if (!_reactiveModelState._isDisposed) {
+      snap = middleSnapState?.call(
+            MiddleSnapState(snapState, snap),
+          ) ??
+          snap;
+      snap = this.middleSnapState?.call(
+                MiddleSnapState(snapState, snap),
+              ) ??
+          snap;
+    }
     if (snap is SkipSnapState) {
       return null;
     }
@@ -340,6 +356,11 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   final _dependentDisposers = <VoidCallback>[];
+  @override
+  void notify() {
+    super.notify();
+    onSetState?.call(snapState);
+  }
 
   void _subscribeForCombinedSnap(Set<ReactiveModel> depends) {
     for (var depend in dependsOn!.injected) {
@@ -381,7 +402,9 @@ class InjectedImp<T> extends Injected<T> {
             depend._reactiveModelState.listeners.addListenerForRebuild(
           fn,
           clean: () {
-            depend.dispose();
+            if (depend.autoDisposeWhenNotUsed && !depend.hasObservers) {
+              depend.dispose();
+            }
           },
         );
         _dependentDisposers.add(disposer);
@@ -393,7 +416,9 @@ class InjectedImp<T> extends Injected<T> {
           depend._reactiveModelState.listeners.addListenerForSideEffect(
         fn,
         clean: () {
-          depend.dispose();
+          if (depend.autoDisposeWhenNotUsed && !depend.hasObservers) {
+            depend.dispose();
+          }
         },
       );
       _reactiveModelState.listeners.onFirstListerAdded = () {
@@ -413,8 +438,10 @@ class InjectedImp<T> extends Injected<T> {
     }
   }
 
-  void _setCombinedSnap(Set<ReactiveModel> depends,
-      {bool shouldRebuild = true}) {
+  void _setCombinedSnap(
+    Set<ReactiveModel> depends, {
+    bool isInitializing = false,
+  }) {
     bool isIdle = false;
     // bool isWaiting = false;
 
@@ -433,12 +460,12 @@ class InjectedImp<T> extends Injected<T> {
               : null,
           infoMessage: kDependsOn,
         );
-        if (shouldRebuild) {
-          _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
-        } else {
+        if (isInitializing) {
           _reactiveModelState
             .._snapState = middleSnap(snap) ?? snap
             ..setSnapStateAndRebuild = null;
+        } else {
+          _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
         }
         return;
       }
@@ -459,25 +486,28 @@ class InjectedImp<T> extends Injected<T> {
         refresher,
         stackTrace: stackTrace,
       );
-      if (shouldRebuild) {
-        _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
-      } else {
+      if (isInitializing) {
         _reactiveModelState
           .._snapState = middleSnap(snap) ?? snap
           ..setSnapStateAndRebuild = null;
+      } else {
+        _reactiveModelState.setSnapStateAndRebuild = middleSnap(snap);
       }
 
       return;
     }
 
-    if (isIdle) {
-      _reactiveModelState._refresh(
-        infoMessage: shouldRebuild ? kRecomputing : kInitMessage,
-      );
-      return;
+    if (isInitializing) {
+      _reactiveModelState._refresh(infoMessage: kInitMessage);
+    } else {
+      final creator = cachedCreatorMocks.last ?? _reactiveModelState.creator;
+      _reactiveModelState.setStateFn(
+        (state) => creator(),
+        middleState: _middleSnap,
+        onDone: (_) => _,
+        isWaitingForAsyncTask: false,
+      )();
     }
-
-    _reactiveModelState._refresh(infoMessage: kRecomputing);
   }
 
   @override
@@ -513,7 +543,9 @@ class InjectedImp<T> extends Injected<T> {
         cachedCreatorMocks.removeLast();
       }
       undoRedoPersistState?.clearUndoStack();
-      undoRedoPersistState?.persistOnDispose(_state);
+      if (null is T || snapState.data != null) {
+        undoRedoPersistState?.persistOnDispose(_state);
+      }
       final middleSnap = MiddleSnapState(
         snapState,
         SnapState._nothing(
@@ -574,19 +606,53 @@ class InjectedImp<T> extends Injected<T> {
 
   @override
   void undoState() {
-    _reactiveModelState.setSnapStateAndRebuild =
-        undoRedoPersistState?.undoState();
+    final snap = undoRedoPersistState?.undoState();
+    if (snap == null) {
+      return;
+    }
+    assert(() {
+      if (toDebugString != null) {
+        MiddleSnapState(snapState, snap).print(
+          stateToString: toDebugString,
+          preMessage: debugPrintWhenNotifiedPreMessage! + " (UndoState)",
+        );
+      } else if (debugPrintWhenNotifiedPreMessage != null) {
+        MiddleSnapState(snapState, snap).print(
+            preMessage: debugPrintWhenNotifiedPreMessage! + " (UndoState)");
+      }
+
+      return true;
+    }());
+    // if (snap != snapState) {}
+    _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
   @override
   void redoState() {
-    _reactiveModelState.setSnapStateAndRebuild =
-        undoRedoPersistState?.redoState();
+    final snap = undoRedoPersistState?.redoState();
+    if (snap == null) {
+      return;
+    }
+    assert(() {
+      if (toDebugString != null) {
+        MiddleSnapState(snapState, snap).print(
+          stateToString: toDebugString,
+          preMessage: debugPrintWhenNotifiedPreMessage! + " (RedoState)",
+        );
+      } else if (debugPrintWhenNotifiedPreMessage != null) {
+        MiddleSnapState(snapState, snap).print(
+            preMessage: debugPrintWhenNotifiedPreMessage! + " (RedoState)");
+      }
+
+      return true;
+    }());
+    _reactiveModelState.setSnapStateAndRebuild = snap;
   }
 
   @override
   void clearUndoStack() {
     undoRedoPersistState?.clearUndoStack();
+    notify();
   }
 
   @override
@@ -617,30 +683,61 @@ class InjectedImp<T> extends Injected<T> {
   }
 
   final inheritedInjects = <Injected<T>>{};
-
+  bool? _shouldContextWithGlobal;
   @override
   Widget inherited({
     required Widget Function(BuildContext) builder,
     Key? key,
-    FutureOr<T> Function()? stateOverride,
-    bool connectWithGlobal = true,
+    required FutureOr<T> Function()? stateOverride,
+    bool? connectWithGlobal,
+    SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
     String Function(T?)? toDebugString,
-  }) =>
-      _inherited(
-        builder: builder,
-        key: key,
-        stateOverride: stateOverride,
-        connectWithGlobal: connectWithGlobal,
-        debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-        toDebugString: toDebugString,
-      );
+    // bool keepAlive = false,
+  }) {
+    if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
+      if (!_reactiveModelState._isInitialized) {
+        try {
+          final s = _reactiveModelState.creator();
+          _reactiveModelState
+            .._isInitialized = true
+            .._isDisposed = false;
+          if (s is T) {
+            snapState = snapState._copyWith(data: s);
+          }
+          _reactiveModelState.setStateFn(
+            (_) => s,
+            middleState: _middleSnap,
+            onDone: (_) {},
+          )();
+        } catch (e) {
+          if (e is! UnimplementedError) {
+            rethrow;
+          }
+        }
+      }
+
+      _shouldContextWithGlobal = _reactiveModelState._snapState.data == null;
+    }
+
+    return _inherited(
+      builder: builder,
+      key: key,
+      stateOverride: stateOverride,
+      connectWithGlobal: connectWithGlobal ?? _shouldContextWithGlobal!,
+      sideEffects: sideEffects,
+      debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+      toDebugString: toDebugString,
+      // keepAlive: keepAlive,
+    );
+  }
 
   @override
   Widget reInherited({
     Key? key,
     required BuildContext context,
     required Widget Function(BuildContext) builder,
+    // bool keepAlive = false,
   }) {
     final globalInjected = (context
             .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
@@ -665,6 +762,7 @@ class InjectedImp<T> extends Injected<T> {
       reInheritedInject: globalInjected!(context),
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
       toDebugString: toDebugString,
+      // keepAlive: keepAlive,
     );
   }
 
@@ -675,8 +773,10 @@ class InjectedImp<T> extends Injected<T> {
     Injected<T>? reInheritedInject,
     Injected<T>? globalInjected,
     bool connectWithGlobal = true,
+    SideEffects? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
+    // bool keepAlive = false,
   }) {
     return StateBuilderBase(
       (widget, setState) {
@@ -689,7 +789,19 @@ class InjectedImp<T> extends Injected<T> {
           injected = reInheritedInject ?? this;
         } else {
           injected = InjectedImp<T>(
-            creator: stateOverride,
+            creator: () {
+              try {
+                return stateOverride();
+              } catch (e) {
+                if (e is RangeError) {
+                  return injected.snapState.data;
+                }
+                rethrow;
+              }
+            },
+            onSetState: sideEffects != null
+                ? On(() => sideEffects.onSetState?.call(injected.snapState))
+                : null,
             // initialState: state,
             onInitialized: (_) {
               if (connectWithGlobal) {
@@ -750,6 +862,7 @@ class InjectedImp<T> extends Injected<T> {
         );
       },
       key: key,
+      // keepAlive: keepAlive,
       widget: _InheritedHelper(
         builder: builder,
       ),
@@ -816,20 +929,24 @@ class InjectedImp<T> extends Injected<T> {
 }
 
 class _InheritedInjected<T> extends InheritedWidget {
-  const _InheritedInjected({
+  _InheritedInjected({
     Key? key,
     required Widget child,
     required this.injected,
     required this.globalInjected,
     required this.context,
-  }) : super(key: key, child: child);
+  }) : super(key: key, child: child) {
+    final data = injected._reactiveModelState.snapState.data;
+    state = data;
+  }
   final Injected<T> injected;
+  late final T? state;
   final Injected<T> globalInjected;
   final BuildContext context;
 
   @override
   bool updateShouldNotify(_InheritedInjected _) {
-    return true;
+    return _.state != state;
   }
 }
 

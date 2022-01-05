@@ -65,7 +65,7 @@ class OnReactive extends ReactiveStatelessWidget {
   final String? debugPrintWhenObserverAdd;
 
   @override
-  void didMountWidget() {
+  void didMountWidget(BuildContext context) {
     assert(() {
       if (debugPrintWhenRebuild != null) {
         StatesRebuilerLogger.log(

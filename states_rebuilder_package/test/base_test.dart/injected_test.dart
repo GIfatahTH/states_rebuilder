@@ -1,4 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -202,6 +203,7 @@ void main() {
       //
       onWaitingValue = null;
       model.refresh();
+      await tester.pump();
       expect(model.isWaiting, true);
       expect(model.state, 1);
       expect(onWaitingValue, 'Waiting...');
@@ -642,6 +644,398 @@ void main() {
       //
       expect(model.isActive, true);
       expect(model.isDone, true);
+    },
+  );
+
+  testWidgets(
+    'WHEN Model is waiting'
+    'THEN it can be sync mutated without changing the isWaiting flag'
+    'WHEN Model is waiting and another async task is called'
+    'THEN the latter cancels the sooner',
+    (tester) async {
+      SnapState? sideEffectSnap;
+      final model = RM.injectFuture<int?>(
+        () => Future.delayed(2.seconds, () => 10),
+        sideEffects: SideEffects(
+          onSetState: (snap) {
+            sideEffectSnap = snap;
+          },
+        ),
+      );
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(model.isWaiting, true);
+      expect(model.state, null);
+      expect(sideEffectSnap!.isWaiting, true);
+      expect(sideEffectSnap!.state, null);
+      await tester.pump(1.seconds);
+      expect(model.isWaiting, true);
+      expect(model.state, null);
+      expect(sideEffectSnap!.isWaiting, true);
+      expect(sideEffectSnap!.state, null);
+      expect(find.text('null'), findsOneWidget);
+      model.state = 1;
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(model.state, 1);
+      expect(sideEffectSnap!.isWaiting, true);
+      expect(sideEffectSnap!.state, null);
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(model.state, 10);
+      expect(sideEffectSnap!.hasData, true);
+      expect(sideEffectSnap!.state, 10);
+      expect(find.text('10'), findsOneWidget);
+      //
+      model.stateAsync = Future.delayed(2.seconds, () => 20);
+      expect(model.isWaiting, true);
+      expect(model.state, 10);
+      await tester.pump(1.seconds);
+      expect(model.isWaiting, true);
+      expect(model.state, 10);
+      expect(sideEffectSnap!.isWaiting, true);
+      expect(sideEffectSnap!.state, 10);
+      expect(find.text('10'), findsOneWidget);
+      model.state = 1;
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(model.state, 1);
+      expect(sideEffectSnap!.isWaiting, true);
+      expect(sideEffectSnap!.state, 10);
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(model.state, 20);
+      //
+      model.stateAsync = Future.delayed(2.seconds, () => 20);
+      expect(model.isWaiting, true);
+      expect(model.state, 20);
+      await tester.pump(1.seconds);
+      expect(model.isWaiting, true);
+      expect(model.state, 20);
+      model.stateAsync = Future.delayed(2.seconds, () => 10);
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(model.state, 20);
+      await tester.pump(1.seconds);
+      expect(model.isWaiting, true);
+      expect(model.state, 20);
+      model.state = 1;
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(model.state, 1);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(model.state, 10);
+    },
+  );
+
+  testWidgets(
+    'Do not throw when a model is disposed while waiting for a future ',
+    (tester) async {
+      final model = RM.inject<int>(
+        () => 0,
+      );
+      model.stateAsync = Future.delayed(1.seconds, () => 10);
+      await tester.pump();
+      model.dispose();
+      await tester.pump(1.seconds);
+    },
+  );
+
+  testWidgets(
+    'Test when skipWaiting',
+    (tester) async {
+      final model = RM.inject<int>(
+        () => 0,
+      );
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      //
+
+      model.setState(
+        (s) => Future.delayed(2.seconds, () => 10),
+        skipWaiting: true,
+      );
+      //
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(1.seconds);
+      model.notify();
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(find.text('10'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test when skipWaiting using stateInterceptor of Injected state',
+    (tester) async {
+      SnapState? currentState;
+      SnapState? nextState;
+
+      final model = RM.inject<int>(
+        () => 0,
+        stateInterceptor: (_, __) {
+          currentState = _;
+          nextState = __;
+        },
+      );
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      //
+
+      model.setState(
+        (s) => Future.delayed(2.seconds, () => 10),
+        stateInterceptor: (currentSnap, nextSnap) {
+          if (nextSnap.isWaiting) {
+            return nextSnap.copyToHasData(nextSnap.data);
+          }
+        },
+      );
+      //
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      expect(currentState?.isIdle, true);
+      expect(nextState?.hasData, true);
+      await tester.pump(1.seconds);
+      model.notify();
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(find.text('10'), findsOneWidget);
+      expect(currentState?.isIdle, true);
+      expect(nextState?.hasData, true);
+    },
+  );
+
+  testWidgets(
+    'Test when skipWaiting using stateInterceptor of Reactive state',
+    (tester) async {
+      final model = 0.inj();
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      //
+
+      model.setState(
+        (s) => Future.delayed(2.seconds, () => 10),
+        stateInterceptor: (currentSnap, nextSnap) {
+          if (nextSnap.isWaiting) {
+            return nextSnap.copyToHasData(nextSnap.data);
+          }
+        },
+      );
+      //
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(1.seconds);
+      model.notify();
+      await tester.pump();
+      expect(model.isWaiting, false);
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(find.text('10'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Manual status flag setting for injected state',
+    (tester) async {
+      SnapState? currentState;
+      SnapState? nextState;
+      SnapState? sideEffects;
+
+      final model = RM.inject<int>(
+        () => 0,
+        debugPrintWhenNotifiedPreMessage: '',
+        stateInterceptor: (_, __) {
+          currentState = _;
+          nextState = __;
+        },
+        sideEffects: SideEffects(
+          onSetState: (snap) {
+            sideEffects = snap;
+          },
+        ),
+      );
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            if (model.isIdle) {
+              return Text('isIdle');
+            }
+            if (model.isWaiting) {
+              return Text('isWaiting');
+            }
+            if (model.hasError) {
+              return Text(model.error.message);
+            }
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('isIdle'), findsOneWidget);
+      //
+
+      Exception? exception;
+      void fn() async {
+        try {
+          model.setToIsWaiting();
+          final data = await Future.delayed(1.seconds, () => 10);
+          if (exception != null) {
+            throw exception;
+          }
+          model.setToHasData(data);
+        } catch (e, s) {
+          model.setToHasError(
+            e,
+            stackTrace: s,
+            refresher: fn,
+          );
+        }
+      }
+
+      fn();
+      //
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(find.text('isWaiting'), findsOneWidget);
+      expect(currentState!.isIdle, true);
+      expect(nextState!.isWaiting, true);
+      expect(sideEffects!.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(find.text('10'), findsOneWidget);
+      expect(currentState!.isWaiting, true);
+      expect(nextState!.hasData, true);
+      expect(nextState!.data, 10);
+      expect(sideEffects!.data, 10);
+      //
+      model.setToIsIdle();
+      await tester.pump();
+      expect(find.text('isIdle'), findsOneWidget);
+      expect(currentState!.hasData, true);
+      expect(nextState!.isIdle, true);
+      expect(sideEffects!.isIdle, true);
+      exception = Exception('error');
+      fn();
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(find.text('isWaiting'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasError, true);
+      expect(find.text('error'), findsOneWidget);
+      expect(currentState!.isWaiting, true);
+      expect(nextState!.hasError, true);
+      expect(nextState!.error.message, 'error');
+      expect(sideEffects!.error.message, 'error');
+      //
+    },
+  );
+
+  testWidgets(
+    'Manual status flag setting FOR REACTIVE MODEL',
+    (tester) async {
+      final model = 0.inj();
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(
+          () {
+            if (model.isIdle) {
+              return Text('isIdle');
+            }
+            if (model.isWaiting) {
+              return Text('isWaiting');
+            }
+            if (model.hasError) {
+              return Text(model.error.message);
+            }
+            return Text('${model.state}');
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('isIdle'), findsOneWidget);
+      //
+
+      Exception? exception;
+      void fn() async {
+        try {
+          model.setToIsWaiting();
+          final data = await Future.delayed(1.seconds, () => 10);
+          if (exception != null) {
+            throw exception;
+          }
+          model.setToHasData(data);
+        } catch (e, s) {
+          model.setToHasError(e, stackTrace: s, refresher: fn);
+        }
+      }
+
+      fn();
+      //
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(find.text('isWaiting'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasData, true);
+      expect(find.text('10'), findsOneWidget);
+      //
+      model.setToIsIdle();
+      await tester.pump();
+      expect(find.text('isIdle'), findsOneWidget);
+      exception = Exception('error');
+      fn();
+      await tester.pump();
+      expect(model.isWaiting, true);
+      expect(find.text('isWaiting'), findsOneWidget);
+      await tester.pump(1.seconds);
+      expect(model.hasError, true);
+      expect(find.text('error'), findsOneWidget);
+      //
     },
   );
 }

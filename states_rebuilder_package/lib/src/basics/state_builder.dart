@@ -10,15 +10,20 @@ class StateBuilderBase<T> extends MyStatefulWidget {
   ) initState;
 
   final T widget;
+  // final bool keepAlive;
   const StateBuilderBase(
     this.initState, {
     Key? key,
+    // this.keepAlive = false,
     required this.widget,
   }) : super(key: key);
 
   @override
   _StateBuilderBaseState<T> createState() {
     return _StateBuilderBaseState();
+    // return !keepAlive
+    //     ? _StateBuilderBaseState()
+    //     : _StateBuilderBaseStateKeepAlive();
   }
 }
 
@@ -74,11 +79,33 @@ class _StateBuilderBaseState<T> extends ExtendedState<StateBuilderBase<T>> {
     super.dispose();
   }
 
+  AddObsCallback? cachedAddToObs;
+
+  @override
+  void afterBuild() {
+    OnReactiveState.addToObs = cachedAddToObs;
+  }
+
   @override
   Widget build(BuildContext context) {
+    cachedAddToObs = OnReactiveState.addToObs;
+    OnReactiveState.addToObs = null;
     return _builder.builder(context, widget.widget);
   }
 }
+
+// class _StateBuilderBaseStateKeepAlive<T> extends _StateBuilderBaseState<T>
+//     with AutomaticKeepAliveClientMixin {
+//   @override
+//   bool get wantKeepAlive => true;
+//   @override
+//   Widget build(BuildContext context) {
+//     super.build(context);
+//     cachedAddToObs = OnReactiveState.addToObs;
+//     OnReactiveState.addToObs = null;
+//     return _builder.builder(context, widget.widget);
+//   }
+// }
 
 class LifeCycleHooks<T> {
   final void Function(BuildContext context)? mountedState;

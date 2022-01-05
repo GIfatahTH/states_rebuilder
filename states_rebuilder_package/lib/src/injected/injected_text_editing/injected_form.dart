@@ -114,6 +114,8 @@ abstract class InjectedForm implements InjectedBaseState<bool?> {
   ///True if all text fields of the form are valid.
   bool get isValid;
 
+  bool get isDirty;
+
   /// Resets the fields to their initial values.
   ///
   /// If any TextField is autoFocused, than it gets focused after reset.
@@ -167,7 +169,13 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     this.sideEffects,
     Future<void> Function()? submit,
   })  : _submit = submit,
-        super(creator: () => null) {
+        super(
+          creator: () => null,
+          initialState: null,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
+        ) {
     _resetDefaultState = () {
       this.autovalidateMode = autovalidateMode;
       _submitFocusNode = null;
@@ -201,6 +209,12 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
 
   @override
   bool get isValid => _fields.every((e) => e.isValid);
+  @override
+  bool get isDirty {
+    return _fields.any((e) {
+      return e.isDirty;
+    });
+  }
 
   @override
   bool validate() {
@@ -238,6 +252,7 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
     if (!validate()) {
       return;
     }
+
     Future<void> setState(Function()? call) async {
       dynamic result = call?.call();
       try {
@@ -265,6 +280,11 @@ class InjectedFormImp extends InjectedBaseBaseImp<bool?> with InjectedForm {
           if (firstErrorField != null) {
             firstErrorField._focusNode?.requestFocus();
           }
+        }
+        for (var e in _fields) {
+          e
+            ..isDirty = false
+            .._initialIsDirtyText = e.value;
         }
         notify();
       } catch (e, s) {

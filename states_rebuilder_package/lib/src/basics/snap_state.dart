@@ -295,8 +295,15 @@ class SnapState<T> {
 
   ///Similar to [data] with the particularity that it is non nullable.
   T get state {
-    assert(data is T);
-    return data!;
+    assert(() {
+      if (data is! T) {
+        throw Exception(
+            'state is not of type $T. It may be null, use data getter instead');
+      }
+      return true;
+    }());
+
+    return data as T;
   }
 
   /// Returns whether this snapshot contains a non-null [data] value.
@@ -467,7 +474,7 @@ class MiddleSnapState<T> {
   //   nextState = nextSnap.data;
 
   String log({
-    String Function(T? s)? stateToString,
+    Object? Function(T? s)? stateToString,
     String preMessage = '',
   }) {
     // if (currentSnap.isIdle &&
@@ -495,7 +502,7 @@ class MiddleSnapState<T> {
   }
 
   String print({
-    String Function(T? s)? stateToString,
+    Object? Function(T? s)? stateToString,
     String preMessage = '',
   }) {
     final l = log(

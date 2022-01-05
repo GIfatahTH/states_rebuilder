@@ -63,7 +63,7 @@ class UndoRedoPersistState<T> {
     if (persistanceProvider == null) {
       return null;
     }
-
+    persistanceProvider!.cachedJson = null;
     storageProviders.add(persistanceProvider!);
 
     late FutureOr<T?> Function() c;
@@ -125,9 +125,8 @@ class UndoRedoPersistState<T> {
     if (persistanceProvider == null) {
       return;
     }
-    persistanceProvider!.cachedJson = null;
     if (persistanceProvider != null) {
-      storageProviders.remove(persistanceProvider!);
+      storageProviders.remove(persistanceProvider);
     }
     if (persistanceProvider!.persistOn != PersistOn.disposed) {
       return;

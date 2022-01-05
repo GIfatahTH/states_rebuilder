@@ -1,10 +1,10 @@
 part of '../rm.dart';
 
 ///{@template OnBuilder}
-///Explicitly listenTo one or more injected state and reinvoke its
-///onBuilder callback each time an injected state emits a notification.
+/// Explicitly listenTo one or more injected state and reinvoke its
+/// onBuilder callback each time an injected state emits a notification.
 ///
-///For each OnBuilder widget flavor there is method like equivalent:
+/// For each OnBuilder widget flavor there is method like equivalent:
 /// ```dart
 /// //Widget-like
 /// OnBuilder(
@@ -75,7 +75,34 @@ class OnBuilder<T> extends StatelessWidget {
   }) : super(key: key) {
     onBuilder = _On(orElse: (_) => builder());
   }
+  // Create a Reactive state, listen to it and expose it in the builder method
+  factory OnBuilder.create({
+    Key? key,
+    required ReactiveModel<T> Function() create,
+    required Widget Function(ReactiveModel<T> rm) builder,
+  }) {
+    return OnBuilder.orElse(
+      onIdle: () => StateBuilderBase<Widget Function(ReactiveModel<T> rm)>(
+        (widget, setState) {
+          late ReactiveModel<T> rm = create();
+          final disposer =
+              rm._reactiveModelState.listeners.addListenerForRebuild(
+            (_) => setState(),
+          );
+          return LifeCycleHooks(
+            builder: (_, builder) {
+              return builder(rm);
+            },
+            dispose: (_) => disposer(),
+          );
+        },
+        widget: builder,
+      ),
+      orElse: (_) => throw UnimplementedError(),
+    );
+  }
 
+  ///{@macro OnBuilder}
   OnBuilder.data({
     Key? key,
     this.listenTo,
@@ -89,6 +116,7 @@ class OnBuilder<T> extends StatelessWidget {
     onBuilder = _On.data(builder);
   }
 
+  ///{@macro OnBuilder}
   OnBuilder.all({
     Key? key,
     this.listenTo,
@@ -111,6 +139,7 @@ class OnBuilder<T> extends StatelessWidget {
     );
   }
 
+  ///{@macro OnBuilder}
   OnBuilder.orElse({
     Key? key,
     this.listenTo,
@@ -200,6 +229,13 @@ class OnBuilder<T> extends StatelessWidget {
         debugPrintWhenRebuild: debugPrintWhenRebuild,
       );
     }
+
+    if (listenTo == null && onBuilder.onIdle != null) {
+      final child = onBuilder.onIdle!();
+      if (child is StateBuilderBase) {
+        return child;
+      }
+    }
     assert(() {
       if (listenTo == null) {
         StatesRebuilerLogger.log(
@@ -220,7 +256,7 @@ class OnBuilder<T> extends StatelessWidget {
             onData: onBuilder.onData != null
                 ? () => onBuilder.onData!(listenTo!.state)
                 : null,
-            or: () => onBuilder.orElse(listenTo!.state),
+            or: () => onBuilder.orElse(listenTo!._state),
           );
     return on.listenTo(
       listenTo!,

@@ -300,7 +300,13 @@ class InjectedPageTabImp extends InjectedBaseBaseImp<int>
     this.curve = Curves.ease,
     this.viewportFraction = 1.0,
     this.keepPage = true,
-  }) : super(creator: () => initialIndex) {
+  }) : super(
+          creator: () => initialIndex,
+          initialState: initialIndex,
+          autoDisposeWhenNotUsed: true,
+          onDisposed: null,
+          onInitialized: null,
+        ) {
     _resetDefaultState = () {
       _tabController = null;
       _pageController = null;

@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 
@@ -6,7 +6,6 @@ import '../injected/injected_i18n/injected_i18n.dart';
 import '../injected/injected_theme/injected_theme.dart';
 import '../rm.dart';
 import 'on_reactive.dart';
-import 'reactive_state_less_widget.dart';
 
 /// Used instead of [StatelessWidget] on top of [MaterialApp] widget to listen
 /// to [InjectedI18N] and [InjectedTheme]
@@ -83,12 +82,10 @@ import 'reactive_state_less_widget.dart';
 ///
 ///   @override
 ///   Widget? splashScreen() {
-///     return Material(
-///       child: Scaffold(
+///     return Scaffold(
 ///         body: Center(
 ///           child: CircularProgressIndicator(),
 ///         ),
-///       ),
 ///     );
 ///   }
 ///
@@ -136,18 +133,10 @@ abstract class TopStatelessWidget extends MyStatefulWidget {
 
   ///List of future (plugins initialization) to wait for, and display a
   ///waiting screen while waiting
-  List<Future<void>>? ensureInitialization() {}
+  List<FutureOr<void>>? ensureInitialization() {}
 
   ///Called when the widget is first inserted in the widget tree
-  void didMountWidget() {
-    if (this is NavigatorMixin) {
-      RouterObjects.initialize(
-        routes: (this as NavigatorMixin).routes,
-        unknownRoute: (this as NavigatorMixin).unknownRoute,
-        transitionsBuilder: (this as NavigatorMixin).transitionsBuilder,
-      );
-    }
-  }
+  void didMountWidget() {}
 
   ///Called when the widget is  removed from the widget tree
   void didUnmountWidget() {}
@@ -213,7 +202,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       error = null;
     });
     try {
-      await Future.wait(toInitialize, eagerError: true);
+      await Future.wait(toInitialize.whereType<Future>(), eagerError: true);
       setState(() {
         isWaiting = false;
         error = null;
@@ -236,6 +225,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
     super.dispose();
   }
 
+  late final _materialAppKe = UniqueKey();
   Widget getOnWaitingWidget() {
     final child = widget.splashScreen();
     if (child == null) {
@@ -243,7 +233,23 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
           'you have to define a waiting screen using the onWaiting '
           'parameter of the TopWidget');
     }
-    return child;
+    return MaterialApp(
+      key: _materialAppKe,
+      debugShowCheckedModeBanner: false,
+      home: child,
+    );
+  }
+
+  Widget getErrorWidget(BuildContext context) {
+    final child = widget.errorScreen(error, _ensureInitialization);
+    if (child == null) {
+      widget.build(context);
+    }
+    return MaterialApp(
+      key: _materialAppKe,
+      debugShowCheckedModeBanner: false,
+      home: child,
+    );
   }
 
   @override
@@ -252,8 +258,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
       return getOnWaitingWidget();
     }
     if (error != null) {
-      return widget.errorScreen(error, _ensureInitialization) ??
-          widget.build(context);
+      return getErrorWidget(context);
     }
     Widget? child;
     if (!isInitialized) {
@@ -266,6 +271,7 @@ class _TopStatelessWidgetState extends ExtendedState<TopStatelessWidget> {
         return getOnWaitingWidget();
       }
       return injectedI18N!.inherited(
+        stateOverride: null,
         builder: (context) {
           return child ?? widget.build(context);
         },

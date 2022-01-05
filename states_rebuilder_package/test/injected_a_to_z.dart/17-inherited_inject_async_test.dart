@@ -222,4 +222,81 @@ void main() {
     //
     expect(injectedCounter.hasError, isTrue);
   });
+
+  testWidgets(
+    'Check sideEffects for inherited injected ',
+    (tester) async {
+      SnapState? globalCounterSnap;
+      SnapState? counter1Snap;
+      SnapState? counter2Snap;
+      final counterRM = RM.inject(
+        () => 0,
+        sideEffects: SideEffects(
+          onSetState: (snap) {
+            globalCounterSnap = snap;
+          },
+        ),
+      );
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: [
+            counterRM.inherited(
+              stateOverride: () async {
+                return Future.delayed(1.seconds, () => 10);
+              },
+              builder: (context) {
+                final counter = counterRM(context);
+                if (counter.isWaiting) {
+                  return Text('Counter1 is waiting...');
+                }
+                return Text('Counter1 is ${counter.state}');
+              },
+              sideEffects: SideEffects(
+                onSetState: (snap) => counter1Snap = snap,
+              ),
+            ),
+            counterRM.inherited(
+              stateOverride: () async {
+                return Future.delayed(2.seconds, () => 20);
+              },
+              sideEffects: SideEffects(
+                onSetState: (snap) => counter2Snap = snap,
+              ),
+              builder: (context) {
+                final counter = counterRM(context);
+                if (counter.isWaiting) {
+                  return Text('Counter2 is waiting...');
+                }
+                return Text('Counter2 is ${counter.state}');
+              },
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('Counter1 is waiting...'), findsOneWidget);
+      expect(find.text('Counter2 is waiting...'), findsOneWidget);
+      expect(globalCounterSnap, null);
+      expect(counter1Snap!.isWaiting, true);
+      expect(counter2Snap!.isWaiting, true);
+      await tester.pump(1.seconds);
+      expect(find.text('Counter1 is waiting...'), findsNothing);
+      expect(find.text('Counter1 is 10'), findsOneWidget);
+      expect(find.text('Counter2 is waiting...'), findsOneWidget);
+      expect(counter1Snap!.hasData, true);
+      expect(counter1Snap!.data, 10);
+      expect(counter2Snap!.isWaiting, true);
+      await tester.pump(2.seconds);
+      expect(find.text('Counter1 is waiting...'), findsNothing);
+      expect(find.text('Counter1 is 10'), findsOneWidget);
+      expect(find.text('Counter2 is waiting...'), findsNothing);
+      expect(find.text('Counter2 is 20'), findsOneWidget);
+      expect(counter1Snap!.hasData, true);
+      expect(counter1Snap!.data, 10);
+      expect(counter2Snap!.hasData, true);
+      expect(counter2Snap!.data, 20);
+    },
+  );
 }

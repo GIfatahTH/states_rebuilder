@@ -1,4 +1,14 @@
-## 5.0.0-dev-3 (2021-09-22)
+## 5.2.0 (2022-01-05)
+  * Add Navigator 2 support.
+  * Add `statesInterceptor` to `setState` method.
+  * Add `setToIsIdle`, `setToIsWaiting`, `setToHasData`, `setToHasError` methods.
+  * Add `OnBuilder.create` listener.
+  * Fix issues #241 #248
+  * Improve internal logic
+  ### Breaking changes 
+  * `ReactiveStatelessWidget.didMountWidget` takes `BuildContext` as parameter.
+
+## 5.0.0 (2021-10-10)
   ### New features
   * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
   * Add `refreshToken` method to `IAuth` interface. It is used to refresh token (See issue #228).

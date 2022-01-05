@@ -1,32 +1,147 @@
 part of '../../rm.dart';
 
-@immutable
+extension PageSettingsX on List<PageSettings> {
+  /// Add the page of routeName to PageSettings
+  ///
+  /// if `isStrictMode` is true and if the add page already exists in the route
+  /// stack then all pages above the added page will be removed and the add page
+  /// is displayed.
+  ///
+  List<PageSettings> to(
+    String routeName, {
+    Object? arguments,
+    Map<String, String> queryParams = const {},
+    bool isStrictMode = false,
+  }) {
+    if (isStrictMode) {
+      bool isThere = false;
+      final l = where(
+        (e) {
+          if (e.name == routeName) {
+            isThere = true;
+          }
+          return !isThere;
+        },
+      ).toList();
+      l.add(PageSettings(
+        name: routeName,
+        arguments: arguments,
+        queryParams: queryParams,
+      ));
+      return l;
+    }
+    add(PageSettings(
+      name: routeName,
+      arguments: arguments,
+      queryParams: queryParams,
+    ));
+    return this;
+  }
+
+  /// Add the page with the given `routeName` and remove the last page.
+  List<PageSettings> toReplacement(String routeName) {
+    if (isNotEmpty) {
+      removeLast();
+    }
+
+    add(PageSettings(name: routeName));
+    return this;
+  }
+
+  /// Add the page with the given `routeName` and remove all pages until the
+  /// page with `untilRouteName` name.
+  List<PageSettings> toAndRemoveUntil(
+    String routeName,
+    String untilRouteName,
+  ) {
+    while (true) {
+      if (last.name == untilRouteName) {
+        break;
+      }
+      if (isNotEmpty) {
+        removeLast();
+      } else {
+        break;
+      }
+    }
+
+    add(PageSettings(name: routeName));
+    return this;
+  }
+}
+
+/// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
 class PageSettings extends RouteSettings {
   final Widget? child;
-  final Map<String, String> pathParams;
   final Map<String, String> queryParams;
+  final ValueKey? key;
+  final String? routePattern;
+  final RouteData? rData;
+  final String? _delegateName;
+  final Widget Function(Widget route)? builder;
+
+  Widget _getChildWithBuilder() {
+    return builder != null ? builder!(child!) : child!;
+  }
+
+  List<PageSettings> get getSubPages {
+    if (child is RouteWidget) {
+      return (child as RouteWidget)._routerDelegate._pageSettingsList;
+    }
+    return const [];
+  }
+
+  /// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
   const PageSettings({
     required String name,
+    this.routePattern,
     Object? arguments,
     this.child,
-    this.pathParams = const {},
+    this.builder,
     this.queryParams = const {},
-  }) : super(name: name, arguments: arguments);
+  })  : key = null,
+        rData = null,
+        _delegateName = null,
+        super(name: name, arguments: arguments);
+  const PageSettings._({
+    required String name,
+    this.routePattern,
+    this.key,
+    this.rData,
+    Object? arguments,
+    this.child,
+    this.builder,
+    this.queryParams = const {},
+    String? delegateName,
+  })  : _delegateName = delegateName,
+        super(name: name, arguments: arguments);
+
+  String get signature => '${rData?.signature}';
+  String get _signatureWithChild =>
+      '$signature${child is RouteWidget ? (child as RouteWidget)._getLeafConfig()?.child?.key : child?.key}';
 
   @override
   PageSettings copyWith({
     String? name,
+    String? delegateName,
+    String? routePattern,
+    ValueKey? key,
     Object? arguments,
     Widget? child,
     Map<String, String>? queryParams,
-    Map<String, String>? pathParams,
+    RouteData? routeData,
+    Widget Function(Widget route)? builder,
   }) {
-    return PageSettings(
+    return PageSettings._(
       name: name ?? super.name!,
+      routePattern: routePattern ?? this.routePattern,
+      key: key ?? this.key,
+      rData: routeData ?? rData,
       arguments: arguments ?? super.arguments,
       child: child ?? this.child,
+      builder: builder ?? this.builder,
       queryParams: queryParams ?? this.queryParams,
-      pathParams: pathParams ?? this.pathParams,
+      delegateName: delegateName ?? _delegateName ?? name ?? super.name,
     );
   }
 
@@ -43,179 +158,53 @@ class PageSettings extends RouteSettings {
   int get hashCode => name.hashCode;
 
   @override
-  String toString() => 'Page(name: $name, child: $child, arguments: $arguments,'
-      ' pathParams: $pathParams, queryParams: $queryParams)';
+  String toString() =>
+      'Page(name: $_delegateName, child: $child, arguments: $arguments,'
+      ' queryParams: $queryParams)';
+
+  String toStringShort() => 'Page(name: $name, child: $child)';
 }
 
 class RouteSettingsWithChildAndData extends PageSettings {
-  final String routeUriPath;
-  final String baseUrlPath;
+  final RouteData routeData;
   final bool isPagesFound;
-  final bool isBaseUrlChanged;
-  const RouteSettingsWithChildAndData({
-    required String name,
-    required this.routeUriPath,
-    required this.baseUrlPath,
+  RouteSettingsWithChildAndData({
+    required this.routeData,
     this.isPagesFound = true,
-    this.isBaseUrlChanged = false,
-    Object? arguments,
     Widget? child,
-    Map<String, String> queryParams = const {},
-    Map<String, String> pathParams = const {},
-  }) : super(
-          name: name,
+    Widget Function(Widget route)? builder,
+  }) : super._(
           child: child,
-          arguments: arguments,
-          queryParams: queryParams,
-          pathParams: pathParams,
+          builder: builder,
+          name: routeData._subLocation,
+          arguments: routeData.arguments,
+          queryParams: routeData.queryParams,
+          rData: routeData,
         );
-
-  // @override
-  // RouteSettingsWithChildAndData copyWith({
-  //   String? name,
-  //   Object? arguments,
-  //   Widget? child,
-  //   Map<String, String>? queryParams,
-  //   Map<String, String>? pathParams,
-  //   String? routeUriPath,
-  //   String? baseUrlPath,
-  //   bool? isBaseUrlChanged,
-  // }) {
-  //   return RouteSettingsWithChildAndData(
-  //     name: name ?? super.name!,
-  //     arguments: arguments ?? super.arguments,
-  //     child: child ?? this.child,
-  //     queryParams: queryParams ?? this.queryParams,
-  //     pathParams: pathParams ?? this.pathParams,
-  //     routeUriPath: routeUriPath ?? this.routeUriPath,
-  //     baseUrlPath: baseUrlPath ?? this.baseUrlPath,
-  //     isBaseUrlChanged: isBaseUrlChanged ?? this.isBaseUrlChanged,
-  //   );
-  // }
 
   @override
   String toString() => isPagesFound
-      ? 'PageWithData(name: $name, child: $child, arguments: $arguments,'
-          'baseUrlPath: $baseUrlPath, routeUriPath: $routeUriPath, '
-          ' pathParams: $pathParams, queryParams: $queryParams)'
+      ? 'PageWithData(child: $child, routeData: $routeData)'
       : 'PAGE NOT Found (name: $name)';
 }
 
-class RouteSettingsWithChildAndSubRoute extends RouteSettingsWithChildAndData {
+class RouteSettingsWithRouteWidget extends RouteSettingsWithChildAndData {
   final Widget? subRoute;
-  const RouteSettingsWithChildAndSubRoute({
-    required String name,
-    required String routeUriPath,
-    required String baseUrlPath,
-    Object? arguments,
-    Widget? child,
-    Map<String, String> queryParams = const {},
-    Map<String, String> pathParams = const {},
+  RouteSettingsWithRouteWidget({
+    required RouteData routeData,
     this.subRoute,
+    Widget? child,
+    Widget Function(Widget route)? builder,
     bool isPagesFound = true,
-    bool isBaseUrlChanged = false,
   }) : super(
-          name: name,
+          routeData: routeData,
           child: child,
-          arguments: arguments,
-          queryParams: queryParams,
-          pathParams: pathParams,
-          routeUriPath: routeUriPath,
-          baseUrlPath: baseUrlPath,
+          builder: builder,
           isPagesFound: isPagesFound,
-          isBaseUrlChanged: isBaseUrlChanged,
         );
 
-  // @override
-  // RouteSettingsWithChildAndSubRoute copyWith({
-  //   String? name,
-  //   String? routeUriPath,
-  //   String? baseUrlPath,
-  //   Object? arguments,
-  //   Widget? child,
-  //   Map<String, String>? queryParams,
-  //   Map<String, String>? pathParams,
-  //   bool? isBaseUrlChanged,
-  //   Widget? subRoute,
-  // }) {
-  //   return RouteSettingsWithChildAndSubRoute(
-  //     name: name ?? super.name!,
-  //     routeUriPath: routeUriPath ?? this.routeUriPath,
-  //     baseUrlPath: baseUrlPath ?? this.baseUrlPath,
-  //     arguments: arguments ?? super.arguments,
-  //     child: child ?? this.child,
-  //     queryParams: queryParams ?? this.queryParams,
-  //     pathParams: pathParams ?? this.pathParams,
-  //     subRoute: subRoute ?? this.subRoute,
-  //     isBaseUrlChanged: isBaseUrlChanged ?? super.isBaseUrlChanged,
-  //   );
-  // }
-
   @override
-  String toString() =>
-      'SubPageWithData(name: $name, child: $child, subRoute: $subRoute, arguments: $arguments,'
-      'baseUrlPath: $baseUrlPath, routeUriPath: $routeUriPath, '
-      ' pathParams: $pathParams, queryParams: $queryParams)';
-}
-
-class _MaterialPage<T> extends Page<T> {
-  /// Creates a material page.
-  const _MaterialPage({
-    required this.child,
-    this.maintainState = true,
-    this.fullscreenDialog = false,
-    LocalKey? key,
-    String? name,
-    Object? arguments,
-    String? restorationId,
-    this.transitionsBuilder,
-  }) : super(
-          key: key,
-          name: name,
-          arguments: arguments,
-          restorationId: restorationId,
-        );
-  final Widget Function(
-    BuildContext,
-    Animation<double>,
-    Animation<double>,
-    Widget,
-  )? transitionsBuilder;
-
-  /// The content to be shown in the [Route] created by this page.
-  final Widget child;
-
-  /// {@macro flutter.widgets.ModalRoute.maintainState}
-  final bool maintainState;
-
-  /// {@macro flutter.widgets.PageRoute.fullscreenDialog}
-  final bool fullscreenDialog;
-
-  @override
-  Route<T> createRoute(BuildContext context) {
-    return _navigate._pageRouteBuilder<T>(
-      (_) => child,
-      this,
-      fullscreenDialog,
-      maintainState,
-      transitionsBuilder: transitionsBuilder,
-    );
-  }
-}
-
-mixin NavigatorMixin {
-  /// Use
-  late final RouterDelegate<PageSettings> routerDelegate =
-      RouterObjects._routerDelegate['/']!;
-  late final RouteInformationParser<PageSettings> routeInformationParser =
-      RouterObjects._routeInformationParser!;
-
-  Map<String, Widget Function(RouteData)> get routes;
-  Widget Function(String route)? get unknownRoute => null;
-  Widget Function(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  )? get transitionsBuilder => null;
+  String toString() => isPagesFound
+      ? 'SubPageWithData(child: $child, subRoute: $subRoute, routeData: $routeData)'
+      : super.toString();
 }

@@ -17,13 +17,22 @@ jobs:
           java-version: "12.x"
       - uses: subosito/flutter-action@v1
         with:
-          channel: "dev"
+          channel: "stable"
       - run: |
           flutter doctor
           flutter pub get
           flutter test --coverage
           bash <(curl -s https://codecov.io/bash)
         working-directory: ./states_rebuilder_package
+      - run: |
+          cd ex001_00_sync_global_and_local_state && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex002_00_async_global_and_local_state && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex004_00_navigation && flutter test
+        working-directory: ./examples
       - run: |
           cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
         working-directory: ./examples
@@ -39,6 +48,7 @@ jobs:
       - run: |
           cd ex_006_1_crud_app && flutter test
         working-directory: ./examples
+
       - run: |
           cd ex_007_2_clean_architecture_dane_mackier_app_with_fi && flutter test
         working-directory: ./examples

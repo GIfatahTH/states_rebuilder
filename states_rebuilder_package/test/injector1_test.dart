@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/src/legacy/inject.dart';
-import 'package:states_rebuilder/src/legacy/injector.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'fake_classes/models.dart';
 

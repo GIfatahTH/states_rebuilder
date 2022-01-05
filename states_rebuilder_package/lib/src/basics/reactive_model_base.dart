@@ -5,14 +5,14 @@ class ReactiveModelBase<T> {
   ReactiveModelBase({
     required this.creator,
     required this.initializer,
-    T? initialState,
+    required T? initialState,
     required this.autoDisposeWhenNotUsed,
     this.debugPrintWhenNotifiedPreMessage,
   }) {
     //Set initial state on construction
-    if (initialState != null) {
-      _initialState = initialState;
-    }
+    // if (initialState != null) {
+    _initialState = initialState;
+    // }
 
     // else if (null is! T) {
     //   final resolvedInitialState = _getPrimitiveNullState<T>();
@@ -149,18 +149,65 @@ class ReactiveModelBase<T> {
     }
   }
 
+  void setToIsIdle({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState.copyToIsIdle(),
+    );
+  }
+
+  void setToIsWaiting({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    String? infoMessage,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToIsWaiting(
+        infoMessage: infoMessage,
+      ),
+    );
+  }
+
+  void setToHasData({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    required dynamic data,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToHasData(data),
+    );
+  }
+
+  void setToHasError({
+    required SnapState<T>? Function(SnapState<T> snap) middleSnap,
+    required dynamic error,
+    required StackTrace? stackTrace,
+    required VoidCallback refresher,
+  }) {
+    setSnapStateAndRebuild = middleSnap(
+      _snapState._copyToHasError(
+        error,
+        refresher,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
+
   ///Mutate the state
   Future<SnapState<T>> Function() setStateFn(
     dynamic Function(T? state) fn, {
     required SnapState<T>? Function(SnapState<T> snap) middleState,
     required SnapState<T>? Function(SnapState<T> snap) onDone,
     String? debugMessage,
+    bool skipWaiting = false,
+    bool? isWaitingForAsyncTask,
   }) {
     late Future<SnapState<T>> Function() call;
     call = () async {
       try {
         // ignore: prefer_typing_uninitialized_variables
         var _stream;
+        isWaitingForAsyncTask ??=
+            snapState._infoMessage != kRecomputing && snapState.isWaiting;
         dynamic result = fn(snapState.data);
         if (result is Future) {
           _stream = result.asStream();
@@ -168,17 +215,17 @@ class ReactiveModelBase<T> {
           _stream = result;
         }
         if (_stream != null) {
+          isWaitingForAsyncTask = false;
           final dataFuture = _streamSubscription(
             _stream!,
             middleState,
             () => call(), //used for refresh
           );
-          if (!_snapState.isWaiting) {
-            setSnapStateAndRebuild = middleState(
-              _snapState._copyToIsWaiting(
-                infoMessage:
-                    debugMessage ?? (result is Future ? kFuture : kStream),
-              ),
+          if (!_snapState.isWaiting && !skipWaiting) {
+            setToIsWaiting(
+              middleSnap: middleState,
+              infoMessage:
+                  debugMessage ?? (result is Future ? kFuture : kStream),
             );
           }
 
@@ -208,25 +255,29 @@ class ReactiveModelBase<T> {
 
           return true;
         }());
-
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasData(result),
-        );
+        if (isWaitingForAsyncTask!) {
+          setSnapStateAndRebuild = _snapState.copyWith(data: result);
+        } else {
+          setToHasData(
+            middleSnap: middleState,
+            data: result,
+          );
+          return Future.sync(() => _snapState);
+        }
 
         return _snapState;
       } catch (err, s) {
-        if (err is Error) {
+        if (err is Error && err is! UnimplementedError) {
           //Error are not supposed to be captured and handled
           StatesRebuilerLogger.log('', err, s);
           rethrow;
         }
         //In the other hand Exception are handled
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasError(
-            err,
-            () => call(),
-            stackTrace: s,
-          ),
+        setToHasError(
+          middleSnap: middleState,
+          error: err,
+          stackTrace: s,
+          refresher: call,
         );
 
         return _snapState;
@@ -257,27 +308,21 @@ class ReactiveModelBase<T> {
             _endStreamCompleter?.complete(data);
           }
         } else {
-          setSnapStateAndRebuild = middleState(
-            _snapState._copyToHasData(data),
-          );
+          setToHasData(middleSnap: middleState, data: data);
         }
       },
       onError: (err, s) {
         if (err is Error) {
           //Error are not supposed to be captured and handled
-          // ignore: avoid_print
-          print(err);
-          // ignore: avoid_print
-          print(s);
+          StatesRebuilerLogger.log('', err, s);
           throw err;
         }
         //In the other hand Exception are handled
-        setSnapStateAndRebuild = middleState(
-          _snapState._copyToHasError(
-            err,
-            refresher,
-            stackTrace: s,
-          ),
+        setToHasError(
+          middleSnap: middleState,
+          error: err,
+          stackTrace: s,
+          refresher: refresher,
         );
         if (_endStreamCompleter?.isCompleted == false) {
           _endStreamCompleter?.complete();
@@ -316,10 +361,10 @@ class ReactiveModelBase<T> {
   ///Dispose the state
   void dispose() {
     _isDisposed = true;
-    if (_endStreamCompleter != null &&
-        _endStreamCompleter!.isCompleted == false) {
-      _endStreamCompleter!.complete();
-    }
+    // if (_endStreamCompleter != null &&
+    //     _endStreamCompleter!.isCompleted == false) {
+    //   _endStreamCompleter!.complete();
+    // }
 
     _cancelSubscription();
     _isInitialized = false;

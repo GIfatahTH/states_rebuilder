@@ -98,7 +98,7 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
     //
     PersistState<T> Function()? persist,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) : super(
           creator: () => unsignedUser,
           initialState: unsignedUser,
@@ -164,8 +164,9 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
             if (!future.isCompleted) {
               future.complete(data);
             } else {
-              reactiveModelState.setSnapStateAndRebuild = middleSnap(
-                snapState.copyToHasData(data),
+              reactiveModelState.setToHasData(
+                middleSnap: middleSnap,
+                data: data,
               );
             }
           },
@@ -173,12 +174,11 @@ class InjectedAuthImp<T, P> extends InjectedImp<T> with InjectedAuth<T, P> {
             if (!future.isCompleted) {
               future.completeError(err, s);
             } else {
-              reactiveModelState.setSnapStateAndRebuild = middleSnap(
-                snapState.copyToHasError(
-                  err,
-                  stackTrace: s,
-                  onErrorRefresher: () {},
-                ),
+              reactiveModelState.setToHasError(
+                middleSnap: middleSnap,
+                error: err,
+                stackTrace: s,
+                refresher: () {},
               );
             }
           },
