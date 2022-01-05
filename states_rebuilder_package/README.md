@@ -57,16 +57,10 @@
   - [Working with page and tab views](#working-with-page-and-tab-views)
   - [Test and injected state mocking](#test-and-injected-state-mocking)
 - [Examples](#examples)
-  - [Basics](#basics)
-  - [Advanced](#advanced)
-    - [Firebase Series](#firebase-series)
-    - [Firestore Series in Todo App](#firestore-series-in-todo-app)
-
-  <!-- - [Basics:](#basics)
-
-  - [Advanced:](#advanced)
-    - [Firebase Series:](#firebase-series)
-    - [Firestore Series in Todo App:](#firestore-series-in-todo-app) -->
+  - [State management concepts](#state-management-concepts)
+  - [Navigation](#navigation)
+  - [Devolvement booster](#devolvement-booster)
+  
 
 > Although states_rebuilder is a feature-rich library, the maintenance cost is very low, and the size of the library is small. this is because states_rebuilder does not draw a single pixel on the screen and the way the internal code is structured makes adding new functionality a straightforward process with fewer lines of code.
 
@@ -144,7 +138,7 @@ class ViewModel {
 // States inject like this have global scope and can be reached from anywhere.
 final viewModel = ViewModel();
 // To create many independent instances of viewModel and inject them into the widget 
-// tree using the concept of InheretedWidget, see the section on global and local 
+// tree using the concept of InheritedWidget, see the section on global and local 
 // state below.
 
 /* --------------------  👀 UI -------------------- */
@@ -166,7 +160,7 @@ class CounterApp extends ReactiveStatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Counter1View(), // Not const to make it rebuildable
-            Counter2View(),
+            const Counter2View(), // Notice the use of const modifier (good approach)
             Text('🏁 Result: ${viewModel.sum}'), // Will be updated when sum changes
           ],
         ),
@@ -194,8 +188,9 @@ class Counter1View extends StatelessWidget {
   }
 }
 
-// Child 2 - Plain StatelessWidget
-class Counter2View extends StatelessWidget {
+// Child 2 - User ReactiveStatelessWidget because Counter2View 
+// is instantiated with const modifier
+class Counter2View extends ReactiveStatelessWidget {
   const Counter2View({Key? key}) : super(key: key);
 
   @override
@@ -234,9 +229,8 @@ class Counter2View extends StatelessWidget {
 
 ## Business logic and state injection
 
->Business logic classes are independent from any external library. They are independent even from `states_rebuilder` itself.
 
-The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point where you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,`isWaiting`, `hasError` and`hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic.
+The specificity of `states_rebuilder` is that it has practically no boilerplate. It has no boilerplate to the point where you do not have to monitor the asynchronous state yourself. You do not need to add fields to hold for example `onLoading`, `onLoaded`, `onError` states. `states_rebuilder` automatically manages these asynchronous statuses and exposes the `isIdle`,`isWaiting`, `hasError` and`hasData` getters and `onIdle`, `onWaiting`, `onError` and `onData` hooks for use in the user interface logic. In addition you have the full control on which state status to ignore.
 
 >With `states_rebuilder`, you write business logic without bearing in mind how the user interface would interact with it.
 </br>
@@ -261,10 +255,6 @@ class Foo { // Don't extend any other library specific class
   }
 }
 ```
-
-<!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder__singletons_new.png" width="600" alt='cheat cheet'/>
-</p> -->
 
 To make the `Foo` object reactive, we simply inject it using global functional injection:
 
@@ -336,24 +326,26 @@ Injected state can be instantiated globally or as a member of classes. They can 
 To mutate the state and notify to listener(s):
 
 ```dart
-// Set state inside any callback: 
+// Set state synchronously 
 foo.state = newFoo;
+
+// Set state asynchronously 
+foo.stateAsync = repository.fetchSomeThing();
 
 // For more options
 foo.setState(
   (s) => s.fetchSomeThing(),
   // Run `side-effect` during setState
   sideEffects: SideEffects.onWaiting(()=> showSnackBar()),
+  stateInterceptor: (currentSnap, nextSnap){
+    // 
+  }
   debounceDelay : 400,
 );
 
 // For boolean type state
 foo.toggle();
 ```
-
-<!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/01-states_rebuilder_state_wheel.png" width="400" alt=''/>
-</p> -->
 
 The state when mutated emits a notification to its registered listeners. The emitted notification has a boolean flag to describe is status :
 
@@ -362,6 +354,21 @@ The state when mutated emits a notification to its registered listeners. The emi
 - `hasError`: the state mutation has ended with an error.
 - `hasData`: the state mutation has ended with valid data.
 - `isActive`: the state had data at least one time.
+
+Typically when executing any async task the state changes form `isWaiting` to `hasData` or `hasError`. In some use cases we are interested on skipping some of the stages. This can be done using `stateInterceptor` parameter.
+
+```dart
+// For more options
+foo.setState(
+  (s) => s.fetchSomeThing(),
+  // stateInterceptor is called after new state calculation and just 
+  // before state mutation. It exposes the current and the next snapState.
+  stateInterceptor: (currentSnap, nextSnap){
+    // Ignoring the waiting stage.
+    if(nextSnap.isWaiting) return currentSnap;
+  }
+);
+```
 
   [🔍 See more detailed information about  setState API](https://github.com/GIfatahTH/states_rebuilder/wiki/set_state_api).
 
@@ -799,6 +806,14 @@ To use Navigator version 2,
      // Called when route is going back.
      // It is used to prevent leaving pages before date is validated
      onNavigateBack: (RouteData data) {
+       if(data== null){
+         // data is null when the back Button of Android device is hit and the route 
+         // stack is empty.
+
+         // returning true we will exit the app.
+         // returning false we will stay on the app.
+         return false;
+       }
        final backFrom = data.location;
        if (backFrom == '/SingInFormPage' && formIsNotSaved) {
          RM.navigate.toDialog(
@@ -1316,69 +1331,31 @@ And many more features.
 
 # Examples
 
-<!-- * [**States_rebuilder from A to Z using global functional injection**](https://github.com/GIfatahTH/states_rebuilder/wiki/00-functional_injection) -->
 
-<!-- * Here are three **must-read examples** that detail the concepts of states_rebuilder with global functional injection and highlight where states_rebuilder shines compared to existing state management solutions.
+With these series of examples you'll learn the core concepts of state_rebuilder using simple simple and incremental examples.
 
-  1. [Example 1](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world). Hello world app. It gives you the most important feature simply by say hello world.
-  2. [Example 2](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_3_ca_todo_mvc_with_state_persistence). TODO MVC example based on the [Flutter architecture examples](https://github.com/brianegan/flutter_architecture_samples/blob/master/app_spec.md) extended to account for dynamic theming and app localization. The state will be persisted locally using Hive, SharedPreferences, and Sqflite.
-  3. [Example 3](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected. -->
+## State management concepts
+Get the foundation of state management from very basic to more advanced concepts
+* [Sync global and local state management;](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state)
+* [Async global and local state management;](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state)
+* [Dependent state management](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex003_00_dependent_state_management).
 
-## Basics
+## Navigation
+* [Navigation using intuitive facade of Navigator 2 API](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation)
 
-Since you are new to `states_rebuilder`, this is the right place for you to explore. The order below is tailor-made for you 😃:
+## Devolvement booster
 
-- [**Hello world app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_000_hello_world): Hello world app. It gives you the most important feature simply by say hello world. You will understand the concept of global function injection and how to make a pure dart class reactive. You will see how an injected state can depends on other injected state to be refreshed when the other injected state emits notification.
+Based on state management principles and some good programing principles and abstraction techniques, I created dedication injected state to automatize the most repetitive tasks a developer do.
 
-- [**The simplest counter app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection): Default flutter counter app refactored using `states_rebuilder`.
+* Create, Read, Update and delete (CRUD) from a list of items; 
+* Authentication and authorization;
+* App theming;
+* App localization and internationalization;
+* Animation;
+* Form fields and form validation;
+* Working with scrolling list views;
+* Pages and tab views;
 
-- [**Login form validation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_002_2_form_validation_with_reactive_model_with_functional_injection): Simple form login validation. The basic `Injected` concepts are put into practice to make form validation one of the easiest tasks in the world. The concept of exposed model is explained here.
-
-- [**CountDown timer**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_004_2_countdown_timer_with_functional_injection). This is a timer that ticks from 60 and down to 0. It can be paused, resumed or restarted.
-
-- [**Theming and internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching). This is a demonstration how to handle theme switching and app internationalization using `RM.injectedTheme`and `RM.injectedI18N`.
-
-- [**CRUD query**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_1_crud_app). This is an example of a backend service fetching data app. The app performs CRUD operation using `RM.injectCRUD`.
-
-- [**Infinite scroll listView**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_2_infinite_scroll_list). This is another example of CRUD operation using `RM.injectCRUD`. More items will be fetched when the list reaches its bottom.
-
-- [**App localization and internationalization using ARB files**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_1_internationalization_using_arb).
-
-- [**Show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
-
-- [**Show cases of tabs and pages**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_4_page_and_tab_views).
-
-</br>
-
-## Advanced
-
-Here, you will take your programming skills up a notch, deep dive in Architecture 🧐:
-
-- [**User posts and comments**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_007_2_clean_architecture_dane_mackier_app_with_fi):  The app communicates with the JSONPlaceholder API, gets a User profile from the login using the ID entered. Fetches and shows the Posts on the home view and shows post details with an additional fetch to show the comments.
-
-<!-- * [**GitHub use search app**](examples/ex_011_github_search_app) The app will search for github users matching the input query. The query will be debounced by 500 milliseconds. -->
-<!--  -->
-### Firebase Series
-
-- [Firebase login](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_008_clean_architecture_firebase_login)The app uses firebase for sign in. The user can sign in anonymously, with google account, with apple account or with email and password.
-
-<!-- 
-* [**Firebase Realtime Database**](examples/ex_010_clean_architecture_multi_counter_realtime_firebase) The app add, update, delete a list of counters from firebase realtime database. The app is built with two flavors one for production using firebase and the other for test using fake data base. -->
-
-### Firestore Series in Todo App
-
-[TODOS MVC app](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth) The same examples as above adding the possibility for a user to sin up and log in. A user will only see their own todos. The log in will be made with a token which, once expired, the user will be automatically disconnected.
-
-<!-- ## <p align='center'>`Immutable State`</p> omit in toc  -->
-
-<!-- * [**Todo MVC with immutable state and firebase cloud service**](examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi) : This is an implementation of the TodoMVC using states_rebuild, firebase cloud service as backend and firebase auth service for user authentication. This is a good example of immutable state management.
-## <p align='center'>`Mutable State`</p> <!-- omit in toc -->
-
-<!-- * [**Todo MVC with mutable state and sharedPreferences for persistence**](examples/ex_009_2_2_ca_todo_mvc_mutable_with_fi) : This is the same Todos app but using mutable state and sharedPreferences to locally persist todos. In this demo app, you will see an example of asynchronous dependency injection.
-
-## <p align='center'>`Code in BLOC Style`</p> <!-- omit in toc -->
-<!-- 
-* [**Todo MVC following flutter_bloc library approach **](examples/ex_009_3_2_todo_mvc_the_flutter_bloc_way_with_fi)  This is the same Todos App built following the same approach as in flutter_bloc library. -->
-
-</br>
-Note that all of the above examples are tested. With `states_rebuilder`, testing your business logic is the simplest part of your coding time as it is made up of simple dart classes. On the other hand, testing widgets is no less easy, because with `states_rebuilder` you can isolate the widget under test and mock its dependencies.**
+## Question & Suggestion
+* Each example is a seed for a tutorial. It would be very encouraging if you wrote one.
+* Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.

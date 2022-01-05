@@ -1,10 +1,13 @@
-## 5.2.0-dev-3 (2021-12-26)
- * Add Navigator 2 support.
- * Add `statesInterceptor` to `setState` method.
- * Add `setToIsIdle`, `setToIsWaiting`, `setToHasData`, `setToHasError` methods.
- * Add `OnBuilder.create` listener.
- * Fix issues #241 #248
- * Improve internal logic
+## 5.2.0 (2022-01-05)
+  * Add Navigator 2 support.
+  * Add `statesInterceptor` to `setState` method.
+  * Add `setToIsIdle`, `setToIsWaiting`, `setToHasData`, `setToHasError` methods.
+  * Add `OnBuilder.create` listener.
+  * Fix issues #241 #248
+  * Improve internal logic
+  ### Breaking changes 
+  * `ReactiveStatelessWidget.didMountWidget` takes `BuildContext` as parameter.
+
 ## 5.0.0 (2021-10-10)
   ### New features
   * Add `RM.injectFormField` and `OnFormFiledFielder` to injected input fields other than `TextFiled` (See issue #219).
