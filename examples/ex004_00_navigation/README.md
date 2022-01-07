@@ -1,4 +1,4 @@
-# ex004_00_navigation
+# Example_004_Navigation_2.0
 
 ## Getting Started
 First, make sure you have installed states_rebuilder package, please check out the [Installation Guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
