@@ -186,7 +186,7 @@ class Toolbar extends ReactiveStatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 15),
             // OnBuilder.create creates an Injected state and expose it to its child
             child: OnBuilder<bool>.create(
-              create: () => todosViewModel.isAllCompleted.inj(),
+              creator: () => todosViewModel.isAllCompleted,
               builder: (rm) {
                 // As OnBuilder screens its children from ReactiveStateless
                 // we add OnReactive widget here

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -13,12 +12,13 @@ final i18n = RM.injectI18N<EnUS>(
   persistKey: '__lang__',
   sideEffects: SideEffects.onData(
     (data) {
+      if (RM.context == null) return;
       //For better user experience, RTL languages page animates from RTL
-      if (Directionality.of(RM.context!) == TextDirection.rtl) {
-        RM.navigate.transitionsBuilder = RM.transitions.rightToLeft();
-      } else {
-        RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
-      }
+      // if (Directionality.of(RM.context!) == TextDirection.rtl) {
+      //   RM.navigate.transitionsBuilder = RM.transitions.rightToLeft();
+      // } else {
+      //   RM.navigate.transitionsBuilder = RM.transitions.leftToRight();
+      // }
 
       RM.scaffold.showSnackBar(
         SnackBar(

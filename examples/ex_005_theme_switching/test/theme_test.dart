@@ -24,6 +24,13 @@ void main() async {
     await tester.pumpAndSettle();
     expect(find.byType(PreferencePage), findsOneWidget);
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
+    //
+    RM.navigate.back();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pumpAndSettle();
+    expect(find.byType(PreferencePage), findsOneWidget);
+    expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
   });
 
   testWidgets(
@@ -88,6 +95,7 @@ void main() async {
     expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     expect(theme.state, AppTheme.Green);
     expect(theme.themeMode, ThemeMode.system);
+    RM.disposeAll();
   });
 
   testWidgets('use the blue theme and switch between dark and light mode',

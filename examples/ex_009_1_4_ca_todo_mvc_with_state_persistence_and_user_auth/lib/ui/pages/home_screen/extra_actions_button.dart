@@ -7,7 +7,6 @@ class ExtraActionsButton extends StatelessWidget {
   );
   @override
   Widget build(BuildContext context) {
-    print(todosBloc.todosStats.connectionState);
     return OnReactive(
       () {
         return PopupMenuButton<ExtraAction>(

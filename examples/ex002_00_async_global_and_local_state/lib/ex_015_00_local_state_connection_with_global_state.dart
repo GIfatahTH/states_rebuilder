@@ -187,7 +187,7 @@ class Toolbar extends ReactiveStatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: OnBuilder<bool>.create(
-              create: () => _todosViewModel.isAllCompleted.inj(),
+              creator: () => _todosViewModel.isAllCompleted,
               builder: (rm) {
                 return OnReactive(
                   () {

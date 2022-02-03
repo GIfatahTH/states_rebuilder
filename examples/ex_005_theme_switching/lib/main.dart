@@ -7,6 +7,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'home_page.dart';
 import 'themes.dart';
 
+// final navigator = RM.injectNavigator(routes: {
+//   '/': (data)=>  ,
+// })
+
 void main() async {
   //Plugins can initialized in the TopAppWidget
   // WidgetsFlutterBinding.ensureInitialized();

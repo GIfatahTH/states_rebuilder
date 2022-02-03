@@ -67,7 +67,7 @@ final helloName = RM.inject<String>(
 //Stream that emits the entered name letter by letter
 final streamedHelloName = RM.injectStream<String>(
   () async* {
-    if (name.isActive && name.state.isEmpty) {
+    if (/*name.isActive && */ name.state.isEmpty) {
       throw Exception(i18n.state.enterYourName);
     }
     final letters = name.state.trim().split('');
@@ -91,28 +91,23 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends TopStatelessWidget {
   const MyApp({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TopAppWidget(
-      injectedI18N: i18n,
-      builder: (context) {
-        return MaterialApp(
-          // To navigate and show snackBars without the BuildContext, we define
-          // the navigator key
-          navigatorKey: RM.navigate.navigatorKey,
-          locale: i18n.locale,
-          localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          home: const HomeWidget(),
-          debugShowCheckedModeBanner: false,
-        );
-      },
+    return MaterialApp(
+      // To navigate and show snackBars without the BuildContext, we define
+      // the navigator key
+      navigatorKey: RM.navigate.navigatorKey,
+      locale: i18n.locale,
+      localeResolutionCallback: i18n.localeResolutionCallback,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      home: const HomeWidget(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

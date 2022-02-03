@@ -23,15 +23,19 @@ class MyHomePage extends StatelessWidget {
               ),
               //Subscribing to the counterRM using StateBuilder
               OnReactive(
-                () => counterStore.onAll(
-                  onIdle: () => Text('Tap on the FAB to increment the counter'),
-                  onWaiting: () => CircularProgressIndicator(),
-                  onError: (error, refresh) => Text(counterStore.error.message),
-                  onData: (data) => Text(
-                    '${data.count}',
-                    style: Theme.of(context).textTheme.headline5,
-                  ),
-                ),
+                () {
+                  return counterStore.onAll(
+                    onIdle: () =>
+                        Text('Tap on the FAB to increment the counter'),
+                    onWaiting: () => CircularProgressIndicator(),
+                    onError: (error, refresh) =>
+                        Text(counterStore.error.message),
+                    onData: (data) => Text(
+                      '${data.count}',
+                      style: Theme.of(context).textTheme.headline5,
+                    ),
+                  );
+                },
               ),
             ],
           ),

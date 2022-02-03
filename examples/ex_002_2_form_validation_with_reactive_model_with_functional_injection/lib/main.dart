@@ -75,59 +75,61 @@ class MyHomePage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: OnReactive(
-          () => ListView(
-            children: <Widget>[
-              //use On to subscribe to the injected email
-              //'On.data' do not work here, because it rebuild when model
-              //has data only, whereas in our cas we want it rebuild onError also.
-              TextField(
-                onChanged: (String value) => email.state = Email(value),
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  hintText: "your@email.com. It should contain '@'",
-                  labelText: "Email Address",
-                  errorText: email.error?.message,
+          () {
+            return ListView(
+              children: <Widget>[
+                //use On to subscribe to the injected email
+                //'On.data' do not work here, because it rebuild when model
+                //has data only, whereas in our cas we want it rebuild onError also.
+                TextField(
+                  onChanged: (String value) => email.state = Email(value),
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: "your@email.com. It should contain '@'",
+                    labelText: "Email Address",
+                    errorText: email.error?.message,
+                  ),
                 ),
-              ),
 
-              TextField(
-                onChanged: (String value) => password.state = Password(value),
-                decoration: InputDecoration(
-                  hintText: "Password should be more than three characters",
-                  labelText: 'Password',
-                  errorText: password.error?.message,
+                TextField(
+                  onChanged: (String value) => password.state = Password(value),
+                  decoration: InputDecoration(
+                    hintText: "Password should be more than three characters",
+                    labelText: 'Password',
+                    errorText: password.error?.message,
+                  ),
                 ),
-              ),
-              OnBuilder.data(
-                listenToMany: [email, password],
-                builder:
-                    //See documentation to understand more about the exposed model
-                    //(in the wiki / widget listeners / The exposed state)
-                    (exposedModel) {
-                  return Column(
-                    children: <Widget>[
-                      ElevatedButton(
-                        child: Text("login"),
-                        onPressed: isValid
-                            ? () {
-                                print(email.state.email);
-                                print(password.state.password);
-                              }
-                            : null,
-                      ),
-                      Text('exposedModel is :'),
-                      if (exposedModel is Email)
-                        Text('Email : '
-                            '${email.hasError ? email.error.message : email.state.email}'),
-                      if (exposedModel is Password)
-                        Text('password : '
-                            '${password.hasError ? password.error.message : password.state.password}'),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
+                OnBuilder.orElse(
+                  listenToMany: [email, password],
+                  orElse:
+                      //See documentation to understand more about the exposed model
+                      //(in the wiki / widget listeners / The exposed state)
+                      (exposedModel) {
+                    return Column(
+                      children: <Widget>[
+                        ElevatedButton(
+                          child: Text("login"),
+                          onPressed: isValid
+                              ? () {
+                                  print(email.state.email);
+                                  print(password.state.password);
+                                }
+                              : null,
+                        ),
+                        Text('exposedModel is :'),
+                        if (exposedModel is Email)
+                          Text('Email : '
+                              '${email.hasError ? email.error.message : email.state.email}'),
+                        if (exposedModel is Password)
+                          Text('password : '
+                              '${password.hasError ? password.error.message : password.state.password}'),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            );
+          },
           debugPrintWhenObserverAdd: '',
         ),
       ),

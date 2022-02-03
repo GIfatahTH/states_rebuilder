@@ -17,7 +17,11 @@ class HomePage extends StatelessWidget {
             icon: Icon(Icons.settings),
             onPressed: () {
               // Navigate to the PreferencePage
+              print(RM.navigate.navigatorKey.currentState);
+              print(Navigator.of(context));
               RM.navigate.to(const PreferencePage());
+              // RM.navigate.navigatorKey.currentState!.push(
+              //     MaterialPageRoute(builder: (_) => const PreferencePage()));
             },
           )
         ],

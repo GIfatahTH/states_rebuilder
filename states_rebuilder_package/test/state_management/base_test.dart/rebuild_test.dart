@@ -1,0 +1,145 @@
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, avoid_print
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+void main() {
+  testWidgets(
+    'test on method',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.rebuild(
+          () {
+            return Text(model.state.toString());
+          },
+          sideEffects: SideEffects(),
+          shouldRebuild: (_, __) {
+            return true;
+          },
+          // watch: () {},
+          debugPrintWhenRebuild: '',
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      model.state++;
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'test on.data method',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.rebuild.onData(
+          (data) {
+            return Text(data.toString());
+          },
+          sideEffects: SideEffects(),
+
+          shouldRebuild: (_, __) {
+            return true;
+          },
+          // watch: () {},
+          debugPrintWhenRebuild: '',
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      model.state++;
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+
+  //
+  testWidgets(
+    'test on.all method',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.rebuild.onAll(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err, refresh) => Text('onError'),
+          onData: (_) => Text('onData'),
+          sideEffects: SideEffects(),
+
+          shouldRebuild: (_, __) {
+            return true;
+          },
+          // watch: () {},
+          debugPrintWhenRebuild: '',
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'test on.or method',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: model.rebuild.onOrElse(
+          onIdle: () => Text('onIdle'),
+          onWaiting: () => Text('onWaiting'),
+          onError: (err, refresh) => Text('onError'),
+          orElse: (_) => Text('onData'),
+          sideEffects: SideEffects(),
+
+          shouldRebuild: (_, __) {
+            return true;
+          },
+          // watch: () {},
+          debugPrintWhenRebuild: '',
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onIdle'), findsOneWidget);
+      model.setState((s) => Future.delayed(Duration(seconds: 1)));
+      await tester.pump();
+      expect(find.text('onWaiting'), findsOneWidget);
+      await tester.pump(Duration(seconds: 1));
+      expect(find.text('onData'), findsOneWidget);
+    },
+  );
+  // testWidgets(//TODO
+  //   'test on.future method',
+  //   (tester) async {
+  //     final model =
+  //         RM.injectFuture(() => Future.delayed(Duration(seconds: 1), () => 1));
+  //     final widget = Directionality(
+  //       textDirection: TextDirection.ltr,
+  //       child: model.rebuild.onFuture<int>(
+  //         future: () => model.stateAsync,
+  //         onWaiting: () => Text('onWaiting'),
+  //         onError: (err, refresh) => Text('onError'),
+  //         onData: (f, _) => Text('onData'),
+  //         sideEffects: SideEffects(),
+  //         shouldRebuild: (_) {
+  //           return true;
+  //         },
+  //         // watch: () {},
+  //         debugPrintWhenRebuild: '',
+  //       ),
+  //     );
+  //     await tester.pumpWidget(widget);
+  //     expect(find.text('onWaiting'), findsOneWidget);
+  //     await tester.pump(Duration(seconds: 1));
+  //     expect(find.text('onData'), findsOneWidget);
+  //   },
+  // );
+}

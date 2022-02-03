@@ -108,7 +108,7 @@ void main() async {
     expect(find.text('11 مرة'), findsOneWidget);
   });
 
-  testWidgets('Changue to French (async)', (tester) async {
+  testWidgets('Change to French (async)', (tester) async {
     //
     await tester.pumpWidget(MyApp());
     await tester.pumpAndSettle();
@@ -128,7 +128,7 @@ void main() async {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pumpAndSettle();
-
+    expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text('Page d\'accueil'), findsOneWidget);
 
     expect(find.text('Zero fois'), findsOneWidget);
