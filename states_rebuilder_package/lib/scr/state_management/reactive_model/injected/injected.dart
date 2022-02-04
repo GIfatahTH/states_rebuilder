@@ -1,4 +1,4 @@
-part of '../rm.dart';
+part of '../../rm.dart';
 
 abstract class Injected<T> extends ReactiveModel<T> {
   factory Injected.generic({

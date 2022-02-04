@@ -1,4 +1,4 @@
-part of '../../rm.dart';
+part of '../../../rm.dart';
 
 ///Mock implementation of [IPersistStore] used for test
 class _PersistStoreMock extends IPersistStore {

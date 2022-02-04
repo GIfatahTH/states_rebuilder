@@ -1,4 +1,4 @@
-part of '../rm.dart';
+part of '../../rm.dart';
 
 class _InheritedInjected<T> extends InheritedWidget {
   _InheritedInjected({

@@ -1,4 +1,4 @@
-part of '../../rm.dart';
+part of '../../../rm.dart';
 
 IPersistStore? _persistStateGlobalTest;
 IPersistStore? _persistStateGlobal;

@@ -1,4 +1,4 @@
-part of '../../rm.dart';
+part of '../../../rm.dart';
 
 ///State persistence setting.
 class PersistState<T> {

@@ -60,6 +60,7 @@ class App extends TopStatelessWidget {
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       home: OnAuthBuilder(
         listenTo: authBloc.userRM,

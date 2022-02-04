@@ -1,4 +1,4 @@
-part of '../../rm.dart';
+part of '../../../rm.dart';
 
 ///Undo-redo and persist state
 class UndoRedoPersistState<T> {

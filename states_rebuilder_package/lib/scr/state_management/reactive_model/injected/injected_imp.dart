@@ -1,4 +1,4 @@
-part of '../rm.dart';
+part of '../../rm.dart';
 
 class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
   InjectedImp({

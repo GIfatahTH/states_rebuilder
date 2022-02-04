@@ -1,8 +1,10 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -94,10 +96,11 @@ class LocalizationsApp extends StatelessWidget {
           //In real app we use localizationsDelegates for Material and widget
           //Localizations
           //
-          // localizationsDelegates: const [
-          //   GlobalMaterialLocalizations.delegate,
-          //   GlobalWidgetsLocalizations.delegate,
-          // ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Builder(
             builder: (context) {
               _localeFromTheApp = Localizations.localeOf(context);

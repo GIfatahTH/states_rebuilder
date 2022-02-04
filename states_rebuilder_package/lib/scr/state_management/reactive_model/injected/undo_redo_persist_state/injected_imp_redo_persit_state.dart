@@ -1,4 +1,4 @@
-part of '../../rm.dart';
+part of '../../../rm.dart';
 
 class InjectedImpRedoPersistState<T> extends InjectedImp<T> {
   InjectedImpRedoPersistState({
