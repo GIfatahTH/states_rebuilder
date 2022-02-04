@@ -35,13 +35,13 @@ part of 'injected_text_editing.dart';
 /// ```
 ///  {@endtemplate}
 
-abstract class InjectedFormField<T> implements ReactiveModel<T> {
+abstract class InjectedFormField<T> implements IObservable<T> {
   late final _baseFormField = this as _BaseFormField;
 
   ///Whether it passes the validation test
   bool get isValid;
 
-  T get value => state;
+  T get value => snapState.state;
   set value(T v);
 
   set error(dynamic error);
@@ -110,7 +110,7 @@ abstract class InjectedFormField<T> implements ReactiveModel<T> {
 
   set isEnabled(bool val) {
     _isEnabled = val;
-    notify();
+    (this as ReactiveModel).notify();
   }
 }
 

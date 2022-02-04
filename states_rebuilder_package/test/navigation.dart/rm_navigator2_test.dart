@@ -2167,6 +2167,7 @@ void main() {
           if (data.queryParams['q'] == '15') {
             return data.redirectTo('/page2?q=1');
           }
+          return null;
         },
       );
       await tester.pumpWidget(widget);
@@ -2623,7 +2624,7 @@ void main() {
           };
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             routeInterceptor: (data) {
               if (data.location == '/') {
                 return data.redirectTo('/');
@@ -2640,6 +2641,7 @@ void main() {
               if (data.location == '/page5') {
                 return data.redirectTo('/page4');
               }
+              return null;
             },
           );
           await tester.pumpWidget(widget);
@@ -2755,7 +2757,7 @@ void main() {
           );
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             routeInterceptor: (data) {
               if (data.location == '/') {
                 return data.redirectTo('/home');
@@ -2877,8 +2879,7 @@ void main() {
                   ),
             },
             routeInterceptor: (data) {
-              data.log();
-              print('');
+              // data.log();
             },
           );
           await tester.pumpWidget(widget);
@@ -2916,10 +2917,9 @@ void main() {
           final widget = _TopWidget(
             routers: routes,
             initialRoute: '/login',
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             routeInterceptor: (data) {
-              data.log();
-              print('');
+              // data.log();
             },
           );
           await tester.pumpWidget(widget);
@@ -2983,7 +2983,7 @@ void main() {
           };
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
               final signingIn = data.location == '/signIn';
@@ -3036,7 +3036,7 @@ void main() {
           };
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
               final signingIn = data.location == '/signIn';
@@ -3090,10 +3090,9 @@ void main() {
           };
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // // debugPrintWhenRouted: true,
             routeInterceptor: (data) {
-              data.log();
-              print('');
+              // data.log();
             },
           );
           await tester.pumpWidget(widget);
@@ -3146,11 +3145,10 @@ void main() {
           };
           final widget = _TopWidget(
             routers: routes,
-            debugPrintWhenRouted: true,
+            // debugPrintWhenRouted: true,
             ignoreSingleRouteMapAssertion: false,
             routeInterceptor: (data) {
-              data.log();
-              print('');
+              // data.log();
             },
           );
           await tester.pumpWidget(widget);
@@ -3208,10 +3206,9 @@ void main() {
           final widget = _TopWidget(
             initialRoute: 'signIn',
             routers: routes,
-            debugPrintWhenRouted: true,
+            // debugPrintWhenRouted: true,
             routeInterceptor: (data) {
-              data.log();
-              print('');
+              // data.log();
             },
           );
           await tester.pumpWidget(widget);
@@ -3368,7 +3365,7 @@ void main() {
       };
       final widget = _TopWidget(
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         routeInterceptor: (data) {},
       );
       await tester.pumpWidget(widget);
@@ -3455,7 +3452,7 @@ void main() {
       };
       final widget = _TopWidget(
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         routeInterceptor: (data) {},
       );
       await tester.pumpWidget(widget);
@@ -3797,7 +3794,7 @@ void main() {
       final widget = _TopWidget(
         builder: (_) => _,
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         onBack: (data) {
           if (data == null) {
             return false;
@@ -3869,7 +3866,7 @@ void main() {
       };
       final widget = _TopWidget(
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         initialRoute: '/page1/page11/page111/page1111',
       );
       await tester.pumpWidget(widget);
@@ -3942,7 +3939,7 @@ void main() {
       };
       final widget = _TopWidget(
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4051,7 +4048,7 @@ void main() {
       final widget = _TopWidget(
         transitionDuration: 1.seconds,
         routers: routes,
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4109,7 +4106,6 @@ void main() {
       await tester.pump(1000.milliseconds);
       // expect(find.text('/'), findsNothing);
       expect(find.text('/page1'), findsOneWidget);
-      print(animation);
       expect(animation!.value, 0.5);
       expect(animation!.status, AnimationStatus.forward);
       await tester.pumpAndSettle();
@@ -4815,7 +4811,7 @@ void main() {
     'THEN',
     (tester) async {
       final navigator = RM.injectNavigator(
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         routes: {
           '/': (data) => Text('/'),
           '/page1': (data) => Text('/page1'),
@@ -4831,7 +4827,6 @@ void main() {
       navigator.deepLinkTest('/page1/page11');
       await tester.pumpAndSettle();
       expect(find.text('/page11'), findsOneWidget);
-      print(navigator.pageStack);
       navigator.back();
       await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
@@ -4844,7 +4839,7 @@ void main() {
     'Test Navigator2 with TopStatelessWidget',
     (tester) async {
       final navigator = RM.injectNavigator(
-        debugPrintWhenRouted: true,
+        // debugPrintWhenRouted: true,
         routes: {
           '/': (data) => Text('/'),
           '/page1': (data) => Text('/page1'),

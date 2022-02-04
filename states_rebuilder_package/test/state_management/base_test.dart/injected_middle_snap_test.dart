@@ -134,7 +134,7 @@ void main() {
           _nextSnapState = nextSnap;
         },
         // isLazy: false,
-        debugPrintWhenNotifiedPreMessage: '',
+        // debugPrintWhenNotifiedPreMessage: '',
       );
       model.initializeState();
       expect(_snapState!.isIdle, true);

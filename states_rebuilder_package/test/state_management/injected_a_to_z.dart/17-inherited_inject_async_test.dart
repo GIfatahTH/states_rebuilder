@@ -231,7 +231,7 @@ void main() {
       SnapState? counter2Snap;
       final counterRM = RM.inject(
         () => 0,
-        debugPrintWhenNotifiedPreMessage: '',
+        // debugPrintWhenNotifiedPreMessage: '',
         sideEffects: SideEffects(
           onSetState: (snap) {
             globalCounterSnap = snap;

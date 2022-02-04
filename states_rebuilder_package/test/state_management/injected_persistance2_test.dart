@@ -205,7 +205,7 @@ void main() async {
         fromJson: (json) => int.parse(json),
         toJson: (s) => '$s',
         persistStateProvider: PersistStoreMockImp(),
-        debugPrintOperations: true,
+        // debugPrintOperations: true,
       ),
     );
 
@@ -408,7 +408,7 @@ void main() async {
       () => 0,
       persist: () => PersistState(
         key: 'counter',
-        debugPrintOperations: true,
+        // debugPrintOperations: true,
       ),
     );
     //first increment
@@ -427,7 +427,7 @@ void main() async {
       () => 0,
       persist: () => PersistState(
         key: 'counter',
-        debugPrintOperations: true,
+        // debugPrintOperations: true,
       ),
     );
     //first increment
@@ -451,7 +451,7 @@ void main() async {
       () => 0,
       persist: () => PersistState(
         key: 'counter',
-        debugPrintOperations: true,
+        // debugPrintOperations: true,
       ),
     );
     store.timeToWait = 1000;

@@ -1052,7 +1052,7 @@ void main() {
       final confirmPassword = RM.injectTextEditing(
         validators: [
           (text) {
-            if (text != password.state) {
+            if (text != password.value) {
               return 'Password do not match';
             }
           }

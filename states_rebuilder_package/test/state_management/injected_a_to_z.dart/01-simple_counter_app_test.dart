@@ -26,7 +26,7 @@ final Injected<int> counter = RM.inject<int>(
   //   onData: (data) => print('data $data'),
   // ),
   // onInitialized: (int? state) => print('Initialized'),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 class CounterApp extends StatelessWidget {

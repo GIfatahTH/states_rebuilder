@@ -52,7 +52,7 @@ class OnFormBuilder extends MyStatefulWidget {
             if (isEnabledRM != null) {
               isEnabledRM.addObserver(
                 listener: (rm) {
-                  listenTo.notify();
+                  (listenTo as ReactiveModel).notify();
                 },
                 shouldAutoClean: true,
               );
@@ -61,7 +61,7 @@ class OnFormBuilder extends MyStatefulWidget {
             if (isReadOnlyRM != null) {
               isReadOnlyRM.addObserver(
                 listener: (rm) {
-                  listenTo.notify();
+                  (listenTo as ReactiveModel).notify();
                 },
                 shouldAutoClean: true,
               );

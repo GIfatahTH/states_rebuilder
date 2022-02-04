@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
+import '../../state_management/rm.dart';
 
 abstract class InjectedI18N<I18N> {
   ///Get lists of supported locales

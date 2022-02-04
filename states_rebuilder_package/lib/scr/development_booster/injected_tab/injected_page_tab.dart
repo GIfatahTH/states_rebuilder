@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/scr/state_management/common/logger.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import '../../state_management/common/logger.dart';
+import '../../state_management/rm.dart';
+import '../../../states_rebuilder.dart';
 
 part 'on_tab_builder.dart';
 
@@ -84,7 +84,7 @@ part 'on_tab_builder.dart';
 ///  }
 /// ```
 ///  {@endtemplate}
-abstract class InjectedTabPageView implements ReactiveModel<int> {
+abstract class InjectedTabPageView implements IObservable<int> {
   ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
   // late final rebuild = _RebuildTab(this);
   TabController? _tabController;
@@ -109,7 +109,7 @@ abstract class InjectedTabPageView implements ReactiveModel<int> {
   /// When is set to a target index, the tab / page will animated from the
   /// current idex to the target index
   int get index {
-    return state;
+    return snapState.state;
     // if (_tabController != null) {
     //   return _tabController!.index;
     // }

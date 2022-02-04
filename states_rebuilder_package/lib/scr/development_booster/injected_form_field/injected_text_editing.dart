@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:states_rebuilder/scr/state_management/listeners/on_reactive.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
+import '../../state_management/listeners/on_reactive.dart';
+import '../../state_management/rm.dart';
 
 part 'i_base_form_field.dart';
 part 'injected_form.dart';
@@ -42,7 +42,7 @@ part 'on_form_submission_builder.dart';
 /// * [InjectedFormField] for other type of inputs rather the text,
 /// * [InjectedForm] and [OnFormBuilder] to work with form.
 ///  {@endtemplate}
-abstract class InjectedTextEditing implements ReactiveModel<String> {
+abstract class InjectedTextEditing implements IObservable<String> {
   late TextEditingControllerImp? _controller;
 
   late final _baseFormField = this as _BaseFormField;
@@ -84,7 +84,7 @@ abstract class InjectedTextEditing implements ReactiveModel<String> {
   TextEditingControllerImp controllerWithInitialText(String text);
 
   ///The current text being edited.
-  String get text => state;
+  String get text => snapState.state;
 
   ///Whether it passes the validation test
   bool get isValid;
@@ -93,7 +93,9 @@ abstract class InjectedTextEditing implements ReactiveModel<String> {
   ///
   /// Submission is done using [InjectedForm.submit] method.
   bool get isDirty;
-  String get value => state;
+  String get value => text;
+  @Deprecated('use value instead')
+  String get state => value;
 
   ///The range of text that is currently selected.
   TextSelection get selection => _controller!.value.selection;
@@ -153,7 +155,7 @@ abstract class InjectedTextEditing implements ReactiveModel<String> {
 
   set isEnabled(bool val) {
     _isEnabled = val;
-    notify();
+    (this as ReactiveModel).notify();
   }
 }
 

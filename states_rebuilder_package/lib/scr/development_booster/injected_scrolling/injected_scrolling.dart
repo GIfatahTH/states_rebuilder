@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
-import 'package:states_rebuilder/states_rebuilder.dart';
+import '../../state_management/rm.dart';
+import '../../../states_rebuilder.dart';
 
 part 'on_scroll._builder.dart';
 
 /// This injected state abstracts the best practices to come out with a
 /// simple, clean, and testable approach to control Scrollable view.
 ///
-abstract class InjectedScrolling implements ReactiveModel<double> {
+abstract class InjectedScrolling implements IObservable<double> {
   ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
   // late final rebuild = _RebuildScrolling(this);
 
@@ -45,6 +45,7 @@ abstract class InjectedScrolling implements ReactiveModel<double> {
       _controller!.position.userScrollDirection == ScrollDirection.reverse;
 
   set state(double s);
+  double get state => snapState.state;
 
   ///This scrolling list has just started scrolling.
   late bool hasStartedScrolling;

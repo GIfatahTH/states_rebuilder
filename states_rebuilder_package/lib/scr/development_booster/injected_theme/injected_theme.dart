@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
+import '../../state_management/rm.dart';
 
 ///{@template InjectedTheme}
 /// Injection of a state that handle app theme switching.

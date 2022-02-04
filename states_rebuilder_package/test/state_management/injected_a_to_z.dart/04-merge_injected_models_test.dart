@@ -6,12 +6,12 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 //plugin1 takes one seconds to initialized.
 final plugin1 = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => 'plugin1 is initialized'),
-  debugPrintWhenNotifiedPreMessage: 'plugin 1',
+  // debugPrintWhenNotifiedPreMessage: 'plugin 1',
 );
 //plugin2 takes two seconds to initialized.
 final plugin2 = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 2), () => 'plugin2 is initialized'),
-  debugPrintWhenNotifiedPreMessage: 'plugin 2',
+  // debugPrintWhenNotifiedPreMessage: 'plugin 2',
 );
 
 class App extends StatelessWidget {

@@ -1,6 +1,14 @@
 part of '../rm.dart';
 
-abstract class IObservable {
+abstract class IObservable<T> {
+  bool get isIdle;
+  bool get isWaiting;
+  bool get hasData;
+  bool get hasError;
+  bool get isDone;
+  Object? customStatus;
+  dynamic get error;
+  SnapState<T> get snapState;
   final _listeners = <ObserveReactiveModel>[];
   final _dependentListeners = <ObserveReactiveModel>[];
   final _cleaners = <VoidCallback>[];
@@ -51,9 +59,12 @@ abstract class IObservable {
     _dependentListeners.clear();
     _cleaners.clear();
   }
+
+  void notify();
+  void dispose();
 }
 
-abstract class ReactiveModel<T> with IObservable {
+abstract class ReactiveModel<T> with IObservable<T> {
   ReactiveModel();
   factory ReactiveModel.create({
     required Object? Function() creator,
@@ -69,18 +80,12 @@ abstract class ReactiveModel<T> with IObservable {
   }
   T get state;
   set state(T value);
-  SnapState<T> get snapState;
-  Future<T> get stateAsync;
   set stateAsync(Future<T> value);
-  bool get isIdle;
-  bool get isWaiting;
-  bool get hasData;
-  bool get hasError;
-  bool get isDone;
-  Object? customStatus;
-  dynamic get error => snapState.snapError?.error;
+  Future<T> get stateAsync;
   // ignore: cancel_subscriptions
   StreamSubscription? subscription;
+  @override
+  dynamic get error => snapState.snapError?.error;
 
   Future<T?> setState(
     Object? Function(T s) mutator, {
@@ -99,9 +104,8 @@ abstract class ReactiveModel<T> with IObservable {
     StackTrace? stackTrace,
     VoidCallback? refresher,
   });
-  void notify();
+
   void disposeIfNotUsed();
-  void dispose();
 
   ///Refresh the [Injected] state. Refreshing the state means reinitialize
   ///it and reinvoke its creation function and notify its listeners.

@@ -145,16 +145,16 @@ class FormWidget extends StatelessWidget {
                               await user.auth.signUp(
                                 (_) => UserParam(
                                   signUp: SignUp.withEmailAndPassword,
-                                  email: _email.state,
-                                  password: _password.state,
+                                  email: _email.value,
+                                  password: _password.value,
                                 ),
                               );
                             } else {
                               await user.auth.signIn(
                                 (_) => UserParam(
                                   signIn: SignIn.withEmailAndPassword,
-                                  email: _email.state,
-                                  password: _password.state,
+                                  email: _email.value,
+                                  password: _password.value,
                                 ),
                               );
                               //Server validation

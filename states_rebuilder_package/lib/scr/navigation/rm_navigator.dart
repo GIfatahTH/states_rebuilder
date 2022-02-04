@@ -208,7 +208,6 @@ MaterialApp(
         ),
       );
     }
-    print(navigatorState);
     return navigatorState.push<T>(
       _pageRouteBuilder(
         (_) => page,

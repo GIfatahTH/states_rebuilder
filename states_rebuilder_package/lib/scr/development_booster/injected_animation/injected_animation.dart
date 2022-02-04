@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
+import '../../state_management/rm.dart';
 
 part 'on_animation_builder.dart';
 part 'animate.dart';
@@ -46,7 +46,7 @@ part 'animate.dart';
 ///    ```
 ///  {@endtemplate}
 
-abstract class InjectedAnimation implements ReactiveModel<double> {
+abstract class InjectedAnimation implements IObservable<double> {
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   ///
   ///See [_RebuildAnimation.onAnimation]

@@ -5,11 +5,11 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter1 = RM.inject<int>(
   () => 10,
-  debugPrintWhenNotifiedPreMessage: '1',
+  // debugPrintWhenNotifiedPreMessage: true,: '1',
 );
 final counter2 = RM.inject<int>(
   () => 20,
-  debugPrintWhenNotifiedPreMessage: '2',
+  // debugPrintWhenNotifiedPreMessage: true,: '2',
 );
 final counter3 =
     RM.injectFuture<int>(() => Future.delayed(Duration(seconds: 1), () => 30));
@@ -24,11 +24,11 @@ class _App extends StatelessWidget {
         builder: (context) => counter3.inherited(
           stateOverride: null,
           builder: (context) => _MyHomePage(),
-          // debugPrintWhenNotifiedPreMessage: 'counter3',
+          // // debugPrintWhenNotifiedPreMessage: true,: 'counter3',
         ),
-        // debugPrintWhenNotifiedPreMessage: 'counter2',
+        // // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
       ),
-      // debugPrintWhenNotifiedPreMessage: 'counter1',
+      // // debugPrintWhenNotifiedPreMessage: true,: 'counter1',
     );
 
     // return [counter1, counter2, counter3].inherited(

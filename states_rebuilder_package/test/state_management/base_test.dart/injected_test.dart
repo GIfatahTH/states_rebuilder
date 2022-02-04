@@ -473,7 +473,7 @@ void main() {
 
     final model1 = RM.inject(
       () => 1,
-      debugPrintWhenNotifiedPreMessage: '',
+      // debugPrintWhenNotifiedPreMessage: '',
     );
     final model2 = RM.inject(() => model1.state * 2);
     final futureModel = RM.injectFuture(() => future(1));
@@ -630,8 +630,9 @@ void main() {
     'ReactiveModel : inject futures throw argument error if getting a non initialized state while waiting',
     (tester) async {
       final model = RM.injectFuture(
-          () => Future.delayed(Duration(seconds: 1), () => 0),
-          debugPrintWhenNotifiedPreMessage: 'model');
+        () => Future.delayed(Duration(seconds: 1), () => 0),
+        // debugPrintWhenNotifiedPreMessage: 'model',
+      );
       expect(model.stateAsync, isA<Future<int>>());
       expect(() => model.state, throwsArgumentError);
       expect(model.isWaiting, isTrue);
@@ -889,7 +890,7 @@ void main() {
 
       final model = RM.inject<int>(
         () => 0,
-        debugPrintWhenNotifiedPreMessage: '',
+        // debugPrintWhenNotifiedPreMessage: '',
         stateInterceptor: (_, __) {
           currentState = _;
           nextState = __;

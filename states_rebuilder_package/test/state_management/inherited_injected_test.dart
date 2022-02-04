@@ -168,7 +168,6 @@ void main() {
       connectWithGlobal: true,
       builder: (ctx) {
         context = ctx;
-        print(counter(ctx).state);
         return Text('Inherited: ${counter(ctx).state}');
       },
     );
@@ -193,7 +192,6 @@ void main() {
             context: context,
             builder: (ctx) {
               context1 = ctx;
-              print(counter(ctx).state);
               return Text('ReInherited1: ${counter(ctx).state}');
             },
           );
@@ -219,7 +217,6 @@ void main() {
             context: context,
             builder: (ctx) {
               context2 = ctx;
-              print(counter(ctx).state);
               return Text('ReInherited2: ${counter(ctx).state}');
             },
           );
@@ -454,7 +451,7 @@ void main() {
       late List<Injected<_Counter>> childItem = [];
       final itemsRM = RM.inject<List<_Counter>>(
         () => [_Counter(1, 1), _Counter(2, 2), _Counter(3, 3)],
-        debugPrintWhenNotifiedPreMessage: '',
+        // debugPrintWhenNotifiedPreMessage: '',
         sideEffects: SideEffects.onData(
           (_) {
             itemRM.refresh();

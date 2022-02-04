@@ -963,6 +963,32 @@ class ModelWithoutDispose extends StatesRebuilder {
 enum Tags { tag1, tag2, tag3 }
 
 class StatesRebuilder extends IObservable {
-  @override
   void rebuildState() {}
+
+  @override
+  get error => throw UnimplementedError();
+
+  @override
+  bool get hasData => throw UnimplementedError();
+
+  @override
+  bool get hasError => throw UnimplementedError();
+
+  @override
+  bool get isDone => throw UnimplementedError();
+
+  @override
+  bool get isIdle => throw UnimplementedError();
+
+  @override
+  bool get isWaiting => throw UnimplementedError();
+
+  @override
+  SnapState get snapState => throw UnimplementedError();
+
+  @override
+  void dispose() {}
+
+  @override
+  void notify() {}
 }

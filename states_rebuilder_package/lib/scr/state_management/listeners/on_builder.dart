@@ -90,8 +90,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
   ///{@macro OnBuilder}
   OnBuilder({
     Key? key,
-    ReactiveModel<T>? listenTo,
-    List<ReactiveModel>? listenToMany,
+    IObservable<T>? listenTo,
+    List<IObservable>? listenToMany,
     required Widget Function() builder,
     SideEffects<T>? sideEffects,
     ShouldRebuild? shouldRebuild,
@@ -111,8 +111,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
   ///{@macro OnBuilder}
   OnBuilder.data({
     Key? key,
-    ReactiveModel<T>? listenTo,
-    List<ReactiveModel>? listenToMany,
+    IObservable<T>? listenTo,
+    List<IObservable>? listenToMany,
     required Widget Function(T data) builder,
     SideEffects<T>? sideEffects,
     ShouldRebuild? shouldRebuild,
@@ -212,8 +212,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
   ///{@macro OnBuilder}
   OnBuilder.all({
     Key? key,
-    ReactiveModel<T>? listenTo,
-    List<ReactiveModel>? listenToMany,
+    IObservable<T>? listenTo,
+    List<IObservable>? listenToMany,
     OnIdle? onIdle,
     required OnWaiting onWaiting,
     required OnError onError,
@@ -243,8 +243,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
   ///{@macro OnBuilder}
   OnBuilder.orElse({
     Key? key,
-    ReactiveModel<T>? listenTo,
-    List<ReactiveModel>? listenToMany,
+    IObservable<T>? listenTo,
+    List<IObservable>? listenToMany,
     Widget Function()? onIdle,
     Widget Function()? onWaiting,
     Widget Function(dynamic error, void Function() refreshError)? onError,
@@ -277,7 +277,7 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
 
   factory OnBuilder.bindingObserver({
     Key? key,
-    ReactiveModel<T>? listenTo,
+    IObservable<T>? listenTo,
     required Widget Function() builder,
     // this.listenToMany,
     SideEffects<T>? sideEffects,
@@ -302,7 +302,7 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
 class OnBuilderBindingObserver<T> extends OnBuilder<T> {
   OnBuilderBindingObserver({
     Key? key,
-    ReactiveModel<T>? listenTo,
+    IObservable<T>? listenTo,
     required Widget Function() builder,
     // this.listenToMany,
     SideEffects<T>? sideEffects,

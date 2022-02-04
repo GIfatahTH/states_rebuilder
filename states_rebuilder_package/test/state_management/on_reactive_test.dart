@@ -116,8 +116,10 @@ void main() {
       final counter3 = 0.inj();
       final counter4 = 0.inj();
       final counter5 = 0.inj();
-      final counter6 =
-          RM.inject(() => 0, debugPrintWhenNotifiedPreMessage: 'counter6');
+      final counter6 = RM.inject(
+        () => 0,
+        // debugPrintWhenNotifiedPreMessage: 'counter6',
+      );
       final widget = OnReactive(
         () {
           return Column(

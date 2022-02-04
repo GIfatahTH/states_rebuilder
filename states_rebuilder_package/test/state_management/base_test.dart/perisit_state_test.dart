@@ -515,7 +515,7 @@ void main() async {
         persistStateProvider: MockPersistStoreAsync(),
         debugPrintOperations: true,
       ),
-      debugPrintWhenNotifiedPreMessage: '',
+      // debugPrintWhenNotifiedPreMessage: '',
     );
     expect(counter.state, null);
     await tester.pump();

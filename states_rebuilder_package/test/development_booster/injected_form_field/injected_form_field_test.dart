@@ -654,7 +654,7 @@ void main() {
               );
             }
             return MaterialPageRoute(
-              builder: (_) => Text('other: ${isCheckedField.state}'),
+              builder: (_) => Text('other: ${isCheckedField.snapState.state}'),
             );
           });
 

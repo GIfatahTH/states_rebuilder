@@ -561,14 +561,14 @@ void main() {
       sideEffects: SideEffects(
         dispose: () => counter1IsDisposed = true,
       ),
-      debugPrintWhenNotifiedPreMessage: 'counter1',
+      // // debugPrintWhenNotifiedPreMessage: true,: 'counter1',
     );
     final counter2 = RM.inject(
       () => 0,
       sideEffects: SideEffects(
         dispose: () => counter2IsDisposed = true,
       ),
-      debugPrintWhenNotifiedPreMessage: 'counter2',
+      // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
     );
     final counter3 = RM.inject<int>(
       () {
@@ -578,7 +578,7 @@ void main() {
       sideEffects: SideEffects(
         dispose: () => counter3IsDisposed = true,
       ),
-      debugPrintWhenNotifiedPreMessage: 'counter3',
+      // debugPrintWhenNotifiedPreMessage: true,: 'counter3',
     );
     final counter4 = RM.inject(
       () => counter1.state,
@@ -586,7 +586,7 @@ void main() {
       sideEffects: SideEffects(
         dispose: () => counter4IsDisposed = true,
       ),
-      debugPrintWhenNotifiedPreMessage: 'counter4',
+      // debugPrintWhenNotifiedPreMessage: true,: 'counter4',
     );
 
     final switcher = RM.inject(() => true);
@@ -618,7 +618,7 @@ void main() {
         sideEffects: SideEffects(
           dispose: () => counter1IsDisposed = true,
         ),
-        debugPrintWhenNotifiedPreMessage: 'counter1',
+        // debugPrintWhenNotifiedPreMessage: true,: 'counter1',
       );
       final counter2 = RM.inject(
         () => counter1.state,
@@ -626,7 +626,7 @@ void main() {
         sideEffects: SideEffects(
           dispose: () => counter2IsDisposed = true,
         ),
-        debugPrintWhenNotifiedPreMessage: 'counter2',
+        // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
       );
       final counter3 = RM.inject<int>(
         () {
@@ -636,7 +636,7 @@ void main() {
         sideEffects: SideEffects(
           dispose: () => counter3IsDisposed = true,
         ),
-        debugPrintWhenNotifiedPreMessage: 'counter3',
+        // debugPrintWhenNotifiedPreMessage: true,: 'counter3',
       );
       final switcher = RM.inject(() => true);
       await tester.pumpWidget(switcher.rebuild(() {
@@ -667,7 +667,7 @@ void main() {
       dependsOn: DependsOn({counter1, counter2}),
       initialState: 0,
       // isLazy: false,
-      // debugPrintWhenNotifiedPreMessage: 'counter3',
+      // // debugPrintWhenNotifiedPreMessage: true,: 'counter3',
     );
 
     expect(counter3.isWaiting, isTrue);
@@ -804,7 +804,7 @@ void main() {
   //     counter1.rebuild(() {
   //       counter2 = RM.inject(
   //         () => 0,
-  //         debugPrintWhenNotifiedPreMessage: 'counter2',
+  //         // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
   //       );
   //       return Directionality(
   //         textDirection: TextDirection.ltr,
@@ -883,7 +883,7 @@ void main() {
   //       () {
   //         counter2 = RM.inject(
   //           () => 0,
-  //           // debugPrintWhenNotifiedPreMessage: 'counter2',
+  //           // // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
   //         );
   //         return Directionality(
   //           textDirection: TextDirection.ltr,
@@ -959,7 +959,7 @@ void main() {
   //       () {
   //         counter2 = RM.inject(
   //           () => 0,
-  //           // debugPrintWhenNotifiedPreMessage: 'counter2',
+  //           // // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
   //         );
   //         return Directionality(
   //           textDirection: TextDirection.ltr,
@@ -1049,7 +1049,7 @@ void main() {
   //             initState: () => numberOfOnInitialized++,
   //             dispose: () => numberOfOnDisposed++,
   //           ),
-  //           debugPrintWhenNotifiedPreMessage: 'counter2',
+  //           // debugPrintWhenNotifiedPreMessage: true,: 'counter2',
   //           // isLazy: false,
   //         );
 
@@ -1294,7 +1294,7 @@ void main() {
   //     (tester) async {
   //   final counter1 = RM.inject(
   //     () => VanillaModel(0),
-  //     // debugPrintWhenNotifiedPreMessage: 'counter1',
+  //     // // debugPrintWhenNotifiedPreMessage: true,: 'counter1',
   //   );
   //   late Injected<VanillaModel> counter2;
   //   final widget = counter1.rebuild(
@@ -1348,7 +1348,7 @@ void main() {
   //     (tester) async {
   //   final counter1 = RM.inject(
   //     () => VanillaModel(0),
-  //     // debugPrintWhenNotifiedPreMessage: 'counter1',
+  //     // // debugPrintWhenNotifiedPreMessage: true,: 'counter1',
   //   );
   //   late Injected<VanillaModel> counter2;
   //   final widget = counter1.rebuild(

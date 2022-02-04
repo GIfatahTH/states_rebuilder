@@ -37,7 +37,7 @@ Locale? _localeFromTheApp;
 final currentLocale = RM.inject<Locale>(
   //return the stored locale or if null return the system locale
   () => _storedLocale ?? WidgetsBinding.instance!.window.locales.first,
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 final Injected<I18n> i18n = RM.injectFuture<I18n>(
@@ -61,7 +61,7 @@ final Injected<I18n> i18n = RM.injectFuture<I18n>(
     );
   },
   dependsOn: DependsOn({currentLocale}),
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 //The UI

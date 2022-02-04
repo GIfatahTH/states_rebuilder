@@ -9,7 +9,7 @@ final counter = RM.inject<int>(
     (_) {},
   ),
   undoStackLength: 8,
-  debugPrintWhenNotifiedPreMessage: '',
+  // debugPrintWhenNotifiedPreMessage: '',
 );
 
 class MyApp extends ReactiveStatelessWidget {

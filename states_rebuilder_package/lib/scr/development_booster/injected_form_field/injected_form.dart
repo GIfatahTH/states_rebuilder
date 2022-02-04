@@ -91,7 +91,7 @@ part of 'injected_text_editing.dart';
 /// * [InjectedTextEditing] to inject a [TextEditingController],
 ///  {@endtemplate}
 
-abstract class InjectedForm implements ReactiveModel<bool?> {
+abstract class InjectedForm implements IObservable<bool?> {
   ///Listen to the [InjectedForm] and rebuild when it is notified.
   // late final rebuild = _RebuildForm(this);
 
