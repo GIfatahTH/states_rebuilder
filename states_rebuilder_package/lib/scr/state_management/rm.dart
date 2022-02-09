@@ -2087,7 +2087,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     // }
 
     if (_contextSet.isNotEmpty) {
-      if (_contextSet.last.findRenderObject()?.attached != true) {
+      final renderObject = _contextSet.last.findRenderObject();
+      if (renderObject != null && renderObject.attached != true) {
         _contextSet.removeLast();
         // ignore: recursive_getters
         return context;

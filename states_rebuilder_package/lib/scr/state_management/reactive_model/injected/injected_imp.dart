@@ -144,9 +144,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     assert(() {
       if (debugPrintWhenNotifiedPreMessageGlobal != null &&
           _snapState._infoMessage != kInitMessage) {
-        if (_snapState == _snapState.oldSnapState) {
-          return true;
-        }
+        // if (_snapState == _snapState.oldSnapState) {
+        //   return true;
+        // }
         _snapState.debugPrint();
       }
       return true;

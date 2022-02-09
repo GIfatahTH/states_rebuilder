@@ -159,7 +159,8 @@ void main() async {
     onUnSigned = 0;
     onSigned = 0;
     disposeMessage = '';
-    navigatorKey = GlobalKey();
+    // navigatorKey = GlobalKey();
+    navigatorKey = RM.navigate.navigatorKey;
 
     widget = MaterialApp(
       home: OnBuilder.createFuture(
@@ -582,7 +583,7 @@ void main() async {
           onUnsigned: () => Text('Unsigned'),
           onSigned: () => Text('Signed'),
           useRouteNavigation: true,
-          navigatorKey: navigatorKey,
+          // navigatorKey: navigatorKey,
         ),
         navigatorKey: navigatorKey,
       );

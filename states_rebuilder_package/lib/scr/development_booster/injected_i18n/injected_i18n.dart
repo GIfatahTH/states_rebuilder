@@ -185,7 +185,7 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   Locale? _resolvedLocale;
 
   late final VoidCallback _resetDefaultState;
-  bool _onTopWidgetObserverAdded() {
+  bool _onTopWidgetObserverAdded(BuildContext context) {
     return true;
   }
 
@@ -261,7 +261,7 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   }
 
   Locale _getSystemLocale() {
-    return WidgetsBinding.instance!.platformDispatcher.locale;
+    return WidgetsBinding.instance!.window.locale;
   }
 
   @override

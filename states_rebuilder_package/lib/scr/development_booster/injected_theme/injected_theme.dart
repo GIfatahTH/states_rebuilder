@@ -87,7 +87,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
     // required bool isLazy = true,
     required String? debugPrintWhenNotifiedPreMessage,
     required Object? Function(KEY?)? toDebugString,
-  }) : _themeMode = themeModel
+  }) : _initialThemeMode = themeModel
   // super(
   //   creator: () => lightThemes.keys.first,
   //   initialState: lightThemes.keys.first,
@@ -173,7 +173,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
     ) as InjectedImp<KEY>;
     _resetDefaultState = () {
       _isDarkTheme = false;
-      _themeMode = ThemeMode.system;
+      _themeMode = _initialThemeMode;
       isLinkedToTopStatelessWidget = false;
     };
     _resetDefaultState();
@@ -195,6 +195,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
 
   final Map<KEY, ThemeData> lightThemes;
   final Map<KEY, ThemeData>? darkThemes;
+  late final ThemeMode _initialThemeMode;
   late ThemeMode _themeMode;
   bool _isDarkTheme = false;
   late bool isLinkedToTopStatelessWidget;
@@ -214,7 +215,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
     return {};
   }
 
-  bool _onTopWidgetObserverAdded() {
+  bool _onTopWidgetObserverAdded(context) {
     isLinkedToTopStatelessWidget = true;
     return false;
   }
@@ -278,12 +279,14 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
   @override
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
-      if (RM.context != null) {
-        final brightness = MediaQuery.platformBrightnessOf(RM.context!);
-        _isDarkTheme = brightness == Brightness.dark;
-      } else {
-        _isDarkTheme = false;
-      }
+      _isDarkTheme =
+          WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
+      // if (RM.context != null) {
+      //   final brightness = MediaQuery.platformBrightnessOf(RM.context!);
+      //   _isDarkTheme = brightness == Brightness.dark;
+      // } else {
+      //   _isDarkTheme = false;
+      // }
     } else {
       _isDarkTheme = _themeMode == ThemeMode.dark;
     }

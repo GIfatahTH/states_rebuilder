@@ -172,11 +172,11 @@ class EvaluateAnimation {
       currentValue = getValue(name);
     } else if (tween?.begin != newTween.begin || tween?.end != newTween.end) {
       tween = newTween;
+      forwardAnimation = null;
+      backwardAnimation = null;
       if (tween.begin == tween.end) {
         return tween.begin;
       }
-      forwardAnimation = null;
-      backwardAnimation = null;
       onAnimation._isChanged = true;
     } else {
       onAnimation._hasChanged = isTween;

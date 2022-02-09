@@ -6,7 +6,7 @@ typedef AsyncVoidCallback = Future<void> Function();
 typedef ObserveReactiveModel = void Function(ReactiveModelImp);
 typedef ObserveTopWidget = void Function(
   ReactiveModelImp,
-  bool Function() onObserverAdded,
+  bool Function(BuildContext) onObserverAdded,
   void Function(List<Locale>? locales)? didChangeLocales,
 );
 typedef StateInterceptor<T> = SnapState<T>? Function(

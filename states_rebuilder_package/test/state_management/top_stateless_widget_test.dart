@@ -443,7 +443,7 @@ class CustomInjected<T> extends InjectedImp<T> {
         );
   final bool useInheritedWidget;
 
-  bool onTopObserverAdded() {
+  bool onTopObserverAdded(_) {
     return useInheritedWidget;
   }
 

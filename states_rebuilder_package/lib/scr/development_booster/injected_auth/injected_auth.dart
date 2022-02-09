@@ -167,7 +167,6 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
               setToHasError(
                 err,
                 stackTrace: s,
-                refresher: () {},
               );
               // reactiveModelState.setToHasError(
               //   middleSnap: middleSnap,

@@ -209,7 +209,7 @@ abstract class IAuth<T, P> {
   ///
   ///  }
   /// ```
-  Future<T>? refreshToken(T currentUser) {}
+  Future<T>? refreshToken(T currentUser);
 
   ///It is called when the injected model is disposed
   ///

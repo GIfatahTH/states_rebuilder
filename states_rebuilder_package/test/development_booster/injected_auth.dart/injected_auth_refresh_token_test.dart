@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -269,6 +270,31 @@ void main() async {
       expect(user.isSigned, false);
       expect(find.text('UnSigned'), findsOneWidget);
       //
+    },
+  );
+
+  testWidgets(
+    'Test when refreshing a token of unsigned user',
+    (tester) async {
+      final user = RM.injectAuth<User?, String>(
+        () => Repository(),
+        autoRefreshTokenOrSignOut: (user) => const Duration(seconds: 1),
+      );
+      user.auth.signIn(null);
+      expect(user.state, null);
+      await tester.pump();
+      expect(user.state, isNotNull);
+
+      (user as ReactiveModelImp).snapValue =
+          (user as ReactiveModelImp).snapValue.copyWith(
+                data: null,
+                isImmutable: true,
+              );
+      await tester.pump(const Duration(seconds: 1));
+      expect(user.state, null);
+
+      await tester.pump();
+      expect(user.state, null);
     },
   );
 }

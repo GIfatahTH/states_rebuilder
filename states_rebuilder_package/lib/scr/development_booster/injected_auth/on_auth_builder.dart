@@ -31,16 +31,9 @@ class _Rebuild<T, P> {
       debugPrintWhenRebuild: debugPrintWhenRebuild,
     );
   }
-
-  // call(Widget Function() builder) {
-  //   return OnBuilder(
-  //     listenTo: inj,
-  //     builder: builder,
-  //   );
-  // }
 }
-// /// Listen to an [InjectedAuth] and define the appropriate view for each case
 
+/// Listen to an [InjectedAuth] and define the appropriate view for each case
 class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
   OnAuthBuilder({
     Key? key,

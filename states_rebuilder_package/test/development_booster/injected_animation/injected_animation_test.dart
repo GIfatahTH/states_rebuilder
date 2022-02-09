@@ -1360,8 +1360,8 @@ void main() {
   );
 
   testWidgets(
-    'WHEN'
-    'THEN',
+    'WHEN '
+    ' THEN ',
     (tester) async {
       final animation = RM.injectAnimation(duration: 1.seconds);
       double? value1;
@@ -1489,6 +1489,38 @@ void main() {
       expect(10.seconds, Duration(seconds: 10));
       expect(10.minutes, Duration(minutes: 10));
       expect(10.hours, Duration(hours: 10));
+    },
+  );
+  testWidgets(
+    'WHEN begin and end tween are equal',
+    (tester) async {
+      final animation = RM.injectAnimation(
+        duration: 1.seconds,
+        shouldAutoStart: true,
+      );
+      double? value;
+      int numberOfRebuild = 0;
+      final index = true.inj();
+      final widget = OnReactive(
+        () => OnAnimationBuilder(
+          listenTo: animation,
+          builder: (animate) {
+            numberOfRebuild++;
+            value = animate.fromTween((_) => index.state
+                ? Tween(begin: 0, end: 100)
+                : Tween(begin: 100, end: 100));
+            return Container();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+      expect(value, 100);
+      numberOfRebuild = 0;
+      index.toggle();
+      await tester.pumpAndSettle();
+      expect(value, 100);
+      expect(numberOfRebuild, 1);
     },
   );
 }

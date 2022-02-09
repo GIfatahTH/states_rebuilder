@@ -292,9 +292,17 @@ void main() {
     expect(_repo._products.length, 1);
     // await tester.pumpWidget(On(() => Container()).listenTo(products));
   });
-  // testWidgets('Start with empty list if not read on initialized',
-  //     (tester) async {
-  //   final crud = RM.injectCRUD(() => Repository());
-  //   expect(crud.state.isEmpty, true);
-  // });
+  testWidgets(
+    'Start with empty list if not read on initialized',
+    (tester) async {
+      final crud = RM.injectCRUD(() => Repository());
+      expect(crud.state.isEmpty, true);
+      crud.crud.read(middleState: (crr, next) {
+        return [Product(id: 1, name: 'middleState')];
+      });
+      await tester.pump();
+      await tester.pump(1.seconds);
+      expect(crud.state.first.name, 'middleState');
+    },
+  );
 }

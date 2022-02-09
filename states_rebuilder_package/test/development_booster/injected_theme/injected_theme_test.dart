@@ -395,4 +395,51 @@ void main() async {
       expect(error, contains('Make sure to use [TopReactiveStateless] '));
     },
   );
+
+  testWidgets(
+    'WHEN plat form brightness is changed'
+    'THEN the app is rebuilt to the corresponding theme mode',
+    (tester) async {
+      const secondaryLightColor = Colors.amber;
+      const secondaryDarkColor = Colors.blueGrey;
+      final theme = RM.injectTheme<String>(
+        lightThemes: {
+          'theme1': ThemeData.light(),
+        },
+        darkThemes: {
+          'theme1': ThemeData.dark().copyWith(
+            colorScheme: ThemeData.dark()
+                .colorScheme
+                .copyWith(secondary: secondaryDarkColor),
+          ),
+        },
+      );
+      late Brightness brightness;
+      late Color secondaryColors;
+      final widget = TopAppWidget(
+        builder: (ctx) {
+          return MaterialApp(
+            theme: theme.lightTheme.copyWith(
+              colorScheme: theme.lightTheme.colorScheme
+                  .copyWith(secondary: secondaryLightColor),
+            ),
+            darkTheme: theme.darkTheme,
+            themeMode: theme.themeMode,
+            home: Builder(builder: (context) {
+              brightness = MediaQuery.of(context).platformBrightness;
+              secondaryColors = Theme.of(context).colorScheme.secondary;
+              return Container();
+            }),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(brightness, Brightness.light);
+      expect(secondaryColors, secondaryLightColor);
+      tester.binding.window.platformBrightnessTestValue = Brightness.dark;
+      await tester.pumpAndSettle();
+      expect(brightness, Brightness.dark);
+      expect(secondaryColors, secondaryDarkColor);
+    },
+  );
 }

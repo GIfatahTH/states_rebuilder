@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:states_rebuilder/scr/development_booster/injected_crud/injected_crud.dart';
 import 'package:states_rebuilder/scr/state_management/common/logger.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -525,6 +526,8 @@ void main() {
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Result: 1 items deleted'), findsOneWidget);
+    //
+    expect((products as InjectedCRUDImp).onCrudRM, isA<ReactiveModel>());
   });
 
   testWidgets('On.crud vs On.all Optimistically', (tester) async {

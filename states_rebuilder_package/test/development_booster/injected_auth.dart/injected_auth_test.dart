@@ -246,6 +246,31 @@ void main() async {
     expect(disposeMessage, 'isDisposed');
   });
 
+  testWidgets('Sign out a user', (tester) async {
+    expect(user.state, 'user0');
+    await tester.pump();
+    expect(onUnSigned, 1);
+    expect(onSigned, 0);
+    user.auth.signUp((_) => '2');
+    await tester.pump(Duration(seconds: 1));
+    expect(user.state, 'user2');
+    expect(onUnSigned, 1);
+    expect(onSigned, 1);
+    int onUnSignedLocal = 0;
+    user.auth.signOut(
+      param: (_) => 'param',
+      onError: (_, __) {},
+      onSignOut: () {
+        onUnSignedLocal++;
+      },
+    );
+    await tester.pump();
+    await tester.pump(Duration(seconds: 1));
+    expect(onUnSigned, 1);
+    expect(onUnSignedLocal, 1);
+    expect(onSigned, 1);
+  });
+
   testWidgets(
     'auto sign up when persist is defined, case no user is persisted yet',
     (tester) async {

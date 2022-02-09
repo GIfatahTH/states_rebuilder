@@ -165,7 +165,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
       [];
   void _addToObs(
     ReactiveModelImp inj,
-    bool Function() onTopObserverAdded,
+    bool Function(BuildContext) onTopObserverAdded,
     void Function(List<Locale>? locales)? didChangeLocales,
   ) {
     // if (inj is InjectedI18N) {
@@ -176,7 +176,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
     // }
 
     if (!_obs.containsKey(inj)) {
-      bool r = onTopObserverAdded();
+      bool r = onTopObserverAdded(context);
       if (didChangeLocales != null) {
         _didChangeLocalesListeners.add(didChangeLocales);
       }
