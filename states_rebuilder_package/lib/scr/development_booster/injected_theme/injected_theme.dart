@@ -52,9 +52,13 @@ abstract class InjectedTheme<KEY> {
 
   ///Get the current dark theme.
   ThemeData? get darkTheme;
+
+  /// Get the active [ThemeData]
   ThemeData get activeTheme => isDarkTheme ? darkTheme! : lightTheme;
 
   ///The current [ThemeMode]
+  ///
+  /// Use [isDarkTheme] to check if the current theme is dark.
   late ThemeMode themeMode;
 
   ///Wether the current mode is dark.
@@ -62,7 +66,11 @@ abstract class InjectedTheme<KEY> {
   ///If the current [ThemeMode] is system, the darkness is calculated from the
   ///brightness of the system ([MediaQuery.platformBrightnessOf]).
   bool get isDarkTheme;
+
+  /// Toggle the [ThemeMode] between light and dark mode
   void toggle();
+
+  /// Dispose the state
   void dispose();
 }
 
@@ -74,39 +82,15 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
     required String? persistKey,
     //
     required StateInterceptor<KEY>? stateInterceptor,
-    // SnapState<KEY>? Function(MiddleSnapState<KEY> middleSnap)? middleSnapState,
-    // void Function(KEY? s)? onInitialized,
-    // void Function(KEY s)? onDisposed,
-    // On<void>? onSetState,
     required SideEffects<KEY>? sideEffects,
     //
     required DependsOn<KEY>? dependsOn,
     required int undoStackLength,
     //
     required bool autoDisposeWhenNotUsed,
-    // required bool isLazy = true,
     required String? debugPrintWhenNotifiedPreMessage,
     required Object? Function(KEY?)? toDebugString,
-  }) : _initialThemeMode = themeModel
-  // super(
-  //   creator: () => lightThemes.keys.first,
-  //   initialState: lightThemes.keys.first,
-  //   onInitialized: onInitialized,
-
-  //   //
-  //   middleSnapState: middleSnapState,
-  //   onSetState: onSetState,
-  //   onDisposed: onDisposed,
-  //   //
-  //   dependsOn: dependsOn,
-  //   undoStackLength: undoStackLength,
-  //   autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-  //   isLazy: isLazy,
-  // debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-  // toDebugString: toDebugString,
-  // )
-
-  {
+  }) : _initialThemeMode = themeModel {
     final persist = persistKey == null
         ? null
         : PersistState(
@@ -156,7 +140,6 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
             ? (snap) {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
-
                 WidgetsBinding.instance?.addPostFrameCallback(
                   (_) => sideEffects!.onSetState!(snap),
                 );
@@ -177,18 +160,6 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
       isLinkedToTopStatelessWidget = false;
     };
     _resetDefaultState();
-
-    // if (onSetState != null) {
-    //   //For InjectedI18N and InjectedTheme schedule side effects
-    //   //for the next frame.
-    //   subscribeToRM(
-    //     (_) {
-    //       WidgetsBinding.instance?.addPostFrameCallback(
-    //         (_) => onSetState.call(snapState),
-    //       );
-    //     },
-    //   );
-    // }
   }
 
   late InjectedImp<KEY> injected;
@@ -279,19 +250,16 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
   @override
   bool get isDarkTheme {
     if (_themeMode == ThemeMode.system) {
-      _isDarkTheme =
-          WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
-      // if (RM.context != null) {
-      //   final brightness = MediaQuery.platformBrightnessOf(RM.context!);
-      //   _isDarkTheme = brightness == Brightness.dark;
-      // } else {
-      //   _isDarkTheme = false;
-      // }
+      _isDarkTheme = _getSystemBrightness() == Brightness.dark;
     } else {
       _isDarkTheme = _themeMode == ThemeMode.dark;
     }
     ReactiveStatelessWidget.addToObs?.call(injected);
     return _isDarkTheme;
+  }
+
+  Brightness _getSystemBrightness() {
+    return WidgetsBinding.instance!.window.platformBrightness;
   }
 
   ///Toggle the current theme between dark and light

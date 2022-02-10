@@ -164,8 +164,6 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
   InjectedFormImp({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     this.autoFocusOnFirstError = true,
-    this.onSubmitting,
-    this.onSubmitted,
     this.sideEffects,
     Future<void> Function()? submit,
   })  : _submit = submit,
@@ -186,8 +184,6 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
     _resetDefaultState();
   }
 
-  final void Function()? onSubmitting;
-  final void Function()? onSubmitted;
   final SideEffects? sideEffects;
   final Future<void> Function()? _submit;
   // final void Function(dynamic error, VoidCallback refresh)? onSubmissionError;
@@ -264,7 +260,6 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
           await result;
         }
         snapValue = snapValue.copyToHasData(null);
-        onSubmitted?.call();
         sideEffects
           ?..onSetState?.call(snapState)
           ..onAfterBuild?.call();
@@ -308,17 +303,17 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
     );
   }
 
-  void enableFields(bool isEnabled) {
-    for (var field in _fields) {
-      field._isEnabled = isEnabled;
-    }
-  }
+  // void enableFields(bool isEnabled) {
+  //   for (var field in _fields) {
+  //     field._isEnabled = isEnabled;
+  //   }
+  // }
 
-  void readOnlyFields(bool isReadOnly) {
-    for (var field in _fields) {
-      field.isReadOnly = isReadOnly;
-    }
-  }
+  // void readOnlyFields(bool isReadOnly) {
+  //   for (var field in _fields) {
+  //     field.isReadOnly = isReadOnly;
+  //   }
+  // }
 
   @override
   void dispose() {

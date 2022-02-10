@@ -63,7 +63,7 @@ abstract class _BaseFormField<T> {
   }
 
   late bool isReadOnly;
-  late bool _isEnabled;
+  // late bool _isEnabled;
 
   ///Validate the input text by invoking its validator.
   bool validate([bool? isFromSubmission]) {

@@ -1503,19 +1503,21 @@ abstract class RM {
   ///[InjectedForm.submit] method.
   ///
   /// ### `submissionSideEffects`: Optional [SideEffects].
-  /// Use to invoke side effects. See [OnFormBuilder.isEnabledRM] for an example
-  /// of disabling a inputs while waiting for the form submission.
+  /// Use to invoke side effects.
   ///
   /// ### `onSubmitting`: Optional callback.
   /// Callback for side effects called while waiting for form submission
   ///
   /// ### `onSubmitted`: Optional callback.
   /// Callback for side effects called if the form successfully submitted.
+  ///
+  /// See [OnFormBuilder.isEnabledRM] for an example of disabling a inputs
+  /// while waiting for the form submission.
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
-    void Function()? onSubmitting,
-    void Function()? onSubmitted,
+    @Deprecated('Use submissionSideEffects') void Function()? onSubmitting,
+    @Deprecated('Use submissionSideEffects') void Function()? onSubmitted,
     SideEffects? submissionSideEffects,
     Future<void> Function()? submit,
     // void Function(dynamic, void Function())? onSubmissionError,
@@ -1523,9 +1525,19 @@ abstract class RM {
     return InjectedFormImp(
       autovalidateMode: autovalidateMode,
       autoFocusOnFirstError: autoFocusOnFirstError,
-      onSubmitting: onSubmitting,
-      onSubmitted: onSubmitted,
-      sideEffects: submissionSideEffects,
+      sideEffects: SideEffects(
+        initState: () => submissionSideEffects?.initState?.call(),
+        dispose: () => submissionSideEffects?.dispose?.call(),
+        onAfterBuild: () => submissionSideEffects?.onAfterBuild?.call(),
+        onSetState: (snap) {
+          if (snap.isWaiting) {
+            onSubmitting?.call();
+          } else if (snap.hasData) {
+            onSubmitted?.call();
+          }
+          submissionSideEffects?.onSetState?.call(snap);
+        },
+      ),
       submit: submit,
     );
   }

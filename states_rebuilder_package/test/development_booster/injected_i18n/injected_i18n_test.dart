@@ -365,10 +365,7 @@ void main() async {
         Locale('ar'): () => 'arabic',
         Locale('en', 'TN'): () => 'english_TN',
         Locale('en', 'US'): () => 'english_US',
-        Locale.fromSubtags(
-            languageCode: 'es',
-            scriptCode: 'script',
-            countryCode: 'ES'): () => 'spanish',
+        'es'.locale(scriptCode: 'script', countryCode: 'ES'): () => 'spanish',
       },
       persistKey: '_lan_',
     );

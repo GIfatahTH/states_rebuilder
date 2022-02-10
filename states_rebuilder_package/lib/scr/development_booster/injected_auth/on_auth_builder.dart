@@ -84,7 +84,7 @@ class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
             }
             return true;
           },
-          builder: (_, __, ___) => const SizedBox.shrink(),
+          builder: null,
         );
 
   /// [InjectedAuth] to listen to.

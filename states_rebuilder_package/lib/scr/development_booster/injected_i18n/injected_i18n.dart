@@ -333,11 +333,4 @@ class SystemLocale extends Locale {
   factory SystemLocale() {
     return const SystemLocale._(null);
   }
-  @override
-  bool operator ==(Object other) {
-    return other is SystemLocale;
-  }
-
-  @override
-  int get hashCode => 0;
 }

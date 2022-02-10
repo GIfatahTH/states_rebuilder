@@ -632,8 +632,10 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
           email.error = 'Email Server Error';
         },
-        onSubmitting: () => submitMessage = 'Submitting...',
-        onSubmitted: () => submitMessage = 'Submitted',
+        submissionSideEffects: SideEffects.onOrElse(
+          onWaiting: () => submitMessage = 'Submitting...',
+          orElse: (_) => submitMessage = 'Submitted',
+        ),
       );
 
       final widget = MaterialApp(
@@ -784,8 +786,11 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
           email.error = 'Email Server Error';
         },
-        onSubmitting: () => submitMessage = 'Submitting...',
-        onSubmitted: () => submitMessage = 'Submitted',
+
+        submissionSideEffects: SideEffects.onOrElse(
+          onWaiting: () => submitMessage = 'Submitting...',
+          orElse: (_) => submitMessage = 'Submitted',
+        ),
       );
 
       final widget = MaterialApp(
@@ -926,6 +931,15 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
           email.error = 'Email Server Error';
         },
+        // submissionSideEffects: SideEffects.onOrElse(
+        //   onWaiting: () => submitMessage = 'Submitting...',
+        //   orElse: (_) => submitMessage = 'Submitted',
+        // ),
+        submissionSideEffects: SideEffects(
+          initState: () {},
+          dispose: () {},
+          onAfterBuild: () {},
+        ),
         onSubmitting: () => submitMessage = 'Submitting...',
         onSubmitted: () => submitMessage = 'Submitted',
       );

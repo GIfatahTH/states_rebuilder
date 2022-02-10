@@ -11,13 +11,13 @@ class OnFormSubmissionBuilder extends MyStatefulWidget {
           observers: (_) {
             return [listenTo as ReactiveModelImp];
           },
-          shouldRebuild: (old, current) {
-            final inj = listenTo as InjectedFormImp;
-            if (inj.isWaiting) {
-              inj.onSubmitting?.call();
-            }
-            return true;
-          },
+          // shouldRebuild: (old, current) {
+          //   final inj = listenTo as InjectedFormImp;
+          //   if (inj.isWaiting) {
+          //     inj.onSubmitting?.call();
+          //   }
+          //   return true;
+          // },
           builder: (context, snap, rm) {
             final inj = listenTo as InjectedFormImp;
 

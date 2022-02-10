@@ -4,7 +4,7 @@ class MyStatefulWidget<T> extends IStatefulWidget {
   const MyStatefulWidget({
     required Key? key,
     required this.observers,
-    required Widget Function(BuildContext, SnapState<T>, ReactiveModel<T>)
+    required Widget Function(BuildContext, SnapState<T>, ReactiveModel<T>)?
         builder,
     this.onSetState,
     this.sideEffects,
@@ -18,7 +18,7 @@ class MyStatefulWidget<T> extends IStatefulWidget {
         super(key: key);
   final List<ReactiveModelImp> Function(BuildContext context) observers;
   final SideEffects<T>? sideEffects;
-  final Widget Function(BuildContext, SnapState<T>, ReactiveModel<T>) _builder;
+  final Widget Function(BuildContext, SnapState<T>, ReactiveModel<T>)? _builder;
   final void Function(BuildContext, SnapState<T>, ReactiveModel<T>)? onSetState;
   final void Function(BuildContext context, ReactiveModel<T>? model)?
       didChangeDependencies;
@@ -32,7 +32,8 @@ class MyStatefulWidget<T> extends IStatefulWidget {
   final String? debugPrintWhenRebuild;
 
   Widget builder(BuildContext context, SnapState<T> snap, ReactiveModel<T> rm) {
-    return _builder(context, snap, rm);
+    assert(_builder != null);
+    return _builder!(context, snap, rm);
   }
 
   @override

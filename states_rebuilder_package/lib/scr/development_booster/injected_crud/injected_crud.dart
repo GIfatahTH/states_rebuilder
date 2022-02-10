@@ -453,7 +453,7 @@ class _CRUDService<T, P> {
               onResult?.call(addedItem);
             } catch (e, stack) {
               injected.onMiddleCRUD(
-                SnapState.none().copyWith(
+                const SnapState.none().copyWith(
                   status: StateStatus.hasError,
                   error: SnapError(
                     error: e,
@@ -485,11 +485,11 @@ class _CRUDService<T, P> {
           },
         );
     await call();
-    if (injected.hasError) {
-      if (isOptimistic) {
-        injected.setToHasData(injected.snapValue.state);
-      }
-    }
+    // if (injected.hasError) {
+    //   if (isOptimistic) {
+    //     injected.setToHasData(injected.snapValue.state);
+    //   }
+    // }
     return addedItem;
   }
 
@@ -591,11 +591,11 @@ class _CRUDService<T, P> {
           },
         );
     await call();
-    if (injected.hasError) {
-      if (isOptimistic) {
-        injected.setToHasData(oldState);
-      }
-    }
+    // if (injected.hasError) {
+    //   if (isOptimistic) {
+    //     injected.setToHasData(oldState);
+    //   }
+    // }
   }
 
   ///Delete items form the state, notify listeners
@@ -681,11 +681,11 @@ class _CRUDService<T, P> {
           ),
         );
     await call();
-    if (injected.hasError) {
-      if (isOptimistic) {
-        injected.setToHasData(oldState);
-      }
-    }
+    // if (injected.hasError) {
+    //   if (isOptimistic) {
+    //     injected.setToHasData(oldState);
+    //   }
+    // }
   }
 
   void _dispose() async {
@@ -700,38 +700,22 @@ class _Item<T, P> {
   // bool _isRefreshing = false;
   _Item(this.injectedList) {
     injected = RM.inject<T>(
-      () => injectedList.snapValue.data!.first,
+      () => throw UnimplementedError(),
       sideEffects: SideEffects.onData(
-        (_) async {
-          // if (_isRefreshing) {
-          //   return;
-          // }
-          // _isUpdating = true;
-          try {
-            await injectedList.crud.update(
-              where: (t) {
-                return t == injected.oldSnapState?.data;
-              },
-              set: (t) => injected.snapValue.data!,
-            );
-            // _isUpdating = false;
-          } catch (e) {
-            // _isUpdating = false;
-          }
+        (_) {
+          injectedList.crud.update(
+            where: (t) {
+              return t == injected.oldSnapState?.data;
+            },
+            set: (t) => injected.snapValue.data!,
+          );
         },
       ),
-      debugPrintWhenNotifiedPreMessage: 'injectedList',
+      // debugPrintWhenNotifiedPreMessage: 'injectedList',
     ) as InjectedImp<T>;
   }
 
-  void _refresh() async {
-    // if (_isUpdating || _isRefreshing) {
-    //   return;
-    // }
-    // _isRefreshing = true;
-    await injected.refresh();
-    // _isRefreshing = false;
-  }
+  void _refresh() => injected.refresh();
 
   ///Provide the an item using an [InheritedWidget] to the sub-branch widget tree.
   ///

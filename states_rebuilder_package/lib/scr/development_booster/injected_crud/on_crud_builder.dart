@@ -96,19 +96,23 @@ class OnCRUDBuilder extends MyStatefulWidget {
               return onWaiting?.call() ?? onResult(inj.snapValue.data);
             }
             if (inj.hasError) {
-              Widget? w;
-              if (inj.hasError) {
-                w = onError?.call(
-                  inj.error,
-                  inj.snapValue.snapError!.refresher,
-                );
-              } else {
-                w = onError?.call(
-                  inj.error,
-                  inj.snapValue.snapError!.refresher,
-                );
-              }
-              return w ?? onResult(inj.snapValue.data);
+              // Widget? w;
+              // if (inj.hasError) {
+              //   w = onError?.call(
+              //     inj.error,
+              //     inj.snapValue.snapError!.refresher,
+              //   );
+              // } else {
+              //   w = onError?.call(
+              //     inj.error,
+              //     inj.snapValue.snapError!.refresher,
+              //   );
+              // }
+              return onError?.call(
+                    inj.error,
+                    inj.snapValue.snapError!.refresher,
+                  ) ??
+                  onResult(inj.snapValue.data);
             }
             return (onResult(inj.snapValue.data));
           },
