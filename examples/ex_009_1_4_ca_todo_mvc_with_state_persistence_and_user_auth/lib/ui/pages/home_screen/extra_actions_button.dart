@@ -31,7 +31,6 @@ class ExtraActionsButton extends StatelessWidget {
             }
           },
           itemBuilder: (BuildContext context) {
-            print(todosBloc.todosStats);
             return <PopupMenuItem<ExtraAction>>[
               if (!todosBloc.todosStats.isWaiting)
                 PopupMenuItem<ExtraAction>(

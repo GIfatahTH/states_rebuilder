@@ -35,9 +35,9 @@ void main() async {
   testWidgets('Toggle theme should work', (tester) async {
     await tester.pumpWidget(App());
     await tester.pumpAndSettle();
-    //App start with dart model
-    expect(isDark.isDarkTheme, false);
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isFalse);
+    //App start with dark model
+    expect(isDark.isDarkTheme, true);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, true);
 
     //tap on the ExtraActionsButton
     await tester.tap(find.byType(ExtraActionsButton));
@@ -47,7 +47,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is light
-    expect(Theme.of(RM.context!).brightness == Brightness.dark, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.light, true);
     //
     //Tap to toggle theme to dark mode
     await tester.tap(find.byType(ExtraActionsButton));
@@ -56,7 +56,7 @@ void main() async {
     await tester.pumpAndSettle();
     //
     //And theme is dark
-    expect(Theme.of(RM.context!).brightness == Brightness.light, isTrue);
+    expect(Theme.of(RM.context!).brightness == Brightness.dark, true);
   });
 
   testWidgets('Change language should work', (tester) async {

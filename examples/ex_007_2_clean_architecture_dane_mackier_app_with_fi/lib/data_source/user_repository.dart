@@ -41,4 +41,9 @@ class UserRepository extends IAuth<User, int> {
 
   @override
   void dispose() {}
+
+  @override
+  Future<User>? refreshToken(User currentUser) {
+    throw UnimplementedError();
+  }
 }
