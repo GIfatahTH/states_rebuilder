@@ -9,7 +9,6 @@ import '../service/exceptions/sign_in_out_exception.dart';
 
 class UserRepository extends IAuth<User?, UserParam> {
   final firebase.FirebaseAuth _firebaseAuth = firebase.FirebaseAuth.instance;
-
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
@@ -240,4 +239,9 @@ class UserRepository extends IAuth<User?, UserParam> {
 
   @override
   void dispose() {}
+
+  @override
+  Future<User?>? refreshToken(User? currentUser) {
+    throw UnimplementedError();
+  }
 }
