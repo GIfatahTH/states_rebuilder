@@ -164,7 +164,7 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
                 : create != null
                     ? create() as ReactiveModelImp<T>
                     : ReactiveModel<T>.create(
-                        creator: () {},
+                        creator: () => null,
                         initialState: null,
                         autoDisposeWhenNotUsed: true,
                       ) as ReactiveModelImp<void>,

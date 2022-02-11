@@ -452,7 +452,9 @@ class _ResolveLocation {
 
     String path = uri.path;
     late bool _canHandleLocation;
-    if (to.startsWith(baseUrlPath)) {
+
+    if (to == baseUrlPath ||
+        to.startsWith(baseUrlPath + (baseUrlPath == '/' ? '' : '/'))) {
       _canHandleLocation = true;
     } else {
       _canHandleLocation = canHandleLocation(

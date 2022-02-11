@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, prefer_function_declarations_over_variables
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, prefer_function_declarations_over_variables, body_might_complete_normally_nullable
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -4776,8 +4776,8 @@ void main() {
   );
 
   testWidgets(
-    'WHEN'
-    'THEN',
+    'WHEN '
+    ' THEN ',
     (tester) async {
       final navigator = RM.injectNavigator(
         routes: {
@@ -4882,6 +4882,45 @@ void main() {
       expect(find.text('Waiting...'), findsOneWidget);
       await tester.pump(1.seconds);
       expect(find.text('/'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN'
+    'THEN',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        // debugPrintWhenRouted: true,
+
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => RouteWidget(
+                routes: {
+                  '/': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) {
+                            return Text('/page1');
+                          },
+                          '/page11': (data) => Text('/page11'),
+                        },
+                      ),
+                  '/page111': (data) => Text('/page111'),
+                },
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      // navigator.to('/page1/page11');
+      // await tester.pumpAndSettle();
+      // expect(find.text('/page11'), findsOneWidget);
     },
   );
   // group(

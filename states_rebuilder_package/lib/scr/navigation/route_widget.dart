@@ -173,7 +173,7 @@ class RouteWidget extends StatelessWidget {
     Map<String, Widget Function(RouteData data)> routes = const {},
     this.transitionsBuilder,
     this.delegateImplyLeadingToParent,
-    Key? key,
+    // Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
         assert(InjectedNavigatorImp.ignoreSingleRouteMapAssertion ||
             routes.isEmpty ||
@@ -187,10 +187,9 @@ class RouteWidget extends StatelessWidget {
         _transitionDuration =
             transitionsBuilder != null ? _Navigate._transitionDuration : null,
         super(
-          key: key ??
-              Key(
-                RouteWidget.parentToSubRouteMessage.signature,
-              ),
+          key: Key(
+            RouteWidget.parentToSubRouteMessage.signature,
+          ),
         );
 
   RouteWidget._({
@@ -324,8 +323,10 @@ class RouteWidget extends StatelessWidget {
         return pages;
       }
       if (c is! RouteWidget ||
-          c._path.startsWith(_path) ||
-          routeLocation == '/' && c.routeLocation != routeLocation) {
+              c._path.startsWith(
+                  _path) /*||
+          routeLocation == '/' && c.routeLocation != routeLocation*/
+          ) {
         route = c!;
         return {};
       } else {
@@ -381,20 +382,20 @@ class RouteWidget extends StatelessWidget {
     return config;
   }
 
-  @override
-  String toString({DiagnosticLevel? minLevel}) {
-    String str = '';
-    try {
-      for (final p in _routerDelegate._pageSettingsList) {
-        final l = p.rData!._subLocation;
-        final c = p.child;
-        str += '\t($l)=>${c is SubRoute ? c.child : c}\n';
-      }
-    } catch (e) {
-      return 'RouteWidget[$routePath](${_routeData._subLocation})';
-    }
-    return '\nRouteWidget[$routePath](\n$str)\n';
-  }
+  // @override
+  // String toString({DiagnosticLevel? minLevel}) {
+  //   String str = '';
+  //   try {
+  //     for (final p in _routerDelegate._pageSettingsList) {
+  //       final l = p.rData!._subLocation;
+  //       final c = p.child;
+  //       str += '\t($l)=>${c is SubRoute ? c.child : c}\n';
+  //     }
+  //   } catch (e) {
+  //     return 'RouteWidget[$routePath](${_routeData._subLocation})';
+  //   }
+  //   return '\nRouteWidget[$routePath](\n$str)\n';
+  // }
 
   // late final routePathResolver = ResolvePathRouteUtil(
   //   urlName: urlName,

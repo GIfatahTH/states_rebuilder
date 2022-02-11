@@ -416,6 +416,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     List<VoidCallback> disposers = [];
     for (var rm in dependsOn!.injected) {
       if (rm.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         rm.addCleaner(rm.dispose);
       }
       final disposer = rm._addDependentObserver(
@@ -451,6 +452,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       );
       disposers.add(disposer);
     }
+    // ignore: unused_result
     addCleaner(() {
       for (var disposer in disposers) {
         disposer();

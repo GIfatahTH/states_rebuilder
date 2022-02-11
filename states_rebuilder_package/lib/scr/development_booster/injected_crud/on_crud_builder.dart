@@ -79,7 +79,7 @@ class OnCRUDBuilder extends MyStatefulWidget {
     this.onError,
     required this.onResult,
     void Function()? dispose,
-    this.debugPrintWhenRebuild,
+    String? debugPrintWhenRebuild,
   }) : super(
           key: key,
           observers: (context) {
@@ -131,7 +131,8 @@ class OnCRUDBuilder extends MyStatefulWidget {
   final Widget Function(dynamic) onResult;
 
   ///Debug print informative message when this widget is rebuilt
-  final String? debugPrintWhenRebuild;
+  // @override
+  // final String? debugPrintWhenRebuild;
   // @override
   // Widget build(BuildContext context) {
   //   return OnCRUD(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'package:meta/meta.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';

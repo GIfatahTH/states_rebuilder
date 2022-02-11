@@ -151,9 +151,11 @@ class _ReactiveStatelessWidgetState
     }
     if (!_obs2!.containsKey(rm)) {
       if (rm.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         rm.addCleaner(rm.dispose);
       }
       _obs2![rm] = rm.addObserver(
+        isSideEffects: false,
         listener: (rm) {
           if (widget.shouldRebuildWidget(rm.oldSnapState!, rm._snapState)) {
             setState(() {});

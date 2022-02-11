@@ -1,7 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

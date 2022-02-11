@@ -88,7 +88,6 @@ abstract class IPersistStore {
   Future<void> delete(String key);
 
   ///Purge localStorage
-  @mustCallSuper
   Future<void> deleteAll() async {}
 
   static T getRepo<T extends IPersistStore>() =>

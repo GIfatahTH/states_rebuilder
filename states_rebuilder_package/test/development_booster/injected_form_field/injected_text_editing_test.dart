@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, body_might_complete_normally_nullable
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/development_booster/injected_form_field/injected_text_editing.dart';

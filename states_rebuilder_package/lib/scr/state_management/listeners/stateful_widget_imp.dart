@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 class MyStatefulWidget<T> extends IStatefulWidget {
-  const MyStatefulWidget({
+  MyStatefulWidget({
     required Key? key,
     required this.observers,
     required Widget Function(BuildContext, SnapState<T>, ReactiveModel<T>)?
@@ -26,6 +26,7 @@ class MyStatefulWidget<T> extends IStatefulWidget {
       MyStatefulWidget<T> oldWidget)? didUpdateWidget;
   final void Function(BuildContext context, ReactiveModel<T>? model)? initState;
   final void Function(BuildContext context, ReactiveModel<T>? model)? dispose;
+  final List<VoidCallback> cleaners = [];
 
   ///Whether to rebuild the widget after state notification.
   final ShouldRebuild? shouldRebuild;
@@ -55,9 +56,11 @@ class _MyStatefulWidgetState<T> extends ExtendedState<MyStatefulWidget<T>> {
     setCombinedSnap(models);
     for (final model in models) {
       if (model.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         model.addCleaner(model.dispose);
       }
       final disposer = model.addObserver(
+        isSideEffects: false,
         listener: (model) {
           final shouldNotRebuild = false ==
               widget.shouldRebuild?.call(
@@ -142,6 +145,10 @@ class _MyStatefulWidgetState<T> extends ExtendedState<MyStatefulWidget<T>> {
     widget.dispose?.call(context, rm);
 
     for (var disposer in disposers) {
+      disposer();
+    }
+
+    for (var disposer in widget.cleaners) {
       disposer();
     }
     super.dispose();

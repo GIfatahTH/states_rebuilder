@@ -241,6 +241,7 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
     );
 
     disposer = _injected.addObserver(
+      isSideEffects: false,
       listener: (_) {
         if (_hasChanged || animate.shouldAlwaysRebuild) {
           try {

@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, body_might_complete_normally_nullable
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -204,7 +204,7 @@ void main() {
       model.refresh();
       await tester.pump();
       expect(model.isWaiting, true);
-      expect(model.state, 1);
+      expect(model.state, null);
       expect(onWaitingValue, 'Waiting...');
       await tester.pump(Duration(seconds: 1));
       expect(model.hasData, true);

@@ -1,152 +1,163 @@
-// // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-// import 'package:flutter/material.dart';
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// import 'package:states_rebuilder/states_rebuilder.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 
-// import 'fake_classes/models.dart';
+import 'fake_classes/models.dart';
 
-// final vanillaModel = RM.inject(() => VanillaModel());
+final vanillaModel = RM.inject(() => VanillaModel());
 
 void main() {
-  //TODO
-  testWidgets(
-    'WHEN'
-    'THEN',
-    (tester) async {},
-  );
-//   testWidgets('On.future without error', (tester) async {
-//     final widget = On.future(
-//       onWaiting: () => Text('waiting ...'),
-//       onError: null,
-//       onData: (rm, _) {
-//         return Text('data');
-//       },
-//     ).future(
-//       () => vanillaModel.state.incrementAsync().then(
-//             (_) => Future.delayed(
-//               Duration(seconds: 1),
-//               () => VanillaModel(5),
-//             ),
-//           ),
-//       dispose: () {},
-//     );
+  testWidgets('On.future without error', (tester) async {
+    final widget = OnBuilder.createFuture(
+      creator: () => vanillaModel.state.incrementAsync().then(
+            (_) => Future.delayed(
+              Duration(seconds: 1),
+              () => VanillaModel(5),
+            ),
+          ),
+      builder: (rm) {
+        return rm.onAll(
+          onWaiting: () => Text('waiting ...'),
+          onError: null,
+          onData: (rm) {
+            return Text('data');
+          },
+        );
+      },
+    );
 
-//     await tester.pumpWidget(MaterialApp(home: widget));
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('data'), findsOneWidget);
-//   });
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('data'), findsOneWidget);
+  });
 
-//   testWidgets('On.futurewith error and refersh', (tester) async {
-//     bool shouldThrow = true;
-//     late void Function() refresh;
-//     final widget = On.future<VanillaModel>(
-//       onWaiting: () => Text('waiting ...'),
-//       onError: (e, refresher) {
-//         refresh = refresher;
-//         return Text('${e.message}');
-//       },
-//       onData: (data, _) {
-//         return Text(data.counter.toString());
-//       },
-//     ).future(
-//       () => shouldThrow
-//           ? vanillaModel.state.incrementAsyncWithError().then(
-//                 (_) => Future.delayed(
-//                   Duration(seconds: 1),
-//                   () => VanillaModel(5),
-//                 ),
-//               )
-//           : Future.delayed(
-//               Duration(seconds: 1),
-//               () => VanillaModel(5),
-//             ),
-//     );
+  testWidgets('On.future with error and refersh', (tester) async {
+    bool shouldThrow = true;
+    late void Function() refresh;
+    final widget = OnBuilder<VanillaModel>.createFuture(
+      creator: () => shouldThrow
+          ? vanillaModel.state.incrementAsyncWithError().then(
+                (_) => Future.delayed(
+                  Duration(seconds: 1),
+                  () => VanillaModel(5),
+                ),
+              )
+          : Future.delayed(
+              Duration(seconds: 1),
+              () => VanillaModel(5),
+            ),
+      builder: (rm) {
+        return rm.onAll(
+          onWaiting: () => Text('waiting ...'),
+          onError: (e, refresher) {
+            refresh = refresher;
+            return Text('${e.message}');
+          },
+          onData: (data) {
+            return Text(data.counter.toString());
+          },
+        );
+      },
+    );
 
-//     await tester.pumpWidget(MaterialApp(home: widget));
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('Error message'), findsOneWidget);
-//     shouldThrow = false;
-//     refresh();
-//     await tester.pump();
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('5'), findsOneWidget);
-//   });
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+    shouldThrow = false;
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('5'), findsOneWidget);
+  });
 
-//   testWidgets('On.future with error and refresh cas listenTo is used',
-//       (tester) async {
-//     bool shouldThrow = true;
-//     late void Function() refresh;
+  testWidgets('On.future with error and refresh cas listenTo is used',
+      (tester) async {
+    bool shouldThrow = true;
+    late void Function() refresh;
 
-//     final injected = RM.injectFuture(
-//       () => shouldThrow
-//           ? Future.delayed(
-//               Duration(seconds: 1),
-//               () => throw Exception('Error message'),
-//             )
-//           : Future.delayed(
-//               Duration(seconds: 1),
-//               () => VanillaModel(5),
-//             ),
-//     );
-//     final widget = On.future<VanillaModel>(
-//       onWaiting: () => Text('waiting ...'),
-//       onError: (e, refresher) {
-//         refresh = refresher;
-//         return Text('${e.message}');
-//       },
-//       onData: (data, _) {
-//         return Text(data.counter.toString());
-//       },
-//     ).listenTo(injected);
+    final injected = RM.injectFuture(
+      () => shouldThrow
+          ? Future.delayed(
+              Duration(seconds: 1),
+              () => throw Exception('Error message'),
+            )
+          : Future.delayed(
+              Duration(seconds: 1),
+              () => VanillaModel(5),
+            ),
+    );
 
-//     await tester.pumpWidget(MaterialApp(home: widget));
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('Error message'), findsOneWidget);
-//     refresh();
-//     await tester.pump();
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('Error message'), findsOneWidget);
-//     shouldThrow = false;
-//     refresh();
-//     await tester.pump();
-//     expect(find.text('waiting ...'), findsOneWidget);
-//     await tester.pump(Duration(seconds: 1));
-//     expect(find.text('5'), findsOneWidget);
-//   });
+    final widget = OnBuilder<VanillaModel>.createFuture(
+      creator: () => injected.stateAsync,
+      builder: (rm) {
+        return rm.onAll(
+          onWaiting: () => Text('waiting ...'),
+          onError: (e, refresher) {
+            refresh = () {
+              injected.refresh();
+              refresher();
+            };
+            return Text('${e.message}');
+          },
+          onData: (data) {
+            return Text(data.counter.toString());
+          },
+        );
+      },
+    );
 
-//   testWidgets('On.future do not call global onData if types are different',
-//       (tester) async {
-//     String? data;
+    await tester.pumpWidget(MaterialApp(home: widget));
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Error message'), findsOneWidget);
+    shouldThrow = false;
+    refresh();
+    await tester.pump();
+    expect(find.text('waiting ...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('5'), findsOneWidget);
+  });
 
-//     final modelFuture = RM.inject<VanillaModel>(
-//       () => VanillaModel(),
-//       sideEffects: SideEffects.onData(
-//         (_) => data = 'Data from global $_',
-//       ),
-//     );
-//     await tester.pumpWidget(
-//       On.future(
-//         onWaiting: () => Container(),
-//         onError: (_, __) => Container(),
-//         onData: (_, __) => Container(),
-//       ).future(
-//         modelFuture.future(
-//           (s) => s.incrementAsync(),
-//         ),
-//       ), //return int
-//     );
+  testWidgets('On.future do not call global onData if types are different',
+      (tester) async {
+    String? data;
 
-//     await tester.pump(Duration(seconds: 1));
-//     expect(data, null); //mutable and future return different type
-//     //
-//   });
+    final modelFuture = RM.inject<VanillaModel>(
+      () => VanillaModel(),
+      sideEffects: SideEffects.onData(
+        (_) => data = 'Data from global $_',
+      ),
+    );
+    await tester.pumpWidget(
+      OnBuilder.createFuture(creator: () {
+        return modelFuture.state.incrementAsync();
+      }, builder: (rm) {
+        return rm.onAll(
+          onWaiting: () => Container(),
+          onError: (_, __) => Container(),
+          onData: (_) => Container(),
+        );
+      }),
+
+      //return int
+    );
+
+    await tester.pump(Duration(seconds: 1));
+    expect(data, null); //mutable and future return different type
+    //
+  });
 
 //   testWidgets('On.future call global onData if types are the same (immutable)',
 //       (tester) async {

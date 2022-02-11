@@ -485,7 +485,10 @@ class _State<T, R> extends State<StateWithMixinBuilder<T, R>> {
   ReactiveModel? observe;
   Widget get _widget => StateBuilder<R>(
         key: widget.key,
-        observe: widget.observe ?? () => (ReactiveModel.create(creator: () {})),
+        observe: widget.observe ??
+            () => ReactiveModel.create(
+                  creator: () => null,
+                ),
         afterInitialBuild: widget.afterInitialBuild,
         onRebuildState: widget.afterRebuild,
         builder: widget.builder,

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flutter/material.dart';
 
 import '../rm.dart';
@@ -248,6 +250,7 @@ class InjectorState extends State<Injector> {
     if (widget.reinjectOn != null) {
       for (ReactiveModel model in widget.reinjectOn!) {
         model.addObserver(
+          isSideEffects: false,
           listener: (rm) {
             if (!rm.hasData) {
               return;

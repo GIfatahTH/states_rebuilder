@@ -64,7 +64,9 @@ class FakeAuthRepo implements IAuth<String?, String> {
   }
 
   @override
-  Future<String?>? refreshToken(String? currentUser) {}
+  Future<String?>? refreshToken(String? currentUser) {
+    return null;
+  }
 }
 
 int onUnSigned = 0;
@@ -674,6 +676,7 @@ void main() async {
           if (nextSnap.hasData && nextSnap.data == 'user1') {
             return nextSnap.copyToHasData('user100');
           }
+          return null;
         },
       );
       expect(user.isWaiting, true);

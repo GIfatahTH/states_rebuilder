@@ -766,11 +766,11 @@ void main() {
                 '/page51': (data) {
                   return Builder(
                     builder: (ctx) {
-                      queryParams = ctx.routeQueryParams;
-                      pathParams = ctx.routePathParams;
-                      routePath = ctx.routePath;
-                      baseUrl = ctx.routeBaseUrl;
-                      return page5(ctx.routeArguments);
+                      queryParams = ctx.routeData.queryParams;
+                      pathParams = ctx.routeData.pathParams;
+                      routePath = ctx.routeData.path;
+                      baseUrl = ctx.routeData.baseLocation;
+                      return page5(ctx.routeData.arguments);
                     },
                   );
                 },
@@ -779,21 +779,33 @@ void main() {
                         '/': (_) {
                           return Builder(
                             builder: (ctx) {
-                              queryParams = ctx.routeQueryParams;
-                              pathParams = ctx.routePathParams;
-                              routePath = ctx.routePath;
-                              baseUrl = ctx.routeBaseUrl;
-                              return page52(ctx.routeArguments);
+                              queryParams = ctx.routeData.queryParams;
+                              pathParams = ctx.routeData.pathParams;
+                              routePath = ctx.routeData.path;
+                              baseUrl = ctx.routeData.baseLocation;
+                              return page5(ctx.routeData.arguments);
+
+                              // queryParams = ctx.routeQueryParams;
+                              // pathParams = ctx.routePathParams;
+                              // routePath = ctx.routePath;
+                              // baseUrl = ctx.routeBaseUrl;
+                              // return page52(ctx.routeArguments);
                             },
                           );
                         },
                         '/:page521ID': (_) => Builder(
                               builder: (ctx) {
-                                queryParams = ctx.routeQueryParams;
-                                pathParams = ctx.routePathParams;
-                                routePath = ctx.routePath;
-                                baseUrl = ctx.routeBaseUrl;
-                                return page521(ctx.routeArguments);
+                                queryParams = ctx.routeData.queryParams;
+                                pathParams = ctx.routeData.pathParams;
+                                routePath = ctx.routeData.path;
+                                baseUrl = ctx.routeData.baseLocation;
+                                return page5(ctx.routeData.arguments);
+
+                                // queryParams = ctx.routeQueryParams;
+                                // pathParams = ctx.routePathParams;
+                                // routePath = ctx.routePath;
+                                // baseUrl = ctx.routeBaseUrl;
+                                // return page521(ctx.routeArguments);
                               },
                             ),
                       },
@@ -946,7 +958,7 @@ void main() {
                       routes: {
                         '/': (_) => Builder(
                               builder: (context) {
-                                return page11(context.routeArguments);
+                                return page11(context.routeData.arguments);
                               },
                             ),
                         '/page111': (_) => page111(_.arguments),

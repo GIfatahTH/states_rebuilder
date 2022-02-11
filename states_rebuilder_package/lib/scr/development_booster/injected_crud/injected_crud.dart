@@ -482,6 +482,7 @@ class _CRUDService<T, P> {
             if (isOptimistic && next.isWaiting) {
               return current;
             }
+            return null;
           },
         );
     await call();
@@ -588,6 +589,7 @@ class _CRUDService<T, P> {
             if (isOptimistic && next.isWaiting) {
               return current;
             }
+            return null;
           },
         );
     await call();

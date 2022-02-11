@@ -1,3 +1,7 @@
+## 5.3.0-dev-1 (2022-02-11)
+  * Refactor internal code
+  * Add `OnBuilder.createFuture` and `OnBuilder.createStream` listener.
+
 ## 5.2.0 (2022-01-05)
   * Add Navigator 2 support.
   * Add `statesInterceptor` to `setState` method.

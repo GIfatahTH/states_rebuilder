@@ -50,7 +50,7 @@ TRY define an initalState or Handle $status status.
   // TODO test me
   Type type() => T;
   SnapState<T> copyToIsIdle({Object? data, String? infoMessage}) {
-    return copyWith(
+    return copyToHasData(data).copyWith(
       status: StateStatus.isIdle,
       data: data is T ? data : this.data,
       infoMessage: infoMessage,

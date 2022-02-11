@@ -68,11 +68,13 @@ class _OnTabPageViewBuilderState extends State<OnTabPageViewBuilder>
     if (_injected != null) {
       _injected?.initializer(this);
       if (_injected!.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         _injected!.addCleaner(() {
           _injected!.dispose();
         });
       }
       disposer = _injected!.addObserver(
+        isSideEffects: false,
         listener: (_) {
           setState(() {});
         },
@@ -88,11 +90,13 @@ class _OnTabPageViewBuilderState extends State<OnTabPageViewBuilder>
       _injected = inj as InjectedPageTabImp;
       _injected?.initializer(this);
       if (inj.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         inj.addCleaner(() {
           inj.dispose();
         });
 
         disposer = inj.addObserver(
+          isSideEffects: false,
           listener: (rm) {
             setState(() {});
           },

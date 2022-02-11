@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../state_management/common/logger.dart';
 import '../../state_management/rm.dart';
-import '../../../states_rebuilder.dart';
 
 part 'on_tab_builder.dart';
 
@@ -380,7 +379,8 @@ class InjectedPageTabImp extends ReactiveModelImp<int>
       if (snapState.data == _tabController!.index) {
         return;
       }
-      snapValue = SnapState<int>.none().copyToHasData(_tabController!.index);
+      snapValue =
+          const SnapState<int>.none().copyToHasData(_tabController!.index);
 
       if (!_pageIndexIsChanging) {
         if (duration == Duration.zero) {
@@ -432,7 +432,7 @@ class InjectedPageTabImp extends ReactiveModelImp<int>
         );
         _pageIndexIsChanging = false;
       } else {
-        snapValue = SnapState<int>.none().copyToHasData(_page!);
+        snapValue = const SnapState<int>.none().copyToHasData(_page!);
         notify();
       }
     });

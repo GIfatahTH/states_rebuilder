@@ -98,7 +98,6 @@ abstract class InjectedAnimation implements IObservable<double> {
   ///Has similar effect as when the widget rebuilds to invoke implicit animation
   ///
   ///It returns Future that resolves when the started animation ends.
-  @override
   Future<double> refresh();
 
   ///Used to change any of the global parameters fo the animation such as

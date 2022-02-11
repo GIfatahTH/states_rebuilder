@@ -49,24 +49,7 @@ class OnFormBuilder extends MyStatefulWidget {
   }) : super(
           key: key,
           observers: (_) {
-            if (isEnabledRM != null) {
-              isEnabledRM.addObserver(
-                listener: (rm) {
-                  (listenTo as ReactiveModel).notify();
-                },
-                shouldAutoClean: true,
-              );
-            }
-
-            if (isReadOnlyRM != null) {
-              isReadOnlyRM.addObserver(
-                listener: (rm) {
-                  (listenTo as ReactiveModel).notify();
-                },
-                shouldAutoClean: true,
-              );
-            }
-            return [listenTo as ReactiveModelImp];
+            return [];
           },
           dispose: (_, __) {
             isEnabledRM?.disposeIfNotUsed();
@@ -100,6 +83,31 @@ class OnFormBuilder extends MyStatefulWidget {
           },
         );
   final InjectedForm listenTo;
+  @override
+  List<ReactiveModelImp> Function(BuildContext context) get observers => (_) {
+        if (isEnabledRM != null) {
+          final disposer = isEnabledRM!.addObserver(
+            isSideEffects: false,
+            listener: (rm) {
+              (listenTo as ReactiveModel).notify();
+            },
+            shouldAutoClean: true,
+          );
+          cleaners.add(disposer);
+        }
+
+        if (isReadOnlyRM != null) {
+          final disposer = isReadOnlyRM!.addObserver(
+            isSideEffects: false,
+            listener: (rm) {
+              (listenTo as ReactiveModel).notify();
+            },
+            shouldAutoClean: true,
+          );
+          cleaners.add(disposer);
+        }
+        return [listenTo as ReactiveModelImp];
+      };
 
   /// ReactiveState of type bool. It is used to set the value of `isEnabled` of
   /// all child input fields.

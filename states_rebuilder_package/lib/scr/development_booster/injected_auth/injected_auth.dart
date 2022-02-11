@@ -223,6 +223,7 @@ class _AuthService<T, P> {
   final InjectedAuthImp<T, P> injected;
   _AuthService(this._repository, this.injected) {
     _disposer = injected.addObserver(
+      isSideEffects: true,
       listener: (rm) {
         if (rm.hasData) {
           _onData(_onSignInOut);

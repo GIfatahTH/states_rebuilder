@@ -65,7 +65,9 @@ class FakeAuthRepo implements IAuth<String, String> {
   }
 
   @override
-  Future<String>? refreshToken(String currentUser) {}
+  Future<String>? refreshToken(String currentUser) {
+    return null;
+  }
 }
 
 int onUnSigned = 0;

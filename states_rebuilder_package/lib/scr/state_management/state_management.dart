@@ -23,4 +23,5 @@ export './rm.dart'
         TopStatelessWidget,
         TopAppWidget,
         DependsOn,
-        StateInterceptor;
+        StateInterceptor,
+        StateStatus;

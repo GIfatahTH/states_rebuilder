@@ -66,42 +66,42 @@ extension BuildContextX on BuildContext {
     return r?.secondaryAnimation;
   }
 
-  @Deprecated('User routeData instead')
-  dynamic get routeArguments {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    assert(r?.routeData.arguments != null);
-    return r!.routeData.arguments;
-  }
+  // @Deprecated('User routeData instead')
+  // dynamic get routeArguments {
+  //   final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+  //       as SubRoute?;
+  //   assert(r?.routeData.arguments != null);
+  //   return r!.routeData.arguments;
+  // }
 
-  @Deprecated('User routeData instead')
-  Map<String, String> get routeQueryParams {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    assert(r?.routeData.queryParams != null);
-    return r!.routeData.queryParams;
-  }
+  // @Deprecated('User routeData instead')
+  // Map<String, String> get routeQueryParams {
+  //   final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+  //       as SubRoute?;
+  //   assert(r?.routeData.queryParams != null);
+  //   return r!.routeData.queryParams;
+  // }
 
-  @Deprecated('User routeData instead')
-  Map<String, String> get routePathParams {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    assert(r?.routeData.pathParams != null);
-    return r!.routeData.pathParams;
-  }
+  // @Deprecated('User routeData instead')
+  // Map<String, String> get routePathParams {
+  //   final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+  //       as SubRoute?;
+  //   assert(r?.routeData.pathParams != null);
+  //   return r!.routeData.pathParams;
+  // }
 
-  @Deprecated('User routeData instead')
-  String get routeBaseUrl {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    assert(r?.routeData.baseLocation != null);
-    return r!.routeData.baseLocation;
-  }
+  // @Deprecated('User routeData instead')
+  // String get routeBaseUrl {
+  //   final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+  //       as SubRoute?;
+  //   assert(r?.routeData.baseLocation != null);
+  //   return r!.routeData.baseLocation;
+  // }
 
-  @Deprecated('User routeData instead')
-  String get routePath {
-    final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
-        as SubRoute?;
-    return r!.routeData.path;
-  }
+  // @Deprecated('User routeData instead')
+  // String get routePath {
+  //   final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
+  //       as SubRoute?;
+  //   return r!.routeData.path;
+  // }
 }

@@ -120,6 +120,7 @@ MaterialApp(
         _maintainState = true;
         return r;
       }
+      return null;
     };
   }
 
@@ -576,7 +577,6 @@ MaterialApp(
       }
     }
 
-    ;
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
       WidgetsBinding.instance!.addPostFrameCallback((_) async {

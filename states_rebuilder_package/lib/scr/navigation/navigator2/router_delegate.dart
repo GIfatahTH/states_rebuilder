@@ -376,6 +376,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         ),
       };
     }
+    return null;
   }
 
   @override
@@ -620,6 +621,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       _completers[_pageSettingsList.last.key]?.complete(result);
       return to(settings);
     }
+    return null;
   }
 
   @override

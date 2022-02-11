@@ -10,24 +10,48 @@ abstract class IObservable<T> {
   dynamic get error;
   SnapState<T> get snapState;
   final _listeners = <ObserveReactiveModel>[];
+  final _listenersForSideEffects = <ObserveReactiveModel>[];
   final _dependentListeners = <ObserveReactiveModel>[];
   final _cleaners = <VoidCallback>[];
   bool get hasObservers =>
       _listeners.isNotEmpty || _dependentListeners.isNotEmpty;
 
+  /// Add observer to this state.
+  ///
+  /// The observer callback is invoked each time the state is notified.
+  ///
+  /// If [shouldAutoClean] is true, when the observer is removed and if the
+  /// state has no other observer, then the state is disposed of.
+  ///
+  /// If [isSideEffects] is true, then the observer is considered as side
+  /// effects and is not used to dispose the state.
+  ///
+  /// the return callback must be consumed to remove the observer.
+  @useResult
   VoidCallback addObserver({
     required ObserveReactiveModel listener,
-    required bool shouldAutoClean,
+    bool shouldAutoClean = false,
+    bool isSideEffects = true,
   }) {
-    _listeners.add(listener);
+    if (isSideEffects) {
+      _listenersForSideEffects.add(listener);
+    } else {
+      _listeners.add(listener);
+    }
     return () {
-      _listeners.remove(listener);
+      if (isSideEffects) {
+        _listenersForSideEffects.remove(listener);
+      } else {
+        _listeners.remove(listener);
+      }
+
       if (shouldAutoClean && !hasObservers) {
         cleanState();
       }
     };
   }
 
+  @useResult
   VoidCallback _addDependentObserver({
     required ObserveReactiveModel listener,
     required bool shouldAutoClean,
@@ -41,6 +65,10 @@ abstract class IObservable<T> {
     };
   }
 
+  /// Add a callback to be executed when the state is disposed of.
+  ///
+  /// the return callback must be consumed to remove the callback from the list.
+  @useResult
   VoidCallback addCleaner(VoidCallback listener) {
     _cleaners.add(listener);
     return () {
@@ -56,6 +84,7 @@ abstract class IObservable<T> {
 
   void _clearObservers() {
     _listeners.clear();
+    _listenersForSideEffects.clear();
     _dependentListeners.clear();
     _cleaners.clear();
   }
@@ -147,6 +176,21 @@ abstract class ReactiveModel<T> with IObservable<T> {
       onIdle: onIdle,
       onWaiting: onWaiting,
       onError: onError,
+      onData: onData,
+    );
+  }
+
+  @Deprecated('Use onAll instead')
+  R whenConnectionState<R>({
+    R Function()? onIdle,
+    required R Function()? onWaiting,
+    required R Function(dynamic error)? onError,
+    required R Function(T data) onData,
+  }) {
+    return onAll<R>(
+      onIdle: onIdle,
+      onWaiting: onWaiting,
+      onError: onError != null ? (_, __) => onError(_) : null,
       onData: onData,
     );
   }

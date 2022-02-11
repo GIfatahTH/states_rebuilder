@@ -338,6 +338,9 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     for (var listener in _listeners) {
       listener(this);
     }
+    for (var listener in _listenersForSideEffects) {
+      listener(this);
+    }
     for (var listener in _dependentListeners) {
       listener(this);
     }

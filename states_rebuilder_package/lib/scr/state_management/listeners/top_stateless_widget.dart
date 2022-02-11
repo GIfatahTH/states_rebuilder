@@ -119,14 +119,20 @@ abstract class TopStatelessWidget extends StatefulWidget {
   Widget build(BuildContext context);
 
   /// Hook to be called while waiting for plugins initialization.
-  Widget? splashScreen() {}
+  Widget? splashScreen() {
+    return null;
+  }
 
   /// Hook to be called if initialization fails.
-  Widget? errorScreen(dynamic error, void Function() refresh) {}
+  Widget? errorScreen(dynamic error, void Function() refresh) {
+    return null;
+  }
 
   ///List of future (plugins initialization) to wait for, and display a
   ///waiting screen while waiting
-  List<FutureOr<void>>? ensureInitialization() {}
+  List<FutureOr<void>>? ensureInitialization() {
+    return null;
+  }
 
   ///Called when the widget is first inserted in the widget tree
   void didMountWidget() {}
@@ -184,12 +190,14 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
         inheritedInjects.add(inj);
       }
       if (inj.autoDisposeWhenNotUsed) {
+        // ignore: unused_result
         inj.addCleaner(() {
           inj.dispose();
           inheritedInjects.remove(inj);
         });
       }
       _obs[inj] = inj.addObserver(
+        isSideEffects: false,
         listener: (rm) {
           setState(() {});
         },
@@ -353,7 +361,9 @@ class _TopStatelessWidgetStateWidgetsBindingObserverState
   @override
   void didChangeLocales(List<Locale>? locales) {
     super.didChangeLocales(locales);
-    _didChangeLocalesListeners.forEach((fn) => fn(locales));
+    for (var fn in _didChangeLocalesListeners) {
+      fn(locales);
+    }
     // (injectedI18N as InjectedI18NImp?)?.didChangeLocales(locales);
   }
 }

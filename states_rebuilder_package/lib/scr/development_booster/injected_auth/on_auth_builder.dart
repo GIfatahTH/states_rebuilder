@@ -57,7 +57,9 @@ class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
             }
             if (navigatorState != null) {
               (listenTo as ReactiveModelImp).initialize();
+              // ignore: unused_result
               listenTo.addObserver(
+                isSideEffects: true,
                 listener: (rm) {
                   if (!rm.hasData) return;
                   navigatorState!.pushAndRemoveUntil(
