@@ -180,6 +180,17 @@ abstract class ReactiveModel<T> with IObservable<T> {
     );
   }
 
+  @Deprecated('Use SnapState.status')
+  ConnectionState get connectionState {
+    if (isWaiting) {
+      return ConnectionState.waiting;
+    }
+    if (hasError || hasData) {
+      return ConnectionState.done;
+    }
+    return ConnectionState.none;
+  }
+
   @Deprecated('Use onAll instead')
   R whenConnectionState<R>({
     R Function()? onIdle,
