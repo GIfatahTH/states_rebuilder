@@ -70,6 +70,7 @@ class _MyStatefulWidgetState<T> extends ExtendedState<MyStatefulWidget<T>> {
           if (shouldNotRebuild) {
             return;
           }
+
           setState(() {
             setCombinedSnap(models, model);
             widget.sideEffects

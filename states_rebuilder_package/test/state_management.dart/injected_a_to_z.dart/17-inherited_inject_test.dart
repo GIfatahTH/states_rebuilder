@@ -2,6 +2,7 @@
 //Fetching a list of counters from a backend service
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Counter {
@@ -26,6 +27,9 @@ class Counter {
 
   @override
   int get hashCode => id.hashCode ^ value.hashCode;
+
+  @override
+  String toString() => 'Counter(id: $id, value: $value)';
 }
 
 late List<Counter> _listOfCounters; //Will be initialized id setUp method
@@ -236,7 +240,11 @@ void main() {
   });
 
   testWidgets('refresh injected counter', (tester) async {
-    await tester.pumpWidget(_App());
+    final rm = 0.inj();
+    await tester.pumpWidget(OnBuilder(
+      listenTo: rm,
+      builder: () => _App(),
+    ));
     //We expect to see three CounterItem widgets
     expect(find.byType(CounterItem), findsNWidgets(3));
     //
@@ -260,6 +268,7 @@ void main() {
 
     //To fore CounterItem to rebuild we call refresh method on the injectedCounter
     injectedCounter.refresh();
+    rm.notify();
     await tester.pump();
     expect(find.text('counter1: 1'), findsOneWidget);
     expect(find.text('counter2: 1'), findsOneWidget);

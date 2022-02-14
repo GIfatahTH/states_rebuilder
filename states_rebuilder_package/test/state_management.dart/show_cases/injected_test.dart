@@ -271,6 +271,7 @@ void main() {
         dependsOn: DependsOn({dependentCounter1}),
       );
       int numberOfNotification = 0;
+      // ignore: unused_result
       dependentCounter2.addObserver(
         listener: (rm) {
           numberOfNotification++;
@@ -648,7 +649,9 @@ void main() {
   testWidgets('depend on a state that is initialy on error', (tester) async {
     final counter = RM.inject<int>(() => throw Exception('Error'));
     final dependentCounter = RM.inject<int>(
-      () => counter.state + 1,
+      () {
+        return counter.state + 1;
+      },
       dependsOn: DependsOn({counter}),
     );
     expect(counter.hasError, true);

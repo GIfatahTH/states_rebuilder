@@ -40,7 +40,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
         this as InjectedCRUDImp<T, P>,
       );
 
-  _Item<T, P>? _item;
+  // _Item<T, P>? _item;
 
   /// Optimized for item displaying. Used with
   ///
@@ -160,7 +160,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
   /// )
   /// ```
   ///
-  _Item<T, P> get item => _item ??= _Item<T, P>(this as InjectedCRUDImp<T, P>);
+  late final _Item<T, P> item = _Item<T, P>(this as InjectedCRUDImp<T, P>);
   ICRUD<T, P>? _repo;
 
   ///Get the repository implementation
@@ -252,17 +252,16 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
 
   late bool _isInitialized;
   @override
-  VoidCallback get resetDefaultState => () {
-        super.resetDefaultState();
-        _isInitialized = false;
-        _onCrudRM?.dispose();
-        _onCrudRM = null;
-        _item?.dispose();
-        _item = null;
-        _repo = null;
-        _crud = null;
-        _isOnCRUD = false;
-      };
+  void resetDefaultState([VoidCallback? fn]) {
+    super.resetDefaultState(fn);
+    _isInitialized = false;
+    _onCrudRM?.dispose();
+    _onCrudRM = null;
+    item._dispose();
+    _repo = null;
+    _crud = null;
+    _isOnCRUD = false;
+  }
 
   @override
   Object? Function() get mockableCreator {
@@ -478,12 +477,14 @@ class _CRUDService<T, P> {
               sideEffects?.onSetState?.call(snap);
             },
           ),
-          stateInterceptor: (current, next) {
-            if (isOptimistic && next.isWaiting) {
-              return current;
-            }
-            return null;
-          },
+          stateInterceptor: isOptimistic
+              ? (current, next) {
+                  if (next.isWaiting) {
+                    return current;
+                  }
+                  return next;
+                }
+              : null,
         );
     await call();
     // if (injected.hasError) {
@@ -544,9 +545,7 @@ class _CRUDService<T, P> {
             injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
             if (isOptimistic) {
               yield newState;
-              if (injected._item != null) {
-                injected._item!._refresh();
-              }
+              injected.item._refresh();
             }
             try {
               await injected._init();
@@ -570,9 +569,7 @@ class _CRUDService<T, P> {
               );
               if (isOptimistic) {
                 yield oldState;
-                if (injected._item != null) {
-                  injected._item!.injected.refresh();
-                }
+                injected.item._refresh();
               }
               rethrow;
             }
@@ -585,12 +582,14 @@ class _CRUDService<T, P> {
               sideEffects?.onSetState?.call(snap);
             },
           ),
-          stateInterceptor: (current, next) {
-            if (isOptimistic && next.isWaiting) {
-              return current;
-            }
-            return null;
-          },
+          stateInterceptor: isOptimistic
+              ? (current, next) {
+                  if (next.isWaiting) {
+                    return current;
+                  }
+                  return next;
+                }
+              : null,
         );
     await call();
     // if (injected.hasError) {
@@ -638,11 +637,11 @@ class _CRUDService<T, P> {
     if (removed.isEmpty) {
       return;
     }
+
     // injected.debugMessage = kDeleting;
     Future<List<T>?> call() => injected.setState(
           (s) async* {
             injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
-
             if (isOptimistic) {
               yield newState;
             }
@@ -681,6 +680,14 @@ class _CRUDService<T, P> {
               sideEffects?.onSetState?.call(snap);
             },
           ),
+          stateInterceptor: isOptimistic
+              ? (current, next) {
+                  if (next.isWaiting) {
+                    return current;
+                  }
+                  return null;
+                }
+              : null,
         );
     await call();
     // if (injected.hasError) {
@@ -696,28 +703,28 @@ class _CRUDService<T, P> {
 }
 
 class _Item<T, P> {
-  final InjectedCRUDImp<T, P> injectedList;
-  late final InjectedImp<T> injected;
+  final InjectedCRUDImp<T, P> _injectedList;
+
   // bool _isUpdating = false;
   // bool _isRefreshing = false;
-  _Item(this.injectedList) {
-    injected = RM.inject<T>(
-      () => throw UnimplementedError(),
-      sideEffects: SideEffects.onData(
-        (_) {
-          injectedList.crud.update(
-            where: (t) {
-              return t == injected.oldSnapState?.data;
-            },
-            set: (t) => injected.snapValue.data!,
-          );
-        },
-      ),
-      // debugPrintWhenNotifiedPreMessage: 'injectedList',
-    ) as InjectedImp<T>;
-  }
+  _Item(this._injectedList);
 
-  void _refresh() => injected.refresh();
+  late final InjectedImp<T> _injected = RM.inject<T>(
+    () => throw UnimplementedError(),
+    sideEffects: SideEffects.onData(
+      (_) {
+        _injectedList.crud.update(
+          where: (t) {
+            return t == _injected.oldSnapState?.data;
+          },
+          set: (t) => _injected.snapValue.data!,
+        );
+      },
+    ),
+    // debugPrintWhenNotifiedPreMessage: 'injectedList',
+  ) as InjectedImp<T>;
+
+  void _refresh() => _injected.refresh();
 
   ///Provide the an item using an [InheritedWidget] to the sub-branch widget tree.
   ///
@@ -772,15 +779,15 @@ class _Item<T, P> {
     required T Function()? item,
     required Widget Function(BuildContext) builder,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugString,
+    Object? Function(T?)? toDebugString,
   }) {
-    return injected.inherited(
+    return _injected.inherited(
       key: key,
       stateOverride: item,
       connectWithGlobal: true,
       builder: builder,
       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-      // toDebugString: toDebugString,
+      toDebugString: toDebugString,
     );
   }
 
@@ -810,7 +817,7 @@ class _Item<T, P> {
     required BuildContext context,
     required Widget Function(BuildContext) builder,
   }) {
-    return injected.reInherited(
+    return _injected.reInherited(
       key: key,
       context: context,
       builder: builder,
@@ -824,21 +831,21 @@ class _Item<T, P> {
   ///
   ///If you want to obtain the state without registering use the [call] method.
   T of(BuildContext context) {
-    return injected.of(context)!;
+    return _injected.of(context)!;
   }
 
   ///Obtain the item from the nearest [InheritedWidget] inserted using [inherited].
   ///The [BuildContext] used, will not be registered.
   ///If you want to obtain the state and register it use the [of] method.
   Injected<T>? call(BuildContext context) {
-    final inj = injected.call(
+    final inj = _injected.call(
       context,
       defaultToGlobal: true,
     );
-    return inj == injected ? null : inj;
+    return inj == _injected ? null : inj;
   }
 
-  void dispose() {
-    injected.dispose();
+  void _dispose() {
+    _injected.dispose();
   }
 }

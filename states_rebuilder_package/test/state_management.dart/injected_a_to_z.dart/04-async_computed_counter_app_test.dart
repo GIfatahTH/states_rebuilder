@@ -44,6 +44,7 @@ final counter2 = RM.inject(
 
 final computedCounter = RM.inject<int>(
   () => counter1.state.count * counter2.state.count,
+  debugPrintWhenNotifiedPreMessage: 'computedCounter',
   dependsOn: DependsOn({counter1, counter2}),
 );
 

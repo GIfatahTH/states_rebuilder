@@ -194,7 +194,7 @@ void main() {
       expect(modelB.hasError, true);
       expect(modelC.hasError, true);
       expect(modelC.error.message, 'Error');
-      expect(modelC.state, 5);
+      expect(modelC.state, 6);
     },
   );
 

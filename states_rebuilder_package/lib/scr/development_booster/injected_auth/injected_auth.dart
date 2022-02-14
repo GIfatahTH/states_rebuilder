@@ -120,14 +120,14 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
   StreamSubscription<T>? onAuthStreamSubscription;
 
   @override
-  VoidCallback get resetDefaultState => () {
-        super.resetDefaultState();
-        _repo = null;
-        _auth = null;
-        _isInitialized = true;
-        onAuthStreamSubscription?.cancel();
-        onAuthStreamSubscription = null;
-      };
+  void resetDefaultState([VoidCallback? fn]) {
+    super.resetDefaultState(fn);
+    _repo = null;
+    _auth = null;
+    _isInitialized = true;
+    onAuthStreamSubscription?.cancel();
+    onAuthStreamSubscription = null;
+  }
 
   @override
   bool get isSigned => state != unsignedUser && _isInitialized;

@@ -17,25 +17,33 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
           stateInterceptorGlobal: stateInterceptor,
           autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
         ) {
-    resetDefaultState();
+    resetDefaultState(() {
+      creatorUpdatable = creator;
+    });
   }
   final SideEffects<T>? sideEffectsGlobal;
   final String? debugPrintWhenNotifiedPreMessageGlobal;
   final Object? Function(T?)? toDebugString;
   final DependsOn<T>? dependsOn;
   final Object? Function(T? s)? watch;
-  Object? _cachedWatch;
+  //
+  late Object? Function() creatorUpdatable;
+  late Object? _cachedWatch;
   final inheritedInjects = <InjectedImp<T>>{};
-  bool? _shouldContextWithGlobal;
+  late bool? _shouldConnectWithGlobal;
+  late bool _isInheritedDirty;
   // var fields. they deed to reset to default value after state disposing off
   // _resetDefaultState is used to reset var fields to default initial values
   @override
-  VoidCallback get resetDefaultState => () {
-        super.resetDefaultState();
-        inheritedInjects.clear();
-        _cachedWatch = null;
-        _shouldContextWithGlobal = null;
-      };
+  void resetDefaultState([VoidCallback? fn]) {
+    super.resetDefaultState();
+    inheritedInjects.clear();
+    _cachedWatch = null;
+    _shouldConnectWithGlobal = null;
+    _isInheritedDirty = false;
+    fn?.call();
+  }
+
   List<dynamic Function()?> cachedCreatorMocks = [null];
 
   @override
@@ -50,9 +58,6 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     if (!isInitialized && dependsOn != null) {
       _subscribeForCombinedSnap();
       _setCombinedSnap();
-      if (_snapState.isWaiting || _snapState.hasError) {
-        isInitialized = true;
-      }
     }
     if (cachedCreatorMocks.last != null) {
       if (creator is Future<T> Function() || creator is Stream<T> Function()) {
@@ -60,7 +65,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       }
       return cachedCreatorMocks.last!;
     }
-    return creator;
+    return creatorUpdatable;
   }
 
   @override
@@ -75,21 +80,23 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
   }
 
   @override
-  void middleSetCreator(StateStatus status, Object? result) {
-    super.middleSetCreator(status, result);
-    // _cachedWatch = watch?.call(_snapState.data);
-  }
-
-  @override
   Future<T?> refresh({String? infoMessage}) async {
     if (inheritedInjects.isNotEmpty) {
       _snapState = snapState.copyWith(infoMessage: kRefreshMessage);
-      for (final inj in inheritedInjects) {
-        inj.refresh(
-          infoMessage: kRecomputing,
+      await WidgetsBinding.instance!.endOfFrame;
+      if (_isInheritedDirty) {
+        _isInheritedDirty = false;
+      } else {
+        for (final inj in inheritedInjects) {
+          inj.refresh(infoMessage: kRecomputing);
+        }
+      }
+      if (inheritedInjects.isNotEmpty) {
+        notify(
+          nextSnap: inheritedInjects.last.snapValue,
         );
       }
-      _snapState = snapState.copyWith(infoMessage: '');
+
       try {
         return await stateAsync;
       } catch (e) {
@@ -135,6 +142,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     if (!isNotified) {
       return false;
     }
+    if (nextSnap == null) {
+      return true;
+    }
     if (shouldOverrideDefaultSideEffects?.call(_snapState) != true) {
       sideEffectsGlobal
         ?..onSetState?.call(_snapState)
@@ -174,10 +184,10 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     bool? connectWithGlobal,
     SideEffects<T>? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugStringGlobal,
+    Object? Function(T?)? toDebugString,
     // bool keepAlive = false,
   }) {
-    if (connectWithGlobal == null && _shouldContextWithGlobal == null) {
+    if (connectWithGlobal == null && _shouldConnectWithGlobal == null) {
       if (!isInitialized) {
         try {
           final s = mockableCreator();
@@ -202,16 +212,16 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
         }
       }
 
-      _shouldContextWithGlobal = _snapState.data == null;
+      _shouldConnectWithGlobal = _snapState.data == null;
     }
 
     return _inherited(
       builder: builder,
       key: key,
       stateOverride: stateOverride,
-      connectWithGlobal: connectWithGlobal ?? _shouldContextWithGlobal!,
+      connectWithGlobal: connectWithGlobal ?? _shouldConnectWithGlobal!,
       sideEffects: sideEffects,
-      toDebugString: toDebugStringGlobal,
+      toDebugString: toDebugString,
       // keepAlive: keepAlive,
     );
   }
@@ -274,16 +284,18 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
               dispose: () {
                 sideEffects?.dispose?.call();
                 if (injected != this) {
-                  if (autoDisposeWhenNotUsed && !hasObservers) {
-                    dispose();
-                  }
                   inheritedInjects.remove(injected);
+                  if (autoDisposeWhenNotUsed && inheritedInjects.isEmpty) {
+                    disposeIfNotUsed();
+                  }
                 }
                 if (injected.autoDisposeWhenNotUsed) {
                   // injected.dispose();
                 }
               },
-              onAfterBuild: () => sideEffects?.onAfterBuild?.call(),
+              onAfterBuild: sideEffects?.onAfterBuild != null
+                  ? () => sideEffects!.onAfterBuild?.call()
+                  : null,
               onSetState: (snap) {
                 if (_snapState._infoMessage != kRefreshMessage) {
                   if (inheritedInjects.isNotEmpty) {
@@ -306,8 +318,27 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
         injected.initialize();
         return [injected];
       },
+      didUpdateWidget: (context, rm, old) {
+        if (stateOverride != null) {
+          (rm as InjectedImp).creatorUpdatable = () {
+            try {
+              return stateOverride();
+            } catch (e) {
+              if (e is RangeError) {
+                return rm._snapState.data;
+              }
+              rethrow;
+            }
+          };
+          if (snapValue._infoMessage == kRefreshMessage) {
+            _isInheritedDirty = true;
+            rm.refresh(infoMessage: kRecomputing).onError((_, __) {});
+          }
+        }
+      },
       builder: (context, __, rm) {
         return _InheritedInjected(
+          key: key,
           injected: rm as InjectedImp<T>,
           globalInjected: globalInjected ?? this,
           context: context,
@@ -372,23 +403,20 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       Set<InjectedImp<T>> inheritStates, InjectedImp<T> inj) {
     bool isWaiting = false;
     SnapError? snapError;
-    SnapState<T>? oldSnap;
+    // SnapState<T>? oldSnap;
     SnapState<T>? newSnap;
-    // final cachedAddToObs = ReactiveStatelessWidget.addToObs;
-    // ReactiveStatelessWidget.addToObs = null;
     for (var state in inheritStates) {
       state.initialize();
       if (state.snapValue.isWaiting) {
         isWaiting = true;
-        oldSnap = state._snapState.oldSnapState;
+        // oldSnap = state._snapState.oldSnapState;
         break;
       }
       if (state.snapValue.hasError) {
         snapError = state._snapState.snapError;
-        oldSnap = state._snapState.oldSnapState;
+        // oldSnap = state._snapState.oldSnapState;
       }
     }
-    // ReactiveStatelessWidget.addToObs = cachedAddToObs;
 
     if (isWaiting) {
       newSnap = _snapState.copyToIsWaiting(kInherited);
@@ -401,15 +429,22 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       );
     }
 
-    _snapState = oldSnap?.copyWith(debugName: _snapState.debugName) ??
-        inj._snapState.oldSnapState!.copyWith(debugName: _snapState.debugName);
-    _snapState = newSnap?.copyWith(
-          debugName: _snapState.debugName,
-        ) ??
-        inj._snapState.copyWith(
-          debugName: _snapState.debugName,
-        );
-    notify();
+    // _snapState = oldSnap?.copyWith(debugName: _snapState.debugName) ??
+    //     inj._snapState.oldSnapState!.copyWith(debugName: _snapState.debugName);
+    // _snapState = newSnap?.copyWith(
+    //       debugName: _snapState.debugName,
+    //     ) ??
+    //     inj._snapState.copyWith(
+    //       debugName: _snapState.debugName,
+    //     );
+    notify(
+      nextSnap: newSnap?.copyWith(
+            debugName: _snapState.debugName,
+          ) ??
+          inj._snapState.copyWith(
+            debugName: _snapState.debugName,
+          ),
+    );
   }
 
   void _subscribeForCombinedSnap() {
@@ -470,7 +505,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       if (rm.snapValue.isWaiting) {
         isWaiting = true;
         completer = Completer();
-        isInitialized = true;
+        // isInitialized = true;
         // _setState(
         //   (s) => rm.stateAsync,
         //   middleSetState: middleSetSate,
@@ -489,24 +524,42 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
       }
       completer = Completer();
       isInitialized = true;
-      _snapState = _snapState.copyToIsWaiting(kDependsOn);
-
-      if (isInitialized) {
-        notify();
-      }
+      notify(nextSnap: _snapState.copyToIsWaiting(kDependsOn));
     } else if (snapError != null) {
       if (completer?.isCompleted == false) {
         completer!.complete();
       }
-      _snapState = _snapState.copyWith(
-        status: StateStatus.hasError,
-        error: snapError,
-        infoMessage: '',
-      );
 
-      if (isInitialized) {
-        notify();
+      if (!isInitialized) {
+        _snapState = _snapState.copyWith(
+          status: StateStatus.hasError,
+          error: snapError,
+          infoMessage: '',
+        );
+        isInitialized = true;
+        return;
       }
+
+      setStateNullable(
+        (s) {
+          try {
+            return mockableCreator();
+          } catch (_) {
+            return snapValue.data;
+          }
+        },
+        middleSetState: (status, result) {
+          subscription?.cancel();
+          notify(
+            nextSnap: _snapState.copyWith(
+              status: StateStatus.hasError,
+              error: snapError,
+              infoMessage: '',
+              data: status == StateStatus.hasData ? result : null,
+            ),
+          );
+        },
+      );
     } else {
       if (isInitialized) {
         if (completer?.isCompleted == false) {

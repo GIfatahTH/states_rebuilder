@@ -1042,4 +1042,33 @@ void main() {
       //
     },
   );
+  testWidgets(
+    'WHEN notify is called'
+    'THEN side effects are not called',
+    (tester) async {
+      int numberOfSideEffectCall = 0;
+      int numberOfBuildCall = 0;
+      final model = RM.inject<int>(
+        () => 0,
+        sideEffects: SideEffects(
+          onSetState: (_) => numberOfSideEffectCall++,
+        ),
+      );
+      // ignore: unused_result
+      model.addObserver(listener: (_) => numberOfBuildCall++);
+      expect(model.state, 0);
+      expect(numberOfSideEffectCall, 0);
+      expect(numberOfBuildCall, 0);
+      //
+      model.state++;
+      await tester.pump();
+      expect(numberOfSideEffectCall, 1);
+      expect(numberOfBuildCall, 1);
+      //
+      model.notify();
+      await tester.pump();
+      expect(numberOfSideEffectCall, 1);
+      expect(numberOfBuildCall, 2);
+    },
+  );
 }

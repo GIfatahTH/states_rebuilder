@@ -191,7 +191,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
     bool connectWithGlobal = true,
     SideEffects<T>? sideEffects,
     String? debugPrintWhenNotifiedPreMessage,
-    String Function(T?)? toDebugStringGlobal,
+    String Function(T?)? toDebugString,
     // bool keepAlive = false,
   });
 

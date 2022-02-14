@@ -90,26 +90,29 @@ void main() {
     expect(counter1.hasError, true);
   });
   testWidgets('mutate global with inherited is waiting  ', (tester) async {
-    final counter1 = RM.inject(
-      () => 1,
-
-      // debugPrintWhenNotifiedPreMessage: 'counter1',
+    final rm = 0.inj();
+    final counter1 = RM.inject<int>(
+      () => throw UnimplementedError(),
+      debugPrintWhenNotifiedPreMessage: 'counter1',
     );
-    late BuildContext context1;
-    final widget = counter1.inherited(
-      stateOverride: () => Future.delayed(Duration(seconds: 1), () {
-        return 10;
-      }),
-      connectWithGlobal: true,
-      builder: (ctx) {
-        context1 = ctx;
-        return Container();
+    late Injected inherited1;
+    final widget = OnBuilder(
+      listenTo: rm,
+      builder: () {
+        return counter1.inherited(
+          stateOverride: () {
+            return Future.delayed(Duration(seconds: 1), () => 10);
+          },
+          builder: (ctx) {
+            inherited1 = counter1(ctx);
+            return Container();
+          },
+          debugPrintWhenNotifiedPreMessage: 'inherited',
+        );
       },
-      // debugPrintWhenNotifiedPreMessage: 'inherited',
     );
 
     await tester.pumpWidget(widget);
-    final inherited1 = counter1(context1);
     expect(inherited1.isWaiting, true);
     expect(counter1.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
@@ -117,13 +120,18 @@ void main() {
     expect(counter1.state, 10);
 
     counter1.refresh();
+    rm.notify();
     await tester.pump();
-    await tester.pump();
-    // expect(inherited1.isWaiting, true);
-    // expect(counter1.isWaiting, true);
+    expect(inherited1.isWaiting, true);
+    expect(counter1.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
-    // expect(inherited1.state, 100);
-    // expect(counter1.state, 100);
+    expect(inherited1.state, 10);
+    expect(counter1.state, 10);
+    //
+    rm.notify();
+    await tester.pump();
+    expect(inherited1.state, 10);
+    expect(counter1.state, 10);
   });
 
   testWidgets('mutate global with inherited has Error  ', (tester) async {
@@ -413,6 +421,7 @@ void main() {
       await tester.pump();
       _item.refresh();
       await tester.pump();
+      await tester.pump();
       expect(rebuiltItems, [5]);
       //
       // Provoke UnimplementedError and RangeError that are captured
@@ -439,6 +448,7 @@ void main() {
       items.state = [1, 22, 3];
       await tester.pump();
       _item.refresh();
+      await tester.pump();
       await tester.pump();
       expect(rebuiltItems, [22]);
     },
@@ -522,6 +532,112 @@ void main() {
       expect(itemsRM.state[0].counter, 10);
       expect(itemsRM.state[1].counter, 20);
       expect(itemsRM.state[2].counter, 30);
+    },
+  );
+
+  testWidgets(
+    'WHEN one inherited model is disposed'
+    'THEN the global model is not disposed if there are other inherited models',
+    (tester) async {
+      final model = RM.inject<int>(() => throw UnimplementedError());
+      final switcher = true.inj();
+      int value = 0;
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnReactive(() {
+          return Column(
+            children: [
+              model.inherited(
+                stateOverride: () => value,
+                builder: (_) {
+                  return Text(model.of(_).toString());
+                },
+              ),
+              if (switcher.state)
+                model.inherited(
+                  stateOverride: () => 1,
+                  builder: (_) {
+                    return Text(model.of(_).toString());
+                  },
+                ),
+            ],
+          );
+        }),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      value = 2;
+      model.refresh();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      //
+      switcher.toggle();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('1'), findsNothing);
+      value = 3;
+      model.refresh();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('1'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN inherited model is refreshed'
+    'THEN it holds the state of the last inherited after refresh',
+    (tester) async {
+      final model = RM.inject<int>(() => throw UnimplementedError());
+      late Injected<int> model1;
+      late Injected<int> model2;
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: [
+            model.inherited(
+              builder: (_) {
+                model1 = model(_);
+                return Container();
+              },
+              stateOverride: () => 1,
+            ),
+            model.inherited(
+              builder: (_) {
+                model2 = model(_);
+                return Container();
+              },
+              stateOverride: () => 2,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(model1.state, 1);
+      expect(model2.state, 2);
+      expect(model.state, 2);
+      //
+      model.refresh();
+      await tester.pump();
+      expect(model1.state, 1);
+      expect(model2.state, 2);
+      expect(model.state, 2);
+      //
+      model1.state = 3;
+      await tester.pump();
+      expect(model1.state, 3);
+      expect(model2.state, 2);
+      expect(model.state, 3);
+      //
+      model.refresh();
+      await tester.pump();
+      expect(model1.state, 1);
+      expect(model2.state, 2);
+      expect(model.state, 2);
     },
   );
 }

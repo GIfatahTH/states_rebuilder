@@ -244,6 +244,7 @@ void main() {
     expect(products.state[1].count, 1);
     expect(_repo._products[1].count, 0);
     await tester.pump(Duration(seconds: 1));
+    await tester.pump();
     expect(find.text('prod1: 0'), findsOneWidget);
     expect(find.text('prod2: 0'), findsOneWidget);
     expect(find.text('prod3: 0'), findsOneWidget);
@@ -271,6 +272,7 @@ void main() {
       },
     );
 
+    await tester.pump();
     await tester.pump();
     await tester.pump();
 
@@ -329,6 +331,7 @@ void main() {
       set: (p) => p.copyWith(count: 1),
     );
 
+    await tester.pump();
     await tester.pump();
     await tester.pump();
 

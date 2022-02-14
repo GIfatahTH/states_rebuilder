@@ -29,20 +29,20 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   // var fields. they deed to reset to default value after state disposing off
   // _resetDefaultState is used to reset var fields to default initial values
-  VoidCallback get resetDefaultState => () {
-        _clearObservers();
-        _snapState = initialSnapState;
-        isInitialized = false;
-        removeFromReactiveModel = null;
-        subscription?.cancel();
-        subscription = null;
-        completer = null;
-        _debounceTimer = null;
-        _dependentDebounceTimer = null;
-        _isDone = false;
-        isWaitingToInitialize = false;
-        customStatus = null;
-      };
+  void resetDefaultState() {
+    _clearObservers();
+    _snapState = initialSnapState;
+    isInitialized = false;
+    removeFromReactiveModel = null;
+    subscription?.cancel();
+    subscription = null;
+    completer = null;
+    _debounceTimer = null;
+    _dependentDebounceTimer = null;
+    _isDone = false;
+    isWaitingToInitialize = false;
+    customStatus = null;
+  }
 
   // Overridden methods
   @override
@@ -226,24 +226,26 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     SnapState<T> snap,
     StateInterceptor<T>? stateInterceptor,
   ) {
-    var newSnap = stateInterceptor?.call(snap.oldSnapState!, snap);
-    newSnap =
-        stateInterceptorGlobal?.call(snap.oldSnapState!, newSnap ?? snap) ??
-            newSnap;
+    final oldSnap = snap.oldSnapState!;
+    var newSnap = stateInterceptor?.call(oldSnap, snap);
+    newSnap = stateInterceptorGlobal?.call(oldSnap, newSnap ?? snap) ?? newSnap;
 
     newSnap ??= snap;
     // if (snap is SkipSnapState) {
     //   return null;
     // }
+    if (newSnap._isImmutable && oldSnap.hashCode == newSnap.hashCode) {
+      return null;
+    }
     if (newSnap.isWaiting) {
       if (_snapState.isWaiting) {
         return null;
       }
     } else if (newSnap.hasError) {
-      if (_snapState.hasError &&
-          newSnap.snapError!.error == _snapState.snapError?.error) {
-        return null;
-      }
+      // if (_snapState.hasError &&
+      //     newSnap.snapError!.error == _snapState.snapError?.error) {
+      //   return null;
+      // }
     } else if (newSnap.hasData) {
       if (newSnap._isImmutable == true &&
           newSnap == _snapState &&
@@ -335,7 +337,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   }
 
   void rebuildState() {
-    for (var listener in _listeners) {
+    for (var listener in [..._listeners]) {
       listener(this);
     }
     for (var listener in _listenersForSideEffects) {

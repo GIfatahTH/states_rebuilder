@@ -226,6 +226,7 @@ void main() {
   testWidgets(
     'Check sideEffects for inherited injected ',
     (tester) async {
+      final rm = 0.inj();
       SnapState? globalCounterSnap;
       SnapState? counter1Snap;
       SnapState? counter2Snap;
@@ -241,40 +242,46 @@ void main() {
 
       final widget = Directionality(
         textDirection: TextDirection.ltr,
-        child: Column(
-          children: [
-            counterRM.inherited(
-              stateOverride: () async {
-                return Future.delayed(const Duration(seconds: 1), () => 10);
-              },
-              builder: (context) {
-                final counter = counterRM(context);
-                if (counter.isWaiting) {
-                  return Text('Counter1 is waiting...');
-                }
-                return Text('Counter1 is ${counter.state}');
-              },
-              sideEffects: SideEffects(
-                onSetState: (snap) => counter1Snap = snap,
-              ),
-            ),
-            counterRM.inherited(
-              stateOverride: () async {
-                return Future.delayed(const Duration(seconds: 2), () => 20);
-              },
-              sideEffects: SideEffects(
-                onSetState: (snap) => counter2Snap = snap,
-              ),
-              builder: (context) {
-                final counter = counterRM(context);
-                if (counter.isWaiting) {
-                  return Text('Counter2 is waiting...');
-                }
-                return Text('Counter2 is ${counter.state}');
-              },
-            ),
-          ],
-        ),
+        child: OnBuilder(
+            listenTo: rm,
+            builder: () {
+              return Column(
+                children: [
+                  counterRM.inherited(
+                    stateOverride: () async {
+                      return Future.delayed(
+                          const Duration(seconds: 1), () => 10);
+                    },
+                    builder: (context) {
+                      final counter = counterRM(context);
+                      if (counter.isWaiting) {
+                        return Text('Counter1 is waiting...');
+                      }
+                      return Text('Counter1 is ${counter.state}');
+                    },
+                    sideEffects: SideEffects(
+                      onSetState: (snap) => counter1Snap = snap,
+                    ),
+                  ),
+                  counterRM.inherited(
+                    stateOverride: () async {
+                      return Future.delayed(
+                          const Duration(seconds: 2), () => 20);
+                    },
+                    sideEffects: SideEffects(
+                      onSetState: (snap) => counter2Snap = snap,
+                    ),
+                    builder: (context) {
+                      final counter = counterRM(context);
+                      if (counter.isWaiting) {
+                        return Text('Counter2 is waiting...');
+                      }
+                      return Text('Counter2 is ${counter.state}');
+                    },
+                  ),
+                ],
+              );
+            }),
       );
       await tester.pumpWidget(widget);
       expect(find.text('Counter1 is waiting...'), findsOneWidget);
@@ -298,6 +305,13 @@ void main() {
       expect(counter1Snap!.data, 10);
       expect(counter2Snap!.hasData, true);
       expect(counter2Snap!.data, 20);
+      //
+      rm.notify();
+      await tester.pump();
+      expect(find.text('Counter1 is waiting...'), findsNothing);
+      expect(find.text('Counter1 is 10'), findsOneWidget);
+      expect(find.text('Counter2 is waiting...'), findsNothing);
+      expect(find.text('Counter2 is 20'), findsOneWidget);
     },
   );
 }
