@@ -136,9 +136,7 @@ class Home extends ReactiveStatelessWidget {
             _todosViewModel.currentTodo.inherited(
               key: ValueKey(todos[i].id),
               stateOverride: () {
-                // It important to calculate the the todo item from the state of
-                // _todosRM.
-                return _todosViewModel.todos[i];
+                return todos[i];
               },
               builder: (_) => const TodoItem(),
             )

@@ -116,6 +116,7 @@ class TodosViewModel {
 
   void remove(int index) {
     _todosRM.state = [..._todosRM.state]..removeAt(index);
+    currentTodo.refresh();
   }
 
   void toggleAll(bool to) {
@@ -178,13 +179,6 @@ class CurrentTodo {
 
 //
 
-/// Some keys used for testing
-final addTodoKey = UniqueKey();
-final activeFilterKey = UniqueKey();
-final completedFilterKey = UniqueKey();
-final allFilterKey = UniqueKey();
-final toggleAllToComplete = UniqueKey();
-
 void main() {
   runApp(const MyApp());
 }
@@ -202,7 +196,12 @@ class MyApp extends StatelessWidget {
 
 class Home extends ReactiveStatelessWidget {
   const Home({Key? key}) : super(key: key);
-  static final newTodoController = TextEditingController();
+  static late TextEditingController newTodoController;
+  @override
+  void didMountWidget(BuildContext context) {
+    newTodoController = TextEditingController();
+  }
+
   @override
   void didUnmountWidget() {
     newTodoController.dispose();
@@ -219,7 +218,6 @@ class Home extends ReactiveStatelessWidget {
           children: [
             const Title(),
             TextField(
-              key: addTodoKey,
               controller: newTodoController,
               decoration: const InputDecoration(
                 labelText: 'What needs to be done?',
@@ -240,15 +238,16 @@ class Home extends ReactiveStatelessWidget {
                   todosViewModel.remove(i);
                 },
                 child: TodosViewModel.currentTodo.inherited(
+                  key: ValueKey(todos[i].id),
                   stateOverride: () {
                     return CurrentTodo(
-                      value: todosViewModel.filteredTodos[i],
+                      value: todos[i],
                       itemFocusNode: FocusNode(),
                       textFocusNode: FocusNode(),
                       textEditingController: TextEditingController(),
                     );
                   },
-                  builder: (_) => const TodoItem(),
+                  builder: (_) => const TodoItemWidget(),
                 ),
               )
             ],
@@ -279,12 +278,11 @@ class Toolbar extends ReactiveStatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: OnBuilder<bool>.create(
-              create: () => todosViewModel.isAllCompleted.inj(),
+              creator: () => todosViewModel.isAllCompleted,
               builder: (rm) {
                 return Tooltip(
-                  key: allFilterKey,
                   message:
-                      'Toggle All todos to ${rm.state ? 'uncompleted' : 'completed'}',
+                      'Toggle All todos to ${todosViewModel.isAllCompleted ? 'uncompleted' : 'completed'}',
                   child: Checkbox(
                     value: todosViewModel.isAllCompleted,
                     onChanged: (value) {
@@ -303,7 +301,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: allFilterKey,
             message: 'All todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.all,
@@ -316,7 +313,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: activeFilterKey,
             message: 'Only uncompleted todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.active,
@@ -330,7 +326,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: completedFilterKey,
             message: 'Only completed todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.completed,
@@ -367,8 +362,8 @@ class Title extends ReactiveStatelessWidget {
   }
 }
 
-class TodoItem extends ReactiveStatelessWidget {
-  const TodoItem({Key? key}) : super(key: key);
+class TodoItemWidget extends ReactiveStatelessWidget {
+  const TodoItemWidget({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     TodosViewModel.currentTodo.of(context);
