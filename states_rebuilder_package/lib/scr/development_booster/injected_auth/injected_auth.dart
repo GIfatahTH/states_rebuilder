@@ -154,10 +154,6 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
               future.complete(data);
             } else {
               setToHasData(data);
-              // reactiveModelState.setToHasData(
-              //   middleSnap: middleSnap,
-              //   data: data,
-              // );
             }
           },
           onError: (err, s) {
@@ -168,17 +164,10 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
                 err,
                 stackTrace: s,
               );
-              // reactiveModelState.setToHasError(
-              //   middleSnap: middleSnap,
-              //   error: err,
-              //   stackTrace: s,
-              //   refresher: () {},
-              // );
             }
           },
         );
         return future.future;
-        // return super.middleCreator(() => future.future, creatorMock);
       }
 
       final result = super.mockableCreator();
@@ -230,10 +219,6 @@ class _AuthService<T, P> {
         } else if (rm.hasError) {
           _onError(_onSignInOut);
         }
-
-        // injected.sideEffects
-        //   ?..onSetState?.call(rm.snapValue as SnapState<T>)
-        //   ..onAfterBuild?.call();
       },
       shouldAutoClean: true,
     );
@@ -367,6 +352,7 @@ class _AuthService<T, P> {
     injected
       ..snapValue = injected.snapValue.copyWith(data: refreshedUser)
       ..persistState();
+
     _autoSignOut();
     return injected.snapValue.data as T;
   }
