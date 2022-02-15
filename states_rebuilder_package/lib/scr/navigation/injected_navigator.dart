@@ -447,6 +447,7 @@ class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
 
   @override
   void onNavigate() {
+    if (RouterObjects.rootDelegate == null) return;
     final toLocation = _redirectTo?.call(routeData);
     if (toLocation is Redirect && toLocation.to != null) {
       setRouteStack(

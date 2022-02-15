@@ -202,6 +202,8 @@ MaterialApp(
     bool maintainState = true,
   }) {
     if (RouterObjects.rootDelegate != null && name != null) {
+      _fullscreenDialog = fullscreenDialog;
+      _maintainState = maintainState;
       return RouterObjects.rootDelegate!.to<T>(
         PageSettings(
           name: name,
