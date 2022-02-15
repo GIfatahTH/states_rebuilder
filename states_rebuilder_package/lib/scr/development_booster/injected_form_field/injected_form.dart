@@ -212,7 +212,7 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
   }
 
   @override
-  bool validate([bool? isFromSubmission]) {
+  bool validate([bool isFromSubmission = false]) {
     bool isNotValid = false;
     _BaseFormField? firstErrorField;
     for (var field in _fields) {

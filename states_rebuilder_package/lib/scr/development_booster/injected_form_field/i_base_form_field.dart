@@ -66,9 +66,11 @@ abstract class _BaseFormField<T> {
   // late bool _isEnabled;
 
   ///Validate the input text by invoking its validator.
-  bool validate([bool? isFromSubmission]) {
-    if (_inj.hasError && _inj.oldSnapState?.data == _inj.snapValue.data) {
-      return isFromSubmission ?? false;
+  bool validate([bool isFromSubmission = false]) {
+    if (!isFromSubmission &&
+        _inj.hasError &&
+        _inj.oldSnapState?.data == _inj.snapValue.data) {
+      return false;
     }
     _inj.snapValue = _inj.snapValue.copyToHasData(value);
 
