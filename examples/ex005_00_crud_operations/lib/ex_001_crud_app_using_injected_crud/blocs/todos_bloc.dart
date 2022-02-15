@@ -10,36 +10,32 @@ import '../data_source/todos_http_repository.dart';
 import '../models/todo.dart';
 import '../models/todo_filter.dart';
 
-final todosRepository = RM.inject<ITodosRepository>(
-  // () => TodosHttpRepository(),
-  // () => TodosFakeRepository(),
-  () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
-);
 const _uuid = Uuid();
 
 @immutable
 class TodosViewModel {
   void init() {
-    _todosRM.setState((s) => todosRepository.state.getTodos());
+    // _todosRM.setState((s) => _todosRepository.state.read(null));
   }
-
-  late final Injected<List<Todo>> _todosRM = RM.inject(
-    () => [],
+  InjectedCRUD<Todo, void> call() => _todosRM;
+  late final InjectedCRUD<Todo, void> _todosRM = RM.injectCRUD<Todo, void>(
+    // () => TodosHttpRepository(),
+    // () => TodosFakeRepository(),
+    () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
+    readOnInitialization: true,
     sideEffects: SideEffects.onError(
       (err, refresh) {
         if (_todosRM.state.isEmpty) return;
         RM.scaffold.showSnackBar(
           SnackBar(
             content: Text(err.message),
-            action: SnackBarAction(
-              label: 'Refresh',
-              onPressed: refresh,
-            ),
+            action: SnackBarAction(label: 'Refresh', onPressed: refresh),
           ),
         );
       },
     ),
   );
+
   final _todoListFilterRM = RM.inject<TodoFilter>(
     () => TodoFilter.all,
   );
@@ -71,6 +67,7 @@ class TodosViewModel {
       }
     },
     initialState: const [],
+
     // the filteredTodosRM depended on two states. When any of them changes the
     // filteredTodosRM is recalculated
     dependsOn: DependsOn({_todosRM, _todoListFilterRM}),
@@ -80,123 +77,44 @@ class TodosViewModel {
 
   // Methods to add, edit, remove and toggle todos item
   void add(String description) {
-    final todoToAdd = Todo(
-      id: _uuid.v4(),
-      description: description,
-    );
-
-    _todosRM.setState(
-      (s) async* {
-        yield [..._todosRM.state, todoToAdd];
-        try {
-          await todosRepository.state.createTodo(todoToAdd);
-        } catch (e) {
-          yield [
-            for (final todo in _todosRM.state)
-              if (todo.id != todoToAdd.id) todo,
-          ];
-          rethrow;
-        }
-      },
-      stateInterceptor: (current, next) {
-        if (next.isWaiting) return current;
-        return next;
-      },
+    _todosRM.crud.create(
+      Todo(
+        id: _uuid.v4(),
+        description: description,
+      ),
     );
   }
 
   void edit(Todo todoToEdit) {
-    final oldTodo =
-        _todosRM.state.firstWhere((todo) => todo.id == todoToEdit.id);
-
-    _todosRM.setState(
-      (s) async* {
-        yield [
-          for (final todo in _todosRM.state)
-            if (todo.id == todoToEdit.id) todoToEdit else todo,
-        ];
-        currentTodo.refresh();
-        try {
-          await todosRepository.state.updateTodo(todoToEdit);
-        } catch (e) {
-          yield [
-            for (final todo in _todosRM.state)
-              if (todo.id == todoToEdit.id) oldTodo else todo,
-          ];
-          currentTodo.refresh();
-          rethrow;
-        }
+    _todosRM.crud.update(
+      where: (todo) {
+        return todo.id == todoToEdit.id;
       },
-      stateInterceptor: (current, next) {
-        if (next.isWaiting) return current;
-        return next;
+      set: (_) {
+        return todoToEdit;
       },
     );
   }
 
   void remove(String id) {
-    final oldState = [..._todosRM.state];
-
-    _todosRM.setState(
-      (s) async* {
-        yield [
-          for (final todo in _todosRM.state)
-            if (todo.id != id) todo,
-        ];
-        try {
-          await todosRepository.state.deleteTodo(id);
-        } catch (e) {
-          yield oldState;
-          rethrow;
-        }
-      },
-      stateInterceptor: (current, next) {
-        if (next.isWaiting) return current;
-        return next;
-      },
+    _todosRM.crud.delete(
+      where: (todo) => todo.id == id,
     );
   }
 
   void toggleAll(bool to) {
-    final oldState = [..._todosRM.state];
-    _todosRM.setState(
-      (s) async* {
-        final toAwait = <Future>[];
-        yield [
-          for (final todo in _todosRM.state)
-            if (todo.completed == to)
-              todo
-            else
-              () {
-                final toUpdate = todo.copyWith(
-                  completed: to,
-                );
-                toAwait.add(todosRepository.state.updateTodo(toUpdate));
-                return toUpdate;
-              }(),
-        ];
-        currentTodo.refresh();
-        try {
-          await Future.wait(toAwait);
-        } catch (e) {
-          yield oldState;
-          currentTodo.refresh();
-
-          rethrow;
-        }
-      },
+    _todosRM.crud.update(
+      where: (todo) => todo.completed != to,
+      set: (todo) => todo.copyWith(completed: to),
     );
   }
 
-  // currentTodo used for local state todo items
-  static final currentTodo = RM.inject<TodoItem>(
-    () => throw UnimplementedError(),
-    sideEffects: SideEffects.onData(
-      (todo) {
-        todosViewModel.edit(todo);
-      },
-    ),
-  );
+  late final item = _todosRM.item;
+  Injected<Todo> getTodoRM(BuildContext context) {
+    return _todosRM.item(context)!;
+  }
+
+  late final onCRUD = _todosRM.rebuild.onCRUD;
 }
 
 // TodoViewModel is a global state

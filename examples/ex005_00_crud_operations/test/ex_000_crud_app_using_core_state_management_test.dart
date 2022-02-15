@@ -1,9 +1,9 @@
-import 'package:ex005_00_crud_operations/000_crud_app_using_core_state_management/blocs/todos_bloc.dart';
-import 'package:ex005_00_crud_operations/000_crud_app_using_core_state_management/data_source/todos_fake_repository.dart';
-import 'package:ex005_00_crud_operations/000_crud_app_using_core_state_management/models/todo.dart';
-import 'package:ex005_00_crud_operations/000_crud_app_using_core_state_management/ui/todos_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:ex005_00_crud_operations/ex_000_crud_app_using_core_state_management/blocs/todos_bloc.dart';
+import 'package:ex005_00_crud_operations/ex_000_crud_app_using_core_state_management/data_source/todos_fake_repository.dart';
+import 'package:ex005_00_crud_operations/ex_000_crud_app_using_core_state_management/ui/todos_page.dart';
 
 void main() {
   setUp(() {

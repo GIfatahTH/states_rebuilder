@@ -1,13 +1,14 @@
-import 'package:ex005_00_crud_operations/001_crud_app_using_injected_crud/blocs/todos_bloc.dart';
-import 'package:ex005_00_crud_operations/001_crud_app_using_injected_crud/data_source/todos_fake_repository.dart';
-import 'package:ex005_00_crud_operations/001_crud_app_using_injected_crud/ui/todos_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/scr/state_management/rm.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
+
+import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/blocs/todos_bloc.dart';
+import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/data_source/todos_fake_repository.dart';
+import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/ui/todos_page.dart';
 
 void main() {
   setUp(() {
-    todosRepository.injectMock(() => TodosFakeRepository());
+    todosViewModel().injectCRUDMock(() => TodosFakeRepository());
   });
 
   final checkedItemFinder = find.descendant(
@@ -73,7 +74,7 @@ void main() {
     (tester) async {
       RM.disposeAll();
       bool shouldThrow = true;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () => shouldThrow,
         ),
@@ -188,7 +189,7 @@ void main() {
     'Add todo with error',
     (tester) async {
       bool shouldThrow = false;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () => shouldThrow,
         ),
@@ -229,7 +230,7 @@ void main() {
     'Check todo',
     (tester) async {
       bool shouldThrow = false;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () {
             return shouldThrow;
@@ -341,7 +342,7 @@ void main() {
     'Toggle all todos with error',
     (tester) async {
       bool shouldThrow = false;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () {
             return shouldThrow;
@@ -444,7 +445,7 @@ void main() {
     'Delete todos with error',
     (tester) async {
       bool shouldThrow = false;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () {
             return shouldThrow;
@@ -535,7 +536,7 @@ void main() {
     'Update todo with error',
     (tester) async {
       bool shouldThrow = false;
-      todosRepository.injectMock(
+      todosViewModel().injectCRUDMock(
         () => TodosFakeRepository(
           shouldThrowExceptions: () {
             return shouldThrow;

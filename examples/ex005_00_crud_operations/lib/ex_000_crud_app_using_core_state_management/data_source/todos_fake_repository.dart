@@ -41,14 +41,10 @@ class TodosFakeRepository implements ITodosRepository {
     return [..._todos];
   }
 
-  bool l = true;
   @override
   Future<void> updateTodo(Todo todo) async {
     await Future.delayed(const Duration(milliseconds: 600));
-    print('$l::$todo');
-    if (l && (shouldThrowExceptions?.call() ?? false)) {
-      l = false;
-      print('l=$l');
+    if (shouldThrowExceptions?.call() ?? false) {
       throw Exception('Update Todo failure');
     }
     final index = _todos.indexWhere((e) => e.id == todo.id);
