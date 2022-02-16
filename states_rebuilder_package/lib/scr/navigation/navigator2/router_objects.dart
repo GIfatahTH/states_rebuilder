@@ -283,6 +283,16 @@ abstract class RouterObjects {
     return isDone;
   }
 
+  static final Map<String, bool? Function()> _canNavigateBackScoped = {};
+  @mustCallSuper
+  static VoidCallback _addToCanNavigateCallBack(bool? Function() fn) {
+    final location = injectedNavigator!.routeData.location;
+    _canNavigateBackScoped[location] = fn;
+    return () {
+      _canNavigateBackScoped.remove(location);
+    };
+  }
+
   static void _dispose() {
     rootDelegate = null;
     ResolvePathRouteUtil.globalBaseUrl = '/';

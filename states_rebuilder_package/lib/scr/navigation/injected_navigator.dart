@@ -11,6 +11,7 @@ import '../state_management/common/logger.dart';
 import '../state_management/rm.dart';
 
 part 'build_context_x.dart';
+part 'navigator2/on_navigate_back_scope.dart';
 part 'navigator2/page_settings.dart';
 part 'navigator2/route_information_parser.dart';
 part 'navigator2/router_delegate.dart';

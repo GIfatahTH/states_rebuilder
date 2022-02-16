@@ -1,4 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, prefer_function_declarations_over_variables, body_might_complete_normally_nullable
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';

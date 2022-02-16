@@ -424,7 +424,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
     );
   }
 
-  void rootDelegatePop(dynamic result) {
+  Future<void> rootDelegatePop(dynamic result) async {
     message = 'Back';
     canLogMessage = false;
     if (RouterObjects._back(result, this)) {
@@ -506,7 +506,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       navigatorKey!.currentState!.pop();
       return SynchronousFuture(true);
     }
-    final exitApp = RouterObjects.injectedNavigator!.onBack?.call(null);
+    final exitApp = await RouterObjects.injectedNavigator!.onBack?.call(null);
     if (exitApp == true) {
       return super.popRoute();
     }
@@ -567,10 +567,13 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
 
   bool? back<T extends Object?>([T? result]) {
     if (_canPop) {
-      if (!forceBack && RouterObjects.injectedNavigator!.onBack != null) {
-        final canBack = RouterObjects.injectedNavigator!.onBack?.call(
-          _pageSettingsList.last.rData!,
-        );
+      if (!forceBack) {
+        final routeDate = _pageSettingsList.last.rData!;
+        bool? canBack = (RouterObjects.injectedNavigator!.onBack
+                    ?.call(routeDate) ??
+                true) &&
+            (RouterObjects._canNavigateBackScoped[routeDate.location]?.call() ??
+                true);
         if (canBack == false) {
           return null;
         }

@@ -6,4 +6,5 @@ export './injected_navigator.dart'
         RouteWidget,
         BuildContextX,
         MaterialPageArgument,
-        PageSettingsX;
+        PageSettingsX,
+        OnNavigateBackScope;
