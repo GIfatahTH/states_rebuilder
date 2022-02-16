@@ -37,7 +37,9 @@ class InjectedImpRedoPersistState<T> extends InjectedImp<T> {
   @override
   Object? Function() get mockableCreator {
     final creator = super.mockableCreator;
-
+    if (cachedCreatorMocks.last != null) {
+      return creator;
+    }
     if (undoRedoPersistState?.persistanceProvider != null) {
       final val = _snapState._infoMessage == kInitMessage
           ? undoRedoPersistState!.persistedCreator()

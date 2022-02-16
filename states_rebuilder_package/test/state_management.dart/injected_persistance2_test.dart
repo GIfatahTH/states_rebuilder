@@ -39,9 +39,9 @@ void main() async {
   });
   testWidgets('Persist before calling', (tester) async {
     store.store.addAll({'counter': '10'});
-    expect(counter.state, 10);
+    expect(counter.state, 0);
     counter.state = counter.state! + 1;
-    expect(store.store, {'counter': '11'});
+    expect(store.store, {'counter': '1'});
     // counter.state;
     //
   });
