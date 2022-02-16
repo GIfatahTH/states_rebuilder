@@ -18,10 +18,12 @@ class TodosViewModel {
     // _todosRM.setState((s) => _todosRepository.state.read(null));
   }
   InjectedCRUD<Todo, void> call() => _todosRM;
+
+  // TODO: Switch between implementations
   late final InjectedCRUD<Todo, void> _todosRM = RM.injectCRUD<Todo, void>(
-    // () => TodosHttpRepository(),
+    () => TodosHttpRepository(),
     // () => TodosFakeRepository(),
-    () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
+    // () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
     readOnInitialization: true,
     sideEffects: SideEffects.onError(
       (err, refresh) {

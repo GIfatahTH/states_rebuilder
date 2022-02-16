@@ -4,28 +4,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../blocs/todos_bloc.dart';
 import '../models/todo_filter.dart';
 
-/// Some keys used for testing
-final addTodoKey = UniqueKey();
-final activeFilterKey = UniqueKey();
-final completedFilterKey = UniqueKey();
-final allFilterKey = UniqueKey();
-final toggleAllToComplete = UniqueKey();
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Home(),
-    );
-  }
-}
-
 class Home extends ReactiveStatelessWidget {
   const Home({Key? key}) : super(key: key);
   static late TextEditingController newTodoController;
@@ -50,7 +28,6 @@ class Home extends ReactiveStatelessWidget {
         children: [
           const Title(),
           TextField(
-            key: addTodoKey,
             controller: newTodoController,
             decoration: const InputDecoration(
               labelText: 'What needs to be done?',
@@ -135,7 +112,6 @@ class Toolbar extends ReactiveStatelessWidget {
               creator: () => todosViewModel.isAllCompleted,
               builder: (rm) {
                 return Tooltip(
-                  key: allFilterKey,
                   message:
                       'Toggle All todos to ${todosViewModel.isAllCompleted ? 'uncompleted' : 'completed'}',
                   child: Checkbox(
@@ -156,7 +132,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: allFilterKey,
             message: 'All todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.all,
@@ -169,7 +144,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: activeFilterKey,
             message: 'Only uncompleted todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.active,
@@ -183,7 +157,6 @@ class Toolbar extends ReactiveStatelessWidget {
             ),
           ),
           Tooltip(
-            key: completedFilterKey,
             message: 'Only completed todos',
             child: TextButton(
               onPressed: () => todosViewModel.filter = TodoFilter.completed,

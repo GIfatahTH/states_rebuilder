@@ -6,13 +6,17 @@ import 'package:uuid/uuid.dart';
 
 import '../data_source/i_todos_repository.dart';
 import '../data_source/todos_fake_repository.dart';
+import '../data_source/todos_http_repository.dart';
 import '../models/todo.dart';
 import '../models/todo_filter.dart';
 
+// TODO: Switch between implementations
 final todosRepository = RM.inject<ITodosRepository>(
-  // () => TodosHttpRepository(),
-  // () => TodosFakeRepository(),
-  () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
+  // () => TodosHttpRepository(), // <== Real implementation
+  // () => TodosFakeRepository(), // <== Fake implementation without error
+  () => TodosFakeRepository(
+      shouldThrowExceptions: () =>
+          Random().nextBool()), // <== fake implementation with random error
 );
 const _uuid = Uuid();
 
