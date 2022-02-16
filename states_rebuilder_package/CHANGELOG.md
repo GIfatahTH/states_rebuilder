@@ -1,6 +1,7 @@
-## 5.3.0-dev-1 (2022-02-11)
+## 5.3.0-dev-2 (2022-02-16)
   * Refactor internal code
-  * Add `OnBuilder.createFuture` and `OnBuilder.createStream` listener.
+  * Add `OnBuilder.createFuture` and `OnBuilder.createStream` widgets.
+  * Add `OnBackNavigationScope` widget
 
 ## 5.2.0 (2022-01-05)
   * Add Navigator 2 support.
