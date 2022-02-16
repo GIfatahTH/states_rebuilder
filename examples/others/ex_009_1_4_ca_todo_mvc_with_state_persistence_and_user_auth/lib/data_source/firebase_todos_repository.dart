@@ -6,7 +6,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import '../blocs/auth_bloc.dart';
 import '../blocs/exceptions/fetch_todos_exception.dart';
 import '../domain/entities/todo.dart';
-import 'my_project_data.dart' as myProjectData; //TODO Delete this.
+import 'my_project_data.dart' as myProjectData;
 
 //1. create firebase project.
 //2. create a realtime database and start in test mode.
