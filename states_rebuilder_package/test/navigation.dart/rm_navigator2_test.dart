@@ -4887,6 +4887,73 @@ void main() {
   );
 
   testWidgets(
+    'Test OnNavigateBackScope',
+    (tester) async {
+      bool shouldPopPage1 = false;
+      bool shouldPopPage11 = false;
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Text('/'),
+          '/page1': (data) => OnNavigateBackScope(
+                onNavigateBack: () {
+                  return shouldPopPage1;
+                },
+                child: Text('/page1'),
+              ),
+          '/page1/page11': (data) => OnNavigateBackScope(
+                onNavigateBack: () {
+                  return shouldPopPage11;
+                },
+                child: Text('/page11'),
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.toDeeply('/page1');
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      shouldPopPage1 = true;
+      navigator.toDeeply('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      //
+      shouldPopPage11 = true;
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      //
+      shouldPopPage1 = false;
+      navigator.toDeeply('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      navigator.forceBack();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+    },
+  );
+  testWidgets(
     'WHEN'
     'THEN',
     (tester) async {
@@ -4924,6 +4991,7 @@ void main() {
       // expect(find.text('/page11'), findsOneWidget);
     },
   );
+
   // group(
   //   'InjectedNavigator is disposed between tests',
   //   () {

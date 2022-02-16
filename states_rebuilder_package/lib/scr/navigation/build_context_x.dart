@@ -48,9 +48,9 @@ extension BuildContextX on BuildContext {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
     assert(r?.routeData != null);
-    if (RouterObjects.injectedNavigator != null) {
-      // OnReactiveState.addToObs?.call(RouterObjects.injectedNavigator!);
-    }
+    // if (RouterObjects.injectedNavigator != null) {
+    //   // OnReactiveState.addToObs?.call(RouterObjects.injectedNavigator!);
+    // }
     return r!.routeData;
   }
 

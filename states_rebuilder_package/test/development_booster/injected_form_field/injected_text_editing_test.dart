@@ -717,7 +717,7 @@ void main() {
       //
       await tester.tap(find.text('Submit2'));
       await tester.pump();
-      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Email Server Error'), findsNothing);
       expect(find.text('Submit1'), findsNothing);
       expect(find.text('Submit2'), findsNothing);
       expect(submitMessage, 'Submitting...');
@@ -725,14 +725,14 @@ void main() {
 
       //
       await tester.pump(Duration(seconds: 1));
-      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Email Server Error'), findsNothing);
       expect(find.text('Server Error'), findsOneWidget);
       expect(find.text('Submit2'), findsOneWidget);
       expect(find.text('Submitting...'), findsNothing);
       serverError = null;
       refresher();
       await tester.pump();
-      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Email Server Error'), findsNothing);
       expect(find.text('Submit1'), findsNothing);
       expect(find.text('Submit2'), findsNothing);
       expect(submitMessage, 'Submitting...');
@@ -740,7 +740,7 @@ void main() {
 
       //
       await tester.pump(Duration(seconds: 1));
-      expect(find.text('Email Server Error'), findsOneWidget);
+      expect(find.text('Email Server Error'), findsNothing);
       expect(find.text('Server Error'), findsNothing);
       expect(find.text('Submit1'), findsOneWidget);
       expect(find.text('Submit2'), findsOneWidget);

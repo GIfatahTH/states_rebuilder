@@ -1,6 +1,7 @@
 part of '../injected_navigator.dart';
 
-// TODO test and comment
+/// Creates a widget that registers a callback to veto attempts by the user
+/// to navigate back.
 class OnNavigateBackScope extends StatefulWidget {
   const OnNavigateBackScope({
     Key? key,
@@ -19,7 +20,10 @@ class _OnNavigateBackScopeState extends State<OnNavigateBackScope> {
   @override
   void initState() {
     super.initState();
-    disposer = RouterObjects._addToCanNavigateCallBack(widget.onNavigateBack);
+    disposer = RouterObjects._addToCanNavigateCallBack(
+      widget.onNavigateBack,
+      context.routeData.location,
+    );
   }
 
   @override

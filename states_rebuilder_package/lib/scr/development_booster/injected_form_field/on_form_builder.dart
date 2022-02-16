@@ -46,6 +46,8 @@ class OnFormBuilder extends MyStatefulWidget {
     required Widget Function() builder,
     this.isEnabledRM,
     this.isReadOnlyRM,
+    //TODO test and document
+    WillPopCallback? onWillPop,
   }) : super(
           key: key,
           observers: (_) {
@@ -60,7 +62,7 @@ class OnFormBuilder extends MyStatefulWidget {
           },
           builder: (context, snap, rm) {
             final inj = listenTo as InjectedFormImp;
-            return OnReactive(() {
+            final child = OnReactive(() {
               final cached = InjectedFormImp._currentInitializedForm;
               InjectedFormImp._currentInitializedForm = inj
                 .._isEnabled = isEnabledRM?.state
@@ -80,6 +82,11 @@ class OnFormBuilder extends MyStatefulWidget {
                 ],
               );
             });
+
+            if (onWillPop != null) {
+              return WillPopScope(child: child, onWillPop: onWillPop);
+            }
+            return child;
           },
         );
   final InjectedForm listenTo;

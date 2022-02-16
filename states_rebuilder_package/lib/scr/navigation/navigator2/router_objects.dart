@@ -285,8 +285,8 @@ abstract class RouterObjects {
 
   static final Map<String, bool? Function()> _canNavigateBackScoped = {};
   @mustCallSuper
-  static VoidCallback _addToCanNavigateCallBack(bool? Function() fn) {
-    final location = injectedNavigator!.routeData.location;
+  static VoidCallback _addToCanNavigateCallBack(
+      bool? Function() fn, String location) {
     _canNavigateBackScoped[location] = fn;
     return () {
       _canNavigateBackScoped.remove(location);
