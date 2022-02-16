@@ -79,6 +79,7 @@ class SignInPage extends StatelessWidget {
           );
           return false;
         }
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(

@@ -1,4 +1,4 @@
-import 'package:ex_006_5_navigation/ex10_on_back_navigation.dart';
+import 'package:ex_006_5_navigation/ex10_on_local_back_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
