@@ -844,6 +844,45 @@ void main() {
       products.injectMock(() => [Product(id: 1, name: 'name')]);
       expect(products.hasData, true);
       expect(products.state.length, 1);
+      expect(products.isOnCRUD, false);
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnCRUDBuilder(
+          listenTo: products,
+          onWaiting: () => Text('onWaiting'),
+          onResult: (_) => Text('onResult'),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onResult'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test when productsCRUD is mocked with future injected',
+    (tester) async {
+      products.injectFutureMock(() async {
+        await Future.delayed(const Duration(seconds: 1));
+        return [Product(id: 1, name: 'name')];
+      });
+
+      final widget = Directionality(
+        textDirection: TextDirection.ltr,
+        child: OnCRUDBuilder(
+          listenTo: products,
+          onWaiting: () => Text('onWaiting'),
+          onResult: (_) => Text('onResult'),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('onWaiting'), findsOneWidget);
+      expect(products.isWaiting, true);
+      expect(products.isOnCRUD, true);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('onResult'), findsOneWidget);
+      expect(products.hasData, true);
+      expect(products.state.length, 1);
+      expect(products.isOnCRUD, false);
     },
   );
 }

@@ -245,6 +245,7 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
         as ReactiveModelImp<Object?>;
     initialize();
     if (snapValue.isWaiting || !_isOnCRUD) {
+      _isOnCRUD = snapValue.isWaiting;
       _onCrudRM!.snapValue = snapValue;
     }
     return _onCrudRM!;
@@ -329,6 +330,16 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
     }
     await getRepoAs<ICRUD<T, P>>().init();
     _isInitialized = true;
+  }
+
+  @override
+  void injectFutureMock(Future<List<T>> Function() fakeCreator) async {
+    super.injectFutureMock(fakeCreator);
+    stateAsync.then(
+      (value) => onMiddleCRUD(
+        const SnapState.none().copyToHasData(snapValue.data),
+      ),
+    );
   }
 
   @override
