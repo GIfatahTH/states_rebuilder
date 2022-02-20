@@ -274,8 +274,9 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       return null;
     }
     final config = _pageSettingsList.last;
-    if (config.child is RouteWidget) {
-      return (config.child as RouteWidget)._getLeafConfig();
+    final child = config.child;
+    if (child is RouteWidget && child._routes.isNotEmpty) {
+      return child._getLeafConfig();
     }
     return config;
   }
