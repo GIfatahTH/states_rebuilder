@@ -507,7 +507,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     subscription?.cancel();
     subscription = stream.listen(
       (event) {
-        if (event is T Function() || event is Stream) {
+        if (event is T Function()) {
           // This is called from async read persisted state.
           // The state is read from local storage asynchronously. So as in
           // InjectedImpRedoPersistState.mockableCreator the creator return
