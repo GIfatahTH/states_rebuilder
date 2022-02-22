@@ -360,10 +360,22 @@ class _TopStatelessWidgetStateWidgetsBindingObserverState
 
   @override
   void didChangeLocales(List<Locale>? locales) {
-    super.didChangeLocales(locales);
-    for (var fn in _didChangeLocalesListeners) {
-      fn(locales);
+    if (mounted) {
+      setState(() {
+        for (var fn in _didChangeLocalesListeners) {
+          fn(locales);
+        }
+      });
     }
+    super.didChangeLocales(locales);
     // (injectedI18N as InjectedI18NImp?)?.didChangeLocales(locales);
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    if (mounted) {
+      setState(() {});
+    }
+    super.didChangePlatformBrightness();
   }
 }

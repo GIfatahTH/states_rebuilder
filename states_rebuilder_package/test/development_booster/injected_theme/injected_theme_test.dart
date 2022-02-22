@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/development_booster/injected_theme/injected_theme.dart';
@@ -22,7 +23,7 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
+          theme: theme.activeTheme(),
           darkTheme: theme.darkTheme,
           themeMode: theme.themeMode,
           home: Builder(
@@ -64,7 +65,7 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
+          theme: theme.activeTheme(),
           darkTheme: theme.darkTheme,
           themeMode: theme.themeMode,
           home: Builder(
@@ -108,7 +109,7 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
+          theme: theme.activeTheme(),
           darkTheme: theme.darkTheme,
           themeMode: theme.themeMode,
           home: Builder(
@@ -164,9 +165,9 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
+          theme: theme.activeTheme(),
+          // darkTheme: theme.darkTheme,
+          // themeMode: theme.themeMode,
           home: Container(),
         );
       },
@@ -221,9 +222,9 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
+          theme: theme.activeTheme(),
+          // darkTheme: theme.darkTheme,
+          // themeMode: theme.themeMode,
           home: Container(),
         );
       },
@@ -263,9 +264,9 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
+          theme: theme.activeTheme(),
+          // darkTheme: theme.darkTheme,
+          // themeMode: theme.themeMode,
           home: Container(),
         );
       },
@@ -304,9 +305,9 @@ void main() async {
     final widget = TopAppWidget(
       builder: (ctx) {
         return MaterialApp(
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
+          theme: theme.activeTheme(),
+          // darkTheme: theme.darkTheme,
+          // themeMode: theme.themeMode,
           home: Container(),
         );
       },
@@ -419,12 +420,14 @@ void main() async {
       final widget = TopAppWidget(
         builder: (ctx) {
           return MaterialApp(
-            theme: theme.lightTheme.copyWith(
-              colorScheme: theme.lightTheme.colorScheme
-                  .copyWith(secondary: secondaryLightColor),
-            ),
-            darkTheme: theme.darkTheme,
-            themeMode: theme.themeMode,
+            theme: theme.activeTheme().copyWith(
+                  colorScheme: theme.isDarkTheme
+                      ? null
+                      : theme.lightTheme.colorScheme
+                          .copyWith(secondary: secondaryLightColor),
+                ),
+            // darkTheme: theme.darkTheme,
+            // themeMode: theme.themeMode,
             home: Builder(builder: (context) {
               brightness = MediaQuery.of(context).platformBrightness;
               secondaryColors = Theme.of(context).colorScheme.secondary;
@@ -436,10 +439,98 @@ void main() async {
       await tester.pumpWidget(widget);
       expect(brightness, Brightness.light);
       expect(secondaryColors, secondaryLightColor);
+      expect(theme.isDarkTheme, false);
       tester.binding.window.platformBrightnessTestValue = Brightness.dark;
       await tester.pumpAndSettle();
       expect(brightness, Brightness.dark);
       expect(secondaryColors, secondaryDarkColor);
+      expect(theme.isDarkTheme, true);
+      tester.binding.window.platformBrightnessTestValue = Brightness.light;
+    },
+  );
+
+  testWidgets(
+    'WHEN plat form brightness is changed'
+    'THEN the app is rebuilt to the corresponding theme mode'
+    'Use of CupertinoApp',
+    (tester) async {
+      final theme = RM.injectTheme<String>(
+        lightThemes: {
+          'theme1': ThemeData.light(),
+        },
+        darkThemes: {
+          'theme1': ThemeData.dark(),
+        },
+      );
+      late Brightness brightness;
+      final widget = TopAppWidget(
+        builder: (ctx) {
+          final activeTheme = theme.activeTheme();
+          return CupertinoApp(
+            theme: MaterialBasedCupertinoThemeData(
+              materialTheme: activeTheme,
+            ),
+            home: Builder(
+              builder: (context) {
+                brightness = MediaQuery.of(context).platformBrightness;
+
+                return Container();
+              },
+            ),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(brightness, Brightness.light);
+      expect(theme.isDarkTheme, false);
+      tester.binding.window.platformBrightnessTestValue = Brightness.dark;
+      await tester.pumpAndSettle();
+      expect(brightness, Brightness.dark);
+      expect(theme.isDarkTheme, true);
+      tester.binding.window.platformBrightnessTestValue = Brightness.light;
+    },
+  );
+  testWidgets(
+    'Text activeTheme method',
+    (tester) async {
+      final theme = RM.injectTheme<String>(
+        persistKey: '_theme_',
+        lightThemes: {
+          'theme1': ThemeData.light(),
+        },
+        darkThemes: {
+          'theme1': ThemeData.dark(),
+        },
+      );
+      late Brightness brightness;
+
+      Widget widget() => TopAppWidget(
+            key: UniqueKey(),
+            builder: (ctx) {
+              final activeTheme = theme.activeTheme();
+              return MaterialApp(
+                theme: activeTheme,
+                home: Builder(
+                  builder: (context) {
+                    brightness = Theme.of(context).brightness;
+                    return Container();
+                  },
+                ),
+              );
+            },
+          );
+      await tester.pumpWidget(widget());
+      expect(brightness, Brightness.light);
+      expect(store.store['_theme_'], 'theme1#|#');
+      theme.toggle();
+      await tester.pumpAndSettle();
+      expect(brightness, Brightness.dark);
+      expect(store.store['_theme_'], 'theme1#|#1');
+      theme.dispose();
+      await tester.pumpWidget(widget());
+      expect(brightness, Brightness.dark);
+      expect(store.store['_theme_'], 'theme1#|#1');
+      //
     },
   );
 }

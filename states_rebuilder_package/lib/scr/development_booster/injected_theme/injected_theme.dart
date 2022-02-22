@@ -53,8 +53,12 @@ abstract class InjectedTheme<KEY> {
   ///Get the current dark theme.
   ThemeData? get darkTheme;
 
-  /// Get the active [ThemeData]
-  ThemeData get activeTheme => isDarkTheme ? darkTheme! : lightTheme;
+  /// Get the active [ThemeData] depending on [ThemeMode].
+  ///
+  /// If themeName is not given the current themeName is used.
+  ///
+  /// If there is no dark theme, the corresponding light theme is return
+  ThemeData activeTheme([KEY? themeName]);
 
   ///The current [ThemeMode]
   ///
@@ -133,7 +137,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
         initState: sideEffects?.initState,
         dispose: () {
           sideEffects?.dispose?.call();
-          dispose();
+          _resetDefaultState();
         },
         onAfterBuild: sideEffects?.onAfterBuild,
         onSetState: sideEffects?.onSetState != null
@@ -193,30 +197,38 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
 
   @override
   ThemeData get lightTheme {
+    return _getTheme(state, false);
+  }
+
+  @override
+  ThemeData get darkTheme {
+    return _getTheme(state, true);
+  }
+
+  ThemeData _getTheme(KEY key, bool? isGetDark) {
+    injected.initialize();
     TopStatelessWidget.addToObs?.call(
       injected,
       _onTopWidgetObserverAdded,
       null,
     );
-
-    var theme = lightThemes[state];
-    theme ??= darkThemes?[state];
+    if (isGetDark ?? isDarkTheme) {
+      var theme = darkThemes?[key];
+      if (theme != null) {
+        return theme;
+      }
+    }
+    var theme = lightThemes[key];
+    theme ??= darkThemes?[key];
     assert(theme != null);
     return theme!;
   }
 
   @override
-  ThemeData? get darkTheme {
-    TopStatelessWidget.addToObs?.call(
-      injected,
-      _onTopWidgetObserverAdded,
-      null,
-    );
-    return darkThemes?[state] ?? lightThemes[state];
+  ThemeMode get themeMode {
+    ReactiveStatelessWidget.addToObs?.call(injected);
+    return _themeMode;
   }
-
-  @override
-  ThemeMode get themeMode => _themeMode;
 
   @override
   KEY get state => injected.snapValue.state;
@@ -276,6 +288,11 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
     }
   }
 
+  @override
+  ThemeData activeTheme([KEY? themeName]) {
+    return _getTheme(themeName ?? state, null);
+  }
+
   void _assertIsLinkedToTopStatelessWidget() {
     if (!isLinkedToTopStatelessWidget) {
       throw ('No Parent InheritedWidget of type [TopReactiveStateless ] is found.\n'
@@ -286,6 +303,6 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
 
   @override
   void dispose() {
-    _resetDefaultState();
+    injected.dispose();
   }
 }
