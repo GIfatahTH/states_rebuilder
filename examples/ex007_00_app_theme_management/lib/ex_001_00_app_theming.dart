@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-void main() => runApp(const DemoApp());
+void main() => runApp(const MyApp());
 
 final kGreenishThemeLight = ThemeData(
   colorSchemeSeed: Colors.green,
@@ -84,20 +84,8 @@ final themeRM = RM.injectTheme(
   },
 );
 
-// class DemoApp1 extends StatelessWidget {
-//   const DemoApp1({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return CupertinoApp(
-//       // theme: themeRM.activeTheme(),
-//       home: const HomePage(),
-//     );
-//   }
-// }
-
-class DemoApp extends TopStatelessWidget {
-  const DemoApp({Key? key}) : super(key: key);
+class MyApp extends TopStatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -157,105 +145,135 @@ class HomePage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ThemeCard(
-                label: 'on Primary',
-                color: colorScheme.primary,
-                textColor: colorScheme.onPrimary,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Primary',
+                  color: colorScheme.primary,
+                  textColor: colorScheme.onPrimary,
+                ),
               ),
-              ThemeCard(
-                label: 'on primaryContainer',
-                color: colorScheme.primaryContainer,
-                textColor: colorScheme.onPrimaryContainer,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on primaryContainer',
+                  color: colorScheme.primaryContainer,
+                  textColor: colorScheme.onPrimaryContainer,
+                ),
               ),
-              ThemeCard(
-                label: 'inversePrimary',
-                color: colorScheme.inversePrimary,
-                textColor: Colors.black,
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ThemeCard(
-                label: 'on Secondary',
-                color: colorScheme.secondary,
-                textColor: colorScheme.onSecondary,
-              ),
-              ThemeCard(
-                label: 'on SecondaryContainer',
-                color: colorScheme.secondaryContainer,
-                textColor: colorScheme.onSecondaryContainer,
+              Expanded(
+                child: ThemeCard(
+                  label: 'inversePrimary',
+                  color: colorScheme.inversePrimary,
+                  textColor: Colors.black,
+                ),
               ),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ThemeCard(
-                label: 'on Tertiary',
-                color: colorScheme.tertiary,
-                textColor: colorScheme.onTertiary,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Secondary',
+                  color: colorScheme.secondary,
+                  textColor: colorScheme.onSecondary,
+                ),
               ),
-              ThemeCard(
-                label: 'on TertiaryContainer',
-                color: colorScheme.tertiaryContainer,
-                textColor: colorScheme.onTertiaryContainer,
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ThemeCard(
-                label: 'on Surface',
-                color: colorScheme.surface,
-                textColor: colorScheme.onSurface,
-              ),
-              ThemeCard(
-                label: 'on SurfaceVariant',
-                color: colorScheme.surfaceVariant,
-                textColor: colorScheme.onSurfaceVariant,
-              ),
-              ThemeCard(
-                label: 'on inverseSurface',
-                color: colorScheme.inverseSurface,
-                textColor: colorScheme.onInverseSurface,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on SecondaryContainer',
+                  color: colorScheme.secondaryContainer,
+                  textColor: colorScheme.onSecondaryContainer,
+                ),
               ),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ThemeCard(
-                label: 'on Error',
-                color: colorScheme.error,
-                textColor: colorScheme.onError,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Tertiary',
+                  color: colorScheme.tertiary,
+                  textColor: colorScheme.onTertiary,
+                ),
               ),
-              ThemeCard(
-                label: 'on ErrorContainer',
-                color: colorScheme.errorContainer,
-                textColor: colorScheme.onErrorContainer,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on TertiaryContainer',
+                  color: colorScheme.tertiaryContainer,
+                  textColor: colorScheme.onTertiaryContainer,
+                ),
               ),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ThemeCard(
-                label: 'on Background',
-                color: colorScheme.background,
-                textColor: colorScheme.onBackground,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Surface',
+                  color: colorScheme.surface,
+                  textColor: colorScheme.onSurface,
+                ),
               ),
-              ThemeCard(
-                label: 'shadow',
-                color: colorScheme.shadow,
-                textColor: Colors.white,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on SurfaceVariant',
+                  color: colorScheme.surfaceVariant,
+                  textColor: colorScheme.onSurfaceVariant,
+                ),
               ),
-              ThemeCard(
-                label: 'outline',
-                color: colorScheme.outline,
-                textColor: Colors.black,
+              Expanded(
+                child: ThemeCard(
+                  label: 'on inverseSurface',
+                  color: colorScheme.inverseSurface,
+                  textColor: colorScheme.onInverseSurface,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Error',
+                  color: colorScheme.error,
+                  textColor: colorScheme.onError,
+                ),
+              ),
+              Expanded(
+                child: ThemeCard(
+                  label: 'on ErrorContainer',
+                  color: colorScheme.errorContainer,
+                  textColor: colorScheme.onErrorContainer,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: ThemeCard(
+                  label: 'on Background',
+                  color: colorScheme.background,
+                  textColor: colorScheme.onBackground,
+                ),
+              ),
+              Expanded(
+                child: ThemeCard(
+                  label: 'shadow',
+                  color: colorScheme.shadow,
+                  textColor: Colors.white,
+                ),
+              ),
+              Expanded(
+                child: ThemeCard(
+                  label: 'outline',
+                  color: colorScheme.outline,
+                  textColor: Colors.black,
+                ),
               ),
             ],
           ),
@@ -320,21 +338,19 @@ class ThemeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: SizedBox(
-        height: 90,
-        child: Card(
-          margin: const EdgeInsets.all(8),
-          elevation: 8,
-          color: color,
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+    return SizedBox(
+      height: 90,
+      child: Card(
+        margin: const EdgeInsets.all(8),
+        elevation: 8,
+        color: color,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

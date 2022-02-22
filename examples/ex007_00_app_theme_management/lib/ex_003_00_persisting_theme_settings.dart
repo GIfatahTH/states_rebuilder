@@ -37,7 +37,7 @@ class HiveStorage implements IPersistStore {
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await RM.storageInitializer(HiveStorage());
-  runApp(const CupertinoStoreApp());
+  runApp(const MyApp());
 }
 
 final kGreenishThemeLight = ThemeData(
@@ -72,8 +72,8 @@ final themeRM = RM.injectTheme(
   },
 );
 
-class CupertinoStoreApp extends TopStatelessWidget {
-  const CupertinoStoreApp({Key? key}) : super(key: key);
+class MyApp extends TopStatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
