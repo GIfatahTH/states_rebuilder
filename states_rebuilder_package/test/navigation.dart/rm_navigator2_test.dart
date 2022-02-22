@@ -1790,26 +1790,192 @@ void main() {
     'Check toNamedAndRemoveUntil'
     'Case without sub routes',
     (tester) async {
-      final routes = {
-        '/': (_) => Text('/'),
-        '/page1': (_) => Text('/page1'),
-        '/page2': (_) => Text('/page2'),
-        '/page3': (_) => Text('/page3'),
-      };
-      final widget = _TopWidget(routers: routes);
+      final navigator = RM.injectNavigator(
+        transitionDuration: const Duration(seconds: 1),
+        routes: {
+          '/': (_) => Scaffold(appBar: AppBar(title: Text('/'))),
+          '/page1': (_) => Scaffold(appBar: AppBar(title: Text('/page1'))),
+          '/page2': (_) => Scaffold(appBar: AppBar(title: Text('/page2'))),
+          '/page3': (_) => Scaffold(appBar: AppBar(title: Text('/page3'))),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
       await tester.pumpWidget(widget);
-      _navigator.to('/page1');
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      navigator.toAndRemoveUntil('/page1');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page2');
       await tester.pumpAndSettle();
-      _navigator.to('/page2');
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      //Should be findsOneWidget (Maybe no problem because we get similar similar behavior with Navigator1 flutter)
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page2'), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page3');
+      navigator.to('/page1');
       await tester.pumpAndSettle();
       expect(RouterObjects.rootDelegate!.routeStack.length, 3);
-      _navigator.toAndRemoveUntil('/page3', untilRouteName: '/');
-      await tester.pumpAndSettle();
-      expect(find.text('/page3'), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/page2', untilRouteName: '/');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
       expect(RouterObjects.rootDelegate!.routeStack.length, 2);
       //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
     },
   );
+
+  testWidgets(
+    'Check toNamedAndRemoveUntil functionality'
+    'Case with sub routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        transitionDuration: const Duration(seconds: 1),
+        routes: {
+          '/': (_) => Scaffold(appBar: AppBar(title: Text('/'))),
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page1'))),
+                  '/page11': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page11'))),
+                },
+              ),
+          '/page2': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page2'))),
+                  '/page11': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page21'))),
+                },
+              ),
+          '/page3': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page3'))),
+                  '/page11': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page31'))),
+                },
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      navigator.toAndRemoveUntil('/page1');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      navigator.toAndRemoveUntil('/');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      // With no nested route we get findsNothing
+      // (It is logic here (delegateImplyLeadingToParent is true))
+      expect(find.byType(BackButton), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page2'), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page3');
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      //
+      navigator.toAndRemoveUntil('/page2', untilRouteName: '/');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 2);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
+    },
+  );
+
   testWidgets(
     'Check toNamedAndRemoveUntil with no untilRoute'
     'Case without sub routes',
@@ -1921,6 +2087,221 @@ void main() {
       //     RouterObjects.routerDelegates[RouterObjects.root]!.values.last
       //         .routeStack.first.name,
       //     '/page3');
+    },
+  );
+
+  testWidgets(
+    'Check toReplacement functionality'
+    'Case without sub routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        transitionDuration: const Duration(seconds: 1),
+        routes: {
+          '/': (_) => Scaffold(appBar: AppBar(title: Text('/'))),
+          '/page1': (_) => Scaffold(appBar: AppBar(title: Text('/page1'))),
+          '/page2': (_) => Scaffold(appBar: AppBar(title: Text('/page2'))),
+          '/page3': (_) => Scaffold(appBar: AppBar(title: Text('/page3'))),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      navigator.toReplacement('/page1');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      navigator.toReplacement('/');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page2'), findsNothing);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      navigator.to('/page3');
+      await tester.pumpAndSettle();
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 4);
+      //
+      navigator.toReplacement('/page2');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 4);
+
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 2);
+
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
+    },
+  );
+
+  testWidgets(
+    'Check toReplacement functionality'
+    'Case with sub routes',
+    (tester) async {
+      final navigator = RM.injectNavigator(
+        transitionDuration: const Duration(seconds: 1),
+        routes: {
+          '/': (_) => Scaffold(appBar: AppBar(title: Text('/'))),
+          '/page1': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page1'))),
+                  '/page11': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page11'))),
+                },
+              ),
+          '/page2': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page2'))),
+                  '/page21': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page21'))),
+                },
+              ),
+          '/page3': (_) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page3'))),
+                  '/page31': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page31'))),
+                },
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      navigator.toReplacement('/page1');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+      //
+      navigator.to('/page2');
+      await tester.pumpAndSettle();
+      expect(find.byType(BackButton), findsOneWidget);
+
+      //
+      navigator.toReplacement('/page2/page21');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/page21'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.text('/page21'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page2'), findsNothing);
+      expect(find.text('/page21'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      //
+      navigator.to('/page3');
+      await tester.pumpAndSettle();
+      navigator.to('/page1');
+      await tester.pumpAndSettle();
+      expect(RouterObjects.rootDelegate!.routeStack.length, 4);
+      //
+      navigator.toReplacement('/page2');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 4);
+
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page3'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 3);
+      //
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page21'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 2);
+
+      navigator.back();
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byType(BackButton), findsNothing);
+      expect(RouterObjects.rootDelegate!.routeStack.length, 1);
     },
   );
 
@@ -3582,7 +3963,10 @@ void main() {
       expect(find.text('/page1'), findsOneWidget);
       expect(find.text('/page2'), findsOneWidget);
       expect(find.byType(ElevatedButton), findsNWidgets(2));
-      expect(find.byType(BackButton), findsOneWidget);
+      expect(
+        find.byType(BackButton),
+        findsNWidgets(2),
+      ); // should be findOnWidget
 
       await tester.pumpAndSettle();
       expect(find.byKey(Key('Center')), findsOneWidget);
@@ -3590,6 +3974,17 @@ void main() {
       expect(find.text('/page2'), findsOneWidget);
       expect(find.byType(ElevatedButton), findsNWidgets(2));
       expect(find.byType(BackButton), findsOneWidget);
+      //
+      _navigator.back();
+      await tester.pump();
+      await tester.pump(500.milliseconds);
+      expect(find.byType(BackButton), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key('Center')), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsNothing);
     },
   );
 
@@ -4628,7 +5023,7 @@ void main() {
       await tester.pump();
       expect(find.text('Page2'), findsOneWidget);
       expect(navigator.pageStack.map((e) => e.name).toString(),
-          '(/, /page2, /page1, /page2)');
+          '(/, /page1, /page2, /page2)');
       navigator.setRouteStack((pages) {
         pages.removeAt(1);
         pages.removeAt(1);
@@ -4989,6 +5384,213 @@ void main() {
       // navigator.to('/page1/page11');
       // await tester.pumpAndSettle();
       // expect(find.text('/page11'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test deep link page transition is prevented',
+    (tester) async {
+      final provider = SimpleRouteInformationProvider();
+
+      provider.value = const RouteInformation(
+        location: '/',
+      );
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => const Text('/'),
+          '/page1': (data) => const Text('/page1'),
+          '/page2': (data) => const Text('/page2'),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationProvider: provider,
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      provider.value = const RouteInformation(
+        location: '/page1',
+      );
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      navigator.to('/page2');
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page2'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page2'), findsOneWidget);
+      //
+      provider.value = const RouteInformation(
+        location: '/',
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page2'), findsNothing);
+      //
+      navigator.to('/page1');
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page1'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Test deep link page transition is prevented for nested routed'
+    'THEN',
+    (tester) async {
+      final provider = SimpleRouteInformationProvider();
+
+      provider.value = const RouteInformation(
+        location: '/',
+      );
+      final navigator = RM.injectNavigator(
+        transitionDuration: const Duration(seconds: 20),
+        routes: {
+          '/': (data) => const Text('/'),
+          '/page1': (data) => RouteWidget(
+                builder: (_) {
+                  return Container(child: _);
+                },
+                routes: {
+                  '/': (data) => const Text('/page1'),
+                  '/page11': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) => const Text('/page11'),
+                          '/page111': (data) => const Text('/page111'),
+                        },
+                      ),
+                },
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationProvider: provider,
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      provider.value = const RouteInformation(
+        location: '/page1',
+      );
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page1'), findsOneWidget);
+      //
+      navigator.to('/page1/page11');
+      await tester.pump();
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('/page1'), findsOneWidget);
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsNothing);
+      expect(find.text('/page11'), findsOneWidget);
+      //
+      provider.value = const RouteInformation(
+        location: '/',
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/'), findsOneWidget);
+      expect(find.text('/page11'), findsNothing);
+      //
+      provider.value = const RouteInformation(
+        location: '/page1/page11',
+      );
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('/'), findsNothing);
+      expect(find.text('/page11'), findsOneWidget);
+      //
+      provider.value = const RouteInformation(
+        location: '/page1/page11/page111',
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('/page11'), findsNothing);
+      expect(find.text('/page111'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('/page11'), findsNothing);
+      expect(find.text('/page111'), findsOneWidget);
+      //
+      navigator.to('/page1/page11');
+      await tester.pump();
+      expect(find.text('/page111'), findsOneWidget);
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('/page111'), findsOneWidget);
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('/page111'), findsNothing);
+      expect(find.text('/page11'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'BUG when popping form page111, the back button is hidden while transition',
+    (tester) async {
+      // delegate != null && !activeSubRoutes.contains(delegate) in RoutersObject
+      final navigator = RM.injectNavigator(
+        routes: {
+          '/': (data) => Scaffold(appBar: AppBar(title: Text('/'))),
+          '/page1': (data) => RouteWidget(
+                routes: {
+                  '/': (data) =>
+                      Scaffold(appBar: AppBar(title: Text('/page1'))),
+                  '/page11': (data) => RouteWidget(
+                        routes: {
+                          '/': (data) =>
+                              Scaffold(appBar: AppBar(title: Text('/page11'))),
+                          '/page111': (data) => Text('page111'),
+                        },
+                      ),
+                },
+              ),
+        },
+      );
+      final widget = MaterialApp.router(
+        routeInformationParser: navigator.routeInformationParser,
+        routerDelegate: navigator.routerDelegate,
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('/'), findsOneWidget);
+      navigator.toDeeply('/page1/page11');
+      await tester.pumpAndSettle();
+      expect(find.text('/page11'), findsOneWidget);
+      await tester.tap(find.byType(BackButton));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 200));
+      expect(find.byType(BackButton), findsNWidgets(2));
+      await tester.pumpAndSettle();
+      expect(find.text('/page1'), findsOneWidget);
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('/'), findsOneWidget);
     },
   );
 

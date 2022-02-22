@@ -1752,7 +1752,7 @@ void main() {
       });
       expect(model.isWaiting, true);
       await tester.pump(Duration(seconds: 1));
-      expect(model.isWaiting, true);
+      expect(model.hasData, true);
       await tester.pump(Duration(seconds: 1));
       expect(model.hasData, true);
     },
