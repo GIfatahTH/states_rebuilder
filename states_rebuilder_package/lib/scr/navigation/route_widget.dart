@@ -178,7 +178,8 @@ class RouteWidget extends StatelessWidget {
         assert(InjectedNavigatorImp.ignoreSingleRouteMapAssertion ||
             routes.isEmpty ||
             routes.length > 1),
-        _parentToSubRouteMessage = RouteWidget.parentToSubRouteMessage,
+        _parentToSubRouteMessage =
+            ParentToSubRouteMessage.parentToSubRouteMessage,
         _routes = RouterObjects.transformRoutes(routes),
         _routeKeys = routes.keys.toList(),
         _hasBuilder = builder != null,
@@ -188,7 +189,7 @@ class RouteWidget extends StatelessWidget {
             transitionsBuilder != null ? _Navigate._transitionDuration : null,
         super(
           key: Key(
-            RouteWidget.parentToSubRouteMessage.signature,
+            ParentToSubRouteMessage.parentToSubRouteMessage.signature,
           ),
         );
 
@@ -200,7 +201,7 @@ class RouteWidget extends StatelessWidget {
     required bool canAnimateTransition,
     required this.delegateImplyLeadingToParent,
     required Duration? transitionDuration,
-    required _ParentToSubRouteMessage message,
+    required ParentToSubRouteMessage message,
     required List<String> remainingUrlSegments,
     Key? key,
   })  : assert(builder != null || routes.isNotEmpty),
@@ -214,13 +215,13 @@ class RouteWidget extends StatelessWidget {
         super(
           key: key ??
               Key(
-                RouteWidget.parentToSubRouteMessage.signature,
+                ParentToSubRouteMessage.parentToSubRouteMessage.signature,
               ),
         );
 
   final Map<Uri, Widget Function(RouteData data)> _routes;
   final List<String> _routeKeys;
-  final _ParentToSubRouteMessage _parentToSubRouteMessage;
+  final ParentToSubRouteMessage _parentToSubRouteMessage;
   final bool _hasBuilder;
   RouteWidget copyWith(
     Widget Function(Widget child)? builder,
@@ -307,7 +308,7 @@ class RouteWidget extends StatelessWidget {
       isInitialized[0] = true;
       _routeInformationParser =
           RouteInformationParserImp(_routerDelegate, (p) => pages = p);
-      _routeInformationParser.parseRouteInformation(
+      _routeInformationParser._parseRouteInformation(
         RouteInformation(location: _path, state: {
           'routeData': _routeData,
           'skipHomeSlash': _parentToSubRouteMessage.skipHomeSlash,
@@ -320,6 +321,14 @@ class RouteWidget extends StatelessWidget {
       final c = pages!.values.last.child;
       _routeDataList[0] = pages!.values.last.routeData;
       if (!pages!.keys.last.startsWith(routeLocation)) {
+        return pages;
+      }
+      final r = pages!.values.last.rData?.redirectedFrom?.location
+              .split('/')
+              .length ??
+          0;
+      final k = pages!.keys.last.split('/').length;
+      if (r > k) {
         return pages;
       }
       if (c is! RouteWidget ||
@@ -367,10 +376,11 @@ class RouteWidget extends StatelessWidget {
       return null;
     }
 
-    PageSettings config = _routerDelegate._lastConfiguration!;
+    PageSettings? config = _routerDelegate._lastConfiguration;
     while (true) {
-      if (config.child is RouteWidget) {
-        final d = (config.child as RouteWidget)._nullableRouterDelegate;
+      final child = config?.child;
+      if (child is RouteWidget) {
+        final d = child._nullableRouterDelegate;
         if (d == null) {
           break;
         }
@@ -402,7 +412,6 @@ class RouteWidget extends StatelessWidget {
   //   routeName: routeName,
   // );
   // late Widget route;
-  static late _ParentToSubRouteMessage parentToSubRouteMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -441,14 +450,16 @@ class RouteWidget extends StatelessWidget {
   }
 }
 
-class _ParentToSubRouteMessage {
+class ParentToSubRouteMessage {
+  static late ParentToSubRouteMessage parentToSubRouteMessage;
+
   final String toPath;
   final RouteData routeData;
   final bool skipHomeSlash;
   final Widget Function(RouteData data)? unknownRoute;
   final Map<String, String> queryParams;
   String get signature => '$toPath${routeData.arguments}$queryParams';
-  _ParentToSubRouteMessage({
+  ParentToSubRouteMessage({
     required this.toPath,
     required this.routeData,
     required this.skipHomeSlash,

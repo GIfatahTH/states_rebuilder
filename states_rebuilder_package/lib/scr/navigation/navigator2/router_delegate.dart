@@ -193,7 +193,10 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   bool _isDirty = false;
-  bool useTransition = true;
+
+  /// It is used prevent page transition for deep links.
+  static bool useTransition = true;
+  static bool shouldMarkForComplete = false;
   bool forceBack = false;
   String? message;
   bool canLogMessage = false;
@@ -383,6 +386,8 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   @override
   Widget build(BuildContext context) {
     _isDirty = true;
+    useTransition = true;
+
     if (_builder != null) {
       if (this == RouterObjects.rootDelegate) {
         return _RootRouterWidget(
@@ -395,6 +400,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                       key: navigatorKey,
                       onPopPage: _onPopPage,
                       pages: _routeStack,
+                      transitionDelegate: DefaultTransitionDelegateImp(),
                     ),
                   );
                 },
@@ -410,6 +416,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           key: navigatorKey,
           onPopPage: _onPopPage,
           pages: _routeStack,
+          transitionDelegate: DefaultTransitionDelegateImp(),
         ),
       );
     }
@@ -420,6 +427,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         key: navigatorKey,
         onPopPage: _onPopPage,
         pages: _routeStack,
+        transitionDelegate: DefaultTransitionDelegateImp(),
       ),
       dispose: RouterObjects._dispose,
     );
@@ -486,6 +494,8 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   bool _canPopUntil(String untilRouteName) {
+    final index = _pageSettingsList.indexWhere(
+        (e) => e.name! == RouterObjects.trimLastSlash(untilRouteName));
     if (_pageSettingsList
         .any((e) => e.name! == RouterObjects.trimLastSlash(untilRouteName))) {
       return true;
@@ -507,7 +517,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       navigatorKey!.currentState!.pop();
       return SynchronousFuture(true);
     }
-    final exitApp = await RouterObjects.injectedNavigator!.onBack?.call(null);
+    final exitApp = RouterObjects.injectedNavigator!.onBack?.call(null);
     if (exitApp == true) {
       return super.popRoute();
     }
@@ -555,15 +565,31 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   //   return to(settings);
   // }
 
-  void remove<T extends Object?>(String routeName, [T? result]) {
-    final page = _pageSettingsList.firstWhereOrNull((e) => e.name == routeName);
-    if (page == null || !_canPop) {
-      return;
+  bool remove<T extends Object?>(String routeName, [T? result]) {
+    final index = RouterObjects.indexOfCanHandel(this, routeName);
+    if (index == -1) {
+      return false;
     }
+    final ch = _pageSettingsList[index].child;
+    if (ch is RouteWidget && ch._routes.isNotEmpty) {
+      final isRemoved = ch._routerDelegate.remove<T>(routeName, result);
+      if (isRemoved) {
+        // updateRouteStack();
+        // RouterObjects.injectedNavigator!.routeData =
+        //     _lastLeafConfiguration!.rData!;
+        return true;
+      }
+    }
+
+    if (!_canPop) {
+      return false;
+    }
+
     _completers.remove(routeName)?.complete(result);
-    _pageSettingsList.remove(page);
+    _pageSettingsList.removeAt(index);
     updateRouteStack();
     RouterObjects.injectedNavigator!.routeData = _lastLeafConfiguration!.rData!;
+    return true;
   }
 
   bool? back<T extends Object?>([T? result]) {
@@ -705,9 +731,26 @@ class PageBasedMaterialPageRoute<T> extends PageRoute<T>
   }
   final bool useTransition;
   MaterialPage<T> get _page => settings as MaterialPage<T>;
-
+  void Function(AnimationStatus)? _listener;
+  static List<void Function(AnimationStatus status)> onAnimationCompleted = [];
   @override
   Widget buildContent(BuildContext context) {
+    if (_listener == null) {
+      // print('listener is initalized ${this.hashCode}');
+      _listener = (status) {
+        // print(status);
+        if (status == AnimationStatus.completed ||
+            status == AnimationStatus.dismissed) {
+          // _animation?.removeStatusListener(_listener!);
+          for (var fn in onAnimationCompleted) {
+            fn(status);
+          }
+          onAnimationCompleted.clear();
+          // print('Animation is completed  ${this.hashCode}');
+        }
+      };
+      _animation?.addStatusListener(_listener!);
+    }
     if (_page.child is SubRoute) {
       return (_page.child as SubRoute).copyWith(
         animation: _animation,
@@ -762,7 +805,6 @@ class PageBasedMaterialPageRoute<T> extends PageRoute<T>
     _animation = animation;
     _secondaryAnimation = secondaryAnimation;
     if (!useTransition) {
-      // RouterObjects.isTransitionAnimated = false;
       return child;
     }
 
@@ -860,6 +902,7 @@ class PageBasedCupertinoPageRoute<T> extends PageRoute<T>
     _secondaryAnimation = secondaryAnimation;
 
     if (!useTransition) {
+      // RouterObjects.rootDelegate!.useTransition = true;
       // RouterObjects.isTransitionAnimated = false;
       return child;
     }

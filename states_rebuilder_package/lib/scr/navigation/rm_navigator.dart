@@ -339,7 +339,7 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName = _resolvePathRouteUtil.setAbsoluteUrlPath(routeName);
       final delegate = RouterObjects._toBack(null);
-      final config = delegate?._lastConfiguration;
+      final config = delegate?._lastLeafConfiguration;
       final r = toNamed<T>(
         absoluteName,
         arguments: arguments,
@@ -347,9 +347,13 @@ MaterialApp(
         fullscreenDialog: fullscreenDialog,
         maintainState: maintainState,
       );
-      if (delegate?._canPop == true) {
-        delegate!.remove<TO>(config!.name!, result);
-      }
+      // if (delegate?._canPop == true) {
+      RouterDelegateImp.shouldMarkForComplete = true;
+      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+        RouterDelegateImp.shouldMarkForComplete = false;
+      });
+      delegate!.remove<TO>(config!.name!, result);
+      // }
       return r;
     }
     if (queryParams != null) {
@@ -415,7 +419,10 @@ MaterialApp(
     if (RouterObjects.rootDelegate != null) {
       final absoluteName =
           _resolvePathRouteUtil.setAbsoluteUrlPath(newRouteName);
-
+      RouterDelegateImp.shouldMarkForComplete = true;
+      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+        RouterDelegateImp.shouldMarkForComplete = false;
+      });
       bool isDone = false;
       if (untilRouteName != null) {
         isDone = RouterObjects._backUntil(untilRouteName);

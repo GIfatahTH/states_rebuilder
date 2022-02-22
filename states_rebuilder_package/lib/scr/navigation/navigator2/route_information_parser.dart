@@ -11,7 +11,14 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
   @override
   Future<PageSettings> parseRouteInformation(
     RouteInformation routeInformation,
-  ) async {
+  ) {
+    RouterDelegateImp.useTransition = false;
+    RouterObjects.rootDelegate!.message = 'DeepLink';
+    return _parseRouteInformation(routeInformation);
+  }
+
+  Future<PageSettings> _parseRouteInformation(
+      RouteInformation routeInformation) async {
     dynamic arguments;
     Map<String, String> queryParams = {};
     bool skipHomeSlash = false;
@@ -48,19 +55,14 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
       _pageSettingsList.addAll(pages.values);
       // }
     }
-
-    if (_routerDelegate == RouterObjects.rootDelegate) {
-      _routerDelegate.useTransition =
-          _pageSettingsList.isNotEmpty ? true : false;
-      RouterObjects.rootDelegate!.message = 'DeepLink';
-    }
     return SynchronousFuture(settings);
   }
 
   @override
   RouteInformation restoreRouteInformation(PageSettings configuration) {
-    _routerDelegate.useTransition = true;
-
+    // WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    //   _routerDelegate.useTransition = true;
+    // });
     var name = configuration.name;
     if (configuration.queryParams.isNotEmpty) {
       final uri = Uri(

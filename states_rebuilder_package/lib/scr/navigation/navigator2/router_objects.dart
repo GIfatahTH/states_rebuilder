@@ -21,6 +21,8 @@ abstract class RouterObjects {
     );
   };
   static bool _shouldUseCupertinoPage = false;
+
+  /// It is used to reduce the default animation duration to zero.
   static bool? isTransitionAnimated;
   static InjectedNavigatorImp? injectedNavigator;
 
@@ -56,7 +58,7 @@ abstract class RouterObjects {
       builder: builder != null
           ? (route) {
               final r = injectedNavigator?.routeData ??
-                  RouteWidget.parentToSubRouteMessage.routeData;
+                  ParentToSubRouteMessage.parentToSubRouteMessage.routeData;
               return SubRoute._(
                 key: ValueKey(
                   r._subLocation,
@@ -127,7 +129,7 @@ abstract class RouterObjects {
     for (final d in activeSubRoutes) {
       delegate ??= d;
       final name = d.delegateName;
-      if (name == '/') {
+      if (routeName.startsWith(name)) {
         final canHandle = _ResolveLocation.canHandleLocation(
           routes: d._routes,
           routeName: name,
@@ -136,9 +138,20 @@ abstract class RouterObjects {
         if (canHandle) {
           delegate = d;
         }
-      } else if (routeName.startsWith(name + '/')) {
-        delegate = d;
       }
+
+      // if (name == '/') {
+      //   final canHandle = _ResolveLocation.canHandleLocation(
+      //     routes: d._routes,
+      //     routeName: name,
+      //     location: routeName,
+      //   );
+      //   if (canHandle) {
+      //     delegate = d;
+      //   }
+      // } else if (routeName.startsWith(name + '/')) {
+      //   delegate = d;
+      // }
     }
 
     return delegate;
@@ -192,6 +205,38 @@ abstract class RouterObjects {
     return delegate;
   }
 
+  static int indexOfCanHandel(RouterDelegateImp delegate, String routeName) {
+    int? exact;
+    int? startsWithPlusSlash;
+    String startsWithPlusSlashName = '';
+    int? startsWith;
+    String startsWithName = '';
+
+    for (var i = 0; i < delegate._pageSettingsList.length; i++) {
+      final page = delegate._pageSettingsList[i];
+      if (routeName == '/') {
+        if (page._delegateName == '/') {
+          exact = i;
+        }
+        continue;
+      }
+      if (page._delegateName == routeName) {
+        exact = i;
+      } else if (routeName.startsWith('${page._delegateName}/')) {
+        if (startsWithPlusSlashName.length < page._delegateName!.length) {
+          startsWithPlusSlashName = page._delegateName!;
+          startsWithPlusSlash = i;
+        }
+      } else if (routeName.startsWith('${page._delegateName}')) {
+        if (startsWithName.length < page._delegateName!.length) {
+          startsWithName = page._delegateName!;
+          startsWith = i;
+        }
+      }
+    }
+    return exact ?? startsWithPlusSlash ?? startsWith ?? -1;
+  }
+
   static bool _back<T extends Object?>(T? result, [RouterDelegateImp? d]) {
     final delegate = _toBack(d);
     if (delegate == null || delegate == d || !delegate._canPop) {
@@ -234,8 +279,10 @@ abstract class RouterObjects {
     String? untilRouteName,
   ]) {
     final activeSubRoutes = getActiveSubRoutes(delegate);
-    if (activeSubRoutes == null ||
-        delegate != null && !activeSubRoutes.contains(delegate)) {
+    if (activeSubRoutes ==
+            null /*||
+        delegate != null && !activeSubRoutes.contains(delegate)*/
+        ) {
       return null;
     }
 
@@ -264,8 +311,9 @@ abstract class RouterObjects {
     return name;
   }
 
-  static bool _backUntil(String untilRouteName) {
-    final activeSubRoutes = RouterObjects.getActiveSubRoutes();
+  static bool _backUntil(String untilRouteName,
+      [List<RouterDelegateImp>? activeSubRoutes]) {
+    activeSubRoutes ??= RouterObjects.getActiveSubRoutes();
     if (activeSubRoutes == null) {
       return false;
     }

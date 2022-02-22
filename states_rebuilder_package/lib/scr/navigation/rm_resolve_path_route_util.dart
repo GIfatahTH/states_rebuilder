@@ -399,7 +399,7 @@ class _ResolveLocation {
     final Uri? lastRouteData = !skipHomeSlash ? results.keys.last : null;
 
     results.forEach((route, routeData) {
-      RouteWidget.parentToSubRouteMessage = _ParentToSubRouteMessage(
+      ParentToSubRouteMessage.parentToSubRouteMessage = ParentToSubRouteMessage(
         toPath: () {
           if (lastRouteData == null) {
             return toLocation;
@@ -591,14 +591,14 @@ class _ResolveLocation {
     Uri? uri,
     String? location,
   }) {
-    List<String> pathUrlSegments =
-        uri?.pathSegments ?? Uri.parse(routeName).pathSegments;
     location ??= uri?.path;
     if (routeName != '/') {
       final newName = location!.replaceFirst(routeName, '');
       location = newName.isEmpty ? '/' : newName;
     }
     bool hasLocation = false;
+    List<String> pathUrlSegments =
+        uri?.pathSegments ?? Uri.parse(location!).pathSegments;
     for (var route in routes.keys) {
       if (route.path == location) {
         hasLocation = true;
