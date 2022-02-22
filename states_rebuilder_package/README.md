@@ -1349,7 +1349,7 @@ Based on state management principles and some good programing principles and abs
 
 * [Create, Read, Update and delete (CRUD) from a list of items](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex005_00_crud_operations); 
 * [Authentication and authorization](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex006_00_authentication_and_authorization);
-* App theming;
+* [App theme management](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex007_00_app_theme_management);
 * App localization and internationalization;
 * Animation;
 * Form fields and form validation;
