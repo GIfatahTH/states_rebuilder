@@ -54,37 +54,15 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
     String? persistKey,
     //
     required StateInterceptor<I18N>? stateInterceptor,
-    // SnapState<I18N>? Function(MiddleSnapState<I18N> middleSnap)?
-    //     middleSnapState,
-    // void Function(I18N? s)? onInitialized,
-    // void Function(I18N s)? onDisposed,
-    // On<void>? onSetState,
     required SideEffects<I18N>? sideEffects,
     //
     DependsOn<I18N>? dependsOn,
     int undoStackLength = 0,
     //
     bool autoDisposeWhenNotUsed = true,
-    // bool isLazy = true,
     String? debugPrintWhenNotifiedPreMessage,
     required Object? Function(I18N?)? toDebugString,
-  })
-  // :
-  //  super(
-  //         creator: null,
-  //         onInitialized: onInitialized,
-  //         //
-  //         middleSnapState: middleSnapState,
-  //         // onSetState: onSetState,
-  //         onDisposed: onDisposed,
-  //         //
-  //         dependsOn: dependsOn,
-  //         autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-  //         // isLazy: isLazy,
-  //         debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-  //       )
-
-  {
+  }) {
     final persist = persistKey == null
         ? null
         : PersistState<I18N>(
@@ -131,7 +109,6 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
             ? (snap) {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
-
                 WidgetsBinding.instance?.addPostFrameCallback(
                   (_) => sideEffects!.onSetState!(snap),
                 );
@@ -151,28 +128,6 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
       _resolvedLocale = null;
     };
     _resetDefaultState();
-
-    // reactiveModelState = ReactiveModelBase<I18N>(
-    //   creator: () {
-    //     return _getLanguage(SystemLocale());
-    //   },
-    //   initialState: null,
-    //   initializer: initialize,
-    //   autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-    //   debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-    // );
-
-    // if (onSetState != null) {
-    //   //For InjectedI18N and InjectedTheme schedule side effects
-    //   //for the next frame.
-    //   subscribeToRM(
-    //     (_) {
-    //       WidgetsBinding.instance?.addPostFrameCallback(
-    //         (_) => onSetState.call(snapState),
-    //       );
-    //     },
-    //   );
-    // }
   }
   late InjectedImp<I18N> injected;
   final Map<Locale, FutureOr<I18N> Function()> i18Ns;
@@ -211,14 +166,24 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
       didChangeLocales,
     );
 
-    return _locale is SystemLocale ? _resolvedLocale : _locale;
+    return _locale;
   }
 
   @override
   set locale(Locale? l) {
-    if (l == null || _locale == l) {
+    if (l == null) {
       return;
     }
+    if (l is SystemLocale) {
+      if (_locale is SystemLocale) {
+        return null;
+      }
+    } else {
+      if (_locale is! SystemLocale && _locale == l) {
+        return null;
+      }
+    }
+
     final lan = _getLanguage(l);
     injected.setState((s) => lan);
   }
@@ -228,9 +193,9 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   ///If that fails, then the first element of the supportedLocales list is used.
   FutureOr<I18N> _getLanguage(Locale locale) {
     if (locale is SystemLocale) {
-      var l = locale._locale != null ? locale._locale! : _getSystemLocale();
+      var l = _getSystemLocale();
       _resolvedLocale = _localeResolution(l);
-      _locale = SystemLocale();
+      _locale = SystemLocale._(_resolvedLocale!);
     } else {
       _resolvedLocale = _localeResolution(locale);
       _locale = _resolvedLocale;
@@ -326,11 +291,14 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
 
 ///Used to represent the locale of the system.
 class SystemLocale extends Locale {
-  final Locale? _locale;
-
-  const SystemLocale._(this._locale) : super('systemLocale');
+  SystemLocale._(Locale locale)
+      : super.fromSubtags(
+          languageCode: locale.languageCode,
+          countryCode: locale.countryCode,
+          scriptCode: locale.scriptCode,
+        );
 
   factory SystemLocale() {
-    return const SystemLocale._(null);
+    return SystemLocale._(const Locale('systemLocale'));
   }
 }
