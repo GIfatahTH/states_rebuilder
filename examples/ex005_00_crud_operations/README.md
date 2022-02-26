@@ -29,6 +29,10 @@ In this example, you will learn how to consume a Restful API by performing creat
    <br /><b> Description: </b>
     As testability means mockability, we show you different way to mock an `InjectedCRUD`
 
+- [03: Infinite scroll list](./lib/ex_003_infinite_scroll_list)
+   <br /><b> Description: </b>
+    Example of an infinite scroll list.
+
 ## Documentation
 [🔍 See more detailed information about InjectedCRUD API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 

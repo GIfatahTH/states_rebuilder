@@ -1,0 +1,43 @@
+{
+    "@@locale": "en",
+    "helloWorld": "Hello World!",
+    "@helloWorld": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "welcome": "Welcome {name}",
+    "@welcome": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "gender": "{gender, select, male {Hi man!} female {Hi woman!} other {Hi there!}}",
+    "@gender": {
+        "placeholders": {
+            "gender": {}
+        }
+    },
+    "plural": "{howMany, plural, =1{1 message} other{{howMany} messages}}",
+    "@plural": {
+        "placeholders": {
+            "howMany": {}
+        }
+    },
+    "formattedNumber": "The formatted number is: {value}",
+    "@formattedNumber": {
+        "placeholders": {
+            "value": {
+                "type": "int",
+                "format": "compactLong"
+            }
+        }
+    },
+    "date": "It is {date}",
+    "@date": {
+        "placeholders": {
+            "date": {
+                "type": "DateTime",
+                "format": "yMMMMd"
+            }
+        }
+    }
+}
