@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
 final index = 0.inj();
 final animation = RM.injectAnimation(duration: 200.milliseconds);
 final icons = [
@@ -11,6 +15,17 @@ final icons = [
   Icons.directions_bus_filled,
 ];
 
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: TabBarNavigator(),
+    );
+  }
+}
+
 class TabBarNavigator extends StatelessWidget {
   const TabBarNavigator({Key? key}) : super(key: key);
 
@@ -18,7 +33,7 @@ class TabBarNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tab bar navigator'),
+        title: const Text('Tab bar navigator'),
       ),
       body: OnReactive(
         () => Center(

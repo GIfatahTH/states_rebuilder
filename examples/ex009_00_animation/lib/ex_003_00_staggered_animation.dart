@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
 final animation = RM.injectAnimation(
   duration: const Duration(milliseconds: 2000),
   repeats: 2,
   shouldReverseRepeats: true,
 );
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: StaggeredAnimationDemo(),
+    );
+  }
+}
 
 class StaggeredAnimationDemo extends StatelessWidget {
   const StaggeredAnimationDemo({Key? key}) : super(key: key);
@@ -13,8 +28,8 @@ class StaggeredAnimationDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Staggered Animation')),
-      body: MyStatefulWidget(),
+      appBar: AppBar(title: const Text('Staggered Animation')),
+      body: const MyStatefulWidget(),
     );
   }
 }
@@ -41,17 +56,18 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
       },
       child: Column(
         children: [
-          Text('Using Flutter Staggered Animation'),
-          SizedBox(height: 20),
+          const Text('Using Flutter Staggered Animation'),
+          const SizedBox(height: 20),
+          // ignore: prefer_const_constructors
           Expanded(child: FlutterStaggerDemo()),
-          Text('Using InjectedAnimation'),
-          SizedBox(height: 20),
+          const Text('Using InjectedAnimation'),
+          const SizedBox(height: 20),
           Expanded(
             child: OnAnimationBuilder(
               listenTo: animation,
               builder: (animate) {
                 final padding = animate
-                    .setCurve(Interval(0.250, 0.375, curve: Curves.ease))
+                    .setCurve(const Interval(0.250, 0.375, curve: Curves.ease))
                     .fromTween(
                       (_) => EdgeInsetsTween(
                         begin: const EdgeInsets.only(bottom: 16.0),
@@ -59,24 +75,24 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
                       ),
                     );
                 final opacity = animate
-                    .setCurve(Interval(0.0, 0.100, curve: Curves.ease))
+                    .setCurve(const Interval(0.0, 0.100, curve: Curves.ease))
                     .fromTween(
                       (_) => Tween<double>(begin: 0.0, end: 1.0),
                     )!;
                 final containerWidget = animate
-                    .setCurve(Interval(0.125, 0.250, curve: Curves.ease))
+                    .setCurve(const Interval(0.125, 0.250, curve: Curves.ease))
                     .fromTween(
                       (_) => Tween<double>(begin: 50.0, end: 150.0),
                       'width',
                     )!;
                 final containerHeight = animate
-                    .setCurve(Interval(0.250, 0.375, curve: Curves.ease))
+                    .setCurve(const Interval(0.250, 0.375, curve: Curves.ease))
                     .fromTween(
                       (_) => Tween<double>(begin: 50.0, end: 150.0),
                       'height',
                     )!;
                 final color = animate
-                    .setCurve(Interval(0.500, 0.750, curve: Curves.ease))
+                    .setCurve(const Interval(0.500, 0.750, curve: Curves.ease))
                     .fromTween(
                       (_) => ColorTween(
                         begin: Colors.indigo[100],
@@ -84,7 +100,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
                       ),
                     );
                 final borderRadius = animate
-                    .setCurve(Interval(0.375, 0.500, curve: Curves.ease))
+                    .setCurve(const Interval(0.375, 0.500, curve: Curves.ease))
                     .fromTween(
                       (_) => BorderRadiusTween(
                         begin: BorderRadius.circular(4.0),
@@ -134,6 +150,8 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
 // Flutter's staggered Animation
 
 class FlutterStaggerDemo extends StatefulWidget {
+  const FlutterStaggerDemo({Key? key}) : super(key: key);
+
   @override
   _StaggerDemoState createState() => _StaggerDemoState();
 }
@@ -204,7 +222,7 @@ class StaggerAnimation extends StatelessWidget {
         ).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.0,
               0.100,
               curve: Curves.ease,
@@ -217,7 +235,7 @@ class StaggerAnimation extends StatelessWidget {
         ).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.125,
               0.250,
               curve: Curves.ease,
@@ -227,7 +245,7 @@ class StaggerAnimation extends StatelessWidget {
         height = Tween<double>(begin: 50.0, end: 150.0).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.250,
               0.375,
               curve: Curves.ease,
@@ -240,7 +258,7 @@ class StaggerAnimation extends StatelessWidget {
         ).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.250,
               0.375,
               curve: Curves.ease,
@@ -253,7 +271,7 @@ class StaggerAnimation extends StatelessWidget {
         ).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.375,
               0.500,
               curve: Curves.ease,
@@ -266,7 +284,7 @@ class StaggerAnimation extends StatelessWidget {
         ).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(
+            curve: const Interval(
               0.500,
               0.750,
               curve: Curves.ease,

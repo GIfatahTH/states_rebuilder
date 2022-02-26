@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-/// Inspired form https://api.flutter.dev/flutter/widgets/AnimatedContainer-class.html
+// Inspired form https://api.flutter.dev/flutter/widgets/AnimatedContainer-class.html
+
+void main() {
+  runApp(const MyApp());
+}
 
 final animation = RM.injectAnimation(
-  duration: Duration(seconds: 2),
+  duration: const Duration(seconds: 2),
   curve: Curves.fastOutSlowIn,
 );
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: AnimatedContainerDemo(),
+    );
+  }
+}
 
 class AnimatedContainerDemo extends StatelessWidget {
   const AnimatedContainerDemo({Key? key}) : super(key: key);
@@ -44,8 +59,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       },
       child: Column(
         children: [
-          Text('Flutter AnimatedContainer'),
-          SizedBox(height: 20),
+          const Text('Flutter AnimatedContainer'),
+          const SizedBox(height: 20),
           Expanded(
             child: Center(
               child: AnimatedContainer(
@@ -61,8 +76,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               ),
             ),
           ),
-          Text('Using InjectedAnimation'),
-          SizedBox(height: 20),
+          const Text('Using InjectedAnimation'),
+          const SizedBox(height: 20),
           Expanded(
             child: Center(
               child: OnAnimationBuilder(

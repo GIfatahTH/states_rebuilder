@@ -1,16 +1,32 @@
-# ex_006_3_animation
-
-A new Flutter project.
+# ex009_00_animation
 
 ## Getting Started
+First, make sure you have installed states_rebuilder package, please check out the [Installation Guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
+<Br />
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+## Objective
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+In this example, you will learn how to handle animation using InjectedAnimation.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Exploring Use-cases
+
+- [01: Implicit animation](./lib/ex_001_00_implicit_animation)
+ 
+- [02: Explicit animation](./lib/ex_002_00_explicit_animation)
+
+- [03: Staggered animation](./lib/ex_003_00_staggered_animation)
+
+- [04: Implicit Staggered animation](./lib/ex_004_00_implicit_staggered_animation)
+
+- [04: Timer app demo](./lib/ex_005_00_timer_demo)
+
+- [04: TabBar animation](./lib/ex_006_00_tab_bar_navigator)
+
+## Documentation
+[🔍 See more detailed information about `InjectedAuth` API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+
+
+## Question & Suggestion
+Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+

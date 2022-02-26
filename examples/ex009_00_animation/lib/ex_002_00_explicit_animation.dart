@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
 final animation = RM.injectAnimation(
   duration: 3.seconds,
   curve: Curves.fastOutSlowIn,
@@ -10,6 +14,17 @@ final animation = RM.injectAnimation(
   //If you want the animation to auto restart uncomment the line below
   // shouldAutoStart: true,
 );
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: ExplicitAnimationDemo(),
+    );
+  }
+}
 
 class ExplicitAnimationDemo extends StatelessWidget {
   const ExplicitAnimationDemo({Key? key}) : super(key: key);

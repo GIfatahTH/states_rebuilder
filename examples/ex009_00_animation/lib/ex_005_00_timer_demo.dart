@@ -3,11 +3,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
 final animation = RM.injectAnimation(
   duration: const Duration(seconds: 1),
   curve: Curves.easeInOut,
   shouldAutoStart: true,
 );
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: TimerApp(),
+    );
+  }
+}
 
 class TimerApp extends StatelessWidget {
   const TimerApp({Key? key}) : super(key: key);
@@ -41,7 +56,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
   void initState() {
     super.initState();
     timer = Timer.periodic(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       (_) {
         animation.refresh();
       },
