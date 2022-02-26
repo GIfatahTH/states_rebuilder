@@ -1,7 +1,10 @@
-## 5.3.0-dev-2 (2022-02-16)
+## 6.0.0-dev-1 (2022-02-26)
+  * Remove deprecated API
   * Refactor internal code
   * Add `OnBuilder.createFuture` and `OnBuilder.createStream` widgets.
   * Add `OnBackNavigationScope` widget
+  * Add more examples
+  * Fix issues #260 #259 #256
 
 ## 5.2.0 (2022-01-05)
   * Add Navigator 2 support.
