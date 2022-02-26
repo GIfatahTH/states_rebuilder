@@ -273,10 +273,10 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
       }
     }
     if (_controller != null) {
-      value; //TODO fix issue 241
+      value; // fix issue 241
       return _controller!;
     }
-    // _removeFromInjectedList = addToInjectedModels(this);//TODO
+    // _removeFromInjectedList = addToInjectedModels(this);
 
     _controller ??= TextEditingControllerImp.fromValue(
       TextEditingValue(

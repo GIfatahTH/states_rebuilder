@@ -1191,7 +1191,7 @@ abstract class RM {
   /// to manage app localization and internationalization.
   ///
   /// The approach consists of the following steps:
-  /// * //TODO
+  ///
   /// ## Parameters:
   ///
   /// ### `i18Ns`: Required `Map<T, FutureOr<T> Function()>`

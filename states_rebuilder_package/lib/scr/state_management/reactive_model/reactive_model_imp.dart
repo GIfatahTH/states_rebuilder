@@ -515,7 +515,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           _snapState = _snapState
               .oldSnapState!; // Return to old state without notification.
           setStateNullable(
-            (_) => event is T Function() ? event() : event,
+            (_) => event(),
             middleSetState: middleSetState,
           );
           return;

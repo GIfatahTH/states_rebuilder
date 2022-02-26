@@ -165,7 +165,7 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
       initialScrollOffset: initialScrollOffset,
       keepScrollOffset: keepScrollOffset,
     );
-    // _removeFromInjectedList = addToInjectedModels(this); // TODO
+    // _removeFromInjectedList = addToInjectedModels(this);
     Timer? _timer;
     hasReachedMinExtent = initialScrollOffset == 0.0;
     void setFlags() {

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -136,7 +135,7 @@ abstract class InjectedNavigator {
     String? name,
     bool fullscreenDialog = false,
     bool maintainState = true,
-    // Widget Function(//TODO
+    // Widget Function(
     //   BuildContext context,
     //   Animation<double> animation,
     //   Animation<double> secondAnimation,

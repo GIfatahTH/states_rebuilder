@@ -86,11 +86,11 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
               if (_locale is SystemLocale) {
                 l = '#|#';
               } else {
-                l = '${_resolvedLocale!.languageCode}#|#' +
+                l = '${_locale!.languageCode}#|#' +
                     (_locale?.scriptCode != null
-                        ? '${_resolvedLocale!.scriptCode}#|#'
+                        ? '${_locale!.scriptCode}#|#'
                         : '') +
-                    '${_resolvedLocale!.countryCode}';
+                    '${_locale!.countryCode}';
               }
               return l;
             },
@@ -125,7 +125,6 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
     ) as InjectedImp<I18N>;
     _resetDefaultState = () {
       _locale = null;
-      _resolvedLocale = null;
     };
     _resetDefaultState();
   }
@@ -133,11 +132,6 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   final Map<Locale, FutureOr<I18N> Function()> i18Ns;
 
   Locale? _locale;
-
-  //_resolvedLocale vs _local :
-  //_locale may be equal SystemLocale which is not a recognized locale
-  //_resolvedLocale is a valid locale from the supported locale list
-  Locale? _resolvedLocale;
 
   late final VoidCallback _resetDefaultState;
   bool _onTopWidgetObserverAdded(BuildContext context) {
@@ -174,17 +168,18 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
     if (l == null) {
       return;
     }
-    if (l is SystemLocale) {
-      if (_locale is SystemLocale) {
-        return null;
+    if (l is SystemLocale && _locale is SystemLocale) {
+      if (l.runtimeType == SystemLocale || _locale == l) {
+        return;
       }
-    } else {
-      if (_locale is! SystemLocale && _locale == l) {
-        return null;
+    } else if (l is! SystemLocale && _locale is! SystemLocale) {
+      if (_locale == l) {
+        return;
       }
     }
 
     final lan = _getLanguage(l);
+
     injected.setState((s) => lan);
   }
 
@@ -192,12 +187,12 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   ///then the first supported locale with a matching languageCode is used.
   ///If that fails, then the first element of the supportedLocales list is used.
   FutureOr<I18N> _getLanguage(Locale locale) {
+    final l = locale.runtimeType == SystemLocale ? _getSystemLocale() : locale;
+
+    final _resolvedLocale = _localeResolution(l);
     if (locale is SystemLocale) {
-      var l = _getSystemLocale();
-      _resolvedLocale = _localeResolution(l);
-      _locale = SystemLocale._(_resolvedLocale!);
+      _locale = SystemLocale._(_resolvedLocale);
     } else {
-      _resolvedLocale = _localeResolution(locale);
       _locale = _resolvedLocale;
     }
 
@@ -232,13 +227,12 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   @override
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback => (locale, __) {
-            return _resolvedLocale!;
+            return _locale!;
           };
 
   void didChangeLocales(List<Locale>? locales) {
-    if (_locale is SystemLocale && locales != null) {
-      _locale = locales.first;
-      locale = SystemLocale._(locales.first);
+    if (_locale is SystemLocale && locale != null) {
+      locale = _SystemLocaleInternal(locales!.first);
     }
   }
 
@@ -294,11 +288,15 @@ class SystemLocale extends Locale {
   SystemLocale._(Locale locale)
       : super.fromSubtags(
           languageCode: locale.languageCode,
-          countryCode: locale.countryCode,
+          countryCode:
+              locale.countryCode?.isEmpty == true ? null : locale.countryCode,
           scriptCode: locale.scriptCode,
         );
-
   factory SystemLocale() {
     return SystemLocale._(const Locale('systemLocale'));
   }
+}
+
+class _SystemLocaleInternal extends SystemLocale {
+  _SystemLocaleInternal(Locale locale) : super._(locale);
 }

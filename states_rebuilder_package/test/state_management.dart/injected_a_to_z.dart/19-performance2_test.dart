@@ -38,7 +38,7 @@ class Counters extends StatelessWidget {
 class CounterItem extends StatelessWidget {
   final int index;
 
-  CounterItem({Key? key, required this.index})
+  const CounterItem({Key? key, required this.index})
       //This will be called whenever any of the parent widget rebuilds.
       : super(key: key);
 

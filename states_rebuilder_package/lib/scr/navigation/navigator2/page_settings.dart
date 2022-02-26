@@ -226,8 +226,6 @@ class DefaultTransitionDelegateImp extends DefaultTransitionDelegate {
       final RouteTransitionRecord? exitingPageRoute =
           locationToExitingPageRoute[location];
       if (exitingPageRoute == null) return;
-      final setting = exitingPageRoute.route.settings;
-      print(newPageRouteHistory.map((e) => e.route.settings.name));
       if (exitingPageRoute.isWaitingForExitingDecision) {
         final bool hasPagelessRoute =
             pageRouteToPagelessRoutes.containsKey(exitingPageRoute);
@@ -274,7 +272,6 @@ class DefaultTransitionDelegateImp extends DefaultTransitionDelegate {
     for (final RouteTransitionRecord pageRoute in newPageRouteHistory) {
       final bool isLastIteration = newPageRouteHistory.last == pageRoute;
       if (pageRoute.isWaitingForEnteringDecision) {
-        final setting = pageRoute.route.settings;
         if (!locationToExitingPageRoute.containsKey(pageRoute) &&
             isLastIteration) {
           pageRoute.markForPush();

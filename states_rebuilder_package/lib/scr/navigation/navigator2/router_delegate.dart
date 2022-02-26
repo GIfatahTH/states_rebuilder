@@ -494,8 +494,8 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
   }
 
   bool _canPopUntil(String untilRouteName) {
-    final index = _pageSettingsList.indexWhere(
-        (e) => e.name! == RouterObjects.trimLastSlash(untilRouteName));
+    // final index = _pageSettingsList.indexWhere(
+    //     (e) => e.name! == RouterObjects.trimLastSlash(untilRouteName));
     if (_pageSettingsList
         .any((e) => e.name! == RouterObjects.trimLastSlash(untilRouteName))) {
       return true;
