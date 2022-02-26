@@ -43,6 +43,12 @@ jobs:
           cd ex006_00_authentication_and_authorization && flutter test
         working-directory: ./examples
       - run: |
+          cd ex007_00_app_theme_management && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex008_00_app_i18n_i10n && flutter test
+        working-directory: ./examples
+      - run: |
           cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
         working-directory: ./examples/others
       - run: |
