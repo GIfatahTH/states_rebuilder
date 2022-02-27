@@ -1,6 +1,8 @@
 part of 'injected_text_editing.dart';
 
+/// Listen to a InjectedForm and rebuild depending on Form submission state
 class OnFormSubmissionBuilder extends MyStatefulWidget {
+  /// Listen to a InjectedForm and rebuild depending on Form submission state
   OnFormSubmissionBuilder({
     Key? key,
     required this.listenTo,
@@ -34,6 +36,8 @@ class OnFormSubmissionBuilder extends MyStatefulWidget {
           },
           key: key,
         );
+
+  /// InjectedForm to listen to
   final InjectedForm listenTo;
 
   ///Widget to display while waiting for submission
@@ -44,5 +48,7 @@ class OnFormSubmissionBuilder extends MyStatefulWidget {
 
   final Widget Function(dynamic error, VoidCallback onRefresh)?
       onSubmissionError;
+
+  /// the Child widget
   final Widget child;
 }

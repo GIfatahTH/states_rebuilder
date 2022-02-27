@@ -172,6 +172,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
           builder: (_, __, rm) => builder(rm),
           sideEffects: sideEffects,
         );
+
+  /// Create a ReactiveModel state from a future and listen to it
   OnBuilder.createFuture({
     Key? key,
     required Future<T> Function() creator,
@@ -190,6 +192,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
           builder: (_, __, rm) => builder(rm),
           sideEffects: sideEffects,
         );
+
+  /// Create a ReactiveModel state from a stream and listen to it
   OnBuilder.createStream({
     Key? key,
     required Stream<T> Function() creator,
@@ -275,6 +279,8 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
   // final Widget Function(ReactiveModelImp rm)? build;
   // final StateStatus? onStatus;
 
+  /// Create a widget that registers with the Widgets layer binding.
+  /// Used to track the app life cycle ([AppLifecycleState]).
   factory OnBuilder.bindingObserver({
     Key? key,
     IObservable<T>? listenTo,

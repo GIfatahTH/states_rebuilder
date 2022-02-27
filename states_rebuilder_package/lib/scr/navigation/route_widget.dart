@@ -164,6 +164,8 @@ class RouteWidget extends StatelessWidget {
     Widget child,
   )? transitionsBuilder;
   final Duration? _transitionDuration;
+
+  /// Weather to delegate the ImplyLeading used in Scaffold to parent route
   final bool? delegateImplyLeadingToParent;
   late final bool _delegateImplyLeadingToParent;
 

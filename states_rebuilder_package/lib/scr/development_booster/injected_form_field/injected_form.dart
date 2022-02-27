@@ -114,6 +114,7 @@ abstract class InjectedForm implements IObservable<bool?> {
   ///True if all text fields of the form are valid.
   bool get isValid;
 
+  /// Is the form dirty (At least on of its field has changed and the form not submitted yet)
   bool get isDirty;
 
   /// Resets the fields to their initial values.

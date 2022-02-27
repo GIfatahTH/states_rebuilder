@@ -1,15 +1,50 @@
 part of '../rm.dart';
 
-enum StateStatus { isIdle, isWaiting, hasData, hasError }
+/// Possible state status
+enum StateStatus {
+  /// A fresh state before mutation
+  isIdle,
 
+  /// Waiting for async task to resolve
+  isWaiting,
+
+  /// has valid data
+  hasData,
+
+  /// has error
+  hasError,
+}
+
+///Snap representation of the state
 @immutable
 class SnapState<T> {
+  /// The  snap status [StateStatus]
   final StateStatus status;
+
+  /// The latest data received by the asynchronous computation.
+  ///
+  /// If this is non-null, [hasData] will be true.
+  ///
+  /// If [error] is not null, this will be null. See [hasError].
+  ///
+  /// If the asynchronous computation has never returned a value, this may be
+  /// set to an initial data value specified by the relevant widget. See
+  /// [FutureBuilder.initialData] and [StreamBuilder.initialData].
   final T? data;
+
+  /// The latest error object received by the asynchronous computation.
+  ///
+  /// If this is non-null, [hasError] will be true.
+  ///
+  /// If [data] is not null, this will be null.
   final SnapError? snapError;
+
+  /// The old SnapState
   final SnapState<T>? oldSnapState;
-  final String debugName;
-  final Object? Function(T?)? toDebugString;
+
+  /// A name used for debugging
+  final String _debugName;
+  final Object? Function(T?)? _toDebugString;
   final String _infoMessage;
   final bool _isImmutable;
   const SnapState._({
@@ -17,38 +52,56 @@ class SnapState<T> {
     required this.data,
     required this.snapError,
     required this.oldSnapState,
-    required this.debugName,
-    required this.toDebugString,
+    required String debugName,
+    required Object? Function(T?)? toDebugString,
     required String infoMessage,
     required bool isImmutable,
   })  : _infoMessage = infoMessage,
-        _isImmutable = isImmutable;
+        _isImmutable = isImmutable,
+        _debugName = debugName,
+        _toDebugString = toDebugString;
+
+  /// Create a SnapState in idle state
   const SnapState.none({
     this.data,
-    this.debugName = '',
-    this.toDebugString,
+    String debugName = '',
+    Object? Function(T?)? toDebugString,
     String infoMessage = '',
   })  : status = StateStatus.isIdle,
         oldSnapState = null,
         snapError = null,
         _infoMessage = infoMessage,
-        _isImmutable = true;
+        _isImmutable = true,
+        _debugName = debugName,
+        _toDebugString = toDebugString;
 
+  /// The state
   T get state {
     if (data is T) return data as T;
     final status = isWaiting ? 'isWaiting' : 'hasError';
     throw ArgumentError('''
 $data is not of type $T. $this.\n
-TRY define an initalState or Handle $status status.
+TRY define an initialState or Handle $status status.
 ''');
   }
 
+  /// Wether the state is in the idle status
   bool get isIdle => status == StateStatus.isIdle;
+
+  /// Wether the state is in the waiting status
   bool get isWaiting => status == StateStatus.isWaiting;
+
+  /// Wether the state is in the data status
   bool get hasData => status == StateStatus.hasData;
+
+  /// Wether the state is in the error status
   bool get hasError => status == StateStatus.hasError;
+
+  /// The type of the state
   // TODO test me
   Type type() => T;
+
+  /// Copy the state to a new state in the idle status
   SnapState<T> copyToIsIdle({Object? data, String? infoMessage}) {
     return copyToHasData(data).copyWith(
       status: StateStatus.isIdle,
@@ -57,6 +110,7 @@ TRY define an initalState or Handle $status status.
     );
   }
 
+  /// Copy the state to a new state in the waiting status
   SnapState<T> copyToIsWaiting([String? infoMessage]) {
     return copyWith(
       status: StateStatus.isWaiting,
@@ -64,6 +118,7 @@ TRY define an initalState or Handle $status status.
     );
   }
 
+  /// Copy the state to a new state in the data status
   SnapState<T> copyToHasData(Object? data) {
     return copyWith(
       status: StateStatus.hasData,
@@ -81,6 +136,7 @@ TRY define an initalState or Handle $status status.
     );
   }
 
+  /// Copy the state to a new state in the error status
   SnapState<T> copyToHasError(
     dynamic error, {
     StackTrace? stackTrace,
@@ -97,6 +153,7 @@ TRY define an initalState or Handle $status status.
     );
   }
 
+  /// {@macro injected.rebuild.onOr}
   R onOrElse<R>({
     R Function()? onIdle,
     R Function()? onWaiting,
@@ -119,6 +176,7 @@ TRY define an initalState or Handle $status status.
     return orElse(data as T);
   }
 
+  /// {@macro injected.rebuild.onAll}
   R onAll<R>({
     R Function()? onIdle,
     required R Function()? onWaiting,
@@ -133,6 +191,7 @@ TRY define an initalState or Handle $status status.
     );
   }
 
+  /// Copy the state
   SnapState<T> copyWith({
     StateStatus? status,
     T? data,
@@ -149,8 +208,8 @@ TRY define an initalState or Handle $status status.
       oldSnapState: (status != null || data != null || error != null)
           ? oldSnapState ?? this
           : this.oldSnapState,
-      debugName: debugName ?? this.debugName,
-      toDebugString: toDebugString,
+      debugName: debugName ?? _debugName,
+      toDebugString: _toDebugString,
       infoMessage: infoMessage ?? _infoMessage,
       isImmutable: isImmutable ?? _isImmutable,
     );
@@ -165,15 +224,15 @@ TRY define an initalState or Handle $status status.
 
   @override
   String toString() {
-    if (debugName.isNotEmpty) {
-      return 'SnapState<$T>[$debugName](${_toShortString(data)})';
+    if (_debugName.isNotEmpty) {
+      return 'SnapState<$T>[$_debugName](${_toShortString(data)})';
     }
     return 'SnapState<$T>(${_toShortString(data)})';
   }
 
   String toStringShort() {
-    if (debugName.isNotEmpty) {
-      return 'SnapState<$T>[$debugName]())';
+    if (_debugName.isNotEmpty) {
+      return 'SnapState<$T>[$_debugName]())';
     }
     return 'SnapState<$T>()';
   }
@@ -197,14 +256,14 @@ TRY define an initalState or Handle $status status.
   void debugPrint({
     String? debugName,
   }) {
-    debugName ??= this.debugName;
+    debugName ??= _debugName;
     final isMutable = hasData && _isImmutable == false;
     final str = (debugName.isNotEmpty ? '<$debugName>' : '<$T>') +
         ' ' +
         (isMutable ? '[Mutable]' : '') +
         ': '
-            '${oldSnapState?._toShortString(toDebugString?.call(oldSnapState?.data))} ==> '
-            '${_toShortString(toDebugString?.call(data))}';
+            '${oldSnapState?._toShortString(_toDebugString?.call(oldSnapState?.data))} ==> '
+            '${_toShortString(_toDebugString?.call(data))}';
 
     StatesRebuilerLogger.log(str);
   }
@@ -228,10 +287,19 @@ TRY define an initalState or Handle $status status.
 }
 
 @immutable
+
+/// The error representation
 class SnapError {
+  /// The error
   final dynamic error;
+
+  /// The latest stack trace object .
   final StackTrace? stackTrace;
+
+  /// callback use to reinvoke the last computation that causes the error
   final VoidCallback refresher;
+
+  /// The error representation
   const SnapError({
     required this.error,
     this.stackTrace,

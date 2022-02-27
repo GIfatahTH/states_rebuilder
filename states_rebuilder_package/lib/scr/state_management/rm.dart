@@ -40,6 +40,7 @@ part './reactive_model/reactive_model.dart';
 part './reactive_model/reactive_model_imp.dart';
 part './reactive_model/snap_state.dart';
 
+///
 abstract class RM {
   /// Injection of a primitive, enum, or object.
   ///
@@ -2083,6 +2084,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     return (_persistStateGlobalTest as _PersistStoreMock);
   }
 
+  /// Clear the local persist store
   static Future<void> deleteAllPersistState() async {
     await (_persistStateGlobalTest ?? _persistStateGlobal)?.deleteAll();
     UndoRedoPersistState.cleanStorageProviders();

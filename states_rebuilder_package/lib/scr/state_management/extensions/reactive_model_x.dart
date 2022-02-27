@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../rm.dart';
 
+/// Extension on ReactiveModel<bool>
 extension ReactiveModelBool on ReactiveModel<bool> {
+  /// Toggle the state and notify listeners
   void toggle() {
     state = !state;
   }
 }
 
+/// Extension on ReactiveModel
 extension ReactiveModeX<T> on ReactiveModel<T> {
+  /// listen to the state
   _Rebuild<T> get rebuild => _Rebuild<T>(this, null);
 }
 
+/// Extension on List<ReactiveModel>
+
 extension ReactiveModeListX on List<ReactiveModel> {
+  /// listen to the list of states
   _Rebuild get rebuild => _Rebuild(null, this);
 }
 

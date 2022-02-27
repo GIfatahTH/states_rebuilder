@@ -1,6 +1,8 @@
 part of 'injected_page_tab.dart';
 
+/// Extension on InjectedTabPageView
 extension InjectedTabPageViewX on InjectedTabPageView {
+  /// listen to InjectedTabPageView
   _Rebuild get rebuild => _Rebuild(this);
 }
 

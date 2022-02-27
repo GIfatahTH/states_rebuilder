@@ -93,7 +93,10 @@ abstract class InjectedTextEditing implements IObservable<String> {
   ///
   /// Submission is done using [InjectedForm.submit] method.
   bool get isDirty;
+
+  /// Get the text of the field
   String get value => text;
+
   @Deprecated('use value instead')
   String get state => value;
 
@@ -103,8 +106,10 @@ abstract class InjectedTextEditing implements IObservable<String> {
   ///The range of text that is still being composed.
   TextRange get composing => _controller!.value.composing;
 
+  /// set the error
   set error(dynamic error);
 
+  /// reset the text of the field
   void reset() {
     _controller?.text = _baseFormField.initialValue;
     _baseFormField.resetField();

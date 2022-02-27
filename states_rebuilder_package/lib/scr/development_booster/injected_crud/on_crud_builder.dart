@@ -1,6 +1,8 @@
 part of 'injected_crud.dart';
 
+/// Extension on InjectedCRUD
 extension InjectedCRUDX<T, P> on InjectedCRUD<T, P> {
+  /// listen to InjectedCRUD
   _Rebuild<T, P> get rebuild => _Rebuild<T, P>(this);
 }
 
@@ -27,10 +29,18 @@ class _Rebuild<T, P> {
   }
 }
 
+/// Class for CRUD side effects
 class OnCRUDSideEffects {
+  /// Waiting callback
   final void Function()? onWaiting;
+
+  /// Error callback
   final void Function(dynamic err, void Function() refresh)? onError;
+
+  /// Result (data) callback
   final void Function(dynamic data) onResult;
+
+  /// Class for CRUD side effects
   OnCRUDSideEffects({
     required this.onWaiting,
     required this.onError,
@@ -38,6 +48,7 @@ class OnCRUDSideEffects {
   });
 }
 
+/// {@template OnCRUDBuilder}
 /// To listen to an InjectedCRUD state just use [ReactiveStatelessWidget],
 /// [OnReactive], or [OnBuilder] widgets.
 ///
@@ -70,8 +81,10 @@ class OnCRUDSideEffects {
 /// - `OnBuilder.all` has onData callback.
 /// - `OnCRUDBuilder` has onResult callback that exposes the return result for
 /// the backend service.
-///
+///  {@endtemplate}
+
 class OnCRUDBuilder extends MyStatefulWidget {
+  /// {@macro OnCRUDBuilder}
   OnCRUDBuilder({
     Key? key,
     required this.listenTo,
@@ -118,6 +131,7 @@ class OnCRUDBuilder extends MyStatefulWidget {
           },
         );
 
+  /// InjectedCRUD to listen to
   final InjectedCRUD listenTo;
 
   ///Widget to display while waiting for any CRUD operation

@@ -1,6 +1,8 @@
 part of 'injected_scrolling.dart';
 
+/// extension on InjectedScrolling
 extension InjectedScrollingX on InjectedScrolling {
+  /// Listen to InjectedScrolling
   _Rebuild get rebuild => _Rebuild(this);
 }
 
@@ -45,6 +47,8 @@ class _Rebuild {
 ///Listen to an InjectedScrolling
 class OnScroll<T> {
   final T Function(InjectedScrolling scroll) onScroll;
+
+  ///Listen to an InjectedScrolling
   OnScroll(this.onScroll);
 
   T? call(InjectedScrollingImp scroll) {
@@ -52,6 +56,7 @@ class OnScroll<T> {
   }
 }
 
+///{@template OnScrollBuilder}
 /// Listen to an [InjectedScrolling] state.
 ///
 /// The builder method is invoked when scrolling start, while scrolling and
@@ -97,7 +102,10 @@ class OnScroll<T> {
 ///     },
 ///   ),
 ///  ```
+///  {@endtemplate}
+
 class OnScrollBuilder extends MyStatefulWidget {
+  /// {@macro OnScrollBuilder}
   OnScrollBuilder({
     Key? key,
     required this.listenTo,

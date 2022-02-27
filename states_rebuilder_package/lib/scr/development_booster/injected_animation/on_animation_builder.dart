@@ -114,7 +114,7 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
 
   late VoidCallback disposer;
 
-  final _evaluateAnimation = <String, EvaluateAnimation>{};
+  final _evaluateAnimation = <String, _EvaluateAnimation>{};
   late final Animate animate;
 
   void triggerAnimation([bool restart = false]) {
@@ -146,10 +146,10 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
       _assertionList.add(name);
       return true;
     }());
-    EvaluateAnimation? evaluateAnimation = _evaluateAnimation[name];
+    _EvaluateAnimation? evaluateAnimation = _evaluateAnimation[name];
     T? value;
     if (evaluateAnimation == null) {
-      _evaluateAnimation[name] = evaluateAnimation = EvaluateAnimation(
+      _evaluateAnimation[name] = evaluateAnimation = _EvaluateAnimation(
         onAnimation: this,
         curve: curve,
         reverseCurve: reverseCurve,

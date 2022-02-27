@@ -96,6 +96,7 @@ class RouteData {
     return _redirectedFrom.first;
   }
 
+  /// The unknown route widget
   Widget get unKnownRoute =>
       RouterObjects.rootDelegate!._lastConfiguration != null &&
               RouterObjects.injectedNavigator!.ignoreUnknownRoutes

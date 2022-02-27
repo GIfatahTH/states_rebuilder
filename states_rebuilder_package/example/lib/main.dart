@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs
+
 import 'package:example/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

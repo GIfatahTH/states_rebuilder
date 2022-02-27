@@ -118,6 +118,7 @@ abstract class InjectedAnimation implements IObservable<double> {
 ///InjectedAnimation implementation
 class InjectedAnimationImp extends ReactiveModelImp<double>
     with InjectedAnimation {
+  ///InjectedAnimation implementation
   InjectedAnimationImp({
     Duration duration = const Duration(milliseconds: 500),
     Duration? reverseDuration,
@@ -173,8 +174,14 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
   ///
   /// Defaults to [AnimationBehavior.normal].
   final AnimationBehavior animationBehavior;
+
+  /// Weather animation is auto start after initialization
   final bool shouldAutoStart;
+
+  /// Callback for side effect to execute after animation has been initialized
   final void Function(InjectedAnimation)? onInitialized;
+
+  /// Callback for side effect to execute after animation ends
   final void Function()? endAnimationListener;
 
   /// The length of time this animation should last.
@@ -204,18 +211,30 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
   ///Number of times the animation should repeat. If 0 animation will repeat
   ///indefinitely
   late int? repeats;
+
+  /// Should reverse animation after it completes
   late bool shouldReverseRepeats;
+
+  /// Completer that resolves after animation completes
   late Completer<void>? animationEndFuture;
+
+  /// Is animation in course of animating
   late bool isAnimating;
+
+  /// skip the dismiss status
   late bool skipDismissStatus;
+
+  /// repeat counts
   late int? repeatCount;
   final List<VoidCallback> _didUpdateWidgetListeners = [];
   final List<VoidCallback> _resetAnimationListeners = [];
   //
   late final VoidCallback _resetDefaultState;
-  //
+
+  /// repeat status listener
   late Function(AnimationStatus) repeatStatusListenerListener;
 
+  /// animation initializer
   void initializer(TickerProvider ticker) {
     if (_controller != null) {
       return;
@@ -331,17 +350,20 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
     skipDismissStatus = false;
   }
 
+  /// called OnAnimator widget didUpdateWidget
   void didUpdateWidget() {
     if (isAnimating) {
       isAnimating = false;
     }
   }
 
+  /// add to did update widget listeners
   VoidCallback addToDidUpdateWidgetListeners(VoidCallback fn) {
     _didUpdateWidgetListeners.add(fn);
     return () => _didUpdateWidgetListeners.remove(fn);
   }
 
+  /// add to did reset widget listeners
   VoidCallback addToResetAnimationListeners(VoidCallback fn) {
     _resetAnimationListeners.add(fn);
     return () => _resetAnimationListeners.remove(fn);

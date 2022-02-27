@@ -38,6 +38,7 @@ import '../../state_management/rm.dart';
 
 abstract class InjectedTheme<KEY> {
   // KEY get state => getInjectedState(this);
+  /// The current state  (theme name)
   KEY get state;
   set state(KEY value);
 

@@ -1,6 +1,89 @@
 part of '../../rm.dart';
 
+///{@template Injected}
+///A Wrapper class that encloses the state of the model we want to Inject. The
+///state can be mutable or immutable and can also be global or local.
+///
+///Injected model can be instantiated globally or as a member of classes. They
+///can be instantiated inside the build method without losing the state after
+///rebuilds.
+///
+///
+///* **Injected instantiation:**
+///To instantiate an Injected model, you use [RM.inject], [RM.injectFuture],
+///[RM.injectStream] or [RM.injectFlavor].
+///
+///
+///* **Injected lifecycle:**
+///The state wrapped by the Injected model has a lifecycle. It is created when
+///first used and destroyed when no longer used even if it is declared globally.
+///Between the creation and the destruction of the state, it can be listened to
+///and mutated to notify its registered listeners.
+///
+///
+///* **Injected state and null safety:**
+///The state of an injected model is null safe, that is it can not be null. For
+///this reason the initial state will be inferred by the library, and in case
+///it is not, it must be defined explicitly. The initial state of primitives is
+///inferred as follows: (int: 0, double, 0.0, String:'', and bool: false). For
+///other non-primitive objects the initial state will be the first created
+///instance.
+///
+///
+///* **Listening to an Injected:**
+///To listen to an Injected model you can use one of the following options:
+///[ReactiveModelBuilder.listen], [ReactiveModelBuilder.futureBuilder],
+///[ReactiveModelBuilder.streamBuilder], [ReactiveModelBuilder.rebuilder],
+///[ReactiveModelBuilder.whenRebuilder], and
+///[ReactiveModelBuilder.whenRebuilderOr].
+///
+///
+///* **Injected state mutation:**
+///To mutate the state and notify listeners, you use [ReactiveModel.state]
+///setter, [ReactiveModel.setState], or[ ReactiveModel.toggle] if the state is
+///bool.
+///You can also notify listeners without changing the state using
+///[ReactiveModel.notify]. You can also refresh the state to its initial state
+///and reinvoke the creation function then notify listeners using
+///[ReactiveModel.refresh].
+///
+///
+///* **Injected state cleaning:**
+///When the state is disposed of, its list of listeners is cleared, and if the
+///state is waiting for a Future or subscribed to a Stream, it will cancel them
+///to free resources.
+///
+///
+///* **State persistence:**
+///Injected state can be persisted using [PersistState]. By default the state
+///is persisted each time the state is mutated. You can set it to persist
+///manually or when the state is disposed. You can also throttle state
+///persistence for the time you want.
+///
+///
+///* **Undo redo state mutation:**
+///You can undo or redo state mutation by defining the `undoStackLength`
+///parameter of [RM.inject] [RM.injectFuture], [RM.injectStream] or
+///[RM.injectFlavor]. After state mutation you can redo it using
+///[ReactiveModelUndoRedoState.undoState] and redo it using
+///[ReactiveModelUndoRedoState.redoState].
+///
+///
+///* **Injected model dependence**
+///Injected models can depend on other Injected models and recalculate its
+///state and notify its listeners whenever any of its of the Inject model that
+///it depends on emits a notification.
+///
+///
+///* **Injected mock for testing:**
+///Injected model can be easily mocked to fake implementation in tests using :
+///[Injected.injectMock], [Injected.injectFutureMock],
+///or [Injected.injectStreamMock].
+///
+///
+///   {@endtemplate}
 abstract class Injected<T> extends ReactiveModel<T> {
+  /// Create an Injected state from any kind of creator
   factory Injected.generic({
     required Object? Function() creator,
     required T? initialState,
@@ -42,6 +125,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
               watch: watch,
             );
 
+  /// {@macro Injected}
   factory Injected({
     required T Function() creator,
     T? initialState,
@@ -67,6 +151,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
         dependsOn: dependsOn,
       );
 
+  /// Create an Injected state from future
   factory Injected.future({
     required Future<T> Function() creator,
     T? initialState,
@@ -96,6 +181,7 @@ abstract class Injected<T> extends ReactiveModel<T> {
     return inj;
   }
 
+  /// Create an Injected state from stream
   factory Injected.stream({
     required Stream<T> Function() creator,
     T? initialState,

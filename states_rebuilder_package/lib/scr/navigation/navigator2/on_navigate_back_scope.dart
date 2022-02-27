@@ -3,12 +3,20 @@ part of '../injected_navigator.dart';
 /// Creates a widget that registers a callback to veto attempts by the user
 /// to navigate back.
 class OnNavigateBackScope extends StatefulWidget {
+  /// Creates a widget that registers a callback to veto attempts by the user
+  /// to navigate back.
   const OnNavigateBackScope({
     Key? key,
     required this.onNavigateBack,
     required this.child,
   }) : super(key: key);
+
+  /// Callback to be fired when this page is popping out.
+  ///
+  /// Returning false popping is canceled
   final bool? Function() onNavigateBack;
+
+  /// The child widget
   final Widget child;
 
   @override

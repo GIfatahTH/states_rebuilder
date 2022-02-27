@@ -1,5 +1,6 @@
 part of 'injected_navigator.dart';
 
+/// Extension on BuildContext
 extension BuildContextX on BuildContext {
   /// Get the scoped router outlet widget. It looks up the widget tree for the
   /// closest sub route and returns its router outlet widget.
@@ -54,12 +55,14 @@ extension BuildContextX on BuildContext {
     return r!.routeData;
   }
 
+  /// Get the page transition animation
   Animation<double>? get animation {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;
     return r?.animation;
   }
 
+  /// Get the page transition secondary animation
   Animation<double>? get secondaryAnimation {
     final r = getElementForInheritedWidgetOfExactType<SubRoute>()?.widget
         as SubRoute?;

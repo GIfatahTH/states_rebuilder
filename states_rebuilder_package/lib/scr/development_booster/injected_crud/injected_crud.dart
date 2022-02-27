@@ -197,6 +197,7 @@ abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
 ///An implementation of [InjectedCRUD]
 class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
     with InjectedCRUD<T, P> {
+  ///An implementation of [InjectedCRUD]
   InjectedCRUDImp({
     required this.repoCreator,
     required this.param,

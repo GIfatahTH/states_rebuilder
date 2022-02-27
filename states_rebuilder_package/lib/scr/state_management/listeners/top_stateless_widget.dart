@@ -1,5 +1,6 @@
 part of '../rm.dart';
 
+///{@template TopStatelessWidget}
 /// Used instead of [StatelessWidget] on top of [MaterialApp] widget to listen
 /// to [InjectedI18N] and [InjectedTheme]
 ///
@@ -114,8 +115,12 @@ part of '../rm.dart';
 ///   }
 /// }
 /// ```
+///   {@endtemplate}
 abstract class TopStatelessWidget extends StatefulWidget {
+  /// {@macro TopStatelessWidget}
   const TopStatelessWidget({Key? key}) : super(key: key);
+
+  /// Build the widget
   Widget build(BuildContext context);
 
   /// Hook to be called while waiting for plugins initialization.

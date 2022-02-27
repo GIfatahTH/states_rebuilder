@@ -1,6 +1,8 @@
 part of 'injected_text_editing.dart';
 
+/// Extension on InjectedForm
 extension InjectedFormX on InjectedForm {
+  /// listen to InjectedForm
   _Rebuild get rebuild => _Rebuild(this);
 }
 
@@ -39,7 +41,9 @@ class _Rebuild {
   }
 }
 
+/// Build a form from its child fields
 class OnFormBuilder extends MyStatefulWidget {
+  /// Build a form from its child fields
   OnFormBuilder({
     Key? key,
     required this.listenTo,
@@ -89,6 +93,8 @@ class OnFormBuilder extends MyStatefulWidget {
             return child;
           },
         );
+
+  /// the InjectedForm to listen to
   final InjectedForm listenTo;
   @override
   List<ReactiveModelImp> Function(BuildContext context) get observers => (_) {

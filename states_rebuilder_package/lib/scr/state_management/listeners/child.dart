@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-///Use Child in combination of other widget listeners, to control
-///the part of the widget tree to rebuild.
+/// Use Child in combination of other widget listeners, to control
+/// the part of the widget tree to rebuild.
+/// See also [Child2] and [Child3]
 class Child extends StatelessWidget {
   ///Returns widget that is intended to rebuild.
   ///It exposes the defined child widget.
@@ -10,6 +11,8 @@ class Child extends StatelessWidget {
   ///Widget that is not intended tor rebuild.
   final Widget child;
 
+  ///Use Child in combination of other widget listeners, to control
+  ///the part of the widget tree to rebuild.
   const Child({
     required this.builder,
     Key? key,

@@ -106,12 +106,23 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
           toDebugString: toDebugString,
           watch: null,
         );
+
+  /// Repository creator
   final IAuth<T, P> Function() repoCreator;
 
+  /// Params of the repository
   final P Function()? param;
+
+  /// Callback for side effect on user signed
   final void Function(T s)? onSigned;
+
+  /// Callback for side effect on user unsigned
   final void Function()? onUnsigned;
+
+  /// Side effects
   final SideEffects<T>? sideEffects;
+
+  /// Auto signOut
   final Duration Function(T auth)? autoSignOut;
   final FutureOr<Stream<T>> Function(IAuth<T, P> repo)? onAuthStream;
   final T? unsignedUser;

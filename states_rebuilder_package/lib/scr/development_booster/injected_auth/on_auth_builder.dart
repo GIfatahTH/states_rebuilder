@@ -1,6 +1,8 @@
 part of 'injected_auth.dart';
 
+/// Extension on InjectedAuth
 extension InjectedAuthX<T, P> on InjectedAuth<T, P> {
+  /// Listen to InjectedAuth
   _Rebuild<T, P> get rebuild => _Rebuild<T, P>(this);
 }
 
@@ -35,6 +37,7 @@ class _Rebuild<T, P> {
 
 /// Listen to an [InjectedAuth] and define the appropriate view for each case
 class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
+  /// Listen to an [InjectedAuth] and define the appropriate view for each case
   OnAuthBuilder({
     Key? key,
     required this.listenTo,
@@ -117,6 +120,8 @@ class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
   ///```
   ///
   final bool useRouteNavigation;
+
+  /// NavigatorKey used for navigation between onSigned and onUnsigned
   final GlobalKey<NavigatorState>? navigatorKey;
   final _map = {
     'onInitialWaiting': true,

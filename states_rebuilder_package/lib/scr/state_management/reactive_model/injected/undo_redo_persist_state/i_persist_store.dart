@@ -90,6 +90,7 @@ abstract class IPersistStore {
   ///Purge localStorage
   Future<void> deleteAll() async {}
 
+  /// get the local storage repository
   static T getRepo<T extends IPersistStore>() =>
       (_persistStateGlobalTest ?? _persistStateGlobal) as T;
 }

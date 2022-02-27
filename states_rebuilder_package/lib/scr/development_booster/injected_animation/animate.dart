@@ -95,14 +95,16 @@ class Animate {
   }
 }
 
-class EvaluateAnimation {
+/// EvaluateAnimation class
+class _EvaluateAnimation {
   final _OnAnimationBuilderState onAnimation;
   final InjectedAnimationImp injected;
   dynamic tween;
   final Curve? curve;
   final Curve? reverseCurve;
 
-  EvaluateAnimation({
+  /// EvaluateAnimation class
+  _EvaluateAnimation({
     required this.onAnimation,
     required this.curve,
     required this.reverseCurve,

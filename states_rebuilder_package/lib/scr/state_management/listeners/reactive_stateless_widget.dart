@@ -1,5 +1,6 @@
 part of '../rm.dart';
 
+///{@template ReactiveStatelessWidget}
 /// Use it instead of [StatelessWidget] to make the hole sub tree reactive.
 ///
 /// Any state consumed in any widget child of the widget where the
@@ -108,7 +109,10 @@ part of '../rm.dart';
 /// [ReactiveStatelessWidget.shouldRebuildWidget]
 ///
 /// didNotifyWidget
+///   {@endtemplate}
+
 abstract class ReactiveStatelessWidget extends IStatefulWidget {
+  /// {@macro ReactiveStatelessWidget}
   const ReactiveStatelessWidget({Key? key}) : super(key: key);
   static ObserveReactiveModel? addToObs;
 

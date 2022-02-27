@@ -439,10 +439,10 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     //     );
     notify(
       nextSnap: newSnap?.copyWith(
-            debugName: _snapState.debugName,
+            debugName: _snapState._debugName,
           ) ??
           inj._snapState.copyWith(
-            debugName: _snapState.debugName,
+            debugName: _snapState._debugName,
           ),
     );
   }

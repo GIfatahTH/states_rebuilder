@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../state_management/rm.dart';
 
+/// Used to manage app localization and internationalization
 abstract class InjectedI18N<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
@@ -13,9 +14,10 @@ abstract class InjectedI18N<I18N> {
   //   OnReactiveState.addToTopStatelessObs?.call(this);
   //   return getInjectedState(this);
   // }
+  /// get the current
   I18N get state;
 
-  ///The current locale
+  ///The current locale language translation
   Locale? locale;
 
   ///Default locale resolution used by states_rebuilder.
@@ -30,6 +32,9 @@ abstract class InjectedI18N<I18N> {
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
       get localeResolutionCallback;
 
+  /// return a list of prebuilt LocalizationsDelegates:
+  /// [GlobalMaterialLocalizations], [GlobalWidgetsLocalizations] and
+  /// [GlobalCupertinoLocalizations]
   final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates =
       const [
     GlobalMaterialLocalizations.delegate,
@@ -37,14 +42,19 @@ abstract class InjectedI18N<I18N> {
     GlobalCupertinoLocalizations.delegate,
   ];
 
+  /// Use [of] instead
   Injected<I18N> call(
     BuildContext context, {
     bool defaultToGlobal = false,
   });
+
+  /// Obtain the current translation using [inherited].
   I18N of(
     BuildContext context, {
     bool defaultToGlobal = false,
   });
+
+  /// dispose the state
   void dispose();
 }
 

@@ -1,5 +1,6 @@
 part of '../injected_navigator.dart';
 
+/// Extension on List<PageSettings>
 extension PageSettingsX on List<PageSettings> {
   /// Add the page of routeName to PageSettings
   ///
@@ -72,18 +73,31 @@ extension PageSettingsX on List<PageSettings> {
 
 /// Data that might be useful in constructing a [Page]. It extends [RouteSettings]
 class PageSettings extends RouteSettings {
+  /// If provided this is the widget associated with this page
   final Widget? child;
+
+  /// parameter of the query params of the url
   final Map<String, String> queryParams;
+
+  /// A [Key] is an identifier for page
   final ValueKey? key;
+
+  /// The route uir
   final String? routePattern;
+
+  /// Object that holds information about the active route.
+
   final RouteData? rData;
   final String? _delegateName;
+
+  /// The builder of the page
   final Widget Function(Widget route)? builder;
 
   Widget _getChildWithBuilder() {
     return builder != null ? builder!(child!) : child!;
   }
 
+  /// Get sub pages of the page
   List<PageSettings> get getSubPages {
     if (child is RouteWidget) {
       return (child as RouteWidget)._routerDelegate._pageSettingsList;

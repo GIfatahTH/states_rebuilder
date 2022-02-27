@@ -41,15 +41,19 @@ abstract class InjectedFormField<T> implements IObservable<T> {
   ///Whether it passes the validation test
   bool get isValid;
 
+  /// The value of the Field
   T get value => snapState.state;
   set value(T v);
 
+  /// Set the error
   set error(dynamic error);
 
+  /// reset the field
   void reset() {
     _baseFormField.resetField();
   }
 
+  /// Called when the value of the field changed
   // ignore: prefer_function_declarations_over_variables
   late void Function(T? v) onChanged = (T? v) {
     value = v as T;
@@ -75,6 +79,7 @@ abstract class InjectedFormField<T> implements IObservable<T> {
   /// Invoke field validators and return true if the field is valid.
   bool validate();
 
+  /// is the field dirty (its value changed and not submitted yet)
   bool get isDirty;
 
   /// If true the [TextField] is clickable and selectable but not editable.

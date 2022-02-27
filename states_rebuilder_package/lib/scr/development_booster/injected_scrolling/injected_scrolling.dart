@@ -44,6 +44,8 @@ abstract class InjectedScrolling implements IObservable<double> {
       _controller!.position.userScrollDirection == ScrollDirection.reverse;
 
   set state(double s);
+
+  /// the current fraction scroll position. It's between 0 (min) and 1 (max position)
   double get state => snapState.state;
 
   ///This scrolling list has just started scrolling.
