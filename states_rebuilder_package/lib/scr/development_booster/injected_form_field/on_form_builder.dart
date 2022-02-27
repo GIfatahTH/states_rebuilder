@@ -98,7 +98,6 @@ class OnFormBuilder extends MyStatefulWidget {
   final InjectedForm listenTo;
   @override
   List<ReactiveModelImp> Function(BuildContext context) get observers => (_) {
-        InjectedFormImp._currentInitializedForm;
         InjectedFormImp._currentInitializedForm = (listenTo as InjectedFormImp)
           .._isEnabled = isEnabledRM?.state
           .._isReadOnly = isReadOnlyRM?.state;

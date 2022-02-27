@@ -32,9 +32,7 @@ part of '../rm.dart';
 ///       builder: (context) {
 ///         return MaterialApp(
 ///           //
-///           theme: themeRM.lightTheme, //light theme
-///           darkTheme: themeRM.darkTheme, //dark theme
-///           themeMode: themeRM.themeMode, //theme mode
+///           theme: themeRM.activeTheme(),
 ///           //
 ///           locale: i18nRM.locale,
 ///           localeResolutionCallback: i18nRM.localeResolutionCallback,
@@ -61,76 +59,6 @@ class TopAppWidget extends TopStatelessWidget {
   ///Child widget to render
   final Widget Function(BuildContext) builder;
 
-  ///Provide and listen to the [InjectedTheme].
-  ///
-  ///```dart
-  /// void main() {
-  ///   runApp(MyApp());
-  /// }
-  ///
-  /// class MyApp extends StatelessWidget {
-  ///   // This widget is the root of your application.
-  ///   @override
-  ///   Widget build(BuildContext context) {
-  ///     return TopAppWidget(//Use TopAppWidget
-  ///       injectedTheme: theme, //Set te injectedTheme
-  ///       builder: (context) {
-  ///         return MaterialApp(
-  ///           theme: theme.lightTheme, //light theme
-  ///           darkTheme: theme.darkTheme, //dark theme
-  ///           themeMode: theme.themeMode, //theme mode
-  ///           home: HomePage(),
-  ///         );
-  ///       },
-  ///     );
-  ///   }
-  /// }
-  /// ```
-  final InjectedTheme? injectedTheme;
-
-  ///Provide and listen to the [InjectedI18N].
-  ///Example:
-  ///```dart
-  ///import 'package:flutter_localizations/flutter_localizations.dart';
-  ///
-  ///class MyApp extends StatelessWidget {
-  ///  // This widget is the root of your application.
-  ///  @override
-  ///  Widget build(BuildContext context) {
-  ///    return TopAppWidget(
-  ///      //Provide and listen to i18n state
-  ///      injectedI18N: i18n,
-  ///      //If the translation is obtained asynchronously, we must define
-  ///      //the onWaiting widget.
-  ///      onWaiting: () =>  Scaffold(
-  ///          body: Center(
-  ///            child: CircularProgressIndicator(),
-  ///          ),
-  ///      ),
-  ///      builder: (context) {
-  ///        return MaterialApp(
-  ///          //Defining locale, localeResolutionCallback and localizationsDelegates
-  ///          //is more than enough for the app to get the right locale.
-  ///          locale: i18n.locale,
-  ///          localeResolutionCallback: i18n.localeResolutionCallback,
-  ///          localizationsDelegates: i18n.localizationsDelegates,
-  ///
-  ///          //For more elaborate locale resolution algorithm use
-  ///          //supportedLocales and localeListResolutionCallback.
-  ///          // supportedLocales: i18n.supportedLocales,
-  ///          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
-  ///          //   //your algorithm
-  ///          //   } ,
-  ///          home: const HomePage(),//Notice const here
-  ///        );
-  ///      },
-  ///    );
-  ///  }
-  ///}
-  ///```
-  final InjectedI18N? injectedI18N;
-  // final InjectedAuth? injectedAuth;
-
   ///Widget (Splash Screen) to display while it is waiting for dependencies to
   ///initialize.
   final Widget Function()? _onWaiting;
@@ -156,8 +84,6 @@ class TopAppWidget extends TopStatelessWidget {
   const TopAppWidget({
     Key? key,
     Function(AppLifecycleState)? didChangeAppLifecycleState,
-    this.injectedTheme,
-    this.injectedI18N,
     Widget Function()? onWaiting,
     List<Future> Function()? ensureInitialization,
     Widget Function(dynamic error, void Function() refresh)? onError,
@@ -176,7 +102,6 @@ class TopAppWidget extends TopStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    injectedI18N?.locale;
     return builder(context);
   }
 }

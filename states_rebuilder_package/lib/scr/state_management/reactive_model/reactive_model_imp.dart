@@ -115,7 +115,6 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     }
 
     if (debounceDelay > 0) {
-      subscription?.cancel();
       _debounceTimer?.cancel();
       _debounceTimer = Timer(
         Duration(milliseconds: debounceDelay),

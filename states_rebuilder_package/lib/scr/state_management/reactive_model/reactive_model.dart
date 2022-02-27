@@ -160,6 +160,10 @@ abstract class ReactiveModel<T> with IObservable<T> {
   StreamSubscription? subscription;
   @override
   dynamic get error => snapState.snapError?.error;
+  @override
+  dispose() {
+    subscription?.cancel();
+  }
 
   ///Mutate the state of the model and notify observers.
   ///

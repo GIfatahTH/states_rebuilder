@@ -31,9 +31,7 @@ part of '../rm.dart';
 ///    Widget build(BuildContext context) {
 ///      return MaterialApp(
 ///        //
-///        theme: themeRM.lightTheme, //light theme
-///        darkTheme: themeRM.darkTheme, //dark theme
-///        themeMode: themeRM.themeMode, //theme mode
+///        theme: themeRM.activeTheme(),
 ///        //
 ///        locale: i18nRM.locale,
 ///        localeResolutionCallback: i18nRM.localeResolutionCallback,
