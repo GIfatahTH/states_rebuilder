@@ -46,59 +46,59 @@ void main() {
     expect(find.text('Email : mail@'), findsOneWidget);
   });
 
-  testWidgets('password validation', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+  // testWidgets('password validation', (WidgetTester tester) async {
+  //   await tester.pumpWidget(const MyApp());
 
-    expect(find.text('A valid password must contains as least 6 characters'),
-        findsNothing);
-    expect(
-        find.text(
-            'password : A valid password must contains as least 6 characters'),
-        findsNothing);
+  //   expect(find.text('A valid password must contains as least 6 characters'),
+  //       findsNothing);
+  //   expect(
+  //       find.text(
+  //           'password : A valid password must contains as least 6 characters'),
+  //       findsNothing);
 
-    //Non valid password
-    await tester.enterText(passwordTextField, 'pas');
-    await tester.pump();
-    expect(find.text('A valid password must contains as least 6 characters'),
-        findsOneWidget);
-    expect(
-        find.text(
-            'password : A valid password must contains as least 6 characters'),
-        findsOneWidget);
+  //   //Non valid password
+  //   await tester.enterText(passwordTextField, 'pas');
+  //   await tester.pump();
+  //   expect(find.text('A valid password must contains as least 6 characters'),
+  //       findsOneWidget);
+  //   expect(
+  //       find.text(
+  //           'password : A valid password must contains as least 6 characters'),
+  //       findsOneWidget);
 
-    //valid password
-    await tester.enterText(passwordTextField, 'password');
-    await tester.pump();
-    expect(find.text('A valid password must contains as least 6 characters'),
-        findsNothing);
-    expect(find.text('password : password'), findsOneWidget);
-  });
+  //   //valid password
+  //   await tester.enterText(passwordTextField, 'password');
+  //   await tester.pump();
+  //   expect(find.text('A valid password must contains as least 6 characters'),
+  //       findsNothing);
+  //   expect(find.text('password : password'), findsOneWidget);
+  // });
 
-  testWidgets('active login button', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+  // testWidgets('active login button', (WidgetTester tester) async {
+  //   await tester.pumpWidget(const MyApp());
 
-    //before tapping login button is inactive
-    expect(activeLoginButton, findsNothing);
+  //   //before tapping login button is inactive
+  //   expect(activeLoginButton, findsNothing);
 
-    //Non valid email and valid password
-    await tester.enterText(emailTextField, 'mail');
-    await tester.enterText(passwordTextField, 'password');
-    await tester.pump();
-    //login button is inactive
-    expect(activeLoginButton, findsNothing);
+  //   //Non valid email and valid password
+  //   await tester.enterText(emailTextField, 'mail');
+  //   await tester.enterText(passwordTextField, 'password');
+  //   await tester.pump();
+  //   //login button is inactive
+  //   expect(activeLoginButton, findsNothing);
 
-    //valid email and non valid password
-    await tester.enterText(emailTextField, 'mail@');
-    await tester.enterText(passwordTextField, 'pa');
-    await tester.pump();
-    //login button is inactive
-    expect(activeLoginButton, findsNothing);
+  //   //valid email and non valid password
+  //   await tester.enterText(emailTextField, 'mail@');
+  //   await tester.enterText(passwordTextField, 'pa');
+  //   await tester.pump();
+  //   //login button is inactive
+  //   expect(activeLoginButton, findsNothing);
 
-    //valid email and password
-    await tester.enterText(emailTextField, 'mail@');
-    await tester.enterText(passwordTextField, 'password');
-    await tester.pump();
-    //login button is active
-    expect(activeLoginButton, findsOneWidget);
-  });
+  //   //valid email and password
+  //   await tester.enterText(emailTextField, 'mail@');
+  //   await tester.enterText(passwordTextField, 'password');
+  //   await tester.pump();
+  //   //login button is active
+  //   expect(activeLoginButton, findsOneWidget);
+  // });
 }
