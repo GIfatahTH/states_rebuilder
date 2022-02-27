@@ -1,4 +1,4 @@
-## 6.0.0-dev-1 (2022-02-26)
+## 6.0.0 (2022-02-27)
   * Remove deprecated API
   * Refactor internal code
   * Add `OnBuilder.createFuture` and `OnBuilder.createStream` widgets.
