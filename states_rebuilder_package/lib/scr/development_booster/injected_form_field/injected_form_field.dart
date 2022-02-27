@@ -188,34 +188,34 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
   }
 
   void linkToForm() {
-    if (!_formIsSet) {
-      form ??= InjectedFormImp._currentInitializedForm;
-      if (form != null) {
-        _formIsSet = true;
-        formFieldDisposer = (form as InjectedFormImp).addTextFieldToForm(this);
+    if (_formIsSet) return;
 
-        if (form!.autovalidateMode == AutovalidateMode.always) {
-          //When initialized and always auto validated, then validate in the next
-          //frame
-          WidgetsBinding.instance!.addPostFrameCallback(
-            (timeStamp) {
-              form!.validate();
-            },
-          );
-        } else {
-          if (_validateOnLoseFocus == null && _validateOnValueChange != true) {
-            //If the TextField is inside a On.form, set _validateOnLoseFocus to
-            //true if it is not
-            _validateOnLoseFocus = true;
-            if (!_isValidOnLoseFocusDefined) {
-              _listenToFocusNodeForValidation();
-            }
+    form ??= InjectedFormImp._currentInitializedForm;
+    if (form != null) {
+      _formIsSet = true;
+      formFieldDisposer = (form as InjectedFormImp).addTextFieldToForm(this);
+
+      if (form!.autovalidateMode == AutovalidateMode.always) {
+        //When initialized and always auto validated, then validate in the next
+        //frame
+        WidgetsBinding.instance!.addPostFrameCallback(
+          (timeStamp) {
+            form!.validate();
+          },
+        );
+      } else {
+        if (_validateOnLoseFocus == null && _validateOnValueChange != true) {
+          //If the TextField is inside a On.form, set _validateOnLoseFocus to
+          //true if it is not
+          _validateOnLoseFocus = true;
+          if (!_isValidOnLoseFocusDefined) {
+            _listenToFocusNodeForValidation();
           }
         }
       }
     }
 
-    // _removeFromInjectedList = addToInjectedModels(this);//TODO
+    // _removeFromInjectedList = addToInjectedModels(this);
     if (_validator == null) {
       //If the field is not validate then set its snapshot to hasData, so that
       //in the [InjectedForm.isValid] consider it as a valid field

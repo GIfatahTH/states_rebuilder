@@ -426,11 +426,13 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
     final InputDecoration effectiveDecoration =
         inputDecoration!.applyDefaults(themeData.inputDecorationTheme);
     return effectiveDecoration.copyWith(
+      // isCollapsed: true,
+      isDense: true,
       enabled: listenTo.isEnabled,
       errorText: listenTo.error,
       border: enableBorder ? effectiveDecoration.border : InputBorder.none,
-      errorBorder:
-          enableBorder ? effectiveDecoration.errorBorder : InputBorder.none,
+      errorBorder: inputDecoration?.errorBorder ??
+          (enableBorder ? effectiveDecoration.errorBorder : InputBorder.none),
       enabledBorder:
           enableBorder ? effectiveDecoration.enabledBorder : InputBorder.none,
       focusedBorder:
@@ -459,6 +461,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
 
           child = InputDecorator(
             decoration: _getEffectiveDecoration(context),
+
             baseStyle: style,
             textAlign: TextAlign.start,
             // textAlignVertical: textAlignVertical,
@@ -476,7 +479,6 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
             }(),
             isEmpty: listenTo.value == null,
             expands: false,
-
             child: GestureDetector(
               onTapDown: (_) {
                 FocusScope.of(context).unfocus();
