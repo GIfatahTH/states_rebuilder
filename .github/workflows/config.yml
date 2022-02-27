@@ -49,6 +49,12 @@ jobs:
           cd ex008_00_app_i18n_i10n && flutter test
         working-directory: ./examples
       - run: |
+          cd ex009_00_animation && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex010_00_form_fields && flutter test
+        working-directory: ./examples
+      - run: |
           cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
         working-directory: ./examples/others
       - run: |
