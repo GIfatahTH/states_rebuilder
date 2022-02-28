@@ -66,9 +66,13 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
   <br /><b> Description: </b>
   This example will show you how to easily build up a redirection guard when auth status is invalid, it is all done by a tiny API `InjectedNavigator.onNavigate`.
   
-- [10: Pop Validation & Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation/lib/ex10_on_back_navigation.dart)
+- [10-a: Pop Validation & Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation/lib/ex10_on_global_back_navigation.dart)
   <br /><b> Description: </b>
-  This example will show you how to prevent leaving from a page without validating its data.
+  This example will show you how to prevent leaving from a page without validating its data. Here the back navigation guard is done globally.
+
+- [10-b: Pop Validation & Navigation Guard](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation/lib/ex10_on_local_back_navigation.dart)
+  <br /><b> Description: </b>
+  This example will show you how to prevent leaving from a page without validating its data. Here the back navigation guard is done locally using `OnBackNavigationScope` widget.
 
   
 - [11: Tailor-made Page Transition Animation (Basic)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation/lib/ex10_on_back_navigation.dart)

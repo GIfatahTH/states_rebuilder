@@ -537,7 +537,7 @@ OnReactive(
 
 - [🔍 See more detailed information about OnReactive API](https://github.com/GIfatahTH/states_rebuilder/wiki/on_reactive_api).
 
-- [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_2_flutter_default_counter_app_with_functional_injection).
+- [**Here is an example demonstrating the basic ideas**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_001_2_flutter_default_counter_app_with_functional_injection).
 
 </br>
 
@@ -722,7 +722,7 @@ To Persist the state and retrieve it when the app restarts,
 
 - [🔍 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
 
-- [**Here is an example of state persistence**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_3_state_persistence).
+- [**Here is an example of state persistence**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_001_3_state_persistence).
 
 </br>
 
@@ -737,7 +737,7 @@ Note: you should first set `undoStackLength:` from RM.inject
 
   [🔍 See more detailed information about undo redo state](https://github.com/GIfatahTH/states_rebuilder/wiki/undo_redo_api).
 
-- [**Here is an example on how to undo and redo the state**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_001_4_undo_redo_state).
+- [**Here is an example on how to undo and redo the state**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_001_4_undo_redo_state).
 
 </br>
 
@@ -931,7 +931,7 @@ To navigate to pageless routes, show dialogs and snackBars without `BuildContext
 
   - [🔍 See more detailed information about `InjectCRUD`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_crud_api).
 
-  - [**Here is a working example of a CRUD app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_1_crud_app).
+  - [**Here is a working example of a CRUD app**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex005_00_crud_operations).
 
 ## Authentication and authorization
 
@@ -962,7 +962,7 @@ To authenticate and authorize users,
 
 - [🔍 See more detailed information about `InjectAuth`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_auth_api).
 
-- [**Here is a typical auth app**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_008_clean_architecture_firebase_login).
+- [**Here is a typical auth app**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex006_00_authentication_and_authorization).
 
 ## Dynamic theme switching
 
@@ -992,7 +992,7 @@ To dynamically switch themes,
 
 - [🔍 See more detailed information about `InjectedTheme`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_theme_api).
 
-- [**Here is an example on dynamic theming**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
+- [**Here is an example on dynamic theming**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_005_theme_switching).
 
 ## App internationalization and localization
 
@@ -1036,9 +1036,9 @@ To internationalize and localize your app:
 
 - [🔍 See more detailed information about InjectedI18N](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_i18n_api).
 
-- [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_theme_switching).
+- [**Here is an example on app internationalization**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_005_theme_switching).
 
-- [**Here is an example on app internationalization using ARB files**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_005_1_internationalization_using_arb).
+- [**Here is an example on app internationalization using ARB files**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_005_1_internationalization_using_arb).
 
 </br>
 
@@ -1088,7 +1088,7 @@ To internationalize and localize your app:
 
 - [🔍 See more detailed information about `InjectedAnimation`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_animation_api).
 
-- [**Here are many show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_3_animation).
+- [**Here are many show cases of implicit and explicit animation**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_006_3_animation).
 
 </br>
 
@@ -1311,7 +1311,7 @@ To deal with TextFields and Form validation
 
 - [🔍 See more detailed information about `InjectedTabPageView`](https://github.com/GIfatahTH/states_rebuilder/wiki/injected_tab_page_view_api).
 
-- [**Here are many show cases of tabs and pages**](https://github.com/GIfatahTH/states_rebuilder/blob/master/examples/ex_006_4_page_and_tab_views).
+- [**Here are many show cases of tabs and pages**](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/others/ex_006_4_page_and_tab_views).
 
 ## Test and injected state mocking
 
@@ -1347,12 +1347,12 @@ Get the foundation of state management from very basic to more advanced concepts
 
 Based on state management principles and some good programing principles and abstraction techniques, I created dedication injected state to automatize the most repetitive tasks a developer do.
 
-* Create, Read, Update and delete (CRUD) from a list of items; 
-* Authentication and authorization;
-* App theming;
-* App localization and internationalization;
-* Animation;
-* Form fields and form validation;
+* [Create, Read, Update and delete (CRUD) from a list of items](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex005_00_crud_operations); 
+* [Authentication and authorization](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex006_00_authentication_and_authorization);
+* [App theme management](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex007_00_app_theme_management);
+* [App localization and internationalization](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex008_00_app_i18n_i10n);
+* [Animation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex009_00_animation);
+* [Form fields and form validation](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex010_00_form_fields);
 * Working with scrolling list views;
 * Pages and tab views;
 

@@ -136,10 +136,9 @@ class Home extends ReactiveStatelessWidget {
             if (i > 0) const Divider(height: 0),
             // initialize the local states
             TodosViewModel.currentTodo.inherited(
+              key: ValueKey(todos[i]),
               stateOverride: () {
-                // It important to calculate the the todo item from the state of
-                // _todosRM.
-                return todosViewModel.todos[i];
+                return todos[i];
               },
               // setting that the local created state will notify the global
               // state currentTodo.
@@ -186,7 +185,7 @@ class Toolbar extends ReactiveStatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 15),
             // OnBuilder.create creates an Injected state and expose it to its child
             child: OnBuilder<bool>.create(
-              create: () => todosViewModel.isAllCompleted.inj(),
+              creator: () => todosViewModel.isAllCompleted,
               builder: (rm) {
                 // As OnBuilder screens its children from ReactiveStateless
                 // we add OnReactive widget here

@@ -6,19 +6,15 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() async {
   final localStorage = await RM.storageInitializerMock();
 
-  setUp(
-    () {
-      counterRM.injectFutureMock(
-        () => Future.delayed(const Duration(seconds: 1), () => 100),
-      );
-    },
-  );
   testWidgets(
     'WHEN app first starts, '
     'THEN the future is triggered and '
     'AND WHEN the future resolves'
     'THEN the date is stored',
     (tester) async {
+      counterRM.injectFutureMock(
+        () => Future.delayed(const Duration(seconds: 1), () => 100),
+      );
       await tester.pumpWidget(const MyApp());
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();

@@ -115,7 +115,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends ReactiveStatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
   @override
-  void didMountWidget() {
+  void didMountWidget(context) {
     counterViewModel.init();
   }
 

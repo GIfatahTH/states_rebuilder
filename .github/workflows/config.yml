@@ -31,33 +31,54 @@ jobs:
           cd ex002_00_async_global_and_local_state && flutter test
         working-directory: ./examples
       - run: |
+          cd ex003_00_dependent_state_management && flutter test
+        working-directory: ./examples
+      - run: |
           cd ex004_00_navigation && flutter test
         working-directory: ./examples
       - run: |
-          cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
+          cd ex005_00_crud_operations && flutter test
         working-directory: ./examples
+      - run: |
+          cd ex006_00_authentication_and_authorization && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex007_00_app_theme_management && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex008_00_app_i18n_i10n && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex009_00_animation && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex010_00_form_fields && flutter test
+        working-directory: ./examples
+      - run: |
+          cd ex_001_2_flutter_default_counter_app_with_functional_injection && flutter test
+        working-directory: ./examples/others
       - run: |
           cd ex_002_2_form_validation_with_reactive_model_with_functional_injection && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       - run: |
           cd ex_004_2_countdown_timer_with_functional_injection && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       - run: |
           cd ex_005_theme_switching && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       - run: |
           cd ex_006_1_crud_app && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
 
       - run: |
           cd ex_007_2_clean_architecture_dane_mackier_app_with_fi && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       - run: |
           cd ex_008_clean_architecture_firebase_login && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       - run: |
           cd ex_009_1_4_ca_todo_mvc_with_state_persistence_and_user_auth && flutter test
-        working-directory: ./examples
+        working-directory: ./examples/others
       # - run: cd examples/ex_000_hello_world && flutter test
       # - run: cd examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi && flutter test
       # - run: cd examples/ex_009_1_2_ca_todo_mvc_cloud_firestore_immutable_with_fi && flutter test

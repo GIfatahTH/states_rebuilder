@@ -15,7 +15,6 @@ class RefreshWidget extends StatelessWidget {
     return SizedBox(
       height: 40,
       child: OnBuilder.create(
-        create: () => RM.inject<void>(() {}),
         builder: (rm) {
           return rm.onOrElse(
             onWaiting: () => Row(

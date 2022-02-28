@@ -96,7 +96,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: OnBuilder<String>.create(
-        create: () => ''.inj(),
+        creator: () => '',
         builder: (rm) {
           return Padding(
             padding: const EdgeInsets.all(24.0),
