@@ -525,6 +525,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         }
       },
       onError: (e, s) {
+        if (e is Error) {
+          StatesRebuilerLogger.log('', e, s);
+          throw e;
+        }
         middleSetState(
           StateStatus.hasError,
           SnapError(
