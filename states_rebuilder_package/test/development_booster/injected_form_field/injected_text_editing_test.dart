@@ -1429,6 +1429,47 @@ void main() {
   );
 
   testWidgets(
+    'issue 256',
+    (tester) async {
+      final form = RM.injectForm(
+        isEnabled: false,
+      );
+      final field = RM.injectTextEditing(
+        text: '0',
+        // isEnabled: false,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return TextField(
+                enabled: field.isEnabled,
+                controller: field.controller,
+                focusNode: field.focusNode,
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      final isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+      expect(isEnabled, findsNothing);
+      //
+      field.isEnabled = true;
+      await tester.pump();
+      expect(isEnabled, findsOneWidget);
+      //
+      field.isEnabled = false;
+      await tester.pump();
+      expect(isEnabled, findsNothing);
+    },
+  );
+
+  testWidgets(
     '# issue 241',
     (tester) async {
       final pwdInj = RM.injectTextEditing(autoDispose: true); // <-

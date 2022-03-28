@@ -83,14 +83,10 @@ abstract class InjectedFormField<T> implements IObservable<T> {
   bool get isDirty;
 
   /// If true the [TextField] is clickable and selectable but not editable.
-  late bool isReadOnly;
-  late bool _isEnabled;
+  bool isReadOnly = false;
 
   /// If false the associated [TextField] is disabled.
-  bool get isEnabled {
-    ReactiveStatelessWidget.addToObs?.call(this as ReactiveModelImp);
-    return _isEnabled;
-  }
+  bool isEnabled = true;
 
   void _canChildRequestFocus(
     Iterable<FocusNode>? children,
@@ -111,11 +107,6 @@ abstract class InjectedFormField<T> implements IObservable<T> {
     } catch (e) {
       rethrow;
     }
-  }
-
-  set isEnabled(bool val) {
-    _isEnabled = val;
-    (this as ReactiveModel).notify();
   }
 }
 
@@ -177,19 +168,59 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     final _isEnabled = (form as InjectedFormImp)._isEnabled;
     if (_isEnabled != null) {
       this._isEnabled = _isEnabled;
-      (form as InjectedFormImp?)?._isEnabled = null;
+      // (form as InjectedFormImp?)?._isEnabled = null;
     } else {
-      this._isEnabled = _initialIsEnabled;
+      // this._isEnabled = _initialIsEnabled;
     }
     if (_isEnabled != true) {
       final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
       if (isReadOnly != null) {
         this.isReadOnly = isReadOnly;
       } else {
-        this.isReadOnly = _initialIsReadOnly;
+        // this.isReadOnly = _initialIsReadOnly;
       }
     }
     return snapValue.state;
+  }
+
+  @override
+  bool get isEnabled {
+    ReactiveStatelessWidget.addToObs?.call(this);
+    getState;
+    if (_isEnabled != null) {
+      return _isEnabled!;
+    }
+    final isFormEnabled = (form as InjectedFormImp?)?._isEnabled;
+    if (isFormEnabled != null) {
+      return isFormEnabled;
+    }
+    return true;
+  }
+
+  @override
+  set isEnabled(bool? val) {
+    _isEnabled = val;
+    notify();
+  }
+
+  @override
+  bool get isReadOnly {
+    ReactiveStatelessWidget.addToObs?.call(this);
+    getState;
+    if (_isReadOnly != null) {
+      return _isReadOnly!;
+    }
+    final isFormReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+    if (isFormReadOnly != null) {
+      return isFormReadOnly;
+    }
+    return false;
+  }
+
+  @override
+  set isReadOnly(bool? val) {
+    _isReadOnly = val;
+    notify();
   }
 
   void linkToForm() {

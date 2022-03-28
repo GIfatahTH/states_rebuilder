@@ -1461,8 +1461,8 @@ abstract class RM {
     bool? validateOnTyping,
     bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
     bool autoDispose = true,
   }) {
     return InjectedTextEditingImp(
@@ -1522,6 +1522,8 @@ abstract class RM {
     @Deprecated('Use submissionSideEffects') void Function()? onSubmitted,
     SideEffects? submissionSideEffects,
     Future<void> Function()? submit,
+    bool? isEnabled,
+    bool? isReadOnly, //TODO document
     // void Function(dynamic, void Function())? onSubmissionError,
   }) {
     return InjectedFormImp(
@@ -1541,6 +1543,8 @@ abstract class RM {
         },
       ),
       submit: submit,
+      isEnabled: isEnabled,
+      isReadOnly: isReadOnly,
     );
   }
 

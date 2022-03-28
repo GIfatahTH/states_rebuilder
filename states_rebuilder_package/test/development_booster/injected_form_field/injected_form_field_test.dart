@@ -446,7 +446,67 @@ void main() {
       expect(_isEnabled, findsNWidgets(0));
       expect(text.isEnabled, false);
       //
-      isEnabled.state = null;
+      isEnabled.state = true;
+      await tester.pump();
+      expect(_isEnabled, findsNWidgets(2));
+      expect(text.isEnabled, true);
+    },
+  );
+
+  testWidgets(
+    'enable and disable form',
+    (tester) async {
+      final form = RM.injectForm(
+        isEnabled: false,
+      );
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormFieldBuilder<bool>(
+                    listenTo: check,
+                    builder: (val, onChanged) {
+                      return CheckboxListTile(
+                        value: val,
+                        onChanged: onChanged,
+                        title: Text(''),
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      final _isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+
+      await tester.pumpWidget(widget);
+      expect(_isEnabled, findsNWidgets(0));
+      expect(text.isEnabled, false);
+      form.isFormEnabled = true;
+      await tester.pump();
+      expect(_isEnabled, findsNWidgets(2));
+      expect(text.isEnabled, true);
+      //
+      form.isFormEnabled = false;
+      await tester.pump();
+      expect(_isEnabled, findsNWidgets(0));
+      expect(text.isEnabled, false);
+      //
+      form.isFormEnabled = true;
       await tester.pump();
       expect(_isEnabled, findsNWidgets(2));
       expect(text.isEnabled, true);
@@ -503,6 +563,54 @@ void main() {
   );
 
   testWidgets(
+    'Toggle from readOnly',
+    (tester) async {
+      final form = RM.injectForm(
+        isReadOnly: true,
+      );
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormFieldBuilder<bool>(
+                    listenTo: check,
+                    builder: (val, onChanged) {
+                      return CheckboxListTile(
+                        value: val,
+                        onChanged: onChanged,
+                        title: Text(''),
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+
+      expect(text.isReadOnly, true);
+      expect(check.isReadOnly, true);
+      form.isFormReadOnly = false;
+      await tester.pump();
+      expect(text.isReadOnly, false);
+      expect(check.isReadOnly, false);
+    },
+  );
+
+  testWidgets(
     'disable input fields when form is submitting',
     (tester) async {
       final text = RM.injectTextEditing();
@@ -520,6 +628,72 @@ void main() {
           body: OnFormBuilder(
             listenTo: form,
             isEnabledRM: isEnabled,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormFieldBuilder<bool>(
+                    listenTo: check,
+                    builder: (val, onChanged) {
+                      return CheckboxListTile(
+                        value: val,
+                        onChanged: onChanged,
+                        title: Text(''),
+                      );
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      final _isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+
+      await tester.pumpWidget(widget);
+      expect(_isEnabled, findsNWidgets(2));
+      expect(text.isEnabled, true);
+      expect(check.isEnabled, true);
+      //
+      form.submit();
+      await tester.pump();
+      expect(_isEnabled, findsNWidgets(0));
+      expect(text.isEnabled, false);
+      expect(check.isEnabled, false);
+      await tester.pump(500.milliseconds);
+      expect(_isEnabled, findsNWidgets(0));
+      expect(text.isEnabled, false);
+      expect(check.isEnabled, false);
+      await tester.pump(500.milliseconds);
+      expect(_isEnabled, findsNWidgets(2));
+      expect(text.isEnabled, true);
+      expect(check.isEnabled, true);
+    },
+  );
+
+  testWidgets(
+    'disable input fields when form is submitting using form.isFormEnabled',
+    (tester) async {
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      late final InjectedForm form;
+      form = RM.injectForm(
+        submissionSideEffects: SideEffects.onOrElse(
+          onWaiting: () => form.isFormEnabled = false,
+          orElse: (_) => form.isFormEnabled = true,
+        ),
+        submit: () => Future.delayed(1.seconds),
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
             builder: () {
               return Column(
                 children: [
@@ -623,16 +797,81 @@ void main() {
       //
       form.submit();
       await tester.pump();
-      expect(text.isReadOnly, false);
+      expect(text.isReadOnly, true);
       expect(check.isReadOnly, true);
       await tester.pump(500.milliseconds);
-      expect(text.isReadOnly, false);
+      expect(text.isReadOnly, true);
       expect(check.isReadOnly, true);
       await tester.pump(500.milliseconds);
       expect(text.isReadOnly, false);
       expect(check.isReadOnly, false);
     },
   );
+
+  testWidgets(
+    'readOnly input fields when form is submitting'
+    'Case nested OnFormBuilder using form.isFormReadOnly',
+    (tester) async {
+      final text = RM.injectTextEditing();
+      final check = RM.injectFormField(true);
+      late final InjectedForm form;
+      form = RM.injectForm(
+        submissionSideEffects: SideEffects.onOrElse(
+          onWaiting: () => form.isFormReadOnly = true,
+          orElse: (_) => form.isFormReadOnly = false,
+        ),
+        submit: () => Future.delayed(1.seconds),
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return Column(
+                children: [
+                  TextField(
+                    controller: text.controller,
+                    enabled: text.isEnabled,
+                    readOnly: text.isReadOnly,
+                  ),
+                  OnFormBuilder(
+                      listenTo: form,
+                      builder: () {
+                        return OnFormFieldBuilder<bool>(
+                          listenTo: check,
+                          builder: (val, onChanged) {
+                            return CheckboxListTile(
+                              value: val,
+                              onChanged: onChanged,
+                              title: Text(''),
+                            );
+                          },
+                        );
+                      })
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      expect(text.isReadOnly, false);
+      expect(check.isReadOnly, false);
+      //
+      form.submit();
+      await tester.pump();
+      expect(text.isReadOnly, true);
+      expect(check.isReadOnly, true);
+      await tester.pump(500.milliseconds);
+      expect(text.isReadOnly, true);
+      expect(check.isReadOnly, true);
+      await tester.pump(500.milliseconds);
+      expect(text.isReadOnly, false);
+      expect(check.isReadOnly, false);
+    },
+  );
+
   testWidgets(
     'issue 238',
     (tester) async {

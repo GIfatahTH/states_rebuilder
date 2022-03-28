@@ -140,8 +140,8 @@ abstract class InjectedTextEditing implements IObservable<String> {
   ///     readOnly: myText.isReadOnly,
   ///   )
   /// ```
-  late bool isReadOnly;
-  late bool _isEnabled;
+  ///
+  bool isReadOnly = false;
 
   /// If false the associated [TextField] is disabled.
   ///
@@ -153,15 +153,7 @@ abstract class InjectedTextEditing implements IObservable<String> {
   ///     enabled: myText.isEnabled,
   ///   )
   /// ```
-  bool get isEnabled {
-    ReactiveStatelessWidget.addToObs?.call(this as ReactiveModelImp);
-    return _isEnabled;
-  }
-
-  set isEnabled(bool val) {
-    _isEnabled = val;
-    (this as ReactiveModel).notify();
-  }
+  bool isEnabled = true;
 }
 
 /// InjectedTextEditing implementation
@@ -176,8 +168,8 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
     this.autoDispose = true,
     this.onTextEditing,
     bool? validateOnLoseFocus,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
   })  : _composing = composing,
         _selection = selection,
         super(
@@ -198,7 +190,7 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
       _validator = validator;
       _validateOnValueChange = validateOnTyping;
       _focusNode = null;
-      this.isReadOnly = _initialIsReadOnly = isReadOnly;
+      _isReadOnly = _initialIsReadOnly = isReadOnly;
       _isEnabled = _initialIsEnabled = isEnabled;
       isDirty = false;
       _initialIsDirtyText = text;
@@ -218,8 +210,8 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
 
   ///Remove this InjectedTextEditing from the associated InjectedForm,
   late VoidCallback? formTextFieldDisposer;
-  late bool _initialIsEnabled;
-  late bool _initialIsReadOnly;
+  late bool? _initialIsEnabled;
+  late bool? _initialIsReadOnly;
 
   //
   late final VoidCallback _resetDefaultState;
@@ -261,22 +253,7 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
         }
       }
     }
-    if (form != null) {
-      final _isEnabled = (form as InjectedFormImp?)?._isEnabled;
-      if (_isEnabled != null) {
-        this._isEnabled = _isEnabled;
-      } else {
-        this._isEnabled = _initialIsEnabled;
-      }
-      if (_isEnabled != true) {
-        final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
-        if (isReadOnly != null) {
-          this.isReadOnly = isReadOnly;
-        } else {
-          this.isReadOnly = _initialIsReadOnly;
-        }
-      }
-    }
+
     if (_controller != null) {
       value; // fix issue 241
       return _controller!;
@@ -329,6 +306,55 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
     });
 
     return _controller!;
+  }
+
+  @override
+  bool get isEnabled {
+    ReactiveStatelessWidget.addToObs?.call(this);
+
+    controller;
+    if (_isEnabled != null) {
+      return _isEnabled!;
+    }
+    final isFormEnabled = (form as InjectedFormImp?)?._isEnabled;
+    if (isFormEnabled != null) {
+      return isFormEnabled;
+    }
+
+    return true;
+  }
+
+  @override
+  set isEnabled(bool? val) {
+    _isEnabled = val;
+    notify();
+  }
+
+  @override
+  bool get isReadOnly {
+    ReactiveStatelessWidget.addToObs?.call(this);
+    controller;
+    if (_isReadOnly != null) {
+      return _isReadOnly!;
+    }
+    final isFormReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+    if (isFormReadOnly != null) {
+      return isFormReadOnly;
+    }
+    return false;
+  }
+
+  @override
+  set isReadOnly(bool? val) {
+    _isReadOnly = val;
+    notify();
+  }
+
+  @override
+  void reset() {
+    _isEnabled = _initialIsEnabled;
+    _isReadOnly = _initialIsReadOnly;
+    super.reset();
   }
 
   @override
