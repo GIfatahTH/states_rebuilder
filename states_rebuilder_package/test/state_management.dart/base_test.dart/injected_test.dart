@@ -1071,4 +1071,25 @@ void main() {
       expect(numberOfBuildCall, 2);
     },
   );
+
+  testWidgets(
+    'dispose a injectedFuture/Stream model while is waiting to init',
+    (tester) async {
+      final model = RM.injectStream(
+        () => Future.delayed(
+          const Duration(seconds: 1),
+        ).asStream(),
+      );
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      model.dispose();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.hasData, true);
+    },
+  );
 }

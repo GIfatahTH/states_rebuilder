@@ -575,7 +575,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   @override
   void dispose() {
-    if (_snapState.oldSnapState == null) {
+    if (!isInitialized) {
       return;
     }
     if (cachedCreatorMocks.length > 1) {
