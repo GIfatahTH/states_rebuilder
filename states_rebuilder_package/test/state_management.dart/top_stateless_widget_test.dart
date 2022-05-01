@@ -308,6 +308,31 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Data'), findsOneWidget);
   });
+
+  testWidgets('TopAppWidget error when errorScreen is not defined',
+      (tester) async {
+    _builder = (ctx) {
+      return const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Text('Data'),
+      );
+    };
+    _onWaiting = const Directionality(
+      textDirection: TextDirection.ltr,
+      child: Text('Waiting...'),
+    );
+    _ensureInitialization = () => [
+          Future.delayed(
+            const Duration(seconds: 1),
+            () => throw Exception('Error'),
+          ),
+        ];
+
+    await tester.pumpWidget(const _TopAppWidget1());
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.takeException(), isException);
+  });
   testWidgets(
     'TopStatelessWidget register to a ReactiveModel',
     (tester) async {
