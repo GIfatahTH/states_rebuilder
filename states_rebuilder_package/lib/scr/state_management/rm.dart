@@ -1515,6 +1515,14 @@ abstract class RM {
   ///
   /// See [OnFormBuilder.isEnabledRM] for an example of disabling a inputs
   /// while waiting for the form submission.
+  ///
+  /// ### `isEnabled`: Optional bool.
+  /// When false all form fields are desabled at start up. To enable or disable
+  /// form field at runtime use [InjectedForm.isFormEnabled].
+  ///
+  /// ### `isReadOnly`: Optional bool.
+  /// When false all form fields are read only at start up. To toggle the
+  /// read-only property of fields use [InjectedForm.isFormReadOnly].
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
