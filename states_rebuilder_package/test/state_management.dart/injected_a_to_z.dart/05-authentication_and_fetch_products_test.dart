@@ -90,9 +90,9 @@ class AuthService {
 }
 
 class ProductService {
-  final IProductRepository _productRepository;
+  IProductRepository get _productRepository => productRepository.state;
 
-  ProductService(this._productRepository);
+  ProductService();
   List<Product> products = [];
   Future<List<Product>> getProducts() async {
     products = await _productRepository.getProducts();
@@ -136,8 +136,8 @@ final productRepository = RM.inject<IProductRepository>(
 
 //Inject Product Service
 final productService = RM.inject<ProductService>(
-  () => ProductService(productRepository.state),
-  dependsOn: DependsOn({productRepository}),
+  () => ProductService(),
+  // dependsOn: DependsOn({productRepository}),
   // debugPrintWhenNotifiedPreMessage: '',
   // toDebugString: (s) => '${s?.products}',
 );

@@ -426,7 +426,7 @@ abstract class RM {
           sideEffects?.initState?.call();
         },
         dispose: () {
-          sideEffects?.initState?.call();
+          sideEffects?.dispose?.call();
         },
         onSetState: (snap) => sideEffects?.onSetState?.call(snap),
         onAfterBuild: () => sideEffects?.onAfterBuild?.call(),

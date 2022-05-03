@@ -56,6 +56,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
+      stackTrace: kDebugMode ? StackTrace.current : null,
     );
   }
 
@@ -80,6 +81,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
+      stackTrace: kDebugMode ? StackTrace.current : null,
     );
   }
 
@@ -95,6 +97,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     int throttleDelay = 0,
   }) {
     initialize();
+    final stackTrace = kDebugMode ? StackTrace.current : null;
     Future<T?> call() {
       final r = setStateNullable(
         (s) {
@@ -107,6 +110,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           stateInterceptor: stateInterceptor,
           shouldOverrideDefaultSideEffects: shouldOverrideDefaultSideEffects,
         ),
+        stackTrace: stackTrace,
       );
       if (r is T?) {
         return Future.value(r);
@@ -141,6 +145,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   FutureOr<T?> setStateNullable(
     Object? Function(T? s) mutator, {
     required void Function(StateStatus, dynamic result) middleSetState,
+    required StackTrace? stackTrace,
   }) {
     try {
       var result = mutator(_snapState.data);
@@ -150,6 +155,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           mutator: mutator,
           asyncResult: result!,
           middleSetState: middleSetState,
+          stackTrace: stackTrace,
         );
         return () async {
           try {
@@ -170,18 +176,22 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       }
       return SynchronousFuture(_snapState.data);
     } catch (e, s) {
-      if (e is Error && e is! UnimplementedError) {
-        rethrow;
-      }
       middleSetState(
         StateStatus.hasError,
         SnapError(
-          error: e,
-          stackTrace: s,
-          refresher: () =>
-              setStateNullable(mutator, middleSetState: middleSetState),
+          error: e is Error && e is! UnimplementedError ? '$e\n$s' : e,
+          stackTrace: stackTrace ?? s,
+          refresher: () => setStateNullable(
+            mutator,
+            middleSetState: middleSetState,
+            stackTrace: stackTrace,
+          ),
         ),
       );
+      if (e is Error && e is! UnimplementedError) {
+        StatesRebuilerLogger.log('', e, stackTrace);
+        rethrow;
+      }
       return SynchronousFuture(_snapState.data);
     }
   }
@@ -419,6 +429,8 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   ///be refreshed also.
   @override
   Future<T?> refresh() async {
+    final stackTrace = kDebugMode ? StackTrace.current : null;
+
     if (!isInitialized) {
       //If refresh is called in non initialized state
       //then just initialize it and return
@@ -432,6 +444,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       setStateNullable(
         (_) => mockableCreator(),
         middleSetState: middleSetCreator,
+        stackTrace: stackTrace,
       );
       if (!isWaitingToInitialize) {
         notify();
@@ -451,6 +464,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   void initialize() {
     if (isInitialized) return;
+    final stackTrace = kDebugMode ? StackTrace.current : null;
     final creator = mockableCreator;
     removeFromReactiveModel = addToActiveReactiveModels(this);
     if (isInitialized) return;
@@ -460,6 +474,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     setStateNullable(
       (_) => creator(),
       middleSetState: middleSetCreator,
+      stackTrace: stackTrace,
     );
     onStateInitialized();
     ReactiveStatelessWidget.addToObs = cachedObs;
@@ -495,6 +510,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     required Object? Function(T? s) mutator,
     required Object asyncResult,
     required void Function(StateStatus, dynamic result) middleSetState,
+    required StackTrace? stackTrace,
   }) {
     Stream stream;
     if (asyncResult is Future) {
@@ -516,6 +532,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           setStateNullable(
             (_) => event(),
             middleSetState: middleSetState,
+            stackTrace: stackTrace,
           );
           return;
         }
@@ -525,21 +542,25 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         }
       },
       onError: (e, s) {
-        if (e is Error) {
-          StatesRebuilerLogger.log('', e, s);
-          throw e;
-        }
         middleSetState(
           StateStatus.hasError,
           SnapError(
-            error: e,
+            error: e is Error ? '$e\n$s' : e,
             stackTrace: s,
-            refresher: () =>
-                setStateNullable(mutator, middleSetState: middleSetState),
+            refresher: () => setStateNullable(
+              mutator,
+              middleSetState: middleSetState,
+              stackTrace: stackTrace,
+            ),
           ),
         );
         if (completer?.isCompleted == false) {
           completer!.complete();
+        }
+
+        if (e is Error) {
+          StatesRebuilerLogger.log('', e, s);
+          throw e;
         }
       },
       onDone: () {

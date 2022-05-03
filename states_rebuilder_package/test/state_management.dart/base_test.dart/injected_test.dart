@@ -1071,4 +1071,56 @@ void main() {
       expect(numberOfBuildCall, 2);
     },
   );
+
+  testWidgets(
+    'dispose a injectedFuture/Stream model while is waiting to init',
+    (tester) async {
+      final model = RM.injectStream(
+        () => Future.delayed(
+          const Duration(seconds: 1),
+        ).asStream(),
+      );
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      model.dispose();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.isWaiting, true);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(model.hasData, true);
+    },
+  );
+  testWidgets(
+    'WHEN error is thrown'
+    'THEN the error getter get the error with the stack',
+    (tester) async {
+      final model = RM.inject(() => 0);
+      dynamic error;
+      try {
+        model.setState((s) => throw ArgumentError());
+      } catch (e, s) {
+        error = '$e\n$s';
+      }
+      expect(model.error, error);
+
+      // error = null;
+      // try {
+      //   model
+      //       .setState(
+      //     (s) => Future.delayed(
+      //       const Duration(seconds: 1),
+      //       () => throw ArgumentError(),
+      //     ),
+      //   )
+      //       .catchError((e, s) {
+      //     error = '$e\n$s';
+      //   });
+      // } catch (e, s) {}
+
+      // await tester.pump(const Duration(seconds: 1));
+      // print(error);
+    },
+  );
 }

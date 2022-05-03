@@ -1360,8 +1360,64 @@ void main() {
   );
 
   testWidgets(
-    'WHEN '
-    ' THEN ',
+    'issue #267',
+    (WidgetTester tester) async {
+      final animation = RM.injectAnimation(
+        duration: const Duration(seconds: 1),
+      );
+      double to = 0;
+      double? width;
+      final inj = false.inj();
+      final widget = OnBuilder(
+        listenTo: inj,
+        builder: () => OnAnimationBuilder(
+          listenTo: animation,
+          builder: (animate) {
+            width = animate(to);
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+      await tester.pumpWidget(widget);
+      expect(width, 0.0);
+      to = 100;
+      inj.notify();
+      await tester.pump();
+      expect(width, 0.0);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 10.0);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 20.0);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 30.0);
+      inj.notify();
+      await tester.pump();
+      expect(width, 30.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 40.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 50.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 60.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 70.0);
+      inj.notify();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 80.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 90.0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(width, 100.0);
+    },
+  );
+
+  testWidgets(
+    'Avoid finished implicitly animating value to animate if its target value'
+    ' is not changed ',
     (tester) async {
       final animation = RM.injectAnimation(duration: 1.seconds);
       double? value1;
@@ -1417,7 +1473,7 @@ void main() {
       expect(value2, 100);
       expect(value3, 0);
       expect(value4, 0);
-      //
+
       await tester.pump(200.milliseconds);
       expect(value1, 0);
       expect(value2, 80);
