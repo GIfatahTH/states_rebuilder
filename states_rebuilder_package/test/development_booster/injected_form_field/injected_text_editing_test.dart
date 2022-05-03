@@ -1391,6 +1391,52 @@ void main() {
   );
 
   testWidgets(
+    'WHEN readOnly is true,'
+    'THEN the TextField is selectable, clickable but not editable. Using form',
+    (tester) async {
+      final form = RM.injectForm(
+        isReadOnly: true,
+      );
+      final field = RM.injectTextEditing(
+        text: '0',
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+              listenTo: form,
+              builder: () {
+                return TextField(
+                  controller: field.controller,
+                  focusNode: field.focusNode,
+                );
+              }),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      await tester.enterText(find.byType(TextField), '1');
+      expect(find.text('0'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('0'), findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pump();
+      //
+      form.isFormReadOnly = false;
+      await tester.enterText(find.byType(TextField), '1');
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+      field.focusNode.unfocus();
+      await tester.pump();
+      //
+      form.isFormReadOnly = true;
+      await tester.enterText(find.byType(TextField), '2');
+      expect(find.text('1'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'WHEN isEnable is true,'
     'THEN the TextField is selectable, clickable but not editable',
     (tester) async {
@@ -1423,6 +1469,48 @@ void main() {
       expect(isEnabled, findsOneWidget);
       //
       field.isEnabled = false;
+      await tester.pump();
+      expect(isEnabled, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN isEnable is true,'
+    'THEN the TextField is selectable, clickable but not editable. Using Form',
+    (tester) async {
+      final form = RM.injectForm(
+        isEnabled: false,
+      );
+      final field = RM.injectTextEditing(
+        text: '0',
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+            listenTo: form,
+            builder: () {
+              return TextField(
+                controller: field.controller,
+                focusNode: field.focusNode,
+                enabled: field.isEnabled,
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpWidget(widget);
+
+      final isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+      expect(isEnabled, findsNothing);
+      //
+      form.isFormEnabled = true;
+
+      await tester.pump();
+      expect(isEnabled, findsOneWidget);
+      //
+      form.isFormEnabled = false;
       await tester.pump();
       expect(isEnabled, findsNothing);
     },

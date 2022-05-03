@@ -284,6 +284,74 @@ void main() {
       await tester.tap(find.byType(Checkbox));
       await tester.pump();
       expect(isChecked, findsNothing);
+      //
+      field.isReadOnly = false;
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'WHEN readOnly is true,'
+    'THEN the field is selectable, clickable but not editable, using Form',
+    (tester) async {
+      final form = RM.injectForm(
+        isReadOnly: true,
+      );
+      final field = RM.injectFormField(
+        true,
+        // isReadOnly: true,
+      );
+      final field2 = RM.injectFormField(
+        true,
+        // isReadOnly: true,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+              listenTo: form,
+              builder: () {
+                return Column(
+                  children: [
+                    OnFormFieldBuilder<bool>(
+                      listenTo: field,
+                      builder: (value, onChanged) {
+                        return Checkbox(value: value, onChanged: onChanged);
+                      },
+                    ),
+                    OnFormFieldBuilder<bool>(
+                      listenTo: field2,
+                      builder: (value, onChanged) {
+                        return Checkbox(value: value, onChanged: onChanged);
+                      },
+                    ),
+                  ],
+                );
+              }),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final isChecked = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      //
+      expect(isChecked, findsNWidgets(2));
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+      expect(isChecked, findsNWidgets(2));
+      //
+      expect(form.isFormReadOnly, true);
+      form.isFormReadOnly = false;
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+      //
+      expect(form.isFormReadOnly, false);
+      form.isFormReadOnly = true;
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
     },
   );
 
@@ -332,6 +400,75 @@ void main() {
       await tester.tap(find.byType(Checkbox), warnIfMissed: false);
       await tester.pump();
       expect(isChecked, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WHEN enabled is false,'
+    'THEN the field is disabled. Using Form',
+    (tester) async {
+      final form = RM.injectForm(
+        isEnabled: false,
+      );
+      final field = RM.injectFormField(
+        true,
+        // isEnabled: false,
+      );
+      final field2 = RM.injectFormField(
+        true,
+        // isReadOnly: true,
+      );
+      final widget = MaterialApp(
+        home: Scaffold(
+          body: OnFormBuilder(
+              listenTo: form,
+              builder: () {
+                return Column(
+                  children: [
+                    OnFormFieldBuilder<bool>(
+                      listenTo: field,
+                      builder: (value, onChanged) {
+                        return Checkbox(value: value, onChanged: onChanged);
+                      },
+                    ),
+                    OnFormFieldBuilder<bool>(
+                      listenTo: field2,
+                      builder: (value, onChanged) {
+                        return Checkbox(value: value, onChanged: onChanged);
+                      },
+                    ),
+                  ],
+                );
+              }),
+        ),
+      );
+      await tester.pumpWidget(widget);
+      final isChecked = find.byWidgetPredicate(
+        (widget) => widget is Checkbox && widget.value == true,
+      );
+      final isEnabled = find.byWidgetPredicate(
+        (widget) => widget is InputDecorator && widget.decoration.enabled,
+      );
+      //
+      expect(isEnabled, findsNothing);
+      expect(isChecked, findsNWidgets(2));
+      await tester.tap(find.byType(Checkbox).first, warnIfMissed: false);
+      await tester.pump();
+      expect(isChecked, findsNWidgets(2));
+      //
+      form.isFormEnabled = true;
+      await tester.pump();
+      expect(isEnabled, findsNWidgets(2));
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
+      //
+      form.isFormEnabled = false;
+      await tester.pump();
+      expect(isEnabled, findsNothing);
+      await tester.tap(find.byType(Checkbox).first, warnIfMissed: false);
+      await tester.pump();
+      expect(isChecked, findsOneWidget);
     },
   );
 
@@ -611,7 +748,7 @@ void main() {
   );
 
   testWidgets(
-    'disable input fields when form is submitting',
+    'disable input fields when form is submitting. Using OnFormBuilder.isEnabledRM',
     (tester) async {
       final text = RM.injectTextEditing();
       final check = RM.injectFormField(true);
