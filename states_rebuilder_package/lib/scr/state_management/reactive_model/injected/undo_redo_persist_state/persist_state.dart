@@ -313,6 +313,6 @@ String Function(T) _getToJsonOfPrimitive<T>() {
   }
   throw ArgumentError(
     'Type is not primitive. '
-    'You have to define fromJson parameter of PersistState',
+    'You have to define toJson parameter of PersistState',
   );
 }

@@ -158,8 +158,10 @@ abstract class InjectedForm implements IObservable<bool?> {
   // void requestSubmitFocus() {
   //   submitFocusNode.requestFocus();
   // }
-
+  /// Whether form field are enabled or not.
   bool isFormEnabled = true;
+
+  /// Whether form field are read only or not.
   bool isFormReadOnly = false;
 }
 
