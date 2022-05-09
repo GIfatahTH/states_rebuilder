@@ -83,14 +83,10 @@ abstract class InjectedFormField<T> implements IObservable<T> {
   bool get isDirty;
 
   /// If true the [TextField] is clickable and selectable but not editable.
-  late bool isReadOnly;
-  late bool _isEnabled;
+  bool isReadOnly = false;
 
   /// If false the associated [TextField] is disabled.
-  bool get isEnabled {
-    ReactiveStatelessWidget.addToObs?.call(this as ReactiveModelImp);
-    return _isEnabled;
-  }
+  bool isEnabled = true;
 
   void _canChildRequestFocus(
     Iterable<FocusNode>? children,
@@ -112,11 +108,6 @@ abstract class InjectedFormField<T> implements IObservable<T> {
       rethrow;
     }
   }
-
-  set isEnabled(bool val) {
-    _isEnabled = val;
-    (this as ReactiveModel).notify();
-  }
 }
 
 class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
@@ -128,8 +119,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     bool? validateOnLoseFocus,
     this.onValueChange,
     this.autoDispose = true,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
   }) : super(
           creator: () => initialValue,
           autoDisposeWhenNotUsed: autoDispose,
@@ -148,8 +139,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
       _validateOnValueChange = validateOnValueChange;
       _focusNode = null;
       _hasFocus = null;
-      this.isReadOnly = _initialIsReadOnly = isReadOnly;
-      this.isEnabled = _initialIsEnabled = isEnabled;
+      _isReadOnly = _initialIsReadOnly = isReadOnly;
+      _isEnabled = _initialIsEnabled = isEnabled;
       isDirty = false;
       _initialIsDirtyText = initialValue;
     };
@@ -166,8 +157,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
   late VoidCallback? _removeFromInjectedList;
 
   late bool? _hasFocus;
-  late bool _initialIsEnabled;
-  late bool _initialIsReadOnly;
+  late bool? _initialIsEnabled;
+  late bool? _initialIsReadOnly;
   late final VoidCallback _resetDefaultState;
 
   T get getState {
@@ -177,19 +168,63 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     final _isEnabled = (form as InjectedFormImp)._isEnabled;
     if (_isEnabled != null) {
       this._isEnabled = _isEnabled;
-      (form as InjectedFormImp?)?._isEnabled = null;
+      // (form as InjectedFormImp?)?._isEnabled = null;
     } else {
-      this._isEnabled = _initialIsEnabled;
+      // this._isEnabled = _initialIsEnabled;
     }
     if (_isEnabled != true) {
       final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
       if (isReadOnly != null) {
-        this.isReadOnly = isReadOnly;
+        _isReadOnly = isReadOnly;
       } else {
-        this.isReadOnly = _initialIsReadOnly;
+        // this.isReadOnly = _initialIsReadOnly;
       }
     }
     return snapValue.state;
+  }
+
+  @override
+  bool get isEnabled {
+    ReactiveStatelessWidget.addToObs?.call(this);
+    getState;
+    if (_isEnabled != null) {
+      return _isEnabled!;
+    }
+    final isFormEnabled = (form as InjectedFormImp?)?._isEnabled;
+    if (isFormEnabled != null) {
+      return isFormEnabled;
+    }
+    return true;
+  }
+
+  @override
+  set isEnabled(bool? val) {
+    if (val != null && val != _isEnabled) {
+      notify();
+    }
+    _isEnabled = val;
+  }
+
+  @override
+  bool get isReadOnly {
+    ReactiveStatelessWidget.addToObs?.call(this);
+    getState;
+    if (_isReadOnly != null) {
+      return _isReadOnly!;
+    }
+    final isFormReadOnly = (form as InjectedFormImp?)?._isReadOnly;
+    if (isFormReadOnly != null) {
+      return isFormReadOnly;
+    }
+    return false;
+  }
+
+  @override
+  set isReadOnly(bool? val) {
+    if (val != null && val != _isReadOnly) {
+      notify();
+    }
+    _isReadOnly = val;
   }
 
   void linkToForm() {

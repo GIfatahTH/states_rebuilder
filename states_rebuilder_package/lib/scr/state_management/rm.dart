@@ -426,7 +426,7 @@ abstract class RM {
           sideEffects?.initState?.call();
         },
         dispose: () {
-          sideEffects?.initState?.call();
+          sideEffects?.dispose?.call();
         },
         onSetState: (snap) => sideEffects?.onSetState?.call(snap),
         onAfterBuild: () => sideEffects?.onAfterBuild?.call(),
@@ -1461,8 +1461,8 @@ abstract class RM {
     bool? validateOnTyping,
     bool? validateOnLoseFocus,
     void Function(InjectedTextEditing textEditing)? onTextEditing,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
     bool autoDispose = true,
   }) {
     return InjectedTextEditingImp(
@@ -1515,6 +1515,14 @@ abstract class RM {
   ///
   /// See [OnFormBuilder.isEnabledRM] for an example of disabling a inputs
   /// while waiting for the form submission.
+  ///
+  /// ### `isEnabled`: Optional bool.
+  /// When false all form fields are desabled at start up. To enable or disable
+  /// form field at runtime use [InjectedForm.isFormEnabled].
+  ///
+  /// ### `isReadOnly`: Optional bool.
+  /// When false all form fields are read only at start up. To toggle the
+  /// read-only property of fields use [InjectedForm.isFormReadOnly].
   static InjectedForm injectForm({
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     bool autoFocusOnFirstError = true,
@@ -1522,6 +1530,8 @@ abstract class RM {
     @Deprecated('Use submissionSideEffects') void Function()? onSubmitted,
     SideEffects? submissionSideEffects,
     Future<void> Function()? submit,
+    bool? isEnabled,
+    bool? isReadOnly, //TODO document
     // void Function(dynamic, void Function())? onSubmissionError,
   }) {
     return InjectedFormImp(
@@ -1541,6 +1551,8 @@ abstract class RM {
         },
       ),
       submit: submit,
+      isEnabled: isEnabled,
+      isReadOnly: isReadOnly,
     );
   }
 
@@ -1639,8 +1651,8 @@ abstract class RM {
     bool? validateOnLoseFocus,
     void Function(InjectedFormField formField)? onValueChange,
     bool autoDispose = true,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
   }) {
     return InjectedFormFieldImp<T>(
       initialValue,

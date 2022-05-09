@@ -57,7 +57,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
   Object? Function() get mockableCreator {
     if (!isInitialized && dependsOn != null) {
       _subscribeForCombinedSnap();
-      _setCombinedSnap();
+      _setCombinedSnap(kDebugMode ? StackTrace.current : null);
     }
     if (cachedCreatorMocks.last != null) {
       if (creator is Future<T> Function() || creator is Stream<T> Function()) {
@@ -198,6 +198,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
             setStateNullable(
               (s) => mockableCreator(),
               middleSetState: middleSetState,
+              stackTrace: kDebugMode ? StackTrace.current : null,
             );
           }
           // _reactiveModelState.setStateFn(
@@ -495,7 +496,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     });
   }
 
-  void _setCombinedSnap() {
+  void _setCombinedSnap([StackTrace? stackTrace]) {
     bool isWaiting = false;
     SnapError? snapError;
     // final cachedAddToObs = ReactiveStatelessWidget.addToObs;
@@ -559,6 +560,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
             ),
           );
         },
+        stackTrace: stackTrace,
       );
     } else {
       if (isInitialized) {
@@ -568,6 +570,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
         setStateNullable(
           (s) => mockableCreator(),
           middleSetState: middleSetState,
+          stackTrace: stackTrace,
         );
       }
     }
@@ -575,7 +578,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   @override
   void dispose() {
-    if (_snapState.oldSnapState == null) {
+    if (!isInitialized) {
       return;
     }
     if (cachedCreatorMocks.length > 1) {

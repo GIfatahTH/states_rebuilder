@@ -69,17 +69,17 @@ class OnFormBuilder extends MyStatefulWidget {
             final child = OnReactive(() {
               final cached = InjectedFormImp._currentInitializedForm;
               InjectedFormImp._currentInitializedForm = inj
-                .._isEnabled = isEnabledRM?.state
-                .._isReadOnly = isReadOnlyRM?.state;
+                .._isEnabled = isEnabledRM?.state ?? inj._isEnabled
+                .._isReadOnly = isReadOnlyRM?.state ?? inj._isReadOnly;
               return Stack(
                 children: [
                   builder(),
                   Builder(
                     builder: (_) {
                       InjectedFormImp._currentInitializedForm = cached;
-                      inj
-                        .._isEnabled = null
-                        .._isReadOnly = null;
+                      // inj
+                      //   .._isEnabled = null
+                      //   .._isReadOnly = null;
                       return const SizedBox(height: 0, width: 0);
                     },
                   ),
@@ -99,8 +99,10 @@ class OnFormBuilder extends MyStatefulWidget {
   @override
   List<ReactiveModelImp> Function(BuildContext context) get observers => (_) {
         InjectedFormImp._currentInitializedForm = (listenTo as InjectedFormImp)
-          .._isEnabled = isEnabledRM?.state
-          .._isReadOnly = isReadOnlyRM?.state;
+          .._isEnabled =
+              isEnabledRM?.state ?? (listenTo as InjectedFormImp)._isEnabled
+          .._isReadOnly =
+              isReadOnlyRM?.state ?? (listenTo as InjectedFormImp)._isReadOnly;
         if (isEnabledRM != null) {
           final disposer = isEnabledRM!.addObserver(
             isSideEffects: false,

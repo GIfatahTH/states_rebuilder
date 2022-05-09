@@ -1,3 +1,6 @@
+## 6.1.0 (2022-05-02)
+  * Fix issues #265 #267
+  * Improve print log messages
 ## 6.0.0 (2022-02-27)
   * Remove deprecated API
   * Refactor internal code

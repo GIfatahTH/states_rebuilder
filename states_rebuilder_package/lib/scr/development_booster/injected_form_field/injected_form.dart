@@ -158,6 +158,11 @@ abstract class InjectedForm implements IObservable<bool?> {
   // void requestSubmitFocus() {
   //   submitFocusNode.requestFocus();
   // }
+  /// Whether form field are enabled or not.
+  bool isFormEnabled = true;
+
+  /// Whether form field are read only or not.
+  bool isFormReadOnly = false;
 }
 
 ///Implementation of [InjectedForm]
@@ -167,6 +172,8 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
     this.autoFocusOnFirstError = true,
     this.sideEffects,
     Future<void> Function()? submit,
+    bool? isEnabled,
+    bool? isReadOnly,
   })  : _submit = submit,
         super(
           creator: () => null,
@@ -179,8 +186,8 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
       _submitFocusNode = null;
       _currentInitializedForm = null;
       autoFocusedNode = null;
-      _isEnabled = null;
-      _isReadOnly = null;
+      _isEnabled = _initialIsEnabled = isEnabled;
+      _isReadOnly = _initialIsReadOnly = isReadOnly;
     };
     _resetDefaultState();
   }
@@ -199,7 +206,9 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
 
   static InjectedFormImp? _currentInitializedForm;
   late FocusNode? autoFocusedNode;
+  late bool? _initialIsEnabled;
   late bool? _isEnabled;
+  late bool? _initialIsReadOnly;
   late bool? _isReadOnly;
   late final VoidCallback _resetDefaultState;
 
@@ -210,6 +219,22 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
     return _fields.any((e) {
       return e.isDirty;
     });
+  }
+
+  @override
+  bool get isFormEnabled => _isEnabled ?? true;
+  @override
+  set isFormEnabled(bool isFormEnabled) {
+    _isEnabled = isFormEnabled;
+    notify();
+  }
+
+  @override
+  bool get isFormReadOnly => _isReadOnly ?? false;
+  @override
+  set isFormReadOnly(bool isFormReadOnly) {
+    _isReadOnly = isFormReadOnly;
+    notify();
   }
 
   @override
@@ -236,6 +261,8 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
       }
     }
     autoFocusedNode?.requestFocus();
+    _isEnabled = _initialIsEnabled;
+    _isReadOnly = _initialIsReadOnly;
     if (autovalidateMode == AutovalidateMode.always) {
       validate();
     } else {

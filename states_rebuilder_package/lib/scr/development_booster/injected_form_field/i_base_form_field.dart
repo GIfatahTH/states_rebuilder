@@ -62,8 +62,8 @@ abstract class _BaseFormField<T> {
     return _focusNode!;
   }
 
-  late bool isReadOnly;
-  // late bool _isEnabled;
+  late bool? _isReadOnly;
+  late bool? _isEnabled;
 
   ///Validate the input text by invoking its validator.
   bool validate([bool isFromSubmission = false]) {

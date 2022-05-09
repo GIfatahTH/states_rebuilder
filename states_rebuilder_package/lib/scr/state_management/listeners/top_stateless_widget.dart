@@ -297,7 +297,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
   Widget getErrorWidget(BuildContext context) {
     final child = widget.errorScreen(error, _ensureInitialization);
     if (child == null) {
-      widget.build(context);
+      throw error;
     }
     return MaterialApp(
       key: _materialAppKe,
