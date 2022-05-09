@@ -118,10 +118,6 @@ abstract class InjectedTextEditing implements IObservable<String> {
   ///Creates a focus node for this TextField
   FocusNode get focusNode {
     ReactiveStatelessWidget.addToObs?.call(this as ReactiveModelImp);
-    if (_baseFormField._focusNode != null) {
-      return _baseFormField._focusNode!;
-    }
-
     _baseFormField._focusNode ??= FocusNode();
     return _baseFormField.__focusNode;
   }
