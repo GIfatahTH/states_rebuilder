@@ -119,8 +119,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     bool? validateOnLoseFocus,
     this.onValueChange,
     this.autoDispose = true,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
   }) : super(
           creator: () => initialValue,
           autoDisposeWhenNotUsed: autoDispose,
@@ -139,8 +139,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
       _validateOnValueChange = validateOnValueChange;
       _focusNode = null;
       _hasFocus = null;
-      this.isReadOnly = _initialIsReadOnly = isReadOnly;
-      this.isEnabled = _initialIsEnabled = isEnabled;
+      _isReadOnly = _initialIsReadOnly = isReadOnly;
+      _isEnabled = _initialIsEnabled = isEnabled;
       isDirty = false;
       _initialIsDirtyText = initialValue;
     };
@@ -157,8 +157,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
   late VoidCallback? _removeFromInjectedList;
 
   late bool? _hasFocus;
-  late bool _initialIsEnabled;
-  late bool _initialIsReadOnly;
+  late bool? _initialIsEnabled;
+  late bool? _initialIsReadOnly;
   late final VoidCallback _resetDefaultState;
 
   T get getState {
@@ -175,7 +175,7 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     if (_isEnabled != true) {
       final isReadOnly = (form as InjectedFormImp?)?._isReadOnly;
       if (isReadOnly != null) {
-        this.isReadOnly = isReadOnly;
+        _isReadOnly = isReadOnly;
       } else {
         // this.isReadOnly = _initialIsReadOnly;
       }
@@ -199,8 +199,10 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
 
   @override
   set isEnabled(bool? val) {
+    if (val != null && val != _isEnabled) {
+      notify();
+    }
     _isEnabled = val;
-    notify();
   }
 
   @override
@@ -219,8 +221,10 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
 
   @override
   set isReadOnly(bool? val) {
+    if (val != null && val != _isReadOnly) {
+      notify();
+    }
     _isReadOnly = val;
-    notify();
   }
 
   void linkToForm() {

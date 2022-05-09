@@ -619,7 +619,9 @@ void main() {
                         title: Text(''),
                       );
                     },
-                  )
+                  ),
+                  OnReactive((() =>
+                      check.isEnabled ? Text('Enabled') : Text('Disabled'))),
                 ],
               );
             },
@@ -631,12 +633,14 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
+      expect(find.text('Disabled'), findsOneWidget);
       expect(_isEnabled, findsNWidgets(0));
       expect(text.isEnabled, false);
       form.isFormEnabled = true;
       await tester.pump();
       expect(_isEnabled, findsNWidgets(2));
       expect(text.isEnabled, true);
+      expect(find.text('Enabled'), findsOneWidget);
       //
       form.isFormEnabled = false;
       await tester.pump();
@@ -680,7 +684,7 @@ void main() {
                         title: Text(''),
                       );
                     },
-                  )
+                  ),
                 ],
               );
             },
@@ -728,7 +732,8 @@ void main() {
                         title: Text(''),
                       );
                     },
-                  )
+                  ),
+                  check.isReadOnly ? Text('ReadOnly') : Text('NotReadOnly'),
                 ],
               );
             },
@@ -737,13 +742,17 @@ void main() {
       );
 
       await tester.pumpWidget(widget);
+      check.notify();
+      await tester.pump();
 
       expect(text.isReadOnly, true);
       expect(check.isReadOnly, true);
+      expect(find.text('ReadOnly'), findsOneWidget);
       form.isFormReadOnly = false;
       await tester.pump();
       expect(text.isReadOnly, false);
       expect(check.isReadOnly, false);
+      expect(find.text('NotReadOnly'), findsOneWidget);
     },
   );
 

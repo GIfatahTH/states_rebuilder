@@ -1651,8 +1651,8 @@ abstract class RM {
     bool? validateOnLoseFocus,
     void Function(InjectedFormField formField)? onValueChange,
     bool autoDispose = true,
-    bool isReadOnly = false,
-    bool isEnabled = true,
+    bool? isReadOnly,
+    bool? isEnabled,
   }) {
     return InjectedFormFieldImp<T>(
       initialValue,

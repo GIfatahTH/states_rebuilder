@@ -1400,6 +1400,7 @@ void main() {
       final field = RM.injectTextEditing(
         text: '0',
       );
+      expect(form.isFormEnabled, true);
       final widget = MaterialApp(
         home: Scaffold(
           body: OnFormBuilder(
@@ -1484,6 +1485,7 @@ void main() {
       final field = RM.injectTextEditing(
         text: '0',
       );
+      expect(form.isFormEnabled, false);
       final widget = MaterialApp(
         home: Scaffold(
           body: OnFormBuilder(
@@ -1509,6 +1511,8 @@ void main() {
 
       await tester.pump();
       expect(isEnabled, findsOneWidget);
+      expect(form.isFormEnabled, true);
+
       //
       form.isFormEnabled = false;
       await tester.pump();
