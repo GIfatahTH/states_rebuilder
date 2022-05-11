@@ -206,7 +206,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
       _isDirty = true;
       notifyListeners();
     } else {
-      WidgetsBinding.instance!.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (timeStamp) {
           _isDirty = false;
           notifyListeners();

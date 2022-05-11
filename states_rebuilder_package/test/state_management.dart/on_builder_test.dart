@@ -551,7 +551,7 @@ void main() {
     (tester) async {
       List<Locale>? locales;
       final BinaryMessenger defaultBinaryMessenger =
-          ServicesBinding.instance!.defaultBinaryMessenger;
+          ServicesBinding.instance.defaultBinaryMessenger;
       AppLifecycleState? lifecycleState;
       final widget = OnBuilder.bindingObserver(
         didChangeAppLifecycleState: (context, state) {

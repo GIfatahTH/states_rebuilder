@@ -498,7 +498,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
           initState: () {
             (listenTo as InjectedFormFieldImp).linkToForm();
             if (autofocus) {
-              WidgetsBinding.instance!.scheduleFrameCallback((timeStamp) {
+              WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
                 _focusNode.requestFocus();
               });
             }

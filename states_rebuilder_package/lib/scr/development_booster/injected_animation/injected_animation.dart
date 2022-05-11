@@ -273,7 +273,7 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
         }
         endAnimationListener?.call();
         repeatCount = null;
-        WidgetsBinding.instance!.scheduleFrameCallback((_) {
+        WidgetsBinding.instance.scheduleFrameCallback((_) {
           notify(); //TODO Check me. Used to trigger a rebuild after animation ends
         });
       } else {

@@ -44,8 +44,8 @@ abstract class _BaseFormField<T> {
       form?.notify();
     });
     //To cache the auto focused TextField
-    WidgetsBinding.instance!.scheduleFrameCallback((timeStamp) {
-      SchedulerBinding.instance!.endOfFrame.then((_) {
+    WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
+      SchedulerBinding.instance.endOfFrame.then((_) {
         final form = this.form as InjectedFormImp?;
         if (form != null) {
           if (_focusNode?.hasFocus == true) {

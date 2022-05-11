@@ -349,7 +349,7 @@ MaterialApp(
       );
       // if (delegate?._canPop == true) {
       RouterDelegateImp.shouldMarkForComplete = true;
-      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         RouterDelegateImp.shouldMarkForComplete = false;
       });
       delegate!.remove<TO>(config!.name!, result);
@@ -420,7 +420,7 @@ MaterialApp(
       final absoluteName =
           _resolvePathRouteUtil.setAbsoluteUrlPath(newRouteName);
       RouterDelegateImp.shouldMarkForComplete = true;
-      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         RouterDelegateImp.shouldMarkForComplete = false;
       });
       bool isDone = false;
@@ -588,7 +588,7 @@ MaterialApp(
 
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         final r = fn();
         completer.complete(r);
       });
@@ -633,7 +633,7 @@ MaterialApp(
 
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         final r = fn();
         completer.complete(r);
       });
@@ -707,7 +707,7 @@ MaterialApp(
 
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         final r = fn();
         completer.complete(r);
       });
@@ -750,7 +750,7 @@ MaterialApp(
 
     if (postponeToNextFrame) {
       Completer<T?> completer = Completer<T?>();
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         final r = fn();
         completer.complete(r);
       });

@@ -83,7 +83,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
   Future<T?> refresh({String? infoMessage}) async {
     if (inheritedInjects.isNotEmpty) {
       _snapState = snapState.copyWith(infoMessage: kRefreshMessage);
-      await WidgetsBinding.instance!.endOfFrame;
+      await WidgetsBinding.instance.endOfFrame;
       if (_isInheritedDirty) {
         _isInheritedDirty = false;
       } else {
