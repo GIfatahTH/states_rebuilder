@@ -789,7 +789,7 @@ void main() {
 
   testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
     final BinaryMessenger defaultBinaryMessenger =
-        ServicesBinding.instance!.defaultBinaryMessenger;
+        ServicesBinding.instance.defaultBinaryMessenger;
     AppLifecycleState? lifecycleState;
     final widget = Injector(
       inject: [Inject(() => VanillaModel())],

@@ -50,7 +50,9 @@ abstract class RouterObjects {
     _initialRouteValue = initialRoute;
     _unknownRoute = unknownRoute ?? _unknownRoute;
     _shouldUseCupertinoPage = shouldUseCupertinoPage;
-    navigateObject.transitionsBuilder = transitionsBuilder;
+    if (transitionsBuilder != null) {
+      navigateObject.transitionsBuilder = transitionsBuilder;
+    }
 
     rootDelegate = RouterDelegateImp(
       key: navigateObject.navigatorKey,
@@ -69,12 +71,14 @@ abstract class RouterObjects {
                 animation: null,
                 shouldAnimate: true,
                 lastSubRoute: null,
-                transitionsBuilder: transitionsBuilder,
+                transitionsBuilder:
+                    transitionsBuilder ?? navigateObject.transitionsBuilder,
               );
             }
           : null,
       resolvePathRouteUtil: navigateObject._resolvePathRouteUtil,
-      transitionsBuilder: transitionsBuilder,
+      transitionsBuilder:
+          transitionsBuilder ?? navigateObject.transitionsBuilder,
       transitionDuration: transitionDuration ?? _Navigate._transitionDuration,
       delegateName: rootName,
       delegateImplyLeadingToParent: false,

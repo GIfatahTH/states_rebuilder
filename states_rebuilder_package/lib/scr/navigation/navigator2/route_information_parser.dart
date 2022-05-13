@@ -60,7 +60,7 @@ class RouteInformationParserImp extends RouteInformationParser<PageSettings> {
 
   @override
   RouteInformation restoreRouteInformation(PageSettings configuration) {
-    // WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   _routerDelegate.useTransition = true;
     // });
     var name = configuration.name;

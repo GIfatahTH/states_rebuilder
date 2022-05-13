@@ -31,7 +31,7 @@ class SideEffects<T> {
   }) {
     if (onAfterBuild != null) {
       _onAfterBuild =
-          ([bool? isDisposed]) => WidgetsBinding.instance!.addPostFrameCallback(
+          ([bool? isDisposed]) => WidgetsBinding.instance.addPostFrameCallback(
                 (_) {
                   if (isDisposed != true) {
                     onAfterBuild();

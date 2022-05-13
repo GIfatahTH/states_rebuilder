@@ -5665,7 +5665,8 @@ class SimpleRouteInformationProvider extends RouteInformationProvider
 
   @override
   void routerReportsNewRouteInformation(RouteInformation routeInformation,
-      {required RouteInformationReportingType type}) {
+      {RouteInformationReportingType type =
+          RouteInformationReportingType.none}) {
     _value = routeInformation;
   }
 }

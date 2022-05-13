@@ -145,7 +145,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
             ? (snap) {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
-                WidgetsBinding.instance?.addPostFrameCallback(
+                WidgetsBinding.instance.addPostFrameCallback(
                   (_) => sideEffects!.onSetState!(snap),
                 );
               }
@@ -272,7 +272,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
   }
 
   Brightness _getSystemBrightness() {
-    return WidgetsBinding.instance!.window.platformBrightness;
+    return WidgetsBinding.instance.window.platformBrightness;
   }
 
   ///Toggle the current theme between dark and light

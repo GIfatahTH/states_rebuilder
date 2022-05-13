@@ -232,7 +232,7 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
         if (form!.autovalidateMode == AutovalidateMode.always) {
           //When initialized and always auto validated, then validate in the next
           //frame
-          WidgetsBinding.instance!.addPostFrameCallback(
+          WidgetsBinding.instance.addPostFrameCallback(
             (timeStamp) {
               form!.validate();
             },
@@ -360,7 +360,7 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
     _controller?.dispose();
     _controller = null;
     formTextFieldDisposer?.call();
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       //Dispose after the associated TextField remove its listeners to _focusNode
       _focusNode?.dispose();
       _resetDefaultState();

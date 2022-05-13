@@ -238,7 +238,7 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
       if (form!.autovalidateMode == AutovalidateMode.always) {
         //When initialized and always auto validated, then validate in the next
         //frame
-        WidgetsBinding.instance!.addPostFrameCallback(
+        WidgetsBinding.instance.addPostFrameCallback(
           (timeStamp) {
             form!.validate();
           },

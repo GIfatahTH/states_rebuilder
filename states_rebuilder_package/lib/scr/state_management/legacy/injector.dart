@@ -267,7 +267,7 @@ class InjectorState extends State<Injector> {
     widget.initState?.call();
 
     if (widget.afterInitialBuild != null) {
-      WidgetsBinding.instance?.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (_) => widget.afterInitialBuild!(context),
       );
     }
@@ -296,12 +296,12 @@ class InjectorStateAppLifeCycle extends InjectorState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

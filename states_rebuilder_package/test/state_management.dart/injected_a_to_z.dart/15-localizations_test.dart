@@ -35,7 +35,7 @@ Locale? _localeFromTheApp;
 
 final currentLocale = RM.inject<Locale>(
   //return the stored locale or if null return the system locale
-  () => _storedLocale ?? WidgetsBinding.instance!.window.locales.first,
+  () => _storedLocale ?? WidgetsBinding.instance.window.locales.first,
   // debugPrintWhenNotifiedPreMessage: '',
 );
 
@@ -194,7 +194,7 @@ void main() {
     currentLocale.injectMock(
       () =>
           _storedLocale ??
-          (_systemLocale ?? WidgetsBinding.instance!.window.locales.first),
+          (_systemLocale ?? WidgetsBinding.instance.window.locales.first),
     );
     await tester.pumpWidget(LocalizationsApp());
     expect(find.text('Getting the json String ...'), findsOneWidget);
