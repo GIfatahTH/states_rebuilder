@@ -401,6 +401,11 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
                       onPopPage: _onPopPage,
                       pages: _routeStack,
                       transitionDelegate: DefaultTransitionDelegateImp(),
+                      observers: RouterObjects.navigatorObservers.isNotEmpty
+                          ? RouterObjects.navigatorObservers
+                              .map((e) => _SubNavigatorObserverDelegate(e))
+                              .toList()
+                          : const [],
                     ),
                   );
                 },
@@ -417,6 +422,11 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
           onPopPage: _onPopPage,
           pages: _routeStack,
           transitionDelegate: DefaultTransitionDelegateImp(),
+          observers: RouterObjects.navigatorObservers.isNotEmpty
+              ? RouterObjects.navigatorObservers
+                  .map((e) => _SubNavigatorObserverDelegate(e))
+                  .toList()
+              : const [],
         ),
       );
     }
@@ -428,6 +438,7 @@ class RouterDelegateImp extends RouterDelegate<PageSettings>
         onPopPage: _onPopPage,
         pages: _routeStack,
         transitionDelegate: DefaultTransitionDelegateImp(),
+        observers: RouterObjects.navigatorObservers,
       ),
       dispose: RouterObjects._dispose,
     );

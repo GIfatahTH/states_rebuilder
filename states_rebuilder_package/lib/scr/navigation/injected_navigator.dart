@@ -382,6 +382,7 @@ class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
     required this.pageBuilder,
     required this.onBack,
     required this.ignoreUnknownRoutes,
+    required List<NavigatorObserver> navigatorObservers,
   })  : _redirectTo = redirectTo,
         super(
           creator: () => initialRouteData,
@@ -398,6 +399,7 @@ class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
         builder: builder,
         initialRoute: initialRoute,
         shouldUseCupertinoPage: shouldUseCupertinoPage,
+        observers: navigatorObservers,
       );
       RouterObjects.injectedNavigator = this;
     };

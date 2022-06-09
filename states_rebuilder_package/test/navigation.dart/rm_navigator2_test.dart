@@ -5634,6 +5634,98 @@ void main() {
   //     );
   //   },
   // );
+
+  group('routeObserver', () {
+    testWidgets(
+      'WHEN'
+      'THEN',
+      (tester) async {
+        final observer = _NavigatorObserver();
+        final navigator = RM.injectNavigator(
+          routes: {
+            '/': (data) => Text('/'),
+            '/page1': (data) => Text('/page1'),
+            '/page1/page11': (data) => Text('/page11'),
+            '/page2': (data) => RouteWidget(
+                  builder: (_) => Container(child: _),
+                  routes: {
+                    '/': (data) => Text('/page2'),
+                    '/page21': (data) => Text('/page21'),
+                  },
+                ),
+          },
+          navigatorObservers: [observer],
+        );
+
+        final widget = MaterialApp.router(
+          routeInformationParser: navigator.routeInformationParser,
+          routerDelegate: navigator.routerDelegate,
+        );
+        await tester.pumpWidget(widget);
+        expect(find.text('/'), findsOneWidget);
+        expect(observer.messages, [null, '/']);
+        navigator.to('/page1');
+        await tester.pumpAndSettle();
+        expect(find.text('/page1'), findsOneWidget);
+        expect(observer.messages, ['/', '/page1']);
+        //
+        navigator.to('/page1/page11');
+        await tester.pumpAndSettle();
+        expect(find.text('/page11'), findsOneWidget);
+        expect(observer.messages, ['/page1', '/page1/page11']);
+        //
+        navigator.to('/page2');
+        await tester.pumpAndSettle();
+        expect(find.text('/page2'), findsOneWidget);
+        expect(observer.messages, [null, '/page2']);
+        //
+        navigator.to('/page2/page21');
+        await tester.pumpAndSettle();
+        expect(find.text('/page21'), findsOneWidget);
+        expect(observer.messages, ['/page2', '/page2/page21']);
+        //
+        navigator.back();
+        await tester.pumpAndSettle();
+        expect(observer.messages, ['/page2/page21', '/page2']);
+        //
+        navigator.toReplacement('/page2/page21');
+        await tester.pumpAndSettle();
+        expect(find.text('/page21'), findsOneWidget);
+        expect(observer.messages, [null, '/page2']);
+        //
+        navigator.back();
+        await tester.pumpAndSettle();
+        navigator.back();
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+}
+
+class _NavigatorObserver extends NavigatorObserver {
+  List<String?> messages = [];
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    messages = [
+      route.settings.name,
+      previousRoute?.settings.name,
+    ];
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    messages = [previousRoute?.settings.name, route.settings.name];
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    messages = [previousRoute?.settings.name, route.settings.name];
+  }
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    messages = [oldRoute?.settings.name, newRoute?.settings.name];
+  }
 }
 
 class _RouteInformationParserTest extends RouteInformationParserImp {

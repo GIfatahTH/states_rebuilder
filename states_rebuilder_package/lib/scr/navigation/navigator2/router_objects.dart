@@ -34,6 +34,8 @@ abstract class RouterObjects {
     });
   }
 
+  static List<NavigatorObserver> navigatorObservers = const [];
+
   static void initialize({
     required Map<String, Widget Function(RouteData data)> routes,
     required Widget Function(RouteData data)? unknownRoute,
@@ -44,6 +46,7 @@ abstract class RouterObjects {
     required Widget Function(Widget child)? builder,
     required String? initialRoute,
     required bool shouldUseCupertinoPage,
+    required List<NavigatorObserver> observers,
   }) {
     _dispose();
     _routers = transformRoutes(routes);
@@ -53,6 +56,7 @@ abstract class RouterObjects {
     if (transitionsBuilder != null) {
       navigateObject.transitionsBuilder = transitionsBuilder;
     }
+    navigatorObservers = observers;
 
     rootDelegate = RouterDelegateImp(
       key: navigateObject.navigatorKey,
@@ -347,6 +351,9 @@ abstract class RouterObjects {
 
   static void _dispose() {
     rootDelegate = null;
+    if (navigatorObservers.isNotEmpty) {
+      navigatorObservers.clear();
+    }
     ResolvePathRouteUtil.globalBaseUrl = '/';
   }
 }
@@ -367,4 +374,28 @@ class MaterialPageArgument {
     this.name,
     this.arguments,
   });
+}
+
+class _SubNavigatorObserverDelegate extends NavigatorObserver {
+  final NavigatorObserver root;
+  _SubNavigatorObserverDelegate(this.root);
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    root.didPop(route, previousRoute);
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    root.didPush(route, previousRoute);
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    root.didRemove(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    root.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
 }
