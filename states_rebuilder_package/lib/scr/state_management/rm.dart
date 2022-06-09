@@ -2339,6 +2339,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool? Function(RouteData? data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
     bool ignoreUnknownRoutes = false,
+    List<NavigatorObserver> navigatorObservers = const <NavigatorObserver>[],
   }) {
     return InjectedNavigatorImp(
       routes: routes,
@@ -2353,6 +2354,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       pageBuilder: pageBuilder,
       onBack: onNavigateBack,
       ignoreUnknownRoutes: ignoreUnknownRoutes,
+      navigatorObservers: navigatorObservers,
     );
   }
 }
