@@ -1,3 +1,7 @@
+## 6.1.0
+* Make stateAsync coherant with setToWaiting
+* remove double debug print messages
+
 ## 6.1.0+1 (2022-05-02)
   * Fix issues #265 #267
   * Improve print log messages
