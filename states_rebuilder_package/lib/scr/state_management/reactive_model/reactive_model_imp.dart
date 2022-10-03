@@ -165,7 +165,9 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           }
         }();
       }
-      if (_snapState.isWaiting && _snapState._infoMessage != kDependsOn) {
+      if (_snapState.isWaiting &&
+          snapState._infoMessage != kDependsOn &&
+          _snapState._infoMessage != kStopWaiting) {
         _snapState = _snapState.copyToHasData(result).copyToIsWaiting();
         notify(shouldOverrideDefaultSideEffects: (_) => true);
       } else {
@@ -246,11 +248,11 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     if (newSnap._isImmutable && oldSnap.hashCode == newSnap.hashCode) {
       return null;
     }
-    if (newSnap.isWaiting) {
-      if (_snapState.isWaiting) {
-        return null;
-      }
-    } else if (newSnap.hasError) {
+    if (!snap.isWaiting && newSnap.isWaiting) {
+      return newSnap.copyWith(infoMessage: kStopWaiting);
+    }
+
+    if (newSnap.hasError) {
       // if (_snapState.hasError &&
       //     newSnap.snapError!.error == _snapState.snapError?.error) {
       //   return null;
@@ -335,6 +337,18 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       final interceptedSnap = interceptState(nextSnap, stateInterceptor);
       if (interceptedSnap == null) {
         return false;
+      }
+      if (interceptedSnap.isWaiting) {
+        if (!_snapState.isWaiting) {
+          completer ??= Completer();
+        }
+      } else {
+        if (_snapState.isWaiting) {
+          if (completer?.isCompleted == false) {
+            completer!.complete(interceptedSnap.data);
+            completer = null;
+          }
+        }
       }
       _snapState = interceptedSnap;
     }
@@ -518,7 +532,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     } else {
       stream = asyncResult as Stream;
     }
-    completer = Completer();
+    // completer ??= Completer();
     subscription?.cancel();
     subscription = stream.listen(
       (event) {
@@ -537,9 +551,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           return;
         }
         middleSetState(StateStatus.hasData, event);
-        if (completer?.isCompleted == false) {
-          completer!.complete();
-        }
+        // if (completer?.isCompleted == false) {
+        //   completer!.complete();
+        //   completer = null;
+        // }
       },
       onError: (e, s) {
         middleSetState(
@@ -556,6 +571,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         );
         if (completer?.isCompleted == false) {
           completer!.complete();
+          completer = null;
         }
 
         if (e is Error) {

@@ -790,6 +790,43 @@ void main() {
     },
   );
 
+  testWidgets('stateInterceptor with return to the waiting state',
+      (tester) async {
+    final model = RM.inject<int>(
+      () => 0,
+      stateInterceptor: (current, next) {
+        if (next.state > 2) return next.copyToHasData(next.state);
+        return next.copyToIsWaiting();
+      },
+    );
+
+    expect(model.isIdle, true);
+    model.state++;
+    await tester.pump();
+    expect(model.isWaiting, true);
+    expect(model.state, 1);
+    var asyncResult;
+    () async {
+      asyncResult = 'isWaiting';
+      await model.stateAsync;
+      asyncResult = 'completed';
+    }();
+    expect(asyncResult, 'isWaiting');
+    await tester.pump();
+    await tester.pump();
+    expect(asyncResult, 'isWaiting');
+    model.state++;
+    await tester.pump();
+    expect(model.isWaiting, true);
+    expect(model.state, 2);
+    expect(asyncResult, 'isWaiting');
+    model.state++;
+    await tester.pump();
+    expect(model.hasData, true);
+    expect(model.state, 3);
+    expect(asyncResult, 'completed');
+  });
+
   testWidgets(
     'Test when skipWaiting using stateInterceptor of Injected state',
     (tester) async {
@@ -949,8 +986,18 @@ void main() {
       expect(currentState!.isIdle, true);
       expect(nextState!.isWaiting, true);
       expect(sideEffects!.isWaiting, true);
+      var asyncResult;
+      () async {
+        asyncResult = 'isWaiting';
+        await model.stateAsync;
+        asyncResult = 'completed';
+      }();
+      expect(asyncResult, 'isWaiting');
+      await tester.pump();
+      expect(asyncResult, 'isWaiting');
       await tester.pump(const Duration(seconds: 1));
       expect(model.hasData, true);
+      expect(asyncResult, 'completed');
       expect(find.text('10'), findsOneWidget);
       expect(currentState!.isWaiting, true);
       expect(nextState!.hasData, true);
@@ -968,6 +1015,19 @@ void main() {
       await tester.pump();
       expect(model.isWaiting, true);
       expect(find.text('isWaiting'), findsOneWidget);
+      // model.stateAsync.then((value) => asyncResult = 'end').catchError((e) {});
+      () async {
+        try {
+          asyncResult = 'isWaiting';
+          await model.stateAsync;
+          asyncResult = 'completed';
+        } catch (e) {
+          asyncResult = 'error';
+        }
+      }();
+      expect(asyncResult, 'isWaiting');
+      await tester.pump();
+      expect(asyncResult, 'isWaiting');
       await tester.pump(const Duration(seconds: 1));
       expect(model.hasError, true);
       expect(find.text('error'), findsOneWidget);
@@ -975,7 +1035,7 @@ void main() {
       expect(nextState!.hasError, true);
       expect(nextState!.snapError!.error.message, 'error');
       expect(sideEffects!.snapError!.error.message, 'error');
-      //
+      expect(asyncResult, 'error');
     },
   );
 
