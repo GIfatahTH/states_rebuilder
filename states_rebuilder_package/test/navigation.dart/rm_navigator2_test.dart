@@ -355,7 +355,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toCupertinoDialog(
+    _navigator.toCupertinoDialog(
       Dialog(
         child: Text(''),
       ),
@@ -370,7 +370,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toBottomSheet(
+    _navigator.toBottomSheet(
       Text('bottom sheet'),
       isDismissible: true,
       backgroundColor: Colors.red,
@@ -390,7 +390,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toCupertinoModalPopup(
+    _navigator.toCupertinoModalPopup(
       Text('toCupertinoModalPopup'),
       semanticsDismissible: true,
       filter: ImageFilter.blur(),
@@ -2323,7 +2323,7 @@ void main() {
       _navigator.to('/page2');
       await tester.pumpAndSettle();
       expect(find.text('/page2'), findsOneWidget);
-      RM.navigate.toDialog(AboutDialog());
+      _navigator.toDialog(AboutDialog());
       await tester.pumpAndSettle();
       expect(find.byType(AboutDialog), findsOneWidget);
       _navigator.back();
@@ -2378,7 +2378,7 @@ void main() {
       _navigator.to('/page2/page21');
       await tester.pumpAndSettle();
       expect(find.text('/page21'), findsOneWidget);
-      RM.navigate.toDialog(AboutDialog());
+      _navigator.toDialog(AboutDialog());
       await tester.pumpAndSettle();
       expect(find.byType(AboutDialog), findsOneWidget);
       //
@@ -2763,26 +2763,26 @@ void main() {
           }
           if (data.location == '/form' && isFormDirty) {
             if (showDialog) {
-              RM.navigate.toDialog(
+              _navigator.toDialog(
                 AlertDialog(content: Text('')),
                 postponeToNextFrame: true,
               );
             }
 
-            RM.scaffold.showSnackBar(SnackBar(content: Text('')));
+            _navigator.scaffold.showSnackBar(SnackBar(content: Text('')));
             return false;
           }
           if (showOtherDialog) {
-            RM.navigate.toBottomSheet(
+            _navigator.toBottomSheet(
               Text('toBottomSheet'),
               postponeToNextFrame: true,
             );
 
-            RM.navigate.toCupertinoDialog(
+            _navigator.toCupertinoDialog(
               Text('toCupertinoDialog'),
               postponeToNextFrame: true,
             );
-            RM.navigate.toCupertinoModalPopup(
+            _navigator.toCupertinoModalPopup(
               Text('toCupertinoModalPopup'),
               postponeToNextFrame: true,
             );
@@ -2847,7 +2847,7 @@ void main() {
           backData = data;
           if (data == null) {
             if (exitApp) return exitApp;
-            RM.navigate.toDialog(AlertDialog());
+            _navigator.toDialog(AlertDialog());
             return exitApp;
           }
         },
@@ -4196,7 +4196,7 @@ void main() {
             return false;
           }
           if (data.location == '/page1') {
-            RM.navigate.toDialog(
+            _navigator.toDialog(
               AlertDialog(
                 content: Text('Alert'),
                 actions: [

@@ -544,6 +544,7 @@ MaterialApp(
     );
   }
 
+  ///{@template toDialog}
   ///Displays a Material dialog above the current contents of the app, with
   ///Material entrance and exit animations, modal barrier color, and modal
   ///barrier behavior (dialog is dismissible with a tap on the barrier).
@@ -559,6 +560,7 @@ MaterialApp(
   /// of the screen. Default value is true.
   ///
   ///Equivalent to: [showDialog].
+  /// {@endtemplate}
   Future<T?> toDialog<T>(
     Widget dialog, {
     bool barrierDismissible = true,
@@ -597,6 +599,7 @@ MaterialApp(
     return fn();
   }
 
+  ///{@template toCupertinoDialog}
   ///Displays an iOS-style dialog above the current contents of the app, with
   ///iOS-style entrance and exit animations, modal barrier color, and modal
   ///barrier behavior
@@ -608,6 +611,7 @@ MaterialApp(
   /// outside it. Default value is false.
   ///
   ///Equivalent to: [showCupertinoDialog].
+  /// {@endtemplate}
   Future<T?> toCupertinoDialog<T>(
     Widget dialog, {
     bool barrierDismissible = false,
@@ -642,6 +646,7 @@ MaterialApp(
     return fn();
   }
 
+  ///{@template toBottomSheet}
   ///Shows a modal material design bottom sheet that prevents the user from
   ///interacting with the rest of the app.
   ///
@@ -668,6 +673,7 @@ MaterialApp(
   /// bottom sheets
   ///
   ///Equivalent to: [showModalBottomSheet].
+  /// {@endtemplate}
   Future<T?> toBottomSheet<T>(
     Widget bottomSheet, {
     bool isDismissible = true,
@@ -716,6 +722,7 @@ MaterialApp(
     return fn();
   }
 
+  ///{@template toCupertinoModalPopup}
   ///Shows a modal iOS-style popup that slides up from the bottom of the screen.
   ///* Required parameters:
   ///  * [cupertinoModalPopup]:  (positional parameter) Widget to display.
@@ -723,6 +730,7 @@ MaterialApp(
   ///  * [filter]:
   ///  * [semanticsDismissible]: whether the semantics of the modal barrier are
   /// included in the semantics tree
+  /// {@endtemplate}
   Future<T?> toCupertinoModalPopup<T>(
     Widget cupertinoModalPopup, {
     ImageFilter? filter,
