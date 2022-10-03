@@ -2317,6 +2317,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///  );
   /// ```
   ///
+  /// ### `navigatorObservers`: Optional [List<NavigatorObserver>]
+  /// A lost of [NavigatorObserver] for this navigator
+  ///
   /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
   /// Print log a debug message when the state of the navigator is changed.
   static InjectedNavigator injectNavigator({
