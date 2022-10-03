@@ -363,6 +363,79 @@ abstract class InjectedNavigator {
       return true;
     }());
   }
+
+  /// {@macro toDialog}
+  Future<T?> toDialog<T>(
+    Widget dialog, {
+    bool barrierDismissible = true,
+    Color? barrierColor,
+    bool useSafeArea = true,
+    bool postponeToNextFrame = false,
+  }) {
+    return navigateObject.toDialog<T>(
+      dialog,
+      barrierColor: barrierColor,
+      barrierDismissible: barrierDismissible,
+      useSafeArea: useSafeArea,
+      postponeToNextFrame: postponeToNextFrame,
+    );
+  }
+
+  /// {@macro toCupertinoDialog}
+  Future<T?> toCupertinoDialog<T>(
+    Widget dialog, {
+    bool barrierDismissible = false,
+    bool postponeToNextFrame = false,
+  }) =>
+      navigateObject.toCupertinoDialog<T>(
+        dialog,
+        barrierDismissible: barrierDismissible,
+        postponeToNextFrame: postponeToNextFrame,
+      );
+
+  /// {@macro toBottomSheet}
+  Future<T?> toBottomSheet<T>(
+    Widget bottomSheet, {
+    bool isDismissible = true,
+    bool enableDrag = true,
+    bool isScrollControlled = false,
+    Color? backgroundColor,
+    double? elevation,
+    ShapeBorder? shape,
+    Clip? clipBehavior,
+    Color? barrierColor,
+    bool postponeToNextFrame = false,
+  }) =>
+      navigateObject.toBottomSheet<T>(
+        bottomSheet,
+        isDismissible: isDismissible,
+        enableDrag: enableDrag,
+        isScrollControlled: isScrollControlled,
+        backgroundColor: backgroundColor,
+        elevation: elevation,
+        shape: shape,
+        clipBehavior: clipBehavior,
+        barrierColor: barrierColor,
+        postponeToNextFrame: postponeToNextFrame,
+      );
+
+  /// {@macro toCupertinoModalPopup}
+  Future<T?> toCupertinoModalPopup<T>(
+    Widget cupertinoModalPopup, {
+    ImageFilter? filter,
+    bool? semanticsDismissible,
+    bool postponeToNextFrame = false,
+  }) =>
+      navigateObject.toCupertinoModalPopup<T>(
+        cupertinoModalPopup,
+        filter: filter,
+        semanticsDismissible: semanticsDismissible,
+        postponeToNextFrame: postponeToNextFrame,
+      );
+
+  /// Show ScaffoldMessenger related widgets such as SnackBar, Drawer, and
+  /// BottomSheets
+  final scaffold = scaffoldObject;
 }
 
 class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
