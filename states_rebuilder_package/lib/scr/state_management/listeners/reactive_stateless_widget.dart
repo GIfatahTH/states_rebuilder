@@ -177,7 +177,7 @@ class _ReactiveStatelessWidgetState
 
   @override
   void afterBuild() {
-    for (var disposer in _obs1.values) {
+    for (var disposer in [..._obs1.values]) {
       disposer();
     }
     assert(() {
