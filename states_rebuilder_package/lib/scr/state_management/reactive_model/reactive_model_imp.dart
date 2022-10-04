@@ -335,20 +335,21 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   }) {
     if (nextSnap != null) {
       final interceptedSnap = interceptState(nextSnap, stateInterceptor);
-      if (interceptedSnap == null) {
-        return false;
-      }
-      if (interceptedSnap.isWaiting) {
+      if (interceptedSnap?.isWaiting == true || nextSnap.isWaiting) {
         if (!_snapState.isWaiting) {
           completer ??= Completer();
         }
       } else {
         if (_snapState.isWaiting) {
           if (completer?.isCompleted == false) {
-            completer!.complete(interceptedSnap.data);
+            completer!.complete(interceptedSnap?.data ?? nextSnap.data);
             completer = null;
           }
         }
+      }
+
+      if (interceptedSnap == null) {
+        return false;
       }
       _snapState = interceptedSnap;
     }
