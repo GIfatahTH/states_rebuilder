@@ -44,6 +44,7 @@ ios/
 web/
 linux/
 windows/
+macos/
 *.jks
 
 # Coverage
