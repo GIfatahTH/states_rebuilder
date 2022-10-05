@@ -6,7 +6,8 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 void main() {
   //This is add to force transition to be device independent so golden test
   //works independent of device default animation
-  RM.navigate.transitionsBuilder = RM.transitions.bottomToUp();
+  RM.navigate.transitionsBuilder =
+      RM.transitions.bottomToUp(duration: const Duration(milliseconds: 300));
   testWidgets(
     'Test Navigation logic',
     (tester) async {
