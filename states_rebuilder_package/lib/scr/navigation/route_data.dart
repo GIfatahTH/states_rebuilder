@@ -51,7 +51,6 @@ class RouteData {
   final String location;
 
   /// Get the [Uri] representation of the resolved location
-
   late final Uri uri;
 
   String get _subLocation => uri.path;
@@ -132,6 +131,16 @@ class RouteData {
       uri = Uri(path: subLocation, queryParameters: queryParams);
     }
   }
+  factory RouteData.initial() => RouteData(
+        path: '/',
+        location: '/',
+        subLocation: '/',
+        queryParams: const {},
+        pathParams: const {},
+        arguments: null,
+        pathEndsWithSlash: false,
+        redirectedFrom: const [],
+      );
 
   /// log the detailed of the navigation steps.
   void log() {
@@ -147,9 +156,9 @@ class RouteData {
   @override
   String toString() {
     if (redirectedFrom == null) {
-      return 'RouteData(urlPath: $_subLocation, baseUrl: $baseLocation, routePath: $path, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
+      return 'RouteData(location: $location, baseUrl: $baseLocation, routePath: $path, queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
     }
-    return 'RouteData(directedFrom: $redirectedFrom, urlPath: $_subLocation, baseUrl: $baseLocation, routePath: $path, '
+    return 'RouteData(directedFrom: $redirectedFrom, urlPath: $location, baseUrl: $baseLocation, routePath: $path, '
         'queryParams: $queryParams, pathParams: $pathParams, arguments: $arguments)';
   }
 
@@ -177,17 +186,23 @@ class RouteData {
   }
 
   RouteData copyWith({
+    String? path,
+    String? location,
+    Map<String, String>? queryParams,
+    Map<String, String>? pathParams,
+    dynamic? arguments,
+    List<RouteData>? redirectedFrom,
     bool? pathEndsWithSlash,
     String? subLocation,
   }) {
     return RouteData(
-      path: path,
-      location: location,
-      queryParams: queryParams,
-      pathParams: pathParams,
-      arguments: arguments,
+      path: path ?? this.path,
+      location: location ?? this.location,
+      queryParams: queryParams ?? this.queryParams,
+      pathParams: pathParams ?? this.pathParams,
+      arguments: arguments ?? this.arguments,
       pathEndsWithSlash: pathEndsWithSlash ?? _pathEndsWithSlash,
-      redirectedFrom: _redirectedFrom,
+      redirectedFrom: redirectedFrom ?? _redirectedFrom,
       subLocation: subLocation ?? _subLocation,
     );
   }

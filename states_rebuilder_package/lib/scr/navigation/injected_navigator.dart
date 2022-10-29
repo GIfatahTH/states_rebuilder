@@ -497,16 +497,7 @@ class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
     return super.routeInformationParser;
   }
 
-  static final initialRouteData = RouteData(
-    path: '/',
-    location: '/',
-    subLocation: '/',
-    queryParams: const {},
-    pathParams: const {},
-    arguments: null,
-    pathEndsWithSlash: false,
-    redirectedFrom: const [],
-  );
+  static final initialRouteData = RouteData.initial();
   static bool ignoreSingleRouteMapAssertion = false;
   final bool ignoreUnknownRoutes;
 
