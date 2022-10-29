@@ -33,9 +33,9 @@ jobs:
       - run: |
           cd ex003_00_dependent_state_management && flutter test
         working-directory: ./examples
-      - run: |
-          cd ex004_00_navigation && flutter test
-        working-directory: ./examples
+      # - run: |
+      #     cd ex004_00_navigation && flutter test
+      #   working-directory: ./examples
       - run: |
           cd ex005_00_crud_operations && flutter test
         working-directory: ./examples
