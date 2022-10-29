@@ -351,6 +351,7 @@ abstract class RouterObjects {
 
   static void _dispose() {
     injectedNavigator?.dispose();
+    injectedNavigator = null;
     rootDelegate = null;
     if (navigatorObservers.isNotEmpty) {
       navigatorObservers.clear();
