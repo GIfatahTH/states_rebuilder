@@ -428,8 +428,12 @@ abstract class RM {
         dispose: () {
           sideEffects?.dispose?.call();
         },
-        onSetState: (snap) => sideEffects?.onSetState?.call(snap),
-        onAfterBuild: () => sideEffects?.onAfterBuild?.call(),
+        onSetState: sideEffects?.onSetState == null
+            ? null
+            : (snap) => sideEffects?.onSetState?.call(snap),
+        onAfterBuild: sideEffects?.onAfterBuild == null
+            ? null
+            : () => sideEffects?.onAfterBuild?.call(),
       ),
       undoStackLength: undoStackLength,
       dependsOn: dependsOn,
