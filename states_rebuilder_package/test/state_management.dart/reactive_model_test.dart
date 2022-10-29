@@ -1171,6 +1171,17 @@ void main() {
   );
 
   testWidgets(
+    'ReactiveModel: check print snapState',
+    (tester) async {
+      final rm = RM.inject(() => 0);
+      expect('${rm.snapState.oldSnapState}', 'SnapState<int>(INITIALIZING...)');
+      expect('${rm.snapState}', 'SnapState<int>(isIdle : 0)');
+      rm.state++;
+      expect('${rm.snapState}', 'SnapState<int>(hasData: 1)');
+    },
+  );
+
+  testWidgets(
     'ReactiveModel: issue #49 reset to Idle after error or data',
     (tester) async {
       final widget = StateBuilder(

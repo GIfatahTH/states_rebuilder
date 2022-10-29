@@ -1722,7 +1722,7 @@ void main() {
   // );
 
   testWidgets(
-    'Test toDebugString ',
+    'Test toDebugString for sync state ',
     (tester) async {
       final model = RM.inject(
         () => [],
@@ -1734,7 +1734,35 @@ void main() {
         StatesRebuilerLogger.message,
         '[states_rebuilder::INFO]: <model> : INITIALIZING... ==> hasData: 1',
       );
-      model.dispose();
+      RM.disposeAll();
+      expect(
+        StatesRebuilerLogger.message,
+        '[states_rebuilder::INFO]: <model> : hasData: 1 ==> DISPOSING...',
+      );
+    },
+  );
+
+  testWidgets(
+    'Test toDebugString for async state ',
+    (tester) async {
+      final model = RM.inject(
+        () => [],
+        debugPrintWhenNotifiedPreMessage: 'model',
+        toDebugString: (List? s) => '${s?.length}',
+      );
+      model.stateAsync =
+          Future.delayed(const Duration(seconds: 1), () => ['1']);
+      await tester.pump();
+      expect(
+        StatesRebuilerLogger.message,
+        '[states_rebuilder::INFO]: <model> : INITIALIZING... ==> isWaiting (): null',
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        StatesRebuilerLogger.message,
+        '[states_rebuilder::INFO]: <model> : isWaiting (): null ==> hasData: 1',
+      );
+      RM.disposeAll();
       expect(
         StatesRebuilerLogger.message,
         '[states_rebuilder::INFO]: <model> : hasData: 1 ==> DISPOSING...',

@@ -103,10 +103,11 @@ TRY define an initialState or Handle $status status.
 
   /// Copy the state to a new state in the idle status
   SnapState<T> copyToIsIdle({Object? data, String? infoMessage}) {
-    return copyToHasData(data).copyWith(
+    return copyWith(
       status: StateStatus.isIdle,
       data: data is T ? data : this.data,
       infoMessage: infoMessage,
+      isImmutable: data is T,
     );
   }
 
@@ -204,7 +205,10 @@ TRY define an initialState or Handle $status status.
     final s = SnapState<T>._(
       status: status ?? this.status,
       data: isImmutable == true ? data : data ?? this.data,
-      snapError: status == StateStatus.hasData ? null : (error ?? snapError),
+      snapError: error ??
+          (status == null || status == StateStatus.isWaiting
+              ? this.snapError
+              : null),
       oldSnapState: (status != null || data != null || error != null)
           ? oldSnapState ?? this
           : this.oldSnapState,

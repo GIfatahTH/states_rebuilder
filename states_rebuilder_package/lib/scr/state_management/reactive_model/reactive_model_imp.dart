@@ -52,7 +52,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   set state(T value) {
-    isInitialized = true;
+    if (!isInitialized) {
+      removeFromReactiveModel = addToActiveReactiveModels(this);
+      isInitialized = true;
+    }
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
@@ -77,7 +80,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   set stateAsync(Future<T> value) {
-    isInitialized = true;
+    if (!isInitialized) {
+      removeFromReactiveModel = addToActiveReactiveModels(this);
+      isInitialized = true;
+    }
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
