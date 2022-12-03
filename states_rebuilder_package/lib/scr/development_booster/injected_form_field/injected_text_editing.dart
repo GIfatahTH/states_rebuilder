@@ -224,8 +224,8 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
   TextEditingControllerImp get controller {
     if (!_formIsSet) {
       form ??= InjectedFormImp._currentInitializedForm;
+      _formIsSet = true; // TODO check me
       if (form != null) {
-        _formIsSet = true;
         formTextFieldDisposer =
             (form as InjectedFormImp).addTextFieldToForm(this);
 
