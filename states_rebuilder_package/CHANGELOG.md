@@ -1,6 +1,8 @@
-## 6.1.0
-* Make stateAsync coherant with setToWaiting
-* remove double debug print messages
+## 6.1.1-dev-2
+* Make stateAsync coherent with setToWaiting
+* remove double debug print messages issue #275
+* Add dialogs and scaffold related navigation to `InjectedNavigation`
+* Fix bugs
 
 ## 6.1.0+1 (2022-05-02)
   * Fix issues #265 #267
