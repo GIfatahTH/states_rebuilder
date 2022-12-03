@@ -234,6 +234,18 @@ No valid BuildContext is defined yet
     _context = null;
   }
 
+  /// Close the drawer if open
+  void closeDrawer<T>() {
+    scaffoldState.closeDrawer();
+    _context = null;
+  }
+
+  /// Close the end drawer if open
+  void closeEndDrawer<T>() {
+    scaffoldState.closeEndDrawer();
+    _context = null;
+  }
+
   void dispose() {
     _context = null;
   }
