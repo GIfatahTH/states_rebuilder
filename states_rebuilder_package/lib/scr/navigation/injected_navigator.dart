@@ -5,25 +5,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:navigation_builder/navigation_builder.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
 
 import '../state_management/common/logger.dart';
 import '../state_management/rm.dart';
 
-part 'build_context_x.dart';
-part 'navigator2/on_navigate_back_scope.dart';
-part 'navigator2/page_settings.dart';
-part 'navigator2/route_information_parser.dart';
-part 'navigator2/router_delegate.dart';
-part 'navigator2/router_objects.dart';
-part 'page_route_builder.dart';
-part 'rm_navigator.dart';
-part 'rm_resolve_path_route_util.dart';
+// part 'build_context_x.dart';
+// part 'navigator2/on_navigate_back_scope.dart';
+// part 'navigator2/page_settings.dart';
+// part 'navigator2/route_information_parser.dart';
+// part 'navigator2/router_delegate.dart';
+// part 'navigator2/router_objects.dart';
+// part 'rm_navigator.dart';
 part 'rm_scaffold.dart';
-part 'route_data.dart';
-part 'route_full_widget.dart';
-part 'route_widget.dart';
-part 'sub_route.dart';
-part 'transitions.dart';
+// part 'page_route_builder.dart';
+// part 'rm_resolve_path_route_util.dart';
+// part 'route_data.dart';
+// part 'route_full_widget.dart';
+// // part 'route_widget.dart';
+// part 'sub_route.dart';
+// part 'transitions.dart';
 
 ///{@template InjectedNavigator}
 /// Injecting a Navigator 2 that holds a [RouteData] state.
@@ -51,24 +53,24 @@ part 'transitions.dart';
 ///
 /// See also [RouteData] and [RouteWidget]
 /// {@endtemplate}
-abstract class InjectedNavigator {
+
+class InjectedNavigator implements NavigationBuilder {
+  late final NavigationBuilder _navigationBuilder;
+
   /// [RouterDelegate] implementation
   RouterDelegate<PageSettings> get routerDelegate =>
-      RouterObjects.rootDelegate!;
+      _navigationBuilder.routerDelegate;
 
   /// [RouteInformationParser] delegate.
   RouteInformationParser<PageSettings> get routeInformationParser =>
-      RouterObjects.routeInformationParser!;
+      _navigationBuilder.routeInformationParser;
 
   /// Set the route stack. It exposes the current [PageSettings] stack.
   void setRouteStack(
     List<PageSettings> Function(List<PageSettings> pages) stack, {
     String? subRouteName,
   }) {
-    if (_mock != null) {
-      return _mock!.setRouteStack(stack, subRouteName: subRouteName);
-    }
-    return navigateObject.setRouteStack(stack, subRouteName: subRouteName);
+    return _navigationBuilder.setRouteStack(stack, subRouteName: subRouteName);
   }
 
   /// Get the [PageSettings] stack.
@@ -76,11 +78,11 @@ abstract class InjectedNavigator {
     if (_mock != null) {
       return _mock!.pageStack;
     }
-    return (routerDelegate as RouterDelegateImp).pageSettingsList;
+    return _navigationBuilder.pageStack;
   }
 
   /// Get the current [RouteData]
-  RouteData get routeData => throw UnimplementedError();
+  RouteData get routeData => _navigationBuilder.routeData;
 
   /// Find the page with given routeName and add it to the route stack and trigger
   /// route transition.
@@ -104,23 +106,11 @@ abstract class InjectedNavigator {
     )?
         transitionsBuilder,
   }) {
-    if (_mock != null) {
-      return _mock!.to<T>(
-        routeName,
-        arguments: arguments,
-        queryParams: queryParams,
-        builder: builder,
-        fullscreenDialog: fullscreenDialog,
-        maintainState: maintainState,
-        transitionsBuilder: transitionsBuilder,
-      );
-    }
-
-    return navigateObject.toNamed<T>(
+    return _navigationBuilder.to<T>(
       routeName,
-      builder: builder,
       arguments: arguments,
       queryParams: queryParams,
+      builder: builder,
       fullscreenDialog: fullscreenDialog,
       maintainState: maintainState,
       transitionsBuilder: transitionsBuilder,
@@ -143,17 +133,7 @@ abstract class InjectedNavigator {
     // )?
     //     transitionsBuilder,
   }) {
-    if (_mock != null) {
-      return _mock!.toPageless<T>(
-        page,
-        name: name,
-        fullscreenDialog: fullscreenDialog,
-        maintainState: maintainState,
-        // transitionsBuilder: transitionsBuilder,
-      );
-    }
-
-    return navigateObject.to<T>(
+    return _navigationBuilder.toPageless<T>(
       page,
       name: name,
       fullscreenDialog: fullscreenDialog,
@@ -164,7 +144,7 @@ abstract class InjectedNavigator {
 
   /// Whether a page can be popped off from the root route stack or sub route
   /// stacks.
-  bool get canPop => throw UnimplementedError();
+  bool get canPop => _navigationBuilder.canPop;
 
   /// Deeply navigate to the given routeName. Deep navigation means that the
   /// root stack is cleaned and pages corresponding to sub paths are added to
@@ -196,42 +176,13 @@ abstract class InjectedNavigator {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (_mock != null) {
-      return _mock!.toDeeply(
-        routeName,
-        arguments: arguments,
-        queryParams: queryParams,
-        fullscreenDialog: fullscreenDialog,
-        maintainState: maintainState,
-      );
-    }
-
-    RouterObjects.clearStack();
-    final pathSegments = Uri.parse(routeName).pathSegments;
-
-    if (pathSegments.isEmpty) {
-      to('/', arguments: arguments, queryParams: queryParams);
-      return;
-    }
-    to('/');
-    String path = '';
-    for (var i = 0; i < pathSegments.length; i++) {
-      path += '/${pathSegments[i]}';
-      if (i == pathSegments.length - 1) {
-        to(
-          path,
-          arguments: arguments,
-          queryParams: queryParams,
-          fullscreenDialog: fullscreenDialog,
-          maintainState: maintainState,
-        );
-      } else {
-        to(
-          path,
-          maintainState: maintainState,
-        );
-      }
-    }
+    return _navigationBuilder.toDeeply(
+      routeName,
+      arguments: arguments,
+      queryParams: queryParams,
+      fullscreenDialog: fullscreenDialog,
+      maintainState: maintainState,
+    );
   }
 
   /// Find the page with given routeName and remove the current route and
@@ -246,18 +197,7 @@ abstract class InjectedNavigator {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (_mock != null) {
-      return _mock!.toReplacement<T, TO>(
-        routeName,
-        result: result,
-        arguments: arguments,
-        queryParams: queryParams,
-        fullscreenDialog: fullscreenDialog,
-        maintainState: maintainState,
-      );
-    }
-
-    return navigateObject.toReplacementNamed<T, TO>(
+    return _navigationBuilder.toReplacement<T, TO>(
       routeName,
       result: result,
       arguments: arguments,
@@ -281,17 +221,7 @@ abstract class InjectedNavigator {
     bool fullscreenDialog = false,
     bool maintainState = true,
   }) {
-    if (_mock != null) {
-      return _mock!.toAndRemoveUntil<T>(
-        newRouteName,
-        untilRouteName: untilRouteName,
-        arguments: arguments,
-        queryParams: queryParams,
-        fullscreenDialog: fullscreenDialog,
-        maintainState: maintainState,
-      );
-    }
-    return navigateObject.toNamedAndRemoveUntil<T>(
+    return _navigationBuilder.toAndRemoveUntil<T>(
       newRouteName,
       untilRouteName: untilRouteName,
       arguments: arguments,
@@ -306,62 +236,40 @@ abstract class InjectedNavigator {
   ///
   /// It is similar to `_navigate.backUntil` method.
   void backUntil(String untilRouteName) {
-    if (_mock != null) {
-      return _mock!.backUntil(untilRouteName);
-    }
-    return navigateObject.backUntil(untilRouteName);
+    return _navigationBuilder.backUntil(untilRouteName);
   }
 
   /// Navigate back to the last page, ie Pop the top-most route off the navigator.
   ///
   /// It is similar to `_navigate.back` method.
   void back<T extends Object>([T? result]) {
-    if (_mock != null) {
-      return _mock!.back<T>(result);
-    }
-    return navigateObject.back<T>(result);
+    return _navigationBuilder.back<T>(result);
   }
 
   /// {@macro forceBack}
   /// It is similar to `_navigate.forceBack` method.
   void forceBack<T extends Object>([T? result]) {
-    if (_mock != null) {
-      return _mock!.forceBack<T>(result);
-    }
-    return navigateObject.forceBack<T>(result);
+    return _navigationBuilder.forceBack<T>(result);
   }
 
   /// Remove a pages from the route stack.
   void removePage<T extends Object>(String routeName, [T? result]) {
-    if (_mock != null) {
-      return _mock!.removePage<T>(routeName, result);
-    }
-    RouterObjects.removePage<T>(
-      routeName: routeName,
-      activeSubRoutes: RouterObjects.getActiveSubRoutes(),
-      result: result,
-    );
+    return _navigationBuilder.removePage<T>(routeName, result);
   }
 
   /// Invoke `onNavigate` callback and navigate according the logic defined there.
-  void onNavigate() => throw UnimplementedError();
+  void onNavigate() => _navigationBuilder.onNavigate();
 
   /// Used in test to simulate a deep link call.
   void deepLinkTest(String url) {
-    routeInformationParser.parseRouteInformation(
-      RouteInformation(location: url),
-    );
-    (routerDelegate as RouterDelegateImp).updateRouteStack();
+    return _navigationBuilder.deepLinkTest(url);
   }
 
   InjectedNavigator? _mock;
 
   /// Mock InjectedNavigator
-  void injectMock(InjectedNavigator mock) {
-    assert(() {
-      _mock = mock;
-      return true;
-    }());
+  void injectMock(NavigationBuilder mock) {
+    return _navigationBuilder.injectMock(mock);
   }
 
   /// {@macro toDialog}
@@ -372,7 +280,7 @@ abstract class InjectedNavigator {
     bool useSafeArea = true,
     bool postponeToNextFrame = false,
   }) {
-    return navigateObject.toDialog<T>(
+    return _navigationBuilder.toDialog<T>(
       dialog,
       barrierColor: barrierColor,
       barrierDismissible: barrierDismissible,
@@ -387,7 +295,7 @@ abstract class InjectedNavigator {
     bool barrierDismissible = false,
     bool postponeToNextFrame = false,
   }) =>
-      navigateObject.toCupertinoDialog<T>(
+      _navigationBuilder.toCupertinoDialog<T>(
         dialog,
         barrierDismissible: barrierDismissible,
         postponeToNextFrame: postponeToNextFrame,
@@ -406,7 +314,7 @@ abstract class InjectedNavigator {
     Color? barrierColor,
     bool postponeToNextFrame = false,
   }) =>
-      navigateObject.toBottomSheet<T>(
+      _navigationBuilder.toBottomSheet<T>(
         bottomSheet,
         isDismissible: isDismissible,
         enableDrag: enableDrag,
@@ -426,7 +334,7 @@ abstract class InjectedNavigator {
     bool? semanticsDismissible,
     bool postponeToNextFrame = false,
   }) =>
-      navigateObject.toCupertinoModalPopup<T>(
+      _navigationBuilder.toCupertinoModalPopup<T>(
         cupertinoModalPopup,
         filter: filter,
         semanticsDismissible: semanticsDismissible,
@@ -436,133 +344,64 @@ abstract class InjectedNavigator {
   /// Show ScaffoldMessenger related widgets such as SnackBar, Drawer, and
   /// BottomSheets
   final scaffold = scaffoldObject;
+
+  @override
+  Future<T?> backAndToNamed<T extends Object?, TO extends Object?>(
+      String routeName,
+      {TO? result,
+      Object? arguments,
+      bool fullscreenDialog = false,
+      bool maintainState = true}) {
+    return _navigationBuilder.backAndToNamed<T, TO>(
+      routeName,
+      result: result,
+      arguments: arguments,
+      fullscreenDialog: fullscreenDialog,
+      maintainState: maintainState,
+    );
+  }
+
+  @override
+  void disposeAll() {
+    return _navigationBuilder.disposeAll();
+  }
 }
 
-class InjectedNavigatorImp extends ReactiveModelImp<RouteData>
-    with InjectedNavigator {
-  InjectedNavigatorImp({
-    required Map<String, Widget Function(RouteData data)> routes,
-    required Widget Function(RouteData)? unknownRoute,
-    required Widget Function(
-            BuildContext, Animation<double>, Animation<double>, Widget)?
-        transitionsBuilder,
-    required Duration? transitionDuration,
-    required Widget Function(Widget child)? builder,
-    required String? initialRoute,
-    required bool shouldUseCupertinoPage,
-    required Redirect? Function(RouteData data)? redirectTo,
-    required this.debugPrintWhenRouted,
-    required this.pageBuilder,
-    required this.onBack,
-    required this.ignoreUnknownRoutes,
-    required List<NavigatorObserver> navigatorObservers,
-  })  : _redirectTo = redirectTo,
-        super(
-          creator: () => initialRouteData,
-          initialState: initialRouteData,
-          autoDisposeWhenNotUsed: true,
-          stateInterceptorGlobal: null,
-        ) {
-    _resetDefaultState = () {
-      RouterObjects.initialize(
-        routes: routes,
-        unknownRoute: unknownRoute,
-        transitionsBuilder: transitionsBuilder,
-        transitionDuration: transitionDuration,
-        builder: builder,
-        initialRoute: initialRoute,
-        shouldUseCupertinoPage: shouldUseCupertinoPage,
-        observers: navigatorObservers,
-      );
-      RouterObjects.injectedNavigator = this;
-    };
-  }
-  bool _isInitialized = false;
-
-  @override
-  RouterDelegate<PageSettings> get routerDelegate {
-    if (!_isInitialized) {
-      _isInitialized = true;
-      _resetDefaultState();
-    }
-    return super.routerDelegate;
-  }
-
-  @override
-  RouteInformationParser<PageSettings> get routeInformationParser {
-    if (!_isInitialized) {
-      _isInitialized = true;
-      _resetDefaultState();
-    }
-    return super.routeInformationParser;
-  }
-
-  static final initialRouteData = RouteData.initial();
-  static bool ignoreSingleRouteMapAssertion = false;
-  final bool ignoreUnknownRoutes;
-
-  final Redirect? Function(RouteData data)? _redirectTo;
-  Redirect? Function(RouteData data)? get redirectTo {
-    if (_redirectTo == null) {
-      return null;
-    }
-    return (RouteData data) {
-      return _redirectTo!(data);
-    };
-  }
-
-  @override
-  void onNavigate() {
-    if (RouterObjects.rootDelegate == null) return;
-    final toLocation = _redirectTo?.call(routeData);
-    if (toLocation is Redirect && toLocation.to != null) {
-      setRouteStack(
-        (pages) {
-          pages.clear();
-          return pages.to(
-            toLocation.to!,
-            arguments: routeData.arguments,
-            queryParams: routeData.queryParams,
-            isStrictMode: true,
-          );
-        },
-      );
-    }
-  }
-
-  final bool debugPrintWhenRouted;
-  final Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder;
-  final bool? Function(RouteData? data)? onBack;
-
-  late final VoidCallback _resetDefaultState;
-
-  set routeData(RouteData value) {
-    if (state.signature != value.signature) {
-      snapValue = const SnapState<RouteData>.none().copyToHasData(value);
-    }
-  }
-
-  @override
-  void dispose() {
-    _isInitialized = false;
-    // _resetDefaultState();
-    super.dispose();
-  }
-
-  @override
-  bool get canPop {
-    if (_mock != null) {
-      return _mock!.canPop;
-    }
-    ReactiveStatelessWidget.addToObs?.call(this);
-    return RouterObjects.canPop;
-  }
-
-  @override
-  RouteData get routeData {
-    if (_mock != null) {
-      return _mock!.routeData;
-    }
-    return state;
-  }
+InjectedNavigator createNavigator({
+  required Map<String, Widget Function(RouteData data)> routes,
+  String? initialLocation,
+  Widget Function(RouteData data)? unknownRoute,
+  Widget Function(Widget routerOutlet)? builder,
+  Page<dynamic> Function(MaterialPageArgument arg)? pageBuilder,
+  bool shouldUseCupertinoPage = false,
+  Widget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondAnimation,
+    Widget child,
+  )?
+      transitionsBuilder,
+  Duration? transitionDuration,
+  Redirect? Function(RouteData data)? onNavigate,
+  bool? Function(RouteData? data)? onNavigateBack,
+  bool debugPrintWhenRouted = false,
+  bool ignoreUnknownRoutes = false,
+  List<NavigatorObserver> navigatorObservers = const <NavigatorObserver>[],
+}) {
+  final navigationBuilder = NavigationBuilder.create(
+    routes: routes,
+    unknownRoute: unknownRoute,
+    transitionsBuilder: transitionsBuilder,
+    transitionDuration: transitionDuration,
+    builder: builder,
+    initialLocation: initialLocation,
+    shouldUseCupertinoPage: shouldUseCupertinoPage,
+    onNavigate: onNavigate,
+    onNavigateBack: onNavigateBack,
+    debugPrintWhenRouted: debugPrintWhenRouted,
+    pageBuilder: pageBuilder,
+    ignoreUnknownRoutes: ignoreUnknownRoutes,
+    navigatorObservers: navigatorObservers,
+  );
+  return InjectedNavigator().._navigationBuilder = navigationBuilder;
 }

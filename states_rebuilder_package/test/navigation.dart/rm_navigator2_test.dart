@@ -6,8 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/scr/navigation/injected_navigator.dart';
-import 'package:states_rebuilder/scr/state_management/common/logger.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
+import 'package:navigation_builder/src/common/logger.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -2500,7 +2500,7 @@ void main() {
   testWidgets(
     'RouteInformationParser work as expected',
     (tester) async {
-      StatesRebuilerLogger.isTestMode = false;
+      NavigationBuilderLogger.isTestMode = false;
       final routes = {
         '/': (_) {
           return Text('/');
@@ -2557,7 +2557,7 @@ void main() {
       //
       expect(find.text('/'), findsOneWidget);
       expect(informationParser!.info!.location, '/');
-      expect(StatesRebuilerLogger.message.endsWith('DeepLink to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('DeepLink to: /'), true);
       //
       _provider!.value = const RouteInformation(
         location: '/page1/page11',
@@ -2566,7 +2566,7 @@ void main() {
       expect(find.text('/page11-null'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11'),
+        NavigationBuilderLogger.message.endsWith('DeepLink to: /page1/page11'),
         true,
       );
 
@@ -2574,12 +2574,12 @@ void main() {
       await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
       // expect(informationParser!.info!.location, '/page1');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
       // _navigator.back();
       // await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
       expect(informationParser!.info!.location, '/');
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page1/page11?q=1',
@@ -2588,7 +2588,8 @@ void main() {
       expect(find.text('/page11-1'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=1'),
         true,
       );
 
@@ -2597,7 +2598,8 @@ void main() {
       expect(find.text('/page11-2'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=2');
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=2'),
         true,
       );
       //
@@ -2606,32 +2608,35 @@ void main() {
       expect(find.text('/page11-1'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(
-          StatesRebuilerLogger.message.endsWith('Back to: /page1/page11?q=1'),
+          NavigationBuilderLogger.message
+              .endsWith('Back to: /page1/page11?q=1'),
           true);
 
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
       // expect(informationParser!.info!.location, '/page1');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       // //
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/'), findsOneWidget);
       // expect(informationParser!.info!.location, '/');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _navigator.to('/page1/page11?q=1');
       await tester.pumpAndSettle();
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=1'),
         true,
       );
       _navigator.to('/page1/page11?q=2');
       await tester.pumpAndSettle();
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=2'),
         true,
       );
       _navigator.to('/page1/page11?q=3');
@@ -2639,7 +2644,8 @@ void main() {
       expect(find.text('/page11-3'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=3');
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=3'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=3'),
         true,
       );
       //
@@ -2652,18 +2658,19 @@ void main() {
       expect(find.text('/page11-2'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=2');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=2'),
         true,
       );
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page1/page11?q=10',
@@ -2672,18 +2679,19 @@ void main() {
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(find.text('/page11-1'), findsOneWidget);
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=1'),
         true,
       );
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page2?q=15',

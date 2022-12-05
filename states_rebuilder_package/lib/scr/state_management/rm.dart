@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:navigation_builder/navigation_builder.dart';
 
 import '../development_booster/injected_animation/injected_animation.dart';
 import '../development_booster/injected_auth/injected_auth.dart';
@@ -2127,7 +2128,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       return _contextSet.last;
     }
 
-    return navigateObject.navigatorKey.currentState?.context;
+    return NavigationBuilder.navigate.navigatorKey.currentState?.context;
   }
 
   static ReactiveModel<T> get<T>([String? name]) {
@@ -2139,10 +2140,10 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   static final scaffold = scaffoldObject;
 
   /// Navigation without BuildContext.
-  static final navigate = navigateObject;
+  static final navigate = NavigationBuilder.navigate;
 
   /// Predefined set of route transition animation
-  static final transitions = transitionsObject;
+  static final transitions = NavigationBuilder.transitions;
 
   /// {@macro InjectedNavigator}
   ///
@@ -2348,18 +2349,18 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool ignoreUnknownRoutes = false,
     List<NavigatorObserver> navigatorObservers = const <NavigatorObserver>[],
   }) {
-    return InjectedNavigatorImp(
+    return createNavigator(
       routes: routes,
       unknownRoute: unknownRoute,
       transitionsBuilder: transitionsBuilder,
       transitionDuration: transitionDuration,
       builder: builder,
-      initialRoute: initialLocation,
+      initialLocation: initialLocation,
       shouldUseCupertinoPage: shouldUseCupertinoPage,
-      redirectTo: onNavigate,
+      onNavigate: onNavigate,
       debugPrintWhenRouted: debugPrintWhenRouted,
       pageBuilder: pageBuilder,
-      onBack: onNavigateBack,
+      onNavigateBack: onNavigateBack,
       ignoreUnknownRoutes: ignoreUnknownRoutes,
       navigatorObservers: navigatorObservers,
     );

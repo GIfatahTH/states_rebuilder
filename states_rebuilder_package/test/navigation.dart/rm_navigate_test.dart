@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/scr/navigation/injected_navigator.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 

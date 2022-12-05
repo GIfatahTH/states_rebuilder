@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 late InjectedNavigator navigator;
+
 final Map<String, Widget Function(RouteData)> routes = {
   '/': (data) => data.redirectTo('/books'),
   '/books': (data) => BooksListScreen(books: books),
