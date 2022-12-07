@@ -2053,7 +2053,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   /// Dispose all Injected State
   static void disposeAll() {
-    scaffold.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      scaffold.dispose();
+    });
     navigate.dispose();
     if (injectedModels.isEmpty) return;
     for (var inj in [...injectedModels]) {
