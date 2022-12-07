@@ -1,8 +1,9 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import 'package:collection/collection.dart';
-import '../../state_management/rm.dart';
 import '../../../states_rebuilder.dart';
+import '../../state_management/rm.dart';
+
 part 'i_crud.dart';
 part 'on_crud_builder.dart';
 

@@ -5,7 +5,8 @@ import 'package:meta/meta.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:navigation_builder/navigation_builder.dart';
+// import 'package:navigation_builder/navigation_builder.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
 
 import '../development_booster/injected_animation/injected_animation.dart';
 import '../development_booster/injected_auth/injected_auth.dart';
@@ -2137,7 +2138,12 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   /// Scaffold without BuildContext.
   ///
-  static final scaffold = scaffoldObject;
+  static get scaffold {
+    if (context != null && context != navigate.navigatorKey.currentContext) {
+      scaffoldObject.context = context!;
+    }
+    return scaffoldObject;
+  }
 
   /// Navigation without BuildContext.
   static final navigate = NavigationBuilder.navigate;

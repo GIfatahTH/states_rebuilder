@@ -2,13 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:navigation_builder/navigation_builder.dart';
-import 'package:navigation_builder/src/navigation_builder.dart';
 
-import '../state_management/common/logger.dart';
 import '../state_management/rm.dart';
 
 // part 'build_context_x.dart';
@@ -18,7 +14,7 @@ import '../state_management/rm.dart';
 // part 'navigator2/router_delegate.dart';
 // part 'navigator2/router_objects.dart';
 // part 'rm_navigator.dart';
-part 'rm_scaffold.dart';
+// part 'rm_scaffold.dart';
 // part 'page_route_builder.dart';
 // part 'rm_resolve_path_route_util.dart';
 // part 'route_data.dart';
@@ -343,7 +339,15 @@ class InjectedNavigator implements NavigationBuilder {
 
   /// Show ScaffoldMessenger related widgets such as SnackBar, Drawer, and
   /// BottomSheets
-  final scaffold = scaffoldObject;
+  // final scaffold = _navigationBuilder.scaffold;
+  @override
+  get scaffold {
+    if (RM.context != null &&
+        RM.context != RM.navigate.navigatorKey.currentContext) {
+      _navigationBuilder.scaffold.context = RM.context!;
+    }
+    return _navigationBuilder.scaffold;
+  }
 
   @override
   Future<T?> backAndToNamed<T extends Object?, TO extends Object?>(

@@ -36,8 +36,7 @@ void main() {
 
     await tester.pumpWidget(widget);
     expect(() => _navigator.scaffold.scaffoldState, throwsException);
-    expect(
-        () => _navigator.scaffold.scaffoldMessengerState, throwsAssertionError);
+    expect(() => _navigator.scaffold.scaffoldMessengerState, isNotNull);
 
     _navigator.scaffold.context = context!;
     expect(_navigator.scaffold.scaffoldState, isNotNull);
