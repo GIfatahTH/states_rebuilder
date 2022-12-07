@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-
 final navigator = RM.injectNavigator(
   routes: {
     '/': (data) => const MyHomePage(),
@@ -89,7 +88,7 @@ class MyHomePageViewModel {
 
   void showAboutDialogWithoutBuildContext() {
     showAboutDialog(
-      context: NavigationBuilder.context!,
+      context: RM.context!,
       applicationName: 'Navigation builder',
     );
   }
@@ -145,7 +144,7 @@ class MyHomePageViewModel {
 final myHomePageViewModel = MyHomePageViewModel();
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
