@@ -7,18 +7,18 @@
         flutter:
             generate: true # Add this line
     ```
-2. Create the `l10n.yaml` file In the root directory of your flutter application and add the following cotenant:
+2. Create the `l10n.yaml` file In the root directory of your flutter application and add the following content:
     ```yaml
         # [arb-dire] is the directory where to put the language arb files
         arb-dir: lib/l10n
         # arb file to take as template. It contains translation as well as metadata
         template-arb-file: app_en.arb
     ```
-3. create `lib/l10n` directory. Add put all your arb languages here. For example create:
+3. Create `lib/l10n` directory. Put all your arb languages here. For example create:
     - `app_en.arb` for english (the template one)
     - `app_ar.arb` for arabic
     - `app_es.arb` for spanish
-4. inside the `lib/l10n` folder create the file `i18n.dart` where to use `Injected18n`
+4. Inside the `lib/l10n` folder, create the file `i18n.dart`, indicating where to use `Injected18n`
     ```dart
         import 'package:states_rebuilder/states_rebuilder.dart';
         // Generated file are in ${FLUTTER_PROJECT}/.dart_tool/flutter_gen/gen_l10n
@@ -33,7 +33,7 @@
         });
     ```
     Flutter generates the translation files inside `${FLUTTER_PROJECT}/.dart_tool/flutter_gen/gen_l10n`.
-    For each language the generated class is `AppLocalizations[LAN_CODE]`. To import it use `import 'package:flutter_gen/gen_l10n/app_localizations_[LAN_CODE].dart'`;
+    For each language, the generated class is `AppLocalizations[LAN_CODE]`. To import it use `import 'package:flutter_gen/gen_l10n/app_localizations_[LAN_CODE].dart'`;
 
     For example:
     - The language is `en` => the generated class is `AppLocalizationsEn`. To import: `import 'package:flutter_gen/gen_l10n/app_localizations_en.dart';`
@@ -109,7 +109,7 @@ Now you can add translation messages.
         }
     ```
 ### String with arguments:
-M
+
 * For english:
     ```arb
         {

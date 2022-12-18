@@ -5,7 +5,7 @@
 
 > You can get more information from this tutorial :[Global function injection from A to Z](https://github.com/GIfatahTH/states_rebuilder/wiki/functional_injection_form_a_to_z/00-functional_injection)
 
-In this tutorial we will explore more feature of the `ReactiveModel` and put in practice what we have seen in the first tutorial.
+In this tutorial we will explore more feature of the `ReactiveModel` and put into practice what we have seen in the first tutorial.
 
 Let's build a simple login form validation. It consists of two input fields and a submit button. 
 * Email input field : is valid if it contains '@'.

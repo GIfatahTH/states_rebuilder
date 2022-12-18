@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* This is a show case on how to limit the rebuild to the widget really need to
+* This is a show case on how to limit the rebuild of a widget
+* to that which only really is needed to
 * update its view.
 *
 * The example is inspired from provider_shopper in flutter examples repo
@@ -83,7 +84,7 @@ class _MyAppBar extends StatelessWidget {
 // Used for test
 final rebuiltItems = [];
 
-// For the sake of this example we make this widget ReactiveStatelessWidget.
+// For the sake of this example we make this widget a ReactiveStatelessWidget.
 class _MyListItem extends ReactiveStatelessWidget {
   final int index;
 
@@ -91,14 +92,14 @@ class _MyListItem extends ReactiveStatelessWidget {
   // OnReactive and OnBuilder both have shouldRebuild parameter
   @override
   bool shouldRebuildWidget(SnapState oldSnap, SnapState currentSnap) {
-    // Check that the nonfiction is emitted from _selectedItems state
+    // Check that the notification is emitted from _selectedItems state
     if (currentSnap.type() == List<int>) {
       final oldItems = oldSnap.state as List<int>;
       final currentItems = currentSnap.state as List<int>;
       if (oldItems.contains(index) != currentItems.contains(index)) {
         // Rebuild the widget only in two cases:
         // 1- The item was in the old list and it is removed from the new list.
-        // 2- The item wasn't in the old list ant it is added to the new list.
+        // 2- The item wasn't in the old list and it is added to the new list.
         return true;
       }
     }
@@ -136,7 +137,7 @@ class _MyListItem extends ReactiveStatelessWidget {
   }
 }
 
-// For better optimization, this widget can be ReactiveStatelessWidget
+// For better optimization, this widget can be a ReactiveStatelessWidget
 //
 class _AddButton extends StatelessWidget {
   final Item item;

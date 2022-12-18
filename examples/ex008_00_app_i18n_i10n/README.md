@@ -9,7 +9,7 @@ First, make sure you have installed states_rebuilder package, please check out t
 
 In this example, you will learn how to handle app localization and internationalization.
 
-## Exploring Use-cases
+## Exploring Use-Cases
 
 - [01: App internationalization using dart classes](./lib/ex_001_i18n_using_dart_class)
  
@@ -23,6 +23,6 @@ In this example, you will learn how to handle app localization and international
 [🔍 See more detailed information about `InjectedAuth` API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.
 

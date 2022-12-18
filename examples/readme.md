@@ -28,6 +28,6 @@ Based on state management principles and some good programing principles and abs
 [🔍 See the official documentation](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
+## Questions & Suggestions
 * Each example is a seed for a tutorial. It would be very encouraging if you wrote one.
-* Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+* Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.

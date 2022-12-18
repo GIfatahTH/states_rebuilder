@@ -23,7 +23,7 @@ class Book {
 }
 
 final navigator = RM.injectNavigator(
-  // Use Cupertin0Page instead of the default MaterialPage
+  // Use CupertinoPage instead of the default MaterialPage
   shouldUseCupertinoPage: true,
 
   // You can ignore all unknown routes and just display the last known route

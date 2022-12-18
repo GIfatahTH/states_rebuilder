@@ -25,7 +25,7 @@ class Weather {
   });
 }
 
-// Repositories interfaces
+// Repository interface
 abstract class WeatherRepository {
   Future<Weather> fetchWeather(String cityName);
   Future<Weather> fetchDetailedWeather(String cityName);
@@ -53,17 +53,17 @@ class WeatherService {
     ),
   );
 
-  Weather get wether => _weatherRM.state!;
-  late final whenWether = _weatherRM.onAll;
+  Weather get weather => _weatherRM.state!;
+  late final whenWeather = _weatherRM.onAll;
   //
   late final _weatherDetailedRM = RM.inject<Weather?>(
     () => null,
     sideEffects: SideEffects(
-      initState: () => fetchDetailedWeather(wether.cityName),
+      initState: () => fetchDetailedWeather(weather.cityName),
     ),
   );
-  Weather get wetherDetailed => _weatherDetailedRM.state!;
-  late final whenWetherDetailed = _weatherDetailedRM.onOrElse;
+  Weather get weatherDetailed => _weatherDetailedRM.state!;
+  late final whenWeatherDetailed = _weatherDetailedRM.onOrElse;
 
   //
   void fetchWeather(String cityName) async {
@@ -129,7 +129,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         alignment: Alignment.center,
-        child: weatherService.whenWether(
+        child: weatherService.whenWeather(
           onIdle: () => buildInitialInput(),
           onWaiting: () => const LoadingWidget(),
           onError: (_, __) => buildInitialInput(),
@@ -146,7 +146,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
   }
 
   Column buildColumnWithData(BuildContext context) {
-    final Weather weather = weatherService.wether;
+    final Weather weather = weatherService.weather;
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
@@ -165,7 +165,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         ElevatedButton(
           child: const Text('See Details'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.lightBlue[100],
+            backgroundColor: Colors.lightBlue[100],
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
@@ -217,7 +217,7 @@ class WeatherDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Weather weather = weatherService.wether;
+    final Weather weather = weatherService.weather;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Weather Detail"),
@@ -240,7 +240,7 @@ class WeatherDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 80),
             ),
             OnReactive(
-              () => weatherService.whenWetherDetailed(
+              () => weatherService.whenWeatherDetailed(
                 onWaiting: () => const LoadingWidget(),
                 orElse: (data) => Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -260,7 +260,7 @@ class WeatherDetailPage extends StatelessWidget {
   }
 }
 
-// Repositories implementation
+// Repository implementation
 class FakeWeatherRepository implements WeatherRepository {
   double? cachedTempCelsius;
 
@@ -278,7 +278,7 @@ class FakeWeatherRepository implements WeatherRepository {
         }
 
         // Since we're inside a fake repository, we need to cache the temperature
-        // in order to have the same one returned in for the detailed weather
+        // in order to have the same one returned for the detailed weather
         cachedTempCelsius = 20 + random.nextInt(15) + random.nextDouble();
 
         // Return "fetched" weather

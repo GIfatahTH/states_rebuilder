@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* Fixing the last example.
-*
-* The right way of injecting local states
+* Fixing the last example illustrating the right way of injecting local states
 */
 
 void main() {
@@ -28,8 +26,8 @@ class CounterViewModel {
 
 // Create a global instance of CounterViewModel
 //
-// This time we inject the CounterViewModel and postpone it initialization in
-// the UI
+// This time we inject the CounterViewModel and postpone its initialization
+// which is now handled by the UI
 final counterViewModel = RM.inject<CounterViewModel>(
   () => throw UnimplementedError(),
 );
@@ -64,7 +62,7 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // use of inherited method to scop local states
+            // use of inherited method to scope local states
             counterViewModel.inherited(
               stateOverride: () => CounterViewModel('1'),
               builder: (context) {

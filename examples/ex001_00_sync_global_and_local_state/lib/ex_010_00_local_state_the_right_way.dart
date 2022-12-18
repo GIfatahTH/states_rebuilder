@@ -32,7 +32,7 @@ class CounterViewModel {
 // You can define one global instance of CounterViewModel.
 // and overrides it with local instances in the UI
 //
-// The global instance is obtained using counterViewModel.state,
+// The global instance is obtained using counterViewModel.state
 //
 // The local instance is obtained using counterViewModel.of(context) or,
 // counterViewModel(context).state

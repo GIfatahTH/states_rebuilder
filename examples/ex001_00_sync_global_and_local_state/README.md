@@ -67,13 +67,13 @@ In this first set of examples, you will learn how to work with global and local 
 
 ### Intermediate Level :sunglasses:
 
- - [09: State Persistence - Primitives](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_012_00_state_persistance.dart)
+ - [09: State Persistence - Primitives](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_012_00_state_persistence.dart)
    <br />**Description:**
-  Example of state persistance of primitives using `SharedPreferences`.
+  Example of state persistence of primitives using `SharedPreferences`.
 
- - [10: State Persistence - List of Objects](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_013_00_state_persistance_List_of_Object.dart)
+ - [10: State Persistence - List of Objects](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_013_00_state_persistence_List_of_Object.dart)
    <br />**Description:**
-  Example of state persistance of list of objects using `Hive`.
+  Example of state persistence of list of objects using `Hive`.
 
  - [11: State Interceptor](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex001_00_sync_global_and_local_state/lib/ex_014_00_state_interceptor.dart)
    <br />**Description:**
@@ -100,8 +100,8 @@ In this first set of examples, you will learn how to work with global and local 
 [🔍 See more detailed information about state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.
 
 
 This is the end this part. Take another step and see [here for more advanced async state mutation](./../ex002_00_async_global_and_local_state)

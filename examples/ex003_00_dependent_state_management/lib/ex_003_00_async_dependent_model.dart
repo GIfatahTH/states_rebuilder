@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* In this example sumCounter depends on counter1 and counter2 which changes 
+* In this example, sumCounter depends on counter1 and counter2 which changes
 * asynchronously.
 *
 * The state of sumCounter is a combination of the state of the two others.

@@ -7,7 +7,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 * We set TodosViewModel to have one global state and one local state. Both live 
 * together independently.
 *
-* Only changes from the last example are commented
+* Only those changes diverging from the previous example are commented
 */
 @immutable
 class TodosViewModel {

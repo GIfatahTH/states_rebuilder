@@ -1,4 +1,4 @@
-import 'package:ex002_00_async_global_and_local_state/ex_012_00_state_persistance_for_injected_future.dart';
+import 'package:ex002_00_async_global_and_local_state/ex_012_00_state_persistence_for_injected_future.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

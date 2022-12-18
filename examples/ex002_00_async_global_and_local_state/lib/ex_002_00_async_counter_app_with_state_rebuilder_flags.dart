@@ -5,7 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'common_widgets/refresh_widget.dart';
 /*
-* This is similar to the last async counter app. Here we will use the states_rebuild
+* This is similar to the last async counter app. Here we will use the states_rebuilder
 * flags.
 *
 * In most useful cases, we are interested in four state flags:

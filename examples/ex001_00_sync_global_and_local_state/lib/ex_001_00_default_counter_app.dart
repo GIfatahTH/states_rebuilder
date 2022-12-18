@@ -39,7 +39,7 @@ class MyHomePage extends ReactiveStatelessWidget {
   // static final _counter = RM.inject(() => 0);
 
   void _incrementCounter() {
-    // increment the state of the counter and emit nonfiction to listeners
+    // increment the state of the counter and emit a notification to listeners
     _counter.state++;
     // For more options use setState
     // _counter.setState((s) => s + 1);
@@ -65,8 +65,8 @@ class MyHomePage extends ReactiveStatelessWidget {
               // Get the state.
               //
               // As state is consumed inside the ReactiveStatelessWidget, the
-              // latter will listen to _counter state to rebuild when
-              // the _counter state emits notification
+              // following will listen to _counter state to rebuild when
+              // the _counter state emits a notification
               '${_counter.state}',
               style: Theme.of(context).textTheme.headline4,
             ),

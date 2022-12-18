@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* In this example the sumCounter depends on the other two counter. When any of 
+* In this example, the sumCounter depends on the other two counters. When any of
 * the counter state changes, the sumCounter state will be recalculated.
 */
 class CounterViewModel {

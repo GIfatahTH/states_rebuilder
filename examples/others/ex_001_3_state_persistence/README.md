@@ -11,7 +11,7 @@ To Persist the state and retrieve it when the app restarts,
       key: 'modelKey',
       toJson: (MyModel s) => s.toJson(),
       fromJson: (String json) => MyModel.fromJson(json),
-      //Optionally, throttle the state persistance
+      //Optionally, throttle the state persistence
       throttleDelay: 1000,
     ),
   );
@@ -21,4 +21,4 @@ To Persist the state and retrieve it when the app restarts,
   model.persistState();
   model.deletePersistState();
   ```
-  [🗎 See more detailed information about state persistance](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistance_api).
+  [🗎 See more detailed information about state persistence](https://github.com/GIfatahTH/states_rebuilder/wiki/state_persistence_api).

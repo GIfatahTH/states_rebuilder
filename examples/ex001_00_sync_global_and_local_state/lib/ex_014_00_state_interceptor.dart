@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* This example show how to use state interceptor
+* This example shows how to use state interceptor
 *
 * In the demo, depending on the weather conditions, we want to change the theme. 
 * We will use the state interceptor to optimize the theme modification call and 

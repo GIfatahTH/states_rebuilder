@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'ui/todos_page.dart';
 
-// See todos_bloc file for some DI tweak
-// The code is test (see test folder)
+// See todos_bloc file for some DI tweaks
+// The code is testable (see test folder)
 
 void main() {
   runApp(const MyApp());
