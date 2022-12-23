@@ -7,7 +7,7 @@ An application can be seen as a way to visualize the stored raw data and give th
 - inject the state of `List <Item>`;
 - perform the CRUD operation and;
 - change the state and notify listeners in an optimistic or pessimistic manner;
-- to easily test and simulate dependencies.
+- easily test and simulate dependencies.
 
 All that states_rebuilder asks you to do is define:
 - A data class that represents your data (a row in a table) and,
@@ -106,7 +106,7 @@ After defining your data and parameter classes, all you have to do is implement 
 You have six methods to implement:
 - `init`: to initialize plugins
 - `create`,` read`, `update`,` delete` for CRUD operations
-- "dispse": to dispose of  resources and do some cleaning if necessary.
+- `dispose`: to dispose of  resources and do some cleaning if necessary.
 - You can add other custom methods, for example to count items.
 
 The `ItemRepository` here is a fake implementation, you can replace it with any real implementation e.g. for Sqflite, firebase, ....
@@ -252,7 +252,7 @@ class SqfliteRepository implements ICRUD<Todo, TodoParam> {
       return null;
     } catch (e) {
       //Just throw custom exception and they will be handle for you
-      throw PersistanceException('There is a problem in reading');
+      throw persistenceException('There is a problem in reading');
     }
   }
 
@@ -262,7 +262,7 @@ class SqfliteRepository implements ICRUD<Todo, TodoParam> {
       await _db.insert(_tableName, item.toMap());
       return item;
     } catch (e) {
-      throw PersistanceException('There is a problem in writing ');
+      throw persistenceException('There is a problem in writing ');
     }
   }
 
@@ -308,7 +308,7 @@ class SqfliteRepository implements ICRUD<Todo, TodoParam> {
       }
       return null;
     } catch (e) {
-      throw PersistanceException('There is a problem in reading');
+      throw persistenceException('There is a problem in reading');
     }
   }
 }
@@ -317,7 +317,7 @@ class SqfliteRepository implements ICRUD<Todo, TodoParam> {
 </details>
 
 
-This is the hardest part of the journey; creation of a data and parameters class and implementation of the `ICRUD` repository.
+This is the hardest part of the journey: creation of a data and parameters class and implementation of the `ICRUD` repository.
 
 ### Injecting the repository:
 
@@ -459,7 +459,7 @@ In the AppBar we have three buttons to read (all, even, or odd) numbers
 This is all to READ. Just use the `items.crud.read` method with the optional copying of the default query parameter.
 
 #### body : Listen to the state, UPDATE and DELETE
-In the body of the `Scaffold` we will display the list of items, Listen the the `items` state and update and delete an item.
+In the body of the `Scaffold`, we will display the list of items, listen the `items` state and update and delete an item.
 ```dart
    Widget _bodyMethod() {
     //Listen to numbers state using On.or
@@ -493,7 +493,7 @@ In the ListBuilder, we used the `inherited` method to display the` ItemWidget`. 
 - As the `inherited` method inserts an` InheritedWidget` above`ItemWidget`, we can take advantage of everything you know about` InheritedWidget`.
 - Using const constructors for item widgets.
 - Item widgets can be gigantic widgets with a long widget tree. We can easily get the state of an item and mutate it with the state of the original list of items even in the deepest widget.
-- The `inherited` method, binds the item to the list of items so that updating an item updates the state of the list of items and sends an update request to the database. Likewise, updating the list of items will update the `ItemWidget` even if it is built with the const constructor.
+- The `inherited` method binds the item to the list of items so that updating an item updates the state of the list of items and sends an update request to the database. Likewise, updating the list of items will update the `ItemWidget` even if it is built with the const constructor.
 
 ```dart
 class ItemWidget extends StatelessWidget {
@@ -567,7 +567,7 @@ class ChildItemWidget extends StatelessWidget {
 
 ### Bounce
 
-As the CREATE, UPDATE, DELETE functions are performed optimistically, the user will not notice anything. Looks like he's dealing with a simple sync list of items.
+As the CREATE, UPDATE, DELETE functions are performed optimistically, the user will not notice anything. It will appear like he's dealing with a simple sync list of items.
 
 If we want to show the user that something is happening in the background, we can use the `On.crud` listener.
 
@@ -595,4 +595,4 @@ AppBar _appBarMethod() {
 }
 ```
 
-Notice, how it is optimistic, try add an item, it will be added instantly and the yellow circle appears informing us that something is happening in the background. In case of an error, the removed item is added and a red refresh icon appears instead of the yellow circle. On tapping on the refresh icons, the last call (may be read or update or delete) will be reinvoked and the item to remove is removed from the list.
+Notice how it is optimistic, try adding an item. It will be added instantly and the yellow circle appears informing us that something is happening in the background. In case of an error, the removed item is added and a red refresh icon appears instead of the yellow circle. On tapping on the refresh icons, the last call (be it read, update, or delete) will be reinvoked and the item to remove is removed from the list.

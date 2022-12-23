@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
-* states even if instantiated globally, have life cycle. This is an example of
-* state cleaning (disposing off)
+* States, even if instantiated globally, have a life cycle. This is an example of
+* state cleaning up after itself (disposing of itself)
 */
 
 void main() {
@@ -18,7 +18,7 @@ class CounterViewModel {
     () => 0,
     // See the console log
     debugPrintWhenNotifiedPreMessage: '_counter',
-    // TODO uncomment the next line to prevent _counter from disposing of
+    // TODO uncomment the next line to prevent _counter from disposing of itself
     // autoDisposeWhenNotUsed: false,
   );
   int get counter => _counter.state;
@@ -27,18 +27,18 @@ class CounterViewModel {
   }
 
   void dispose() {
-    // IF a state is set to not disposed of automatically (autoDisposeWhenNotUsed: false)
+    // If a state is set to not be disposed of automatically (autoDisposeWhenNotUsed: false),
     // it is a good practice to dispose of it manually
     _counter.dispose();
     //
-    // RM.disposeAll will dispose all injected state. It may be used in test
+    // RM.disposeAll will dispose all injected state. It may be used in tests
     // RM.disposeAll();
   }
 }
 
 // Although _counter is used only in a part of the app (in CounterView), it is
-// considered as global state. because only one instance of it is active at any
-// instant.
+// considered as global state, because only one instance of it is active at any
+// one time.
 final counterViewModel = CounterViewModel();
 
 class MyApp extends StatelessWidget {

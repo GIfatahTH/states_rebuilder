@@ -89,11 +89,11 @@ class CounterViewModel {
   }
 }
 
-// NOTE: One be difference between example 1 and 2 with this example is the following:
+// NOTE: One difference between example 1 and 2 with this example is the following:
 // - when you call increment method while waiting for refresh async task,
-//   the latter task is canceled. Because when using states_rebuilder full api,
-//   only one async task is executed in any time, if a second async task is called,
-//   while the state is waiting for an async task the older is canceled.
+//   the latter task is canceled. That is because, when using the states_rebuilder full api,
+//   only one async task is executed at any time. If a second async task is called,
+//   while the state is waiting for an async task, the older one is canceled.
 //   See further examples for more information.
 
 // This repo must be mocked in tests

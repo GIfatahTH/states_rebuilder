@@ -1,17 +1,17 @@
 import 'dart:async';
 
 /*
-* Example of class that depends on other plugins which in turn depends on others.
+* Example of class that depends on other plugins which in turn depend on others.
 *
-* The first class should wait for plugging to initialize before been able to 
+* The first class should wait for plugin to initialize before being able to
 * instantiate objects.
 */
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Plugin1Repository {
-  // Typically for plugin that need to be initialized asynchronously, we use and
-  // init method that initialize the plugin and return the same object after
+  // Typically for a plugin that needs to be initialized asynchronously, we use an
+  // init method that initialize the plugin and returns the same object after
   // initialization.
   Future<Plugin1Repository> init() async {
     await Future.delayed(const Duration(seconds: 1));

@@ -6,7 +6,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'common_widgets/refresh_widget.dart';
 
 /*
-* The async counter app, rewritten using costume user flag for initial, loading
+* The async counter app, rewritten using custom user flags for initial, loading
 * data, and error status.
 *
 * Using the approach defined here, you can build the most complex app. This
@@ -23,8 +23,8 @@ class CounterState {
   bool get hasError => error != null;
   bool get hasData => !hasError && !isWaiting && !isIdle;
 
-  // Default constructor is private. We want to control What counter state is
-  // created via named constructor
+  // Default constructor is private. We want to control what counter state is
+  // created via a named constructor
   CounterState._({
     required this.data,
     this.error,
@@ -65,8 +65,8 @@ class CounterViewModel {
 
   // This is the common pattern to use with async method:
   // We set the state to the awaiting state before calling the async method.
-  // If the future resolved with valid date, we set the state to hasData
-  // In case of error we set the state to hold the error.
+  // If the future resolved with valid date, we set the state to hasData.
+  // In case of error, we set the state to hold the error.
   void increment() async {
     try {
       // Set the CounterState to the waiting state and notify listeners
@@ -77,11 +77,11 @@ class CounterViewModel {
       _counterState.state = _counterState.state.setToHasData(result);
     } catch (e) {
       if (e is Error) {
-        // In real situation we want to capture exception and let error to
-        // rethrow
+        // In real situation, we want to capture the exception and let error be
+        // rethrown
         rethrow;
       }
-      // Set eh Counter state in the error state
+      // Set the Counter state in the error state
       _counterState.state = _counterState.state.setToHasError(e);
     }
   }

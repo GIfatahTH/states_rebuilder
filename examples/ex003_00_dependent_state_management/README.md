@@ -1,9 +1,9 @@
 # Example 003 - Dependent state management
 
 
-This is the last set of example to master core state management using states_rebuilder. 
+This is the last set of examples to master core state management using states_rebuilder. 
 
-It is very important to see the last to parts before continuing here :
+It is very important to see the last two parts before continuing here :
 * [Sync state management]((./../ex001_00_sync_global_and_local_state))
 * [Async state management]((./../ex002_00_async_global_and_local_state))
 
@@ -32,5 +32,5 @@ First, make sure you have installed states_rebuilder package, please check out t
 [🔍 See more detailed information state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.

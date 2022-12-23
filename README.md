@@ -8,7 +8,7 @@
 </p>
 
 <p align="justify">
-`states_rebuilder` is Flutter state management combined with a dependency injection solution and an integrated router to get the best state management experience and speed up your development.
+`states_rebuilder` is Flutter state management combined with a dependency injection solution and an integrated router to provide the best state management experience, speeding up your development as well.
 </p>
 
 
@@ -22,7 +22,7 @@
  -->
 
 # Contributing
-There are multiple ways and places you can contribute to make this package nicer, if you are wondering how to start please post an issue and we're here to help facilitate that.
+There are multiple ways and places you can contribute to make this package nicer. If you are wondering how to start please post an issue and we're here to help facilitate that.
 
   - Asking question, leaving suggestion
   - Code commits and pull requests
@@ -36,11 +36,11 @@ It is a feature-rich state management sulution:
 ## Performance
   - Predictable and controllable
   - Support for immutable / mutable state
-  - Strictly rebuild control
+  - Precise rebuild control
 
 ## Code Clean
   - Separation of UI & business logic
-  - Coding business logic in pure Dart.
+  - Coding of business logic in pure Dart.
   - Zero Boilerplate without code-generation 
 
 ## User Friendly
@@ -52,14 +52,14 @@ It is a feature-rich state management sulution:
     - Theme, multi-langs
     - Navigation, show dialogs without `BuildContext`
 
-## Effective Production
+## Efficient Productivity
   - CREATE, READ, UPDATE, and DELETE (CRUD) from rest-API or database
   - User authentication and authorization
   - App themes management
   - Internalization and localization
 
 ## Maintainable
-  - Easy to test, mock the dependencies
+  - Easy to test and mock dependencies
   - State tracker middleware
   - Built-in debugging print function
   - Capable for complex Apps

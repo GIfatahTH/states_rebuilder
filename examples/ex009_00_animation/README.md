@@ -27,6 +27,6 @@ In this example, you will learn how to handle animation using InjectedAnimation.
 [🔍 See more detailed information about `InjectedAuth` API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.
 

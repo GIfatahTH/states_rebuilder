@@ -48,7 +48,7 @@ class Todo {
   }
 }
 
-/* View models*/
+/* View models */
 
 // It is important to keep our view model immutable
 @immutable

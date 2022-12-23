@@ -133,10 +133,6 @@ class Home extends ReactiveStatelessWidget {
                       if (i > 0) const Divider(height: 0),
                       TodoItem(todo: todosViewModel.todos[i]),
                     ],
-                    // if (todosViewModel.isWaitingForAddTodo)
-                    //   const Center(
-                    //     child: CircularProgressIndicator(),
-                    //   ),
                   ],
                 );
               },

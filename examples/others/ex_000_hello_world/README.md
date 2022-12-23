@@ -1,6 +1,6 @@
 # ex_000_hello_world
 
-Let's say hello world, using functional injection of states_rebuilder.
+Let's say hello world, using functional injection with states_rebuilder.
 
 ## Injecting the state:
 Declare a final global variable that injects a String state of "Hello world"
@@ -8,9 +8,9 @@ Declare a final global variable that injects a String state of "Hello world"
 ```dart
 final helloWorld = RM.inject(() => 'Hello world');
 ```
-The injected state has a lifecycle. It is created lazily the first time it is used, and destroyed when no longer used. Throughout the span of its life,Observes can listen to the state, and the state will notify them when changed.
+The injected state has a lifecycle. It is created lazily the first time it is used, and destroyed when no longer used. Throughout the span of its life, observers can listen to the state, and the state will notify them when changed.
 
-The created state can be easily mocked in test and it will be automatically reset for each test so that the state is not shared between unit tests.
+The created state can be easily mocked in test, and it will be automatically reset for each test so that the state is not shared between unit tests.
 
 > NB: there are three other types of injection: `RM.injectFuture`, `RM.injectStream`, and `RM.injectFlavor`.
 

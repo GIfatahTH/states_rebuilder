@@ -9,7 +9,7 @@ First, make sure you have installed states_rebuilder package, please check out t
 
 In this example, you will learn how to consume a Restful API by performing create, read, update and delete operations.
 
-## Exploring Use-cases
+## Exploring Use-Cases
 
 - [01: CRUD operation using core state management](./lib/ex_000_crud_app_using_core_state_management)
    <br /><b> Description: </b>
@@ -22,10 +22,10 @@ In this example, you will learn how to consume a Restful API by performing creat
 - [02: CRUD operation using `InjectedCRUD`](./lib/ex_000_crud_app_using_core_state_management)
    <br /><b> Description: </b>
     * In this example, we will rewrite the first example using the `InjectedCRUD` object.
-    * We will see that `InjectedCRUD` abstracts most of the repetitive tasks, following the principles of clean architecture.
+    * We will see that `InjectedCRUD` abstracts away most of the repetitive tasks, following the principles of clean architecture.
     * `InjectedCRUD` makes it easy to develope a CRUD application without losing testability.
 
-- [03: Mocking `InjectedCRUD`](./lib/ex_002_injected_curd_mocking)
+- [03: Mocking `InjectedCRUD`](./lib/ex_002_injected_crud_mocking)
    <br /><b> Description: </b>
     As testability means mockability, we show you different way to mock an `InjectedCRUD`
 
@@ -34,9 +34,9 @@ In this example, you will learn how to consume a Restful API by performing creat
     Example of an infinite scroll list.
 
 ## Documentation
-[🔍 See more detailed information about InjectedCRUD API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
+[🔍 See more detailed information about the InjectedCRUD API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.
 

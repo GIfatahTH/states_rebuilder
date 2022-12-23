@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* This is similar to the last example except that counter Text widget is extracted
+* This is similar to the last example except that the counter Text widget is extracted
 * to its own widget class.
 *
 */
@@ -59,7 +59,7 @@ class MyHomePage extends ReactiveStatelessWidget {
             // In this example, adding const modifier will prevent
             // CounterWidget from rebuild.
             //
-            // TODO: Try add const modifer and notice that it is not rebuilding.
+            // TODO: Try add const modifier and notice that it is not rebuilding.
             // ignore: prefer_const_constructors
             /*const*/ CounterWidget(),
           ],
@@ -86,11 +86,11 @@ class CounterWidget extends StatelessWidget {
       // As we consume the state here, the _counter will look up the widget tree
       // for any ReactiveStatelessWidget. The first it finds will be registered.
       //
-      // In this example, as MyHomePage is ReactiveStatelessWidget, it will be
+      // In this example, as MyHomePage is a ReactiveStatelessWidget, it will be
       // registered for rebuild.
       //
-      // When _counter emits a notification, MyHomePage will rebuild and as
-      // CounterWidget is a child of MyHomePage it will rebuild provided it is
+      // When _counter emits a notification, MyHomePage will rebuilt and as
+      // CounterWidget is a child of MyHomePage it will rebuilt provided it is
       // not instantiated with const modifier.
       //
       // For this widget to rebuild even if it is used with const modifier, this
@@ -102,8 +102,9 @@ class CounterWidget extends StatelessWidget {
 }
 
 /*
-* ReactiveStateless widget can resister to any state consumed in its child widget 
-* provided that the child widget is not lazily loaded as in ListView.builder items
+* ReactiveStatelessWidget can register any state consumed in its child widget
+* provided that the child widget is not lazily loaded as is the case with
+* ListView.builder items
 *
 * Child widget declared with const modifier can not register to parent 
 * ReactiveStatelessWidget

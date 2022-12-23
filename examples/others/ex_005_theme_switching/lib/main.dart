@@ -7,10 +7,6 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 import 'home_page.dart';
 import 'themes.dart';
 
-// final navigator = RM.injectNavigator(routes: {
-//   '/': (data)=>  ,
-// })
-
 void main() async {
   //Plugins can initialized in the TopAppWidget
   // WidgetsFlutterBinding.ensureInitialized();
@@ -63,46 +59,3 @@ class MyApp extends TopStatelessWidget {
   }
 }
 
-/*
- return TopAppWidget(
-      ensureInitialization: () => [
-        //Plugins can be initialized, to display our Splash screen
-        RM.storageInitializer(HiveStorage()),
-      ],
-      // injectedTheme: theme,
-      // injectedI18N: i18n,
-      onWaiting: () => MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      ),
-      builder: (context) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: theme.lightTheme,
-          darkTheme: theme.darkTheme,
-          themeMode: theme.themeMode,
-          //Defining locale and localeResolutionCallback is enough to
-          //handle the app localization
-          locale: i18n.locale,
-          localeResolutionCallback: i18n.localeResolutionCallback,
-          //For more elaborate locale resolution algorithm use supportedLocales and
-          //localeListResolutionCallback.
-          // supportedLocales: i18n.supportedLocales,
-          // localeListResolutionCallback: (List<Locale>? locales, Iterable<Locale> supportedLocales){
-          //   //your algorithm
-          //   } ,
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          // title: i18n.of(context).flutterDemo,
-          home: const HomePage(),
-          navigatorKey: RM.navigate.navigatorKey,
-        );
-      },
-    );
-    */

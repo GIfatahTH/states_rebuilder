@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* This is a rewrite of the weather app from ResoCoder tutorial using the new
+* This is a rewrite of the weather app from the ResoCoder tutorial using the new
 * states_rebuilder_api
 *
 * In this example, we will use only sync state mutation. In further example, we
 * will rewrite the same app using async state mutation.
 */
 
-// Models
+// Model
 class Weather {
   final String cityName;
   final double temperatureCelsius;
@@ -24,7 +24,7 @@ class Weather {
   });
 }
 
-// Repositories interfaces
+// Repository interface
 abstract class WeatherRepository {
   Future<Weather> fetchWeather(String cityName);
   Future<Weather> fetchDetailedWeather(String cityName);
@@ -50,7 +50,7 @@ class WeatherState {
     this.data,
     this.errorMessage,
   });
-  // WeatherState can be in one of the four states,[idle, waiting, error, data]
+  // WeatherState can be in one of the four states: [idle, waiting, error, data]
   factory WeatherState.idle() => const WeatherState._(isIdle: true);
   factory WeatherState.waiting() => const WeatherState._(isWaiting: true);
   factory WeatherState.error(dynamic error) => WeatherState._(
@@ -79,12 +79,12 @@ class WeatherService {
     ),
   );
 
-  WeatherState get wether => _weatherRM.state;
+  WeatherState get weather => _weatherRM.state;
   //
   late final _weatherDetailedRM = RM.inject<WeatherState>(
     () => WeatherState.idle(),
     sideEffects: SideEffects(
-      initState: () => fetchDetailedWeather(wether.data!.cityName),
+      initState: () => fetchDetailedWeather(weather.data!.cityName),
     ),
   );
   WeatherState get wetherDetailed => _weatherDetailedRM.state;
@@ -155,11 +155,11 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         alignment: Alignment.center,
         child: Builder(
           builder: (context) {
-            if (weatherService.wether.isIdle ||
-                weatherService.wether.hasError) {
+            if (weatherService.weather.isIdle ||
+                weatherService.weather.hasError) {
               return buildInitialInput();
             }
-            if (weatherService.wether.isWaiting) {
+            if (weatherService.weather.isWaiting) {
               return const LoadingWidget();
             }
             return buildColumnWithData(context);
@@ -176,7 +176,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
   }
 
   Column buildColumnWithData(BuildContext context) {
-    final Weather weather = weatherService.wether.data!;
+    final Weather weather = weatherService.weather.data!;
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
@@ -195,7 +195,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         ElevatedButton(
           child: const Text('See Details'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.lightBlue[100],
+            backgroundColor: Colors.lightBlue[100],
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
@@ -247,7 +247,7 @@ class WeatherDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Weather weather = weatherService.wether.data!;
+    final Weather weather = weatherService.weather.data!;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Weather Detail"),
@@ -293,7 +293,7 @@ class WeatherDetailPage extends StatelessWidget {
   }
 }
 
-// Repositories implementation
+// Repository implementation
 class FakeWeatherRepository implements WeatherRepository {
   double? cachedTempCelsius;
 
@@ -311,7 +311,7 @@ class FakeWeatherRepository implements WeatherRepository {
         }
 
         // Since we're inside a fake repository, we need to cache the temperature
-        // in order to have the same one returned in for the detailed weather
+        // in order to have the same one returned for the detailed weather
         cachedTempCelsius = 20 + random.nextInt(15) + random.nextDouble();
 
         // Return "fetched" weather

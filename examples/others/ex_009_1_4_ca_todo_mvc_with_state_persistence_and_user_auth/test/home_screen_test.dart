@@ -117,7 +117,7 @@ void main() async {
   });
 
   testWidgets(
-    'Remove todo using a dismissible and undo if persistance fails',
+    'Remove todo using a dismissible and undo if persistence fails',
     (tester) async {
       await tester.pumpWidget(App());
       await tester.pumpAndSettle();
@@ -125,7 +125,7 @@ void main() async {
       expect(find.byType(TodoItem), findsNWidgets(3));
 
       //
-      //Set the mocked store to throw PersistanceException after one seconds,
+      //Set the mocked store to throw persistenceException after one seconds,
       //when writing to the store
       final repo = todosBloc.todosRM.getRepoAs<FakeTodosRepository>();
       repo.error = CRUDTodosException.netWorkFailure();

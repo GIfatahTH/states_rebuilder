@@ -2,7 +2,7 @@
 This is the second part of a series of what I called example catalog.
 
 ## Getting Started
-First, make sure you have installed states_rebuilder package, please check out the [installation guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
+First, make sure you have installed states_rebuilder package. Please check out the [installation guide](https://github.com/GIfatahTH/states_rebuilder/tree/master/states_rebuilder_package#getting-started-with-states_rebuilder). 
 
 Secondly, this page assumes you've already read the first part [sync global and local state mutation](./../ex001_00_sync_global_and_local_state).
 
@@ -56,13 +56,13 @@ We will go form basic to advanced async global and local state mutation.
   <br />**Description:**
   Example of async local state declared in many route pages.
 
-- [12: Async state persistance (Future case)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_012_00_state_persistance_for_injected_future.dart)
+- [12: Async state persistence (Future case)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_012_00_state_persistence_for_injected_future.dart)
   <br />**Description:**
-  Example of Future state local persistance. Futures, once the state is persisted, will not triggered until the state is refreshed. 
+  Example of Future state local persistence. Futures, once the state is persisted, will not triggered until the state is refreshed. 
 
-- [13: Async state persistance (Stream case)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_012_00_state_persistance_for_injected_future.dart)
+- [13: Async state persistence (Stream case)](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex002_00_async_global_and_local_state/lib/ex_012_00_state_persistence_for_injected_future.dart)
    <br />**Description:**
-  Example of stream state persistance. By default the state is persisted on stream data emission. Once the app restart the state starts with the last persisted state and the stream continues to emit data. 
+  Example of stream state persistence. By default the state is persisted on stream data emission. Once the app restart the state starts with the last persisted state and the stream continues to emit data. 
 
 ## Advanced concepts 🧐
 
@@ -87,5 +87,5 @@ We will go form basic to advanced async global and local state mutation.
 [🔍 See more detailed information state management API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.

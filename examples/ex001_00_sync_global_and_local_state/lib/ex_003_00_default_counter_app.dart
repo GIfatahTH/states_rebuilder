@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
-* The use of OnReactive to limit the part of the widget to rebuild
+* Illustrates the use of OnReactive to limit the part of the widget to rebuild
 */
 
 final counter = 0.inj();
@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// In this example, we can use ordinary StatelessWidget
-class MyHomePage extends ReactiveStatelessWidget {
+// In this example, we can use an ordinary StatelessWidget
+class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
@@ -54,7 +54,8 @@ class MyHomePage extends ReactiveStatelessWidget {
               'You have pushed the button this many times:',
             ),
             // By wrapping the Text widget with OnReactive, the _counter state
-            // will register the OnReactive to rebuild and not the MyHomePage.
+            // will register the OnReactive to be rebuilt, and not
+            // the entire MyHomePage.
             OnReactive(
               () {
                 return Text(

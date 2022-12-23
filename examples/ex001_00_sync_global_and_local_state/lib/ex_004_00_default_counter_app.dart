@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
-* The use of ObBuilder widget
+* Further example as to the use of the OnBuilder widget
 */
 
 final counter = RM.inject(() => 0);
@@ -25,6 +25,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// You can use simple StatelessWidget when using the OnBuilder widget within
+// the build method
 // You can use simple StatelessWidget
 class MyHomePage extends ReactiveStatelessWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -52,8 +54,8 @@ class MyHomePage extends ReactiveStatelessWidget {
             const Text(
               'You have pushed the button this many times:',
             ),
-            // Use of ObBuilder listener widget.
-            // OnBuilder prevent child state from subscribing to parent
+            // Use of OnBuilder listener widget.
+            // OnBuilder prevents child state from subscribing to parent
             // ReactiveStatelessWidget
             OnBuilder(
               listenTo: counter,
