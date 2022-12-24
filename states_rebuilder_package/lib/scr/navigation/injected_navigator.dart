@@ -71,9 +71,9 @@ class InjectedNavigator implements NavigationBuilder {
 
   /// Get the [PageSettings] stack.
   List<PageSettings> get pageStack {
-    if (_mock != null) {
-      return _mock!.pageStack;
-    }
+    // if (_mock != null) {
+    //   return _mock!.pageStack;
+    // }
     return _navigationBuilder.pageStack;
   }
 
@@ -261,11 +261,12 @@ class InjectedNavigator implements NavigationBuilder {
     return _navigationBuilder.deepLinkTest(url);
   }
 
-  InjectedNavigator? _mock;
+  // InjectedNavigator? _mock;
 
   /// Mock InjectedNavigator
-  void injectMock(NavigationBuilder mock) {
-    return _navigationBuilder.injectMock(mock);
+  void injectMock(NavigationBuilder mock, {String? startRoute}) {
+    (mock as InjectedNavigator)._navigationBuilder = this;
+    return _navigationBuilder.injectMock(mock, startRoute: startRoute);
   }
 
   /// {@macro toDialog}
@@ -366,9 +367,12 @@ class InjectedNavigator implements NavigationBuilder {
   }
 
   @override
-  void disposeAll() {
-    return _navigationBuilder.disposeAll();
+  void dispose() {
+    return _navigationBuilder.dispose();
   }
+
+  @override
+  NavigationBuilder? navigationBuilderMockedInstance;
 }
 
 InjectedNavigator createNavigator({

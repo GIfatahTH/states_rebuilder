@@ -60,7 +60,7 @@ final app = MaterialApp(
 );
 
 void main() {
-  InjectedNavigatorImp.ignoreSingleRouteMapAssertion = true;
+  NavigationBuilderImp.ignoreSingleRouteMapAssertion = true;
   testWidgets('Assertion not navigatorKey is not assigned', (tester) async {
     final widget = MaterialApp(
       routes: {

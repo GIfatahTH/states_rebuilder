@@ -32,7 +32,7 @@ class _TopWidget extends TopStatelessWidget {
     bool shouldUseCupertinoPage = false,
     bool ignoreSingleRouteMapAssertion = true,
   }) : super(key: key) {
-    InjectedNavigatorImp.ignoreSingleRouteMapAssertion =
+    NavigationBuilderImp.ignoreSingleRouteMapAssertion =
         ignoreSingleRouteMapAssertion;
     _navigator = RM.injectNavigator(
       routes: routers,
@@ -4776,12 +4776,8 @@ void main() {
       expect(mock.message, 'canPop');
       navigator.pageStack;
       expect(mock.message, 'pageStack');
-      try {
-        navigator.routeData;
-        expect(mock.message, 'routeData');
-      } catch (e) {
-        expect(e is UnimplementedError, true);
-      }
+      expect(navigator.routeData.location, '/');
+      expect(mock.routeData.location, '/');
       navigator.back();
       expect(mock.message, 'back');
       navigator.backUntil('untilRouteName');
@@ -5831,12 +5827,6 @@ class NavigatorMock extends InjectedNavigator {
   List<PageSettings> get pageStack {
     message = 'pageStack';
     return [];
-  }
-
-  @override
-  RouteData get routeData {
-    message = 'routeData';
-    throw UnimplementedError();
   }
 
   @override

@@ -702,9 +702,13 @@ abstract class RM {
     assert(() {
       if (null is! T && unsignedUser == null) {
         StatesRebuilerLogger.log(
+          '',
           '$T is non-nullable and the unsignedUser is null',
-          'You have to define unsignedUser parameter.\n'
-              'If you want the unsignedUser to be null use nullable type ($T?)',
+        );
+        StatesRebuilerLogger.log(
+          '',
+          'YOU HAVE TO DEFINE  "unsignedUser" parameter.\n'
+              'IF YOU WANT THE "unsignedUser" TO BE NULL USE NULLABLE TYPE  ($T?)',
         );
         return false;
       }
@@ -715,8 +719,11 @@ abstract class RM {
       if (null is T && unsignedUser != null) {
         StatesRebuilerLogger.log(
           '$T is nullable, null is considered as the unsigned user',
-          'You can not set a non-null unsignedUser\n'
-              'If you want the unsignedUSer to be non-null use non-nullable type ($T).',
+        );
+        StatesRebuilerLogger.log(
+          '$T is nullable, null is considered as the unsigned user. '
+              'You can not set a non-null "unsignedUser"',
+          'IF YOU WANT THE "unsignedUser" TO BE NON-NULL USE NON6 NULLABLE TYPE  ($T)',
         );
         return false;
       }
