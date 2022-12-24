@@ -397,7 +397,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   void disposeIfNotUsed() {
-    if (!hasObservers) {
+    if (autoDisposeWhenNotUsed && !hasObservers) {
       dispose();
     }
   }
