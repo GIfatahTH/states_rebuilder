@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 void main() {
-  //This is add to force transition to be device independent so golden test
-  //works independent of device default animation
-  RM.navigate.transitionsBuilder =
-      RM.transitions.bottomToUp(duration: const Duration(milliseconds: 300));
+  setUp(() {
+    //This is add to force transition to be device independent so golden test
+    //works independent of device default animation
+    RM.navigate.transitionsBuilder =
+        RM.transitions.bottomToUp(duration: const Duration(milliseconds: 300));
+  });
   testWidgets(
     'Test Navigation logic',
     (tester) async {
@@ -88,15 +90,22 @@ void main() {
   testWidgets(
     'test toAndRemoveUntil',
     (tester) async {
+      print(RM.navigate.transitionsBuilder);
+      print(navigator.routeData);
       await tester.pumpWidget(const MyApp());
+      print(navigator.routeData);
       expect(find.byType(HomePage), findsOneWidget);
       //
       navigator.toDeeply('/page1/page11/page111');
+      print(navigator.routeData);
+
       await tester.pumpAndSettle();
       navigator.toAndRemoveUntil('/page1/page11/page111/page1111',
           untilRouteName: '/page1');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
+      print(navigator.routeData);
+
       await expectLater(
           find.byType(MyApp), matchesGoldenFile('./golden_files/ex04_7.png'));
       await tester.pumpAndSettle();
