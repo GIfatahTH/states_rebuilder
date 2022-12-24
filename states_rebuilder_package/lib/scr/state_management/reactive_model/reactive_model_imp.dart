@@ -197,9 +197,20 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         ),
       );
       if (e is Error && e is! UnimplementedError) {
-        StatesRebuilerLogger.log('', e, stackTrace);
+        if (e is TypeError) {
+          StatesRebuilerLogger.log('', e);
+          StatesRebuilerLogger.log(
+            '',
+            'IF YOU ARE TESTING THE APP, IT MAY BE THAT THE CALLED METHOD IS NOT MOCKED',
+            s,
+          );
+        } else {
+          StatesRebuilerLogger.log('', e, s);
+        }
+
         rethrow;
       }
+
       return SynchronousFuture(_snapState.data);
     }
   }
@@ -582,7 +593,16 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         }
 
         if (e is Error) {
-          StatesRebuilerLogger.log('', e, s);
+          if (e is TypeError) {
+            StatesRebuilerLogger.log('', e);
+            StatesRebuilerLogger.log(
+              '',
+              'IF YOU ARE TESTING THE APP, IT MAY BE THAT THE CALLED METHOD IS NOT MOCKED',
+              s,
+            );
+          } else {
+            StatesRebuilerLogger.log('', e, s);
+          }
           throw e;
         }
       },

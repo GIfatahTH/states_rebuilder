@@ -79,6 +79,32 @@ class SnapState<T> {
   T get state {
     if (data is T) return data as T;
     final status = isWaiting ? 'isWaiting' : 'hasError';
+    if (hasError) {
+      StatesRebuilerLogger.log(
+        '',
+        snapError!.error,
+      );
+      print(this);
+      StatesRebuilerLogger.log(
+        '',
+        'IF [${type()}] IS A REPOSITORY AND YOU ARE TESTING THE APP THINK OF MOCKING IT',
+      );
+      StatesRebuilerLogger.log(
+        '',
+        'OR, TRY DEFINING THE INITIAL STATE OR HANDLE THE ERROR STATUS',
+        snapError!.stackTrace,
+      );
+    } else if (isWaiting) {
+      StatesRebuilerLogger.log(
+        '',
+        'The state is waiting and it is not initialized yet',
+      );
+      StatesRebuilerLogger.log(
+        '',
+        'OTHERWISE, TRY DEFINING THE INITIAL STATE OR HANDLE THE WAITING STATUS',
+      );
+    }
+
     throw ArgumentError('''
 $data is not of type $T. $this.\n
 TRY define an initialState or Handle $status status.

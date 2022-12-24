@@ -113,8 +113,12 @@ class _OnTabPageViewBuilderState extends State<OnTabPageViewBuilder>
     assert(() {
       if (_injected == null) {
         StatesRebuilerLogger.log(
+          '',
           '`OnTabViewBuilder` can not implicitly defined any `InjectedTabPage`',
-          'Use `OnTabViewBuilder.listenTo` param to explicitly define the `InjectedTabPage`',
+        );
+        StatesRebuilerLogger.log(
+          '',
+          'USE `OnTabViewBuilder.listenTo` PARAM TO EXPLICITLY DEFINE THE `InjectedTabPage`',
         );
         return false;
       }
