@@ -90,22 +90,15 @@ void main() {
   testWidgets(
     'test toAndRemoveUntil',
     (tester) async {
-      print(RM.navigate.transitionsBuilder);
-      print(navigator.routeData);
       await tester.pumpWidget(const MyApp());
-      print(navigator.routeData);
       expect(find.byType(HomePage), findsOneWidget);
       //
       navigator.toDeeply('/page1/page11/page111');
-      print(navigator.routeData);
-
       await tester.pumpAndSettle();
       navigator.toAndRemoveUntil('/page1/page11/page111/page1111',
           untilRouteName: '/page1');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
-      print(navigator.routeData);
-
       await expectLater(
           find.byType(MyApp), matchesGoldenFile('./golden_files/ex04_7.png'));
       await tester.pumpAndSettle();
