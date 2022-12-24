@@ -743,6 +743,11 @@ Note: you should first set `undoStackLength:` from RM.inject
 
 ## Route management
 
+**IMPORTANT**
+Navigation is extract to its own package: [navigation_builder](https://pub.dev/packages/navigation_builder). it has the same api with minor changes.
+
+Now `states_rebuilder` use `navigation_builder` without any breaking changes compared to previous versions.
+
 To use Navigator version 2,
  ```dart
    final InjectedNavigator myNavigator = RM.injectNavigator(
