@@ -100,7 +100,7 @@ void main() {
     expect(find.text('showSnackBar'), findsNothing);
   });
 
-  testWidgets('removeCurrentSnackBarm', (tester) async {
+  testWidgets('removeCurrentSnackBar', (tester) async {
     await tester.pumpWidget(
       MaterialApp.router(
         routerDelegate: _navigator.routerDelegate,
@@ -114,7 +114,7 @@ void main() {
         hideCurrentSnackBar: false);
     await tester.pumpAndSettle();
     expect(find.text('showSnackBar'), findsOneWidget);
-    _navigator.scaffold.removeCurrentSnackBarm();
+    _navigator.scaffold.removeCurrentSnackBar();
     await tester.pump();
     expect(find.text('showSnackBar'), findsNothing);
   });

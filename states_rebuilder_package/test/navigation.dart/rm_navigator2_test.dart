@@ -4765,10 +4765,10 @@ void main() {
         routes: {'/': (data) => Text('/'), '/page1': (date) => Text('Page1')},
       );
 
-      final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
-      );
+      // final widget = MaterialApp.router(
+      //   routeInformationParser: navigator.routeInformationParser,
+      //   routerDelegate: navigator.routerDelegate,
+      // );
       final mock = NavigatorMock();
       navigator.injectMock(mock);
       //
@@ -4820,8 +4820,9 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
+        // routeInformationParser: navigator.routeInformationParser,
+        // routerDelegate: navigator.routerDelegate,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4881,8 +4882,7 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4942,8 +4942,7 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
       );
       await tester.pumpWidget(widget);
       expect(find.text('Page111'), findsOneWidget);

@@ -89,7 +89,7 @@ void main() {
     expect(find.text('showSnackBar'), findsNothing);
   });
 
-  testWidgets('removeCurrentSnackBarm', (tester) async {
+  testWidgets('removeCurrentSnackBar', (tester) async {
     await tester.pumpWidget(widget);
     RM.scaffold.showSnackBar(
         SnackBar(
@@ -98,7 +98,7 @@ void main() {
         hideCurrentSnackBar: false);
     await tester.pumpAndSettle();
     expect(find.text('showSnackBar'), findsOneWidget);
-    RM.scaffold.removeCurrentSnackBarm();
+    RM.scaffold.removeCurrentSnackBar();
     await tester.pump();
     expect(find.text('showSnackBar'), findsNothing);
   });
