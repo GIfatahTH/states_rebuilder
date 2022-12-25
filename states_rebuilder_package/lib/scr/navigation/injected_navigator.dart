@@ -54,12 +54,22 @@ class InjectedNavigator implements NavigationBuilder {
   late final NavigationBuilder _navigationBuilder;
 
   /// [RouterDelegate] implementation
+  @override
   RouterDelegate<PageSettings> get routerDelegate =>
       _navigationBuilder.routerDelegate;
 
   /// [RouteInformationParser] delegate.
+  @override
   RouteInformationParser<PageSettings> get routeInformationParser =>
       _navigationBuilder.routeInformationParser;
+
+  /// [RouterConfig] delegate.
+  @override
+  RouterConfig<PageSettings> get routerConfig =>
+      _navigationBuilder.routerConfig;
+
+  @override
+  BuildContext? get navigationContext => _navigationBuilder.navigationContext;
 
   /// Set the route stack. It exposes the current [PageSettings] stack.
   void setRouteStack(
