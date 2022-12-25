@@ -2145,7 +2145,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   /// Scaffold without BuildContext.
   ///
-  static get scaffold {
+  static ScaffoldObject get scaffold {
     if (context != null && context != navigate.navigatorKey.currentContext) {
       scaffoldObject.context = context!;
     }
