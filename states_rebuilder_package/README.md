@@ -888,16 +888,6 @@ To navigate to pageless routes, show dialogs and snackBars without `BuildContext
   RM.scaffoldShow.snackbar(SnackBar( ... ));
   ```
 
-`InjectedNavigator` is a reactive model so you can listen to it using `ReactiveStatelessWidget`:
-
-  ```dart
-  @override
-  Widget build(BuildContext context) {
-    return OnReactive(
-      () => Text('${context.routeData.location}'),
-    );
-  }
-  ```
 
   > You can easily change page transition animation, using one of the predefined TransitionBuilder or just define yours.
 
