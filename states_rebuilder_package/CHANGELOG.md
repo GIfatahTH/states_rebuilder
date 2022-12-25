@@ -1,4 +1,4 @@
-## 6.2.0-dev-4
+## 6.2.0
 * remove double debug print messages (issue #275).
 * Add dialogs and scaffold related navigation to `InjectedNavigation`.
 * Close drawer and bottomSheet programmatically. (Issue #274)
