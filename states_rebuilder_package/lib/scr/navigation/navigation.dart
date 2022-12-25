@@ -1,6 +1,14 @@
-export './injected_navigator.dart'
+// ,
+// PageSettings,
+// RouteData,
+// RouteWidget,
+// BuildContextX,
+// MaterialPageArgument,
+// PageSettingsX,
+// OnNavigateBackScope;
+
+export 'package:navigation_builder/navigation_builder.dart'
     show
-        InjectedNavigator,
         PageSettings,
         RouteData,
         RouteWidget,
@@ -8,3 +16,5 @@ export './injected_navigator.dart'
         MaterialPageArgument,
         PageSettingsX,
         OnNavigateBackScope;
+
+export './injected_navigator.dart' show InjectedNavigator;

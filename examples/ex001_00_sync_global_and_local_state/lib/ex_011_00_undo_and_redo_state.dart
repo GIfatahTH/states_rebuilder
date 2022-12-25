@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* Example of undo redo immutable state
+* Example of undo redo of immutable state
 */
 
 void main() {

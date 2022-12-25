@@ -22,7 +22,7 @@ class StatesRebuilerLogger {
     if (!isTestMode) {
       // ignore: avoid_print
       print('\x1B[33m$message\x1B[0m');
-      print(message);
+      // print(message);
 
       if (s != null) {
         // ignore: avoid_print

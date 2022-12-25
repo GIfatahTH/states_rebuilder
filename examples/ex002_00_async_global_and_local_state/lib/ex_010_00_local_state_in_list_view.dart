@@ -26,8 +26,8 @@ class CounterViewModel {
 
 // Create a global instance of CounterViewModel
 //
-// This time we inject the CounterViewModel and postpone it initialization in
-// the UI
+// This time we inject the CounterViewModel and postpone its initialization to
+// be done in the UI
 final counterViewModel = RM.inject<CounterViewModel>(
   () => throw UnimplementedError(),
 );

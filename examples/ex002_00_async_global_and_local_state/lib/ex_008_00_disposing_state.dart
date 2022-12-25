@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
-* Example of state cleaning (disposing off).
-* It is important to be aware of state disposing off
+* Example of state cleaning (disposing of).
+* It is important to be aware of state disposing of
 */
 
 @immutable
@@ -19,7 +19,7 @@ class CounterViewModel {
     // See the console log
     debugPrintWhenNotifiedPreMessage: '_counter',
     //
-    // IF you set autoDisposeWhenNotUsed to false, initState is called one time
+    // If you set autoDisposeWhenNotUsed to false, initState is called one time
     sideEffects: SideEffects(
       initState: () => increment(),
     ),
@@ -39,7 +39,7 @@ class CounterViewModel {
   }
 
   void dispose() {
-    // IF a state is set to not disposed of automatically (autoDisposeWhenNotUsed: false)
+    // If a state is set to not disposed of automatically (autoDisposeWhenNotUsed: false)
     // it is a good practice to dispose of it manually
     _counter.dispose();
   }
@@ -58,7 +58,7 @@ class MyRepository {
 final myRepository = RM.inject(() => MyRepository());
 
 // Although _counter is used only in a part of the app (in CounterView), it is
-// considered as global state. because only one instance of it is active at any
+// considered as global state, because only one instance of it is active at any
 // instant.
 final counterViewModel = CounterViewModel();
 

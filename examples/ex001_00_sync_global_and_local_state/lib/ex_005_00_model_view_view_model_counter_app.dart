@@ -8,7 +8,7 @@ void main() {
   runApp(const MyApp());
 }
 
-// Here lays all the business logic related to MyHomePage.
+// Here lies all the business logic related to MyHomePage.
 // This class can be named MyHomePageBloC, MyHomePageLogic or MyHomePageController
 //
 // This class is easily unit tested

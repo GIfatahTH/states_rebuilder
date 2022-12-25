@@ -1,3 +1,13 @@
+## 6.2.0
+* remove double debug print messages (issue #275).
+* Add dialogs and scaffold related navigation to `InjectedNavigation`.
+* Close drawer and bottomSheet programmatically. (Issue #274)
+* Moving the navigation functionality to its own independent packages: [navigation_builder](https://pub.dev/packages/navigation_builder). Now `states_rebuilder` use the `navigation_builder` package without any breaking change.
+* Make `stateAsync` coherent with `setToWaiting`.
+* Refactor examples docs. Thanks to [@montanajava](https://github.com/montanajava).
+* Prevent injected state from disposing of if autoDisposeWhenNotUsed is set to false (Issue #278). Thanks to [@KKranjcevic](https://github.com/KKranjcevic)
+* Refactor internal code.
+
 ## 6.1.0+1 (2022-05-02)
   * Fix issues #265 #267
   * Improve print log messages

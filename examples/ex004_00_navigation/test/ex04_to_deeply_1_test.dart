@@ -4,9 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 void main() {
-  //This is add to force transition to be device independent so golden test
-  //works independent of device default animation
-  RM.navigate.transitionsBuilder = RM.transitions.bottomToUp();
+  setUp(() {
+    //This is add to force transition to be device independent so golden test
+    //works independent of device default animation
+    RM.navigate.transitionsBuilder =
+        RM.transitions.bottomToUp(duration: const Duration(milliseconds: 300));
+  });
   testWidgets(
     'Test Navigation logic',
     (tester) async {

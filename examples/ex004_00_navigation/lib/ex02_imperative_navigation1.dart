@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-// In this example we will combine declarative and imperative navigation.
+// In this example, we will combine declarative and imperative navigation.
 // We will remove a hidden page from route stack
 
 void main() {

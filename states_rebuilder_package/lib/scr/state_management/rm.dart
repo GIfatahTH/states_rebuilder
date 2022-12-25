@@ -5,6 +5,8 @@ import 'package:meta/meta.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+// import 'package:navigation_builder/navigation_builder.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
 
 import '../development_booster/injected_animation/injected_animation.dart';
 import '../development_booster/injected_auth/injected_auth.dart';
@@ -428,8 +430,12 @@ abstract class RM {
         dispose: () {
           sideEffects?.dispose?.call();
         },
-        onSetState: (snap) => sideEffects?.onSetState?.call(snap),
-        onAfterBuild: () => sideEffects?.onAfterBuild?.call(),
+        onSetState: sideEffects?.onSetState == null
+            ? null
+            : (snap) => sideEffects?.onSetState?.call(snap),
+        onAfterBuild: sideEffects?.onAfterBuild == null
+            ? null
+            : () => sideEffects?.onAfterBuild?.call(),
       ),
       undoStackLength: undoStackLength,
       dependsOn: dependsOn,
@@ -696,9 +702,13 @@ abstract class RM {
     assert(() {
       if (null is! T && unsignedUser == null) {
         StatesRebuilerLogger.log(
+          '',
           '$T is non-nullable and the unsignedUser is null',
-          'You have to define unsignedUser parameter.\n'
-              'If you want the unsignedUser to be null use nullable type ($T?)',
+        );
+        StatesRebuilerLogger.log(
+          '',
+          'YOU HAVE TO DEFINE  "unsignedUser" parameter.\n'
+              'IF YOU WANT THE "unsignedUser" TO BE NULL USE NULLABLE TYPE  ($T?)',
         );
         return false;
       }
@@ -709,8 +719,11 @@ abstract class RM {
       if (null is T && unsignedUser != null) {
         StatesRebuilerLogger.log(
           '$T is nullable, null is considered as the unsigned user',
-          'You can not set a non-null unsignedUser\n'
-              'If you want the unsignedUSer to be non-null use non-nullable type ($T).',
+        );
+        StatesRebuilerLogger.log(
+          '$T is nullable, null is considered as the unsigned user. '
+              'You can not set a non-null "unsignedUser"',
+          'IF YOU WANT THE "unsignedUser" TO BE NON-NULL USE NON6 NULLABLE TYPE  ($T)',
         );
         return false;
       }
@@ -2047,7 +2060,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   /// Dispose all Injected State
   static void disposeAll() {
-    scaffold.dispose();
+    scaffoldObject.dispose();
     navigate.dispose();
     if (injectedModels.isEmpty) return;
     for (var inj in [...injectedModels]) {
@@ -2123,7 +2136,7 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       return _contextSet.last;
     }
 
-    return navigateObject.navigatorKey.currentState?.context;
+    return NavigationBuilder.navigate.navigatorKey.currentState?.context;
   }
 
   static ReactiveModel<T> get<T>([String? name]) {
@@ -2132,13 +2145,18 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
 
   /// Scaffold without BuildContext.
   ///
-  static final scaffold = scaffoldObject;
+  static ScaffoldObject get scaffold {
+    if (context != null && context != navigate.navigatorKey.currentContext) {
+      scaffoldObject.context = context!;
+    }
+    return scaffoldObject;
+  }
 
   /// Navigation without BuildContext.
-  static final navigate = navigateObject;
+  static final navigate = NavigationBuilder.navigate;
 
   /// Predefined set of route transition animation
-  static final transitions = transitionsObject;
+  static final transitions = NavigationBuilder.transitions;
 
   /// {@macro InjectedNavigator}
   ///
@@ -2317,6 +2335,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///  );
   /// ```
   ///
+  /// ### `navigatorObservers`: Optional [List<NavigatorObserver>]
+  /// A lost of [NavigatorObserver] for this navigator
+  ///
   /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
   /// Print log a debug message when the state of the navigator is changed.
   static InjectedNavigator injectNavigator({
@@ -2339,20 +2360,22 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     bool? Function(RouteData? data)? onNavigateBack,
     bool debugPrintWhenRouted = false,
     bool ignoreUnknownRoutes = false,
+    List<NavigatorObserver> navigatorObservers = const <NavigatorObserver>[],
   }) {
-    return InjectedNavigatorImp(
+    return createNavigator(
       routes: routes,
       unknownRoute: unknownRoute,
       transitionsBuilder: transitionsBuilder,
       transitionDuration: transitionDuration,
       builder: builder,
-      initialRoute: initialLocation,
+      initialLocation: initialLocation,
       shouldUseCupertinoPage: shouldUseCupertinoPage,
-      redirectTo: onNavigate,
+      onNavigate: onNavigate,
       debugPrintWhenRouted: debugPrintWhenRouted,
       pageBuilder: pageBuilder,
-      onBack: onNavigateBack,
+      onNavigateBack: onNavigateBack,
       ignoreUnknownRoutes: ignoreUnknownRoutes,
+      navigatorObservers: navigatorObservers,
     );
   }
 }

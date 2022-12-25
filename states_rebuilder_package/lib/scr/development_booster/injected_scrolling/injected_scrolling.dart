@@ -247,6 +247,7 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
   @override
   set state(double s) {
     assert(s >= 0 && s <= 1);
+    if (_controller == null) return;
     moveTo(position.maxScrollExtent * s);
     // super.state = s;
   }

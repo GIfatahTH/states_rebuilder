@@ -133,6 +133,6 @@ Here it provides a bundle of use-cases of Nav2 from simple to complex:
 [🔍 See more detailed information about Navigator API](https://github.com/GIfatahTH/states_rebuilder/wiki/home).
 
 
-## Question & Suggestion
-Please feel free to post an issue or PR, as always, your feedback makes this library become better and better.
+## Questions & Suggestions
+Please feel free to post an issue or PR. As always, your feedback makes this library become better and better.
 

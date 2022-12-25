@@ -22,8 +22,8 @@ dependencies:
     sdk: flutter
   states_rebuilder:
     path: ../../../states_rebuilder_package
-  firebase_auth: ^1.1.3
-  firebase_core:
+  firebase_core: ^2.3.0
+  firebase_auth: ^4.1.5
   google_sign_in: ^5.0.2
   # apple_sign_in: ^0.1.0 # wait for null safety
 

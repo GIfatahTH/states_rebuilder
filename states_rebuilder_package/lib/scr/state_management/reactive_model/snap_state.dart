@@ -79,6 +79,32 @@ class SnapState<T> {
   T get state {
     if (data is T) return data as T;
     final status = isWaiting ? 'isWaiting' : 'hasError';
+    if (hasError) {
+      StatesRebuilerLogger.log(
+        '',
+        snapError!.error,
+      );
+      print(this);
+      StatesRebuilerLogger.log(
+        '',
+        'IF [${type()}] IS A REPOSITORY AND YOU ARE TESTING THE APP THINK OF MOCKING IT',
+      );
+      StatesRebuilerLogger.log(
+        '',
+        'OR, TRY DEFINING THE INITIAL STATE OR HANDLE THE ERROR STATUS',
+        snapError!.stackTrace,
+      );
+    } else if (isWaiting) {
+      StatesRebuilerLogger.log(
+        '',
+        'The state is waiting and it is not initialized yet',
+      );
+      StatesRebuilerLogger.log(
+        '',
+        'OTHERWISE, TRY DEFINING THE INITIAL STATE OR HANDLE THE WAITING STATUS',
+      );
+    }
+
     throw ArgumentError('''
 $data is not of type $T. $this.\n
 TRY define an initialState or Handle $status status.
@@ -103,10 +129,11 @@ TRY define an initialState or Handle $status status.
 
   /// Copy the state to a new state in the idle status
   SnapState<T> copyToIsIdle({Object? data, String? infoMessage}) {
-    return copyToHasData(data).copyWith(
+    return copyWith(
       status: StateStatus.isIdle,
       data: data is T ? data : this.data,
       infoMessage: infoMessage,
+      isImmutable: data is T,
     );
   }
 
@@ -204,7 +231,10 @@ TRY define an initialState or Handle $status status.
     final s = SnapState<T>._(
       status: status ?? this.status,
       data: isImmutable == true ? data : data ?? this.data,
-      snapError: status == StateStatus.hasData ? null : (error ?? snapError),
+      snapError: error ??
+          (status == null || status == StateStatus.isWaiting
+              ? this.snapError
+              : null),
       oldSnapState: (status != null || data != null || error != null)
           ? oldSnapState ?? this
           : this.oldSnapState,

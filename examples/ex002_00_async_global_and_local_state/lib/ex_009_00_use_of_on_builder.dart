@@ -26,7 +26,7 @@ class CounterViewModel {
   }
 
   void dispose() {
-    // IF a state is set to not disposed of automatically (autoDisposeWhenNotUsed: false)
+    // If a state is set to not disposed of automatically (autoDisposeWhenNotUsed: false),
     // it is a good practice to dispose of it manually
     counterRM.dispose();
   }

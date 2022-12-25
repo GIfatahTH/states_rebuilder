@@ -52,7 +52,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   set state(T value) {
-    isInitialized = true;
+    if (!isInitialized) {
+      removeFromReactiveModel = addToActiveReactiveModels(this);
+      isInitialized = true;
+    }
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
@@ -77,7 +80,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   set stateAsync(Future<T> value) {
-    isInitialized = true;
+    if (!isInitialized) {
+      removeFromReactiveModel = addToActiveReactiveModels(this);
+      isInitialized = true;
+    }
     setStateNullable(
       (_) => value,
       middleSetState: middleSetState,
@@ -165,7 +171,9 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           }
         }();
       }
-      if (_snapState.isWaiting && _snapState._infoMessage != kDependsOn) {
+      if (_snapState.isWaiting &&
+          snapState._infoMessage != kDependsOn &&
+          _snapState._infoMessage != kStopWaiting) {
         _snapState = _snapState.copyToHasData(result).copyToIsWaiting();
         notify(shouldOverrideDefaultSideEffects: (_) => true);
       } else {
@@ -189,9 +197,20 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         ),
       );
       if (e is Error && e is! UnimplementedError) {
-        StatesRebuilerLogger.log('', e, stackTrace);
+        if (e is TypeError) {
+          StatesRebuilerLogger.log('', e);
+          StatesRebuilerLogger.log(
+            '',
+            'IF YOU ARE TESTING THE APP, IT MAY BE THAT THE CALLED METHOD IS NOT MOCKED',
+            s,
+          );
+        } else {
+          StatesRebuilerLogger.log('', e, s);
+        }
+
         rethrow;
       }
+
       return SynchronousFuture(_snapState.data);
     }
   }
@@ -246,11 +265,11 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     if (newSnap._isImmutable && oldSnap.hashCode == newSnap.hashCode) {
       return null;
     }
-    if (newSnap.isWaiting) {
-      if (_snapState.isWaiting) {
-        return null;
-      }
-    } else if (newSnap.hasError) {
+    if (!snap.isWaiting && newSnap.isWaiting) {
+      return newSnap.copyWith(infoMessage: kStopWaiting);
+    }
+
+    if (newSnap.hasError) {
       // if (_snapState.hasError &&
       //     newSnap.snapError!.error == _snapState.snapError?.error) {
       //   return null;
@@ -333,6 +352,19 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   }) {
     if (nextSnap != null) {
       final interceptedSnap = interceptState(nextSnap, stateInterceptor);
+      if (interceptedSnap?.isWaiting == true || nextSnap.isWaiting) {
+        if (!_snapState.isWaiting) {
+          completer ??= Completer();
+        }
+      } else {
+        if (_snapState.isWaiting) {
+          if (completer?.isCompleted == false) {
+            completer!.complete(interceptedSnap?.data ?? nextSnap.data);
+            completer = null;
+          }
+        }
+      }
+
       if (interceptedSnap == null) {
         return false;
       }
@@ -365,7 +397,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   @override
   void disposeIfNotUsed() {
-    if (!hasObservers) {
+    if (autoDisposeWhenNotUsed && !hasObservers) {
       dispose();
     }
   }
@@ -518,7 +550,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     } else {
       stream = asyncResult as Stream;
     }
-    completer = Completer();
+    // completer ??= Completer();
     subscription?.cancel();
     subscription = stream.listen(
       (event) {
@@ -537,9 +569,10 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           return;
         }
         middleSetState(StateStatus.hasData, event);
-        if (completer?.isCompleted == false) {
-          completer!.complete();
-        }
+        // if (completer?.isCompleted == false) {
+        //   completer!.complete();
+        //   completer = null;
+        // }
       },
       onError: (e, s) {
         middleSetState(
@@ -556,10 +589,20 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
         );
         if (completer?.isCompleted == false) {
           completer!.complete();
+          completer = null;
         }
 
         if (e is Error) {
-          StatesRebuilerLogger.log('', e, s);
+          if (e is TypeError) {
+            StatesRebuilerLogger.log('', e);
+            StatesRebuilerLogger.log(
+              '',
+              'IF YOU ARE TESTING THE APP, IT MAY BE THAT THE CALLED METHOD IS NOT MOCKED',
+              s,
+            );
+          } else {
+            StatesRebuilerLogger.log('', e, s);
+          }
           throw e;
         }
       },

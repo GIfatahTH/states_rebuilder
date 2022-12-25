@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
-* In async state mutation, the state is supposed to wait only for one async task.
+* In async state mutation, the state is supposed to wait for only one async task.
 *
 * If the state is waiting for an async task, and another async task is called,
 * the state will cancel the old async task and start waiting for the new task.

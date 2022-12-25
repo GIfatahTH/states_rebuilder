@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* In this example we will create a simple todo app. We will use the concept of
-* local state and connect it with global state that creates them.
+* In this example, we will create a simple todo app. We will use the concept of
+* local state and connect via global state responsible for creating such states.
 * 
 * 
 * 

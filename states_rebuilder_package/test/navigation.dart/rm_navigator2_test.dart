@@ -6,8 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:states_rebuilder/scr/navigation/injected_navigator.dart';
-import 'package:states_rebuilder/scr/state_management/common/logger.dart';
+import 'package:navigation_builder/src/navigation_builder.dart';
+import 'package:navigation_builder/src/common/logger.dart';
 
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -32,7 +32,7 @@ class _TopWidget extends TopStatelessWidget {
     bool shouldUseCupertinoPage = false,
     bool ignoreSingleRouteMapAssertion = true,
   }) : super(key: key) {
-    InjectedNavigatorImp.ignoreSingleRouteMapAssertion =
+    NavigationBuilderImp.ignoreSingleRouteMapAssertion =
         ignoreSingleRouteMapAssertion;
     _navigator = RM.injectNavigator(
       routes: routers,
@@ -355,7 +355,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toCupertinoDialog(
+    _navigator.toCupertinoDialog(
       Dialog(
         child: Text(''),
       ),
@@ -370,7 +370,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toBottomSheet(
+    _navigator.toBottomSheet(
       Text('bottom sheet'),
       isDismissible: true,
       backgroundColor: Colors.red,
@@ -390,7 +390,7 @@ void main() {
     await tester.pumpWidget(app);
 
     expect(find.text('Home'), findsOneWidget);
-    RM.navigate.toCupertinoModalPopup(
+    _navigator.toCupertinoModalPopup(
       Text('toCupertinoModalPopup'),
       semanticsDismissible: true,
       filter: ImageFilter.blur(),
@@ -2323,7 +2323,7 @@ void main() {
       _navigator.to('/page2');
       await tester.pumpAndSettle();
       expect(find.text('/page2'), findsOneWidget);
-      RM.navigate.toDialog(AboutDialog());
+      _navigator.toDialog(AboutDialog());
       await tester.pumpAndSettle();
       expect(find.byType(AboutDialog), findsOneWidget);
       _navigator.back();
@@ -2378,7 +2378,7 @@ void main() {
       _navigator.to('/page2/page21');
       await tester.pumpAndSettle();
       expect(find.text('/page21'), findsOneWidget);
-      RM.navigate.toDialog(AboutDialog());
+      _navigator.toDialog(AboutDialog());
       await tester.pumpAndSettle();
       expect(find.byType(AboutDialog), findsOneWidget);
       //
@@ -2500,7 +2500,7 @@ void main() {
   testWidgets(
     'RouteInformationParser work as expected',
     (tester) async {
-      StatesRebuilerLogger.isTestMode = false;
+      NavigationBuilderLogger.isTestMode = false;
       final routes = {
         '/': (_) {
           return Text('/');
@@ -2557,7 +2557,7 @@ void main() {
       //
       expect(find.text('/'), findsOneWidget);
       expect(informationParser!.info!.location, '/');
-      expect(StatesRebuilerLogger.message.endsWith('DeepLink to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('DeepLink to: /'), true);
       //
       _provider!.value = const RouteInformation(
         location: '/page1/page11',
@@ -2566,7 +2566,7 @@ void main() {
       expect(find.text('/page11-null'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11'),
+        NavigationBuilderLogger.message.endsWith('DeepLink to: /page1/page11'),
         true,
       );
 
@@ -2574,12 +2574,12 @@ void main() {
       await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
       // expect(informationParser!.info!.location, '/page1');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
       // _navigator.back();
       // await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
       expect(informationParser!.info!.location, '/');
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page1/page11?q=1',
@@ -2588,7 +2588,8 @@ void main() {
       expect(find.text('/page11-1'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=1'),
         true,
       );
 
@@ -2597,7 +2598,8 @@ void main() {
       expect(find.text('/page11-2'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=2');
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=2'),
         true,
       );
       //
@@ -2606,32 +2608,35 @@ void main() {
       expect(find.text('/page11-1'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(
-          StatesRebuilerLogger.message.endsWith('Back to: /page1/page11?q=1'),
+          NavigationBuilderLogger.message
+              .endsWith('Back to: /page1/page11?q=1'),
           true);
 
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
       // expect(informationParser!.info!.location, '/page1');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       // //
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/'), findsOneWidget);
       // expect(informationParser!.info!.location, '/');
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _navigator.to('/page1/page11?q=1');
       await tester.pumpAndSettle();
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=1'),
         true,
       );
       _navigator.to('/page1/page11?q=2');
       await tester.pumpAndSettle();
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=2'),
         true,
       );
       _navigator.to('/page1/page11?q=3');
@@ -2639,7 +2644,8 @@ void main() {
       expect(find.text('/page11-3'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=3');
       expect(
-        StatesRebuilerLogger.message.endsWith('Navigate to: /page1/page11?q=3'),
+        NavigationBuilderLogger.message
+            .endsWith('Navigate to: /page1/page11?q=3'),
         true,
       );
       //
@@ -2652,18 +2658,19 @@ void main() {
       expect(find.text('/page11-2'), findsOneWidget);
       expect(informationParser!.info!.location, '/page1/page11?q=2');
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=2'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=2'),
         true,
       );
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page1/page11?q=10',
@@ -2672,18 +2679,19 @@ void main() {
       expect(informationParser!.info!.location, '/page1/page11?q=1');
       expect(find.text('/page11-1'), findsOneWidget);
       expect(
-        StatesRebuilerLogger.message.endsWith('DeepLink to: /page1/page11?q=1'),
+        NavigationBuilderLogger.message
+            .endsWith('DeepLink to: /page1/page11?q=1'),
         true,
       );
       // _navigator.back();
       // await tester.pumpAndSettle();
       // expect(find.text('/page1'), findsOneWidget);
-      // expect(StatesRebuilerLogger.message.endsWith('Back to: /page1'), true);
+      // expect(NavigationBuilderLogger.message.endsWith('Back to: /page1'), true);
 
       _navigator.back();
       await tester.pumpAndSettle();
       expect(find.text('/'), findsOneWidget);
-      expect(StatesRebuilerLogger.message.endsWith('Back to: /'), true);
+      expect(NavigationBuilderLogger.message.endsWith('Back to: /'), true);
 
       _provider!.value = const RouteInformation(
         location: '/page2?q=15',
@@ -2763,26 +2771,26 @@ void main() {
           }
           if (data.location == '/form' && isFormDirty) {
             if (showDialog) {
-              RM.navigate.toDialog(
+              _navigator.toDialog(
                 AlertDialog(content: Text('')),
                 postponeToNextFrame: true,
               );
             }
 
-            RM.scaffold.showSnackBar(SnackBar(content: Text('')));
+            _navigator.scaffold.showSnackBar(SnackBar(content: Text('')));
             return false;
           }
           if (showOtherDialog) {
-            RM.navigate.toBottomSheet(
+            _navigator.toBottomSheet(
               Text('toBottomSheet'),
               postponeToNextFrame: true,
             );
 
-            RM.navigate.toCupertinoDialog(
+            _navigator.toCupertinoDialog(
               Text('toCupertinoDialog'),
               postponeToNextFrame: true,
             );
-            RM.navigate.toCupertinoModalPopup(
+            _navigator.toCupertinoModalPopup(
               Text('toCupertinoModalPopup'),
               postponeToNextFrame: true,
             );
@@ -2847,7 +2855,7 @@ void main() {
           backData = data;
           if (data == null) {
             if (exitApp) return exitApp;
-            RM.navigate.toDialog(AlertDialog());
+            _navigator.toDialog(AlertDialog());
             return exitApp;
           }
         },
@@ -4196,7 +4204,7 @@ void main() {
             return false;
           }
           if (data.location == '/page1') {
-            RM.navigate.toDialog(
+            _navigator.toDialog(
               AlertDialog(
                 content: Text('Alert'),
                 actions: [
@@ -4757,10 +4765,10 @@ void main() {
         routes: {'/': (data) => Text('/'), '/page1': (date) => Text('Page1')},
       );
 
-      final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
-      );
+      // final widget = MaterialApp.router(
+      //   routeInformationParser: navigator.routeInformationParser,
+      //   routerDelegate: navigator.routerDelegate,
+      // );
       final mock = NavigatorMock();
       navigator.injectMock(mock);
       //
@@ -4768,12 +4776,8 @@ void main() {
       expect(mock.message, 'canPop');
       navigator.pageStack;
       expect(mock.message, 'pageStack');
-      try {
-        navigator.routeData;
-        expect(mock.message, 'routeData');
-      } catch (e) {
-        expect(e is UnimplementedError, true);
-      }
+      expect(navigator.routeData.location, '/');
+      expect(mock.routeData.location, '/');
       navigator.back();
       expect(mock.message, 'back');
       navigator.backUntil('untilRouteName');
@@ -4816,8 +4820,9 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
+        // routeInformationParser: navigator.routeInformationParser,
+        // routerDelegate: navigator.routerDelegate,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4877,8 +4882,7 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
       );
       await tester.pumpWidget(widget);
       expect(find.text('/'), findsOneWidget);
@@ -4938,8 +4942,7 @@ void main() {
       );
 
       final widget = MaterialApp.router(
-        routeInformationParser: navigator.routeInformationParser,
-        routerDelegate: navigator.routerDelegate,
+        routerConfig: navigator.routerConfig,
       );
       await tester.pumpWidget(widget);
       expect(find.text('Page111'), findsOneWidget);
@@ -5634,6 +5637,98 @@ void main() {
   //     );
   //   },
   // );
+
+  group('routeObserver', () {
+    testWidgets(
+      'WHEN'
+      'THEN',
+      (tester) async {
+        final observer = _NavigatorObserver();
+        final navigator = RM.injectNavigator(
+          routes: {
+            '/': (data) => Text('/'),
+            '/page1': (data) => Text('/page1'),
+            '/page1/page11': (data) => Text('/page11'),
+            '/page2': (data) => RouteWidget(
+                  builder: (_) => Container(child: _),
+                  routes: {
+                    '/': (data) => Text('/page2'),
+                    '/page21': (data) => Text('/page21'),
+                  },
+                ),
+          },
+          navigatorObservers: [observer],
+        );
+
+        final widget = MaterialApp.router(
+          routeInformationParser: navigator.routeInformationParser,
+          routerDelegate: navigator.routerDelegate,
+        );
+        await tester.pumpWidget(widget);
+        expect(find.text('/'), findsOneWidget);
+        expect(observer.messages, [null, '/']);
+        navigator.to('/page1');
+        await tester.pumpAndSettle();
+        expect(find.text('/page1'), findsOneWidget);
+        expect(observer.messages, ['/', '/page1']);
+        //
+        navigator.to('/page1/page11');
+        await tester.pumpAndSettle();
+        expect(find.text('/page11'), findsOneWidget);
+        expect(observer.messages, ['/page1', '/page1/page11']);
+        //
+        navigator.to('/page2');
+        await tester.pumpAndSettle();
+        expect(find.text('/page2'), findsOneWidget);
+        expect(observer.messages, [null, '/page2']);
+        //
+        navigator.to('/page2/page21');
+        await tester.pumpAndSettle();
+        expect(find.text('/page21'), findsOneWidget);
+        expect(observer.messages, ['/page2', '/page2/page21']);
+        //
+        navigator.back();
+        await tester.pumpAndSettle();
+        expect(observer.messages, ['/page2/page21', '/page2']);
+        //
+        navigator.toReplacement('/page2/page21');
+        await tester.pumpAndSettle();
+        expect(find.text('/page21'), findsOneWidget);
+        expect(observer.messages, [null, '/page2']);
+        //
+        navigator.back();
+        await tester.pumpAndSettle();
+        navigator.back();
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+}
+
+class _NavigatorObserver extends NavigatorObserver {
+  List<String?> messages = [];
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    messages = [
+      route.settings.name,
+      previousRoute?.settings.name,
+    ];
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    messages = [previousRoute?.settings.name, route.settings.name];
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    messages = [previousRoute?.settings.name, route.settings.name];
+  }
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    messages = [oldRoute?.settings.name, newRoute?.settings.name];
+  }
 }
 
 class _RouteInformationParserTest extends RouteInformationParserImp {
@@ -5731,12 +5826,6 @@ class NavigatorMock extends InjectedNavigator {
   List<PageSettings> get pageStack {
     message = 'pageStack';
     return [];
-  }
-
-  @override
-  RouteData get routeData {
-    message = 'routeData';
-    throw UnimplementedError();
   }
 
   @override

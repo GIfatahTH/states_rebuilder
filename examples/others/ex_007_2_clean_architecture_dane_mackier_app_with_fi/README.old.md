@@ -59,7 +59,7 @@ Code dependencies can only point inwards. Nothing in an inner circle can know an
 For more detail on the implemented clean architecture read [this article](https://medium.com/flutter-community/clean-architecture-with-states-rebuilder-has-never-been-cleaner-6c9b91c3b9b6#a588)
 
 
->For this kind of architecture, you have to start codding from the domain because it is totally independent of other layers. Then, go up and code the service layer and the data_source, and the infrastructure. The UI layer is the last layer to code.
+>For this kind of architecture, you have to start coding from the domain because it is totally independent of other layers. Then, go up and code the service layer and the data_source, and the infrastructure. The UI layer is the last layer to code.
 
 >Even if you want to understand an app scaffold around this kind of architecture, start understanding the domain then the service, that the data_source and infrastructure, and end by understanding the UI part.
 

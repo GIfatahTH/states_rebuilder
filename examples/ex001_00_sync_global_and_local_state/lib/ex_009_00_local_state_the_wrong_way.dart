@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
-* Example of local states supposed to not interact with local states created in 
-* other route stack.
+* Example of local states erroneously interacting with local states created in
+* another route stack.
 *
 * This is the wrong version. see next example for the right one.
 */
@@ -28,7 +28,7 @@ class CounterViewModel {
 
 // Create a global instance of CounterViewModel
 //
-// As we need more the route to have its onw CounterView instance, this will not work
+// As we need more the route to have its own CounterView instance, this will not work
 //
 // See the next example of the correct injection of local state
 final counterViewModel = CounterViewModel('1');

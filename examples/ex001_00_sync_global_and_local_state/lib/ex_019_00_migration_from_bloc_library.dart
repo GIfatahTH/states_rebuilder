@@ -83,7 +83,7 @@ class TimerBloc {
 
   TimerBloc({required Ticker ticker}) : _ticker = ticker;
 
-  // Equivalent to the TimerStat in TimerBloc<TimerEvent, TimerStat> in bloc library
+  // Equivalent to the TimerState in TimerBloc<TimerEvent, TimerState> in bloc library
   late final _timerStateRM = RM.inject<TimerState>(
     () => TimerState.initial(_initialDuration),
     sideEffects: SideEffects(
@@ -254,44 +254,6 @@ class Actions extends ReactiveStatelessWidget {
         onPressed: timerBloc.reset,
       ),
     );
-    // final timerState = timerBloc.timerState;
-    // return Row(
-    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    //   children: [
-    //     if (timerState.isInitial) ...[
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.play_arrow),
-    //         onPressed: timerBloc.start,
-    //       ),
-    //     ],
-    //     if (timerState.isRunning) ...[
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.pause),
-    //         onPressed: timerBloc.pause,
-    //       ),
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.replay),
-    //         onPressed: timerBloc.reset,
-    //       ),
-    //     ],
-    //     if (timerState.isPaused) ...[
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.play_arrow),
-    //         onPressed: timerBloc.resume,
-    //       ),
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.replay),
-    //         onPressed: timerBloc.reset,
-    //       ),
-    //     ],
-    //     if (timerState.isCompleted) ...[
-    //       FloatingActionButton(
-    //         child: const Icon(Icons.replay),
-    //         onPressed: timerBloc.reset,
-    //       ),
-    //     ]
-    //   ],
-    // );
   }
 }
 

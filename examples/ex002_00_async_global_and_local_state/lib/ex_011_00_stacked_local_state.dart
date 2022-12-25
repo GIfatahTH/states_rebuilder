@@ -24,7 +24,7 @@ class CounterViewModel {
 
   // Used in the UI to wait until all data is available
   //
-  // This is a good practice to use to wait until async data are obtained before
+  // This is a good practice to use, namely waiting until async data are obtained before
   // rendering the data.
   late final _isViewReadyRM = RM.injectFuture<void>(
     () => Future.wait(
@@ -51,10 +51,10 @@ class CounterViewModel {
   }
 }
 
-// You can define one global instance of CounterViewModel.
-// and overrides it with local instances in the UI
+// You can define one global instance of CounterViewModel
+// and override it with local instances in the UI
 //
-// The global instance is obtained using counterViewModel.state,
+// The global instance is obtained using counterViewModel.state
 //
 // The local instance is obtained using counterViewModel.of(context) or,
 // counterViewModel(context).state

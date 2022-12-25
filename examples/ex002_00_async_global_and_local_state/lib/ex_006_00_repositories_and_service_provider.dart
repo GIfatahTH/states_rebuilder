@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
- * This is an example on how to use repositories and external service provider.
+ * This is an example on how to use repositories and an external service provider.
  * You can easily fake a repository or a service provider if it is injected using
  * RM.inject or RM.injectFuture and consume it using its state getter.
  */
@@ -77,7 +77,7 @@ class BooksRepository {
   }
 }
 
-// It is important to inject the repositories using RM.inject to be easily mockable
+// It is important to inject the repositories using RM.inject to enable easy mockability.
 //
 // See test folder where we use mocktail to mock it.
 final booksRepositoryRM = RM.inject(() => BooksRepository());

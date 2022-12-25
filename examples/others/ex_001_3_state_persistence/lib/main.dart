@@ -25,7 +25,7 @@ final Injected<int> counter = RM.inject<int>(
     key: 'counter',
     debugPrintOperations: true,
 
-    //For primitive state (String, double, int , bool) you don't need to define fromJson and to Joson
+    //For primitive state (String, double, int , bool) you don't need to define fromJson and toJson
     // fromJson: (j) => int.parse(j),
     // toJson: (s) => '$s',
 

@@ -20,7 +20,7 @@ class Todo {
     );
   }
 
-  // toJson is called just before persistance.
+  // toJson is called just before persistence.
   Map<String, dynamic> toJson() {
     return {
       'complete': complete,

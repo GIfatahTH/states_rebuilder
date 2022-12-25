@@ -105,11 +105,13 @@ class PersistState<T> {
     assert(() {
       if (_persistStateSingleton == null) {
         StatesRebuilerLogger.log(
+          '',
           'No implementation of `IPersistStore` is provided.',
+        );
+        StatesRebuilerLogger.log(
+          '',
           '''
-No implementation of `IPersistStore` is provided.
-Pleas implementation the `IPersistStore` interface and Initialize it in the main 
-method.
+PLEASE IMPLEMENT THE `IPersistStore` INTERFACE AND INITIALIZE IT IN THE "main" METHOD.
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,9 +120,9 @@ void main() async {
   runApp(_MyApp());
 }
 
-If you are testing the app use:
+IF YOU ARE TESTING THE APP USE:
 
-await RM.storageInitializerMock();\n\n
+final store = await RM.storageInitializerMock();
 
 
 ''',

@@ -4,6 +4,7 @@ const kDisposeMessage = 'DISPOSING...';
 const kFuture = 'FUTURE';
 const kStream = 'STREAM';
 const kDependsOn = 'DEPENDS_ON';
+const kStopWaiting = 'STOP_WAITING';
 const kRecomputing = 'RECOMPUTING...';
 const kReading = 'READING...';
 const kUpdating = 'UPDATING...';
