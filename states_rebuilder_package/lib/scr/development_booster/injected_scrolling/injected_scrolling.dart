@@ -188,11 +188,11 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
         hasReachedMinExtent = false;
         hasReachedMaxExtent = true;
         SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+          if (_controller == null) {
+            return;
+          }
           if (_maxScrollExtent != position.maxScrollExtent) {
             _maxScrollExtent = position.maxScrollExtent;
-            if (_controller == null) {
-              return;
-            }
             _setState();
           }
         });
@@ -261,6 +261,7 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
   @override
   void dispose() {
     _controller?.dispose();
+    _controller == null;
     _removeFromInjectedList?.call();
     _resetDefaultState();
     super.dispose();
