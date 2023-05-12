@@ -986,8 +986,7 @@ class StatesRebuilder extends IObservable {
 
   @override
   SnapState get snapState => throw UnimplementedError();
-  @override
-  bool get isStateInitialized => throw UnimplementedError();
+
   @override
   void dispose() {}
 
