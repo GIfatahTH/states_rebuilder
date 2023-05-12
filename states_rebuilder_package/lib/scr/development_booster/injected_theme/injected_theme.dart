@@ -272,7 +272,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
   }
 
   Brightness _getSystemBrightness() {
-    return WidgetsBinding.instance.window.platformBrightness;
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness;
   }
 
   ///Toggle the current theme between dark and light

@@ -16,6 +16,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
   final StateInterceptor<T>? stateInterceptorGlobal;
   late SnapState<T> _snapState;
   late bool isInitialized;
+  bool get isStateInitialized => isInitialized;
   late VoidCallback? removeFromReactiveModel;
   late Completer? completer;
   late Timer? _debounceTimer;
