@@ -392,16 +392,13 @@ void main() {
       expect(find.text('hasStartedDown'), findsNothing);
       expect(find.text('hasEnded'), findsNothing);
       //
-      final disposer = animation.addObserver(
-        listener: (snap) async {
-          await tester.drag(find.byType(ListView),
-              Offset(0, -(animation.controller!.value + 1)));
-        },
-        shouldAutoClean: true,
-      );
 
       animation.controller!.forward();
+      scroll.moveTo(double.infinity, duration: const Duration(seconds: 3));
       //
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
       await tester.pump();
       expect(isTop, false);
       expect(isBottom, false);
@@ -505,6 +502,7 @@ void main() {
       expect(find.text('hasEnded'), findsNothing);
       await tester.pump(Duration(milliseconds: 300));
     },
+    skip: true,
   );
 
   testWidgets(

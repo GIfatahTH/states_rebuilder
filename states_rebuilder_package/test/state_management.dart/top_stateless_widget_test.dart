@@ -379,8 +379,8 @@ void main() {
     },
   );
   testWidgets('appLifeCycle works', (WidgetTester tester) async {
-    final BinaryMessenger defaultBinaryMessenger =
-        ServicesBinding.instance.defaultBinaryMessenger;
+    final TestDefaultBinaryMessenger defaultBinaryMessenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     AppLifecycleState? lifecycleState;
 
     _didChangeAppLifecycleState = (state) {

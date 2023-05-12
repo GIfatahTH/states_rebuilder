@@ -506,7 +506,9 @@ void main() {
       vm.notify();
       await tester.pump();
       expect(numberOFRebuild1, equals(2));
-      model1.setState((_) {});
+      model1.setState((_) {
+        return null;
+      });
       await tester.pump();
       expect(numberOFRebuild1, equals(3));
     },
@@ -788,8 +790,8 @@ void main() {
   });
 
   testWidgets('Injector appLifeCycle works', (WidgetTester tester) async {
-    final BinaryMessenger defaultBinaryMessenger =
-        ServicesBinding.instance.defaultBinaryMessenger;
+    final TestDefaultBinaryMessenger defaultBinaryMessenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     AppLifecycleState? lifecycleState;
     final widget = Injector(
       inject: [Inject(() => VanillaModel())],

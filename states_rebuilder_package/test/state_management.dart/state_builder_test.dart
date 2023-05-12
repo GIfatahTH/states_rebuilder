@@ -924,7 +924,7 @@ void main() {
       },
     );
     //
-    model1.addCleaner(() {
+    final disposer = model1.addCleaner(() {
       numberOfCleaner++;
     });
     //
@@ -937,6 +937,7 @@ void main() {
 
     expect(numberOfDidUpdateWidget, equals(1));
     expect(numberOfCleaner, equals(0));
+    disposer();
   });
 }
 
@@ -985,7 +986,8 @@ class StatesRebuilder extends IObservable {
 
   @override
   SnapState get snapState => throw UnimplementedError();
-
+  @override
+  bool get isStateInitialized => throw UnimplementedError();
   @override
   void dispose() {}
 

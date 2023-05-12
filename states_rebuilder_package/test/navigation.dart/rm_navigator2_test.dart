@@ -1699,7 +1699,7 @@ void main() {
       };
       final widget = _TopWidget(routers: routes);
       await tester.pumpWidget(widget);
-      dynamic message;
+
       _navigator.to('/page1');
       await tester.pumpAndSettle();
       _navigator.to('/page2');
@@ -5877,12 +5877,19 @@ class NavigatorMock extends InjectedNavigator {
 
   @override
   Future<T?> toReplacement<T extends Object?, TO extends Object?>(
-      String routeName,
-      {TO? result,
-      Object? arguments,
-      Map<String, String>? queryParams,
-      bool fullscreenDialog = false,
-      bool maintainState = true}) async {
+    String routeName, {
+    TO? result,
+    Object? arguments,
+    Map<String, String>? queryParams,
+    bool fullscreenDialog = false,
+    bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )? transitionsBuilder,
+  }) async {
     message = 'toReplacement';
   }
 }

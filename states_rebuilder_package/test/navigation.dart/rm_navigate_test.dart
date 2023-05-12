@@ -704,11 +704,11 @@ void main() {
       final page3 = (_) => Text('$_');
       final page4 = (_) => Text('$_');
       final page5 = (_) => Text('$_');
-      final page52 = (_) => Text('$_');
-      final page521 = (_) => Text('$_');
+      // final page52 = (_) => Text('$_');
+      // final page521 = (_) => Text('$_');
 
       Map<String, String> pathParams = {};
-      Map<String, String> queryParams = {};
+      // Map<String, String> queryParams = {};
       String routePath = '';
       String baseUrl = '';
       final routes = {
@@ -756,7 +756,7 @@ void main() {
               routes: {
                 '/': (data) => Builder(
                       builder: (__) {
-                        queryParams = data.queryParams;
+                        // queryParams = data.queryParams;
                         pathParams = data.pathParams;
                         routePath = data.path;
                         baseUrl = data.baseLocation;
@@ -766,7 +766,7 @@ void main() {
                 '/page51': (data) {
                   return Builder(
                     builder: (ctx) {
-                      queryParams = ctx.routeData.queryParams;
+                      // queryParams = ctx.routeData.queryParams;
                       pathParams = ctx.routeData.pathParams;
                       routePath = ctx.routeData.path;
                       baseUrl = ctx.routeData.baseLocation;
@@ -779,7 +779,7 @@ void main() {
                         '/': (_) {
                           return Builder(
                             builder: (ctx) {
-                              queryParams = ctx.routeData.queryParams;
+                              // queryParams = ctx.routeData.queryParams;
                               pathParams = ctx.routeData.pathParams;
                               routePath = ctx.routeData.path;
                               baseUrl = ctx.routeData.baseLocation;
@@ -795,7 +795,7 @@ void main() {
                         },
                         '/:page521ID': (_) => Builder(
                               builder: (ctx) {
-                                queryParams = ctx.routeData.queryParams;
+                                // queryParams = ctx.routeData.queryParams;
                                 pathParams = ctx.routeData.pathParams;
                                 routePath = ctx.routeData.path;
                                 baseUrl = ctx.routeData.baseLocation;

@@ -351,6 +351,7 @@ void main() async {
         stateInterceptor: (currentSnap, nextSnap) {
           _snapState = currentSnap;
           _nextSnapState = nextSnap;
+          return null;
         },
       );
       (theme as InjectedThemeImp).isLinkedToTopStatelessWidget = true;
@@ -440,12 +441,14 @@ void main() async {
       expect(brightness, Brightness.light);
       expect(secondaryColors, secondaryLightColor);
       expect(theme.isDarkTheme, false);
-      tester.binding.window.platformBrightnessTestValue = Brightness.dark;
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.dark;
       await tester.pumpAndSettle();
       expect(brightness, Brightness.dark);
       expect(secondaryColors, secondaryDarkColor);
       expect(theme.isDarkTheme, true);
-      tester.binding.window.platformBrightnessTestValue = Brightness.light;
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.light;
     },
   );
 
@@ -483,11 +486,13 @@ void main() async {
       await tester.pumpWidget(widget);
       expect(brightness, Brightness.light);
       expect(theme.isDarkTheme, false);
-      tester.binding.window.platformBrightnessTestValue = Brightness.dark;
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.dark;
       await tester.pumpAndSettle();
       expect(brightness, Brightness.dark);
       expect(theme.isDarkTheme, true);
-      tester.binding.window.platformBrightnessTestValue = Brightness.light;
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.light;
     },
   );
   testWidgets(
