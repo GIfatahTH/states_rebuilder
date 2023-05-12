@@ -92,7 +92,7 @@ class SnapState<T> {
       StatesRebuilerLogger.log(
         '',
         'OR, TRY DEFINING THE INITIAL STATE OR HANDLE THE ERROR STATUS',
-        snapError!.stackTrace,
+        StackTrace.current,
       );
     } else if (isWaiting) {
       StatesRebuilerLogger.log(
@@ -102,6 +102,7 @@ class SnapState<T> {
       StatesRebuilerLogger.log(
         '',
         'OTHERWISE, TRY DEFINING THE INITIAL STATE OR HANDLE THE WAITING STATUS',
+        StackTrace.current,
       );
     }
 
