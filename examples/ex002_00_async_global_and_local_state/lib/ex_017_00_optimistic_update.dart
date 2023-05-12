@@ -65,6 +65,7 @@ class TodosViewModel {
             data: next.state.where((todo) => todo.id != todoToAdd.id).toList(),
           );
         }
+        return null;
       },
     );
   }

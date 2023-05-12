@@ -107,6 +107,7 @@ class CounterViewModel {
     // set the state mutably
     _counter.setState((s) {
       s[index] = CounterModel(s[index].value + 1);
+      return null;
     });
   }
 }

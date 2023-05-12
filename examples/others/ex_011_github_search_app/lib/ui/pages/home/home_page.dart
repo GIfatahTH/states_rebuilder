@@ -16,10 +16,10 @@ class HomePage extends StatelessWidget {
           child: Text('Search',
               style: Theme.of(context)
                   .textTheme
-                  .headline6
+                  .titleLarge!
                   .copyWith(color: Colors.white)),
           onPressed: () async {
-            final user = await showSearch<GitHubUser>(
+            final user = await showSearch<GitHubUser?>(
               context: context,
               delegate: GitHubSearchDelegate(),
             );

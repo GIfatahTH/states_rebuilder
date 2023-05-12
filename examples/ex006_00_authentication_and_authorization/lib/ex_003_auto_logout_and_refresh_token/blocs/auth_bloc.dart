@@ -4,7 +4,6 @@ import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 import '../common/extensions.dart';
 import '../data_source/fake_auth_repository.dart';
-import '../data_source/firebase_auth_repository.dart';
 import '../models/user.dart';
 
 @immutable

@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, deprecated_member_use_from_same_package
+// ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, deprecated_member_use_from_same_package, unused_result
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
@@ -271,7 +271,6 @@ void main() {
         dependsOn: DependsOn({dependentCounter1}),
       );
       int numberOfNotification = 0;
-      // ignore: unused_result
       dependentCounter2.addObserver(
         listener: (rm) {
           numberOfNotification++;

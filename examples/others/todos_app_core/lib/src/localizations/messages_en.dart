@@ -22,7 +22,7 @@ class MessageLookup extends MessageLookupByLibrary {
   @override
   String get localeName => 'en';
 
-  static String m0(task) => 'Deleted "${task}"';
+  static String m0(task) => 'Deleted "$task"';
 
   @override
   final messages = _notInlinedMessages(_notInlinedMessages);

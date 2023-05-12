@@ -34,6 +34,7 @@ final navigator = RM.injectNavigator(
       // Redirect the user to the home page
       return data.redirectTo('/');
     }
+    return null;
   },
 );
 

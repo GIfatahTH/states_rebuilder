@@ -109,8 +109,7 @@ class InjectedNavigator implements NavigationBuilder {
       Animation<double> animation,
       Animation<double> secondAnimation,
       Widget child,
-    )?
-        transitionsBuilder,
+    )? transitionsBuilder,
   }) {
     return _navigationBuilder.to<T>(
       routeName,
@@ -202,6 +201,12 @@ class InjectedNavigator implements NavigationBuilder {
     Map<String, String>? queryParams,
     bool fullscreenDialog = false,
     bool maintainState = true,
+    Widget Function(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondAnimation,
+      Widget child,
+    )? transitionsBuilder,
   }) {
     return _navigationBuilder.toReplacement<T, TO>(
       routeName,
@@ -210,6 +215,7 @@ class InjectedNavigator implements NavigationBuilder {
       queryParams: queryParams,
       fullscreenDialog: fullscreenDialog,
       maintainState: maintainState,
+      transitionsBuilder: transitionsBuilder,
     );
   }
 
@@ -338,7 +344,7 @@ class InjectedNavigator implements NavigationBuilder {
   Future<T?> toCupertinoModalPopup<T>(
     Widget cupertinoModalPopup, {
     ImageFilter? filter,
-    bool? semanticsDismissible,
+    bool semanticsDismissible = false,
     bool postponeToNextFrame = false,
   }) =>
       _navigationBuilder.toCupertinoModalPopup<T>(
@@ -397,8 +403,7 @@ InjectedNavigator createNavigator({
     Animation<double> animation,
     Animation<double> secondAnimation,
     Widget child,
-  )?
-      transitionsBuilder,
+  )? transitionsBuilder,
   Duration? transitionDuration,
   Redirect? Function(RouteData data)? onNavigate,
   bool? Function(RouteData? data)? onNavigateBack,

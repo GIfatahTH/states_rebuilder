@@ -139,8 +139,8 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
       _validateOnValueChange = validateOnValueChange;
       _focusNode = null;
       _hasFocus = null;
-      _isReadOnly = _initialIsReadOnly = isReadOnly;
-      _isEnabled = _initialIsEnabled = isEnabled;
+      _isReadOnly = isReadOnly;
+      _isEnabled = isEnabled;
       isDirty = false;
       _initialIsDirtyText = initialValue;
     };
@@ -157,8 +157,7 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
   late VoidCallback? _removeFromInjectedList;
 
   late bool? _hasFocus;
-  late bool? _initialIsEnabled;
-  late bool? _initialIsReadOnly;
+
   late final VoidCallback _resetDefaultState;
 
   T get getState {

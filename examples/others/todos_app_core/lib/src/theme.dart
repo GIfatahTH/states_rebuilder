@@ -9,16 +9,16 @@ class ArchSampleTheme {
     final themeData = ThemeData.dark();
     final textTheme = themeData.textTheme;
     final body1 =
-        textTheme.bodyText2.copyWith(decorationColor: Colors.transparent);
+        textTheme.bodyMedium!.copyWith(decorationColor: Colors.transparent);
 
     return ThemeData.dark().copyWith(
       primaryColor: Colors.grey[800],
-      accentColor: Colors.cyan[300],
-      buttonColor: Colors.grey[800],
+      colorScheme: ColorScheme.dark().copyWith(secondary: Colors.cyan[300]),
+      buttonTheme: ButtonThemeData(
+          colorScheme: ColorScheme.dark(primary: Colors.grey[800]!)),
       textSelectionTheme: TextSelectionThemeData(
         selectionColor: Colors.cyan[100],
       ),
-      toggleableActiveColor: Colors.cyan[300],
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: Colors.cyan[300],
       ),
@@ -28,7 +28,53 @@ class ArchSampleTheme {
         actionTextColor: Colors.cyan[300],
       ),
       textTheme: textTheme.copyWith(
-        bodyText2: body1,
+        bodyMedium: body1,
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) {
+            return null;
+          }
+          if (states.contains(MaterialState.selected)) {
+            return Colors.cyan[300];
+          }
+          return null;
+        }),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) {
+            return null;
+          }
+          if (states.contains(MaterialState.selected)) {
+            return Colors.cyan[300];
+          }
+          return null;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) {
+            return null;
+          }
+          if (states.contains(MaterialState.selected)) {
+            return Colors.cyan[300];
+          }
+          return null;
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) {
+            return null;
+          }
+          if (states.contains(MaterialState.selected)) {
+            return Colors.cyan[300];
+          }
+          return null;
+        }),
       ),
     );
   }

@@ -29,6 +29,7 @@ final navigator = RM.injectNavigator(
       );
       return false;
     }
+    return null;
   },
 );
 

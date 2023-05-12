@@ -5,12 +5,14 @@ class Validators {
     if (!_emailRegExp.hasMatch(email!)) {
       return i18n.state.enterValidEmail;
     }
+    return null;
   }
 
   static String? passwordValidation(String? password) {
     if (!_passwordRegExp.hasMatch(password!)) {
       return i18n.state.enterValidPassword;
     }
+    return null;
   }
 
   static final RegExp _passwordRegExp = RegExp(

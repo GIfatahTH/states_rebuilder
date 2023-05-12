@@ -231,7 +231,7 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   }
 
   Locale _getSystemLocale() {
-    return WidgetsBinding.instance.window.locale;
+    return WidgetsBinding.instance.platformDispatcher.locale;
   }
 
   @override

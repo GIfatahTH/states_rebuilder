@@ -161,7 +161,8 @@ class _ReactiveStatelessWidgetState
       _obs2![rm] = rm.addObserver(
         isSideEffects: false,
         listener: (rm) {
-          if (widget.shouldRebuildWidget(rm.oldSnapState!, rm._snapState)) {
+          if (rm.oldSnapState != null &&
+              widget.shouldRebuildWidget(rm.oldSnapState!, rm._snapState)) {
             setState(() {});
           }
           widget.didNotifyWidget(rm._snapState);

@@ -3,7 +3,7 @@
     "helloWorld": "مرحبا بالجميع!",
     "welcome": "مرحبا {name}",
     "gender": "{gender, select, male {مرحبا يارجل!} female {مرحبا يامرأة!} other {مرحبا هناك!}}",
-    "plural": "{howMany, plural,=0{صفر رسالة} =1{رسالة واحدة} 2{رسالاتان} few{{howMany} رسائل}  other{{howMany} رسالة}}",
+    "plural": "{howMany, plural,=0{صفر رسالة} =1{رسالة واحدة} =2{رسالاتان} few{{howMany} رسائل}  other{{howMany} رسالة}}",
     "formattedNumber": "الرقم بعد التهيئة هو {value}",
     "date": "اليوم هو {date}"
 }

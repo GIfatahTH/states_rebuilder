@@ -72,6 +72,7 @@ class CounterViewModel {
         // if the next state will be the waiting or the error state,
         // just return the current sate
         if (!nextSnap.hasData) return currentSnap;
+        return null;
         //
         // This is the right place to do some state validation before mutation
       },

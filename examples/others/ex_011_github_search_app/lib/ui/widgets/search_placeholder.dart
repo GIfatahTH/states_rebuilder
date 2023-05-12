@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SearchPlaceholder extends StatelessWidget {
-  const SearchPlaceholder({@required this.title});
+  const SearchPlaceholder({required this.title});
   final String title;
   @override
   Widget build(BuildContext context) {

@@ -60,6 +60,7 @@ final navigator = RM.injectNavigator(
         postponeToNextFrame: true,
       );
     }
+    return null;
   },
 );
 

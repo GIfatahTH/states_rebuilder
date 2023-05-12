@@ -7,7 +7,7 @@ void main() {
   runApp(const MyApp());
 }
 
-final navigator = RM.injectNavigator(
+final InjectedNavigator navigator = RM.injectNavigator(
   builder: (routerOutlet) {
     return Builder(
       builder: (context) {

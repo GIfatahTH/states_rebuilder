@@ -1,3 +1,6 @@
+## 6.3.0
+* update to dart3
+* internal refactor
 ## 6.2.0
 * remove double debug print messages (issue #275).
 * Add dialogs and scaffold related navigation to `InjectedNavigation`.

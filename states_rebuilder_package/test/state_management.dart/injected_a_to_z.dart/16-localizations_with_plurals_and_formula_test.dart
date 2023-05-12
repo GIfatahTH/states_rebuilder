@@ -56,7 +56,8 @@ Locale? _localeFromTheApp;
 
 final currentLocale = RM.inject<Locale>(
   //return the stored locale or if null return the system locale
-  () => _storedLocale ?? WidgetsBinding.instance.window.locales.first,
+  () =>
+      _storedLocale ?? WidgetsBinding.instance.platformDispatcher.locales.first,
   //Each time the currentLocale is changed, we refresh the i18n so it load the
   //right json file.
   // onData: (_) => i18n.refresh(),

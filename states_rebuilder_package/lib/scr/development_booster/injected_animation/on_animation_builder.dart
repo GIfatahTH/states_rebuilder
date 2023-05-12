@@ -140,7 +140,7 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
         if (_assertionList.isNotEmpty) {
           _assertionList.clear();
           throw ArgumentError('Duplication of <$T> with the same name is '
-              'not allowed. Use distinct name');
+              'not allowed. Use distinct name. The name is: $name');
         }
       }
       _assertionList.add(name);
@@ -276,9 +276,20 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
     );
   }
 
+  void resetState() {
+    isInitialized = false;
+    _isDirty = false;
+    _isChanged = null;
+    _hasChanged = false;
+    isSchedulerBinding = false;
+    _assertionList.clear();
+  }
+
   @override
   void dispose() {
     _injected.dispose();
+
+    // resetState();
     disposer();
     disposeDidUpdateWidget();
     disposeAnimationReset();
@@ -289,6 +300,11 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
   void didUpdateWidget(covariant OnAnimationBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
     _didUpdateWidget();
+  }
+
+  void didChangeDependencies() {
+    _didUpdateWidget();
+    super.didChangeDependencies();
   }
 
   @override

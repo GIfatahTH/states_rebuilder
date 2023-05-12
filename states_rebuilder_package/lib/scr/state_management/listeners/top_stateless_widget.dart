@@ -164,6 +164,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
   final Map<ReactiveModelImp, VoidCallback> _obs = {};
   bool isWaiting = false;
   dynamic error;
+  StackTrace? stacktrace;
   // InjectedI18N? injectedI18N;
   final Set<InjectedImp> inheritedInjects = {};
   bool get isInheritedInjectsWaiting =>
@@ -261,10 +262,11 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
         isWaiting = false;
         error = null;
       });
-    } catch (e) {
+    } catch (e, s) {
       setState(() {
         isWaiting = false;
         error = e;
+        stacktrace = s;
       });
     }
   }
@@ -297,6 +299,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
   Widget getErrorWidget(BuildContext context) {
     final child = widget.errorScreen(error, _ensureInitialization);
     if (child == null) {
+      StatesRebuilerLogger.log('', error, stacktrace);
       throw error;
     }
     return MaterialApp(

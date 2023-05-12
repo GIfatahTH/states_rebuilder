@@ -64,6 +64,7 @@ class TodosViewModel {
         }
         // in all other cases set the _isWaitingForAddTodo to false
         _isWaitingForAddTodo.state = false;
+        return null;
       },
     );
   }

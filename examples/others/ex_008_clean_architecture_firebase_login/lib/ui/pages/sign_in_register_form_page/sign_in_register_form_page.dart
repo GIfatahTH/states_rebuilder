@@ -14,6 +14,7 @@ final _email = RM.injectTextEditing(
       if (!Validators.isValidEmail(val!)) {
         return 'Enter a valid email';
       }
+      return null;
     }
   ],
 );
@@ -23,6 +24,7 @@ final _password = RM.injectTextEditing(
       if (!Validators.isValidPassword(val!)) {
         return 'Enter a valid password';
       }
+      return null;
     }
   ],
   validateOnTyping: true,
@@ -34,6 +36,7 @@ final _confirmationPassword = RM.injectTextEditing(
       if (_password.text != val) {
         return 'Passwords do not match';
       }
+      return null;
     }
   ],
   validateOnTyping: true,

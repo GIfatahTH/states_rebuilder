@@ -26,7 +26,7 @@ class SemBastLocalStorage {
   }
 
   Future<void> write<T>(String key, T value) async {
-    return store.record('key').put(db, value);
+    await store.record('key').put(db, value);
   }
 
   Future<T> read<T>(String key) async {

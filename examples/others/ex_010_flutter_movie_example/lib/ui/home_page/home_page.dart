@@ -12,10 +12,6 @@ class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
-  @override
-  void didUnmountWidget() {
-    homePageBloc.dispose();
-  }
 
   List<VideoResult> get videoResult => homePageBloc.videoResult;
   List<VideoResult> get popularVideoResult => homePageBloc.popularVideoResult;

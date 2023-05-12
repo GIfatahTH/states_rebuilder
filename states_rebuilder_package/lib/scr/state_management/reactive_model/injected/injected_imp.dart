@@ -108,7 +108,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   void _injectMock(dynamic Function() fakeCreator) {
     dispose();
+    // // if (bool.fromEnvironment('test')) {
     RM.disposeAll();
+    // // }
     cachedCreatorMocks.add(fakeCreator);
   }
 
@@ -306,7 +308,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
                 sideEffects?.onSetState?.call(snap);
               },
             ),
-            autoDisposeWhenNotUsed: true,
+            autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
             stateInterceptor: null,
             dependsOn: null,
             watch: null,

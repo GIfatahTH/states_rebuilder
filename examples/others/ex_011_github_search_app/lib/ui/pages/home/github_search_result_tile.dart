@@ -5,7 +5,7 @@ import '../../../injected.dart';
 
 class GitHubUserSearchResultTile extends StatelessWidget {
   const GitHubUserSearchResultTile(
-      {@required this.user, @required this.onSelected});
+      {required this.user, required this.onSelected});
 
   final GitHubUser user;
   final ValueChanged<GitHubUser> onSelected;

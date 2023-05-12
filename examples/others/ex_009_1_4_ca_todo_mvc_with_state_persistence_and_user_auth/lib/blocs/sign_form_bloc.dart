@@ -26,6 +26,7 @@ class SignFormBloc {
         if (password.text != value) {
           return 'Passwords do not match';
         }
+        return null;
       }
     ],
   );

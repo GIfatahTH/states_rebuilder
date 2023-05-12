@@ -42,6 +42,7 @@ final navigator = RM.injectNavigator(
     if (location == '/page4' && data.queryParams['q'] == 'NaN') {
       return data.redirectTo('/redirect-page');
     }
+    return null;
   },
 );
 

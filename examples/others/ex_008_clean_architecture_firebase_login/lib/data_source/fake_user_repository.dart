@@ -68,5 +68,7 @@ class FakeUserRepository implements UserRepository {
   }
 
   @override
-  Future<User?>? refreshToken(User? currentUser) {}
+  Future<User?>? refreshToken(User? currentUser) {
+    return null;
+  }
 }

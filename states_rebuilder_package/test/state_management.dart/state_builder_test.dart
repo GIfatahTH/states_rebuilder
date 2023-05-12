@@ -924,7 +924,7 @@ void main() {
       },
     );
     //
-    model1.addCleaner(() {
+    final disposer = model1.addCleaner(() {
       numberOfCleaner++;
     });
     //
@@ -937,6 +937,7 @@ void main() {
 
     expect(numberOfDidUpdateWidget, equals(1));
     expect(numberOfCleaner, equals(0));
+    disposer();
   });
 }
 

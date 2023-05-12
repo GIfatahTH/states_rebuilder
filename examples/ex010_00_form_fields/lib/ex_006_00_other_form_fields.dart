@@ -27,8 +27,8 @@ class _Body extends StatelessWidget {
   static final form = RM.injectForm(
     autovalidateMode: AutovalidateMode.onUserInteraction,
   );
-  static final text = RM.injectTextEditing();
-  static final checkbox = RM.injectFormField(
+  // static final text = RM.injectTextEditing();
+  static final checkbox = RM.injectFormField<bool>(
     false,
     validators: [
       (val) => !val ? 'You must accept terms and conditions to continue' : null,

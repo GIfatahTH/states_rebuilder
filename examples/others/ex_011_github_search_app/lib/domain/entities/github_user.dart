@@ -1,13 +1,11 @@
-import 'package:flutter/foundation.dart';
-
 class GitHubUser {
   final String login;
   final String avatarUrl;
   final String htmlUrl;
   GitHubUser({
-    @required this.login,
-    @required this.avatarUrl,
-    @required this.htmlUrl,
+    required this.login,
+    required this.avatarUrl,
+    required this.htmlUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -19,8 +17,6 @@ class GitHubUser {
   }
 
   factory GitHubUser.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return GitHubUser(
       login: map['login'],
       avatarUrl: map['avatar_url'],

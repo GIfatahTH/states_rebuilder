@@ -25,6 +25,7 @@ class PostsBloc {
     postsRM.setState(
       (state) {
         posts.firstWhere((post) => post.id == postId).incrementLikes();
+        return null;
       },
     );
   }

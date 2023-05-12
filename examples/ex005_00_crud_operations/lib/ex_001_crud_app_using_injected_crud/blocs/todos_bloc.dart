@@ -1,11 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:uuid/uuid.dart';
 
-import '../data_source/i_todos_repository.dart';
-import '../data_source/todos_fake_repository.dart';
 import '../data_source/todos_http_repository.dart';
 import '../models/todo.dart';
 import '../models/todo_filter.dart';

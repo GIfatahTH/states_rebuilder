@@ -12,9 +12,9 @@ class GitHubSearchRepository implements IGitHubSearchRepository {
     final response = await http.get(uri);
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      final List<dynamic> items = data['items'];
+      final List<dynamic>? items = data['items'];
       if (items?.isNotEmpty ?? false) {
-        return items.map((item) => GitHubUser.fromMap(item)).toList();
+        return items!.map((item) => GitHubUser.fromMap(item)).toList();
       }
       throw GitHubAPIError.parseError();
     }

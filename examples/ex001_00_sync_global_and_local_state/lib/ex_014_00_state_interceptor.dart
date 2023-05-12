@@ -20,6 +20,7 @@ enum WeatherCondition {
   snowy,
   unknown,
 }
+
 const defaultColor = Color(0xFF2196F3);
 
 // Set primary color theme depending on the weather condition
@@ -84,6 +85,7 @@ class WeatherService {
           ),
         );
       }
+      return null;
     },
   );
   Weather? get weather => weatherRM.state;
