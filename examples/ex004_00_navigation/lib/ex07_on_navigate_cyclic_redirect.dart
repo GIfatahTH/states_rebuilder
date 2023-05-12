@@ -25,6 +25,7 @@ final navigator = RM.injectNavigator(
     if (location == '/page4') {
       return data.redirectTo('/page5');
     }
+    return null;
   },
 );
 

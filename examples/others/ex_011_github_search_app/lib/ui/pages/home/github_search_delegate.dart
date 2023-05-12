@@ -6,7 +6,7 @@ import '../../../injected.dart';
 import '../../widgets/search_placeholder.dart';
 import 'github_search_result_tile.dart';
 
-class GitHubSearchDelegate extends SearchDelegate<GitHubUser> {
+class GitHubSearchDelegate extends SearchDelegate<GitHubUser?> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(

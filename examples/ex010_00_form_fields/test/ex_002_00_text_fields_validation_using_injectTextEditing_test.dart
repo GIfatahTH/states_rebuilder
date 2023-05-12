@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late Finder emailTextField;
-  late Finder passwordTextField;
-  late Finder activeLoginButton;
+  // late Finder passwordTextField;
+  // late Finder activeLoginButton;
   setUp(
     () {
       emailTextField = find.byWidgetPredicate(
@@ -14,15 +14,15 @@ void main() {
             widget.decoration?.labelText == "Email Address",
       );
 
-      passwordTextField = find.byWidgetPredicate(
-        (widget) =>
-            widget is TextField && widget.decoration?.labelText == "Password",
-      );
+      // passwordTextField = find.byWidgetPredicate(
+      //   (widget) =>
+      //       widget is TextField && widget.decoration?.labelText == "Password",
+      // );
 
-      //active login button is that with a non null onPressed parameter
-      activeLoginButton = find.byWidgetPredicate(
-        (widget) => widget is ElevatedButton && widget.onPressed != null,
-      );
+      // //active login button is that with a non null onPressed parameter
+      // activeLoginButton = find.byWidgetPredicate(
+      //   (widget) => widget is ElevatedButton && widget.onPressed != null,
+      // );
     },
   );
 

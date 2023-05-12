@@ -7,7 +7,7 @@
     "welcome": "Welcome {name}",
     "@welcome": {
         "placeholders": {
-            "name": {}
+            "name": {} 
         }
     },
     "gender": "{gender, select, male {Hi man!} female {Hi woman!} other {Hi there!}}",

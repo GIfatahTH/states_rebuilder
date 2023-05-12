@@ -74,6 +74,7 @@ final navigator = RM.injectNavigator(
       else if (signedIn && signingIn) {
         return routeData.redirectTo('/books');
       }
+      return null;
     });
 
 class App extends TopStatelessWidget {

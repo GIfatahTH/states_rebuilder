@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final i18n = RM.injectI18N<EnUS>(
+final InjectedI18N i18n = RM.injectI18N<EnUS>(
   {
     Locale('en', 'US'): () => EnUS(),
     Locale('es', 'ES'): () => EsES(),

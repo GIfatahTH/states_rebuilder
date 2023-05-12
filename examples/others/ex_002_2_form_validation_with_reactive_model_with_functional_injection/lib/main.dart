@@ -37,6 +37,7 @@ final email = RM.inject<Email>(
         Exception("Enter a valid Email"),
       );
     }
+    return null;
   },
 );
 final password = RM.inject<Password>(
@@ -48,6 +49,7 @@ final password = RM.inject<Password>(
         stackTrace: StackTrace.current,
       );
     }
+    return null;
   },
 );
 
