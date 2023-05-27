@@ -1,3 +1,6 @@
+## 6.3.1-dev1
+* Add `ReactiveModel.isStateInitialized` getter to check if the state has already initialized or not yet.
+
 ## 6.3.0
 * update to dart3
 * internal refactor
