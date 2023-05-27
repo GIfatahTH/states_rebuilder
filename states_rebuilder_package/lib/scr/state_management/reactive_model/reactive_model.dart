@@ -138,6 +138,9 @@ abstract class ReactiveModel<T> with IObservable<T> {
   /// The current state
   T get state;
 
+  // Whether the state has been initialized or not
+  bool get isStateInitialized;
+
   /// Sync state mutation.
   ///
   /// Use setState for more options
