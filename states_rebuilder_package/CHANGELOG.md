@@ -1,3 +1,5 @@
+## 6.3.2
+* Update to fit Flutter 3.19 release
 ## 6.3.1-dev1
 * Add `ReactiveModel.isStateInitialized` getter to check if the state has already initialized or not yet.
 

@@ -17,21 +17,21 @@ class MyHomePage extends StatelessWidget {
   List<VideoResult> get popularVideoResult => homePageBloc.popularVideoResult;
   ButtonStyle? get movieStyle => homePageBloc.shouldShowMovies
       ? ElevatedButton.styleFrom(
-          primary: Colors.blue,
-          onPrimary: Colors.white,
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
         )
       : ElevatedButton.styleFrom(
-          primary: Colors.white,
-          onPrimary: Colors.blue,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.blue,
         );
   ButtonStyle? get tvStyle => homePageBloc.shouldShowMovies
       ? ElevatedButton.styleFrom(
-          primary: Colors.white,
-          onPrimary: Colors.blue,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.blue,
         )
       : ElevatedButton.styleFrom(
-          primary: Colors.blue,
-          onPrimary: Colors.white,
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
         );
 
   @override

@@ -30,8 +30,8 @@ class MyHomePage extends ReactiveStatelessWidget {
 
   static final _counter = 0.inj();
   static final unselectedStyle = ElevatedButton.styleFrom(
-    primary: Colors.white,
-    onPrimary: Colors.blue,
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.blue,
   );
   @override
   Widget build(BuildContext context) {
