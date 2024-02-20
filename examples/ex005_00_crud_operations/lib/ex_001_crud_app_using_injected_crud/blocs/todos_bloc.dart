@@ -21,6 +21,7 @@ class TodosViewModel {
     // () => TodosFakeRepository(),
     // () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
     readOnInitialization: true,
+    // debugPrintWhenNotifiedPreMessage: '',
     sideEffects: SideEffects.onError(
       (err, refresh) {
         if (_todosRM.state.isEmpty) return;

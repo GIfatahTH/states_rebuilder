@@ -256,6 +256,8 @@ void main() {
       expect(toggleAllToCompletedFinder, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1000));
       //
+      await tester.drag(checkedItemFinder.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
       shouldThrow = true;
       await tester.tap(unCheckedItemFinder.first);
       await tester.pump();

@@ -11,6 +11,7 @@ final navigator = RM.injectNavigator(
 void main() {
   runApp(
     MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       routerDelegate: navigator.routerDelegate,
       routeInformationParser: navigator.routeInformationParser,
     ),
