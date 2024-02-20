@@ -2337,6 +2337,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///
   /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
   /// Print log a debug message when the state of the navigator is changed.
+  @Deprecated(
+    'Navigation functionalities will be separated from this package '
+    'use navigation_builder package instead'
+    'instead of RM.injectNavigator use NavigationBuilder.create',
+  )
   static InjectedNavigator injectNavigator({
     //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
     required Map<String, Widget Function(RouteData data)> routes,
