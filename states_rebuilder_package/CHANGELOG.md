@@ -1,3 +1,9 @@
+## 6.4.0
+* Update to fit Flutter 3.19 release
+* `RM.injectNavigator` is deprecated
+## 6.3.1-dev1
+* Add `ReactiveModel.isStateInitialized` getter to check if the state has already initialized or not yet.
+
 ## 6.3.0
 * update to dart3
 * internal refactor

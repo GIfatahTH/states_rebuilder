@@ -62,7 +62,7 @@ class TabBarNavigator extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               backgroundColor: animate(
                                   i == index.state ? Colors.blue : null, '$i'),
-                              primary: animate(
+                              foregroundColor: animate(
                                   i != index.state ? Colors.blue : Colors.white,
                                   'primary$i'),
                             ),

@@ -586,7 +586,11 @@ void main() {
       await defaultBinaryMessenger.handlePlatformMessage(
           'flutter/lifecycle', message, (_) {});
       expect(lifecycleState, AppLifecycleState.inactive);
-
+      message = const StringCodec().encodeMessage('AppLifecycleState.paused');
+      await defaultBinaryMessenger.handlePlatformMessage(
+          'flutter/lifecycle', message, (_) {});
+      await tester.pump();
+      expect(lifecycleState, AppLifecycleState.paused);
       message = const StringCodec().encodeMessage('AppLifecycleState.detached');
       await defaultBinaryMessenger.handlePlatformMessage(
           'flutter/lifecycle', message, (_) {});

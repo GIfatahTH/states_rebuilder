@@ -160,7 +160,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         ElevatedButton(
           child: const Text('See Details'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.lightBlue[100],
+            backgroundColor: Colors.lightBlue[100],
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(

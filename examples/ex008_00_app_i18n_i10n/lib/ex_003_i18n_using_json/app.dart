@@ -73,8 +73,8 @@ class MyHomePage extends ReactiveStatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   static final unselectedStyle = ElevatedButton.styleFrom(
-    primary: Colors.white,
-    onPrimary: Colors.blue,
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.blue,
   );
   @override
   Widget build(BuildContext context) {

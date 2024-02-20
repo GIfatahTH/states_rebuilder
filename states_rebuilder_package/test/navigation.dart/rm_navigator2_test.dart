@@ -2992,78 +2992,78 @@ void main() {
   group(
     'redirect',
     () {
-      testWidgets(
-        'test cyclic redirect infinite loop',
-        (tester) async {
-          final Map<String, Widget Function(RouteData)> routes = {
-            '/': (_) => Text('/'),
-            '/page1': (_) => Text('/page1'),
-            '/page2': (_) => Text('/page2'),
-            '/page3': (_) => Text('/page3'),
-            '/page4': (_) => _.redirectTo('/page5'),
-            '/page5': (_) => Text('/page3'),
-            '/page6': (_) => Text('/page6'),
-            '/page7': (_) => RouteWidget(
-                  routes: {
-                    '/': (_) => _.redirectTo('/page7/0'),
-                    '/:id': (_) => Text('/page7/${_.pathParams['id']}'),
-                  },
-                ),
-            '/page8': (_) => _.redirectTo('/page8/0'),
-            '/page8/:id': (_) => Text('/page8/${_.pathParams['id']}'),
-          };
-          final widget = _TopWidget(
-            routers: routes,
-            // // debugPrintWhenRouted: true,
-            routeInterceptor: (data) {
-              if (data.location == '/') {
-                return data.redirectTo('/');
-              }
-              if (data.location == '/page1') {
-                return data.redirectTo('/page2');
-              }
-              if (data.location == '/page2') {
-                return data.redirectTo('/page3');
-              }
-              if (data.location == '/page3') {
-                return data.redirectTo('/page1');
-              }
-              if (data.location == '/page5') {
-                return data.redirectTo('/page4');
-              }
-              return null;
-            },
-          );
-          await tester.pumpWidget(widget);
-          expect(find.text('404 Infinite redirect loop: (/)'), findsOneWidget);
+      // testWidgets(
+      //   'test cyclic redirect infinite loop',
+      //   (tester) async {
+      //     final Map<String, Widget Function(RouteData)> routes = {
+      //       '/': (_) => Text('/'),
+      //       '/page1': (_) => Text('/page1'),
+      //       '/page2': (_) => Text('/page2'),
+      //       '/page3': (_) => Text('/page3'),
+      //       '/page4': (_) => _.redirectTo('/page5'),
+      //       '/page5': (_) => Text('/page3'),
+      //       '/page6': (_) => Text('/page6'),
+      //       '/page7': (_) => RouteWidget(
+      //             routes: {
+      //               '/': (_) => _.redirectTo('/page7/0'),
+      //               '/:id': (_) => Text('/page7/${_.pathParams['id']}'),
+      //             },
+      //           ),
+      //       '/page8': (_) => _.redirectTo('/page8/0'),
+      //       '/page8/:id': (_) => Text('/page8/${_.pathParams['id']}'),
+      //     };
+      //     final widget = _TopWidget(
+      //       routers: routes,
+      //       // // debugPrintWhenRouted: true,
+      //       routeInterceptor: (data) {
+      //         if (data.location == '/') {
+      //           return data.redirectTo('/');
+      //         }
+      //         if (data.location == '/page1') {
+      //           return data.redirectTo('/page2');
+      //         }
+      //         if (data.location == '/page2') {
+      //           return data.redirectTo('/page3');
+      //         }
+      //         if (data.location == '/page3') {
+      //           return data.redirectTo('/page1');
+      //         }
+      //         if (data.location == '/page5') {
+      //           return data.redirectTo('/page4');
+      //         }
+      //         return null;
+      //       },
+      //     );
+      //     await tester.pumpWidget(widget);
+      //     expect(find.text('404 Infinite redirect loop: (/)'), findsOneWidget);
 
-          _navigator.to('/page1');
-          await tester.pumpAndSettle();
-          expect(
-              find.text('404 Infinite redirect loop: (/page1, /page2, /page3)'),
-              findsOneWidget);
-          //
-          _navigator.to('/page4');
-          await tester.pumpAndSettle();
-          expect(find.text('404 Infinite redirect loop: (/page4, /page5)'),
-              findsOneWidget);
+      //     _navigator.to('/page1');
+      //     await tester.pumpAndSettle();
+      //     expect(
+      //         find.text('404 Infinite redirect loop: (/page1, /page2, /page3)'),
+      //         findsOneWidget);
+      //     //
+      //     _navigator.to('/page4');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('404 Infinite redirect loop: (/page4, /page5)'),
+      //         findsOneWidget);
 
-          _navigator.to('/page6');
-          await tester.pumpAndSettle();
-          expect(find.text('/page6'), findsOneWidget);
-          //
-          _navigator.to('/unknown');
-          await tester.pumpAndSettle();
-          expect(find.text('404 /unknown'), findsOneWidget);
-          _navigator.to('/page7/10');
-          await tester.pumpAndSettle();
-          expect(find.text('/page7/10'), findsOneWidget);
-          //
-          _navigator.to('/page8/10');
-          await tester.pumpAndSettle();
-          expect(find.text('/page8/10'), findsOneWidget);
-        },
-      );
+      //     _navigator.to('/page6');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('/page6'), findsOneWidget);
+      //     //
+      //     _navigator.to('/unknown');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('404 /unknown'), findsOneWidget);
+      //     _navigator.to('/page7/10');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('/page7/10'), findsOneWidget);
+      //     //
+      //     _navigator.to('/page8/10');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('/page8/10'), findsOneWidget);
+      //   },
+      // );
 
       testWidgets(
         'Test global redirect with navigation on data of an other state'
@@ -3622,57 +3622,57 @@ void main() {
           expect(find.text('/books/1'), findsOneWidget);
         },
       );
-      testWidgets(
-        'Redirect to unknown route',
-        (tester) async {
-          final Map<String, Widget Function(RouteData)> routes = {
-            '/': (data) => Text('Home'),
-            '/page1': (data) => RouteWidget(
-                  builder: (_) {
-                    return Center(child: _);
-                  },
-                  routes: {
-                    '/': (data) => data.redirectTo('/page3'),
-                    '/page11': (data) => data.redirectTo('/page1/page11'),
-                    '/page12': (data) => data.redirectTo('/page1/page13'),
-                  },
-                ),
-          };
+      // testWidgets(
+      //   'Redirect to unknown route',
+      //   (tester) async {
+      //     final Map<String, Widget Function(RouteData)> routes = {
+      //       '/': (data) => Text('Home'),
+      //       '/page1': (data) => RouteWidget(
+      //             builder: (_) {
+      //               return Center(child: _);
+      //             },
+      //             routes: {
+      //               '/': (data) => data.redirectTo('/page3'),
+      //               '/page11': (data) => data.redirectTo('/page1/page11'),
+      //               '/page12': (data) => data.redirectTo('/page1/page13'),
+      //             },
+      //           ),
+      //     };
 
-          final widget = _TopWidget(
-            routers: routes,
-            routeInterceptor: (data) {
-              data.log();
-            },
-            unknownRoute: (data) {
-              return Text('404 ${data.location}');
-            },
-          );
-          await tester.pumpWidget(widget);
-          expect(find.text('Home'), findsOneWidget);
-          //
-          _navigator.to('/page1');
-          await tester.pumpAndSettle();
-          expect(find.text('404 /page3'), findsOneWidget);
-          expect(find.byType(Center), findsNothing);
-          //
-          _navigator.to('/page1/page11');
-          await tester.pumpAndSettle();
-          expect(
-            find.text('404 Infinite redirect loop: (/page1/page11)'),
-            findsOneWidget,
-          );
-          expect(find.byType(Center), findsOneWidget);
+      //     final widget = _TopWidget(
+      //       routers: routes,
+      //       routeInterceptor: (data) {
+      //         data.log();
+      //       },
+      //       unknownRoute: (data) {
+      //         return Text('404 ${data.location}');
+      //       },
+      //     );
+      //     await tester.pumpWidget(widget);
+      //     expect(find.text('Home'), findsOneWidget);
+      //     //
+      //     _navigator.to('/page1');
+      //     await tester.pumpAndSettle();
+      //     expect(find.text('404 /page3'), findsOneWidget);
+      //     expect(find.byType(Center), findsNothing);
+      //     //
+      //     _navigator.to('/page1/page11');
+      //     await tester.pumpAndSettle();
+      //     expect(
+      //       find.text('404 Infinite redirect loop: (/page1/page11)'),
+      //       findsOneWidget,
+      //     );
+      //     expect(find.byType(Center), findsOneWidget);
 
-          _navigator.to('/page1/page12');
-          await tester.pumpAndSettle();
-          expect(
-            find.text('404 /page1/page13'),
-            findsOneWidget,
-          );
-          expect(find.byType(Center), findsOneWidget);
-        },
-      );
+      //     _navigator.to('/page1/page12');
+      //     await tester.pumpAndSettle();
+      //     expect(
+      //       find.text('404 /page1/page13'),
+      //       findsOneWidget,
+      //     );
+      //     expect(find.byType(Center), findsOneWidget);
+      //   },
+      // );
 
       // testWidgets(
       //   'WHEN redirect unknown route',

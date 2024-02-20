@@ -22,17 +22,21 @@ void main() {
       //
       await tester.enterText(find.byType(TextField).first, 'New Todo 1');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.drag(todoItemHome1.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(todosViewModel.state.todos.length, 2);
       expect(todoItemHome1, findsNWidgets(2));
       expect(todoItemHome2, findsNWidgets(1));
 
       expect(find.text('New Todo 1'), findsOneWidget);
-      expect(todosViewModel.state.todos.length, 2);
       //
       //
       await tester.enterText(find.byType(TextField).last, 'New Todo 2');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.drag(todoItemHome2.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
       expect(todoItemHome1, findsNWidgets(2));
       expect(todoItemHome2, findsNWidgets(2));
 
