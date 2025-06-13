@@ -59,7 +59,7 @@
 - [Examples](#examples)
   - [State management concepts](#state-management-concepts)
   - [Navigation](#navigation)
-  - [Devolvement booster](#devolvement-booster)
+  - [Development booster](#development-booster)
   
 
 > Although states_rebuilder is a feature-rich library, the maintenance cost is very low, and the size of the library is small. this is because states_rebuilder does not draw a single pixel on the screen and the way the internal code is structured makes adding new functionality a straightforward process with fewer lines of code.
@@ -1338,7 +1338,7 @@ Get the foundation of state management from very basic to more advanced concepts
 ## Navigation
 * [Navigation using intuitive facade of Navigator 2 API](https://github.com/GIfatahTH/states_rebuilder/blob/dev/examples/ex004_00_navigation)
 
-## Devolvement booster
+## Development booster
 
 Based on state management principles and some good programing principles and abstraction techniques, I created dedication injected state to automatize the most repetitive tasks a developer do.
 
