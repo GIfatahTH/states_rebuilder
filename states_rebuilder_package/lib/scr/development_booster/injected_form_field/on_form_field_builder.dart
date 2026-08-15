@@ -408,7 +408,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
   ///
   /// This text style is also used as the base style for the [decoration].
   ///
-  /// If null, defaults to the `subtitle1` text style from the current [Theme].
+  /// If null, defaults to the `titleMedium` text style from the current [Theme].
   final TextStyle? style;
 
   /// By default InputDecorator borders are set to none.
@@ -423,22 +423,27 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
 
   InputDecoration _getEffectiveDecoration(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
-    final InputDecoration effectiveDecoration =
-        inputDecoration!.applyDefaults(themeData.inputDecorationTheme);
+    final InputDecoration effectiveDecoration = inputDecoration!.applyDefaults(
+      themeData.inputDecorationTheme,
+    );
     return effectiveDecoration.copyWith(
       // isCollapsed: true,
       isDense: true,
       enabled: listenTo.isEnabled,
       errorText: listenTo.error,
       border: enableBorder ? effectiveDecoration.border : InputBorder.none,
-      errorBorder: inputDecoration?.errorBorder ??
+      errorBorder:
+          inputDecoration?.errorBorder ??
           (enableBorder ? effectiveDecoration.errorBorder : InputBorder.none),
-      enabledBorder:
-          enableBorder ? effectiveDecoration.enabledBorder : InputBorder.none,
-      focusedBorder:
-          enableBorder ? effectiveDecoration.focusedBorder : InputBorder.none,
-      disabledBorder:
-          enableBorder ? effectiveDecoration.disabledBorder : InputBorder.none,
+      enabledBorder: enableBorder
+          ? effectiveDecoration.enabledBorder
+          : InputBorder.none,
+      focusedBorder: enableBorder
+          ? effectiveDecoration.focusedBorder
+          : InputBorder.none,
+      disabledBorder: enableBorder
+          ? effectiveDecoration.disabledBorder
+          : InputBorder.none,
       focusedErrorBorder: enableBorder
           ? effectiveDecoration.focusedErrorBorder
           : InputBorder.none,
@@ -480,7 +485,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
             isEmpty: listenTo.value == null,
             expands: false,
             child: GestureDetector(
-              onTapDown: (_) {
+              onTapDown: (c) {
                 FocusScope.of(context).unfocus();
                 (listenTo as InjectedFormFieldImp)._hasFocus = true;
                 // (_focusNode as FocusNode).requestFocus();
@@ -489,10 +494,7 @@ class OnFormFieldBuilder<T> extends StatelessWidget {
             ),
           );
 
-          return IgnorePointer(
-            ignoring: !listenTo.isEnabled,
-            child: child,
-          );
+          return IgnorePointer(ignoring: !listenTo.isEnabled, child: child);
         },
         sideEffects: SideEffects(
           initState: () {

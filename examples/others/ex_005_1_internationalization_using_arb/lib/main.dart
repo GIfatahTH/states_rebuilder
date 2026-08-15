@@ -31,7 +31,7 @@ class MyHomePage extends ReactiveStatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _i18n = i18nRM.of(context);
-    final textStyle = Theme.of(context).textTheme.headline4;
+    final textStyle = Theme.of(context).textTheme.headlineLarge;
     return Scaffold(
       appBar: AppBar(
         title: Text(_i18n.helloWorld),

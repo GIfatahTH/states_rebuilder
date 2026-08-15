@@ -52,7 +52,7 @@ class CounterApp extends StatelessWidget {
 class FakeCounter extends Counter {
   final bool shouldThrow;
   FakeCounter({int incrementBy = 1, this.shouldThrow = false})
-      : super(incrementBy: incrementBy);
+    : super(incrementBy: incrementBy);
 
   @override
   int get count => _count * _incrementBy;
@@ -96,8 +96,9 @@ void main() {
     expect(find.text('10'), findsOneWidget);
   });
 
-  testWidgets('should use the default injected mock (when run all tests)',
-      (tester) async {
+  testWidgets('should use the default injected mock (when run all tests)', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
     counter.setState((s) => s.increment());
@@ -109,50 +110,51 @@ void main() {
     expect(find.text('4'), findsOneWidget);
     expect(dataFromInjection, 4);
   });
-  testWidgets('should throw error (override injection to throw error)',
-      (tester) async {
+  testWidgets('should throw error (override injection to throw error)', (
+    tester,
+  ) async {
     counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
-    counter.setState(
-      (s) => s.increment(),
-    );
+    counter.setState((s) => s.increment());
     await tester.pump();
     expect(errorFromInjection, 'Counter Error');
     errorFromInjection = null;
   });
 
-  testWidgets(
-    'onSetState error override error defined in the injection',
-    (tester) async {
-      counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
-      String? _errorMessage;
-      await tester.pumpWidget(CounterApp());
-      expect(find.text('0'), findsOneWidget);
-      counter.setState(
-        (s) => s.increment(),
-        sideEffects:
-            SideEffects.onError((error, _) => _errorMessage = error.message),
-        shouldOverrideDefaultSideEffects: (_) => true,
-      );
-      await tester.pump();
-      expect(_errorMessage, 'Counter Error');
-      expect(errorFromInjection, null);
-      //
-      _errorMessage = null;
-      counter.setState(
-        (s) => s.increment(),
-        sideEffects:
-            SideEffects.onError((error, _) => _errorMessage = error.message),
-        shouldOverrideDefaultSideEffects: (_) => false,
-      );
-      await tester.pump();
-      expect(_errorMessage, 'Counter Error');
-      expect(errorFromInjection, 'Counter Error');
-    },
-  );
-  testWidgets('should use the default injected mock (when run all tests)-bis',
-      (tester) async {
+  testWidgets('onSetState error override error defined in the injection', (
+    tester,
+  ) async {
+    counter.injectMock(() => FakeCounter(incrementBy: 10, shouldThrow: true));
+    String? _errorMessage;
+    await tester.pumpWidget(CounterApp());
+    expect(find.text('0'), findsOneWidget);
+    counter.setState(
+      (s) => s.increment(),
+      sideEffects: SideEffects.onError(
+        (error, c) => _errorMessage = error.message,
+      ),
+      shouldOverrideDefaultSideEffects: (c) => true,
+    );
+    await tester.pump();
+    expect(_errorMessage, 'Counter Error');
+    expect(errorFromInjection, null);
+    //
+    _errorMessage = null;
+    counter.setState(
+      (s) => s.increment(),
+      sideEffects: SideEffects.onError(
+        (error, c) => _errorMessage = error.message,
+      ),
+      shouldOverrideDefaultSideEffects: (c) => false,
+    );
+    await tester.pump();
+    expect(_errorMessage, 'Counter Error');
+    expect(errorFromInjection, 'Counter Error');
+  });
+  testWidgets('should use the default injected mock (when run all tests)-bis', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
     expect(find.text('0'), findsOneWidget);
     counter.setState((s) => s.increment());

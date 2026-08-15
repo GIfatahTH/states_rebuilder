@@ -9,22 +9,12 @@ extension InjectedTabPageViewX on InjectedTabPageView {
 class _Rebuild {
   final InjectedTabPageView inj;
   _Rebuild(this.inj);
-  OnTabPageViewBuilder onTabPageView(
-    Widget Function(int) builder, {
-    Key? key,
-  }) {
-    return OnTabPageViewBuilder(
-      key: key,
-      listenTo: inj,
-      builder: builder,
-    );
+  OnTabPageViewBuilder onTabPageView(Widget Function(int) builder, {Key? key}) {
+    return OnTabPageViewBuilder(key: key, listenTo: inj, builder: builder);
   }
 
   call(Widget Function() builder) {
-    return OnBuilder(
-      listenTo: inj,
-      builder: builder,
-    );
+    return OnBuilder(listenTo: inj, builder: builder);
   }
 }
 
@@ -37,11 +27,8 @@ class OnTabPageViewBuilder extends StatefulWidget {
   ///
   /// In most cases, the [InjectedTabPageView] can be inferred implicitly. If it
   /// can not It must be explicitly defined using `listenTo` parameter.
-  const OnTabPageViewBuilder({
-    Key? key,
-    this.listenTo,
-    required this.builder,
-  }) : super(key: key);
+  const OnTabPageViewBuilder({Key? key, this.listenTo, required this.builder})
+    : super(key: key);
 
   /// [InjectedTabPageView] to listen to. If not defined, the
   /// [InjectedTabPageView] is deduced implicitly. If it is not, it throws.
@@ -77,7 +64,7 @@ class _OnTabPageViewBuilderState extends State<OnTabPageViewBuilder>
       }
       disposer = _injected!.addObserver(
         isSideEffects: false,
-        listener: (_) {
+        listener: (c) {
           setState(() {});
         },
         shouldAutoClean: _injected!.autoDisposeWhenNotUsed,

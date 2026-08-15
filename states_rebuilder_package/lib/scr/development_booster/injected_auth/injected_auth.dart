@@ -52,9 +52,9 @@ abstract class InjectedAuth<T, P> implements Injected<T> {
 
   ///Object that encapsulates the signIn, signUp, signOut methods
   _AuthService<T, P> get auth => _auth ??= _AuthService<T, P>(
-        getRepoAs<IAuth<T, P>>(),
-        this as InjectedAuthImp<T, P>,
-      );
+    getRepoAs<IAuth<T, P>>(),
+    this as InjectedAuthImp<T, P>,
+  );
 
   final List<IAuth<T, P> Function()?> _cachedRepoMocks = [null];
 
@@ -94,18 +94,18 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
     required String? debugPrintWhenNotifiedPreMessage,
     required Object? Function(T?)? toDebugString,
   }) : super(
-          creator: () => unsignedUser as T,
-          initialState: unsignedUser,
-          sideEffects: sideEffects,
-          stateInterceptor: stateInterceptor,
-          persist: persist,
-          undoStackLength: 0,
-          dependsOn: null,
-          autoDisposeWhenNotUsed: false,
-          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          toDebugString: toDebugString,
-          watch: null,
-        );
+         creator: () => unsignedUser as T,
+         initialState: unsignedUser,
+         sideEffects: sideEffects,
+         stateInterceptor: stateInterceptor,
+         persist: persist,
+         undoStackLength: 0,
+         dependsOn: null,
+         autoDisposeWhenNotUsed: false,
+         debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+         toDebugString: toDebugString,
+         watch: null,
+       );
 
   /// Repository creator
   final IAuth<T, P> Function() repoCreator;
@@ -171,10 +171,7 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
             if (!future.isCompleted) {
               future.completeError(err, s);
             } else {
-              setToHasError(
-                err,
-                stackTrace: s,
-              );
+              setToHasError(err, stackTrace: s);
             }
           },
         );
@@ -184,12 +181,10 @@ class InjectedAuthImp<T, P> extends InjectedImpRedoPersistState<T>
       final result = super.mockableCreator();
       if (result is T && result != unsignedUser) {
         snapValue = snapValue.copyWith(data: result);
-        return auth._autoSignOut().then(
-          (data) {
-            _isInitialized = true;
-            return data;
-          },
-        );
+        return auth._autoSignOut().then((data) {
+          _isInitialized = true;
+          return data;
+        });
       } else {
         _isInitialized = true;
         return result;
@@ -256,13 +251,11 @@ class _AuthService<T, P> {
     _onSignInOut = onAuthenticated;
     await injected.setState(
       (s) async {
-        _param = param?.call(
-          injected.param?.call(),
-        );
+        _param = param?.call(injected.param?.call());
         return _repository.signIn(_param ?? injected.param?.call());
       },
       sideEffects: onError != null ? SideEffects.onError(onError) : null,
-      shouldOverrideDefaultSideEffects: (_) => onError != null,
+      shouldOverrideDefaultSideEffects: (c) => onError != null,
     );
     _onSignInOut = null;
     return injected.snapValue.data as T;
@@ -284,13 +277,11 @@ class _AuthService<T, P> {
 
     await injected.setState(
       (s) async {
-        _param = param?.call(
-          injected.param?.call(),
-        );
+        _param = param?.call(injected.param?.call());
         return _repository.signUp(_param ?? injected.param?.call());
       },
       sideEffects: onError != null ? SideEffects.onError(onError) : null,
-      shouldOverrideDefaultSideEffects: (_) => onError != null,
+      shouldOverrideDefaultSideEffects: (c) => onError != null,
     );
     _onSignInOut = null;
     return injected.snapValue.data as T;
@@ -334,10 +325,7 @@ class _AuthService<T, P> {
       if (duration.inSeconds <= 0) {
         await refreshToken();
       } else {
-        _authTimer = Timer(
-          duration,
-          () => refreshToken(),
-        );
+        _authTimer = Timer(duration, () => refreshToken());
       }
     }
     return injected.snapValue.data as T;
@@ -351,8 +339,9 @@ class _AuthService<T, P> {
     if (injected.snapValue.data == injected.unsignedUser) {
       return injected.snapValue.data as T;
     }
-    final refreshedUser =
-        await _repository.refreshToken(injected.snapValue.data as T);
+    final refreshedUser = await _repository.refreshToken(
+      injected.snapValue.data as T,
+    );
 
     if (refreshedUser == null || refreshedUser == injected.unsignedUser) {
       if (shouldAutoSignOut) {
@@ -392,7 +381,7 @@ class _AuthService<T, P> {
         );
       },
       sideEffects: onError != null ? SideEffects.onError(onError) : null,
-      shouldOverrideDefaultSideEffects: (_) => onError != null,
+      shouldOverrideDefaultSideEffects: (c) => onError != null,
     );
     _onSignInOut = null;
 

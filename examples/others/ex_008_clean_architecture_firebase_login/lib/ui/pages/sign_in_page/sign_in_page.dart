@@ -41,7 +41,7 @@ class SignInPage extends StatelessWidget {
                     onPressed: isLoading
                         ? null
                         : () => user.auth.signIn(
-                              (_) => UserParam(signIn: SignIn.withApple),
+                              (c) => UserParam(signIn: SignIn.withApple),
                             ),
                   ),
                   SizedBox(height: 8),
@@ -51,7 +51,7 @@ class SignInPage extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () => user.auth.signIn(
-                            (_) => UserParam(signIn: SignIn.withGoogle),
+                            (c) => UserParam(signIn: SignIn.withGoogle),
                           ),
                 ),
                 SizedBox(height: 8),
@@ -69,7 +69,7 @@ class SignInPage extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () => user.auth.signIn(
-                            (_) => UserParam(signIn: SignIn.anonymously),
+                            (c) => UserParam(signIn: SignIn.anonymously),
                           ),
                 ),
                 SizedBox(height: 8),

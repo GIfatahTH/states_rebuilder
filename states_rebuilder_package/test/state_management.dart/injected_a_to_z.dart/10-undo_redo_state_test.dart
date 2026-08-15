@@ -5,9 +5,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter = RM.inject<int>(
   () => 0,
-  sideEffects: SideEffects.onData(
-    (_) {},
-  ),
+  sideEffects: SideEffects.onData((c) {}),
   undoStackLength: 8,
   // debugPrintWhenNotifiedPreMessage: '',
 );
@@ -22,10 +20,11 @@ class MyApp extends ReactiveStatelessWidget {
           if (counter.canRedoState) Text('CanRedoState'),
           if (counter.canUndoState) Text('CanUndoState'),
           OnBuilder.data(
-              listenTo: counter,
-              builder: (_) {
-                return Text('${counter.state}');
-              }),
+            listenTo: counter,
+            builder: (c) {
+              return Text('${counter.state}');
+            },
+          ),
         ],
       ),
     );

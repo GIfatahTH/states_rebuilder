@@ -127,7 +127,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         child: weatherService.whenWether(
           onIdle: () => buildInitialInput(),
           onWaiting: () => const LoadingWidget(),
-          onError: (_, __) => buildInitialInput(),
+          onError: (c, __) => buildInitialInput(),
           onData: (data) => buildColumnWithData(context),
         ),
       ),
@@ -164,7 +164,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const WeatherDetailPage(),
+              builder: (c) => const WeatherDetailPage(),
             ));
           },
         ),

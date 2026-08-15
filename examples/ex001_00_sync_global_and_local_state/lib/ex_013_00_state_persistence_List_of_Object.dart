@@ -206,11 +206,11 @@ class CounterView extends StatelessWidget {
         children: <Widget>[
           Text(
             'Counter $index: ',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           Text(
             '${counterViewModel.counters[index].value}',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           TextButton(
             onPressed: () => counterViewModel.increment(index),

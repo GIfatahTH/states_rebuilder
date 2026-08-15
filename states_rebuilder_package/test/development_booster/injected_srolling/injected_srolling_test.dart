@@ -43,502 +43,481 @@ void main() {
     hasStartedDown = false;
     hasEnded = false;
   });
-  testWidgets(
-    'WHEN InjectedScrolling is associated with a listView'
-    'THEN the state is a fraction of current offset to the maxScrollExtent',
-    (tester) async {
-      final widget = MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            title: scroll.rebuild.onScroll(
-              (scroll) {
-                return Text('offset: ${scroll.offset}');
-              },
-            ),
+  testWidgets('WHEN InjectedScrolling is associated with a listView'
+      'THEN the state is a fraction of current offset to the maxScrollExtent', (
+    tester,
+  ) async {
+    final widget = MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: scroll.rebuild.onScroll((scroll) {
+            return Text('offset: ${scroll.offset}');
+          }),
+        ),
+        body: ListView.builder(
+          controller: scroll.controller,
+          itemCount: 20,
+          itemBuilder: (c, i) {
+            return ListTile(title: Text('Item $i'));
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(widget);
+    final maxScrollExtent = scroll.maxScrollExtent;
+    expect(scroll.offset, 0.0);
+    expect(find.text('offset: 0.0'), findsOneWidget);
+    //
+    scroll.moveTo(10);
+    await tester.pump(Duration.zero);
+    expect(scroll.offset, 10.0);
+    expect(scroll.offset, maxScrollExtent * scroll.state);
+    expect(find.text('offset: 10.0'), findsOneWidget);
+
+    //
+    scroll.state = 0.5;
+    await tester.pump(Duration.zero);
+    expect(scroll.offset, maxScrollExtent / 2);
+    expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
+
+    scroll.state = 1.0;
+    await tester.pump(Duration.zero);
+    expect(scroll.offset, maxScrollExtent);
+    expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
+    //
+    scroll.moveTo(
+      0.0,
+      duration: Duration(seconds: 1),
+      curve: Curves.linear,
+      clamp: false,
+    );
+    await tester.pump();
+    await tester.pump(Duration(milliseconds: 500));
+    expect(scroll.offset, maxScrollExtent / 2);
+    expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
+    //
+    await tester.pump(Duration(milliseconds: 500));
+    await tester.pump(Duration(milliseconds: 300));
+    expect(scroll.offset, 0.0);
+    expect(find.text('offset: 0.0'), findsOneWidget);
+  });
+
+  testWidgets('Test scrolling flags forward direction'
+      'THEN', (tester) async {
+    final animation = RM.injectAnimation(
+      duration: Duration(seconds: 1),
+      upperBound: 600,
+    );
+    final widget = MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          leading: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) => Container(),
           ),
-          body: ListView.builder(
-            controller: scroll.controller,
-            itemCount: 20,
-            itemBuilder: (_, i) {
-              return ListTile(
-                title: Text('Item $i'),
-              );
+          title: OnScrollBuilder(
+            listenTo: scroll,
+            builder: (scroll) {
+              if (scroll.hasReachedMinExtent) {
+                return Text('isTop');
+              }
+
+              if (scroll.hasReachedMaxExtent) {
+                return Text('isBottom');
+              }
+
+              if (scroll.hasStartedScrollingReverse) {
+                return Text('hasStartedUp');
+              }
+              if (scroll.hasStartedScrollingForward) {
+                return Text('hasStartedDown');
+              }
+
+              if (scroll.hasStartedScrolling) {
+                return Text('hasStarted');
+              }
+
+              if (scroll.isScrollingReverse) {
+                return Text('isScrollingUp');
+              }
+              if (scroll.isScrollingForward) {
+                return Text('isScrollingDown');
+              }
+
+              if (scroll.isScrolling) {
+                return Text('isScrolling');
+              }
+
+              if (scroll.hasEndedScrolling) {
+                return Text('hasEnded');
+              }
+              return Text('NAN');
             },
           ),
         ),
-      );
+        body: ListView.builder(
+          controller: scroll.controller,
+          itemCount: 20,
+          itemBuilder: (c, i) {
+            return ListTile(title: Text('Item $i'));
+          },
+        ),
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, false);
+    expect(isScrollingUp, false);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsOneWidget); // isTop == true,
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    final disposer = animation.addObserver(
+      listener: (snap) async {
+        await tester.drag(find.byType(ListView), Offset(0, -1));
+      },
+      shouldAutoClean: true,
+    );
+    animation.controller!.forward();
+    //
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, true);
+    expect(hasStartedUp, true);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsOneWidget);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsOneWidget);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsOneWidget);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pumpAndSettle();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsOneWidget);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pump(Duration(milliseconds: 300));
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, false);
+    expect(isScrollingUp, false);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, true);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('hasEnded'), findsOneWidget);
+    disposer();
+  });
 
-      await tester.pumpWidget(widget);
-      final maxScrollExtent = scroll.maxScrollExtent;
-      expect(scroll.offset, 0.0);
-      expect(find.text('offset: 0.0'), findsOneWidget);
-      //
-      scroll.moveTo(10);
-      await tester.pump(Duration.zero);
-      expect(scroll.offset, 10.0);
-      expect(scroll.offset, maxScrollExtent * scroll.state);
-      expect(find.text('offset: 10.0'), findsOneWidget);
-
-      //
-      scroll.state = 0.5;
-      await tester.pump(Duration.zero);
-      expect(scroll.offset, maxScrollExtent / 2);
-      expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
-
-      scroll.state = 1.0;
-      await tester.pump(Duration.zero);
-      expect(scroll.offset, maxScrollExtent);
-      expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
-      //
-      scroll.moveTo(
-        0.0,
-        duration: Duration(seconds: 1),
-        curve: Curves.linear,
-        clamp: false,
-      );
-      await tester.pump();
-      await tester.pump(Duration(milliseconds: 500));
-      expect(scroll.offset, maxScrollExtent / 2);
-      expect(find.text('offset: ${scroll.offset}'), findsOneWidget);
-      //
-      await tester.pump(Duration(milliseconds: 500));
-      await tester.pump(Duration(milliseconds: 300));
-      expect(scroll.offset, 0.0);
-      expect(find.text('offset: 0.0'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'Test scrolling flags forward direction'
-    'THEN',
-    (tester) async {
-      final animation = RM.injectAnimation(
-        duration: Duration(seconds: 1),
-        upperBound: 600,
-      );
-      final widget = MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            leading: OnAnimationBuilder(
-              listenTo: animation,
-              builder: (animate) => Container(),
-            ),
-            title: OnScrollBuilder(
-              listenTo: scroll,
-              builder: (scroll) {
-                if (scroll.hasReachedMinExtent) {
-                  return Text('isTop');
-                }
-
-                if (scroll.hasReachedMaxExtent) {
-                  return Text('isBottom');
-                }
-
-                if (scroll.hasStartedScrollingReverse) {
-                  return Text('hasStartedUp');
-                }
-                if (scroll.hasStartedScrollingForward) {
-                  return Text('hasStartedDown');
-                }
-
-                if (scroll.hasStartedScrolling) {
-                  return Text('hasStarted');
-                }
-
-                if (scroll.isScrollingReverse) {
-                  return Text('isScrollingUp');
-                }
-                if (scroll.isScrollingForward) {
-                  return Text('isScrollingDown');
-                }
-
-                if (scroll.isScrolling) {
-                  return Text('isScrolling');
-                }
-
-                if (scroll.hasEndedScrolling) {
-                  return Text('hasEnded');
-                }
-                return Text('NAN');
-              },
-            ),
+  testWidgets('Test scrolling flags forward and revers direction'
+      'THEN', (tester) async {
+    final animation = RM.injectAnimation(
+      duration: Duration(seconds: 1),
+      upperBound: 600,
+    );
+    final widget = MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          leading: OnAnimationBuilder(
+            listenTo: animation,
+            builder: (animate) => Container(),
           ),
-          body: ListView.builder(
-            controller: scroll.controller,
-            itemCount: 20,
-            itemBuilder: (_, i) {
-              return ListTile(
-                title: Text('Item $i'),
-              );
+          title: OnScrollBuilder(
+            listenTo: scroll,
+            builder: (scroll) {
+              if (scroll.hasReachedMinExtent) {
+                return Text('isTop');
+              }
+
+              if (scroll.hasReachedMaxExtent) {
+                return Text('isBottom');
+              }
+
+              if (scroll.hasStartedScrollingReverse) {
+                return Text('hasStartedUp');
+              }
+              if (scroll.hasStartedScrollingForward) {
+                return Text('hasStartedDown');
+              }
+
+              if (scroll.hasStartedScrolling) {
+                return Text('hasStarted');
+              }
+
+              if (scroll.isScrollingReverse) {
+                return Text('isScrollingUp');
+              }
+              if (scroll.isScrollingForward) {
+                return Text('isScrollingDown');
+              }
+
+              if (scroll.isScrolling) {
+                return Text('isScrolling');
+              }
+
+              if (scroll.hasEndedScrolling) {
+                return Text('hasEnded');
+              }
+              return Text('NAN');
             },
           ),
         ),
-      );
-      await tester.pumpWidget(widget);
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, false);
-      expect(isScrollingUp, false);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsOneWidget); // isTop == true,
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      final disposer = animation.addObserver(
-        listener: (snap) async {
-          await tester.drag(find.byType(ListView), Offset(0, -1));
-        },
-        shouldAutoClean: true,
-      );
-      animation.controller!.forward();
-      //
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, true);
-      expect(hasStartedUp, true);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsOneWidget);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsOneWidget);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsOneWidget);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pumpAndSettle();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsOneWidget);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pump(Duration(milliseconds: 300));
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, false);
-      expect(isScrollingUp, false);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, true);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('hasEnded'), findsOneWidget);
-      disposer();
-    },
-  );
+        body: ListView.builder(
+          controller: scroll.controller,
+          itemCount: 20,
+          itemBuilder: (c, i) {
+            return ListTile(title: Text('Item $i'));
+          },
+        ),
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, false);
+    expect(isScrollingUp, false);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsOneWidget); // isTop == true,
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasEnded'), findsNothing);
+    //
 
-  testWidgets(
-    'Test scrolling flags forward and revers direction'
-    'THEN',
-    (tester) async {
-      final animation = RM.injectAnimation(
-        duration: Duration(seconds: 1),
-        upperBound: 600,
-      );
-      final widget = MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            leading: OnAnimationBuilder(
-              listenTo: animation,
-              builder: (animate) => Container(),
-            ),
-            title: OnScrollBuilder(
-              listenTo: scroll,
-              builder: (scroll) {
-                if (scroll.hasReachedMinExtent) {
-                  return Text('isTop');
-                }
+    animation.controller!.forward();
+    scroll.moveTo(double.infinity, duration: const Duration(seconds: 3));
+    //
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, true);
+    expect(hasStartedUp, true);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsOneWidget);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsOneWidget);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, true);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsOneWidget);
+    expect(find.text('hasEnded'), findsNothing);
+    //
+    await tester.pumpAndSettle();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, false);
+    expect(isScrollingUp, false);
+    expect(isScrollingDown, false);
+    expect(hasStarted, false);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, false);
+    expect(hasEnded, true);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsNothing);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('hasEnded'), findsOneWidget);
+    //
+    await tester.pump(Duration(milliseconds: 300));
+    await tester.drag(find.byType(ListView), Offset(0, 10));
+    await tester.pump();
+    expect(isTop, false);
+    expect(isBottom, false);
+    expect(isScrolling, true);
+    expect(isScrollingUp, false);
+    expect(isScrollingDown, true);
+    expect(hasStarted, true);
+    expect(hasStartedUp, false);
+    expect(hasStartedDown, true);
+    expect(hasEnded, false);
+    expect(find.text('isTop'), findsNothing);
+    expect(find.text('isBottom'), findsNothing);
+    expect(find.text('hasStartedUp'), findsNothing);
+    expect(find.text('hasStartedDown'), findsOneWidget);
+    expect(find.text('hasStarted'), findsNothing);
+    expect(find.text('isScrollingUp'), findsNothing);
+    expect(find.text('isScrollingDown'), findsNothing);
+    expect(find.text('isScrolling'), findsNothing);
+    expect(find.text('hasEnded'), findsNothing);
+    await tester.pump(Duration(milliseconds: 300));
+  }, skip: true);
 
-                if (scroll.hasReachedMaxExtent) {
-                  return Text('isBottom');
-                }
-
-                if (scroll.hasStartedScrollingReverse) {
-                  return Text('hasStartedUp');
-                }
-                if (scroll.hasStartedScrollingForward) {
-                  return Text('hasStartedDown');
-                }
-
-                if (scroll.hasStartedScrolling) {
-                  return Text('hasStarted');
-                }
-
-                if (scroll.isScrollingReverse) {
-                  return Text('isScrollingUp');
-                }
-                if (scroll.isScrollingForward) {
-                  return Text('isScrollingDown');
-                }
-
-                if (scroll.isScrolling) {
-                  return Text('isScrolling');
-                }
-
-                if (scroll.hasEndedScrolling) {
-                  return Text('hasEnded');
-                }
-                return Text('NAN');
-              },
-            ),
-          ),
-          body: ListView.builder(
+  testWidgets('WHEN'
+      'THEN', (tester) async {
+    final itemCount = 20.inj();
+    final scroll = RM.injectScrolling(
+      onScrolling: (scroll) {
+        if (scroll.hasReachedMaxExtent) {
+          itemCount.state = itemCount.state + 20;
+        }
+      },
+    );
+    final widget = MaterialApp(
+      home: Scaffold(
+        body: itemCount.rebuild(
+          () => ListView.builder(
             controller: scroll.controller,
-            itemCount: 20,
-            itemBuilder: (_, i) {
-              return ListTile(
-                title: Text('Item $i'),
-              );
+            itemCount: itemCount.state,
+            itemBuilder: (c, i) {
+              return ListTile(title: Text('Item $i'));
             },
           ),
         ),
-      );
-      await tester.pumpWidget(widget);
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, false);
-      expect(isScrollingUp, false);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsOneWidget); // isTop == true,
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-
-      animation.controller!.forward();
-      scroll.moveTo(double.infinity, duration: const Duration(seconds: 3));
-      //
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, true);
-      expect(hasStartedUp, true);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsOneWidget);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsOneWidget);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, true);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsOneWidget);
-      expect(find.text('hasEnded'), findsNothing);
-      //
-      await tester.pumpAndSettle();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, false);
-      expect(isScrollingUp, false);
-      expect(isScrollingDown, false);
-      expect(hasStarted, false);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, false);
-      expect(hasEnded, true);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsNothing);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('hasEnded'), findsOneWidget);
-      //
-      await tester.pump(Duration(milliseconds: 300));
-      await tester.drag(find.byType(ListView), Offset(0, 10));
-      await tester.pump();
-      expect(isTop, false);
-      expect(isBottom, false);
-      expect(isScrolling, true);
-      expect(isScrollingUp, false);
-      expect(isScrollingDown, true);
-      expect(hasStarted, true);
-      expect(hasStartedUp, false);
-      expect(hasStartedDown, true);
-      expect(hasEnded, false);
-      expect(find.text('isTop'), findsNothing);
-      expect(find.text('isBottom'), findsNothing);
-      expect(find.text('hasStartedUp'), findsNothing);
-      expect(find.text('hasStartedDown'), findsOneWidget);
-      expect(find.text('hasStarted'), findsNothing);
-      expect(find.text('isScrollingUp'), findsNothing);
-      expect(find.text('isScrollingDown'), findsNothing);
-      expect(find.text('isScrolling'), findsNothing);
-      expect(find.text('hasEnded'), findsNothing);
-      await tester.pump(Duration(milliseconds: 300));
-    },
-    skip: true,
-  );
-
-  testWidgets(
-    'WHEN'
-    'THEN',
-    (tester) async {
-      final itemCount = 20.inj();
-      final scroll = RM.injectScrolling(
-        onScrolling: (scroll) {
-          if (scroll.hasReachedMaxExtent) {
-            itemCount.state = itemCount.state + 20;
-          }
-        },
-      );
-      final widget = MaterialApp(
-        home: Scaffold(
-          body: itemCount.rebuild(
-            () => ListView.builder(
-              controller: scroll.controller,
-              itemCount: itemCount.state,
-              itemBuilder: (_, i) {
-                return ListTile(
-                  title: Text('Item $i'),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(scroll.minScrollExtent, 0);
-      expect(scroll.offset, 0);
-      scroll.state = 1;
-      await tester.pump();
-      expect(scroll.state, 0.3170731707317073);
-      await tester.pump(Duration(milliseconds: 300));
-    },
-  );
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(scroll.minScrollExtent, 0);
+    expect(scroll.offset, 0);
+    scroll.state = 1;
+    await tester.pump();
+    expect(scroll.state, 0.3170731707317073);
+    await tester.pump(Duration(milliseconds: 300));
+  });
 }

@@ -11,7 +11,7 @@ part of 'injected_animation.dart';
 ///          final width = animate(selected ? 200.0 : 100.0);
 ///
 ///          // Explicit animation
-///          final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+///          final height = animate.fromTween((c)=> Tween(200.0, 100.0));
 ///
 ///          return Container(
 ///            width: width,
@@ -27,7 +27,8 @@ class Animate {
     Curve? curve,
     Curve? reserveCurve, [
     String name,
-  ]) _value;
+  ])
+  _value;
   Curve? _curve;
   Curve? _reserveCurve;
 
@@ -38,7 +39,8 @@ class Animate {
     Curve? curve,
     Curve? reserveCurve, [
     String name,
-  ]) _fromTween;
+  ])
+  _fromTween;
 
   Animate._({
     required T? Function<T>(
@@ -47,16 +49,16 @@ class Animate {
       Curve? reserveCurve, [
       String name,
     ])
-        value,
+    value,
     required T? Function<T>(
       Tween<T?> Function(T? currentValue) fn,
       Curve? curve,
       Curve? reserveCurve, [
       String name,
     ])
-        fromTween,
-  })  : _value = value,
-        _fromTween = fromTween;
+    fromTween,
+  }) : _value = value,
+       _fromTween = fromTween;
 
   ///Implicitly animate to the given value
   T? call<T>(T? value, [String name = '']) {
@@ -130,15 +132,13 @@ class _EvaluateAnimation {
     if (!onAnimation.isSchedulerBinding) {
       onAnimation.isSchedulerBinding = true;
 
-      SchedulerBinding.instance.addPostFrameCallback(
-        (_) {
-          onAnimation
-            ..isSchedulerBinding = false
-            .._assertionList.clear()
-            ..isInitialized = true
-            .._isDirty = false;
-        },
-      );
+      SchedulerBinding.instance.addPostFrameCallback((c) {
+        onAnimation
+          ..isSchedulerBinding = false
+          .._assertionList.clear()
+          ..isInitialized = true
+          .._isDirty = false;
+      });
     }
 
     if (tween != null && tween.end == targetValue) {
@@ -149,10 +149,7 @@ class _EvaluateAnimation {
         if (tween.begin != tween.end) {
           //Reset the tween to the target value to avoid the value to be animated,
           //if the animation is triggered due to other changed values
-          tween = _getTween(
-            targetValue,
-            targetValue,
-          );
+          tween = _getTween(targetValue, targetValue);
           //set forwardAnimation and backwardAnimation to null to reset animation
           //to take into account the new tween
           forwardAnimation = null;
@@ -188,9 +185,7 @@ class _EvaluateAnimation {
     }
 
     return currentValue ??
-        tween.lerp(
-          injected.initialValue ?? injected.lowerBound,
-        );
+        tween.lerp(injected.initialValue ?? injected.lowerBound);
   }
 
   T? getValue<T>(String name) {

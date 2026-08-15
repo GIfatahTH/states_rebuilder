@@ -18,7 +18,7 @@ class _LoginHeader extends StatelessWidget {
             ExceptionHandler.errorMessage(error),
             style: TextStyle(color: Colors.red),
           ),
-          orElse: (_) => const SizedBox.shrink(),
+          orElse: (c) => const SizedBox.shrink(),
         ),
       ],
     );

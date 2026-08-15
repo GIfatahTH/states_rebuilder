@@ -45,7 +45,7 @@ abstract class _BaseFormField<T> {
     });
     //To cache the auto focused TextField
     WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
-      SchedulerBinding.instance.endOfFrame.then((_) {
+      SchedulerBinding.instance.endOfFrame.then((c) {
         final form = this.form as InjectedFormImp?;
         if (form != null) {
           if (_focusNode?.hasFocus == true) {
@@ -119,7 +119,6 @@ abstract class _BaseFormField<T> {
         // turn _validateOnValueChange to true and remove listener
         _validateOnValueChange = true;
         // _focusNode!.removeListener(fn);// removed (issue 187)
-
       }
     }
 

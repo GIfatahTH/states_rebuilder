@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../state_management/rm.dart';
 
 ///{@template InjectedTheme}
@@ -146,7 +147,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
                 WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => sideEffects!.onSetState!(snap),
+                  (c) => sideEffects!.onSetState!(snap),
                 );
               }
             : null,

@@ -16,28 +16,28 @@ class StatsCounter extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Text(
                       i18n.of(context).completedTodos,
-                      style: Theme.of(context).textTheme.headline6,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
                       '${todosBloc.numCompleted}',
-                      style: Theme.of(context).textTheme.subtitle1,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Text(
                       i18n.of(context).activeTodos,
-                      style: Theme.of(context).textTheme.headline6,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
                       '${todosBloc.numActive}',
-                      style: Theme.of(context).textTheme.subtitle1,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   )
                 ],

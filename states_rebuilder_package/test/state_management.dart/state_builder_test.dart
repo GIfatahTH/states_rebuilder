@@ -17,7 +17,7 @@ void main() {
     (tester) async {
       final widget = StateBuilder(
         observe: () => model,
-        builder: (ctx, _) {
+        builder: (ctx, c) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: Text('${model.state.counter}'),
@@ -48,7 +48,7 @@ void main() {
       final widget = StateBuilder(
         observe: () => model,
         // tag: 'tag1',
-        builder: (ctx, _) {
+        builder: (ctx, c) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: Text('${model.state.counter}'),
@@ -68,188 +68,188 @@ void main() {
     },
   );
 
-//   testWidgets(
-//     'StateBuilder is subscribed with list of custom tag and rebuild after get notified',
-//     (tester) async {
-//       final widget = StateBuilder(
-//         observe: () => model,
-//         tag: ['tag1', 'tag2'],
-//         builder: (ctx, _) {
-//           return Directionality(
-//             textDirection: TextDirection.ltr,
-//             child: Text('${model.state.counter}'),
-//           );
-//         },
-//       );
+  //   testWidgets(
+  //     'StateBuilder is subscribed with list of custom tag and rebuild after get notified',
+  //     (tester) async {
+  //       final widget = StateBuilder(
+  //         observe: () => model,
+  //         tag: ['tag1', 'tag2'],
+  //         builder: (ctx, c) {
+  //           return Directionality(
+  //             textDirection: TextDirection.ltr,
+  //             child: Text('${model.state.counter}'),
+  //           );
+  //         },
+  //       );
 
-//       await tester.pumpWidget(widget);
-//       expect(find.text('0'), findsOneWidget);
+  //       await tester.pumpWidget(widget);
+  //       expect(find.text('0'), findsOneWidget);
 
-//       //increment and notify observer with custom tag1
-//       model.state.increment();
-//       // model.notify(['tag1']);
-//       await tester.pump();
-//       expect(find.text('1'), findsOneWidget);
+  //       //increment and notify observer with custom tag1
+  //       model.state.increment();
+  //       // model.notify(['tag1']);
+  //       await tester.pump();
+  //       expect(find.text('1'), findsOneWidget);
 
-//       //increment and notify observer with custom tag2
-//       model.state.increment();
-//       // model.notify(['tag2']);
-//       await tester.pump();
-//       expect(find.text('2'), findsOneWidget);
-//     },
-//   );
+  //       //increment and notify observer with custom tag2
+  //       model.state.increment();
+  //       // model.notify(['tag2']);
+  //       await tester.pump();
+  //       expect(find.text('2'), findsOneWidget);
+  //     },
+  //   );
 
-//   testWidgets(
-//     'StateBuilder is subscribed with list of custom dynamic tag and rebuild after get notified',
-//     (tester) async {
-//       final widget = StateBuilder(
-//         observe: () => model,
-//         tag: [Tags.tag1, 2],
-//         builder: (ctx, _) {
-//           return Directionality(
-//             textDirection: TextDirection.ltr,
-//             child: Text('${model.state.counter}'),
-//           );
-//         },
-//       );
+  //   testWidgets(
+  //     'StateBuilder is subscribed with list of custom dynamic tag and rebuild after get notified',
+  //     (tester) async {
+  //       final widget = StateBuilder(
+  //         observe: () => model,
+  //         tag: [Tags.tag1, 2],
+  //         builder: (ctx, c) {
+  //           return Directionality(
+  //             textDirection: TextDirection.ltr,
+  //             child: Text('${model.state.counter}'),
+  //           );
+  //         },
+  //       );
 
-//       await tester.pumpWidget(widget);
-//       expect(find.text('0'), findsOneWidget);
+  //       await tester.pumpWidget(widget);
+  //       expect(find.text('0'), findsOneWidget);
 
-//       //increment and notify observer with custom Tags.tag1
-//       model.state.increment();
-//       // model.notify([Tags.tag1]);
-//       await tester.pump();
-//       expect(find.text('1'), findsOneWidget);
+  //       //increment and notify observer with custom Tags.tag1
+  //       model.state.increment();
+  //       // model.notify([Tags.tag1]);
+  //       await tester.pump();
+  //       expect(find.text('1'), findsOneWidget);
 
-//       //increment and notify observer with custom 2
-//       model.state.increment();
-//       // model.notify([2]);
-//       await tester.pump();
-//       expect(find.text('2'), findsOneWidget);
-//     },
-//   );
+  //       //increment and notify observer with custom 2
+  //       model.state.increment();
+  //       // model.notify([2]);
+  //       await tester.pump();
+  //       expect(find.text('2'), findsOneWidget);
+  //     },
+  //   );
 
-//   testWidgets(
-//     'StateBuilder when disposed remove tags',
-//     (tester) async {
-//       bool switcher = true;
-//       final widget = StateBuilder(
-//         observe: () => model,
-//         tag: ['mainTag'],
-//         builder: (ctx, _) {
-//           return Directionality(
-//             textDirection: TextDirection.ltr,
-//             child: Builder(
-//               builder: (context) {
-//                 if (switcher) {
-//                   return StateBuilder(
-//                     observe: () => model,
-//                     tag: 'childTag',
-//                     builder: (context, _) {
-//                       return Text('${model.state.counter}');
-//                     },
-//                   );
-//                 }
-//                 return Text('false');
-//               },
-//             ),
-//           );
-//         },
-//       );
+  //   testWidgets(
+  //     'StateBuilder when disposed remove tags',
+  //     (tester) async {
+  //       bool switcher = true;
+  //       final widget = StateBuilder(
+  //         observe: () => model,
+  //         tag: ['mainTag'],
+  //         builder: (ctx, c) {
+  //           return Directionality(
+  //             textDirection: TextDirection.ltr,
+  //             child: Builder(
+  //               builder: (context) {
+  //                 if (switcher) {
+  //                   return StateBuilder(
+  //                     observe: () => model,
+  //                     tag: 'childTag',
+  //                     builder: (context, c) {
+  //                       return Text('${model.state.counter}');
+  //                     },
+  //                   );
+  //                 }
+  //                 return Text('false');
+  //               },
+  //             ),
+  //           );
+  //         },
+  //       );
 
-//       await tester.pumpWidget(widget);
-//       expect(model.observerLength, equals(2));
-//       expect(find.text('0'), findsOneWidget);
+  //       await tester.pumpWidget(widget);
+  //       expect(model.observerLength, equals(2));
+  //       expect(find.text('0'), findsOneWidget);
 
-//       switcher = false;
-//       // //model.notify(['mainTag']);
-//       await tester.pump();
-//       expect(model.observerLength, equals(1));
-//       expect(find.text('false'), findsOneWidget);
-//     },
-//   );
+  //       switcher = false;
+  //       // //model.notify(['mainTag']);
+  //       await tester.pump();
+  //       expect(model.observerLength, equals(1));
+  //       expect(find.text('false'), findsOneWidget);
+  //     },
+  //   );
 
-//   testWidgets(
-//     'StateBuilder when disposed and all tags are removed cleaner is called',
-//     (tester) async {
-//       bool switcher = true;
-//       final model2 =
-//           ReactiveModel(creator: () => Model(), initialState: Model());
-//       int numberOfCleanerCall = 0;
-//       model2.addCleaner(() {
-//         numberOfCleanerCall++;
-//       });
-//       final widget = StateBuilder(
-//         observe: () => model,
-//         tag: ['mainTag'],
-//         builder: (ctx, _) {
-//           return Directionality(
-//             textDirection: TextDirection.ltr,
-//             child: Builder(
-//               builder: (context) {
-//                 if (switcher) {
-//                   return StateBuilder(
-//                     observe: () => model2,
-//                     tag: 'childTag',
-//                     builder: (context, _) {
-//                       return Text('${model2.state.counter}');
-//                     },
-//                   );
-//                 }
-//                 return Text('false');
-//               },
-//             ),
-//           );
-//         },
-//       );
+  //   testWidgets(
+  //     'StateBuilder when disposed and all tags are removed cleaner is called',
+  //     (tester) async {
+  //       bool switcher = true;
+  //       final model2 =
+  //           ReactiveModel(creator: () => Model(), initialState: Model());
+  //       int numberOfCleanerCall = 0;
+  //       model2.addCleaner(() {
+  //         numberOfCleanerCall++;
+  //       });
+  //       final widget = StateBuilder(
+  //         observe: () => model,
+  //         tag: ['mainTag'],
+  //         builder: (ctx, c) {
+  //           return Directionality(
+  //             textDirection: TextDirection.ltr,
+  //             child: Builder(
+  //               builder: (context) {
+  //                 if (switcher) {
+  //                   return StateBuilder(
+  //                     observe: () => model2,
+  //                     tag: 'childTag',
+  //                     builder: (context, c) {
+  //                       return Text('${model2.state.counter}');
+  //                     },
+  //                   );
+  //                 }
+  //                 return Text('false');
+  //               },
+  //             ),
+  //           );
+  //         },
+  //       );
 
-//       await tester.pumpWidget(widget);
-//       expect(model.observerLength, equals(1));
-//       expect(model2.observerLength, equals(1));
-//       expect(find.text('0'), findsOneWidget);
+  //       await tester.pumpWidget(widget);
+  //       expect(model.observerLength, equals(1));
+  //       expect(model2.observerLength, equals(1));
+  //       expect(find.text('0'), findsOneWidget);
 
-//       switcher = false;
-//       //model.notify(['mainTag']);
-//       await tester.pump();
-//       expect(model.observerLength, equals(1));
-//       expect(model2.observerLength, equals(0));
-//       expect(numberOfCleanerCall, equals(1));
-//       expect(find.text('false'), findsOneWidget);
-//     },
-//   );
+  //       switcher = false;
+  //       //model.notify(['mainTag']);
+  //       await tester.pump();
+  //       expect(model.observerLength, equals(1));
+  //       expect(model2.observerLength, equals(0));
+  //       expect(numberOfCleanerCall, equals(1));
+  //       expect(find.text('false'), findsOneWidget);
+  //     },
+  //   );
 
-  testWidgets(
-    'StateBuilder subscribe to two model and rebuild',
-    (tester) async {
-      final model2 = ReactiveModel.create(creator: () => Model());
+  testWidgets('StateBuilder subscribe to two model and rebuild', (
+    tester,
+  ) async {
+    final model2 = ReactiveModel.create(creator: () => Model());
 
-      final widget = StateBuilder(
-        observe: () => model,
-        observeMany: [() => model2],
-        builder: (ctx, _) {
-          return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${model2.state.counter}'));
-        },
-      );
+    final widget = StateBuilder(
+      observe: () => model,
+      observeMany: [() => model2],
+      builder: (ctx, c) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text('${model2.state.counter}'),
+        );
+      },
+    );
 
-      await tester.pumpWidget(widget);
-      expect((model as ReactiveModelImp).observerLength, equals(1));
-      expect((model2 as ReactiveModelImp).observerLength, equals(1));
-      expect(find.text('0'), findsOneWidget);
-      //
-      model2.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
-      //
-      model2.state.increment();
-      model2.notify();
-      await tester.pump();
-      expect(find.text('2'), findsOneWidget);
-    },
-  );
+    await tester.pumpWidget(widget);
+    expect((model as ReactiveModelImp).observerLength, equals(1));
+    expect((model2 as ReactiveModelImp).observerLength, equals(1));
+    expect(find.text('0'), findsOneWidget);
+    //
+    model2.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    //
+    model2.state.increment();
+    model2.notify();
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+  });
 
   testWidgets(
     'StateBuilder should call initState and afterInitialBuild and afterRebuild',
@@ -260,23 +260,24 @@ void main() {
       String lifeCycleTracker = '';
       final widget = StateBuilder(
         observe: () => model,
-        initState: (_, __) {
+        initState: (c, __) {
           numberOfInitStateCall++;
           lifeCycleTracker += "initState, ";
         },
-        afterInitialBuild: (_, __) {
+        afterInitialBuild: (c, __) {
           numberOfAfterInitialBuildCall++;
           lifeCycleTracker += "afterInitialBuild, ";
         },
-        onRebuildState: (_, __) {
+        onRebuildState: (c, __) {
           numberOfAfterRebuildCall++;
           lifeCycleTracker += "afterRebuild, ";
         },
-        builder: (ctx, _) {
+        builder: (ctx, c) {
           lifeCycleTracker += "build, ";
           return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${model.state.counter}'));
+            textDirection: TextDirection.ltr,
+            child: Text('${model.state.counter}'),
+          );
         },
       );
 
@@ -293,271 +294,265 @@ void main() {
       expect(numberOfInitStateCall, equals(1));
       expect(numberOfAfterInitialBuildCall, equals(1));
       expect(numberOfAfterRebuildCall, equals(1));
-      expect(lifeCycleTracker,
-          equals('initState, build, afterInitialBuild, build, afterRebuild, '));
-    },
-  );
-
-  testWidgets(
-    'StateBuilder should call dispose callback',
-    (tester) async {
-      bool switcher = true;
-
-      int numberOfDisposeCall = 0;
-
-      final widget = StateBuilder(
-        observe: () => model,
-        // tag: const ['mainTag'],
-        builder: (ctx, _) {
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Builder(
-              builder: (context) {
-                if (switcher) {
-                  return StateBuilder(
-                    observe: () => model,
-                    // tag: 'childTag',
-                    dispose: (_, __) => numberOfDisposeCall++,
-                    builder: (context, _) {
-                      return Text('${model.state.counter}');
-                    },
-                  );
-                }
-                return Text('false');
-              },
-            ),
-          );
-        },
+      expect(
+        lifeCycleTracker,
+        equals('initState, build, afterInitialBuild, build, afterRebuild, '),
       );
-
-      await tester.pumpWidget(widget);
-      expect(numberOfDisposeCall, equals(0));
-
-      switcher = false;
-      model.notify();
-      //model.notify(['mainTag']);
-      await tester.pump();
-      expect(numberOfDisposeCall, equals(1));
     },
   );
 
-  testWidgets(
-    'StateBuilder should get the right exposed model',
-    (tester) async {
-      bool switcher = true;
+  testWidgets('StateBuilder should call dispose callback', (tester) async {
+    bool switcher = true;
 
-      ReactiveModel<int> intRM = ReactiveModel.create(creator: () => 0);
-      ReactiveModel<String> stringRM = ReactiveModel.create(creator: () => '');
-      ReactiveModel? rmFromInitState;
-      ReactiveModel? rmFromDispose;
+    int numberOfDisposeCall = 0;
 
-      final widget = StateBuilder(
-        observe: () => model,
-        // tag: const ['mainTag'],
-        builder: (ctx, _) {
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Builder(
-              builder: (context) {
-                if (switcher) {
-                  return StateBuilder(
-                    observeMany: [() => stringRM, () => intRM],
-                    initState: (_, rm) {
-                      rmFromInitState = rm;
-                    },
-                    dispose: (_, rm) {
-                      rmFromDispose = rm;
-                    },
-                    builder: (context, _) {
-                      return Text('${model.state.counter}');
-                    },
-                  );
-                }
-                return Text('false');
-              },
-            ),
-          );
-        },
-      );
+    final widget = StateBuilder(
+      observe: () => model,
+      // tag: const ['mainTag'],
+      builder: (ctx, c) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Builder(
+            builder: (context) {
+              if (switcher) {
+                return StateBuilder(
+                  observe: () => model,
+                  // tag: 'childTag',
+                  dispose: (c, __) => numberOfDisposeCall++,
+                  builder: (context, c) {
+                    return Text('${model.state.counter}');
+                  },
+                );
+              }
+              return Text('false');
+            },
+          ),
+        );
+      },
+    );
 
-      await tester.pumpWidget(widget);
-      expect(rmFromInitState, equals(stringRM));
+    await tester.pumpWidget(widget);
+    expect(numberOfDisposeCall, equals(0));
 
-      intRM.setState((_) => 1);
-      await tester.pump();
+    switcher = false;
+    model.notify();
+    //model.notify(['mainTag']);
+    await tester.pump();
+    expect(numberOfDisposeCall, equals(1));
+  });
 
-      switcher = false;
-      model.notify();
-      await tester.pump();
-      expect(rmFromDispose, equals(stringRM));
-    },
-  );
+  testWidgets('StateBuilder should get the right exposed model', (
+    tester,
+  ) async {
+    bool switcher = true;
 
-  testWidgets(
-    'StateBuilder should buildWithChild works',
-    (tester) async {
-      final widget = StateBuilder(
-        observe: () => model,
-        builderWithChild: (ctx, _, child) {
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: Column(
-              children: <Widget>[
-                Text('${model.state.counter}'),
-                child,
-              ],
-            ),
-          );
-        },
-        child: Text('${model.state.counter}'),
-      );
+    ReactiveModel<int> intRM = ReactiveModel.create(creator: () => 0);
+    ReactiveModel<String> stringRM = ReactiveModel.create(creator: () => '');
+    ReactiveModel? rmFromInitState;
+    ReactiveModel? rmFromDispose;
 
-      await tester.pumpWidget(widget);
-      expect(find.text('0'), findsNWidgets(2));
-      //
-      model.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('0'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget);
-    },
-  );
+    final widget = StateBuilder(
+      observe: () => model,
+      // tag: const ['mainTag'],
+      builder: (ctx, c) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Builder(
+            builder: (context) {
+              if (switcher) {
+                return StateBuilder(
+                  observeMany: [() => stringRM, () => intRM],
+                  initState: (c, rm) {
+                    rmFromInitState = rm;
+                  },
+                  dispose: (c, rm) {
+                    rmFromDispose = rm;
+                  },
+                  builder: (context, c) {
+                    return Text('${model.state.counter}');
+                  },
+                );
+              }
+              return Text('false');
+            },
+          ),
+        );
+      },
+    );
 
-  testWidgets(
-    'StateBuilder should onSetState and onRebuildState works',
-    (tester) async {
-      int numberOfOnSetStateCall = 0;
-      int numberOfOnRebuildStateCall = 0;
-      String lifeCycleTracker = '';
-      final widget = StateBuilder(
-        observe: () => model,
-        onSetState: (_, __) {
-          lifeCycleTracker += 'onSetState, ';
-          numberOfOnSetStateCall++;
-        },
-        onRebuildState: (_, __) {
-          lifeCycleTracker += 'onRebuildState, ';
-          numberOfOnRebuildStateCall++;
-        },
-        builder: (ctx, _) {
-          lifeCycleTracker += 'rebuild, ';
-          return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${model.state.counter}'));
-        },
-      );
+    await tester.pumpWidget(widget);
+    expect(rmFromInitState, equals(stringRM));
 
-      await tester.pumpWidget(widget);
-      expect(numberOfOnSetStateCall, equals(0));
-      expect(numberOfOnRebuildStateCall, equals(0));
-      expect(lifeCycleTracker, equals('rebuild, '));
-      //
-      model.notify();
-      await tester.pump();
-      expect(numberOfOnSetStateCall, equals(1));
-      expect(numberOfOnRebuildStateCall, equals(1));
-      expect(lifeCycleTracker,
-          equals('rebuild, onSetState, rebuild, onRebuildState, '));
-    },
-  );
+    intRM.setState((c) => 1);
+    await tester.pump();
 
-  testWidgets(
-    'StateBuilder: should watch works for primitives',
-    (tester) async {
-      final model = ReactiveModel.create(creator: () => Model());
-      int numberOfRebuild = 0;
-      final widget = StateBuilder(
-        observe: () => model,
-        watch: (_) {
-          return model.state.counter;
-        },
-        builder: (ctx, _) {
-          return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${++numberOfRebuild}'));
-        },
-      );
+    switcher = false;
+    model.notify();
+    await tester.pump();
+    expect(rmFromDispose, equals(stringRM));
+  });
 
-      await tester.pumpWidget(widget);
-      expect(find.text('1'), findsOneWidget);
+  testWidgets('StateBuilder should buildWithChild works', (tester) async {
+    final widget = StateBuilder(
+      observe: () => model,
+      builderWithChild: (ctx, c, child) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Column(
+            children: <Widget>[Text('${model.state.counter}'), child],
+          ),
+        );
+      },
+      child: Text('${model.state.counter}'),
+    );
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsNWidgets(2));
+    //
+    model.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+  });
 
-      //state changes
-      model.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('2'), findsOneWidget);
+  testWidgets('StateBuilder should onSetState and onRebuildState works', (
+    tester,
+  ) async {
+    int numberOfOnSetStateCall = 0;
+    int numberOfOnRebuildStateCall = 0;
+    String lifeCycleTracker = '';
+    final widget = StateBuilder(
+      observe: () => model,
+      onSetState: (c, __) {
+        lifeCycleTracker += 'onSetState, ';
+        numberOfOnSetStateCall++;
+      },
+      onRebuildState: (c, __) {
+        lifeCycleTracker += 'onRebuildState, ';
+        numberOfOnRebuildStateCall++;
+      },
+      builder: (ctx, c) {
+        lifeCycleTracker += 'rebuild, ';
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text('${model.state.counter}'),
+        );
+      },
+    );
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('2'), findsOneWidget);
+    await tester.pumpWidget(widget);
+    expect(numberOfOnSetStateCall, equals(0));
+    expect(numberOfOnRebuildStateCall, equals(0));
+    expect(lifeCycleTracker, equals('rebuild, '));
+    //
+    model.notify();
+    await tester.pump();
+    expect(numberOfOnSetStateCall, equals(1));
+    expect(numberOfOnRebuildStateCall, equals(1));
+    expect(
+      lifeCycleTracker,
+      equals('rebuild, onSetState, rebuild, onRebuildState, '),
+    );
+  });
 
-      //state changes
-      model.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('3'), findsOneWidget);
+  testWidgets('StateBuilder: should watch works for primitives', (
+    tester,
+  ) async {
+    final model = ReactiveModel.create(creator: () => Model());
+    int numberOfRebuild = 0;
+    final widget = StateBuilder(
+      observe: () => model,
+      watch: (c) {
+        return model.state.counter;
+      },
+      builder: (ctx, c) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text('${++numberOfRebuild}'),
+        );
+      },
+    );
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('3'), findsOneWidget);
-    },
-  );
+    await tester.pumpWidget(widget);
+    expect(find.text('1'), findsOneWidget);
 
-  testWidgets(
-    'StateBuilder should watch works for reference type',
-    (tester) async {
-      int numberOfRebuild = 0;
-      final widget = StateBuilder(
-        observe: () => model,
-        watch: (_) {
-          List list = [model.state.counter];
-          return list;
-        },
-        builder: (ctx, _) {
-          return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${++numberOfRebuild}'));
-        },
-      );
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
 
-      await tester.pumpWidget(widget);
-      expect(find.text('1'), findsOneWidget);
+    //state changes
+    model.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
 
-      //state changes
-      model.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('2'), findsOneWidget);
+    //state changes
+    model.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('2'), findsOneWidget);
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+  });
 
-      //state changes
-      model.state.increment();
-      model.notify();
-      await tester.pump();
-      expect(find.text('3'), findsOneWidget);
+  testWidgets('StateBuilder should watch works for reference type', (
+    tester,
+  ) async {
+    int numberOfRebuild = 0;
+    final widget = StateBuilder(
+      observe: () => model,
+      watch: (c) {
+        List list = [model.state.counter];
+        return list;
+      },
+      builder: (ctx, c) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text('${++numberOfRebuild}'),
+        );
+      },
+    );
 
-      //state do not change
-      model.notify();
-      await tester.pump();
-      expect(find.text('3'), findsOneWidget);
-    },
-  );
+    await tester.pumpWidget(widget);
+    expect(find.text('1'), findsOneWidget);
+
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+
+    //state changes
+    model.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('2'), findsOneWidget);
+
+    //state changes
+    model.state.increment();
+    model.notify();
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+
+    //state do not change
+    model.notify();
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+  });
 
   testWidgets(
     'StateBuilder should watch  get the right exposed model and work',
@@ -574,8 +569,9 @@ void main() {
         },
         builder: (ctx, rm) {
           return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Text('${++numberOfRebuild}'));
+            textDirection: TextDirection.ltr,
+            child: Text('${++numberOfRebuild}'),
+          );
         },
       );
 
@@ -584,31 +580,31 @@ void main() {
       expect(exposedRM == intRM.snapState, isTrue);
 
       //state do not change
-      intRM.setState((_) => [0]);
+      intRM.setState((c) => [0]);
       await tester.pump();
       expect(find.text('1'), findsOneWidget);
 
       //state do not change
-      stringRM.setState((_) => ['str1']);
+      stringRM.setState((c) => ['str1']);
       await tester.pump();
       expect(exposedRM == stringRM.snapState, isTrue);
 
       expect(find.text('2'), findsOneWidget);
 
       //state do not change
-      stringRM.setState((_) => ['str1']);
+      stringRM.setState((c) => ['str1']);
       await tester.pump();
       expect(exposedRM == stringRM.snapState, isTrue);
 
       expect(find.text('2'), findsOneWidget);
 
       //state changes
-      intRM.setState((_) => [1]);
+      intRM.setState((c) => [1]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
 
       //state do not change
-      intRM.setState((_) => [1]);
+      intRM.setState((c) => [1]);
       await tester.pump();
       expect(find.text('3'), findsOneWidget);
     },
@@ -632,22 +628,22 @@ void main() {
       expect(_hashCode, isTrue);
     },
   );
-  testWidgets(
-    "StateBuilder throw if no builder or builderWithChild ",
-    (WidgetTester tester) async {
-      expect(() => StateBuilder(observe: () => model), throwsAssertionError);
-    },
-  );
+  testWidgets("StateBuilder throw if no builder or builderWithChild ", (
+    WidgetTester tester,
+  ) async {
+    expect(() => StateBuilder(observe: () => model), throwsAssertionError);
+  });
 
   testWidgets(
     "StateBuilder throw if builderWithChild is defined without child parameter",
     (WidgetTester tester) async {
       expect(
-          () => StateBuilder(
-                observe: () => model,
-                builderWithChild: (_, __, child) => child,
-              ),
-          throwsAssertionError);
+        () => StateBuilder(
+          observe: () => model,
+          builderWithChild: (c, __, child) => child,
+        ),
+        throwsAssertionError,
+      );
     },
   );
 
@@ -662,7 +658,7 @@ void main() {
           onSetState: (context, model) => _rebuildTracker.add('onSetState'),
           onRebuildState: (context, model) =>
               _rebuildTracker.add('onRebuildState'),
-          builder: (_, __) {
+          builder: (c, __) {
             _rebuildTracker.add('rebuild');
             return Container();
           },
@@ -675,15 +671,16 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(
-          _rebuildTracker,
-          equals([
-            'rebuild',
-            'onSetState',
-            'onSetState',
-            'rebuild',
-            'onRebuildState',
-            'onRebuildState',
-          ]));
+        _rebuildTracker,
+        equals([
+          'rebuild',
+          'onSetState',
+          'onSetState',
+          'rebuild',
+          'onRebuildState',
+          'onRebuildState',
+        ]),
+      );
     },
   );
 
@@ -691,7 +688,7 @@ void main() {
     "StateBuilder throws if  models is null and a dynamic generic type is defined",
     (WidgetTester tester) async {
       final widget = StateBuilder(
-        builder: (_, rm) {
+        builder: (c, rm) {
           return Container();
         },
       );
@@ -710,7 +707,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: StateBuilder<int>(
           observeMany: [() => intRM, () => stringRM],
-          builder: (_, rm) {
+          builder: (c, rm) {
             final model = rm?.state;
             if (model is int) {
               return Text('int=$model');
@@ -736,7 +733,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: StateBuilder<String>(
           observeMany: [() => intRM, () => stringRM],
-          builder: (_, rm) {
+          builder: (c, rm) {
             final model = rm?.state;
             if (model is int) {
               return Text('int=$model');
@@ -762,7 +759,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: StateBuilder(
           observeMany: [() => intRM, () => stringRM],
-          builder: (_, rm) {
+          builder: (c, rm) {
             final model = rm?.state;
             if (model is int) {
               return Text('int=$model');
@@ -776,12 +773,12 @@ void main() {
       await tester.pumpWidget(widget);
       expect(find.text('int=0'), findsOneWidget);
       //
-      stringRM.setState((_) => 'str1');
+      stringRM.setState((c) => 'str1');
       await tester.pump();
       expect(find.text('int=0'), findsNothing);
       expect(find.text('string=str1'), findsOneWidget);
       //
-      intRM.setState((_) => 1);
+      intRM.setState((c) => 1);
       await tester.pump();
       expect(find.text('int=1'), findsOneWidget);
       expect(find.text('string=str1'), findsNothing);
@@ -789,63 +786,66 @@ void main() {
   );
 
   testWidgets(
-      "StateBuilder should work with ReactiveModel.create when widget is updated",
-      (WidgetTester tester) async {
-    late ReactiveModel<int> modelRM1;
-    late ReactiveModel<int> modelRM2;
+    "StateBuilder should work with ReactiveModel.create when widget is updated",
+    (WidgetTester tester) async {
+      late ReactiveModel<int> modelRM1;
+      late ReactiveModel<int> modelRM2;
 
-    final widget = Builder(
-      builder: (context) {
-        modelRM1 = ReactiveModel.create(creator: () => 0);
-        return MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StateBuilder(
+      final widget = Builder(
+        builder: (context) {
+          modelRM1 = ReactiveModel.create(creator: () => 0);
+          return MaterialApp(
+            home: Column(
+              children: <Widget>[
+                StateBuilder(
                   observe: () => modelRM1,
-                  builder: (_, __) {
+                  builder: (c, __) {
                     return Column(
                       children: <Widget>[
                         Text('modelRM1-${modelRM1.state}'),
                         Builder(
                           builder: (context) {
                             return StateBuilder<int>(
-                                observe: () =>
-                                    ReactiveModel.create(creator: () => 0),
-                                builder: (_, rm) {
-                                  modelRM2 = rm!;
-                                  return Text('modelRM2-${modelRM2.state}');
-                                });
+                              observe: () =>
+                                  ReactiveModel.create(creator: () => 0),
+                              builder: (c, rm) {
+                                modelRM2 = rm!;
+                                return Text('modelRM2-${modelRM2.state}');
+                              },
+                            );
                           },
                         ),
                       ],
                     );
-                  }),
-            ],
-          ),
-        );
-      },
-    );
-    await tester.pumpWidget(widget);
-    expect(find.text('modelRM1-0'), findsOneWidget);
-    expect(find.text('modelRM2-0'), findsOneWidget);
-    //
-    modelRM2.setState((_) => 1);
-    await tester.pump();
-    expect(find.text('modelRM1-0'), findsOneWidget);
-    expect(find.text('modelRM2-1'), findsOneWidget);
-    expect(modelRM2.hasData, isTrue);
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(find.text('modelRM1-0'), findsOneWidget);
+      expect(find.text('modelRM2-0'), findsOneWidget);
+      //
+      modelRM2.setState((c) => 1);
+      await tester.pump();
+      expect(find.text('modelRM1-0'), findsOneWidget);
+      expect(find.text('modelRM2-1'), findsOneWidget);
+      expect(modelRM2.hasData, isTrue);
 
-    modelRM1.setState((_) => 1);
-    await tester.pump();
-    expect(find.text('modelRM1-1'), findsOneWidget);
-    expect(find.text('modelRM2-1'), findsOneWidget);
-    expect(modelRM2.hasData, isTrue);
+      modelRM1.setState((c) => 1);
+      await tester.pump();
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-1'), findsOneWidget);
+      expect(modelRM2.hasData, isTrue);
 
-    modelRM2.setState((_) => modelRM2.state + 1);
-    await tester.pump();
-    expect(find.text('modelRM1-1'), findsOneWidget);
-    expect(find.text('modelRM2-2'), findsOneWidget);
-  });
+      modelRM2.setState((c) => modelRM2.state + 1);
+      await tester.pump();
+      expect(find.text('modelRM1-1'), findsOneWidget);
+      expect(find.text('modelRM2-2'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'StateBuilder should call didChangeDependencies and didUpdateWidget ',
@@ -856,22 +856,22 @@ void main() {
       final widget = StateBuilder(
         observe: () => model,
         // tag: const ['mainTag'],
-        builder: (ctx, _) {
+        builder: (ctx, c) {
           return Directionality(
             textDirection: TextDirection.ltr,
             child: Builder(
               builder: (context) {
                 if (switcher) {
                   return StateBuilder(
-                    didChangeDependencies: (_, __) {
+                    didChangeDependencies: (c, __) {
                       numberOfDidChangeDependencies++;
                     },
-                    didUpdateWidget: (_, __, ___) {
+                    didUpdateWidget: (c, __, ___) {
                       numberOfDidUpdateWidget++;
                     },
                     observe: () => model,
                     // tag: 'childTag',
-                    builder: (context, _) {
+                    builder: (context, c) {
                       return Text('${model.state.counter}');
                     },
                   );
@@ -902,43 +902,45 @@ void main() {
   );
 
   testWidgets(
-      'issue #52, cleaner should not be called if widget did change with the same list of models',
-      (tester) async {
-    int numberOfDidUpdateWidget = 0;
-    int numberOfCleaner = 0;
-    final model1 = ReactiveModel<Model>.create(creator: () => Model())
-        as ReactiveModelImp<Model>;
-    final widget = StateBuilder(
-      observe: () => model,
-      // tag: const ['mainTag'],
-      builder: (ctx, _) {
-        return StateBuilder(
-          observeMany: [() => model1],
-          didUpdateWidget: (_, __, ___) {
-            numberOfDidUpdateWidget++;
-          },
-          builder: (context, _) {
-            return Container();
-          },
-        );
-      },
-    );
-    //
-    final disposer = model1.addCleaner(() {
-      numberOfCleaner++;
-    });
-    //
-    await tester.pumpWidget(widget);
-    expect(numberOfDidUpdateWidget, equals(0));
-    expect(numberOfCleaner, equals(0));
-    //
-    model.notify();
-    await tester.pump();
+    'issue #52, cleaner should not be called if widget did change with the same list of models',
+    (tester) async {
+      int numberOfDidUpdateWidget = 0;
+      int numberOfCleaner = 0;
+      final model1 = ReactiveModel<Model>.create(
+        creator: () => Model(),
+      ) as ReactiveModelImp<Model>;
+      final widget = StateBuilder(
+        observe: () => model,
+        // tag: const ['mainTag'],
+        builder: (ctx, c) {
+          return StateBuilder(
+            observeMany: [() => model1],
+            didUpdateWidget: (c, __, ___) {
+              numberOfDidUpdateWidget++;
+            },
+            builder: (context, c) {
+              return Container();
+            },
+          );
+        },
+      );
+      //
+      final disposer = model1.addCleaner(() {
+        numberOfCleaner++;
+      });
+      //
+      await tester.pumpWidget(widget);
+      expect(numberOfDidUpdateWidget, equals(0));
+      expect(numberOfCleaner, equals(0));
+      //
+      model.notify();
+      await tester.pump();
 
-    expect(numberOfDidUpdateWidget, equals(1));
-    expect(numberOfCleaner, equals(0));
-    disposer();
-  });
+      expect(numberOfDidUpdateWidget, equals(1));
+      expect(numberOfCleaner, equals(0));
+      disposer();
+    },
+  );
 }
 
 class Model {

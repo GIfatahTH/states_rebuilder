@@ -20,7 +20,7 @@ void main() {
     'Test HomePage',
     (tester) async {
       when(() => semBastLocalStorageMock.write('key', 'a data'))
-          .thenAnswer((_) => Future.value());
+          .thenAnswer((c) => Future.value());
       await tester.pumpWidget(
         const MaterialApp(
           home: HomePage(),
@@ -32,7 +32,7 @@ void main() {
       verify(() => semBastLocalStorageMock.write('key', 'a data')).called(1);
       //
       when(() => semBastLocalStorageMock.read('key'))
-          .thenAnswer((_) => Future<String>.value('a data'));
+          .thenAnswer((c) => Future<String>.value('a data'));
       //
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();

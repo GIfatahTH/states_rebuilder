@@ -27,11 +27,11 @@ class BookDetailsScreen extends StatelessWidget {
           children: [
             Text(
               book.title,
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             Text(
               book.author.name,
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             TextButton(
               onPressed: () {

@@ -28,7 +28,7 @@ class RefreshWidget extends StatelessWidget {
                 ),
               ],
             ),
-            orElse: (_) => IconButton(
+            orElse: (c) => IconButton(
               onPressed: () => rm.stateAsync = onPressed(),
               icon: child,
             ),

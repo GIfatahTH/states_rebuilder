@@ -382,13 +382,13 @@ class MyApp extends StatelessWidget {
       onWaiting: () => SplashScreen(),
       //NOTE4: If any of appleCheckerRM or userServiceRM is has error, display it
       onError: (error) => Text(error.toString()),
-      onData: (_) {
+      onData: (c) {
         return StateBuilder(
           //NOTE5: Subscribe to the reactiveModel global registered singleton
           observe: () => RM.get<UserService>(),
           //NOTE6: This StateBuilder will not rebuild unless the user changes
           watch: (userServiceRM) => userServiceRM.state.user,
-          builder: (_, userServiceRM) {
+          builder: (c, userServiceRM) {
             //NOTE6: depending of he user we are directed to SignInPage or HomePage
             return userServiceRM.state.user == null ? SignInPage() : HomePage();
           },
@@ -543,7 +543,7 @@ NOTICE that in `signInPage` and `HomePage` we mutating the value of the `UserSer
  ```dart
 return StateBuilder(
     observe: () => RM.get<UserService>(),
-    builder: (_, __) {
+    builder: (c, __) {
         return userServiceRM.state.user == null
             ? SignInPage()
             : HomePage();
@@ -588,7 +588,7 @@ class FormWidget extends StatelessWidget {
           observe: () => RM.create(''),
           //NOTE3: couple this StateBuilder with the email ReactiveModel key
           rmKey: _emailRM,
-          builder: (_, __) {
+          builder: (c, __) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.email),
@@ -602,7 +602,7 @@ class FormWidget extends StatelessWidget {
               onChanged: (email) {
                 //NOTE5: set the value of email and notify observers
                 _emailRM.setState(
-                  (_) => Email(email).value,
+                  (c) => Email(email).value,
                   catchError: true,
                 );
               },
@@ -612,7 +612,7 @@ class FormWidget extends StatelessWidget {
         WhenRebuilderOr(
           observe: () => RM.create(''),
           rmKey: _passwordRM,
-          builder: (_, __) {
+          builder: (c, __) {
             return TextField(
               decoration: InputDecoration(
                 icon: Icon(Icons.lock),
@@ -624,7 +624,7 @@ class FormWidget extends StatelessWidget {
               autocorrect: false,
               onChanged: (password) {
                 _passwordRM.setState(
-                  (_) => Password(password).value,
+                  (c) => Password(password).value,
                   catchError: true,
                 );
               },
@@ -635,13 +635,13 @@ class FormWidget extends StatelessWidget {
         StateBuilder(
             observe: () => RM.create(false),
             rmKey: _isRegisterRM,
-            builder: (_, __) {
+            builder: (c, __) {
               return Row(
                 children: <Widget>[
                   Checkbox(
                     value: _isRegisterRM.state,
                     onChanged: (value) {
-                      _isRegisterRM.setState((_) => value);
+                      _isRegisterRM.setState((c) => value);
                     },
                   ),
                   Text(' I do not have an account')
@@ -659,9 +659,9 @@ class FormWidget extends StatelessWidget {
               () => _isRegisterRM,
               () => RM.get<UserService>().asNew('signInRegisterForm'),
             ],
-            shouldRebuild: (_) => true,
+            shouldRebuild: (c) => true,
             //NOTE7: show CircularProgressIndicator is the userServiceRM state is waiting
-            builder: (_, userServiceRM) {
+            builder: (c, userServiceRM) {
               if (userServiceRM.isWaiting) {
                 return Center(child: CircularProgressIndicator());
               }
@@ -690,7 +690,7 @@ class FormWidget extends StatelessWidget {
                             },
                             //we want to notify the local new ReactiveModel created bellow
                             notifyAllReactiveInstances: true,
-                            onData: (_, __) {
+                            onData: (c, __) {
                               Navigator.pop(context);
                             },
                             catchError: true,
@@ -701,7 +701,7 @@ class FormWidget extends StatelessWidget {
         StateBuilder<UserService>(
           //we created a local new ReactiveModel form the global registered ReactiveModel
           observe: () => RM.get<UserService>().asNew('signInRegisterForm'),
-          builder: (_, userServiceRM) {
+          builder: (c, userServiceRM) {
             //NOTE10: Display an error message telling the user what goes wrong.
             if (userServiceRM.hasError) {
               return Center(

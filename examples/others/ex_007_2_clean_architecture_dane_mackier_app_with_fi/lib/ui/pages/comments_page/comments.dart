@@ -12,7 +12,7 @@ class _Comments extends ReactiveStatelessWidget {
   void didNotifyWidget(SnapState snap) {
     snap.onOrElse(
       onError: (err, refresh) => ExceptionHandler.showErrorDialog(err),
-      orElse: (_) {},
+      orElse: (c) {},
     );
   }
 

@@ -11,7 +11,7 @@ void main() {
     final rm3 = ReactiveModel.create(creator: () => 0, initialState: 0);
     final widget = OnBuilder.data(
       listenToMany: [rm1, rm2, rm3],
-      builder: (_) => Directionality(
+      builder: (c) => Directionality(
         textDirection: TextDirection.ltr,
         child: Text('${rm1.state}-${rm2.state}-${rm3.state}'),
       ),
@@ -33,12 +33,18 @@ void main() {
   });
 
   testWidgets('many async counters app', (tester) async {
-    final rm1 =
-        ReactiveModel.create(creator: () => _Model(0), initialState: _Model(0));
-    final rm2 =
-        ReactiveModel.create(creator: () => _Model(0), initialState: _Model(0));
-    final rm3 =
-        ReactiveModel.create(creator: () => _Model(0), initialState: _Model(0));
+    final rm1 = ReactiveModel.create(
+      creator: () => _Model(0),
+      initialState: _Model(0),
+    );
+    final rm2 = ReactiveModel.create(
+      creator: () => _Model(0),
+      initialState: _Model(0),
+    );
+    final rm3 = ReactiveModel.create(
+      creator: () => _Model(0),
+      initialState: _Model(0),
+    );
     String onWaitngSideEffect = '';
     final widget = Directionality(
       textDirection: TextDirection.ltr,
@@ -53,10 +59,9 @@ void main() {
         ),
         onIdle: () => Text('Idle'),
         onWaiting: () => Text('Waiting'),
-        onError: (e, _) => Text('${e.message}'),
-        onData: (_) => Text(
-          '${rm1.state.count}-${rm2.state.count}-${rm3.state.count}',
-        ),
+        onError: (e, c) => Text('${e.message}'),
+        onData: (c) =>
+            Text('${rm1.state.count}-${rm2.state.count}-${rm3.state.count}'),
       ),
     );
     await tester.pumpWidget(widget);
@@ -108,8 +113,9 @@ void main() {
     expect(find.text('2-2-2'), findsOneWidget);
   });
 
-  testWidgets('exposed state of list of injected with defined generic type',
-      (tester) async {
+  testWidgets('exposed state of list of injected with defined generic type', (
+    tester,
+  ) async {
     final intInj = 0.inj();
     final stringInj = ''.inj();
     final boolInj = false.inj();
@@ -134,60 +140,63 @@ void main() {
     expect(exposedState, '');
   });
 
-  testWidgets('exposed state of list of injected with non defined generic type',
-      (tester) async {
-    final intInj = 0.inj();
-    final stringInj = ''.inj();
-    final boolInj = false.inj();
+  testWidgets(
+    'exposed state of list of injected with non defined generic type',
+    (tester) async {
+      final intInj = 0.inj();
+      final stringInj = ''.inj();
+      final boolInj = false.inj();
 
-    dynamic exposedState;
+      dynamic exposedState;
 
-    final widget = OnBuilder.orElse(
-      listenToMany: [intInj, stringInj, boolInj],
-      orElse: (s) {
-        exposedState = s;
-        return Container();
-      },
-    );
-    await tester.pumpWidget(widget);
+      final widget = OnBuilder.orElse(
+        listenToMany: [intInj, stringInj, boolInj],
+        orElse: (s) {
+          exposedState = s;
+          return Container();
+        },
+      );
+      await tester.pumpWidget(widget);
 
-    expect(exposedState, 0);
-    boolInj.toggle();
-    await tester.pump();
-    expect(exposedState, true);
-    intInj.state++;
-    await tester.pump();
-    expect(exposedState, 1);
-    stringInj.state = 'new';
-    await tester.pump();
-    expect(exposedState, 'new');
-  });
+      expect(exposedState, 0);
+      boolInj.toggle();
+      await tester.pump();
+      expect(exposedState, true);
+      intInj.state++;
+      await tester.pump();
+      expect(exposedState, 1);
+      stringInj.state = 'new';
+      await tester.pump();
+      expect(exposedState, 'new');
+    },
+  );
 
   testWidgets(
-      'exposed state of list of injected with non defined generic type1',
-      (tester) async {
-    final intInj = 0.inj();
-    final boolInj = false.inj();
+    'exposed state of list of injected with non defined generic type1',
+    (tester) async {
+      final intInj = 0.inj();
+      final boolInj = false.inj();
 
-    String message = '';
-    final widget = OnBuilder.orElse(
-      listenToMany: [intInj, boolInj],
-      sideEffects: SideEffects(onAfterBuild: () => message = 'onAfterBuild'),
-      orElse: (s) {
-        return Container();
-      },
-    );
-    await tester.pumpWidget(widget);
-    expect(message, 'onAfterBuild');
-    message = '';
-    boolInj.toggle();
-    await tester.pump();
-    expect(message, 'onAfterBuild');
-  });
+      String message = '';
+      final widget = OnBuilder.orElse(
+        listenToMany: [intInj, boolInj],
+        sideEffects: SideEffects(onAfterBuild: () => message = 'onAfterBuild'),
+        orElse: (s) {
+          return Container();
+        },
+      );
+      await tester.pumpWidget(widget);
+      expect(message, 'onAfterBuild');
+      message = '';
+      boolInj.toggle();
+      await tester.pump();
+      expect(message, 'onAfterBuild');
+    },
+  );
 
   // testWidgets('OnCombined', (tester) async {
   //   //
-  //   final onCombined = OnCombined((_) => _);
+  //   final onCombined = OnCombined((c) => c);
   //   expect(onCombinedCall(onCombined, 'data'), 'data');
   //   expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'data');
   //   expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'data');
@@ -199,7 +208,7 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      sideEffects: SideEffects(onSetState: (_) => ++onSetState),
+      sideEffects: SideEffects(onSetState: (c) => ++onSetState),
     );
 
     final widget = Directionality(
@@ -214,10 +223,8 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-      (s) => Future.delayed(
-        Duration(seconds: 1),
-        () => throw Exception('Error'),
-      ),
+      (s) =>
+          Future.delayed(Duration(seconds: 1), () => throw Exception('Error')),
     );
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
@@ -229,7 +236,7 @@ void main() {
 
   // testWidgets('OnCombined.data', (tester) async {
   //   //
-  //   final onCombined = OnCombined.data((_) => _);
+  //   final onCombined = OnCombined.data((c) => c);
   //   expect(onCombinedCall(onCombined, 'data'), 'data');
   //   expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'data');
   //   expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'data');
@@ -241,14 +248,14 @@ void main() {
     int onBuild = 0;
     final counter = RM.inject(
       () => 0,
-      sideEffects: SideEffects.onData((_) => ++onSetState),
+      sideEffects: SideEffects.onData((c) => ++onSetState),
     );
 
     final widget = Directionality(
       textDirection: TextDirection.rtl,
       child: OnBuilder.data(
         listenToMany: [counter],
-        builder: (_) => Text('${++onBuild}'),
+        builder: (c) => Text('${++onBuild}'),
       ),
     );
     await tester.pumpWidget(widget);
@@ -256,10 +263,8 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     //
     counter.setState(
-      (s) => Future.delayed(
-        Duration(seconds: 1),
-        () => throw Exception('Error'),
-      ),
+      (s) =>
+          Future.delayed(Duration(seconds: 1), () => throw Exception('Error')),
     );
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
@@ -315,7 +320,7 @@ void main() {
 
   // testWidgets('OnCombined.error', (tester) async {
   //   //
-  //   final onCombined = OnCombined.error((_, __) => _);
+  //   final onCombined = OnCombined.error((c, __) => c);
   //   expect(onCombinedCall(onCombined, 'data'), null);
   //   expect(onCombinedCall(onCombined, 'data', isWaiting: true), null);
   //   expect(onCombinedCall(onCombined, 'data', error: 'Error'), 'Error');
@@ -327,13 +332,13 @@ void main() {
   //   int onBuild = 0;
   //   final counter = RM.inject(
   //     () => 0,
-  //     sideEffects: SideEffects.onError((_, __) => ++onSetState),
+  //     sideEffects: SideEffects.onError((c, __) => ++onSetState),
   //   );
 
   //   final widget = Directionality(
   //     textDirection: TextDirection.rtl,
   //     child:
-  //         OnCombined.error((_, __) => Text('${++onBuild}')).listenTo([counter]),
+  //         OnCombined.error((c, __) => Text('${++onBuild}')).listenTo([counter]),
   //   );
   //   await tester.pumpWidget(widget);
   //   expect(onSetState, 0);
@@ -363,8 +368,8 @@ void main() {
   //   final onCombined = OnCombined.all(
   //     onIdle: () => 'Idle',
   //     onWaiting: () => 'Waiting',
-  //     onError: (_, __) => _,
-  //     onData: (_) => _,
+  //     onError: (c, __) => c,
+  //     onData: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'data'), 'Idle');
   //   expect(onCombinedCall(onCombined, 'data', isWaiting: true), 'Waiting');
@@ -375,7 +380,7 @@ void main() {
   // testWidgets('OnCombined.or, only or', (tester) async {
   //   //
   //   final onCombined = OnCombined.or(
-  //     or: (_) => _,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
@@ -387,7 +392,7 @@ void main() {
   //   //
   //   final onCombined = OnCombined.or(
   //     onIdle: () => 'Idle',
-  //     or: (_) => _,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Idle');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
@@ -399,7 +404,7 @@ void main() {
   //   //
   //   final onCombined = OnCombined.or(
   //     onWaiting: () => 'Waiting',
-  //     or: (_) => _,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
@@ -410,8 +415,8 @@ void main() {
   // testWidgets('OnCombined.or, or with onError', (tester) async {
   //   //
   //   final onCombined = OnCombined.or(
-  //     onError: (_, __) => _,
-  //     or: (_) => _,
+  //     onError: (c, __) => c,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
@@ -422,8 +427,8 @@ void main() {
   // testWidgets('OnCombined.or, or with onData', (tester) async {
   //   //
   //   final onCombined = OnCombined.or(
-  //     onData: (_) => _,
-  //     or: (_) => _,
+  //     onData: (c) => c,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
@@ -435,8 +440,8 @@ void main() {
   //   //
   //   final onCombined = OnCombined.or(
   //     onWaiting: () => 'Waiting',
-  //     onData: (_) => _,
-  //     or: (_) => _,
+  //     onData: (c) => c,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
@@ -447,9 +452,9 @@ void main() {
   // testWidgets('OnCombined.or, or with onData and onError', (tester) async {
   //   //
   //   final onCombined = OnCombined.or(
-  //     onError: (_, __) => _,
-  //     onData: (_) => _,
-  //     or: (_) => _,
+  //     onError: (c, __) => c,
+  //     onData: (c) => c,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Or');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Or');
@@ -462,9 +467,9 @@ void main() {
   //   final onCombined = OnCombined.or(
   //     onIdle: () => 'Idle',
   //     onWaiting: () => 'Waiting',
-  //     onError: (_, __) => _,
-  //     onData: (_) => _,
-  //     or: (_) => _,
+  //     onError: (c, __) => c,
+  //     onData: (c) => c,
+  //     or: (c) => c,
   //   );
   //   expect(onCombinedCall(onCombined, 'Or'), 'Idle');
   //   expect(onCombinedCall(onCombined, 'Or', isWaiting: true), 'Waiting');
@@ -475,7 +480,7 @@ void main() {
   // testWidgets('OnCombined.error when return void', (tester) async {
   //   String? error;
   //   //
-  //   final onCombined = OnCombined.error((_, __) => error = 'error: ' + _);
+  //   final onCombined = OnCombined.error((c, __) => error = 'error: ' + c);
   //   onCombinedCall(onCombined, '', isSideEffect: true);
   //   expect(error, null);
   //   onCombinedCall(onCombined, '', isWaiting: true, isSideEffect: true);
@@ -493,7 +498,9 @@ class _Model {
   _Model(this.count);
   void incrementFuture() => Future.delayed(Duration(seconds: 1), () => count++);
   void incrementFutureWithError([String? error]) => Future.delayed(
-      Duration(seconds: 1), () => throw Exception(error ?? 'Error Message'));
+    Duration(seconds: 1),
+    () => throw Exception(error ?? 'Error Message'),
+  );
   Stream<void> incrementStream() async* {
     await Future.delayed(Duration(seconds: 1), () => count++);
     yield null;

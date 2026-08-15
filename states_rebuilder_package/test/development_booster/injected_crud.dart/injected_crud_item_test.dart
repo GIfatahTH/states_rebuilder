@@ -20,15 +20,9 @@ class Product {
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ count.hashCode;
 
-  Product copyWith({
-    int? id,
-    String? name,
-    int? count,
-  }) {
-    return Product(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    )..count = count ?? this.count;
+  Product copyWith({int? id, String? name, int? count}) {
+    return Product(id: id ?? this.id, name: name ?? this.name)
+      ..count = count ?? this.count;
   }
 
   @override
@@ -88,7 +82,7 @@ class Repository implements ICRUD<Product, Object> {
     _products = [
       Product(id: 1, name: 'prod1'),
       Product(id: 2, name: 'prod2'),
-      Product(id: 3, name: 'prod3')
+      Product(id: 3, name: 'prod3'),
     ];
   }
 }
@@ -110,14 +104,14 @@ Widget get widget {
         builder: (rm) {
           return rm.onAll(
             onWaiting: () => CircularProgressIndicator(),
-            onError: (_, __) => Text('Error'),
-            onData: (_) => ListView.builder(
+            onError: (c, __) => Text('Error'),
+            onData: (c) => ListView.builder(
               itemCount: products.state.length,
               itemBuilder: (context, index) {
                 return products.item.inherited(
                   key: Key('${products.state[index].id}'),
                   item: () => products.state[index],
-                  builder: (_) {
+                  builder: (c) {
                     return const Item();
                   },
                   // debugPrintWhenNotifiedPreMessage: '${products.state[index].id}',
@@ -141,7 +135,7 @@ class Item extends StatelessWidget {
       children: [
         OnBuilder.data(
           listenTo: product,
-          builder: (_) => ElevatedButton(
+          builder: (c) => ElevatedButton(
             key: Key('ElevatedButton: ${product.state.id}'),
             child: Text('${product.state.name}: ${product.state.count}'),
             onPressed: () {
@@ -157,10 +151,10 @@ class Item extends StatelessWidget {
           onPressed: () {
             navigatorKey.currentState!.push(
               MaterialPageRoute(
-                builder: (_) {
+                builder: (c) {
                   return products.item.reInherited(
                     context: context,
-                    builder: (_) => const NewPage(),
+                    builder: (c) => const NewPage(),
                   );
                 },
               ),
@@ -179,10 +173,11 @@ class NewPage extends StatelessWidget {
     final product = products.item(context)!;
     return OnBuilder.data(
       listenTo: product,
-      builder: (_) => ElevatedButton(
+      builder: (c) => ElevatedButton(
         key: Key('RaisedButton2: ${product.state.id}'),
-        child:
-            Text('${products.item.of(context).name}: ${product.state.count}'),
+        child: Text(
+          '${products.item.of(context).name}: ${product.state.count}',
+        ),
         onPressed: () {
           product.state = product.state.copyWith(
             count: product.state.count + 1,
@@ -208,8 +203,7 @@ void main() {
     expect(find.text('prod3: 0'), findsOneWidget);
   });
 
-  testWidgets(
-      'change the state of an item, should changes the state of the list of items,'
+  testWidgets('change the state of an item, should changes the state of the list of items,'
       'and update the store', (tester) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
@@ -229,8 +223,7 @@ void main() {
     expect(repo._products.first.count, 1);
   });
 
-  testWidgets(
-      'change the state of an item, should changes the state of the list of items,'
+  testWidgets('change the state of an item, should changes the state of the list of items,'
       'and restore back en error', (tester) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
@@ -250,8 +243,7 @@ void main() {
     expect(find.text('prod3: 0'), findsOneWidget);
   });
 
-  testWidgets(
-      'If list of items is updated, all item are updated even if the'
+  testWidgets('If list of items is updated, all item are updated even if the'
       'The widget is const', (tester) async {
     await tester.pumpWidget(widget);
 
@@ -354,9 +346,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(products.hasData, true);
     //
-    products.crud.create(
-      Product(id: 4, name: 'product 4'),
-    );
+    products.crud.create(Product(id: 4, name: 'product 4'));
     await tester.pump();
     await tester.pump();
 
@@ -377,40 +367,35 @@ void main() {
     expect(_repo._products.length, 4);
   });
 
-  testWidgets(
-    'WHEN middleSnapState is defined'
-    'THEN we can control how state is mutated',
-    (tester) async {
-      SnapState<List<Product>>? _snapState;
-      late SnapState<List<Product>> _nextSnapState;
-      final products = RM.injectCRUD<Product, Object>(
-        () => _repo,
-        readOnInitialization: true,
-        stateInterceptor: (current, next) {
-          _snapState = current;
-          _nextSnapState = next;
-          if (_nextSnapState.hasData) {
-            return _nextSnapState.copyToHasData(
-              [
-                ..._nextSnapState.data!,
-                ..._nextSnapState.data!,
-              ],
-            );
-          }
-        },
-      );
-      expect(products.isWaiting, true);
-      // expect(_snapState, isNull);
-      expect(_snapState?.isIdle, true);
-      expect(_snapState?.data, []);
-      expect(_nextSnapState.isWaiting, true);
-      expect(_nextSnapState.data, []);
-      await tester.pumpAndSettle(Duration(seconds: 1));
-      expect(_snapState?.isWaiting, true);
-      expect(_snapState?.data, []);
-      expect(_nextSnapState.hasData, true);
-      expect(_nextSnapState.data!.length, 3);
-      expect(products.state.length, 6);
-    },
-  );
+  testWidgets('WHEN middleSnapState is defined'
+      'THEN we can control how state is mutated', (tester) async {
+    SnapState<List<Product>>? _snapState;
+    late SnapState<List<Product>> _nextSnapState;
+    final products = RM.injectCRUD<Product, Object>(
+      () => _repo,
+      readOnInitialization: true,
+      stateInterceptor: (current, next) {
+        _snapState = current;
+        _nextSnapState = next;
+        if (_nextSnapState.hasData) {
+          return _nextSnapState.copyToHasData([
+            ..._nextSnapState.data!,
+            ..._nextSnapState.data!,
+          ]);
+        }
+      },
+    );
+    expect(products.isWaiting, true);
+    // expect(_snapState, isNull);
+    expect(_snapState?.isIdle, true);
+    expect(_snapState?.data, []);
+    expect(_nextSnapState.isWaiting, true);
+    expect(_nextSnapState.data, []);
+    await tester.pumpAndSettle(Duration(seconds: 1));
+    expect(_snapState?.isWaiting, true);
+    expect(_snapState?.data, []);
+    expect(_nextSnapState.hasData, true);
+    expect(_nextSnapState.data!.length, 3);
+    expect(products.state.length, 6);
+  });
 }

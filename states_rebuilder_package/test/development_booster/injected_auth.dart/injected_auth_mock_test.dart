@@ -93,7 +93,7 @@ void main() async {
     //
 
     //
-    user.auth.signIn((_) => '3');
+    user.auth.signIn((c) => '3');
     expect(user.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(user.hasData, true);
@@ -109,7 +109,7 @@ void main() async {
     expect(user.state, 'user0');
     await tester.pump();
 
-    user.auth.signIn((_) => '1');
+    user.auth.signIn((c) => '1');
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user1');
     expect(user.isSigned, true);
@@ -124,19 +124,18 @@ void main() async {
     expect(user.state, 'user0');
     await tester.pump();
 
-    user.auth.signUp((_) => '2');
+    user.auth.signUp((c) => '2');
     await tester.pump(Duration(seconds: 1));
     expect(user.state, 'user2');
   });
 
-  testWidgets(
-      'WHEN onAuthStream is defined'
+  testWidgets('WHEN onAuthStream is defined'
       'THEN user listens to it and authenticate accordingly', (tester) async {
     final user = RM.injectAuth(
       () => throw UnimplementedError(),
       unsignedUser: 'user0',
       onUnsigned: () => onUnSigned++,
-      onSigned: (_) => onSigned++,
+      onSigned: (c) => onSigned++,
       onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
     );
     user.injectAuthMock(() => FakeAuthRepo());
@@ -159,8 +158,7 @@ void main() async {
     user.dispose();
   });
 
-  testWidgets(
-      'WHEN onAuthStream is defined'
+  testWidgets('WHEN onAuthStream is defined'
       'AND WHEN the stream emits an error'
       'THEN user state has the same error'
       'AND sign out', (tester) async {
@@ -168,7 +166,7 @@ void main() async {
       () => throw UnimplementedError(),
       unsignedUser: 'user0',
       onUnsigned: () => onUnSigned++,
-      onSigned: (_) => onSigned++,
+      onSigned: (c) => onSigned++,
       onAuthStream: (repo) => Stream.periodic(Duration(seconds: 1), (n) {
         if (n == 1) return 'user1';
         throw Exception('Stream Error');
@@ -195,80 +193,76 @@ void main() async {
     user.dispose();
   });
 
-  testWidgets(
-    'WHEN onAuthStream is defined'
-    'AND autoRefreshTokenOrSignOut  is defined '
-    'THEN autoRefreshTokenOrSignOut  will work',
-    (tester) async {
-      final user = RM.injectAuth(
-        () => throw UnimplementedError(),
-        unsignedUser: 'user0',
-        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 2),
-        onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
-      );
-      user.injectAuthMock(() => FakeAuthRepo());
+  testWidgets('WHEN onAuthStream is defined'
+      'AND autoRefreshTokenOrSignOut  is defined '
+      'THEN autoRefreshTokenOrSignOut  will work', (tester) async {
+    final user = RM.injectAuth(
+      () => throw UnimplementedError(),
+      unsignedUser: 'user0',
+      autoRefreshTokenOrSignOut: (c) => Duration(seconds: 2),
+      onAuthStream: (repo) => (repo as FakeAuthRepo).onAuthChanged(),
+    );
+    user.injectAuthMock(() => FakeAuthRepo());
 
-      expect(user.isSigned, false);
-      await tester.pump(Duration(seconds: 1));
-      expect(user.isSigned, false);
+    expect(user.isSigned, false);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
 
-      await tester.pump(Duration(seconds: 1));
-      expect(user.isSigned, true);
-      await tester.pump(Duration(seconds: 1));
-      expect(user.isSigned, true);
-      await tester.pump(Duration(seconds: 1));
-      expect(user.isSigned, false);
-      await tester.pump(Duration(seconds: 1));
-      // expect(user.isSigned, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(user.isSigned, false);
+    await tester.pump(Duration(seconds: 1));
+    // expect(user.isSigned, true);
 
-      user.dispose();
-    },
-  );
+    user.dispose();
+  });
 
-  testWidgets(
-    'WHEN onInitialWaiting of On.auth  is defined'
-    'AND WHEN onAuthStream is defined'
-    'THEN onInitialWaiting is invoked only one time the app starts',
-    (tester) async {
-      final user = RM.injectAuth(
-        () => throw UnimplementedError(),
-        unsignedUser: 'user0',
-        autoRefreshTokenOrSignOut: (_) => Duration(seconds: 1),
-        onAuthStream: (repo) =>
-            (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
-      );
-      user.injectAuthMock(() => FakeAuthRepo());
+  testWidgets('WHEN onInitialWaiting of On.auth  is defined'
+      'AND WHEN onAuthStream is defined'
+      'THEN onInitialWaiting is invoked only one time the app starts', (
+    tester,
+  ) async {
+    final user = RM.injectAuth(
+      () => throw UnimplementedError(),
+      unsignedUser: 'user0',
+      autoRefreshTokenOrSignOut: (c) => Duration(seconds: 1),
+      onAuthStream: (repo) =>
+          (repo as FakeAuthRepo).futreSignIn('user0').asStream(),
+    );
+    user.injectAuthMock(() => FakeAuthRepo());
 
-      final widget = Directionality(
-        textDirection: TextDirection.rtl,
-        child: OnAuthBuilder(
-          listenTo: user,
-          onInitialWaiting: () => Text('Initial Waiting...'),
-          onWaiting: () => Text('Waiting...'),
-          onUnsigned: () => Text('Unsigned'),
-          onSigned: () => Text('Signed'),
-        ),
-      );
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnAuthBuilder(
+        listenTo: user,
+        onInitialWaiting: () => Text('Initial Waiting...'),
+        onWaiting: () => Text('Waiting...'),
+        onUnsigned: () => Text('Unsigned'),
+        onSigned: () => Text('Signed'),
+      ),
+    );
 
-      await tester.pumpWidget(widget);
-      expect(find.text('Initial Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Unsigned'), findsOneWidget);
-      //
-      user.setState((s) async {
-        await Future.delayed(Duration(seconds: 1));
-        return 'user1';
-      });
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Signed'), findsOneWidget);
-      //auto sign out
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Unsigned'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-    },
-  );
+    await tester.pumpWidget(widget);
+    expect(find.text('Initial Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Unsigned'), findsOneWidget);
+    //
+    user.setState((s) async {
+      await Future.delayed(Duration(seconds: 1));
+      return 'user1';
+    });
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Signed'), findsOneWidget);
+    //auto sign out
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Unsigned'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+  });
 
   testWidgets('test mocking InjectedAuth using injectedMock', (tester) async {
     user.injectMock(() => 'user mock');

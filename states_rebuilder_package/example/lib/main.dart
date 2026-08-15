@@ -58,7 +58,7 @@ final helloName = RM.inject<String>(
           SnackBar(content: Text('${err.message}')),
         ),
         // the other case. hide the snackbar
-        orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
+        orElse: (c) => RM.scaffold.hideCurrentSnackBar(),
       );
     },
   ),

@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       onWaiting: () => MaterialApp(
         home: SplashScreen(),
       ),
-      builder: (_) => MaterialApp(
+      builder: (c) => MaterialApp(
         home: OnAuthBuilder(
           listenTo: user,
           onInitialWaiting: () => SplashScreen(),

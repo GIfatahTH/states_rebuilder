@@ -32,7 +32,7 @@ class MyHomePage extends StatelessWidget {
                         Text(counterStore.error.message),
                     onData: (data) => Text(
                       '${data.count}',
-                      style: Theme.of(context).textTheme.headline5,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   );
                 },

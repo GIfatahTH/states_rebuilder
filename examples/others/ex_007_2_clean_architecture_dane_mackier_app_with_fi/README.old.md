@@ -184,7 +184,7 @@ class _LoginBody extends StatelessWidget {
                 //on sign in error, 
                 // - a text with the error is displayed as defined in _LoginHeader,
                 // - and a SnackBar appears as defined in login_injected.dart file
-                (_) => InputParser.parse(controller.text),
+                (c) => InputParser.parse(controller.text),
               );
             },
           ),
@@ -234,7 +234,7 @@ part of 'login_page.dart';
 final userInj = RM.injectAuth<User, int>(
   () => UserRepository(),//The defined user Repo
   unsignedUser: UnSignedUser(), //
-  onSigned: (_) {
+  onSigned: (c) {
     //When successfully signed in, navigate to posts page
     RM.navigate.toNamed(('/posts'));
   },
@@ -466,7 +466,7 @@ class _Comments extends StatelessWidget {
     ).listenTo(
       commentsInj,
       //Here we read for  commentsInj
-      initState: () => commentsInj.crud.read(param: (_) => postId),
+      initState: () => commentsInj.crud.read(param: (c) => postId),
       onSetState: On.error(ExceptionHandler.showErrorDialog),
     );
   }
@@ -487,11 +487,11 @@ void main() {
 
   //Isolate the login page to test it
   final Widget loginPage = TopWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       initialRoute: 'login',
       routes: {
-        '/posts': (_) => Text('This is the HomePage'),
-        '/': (_) => LoginPage(),
+        '/posts': (c) => Text('This is the HomePage'),
+        '/': (c) => LoginPage(),
       },
       navigatorKey: RM.navigate.navigatorKey,
     ),

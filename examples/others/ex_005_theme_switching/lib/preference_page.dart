@@ -59,7 +59,7 @@ class PreferencePage extends StatelessWidget {
                   title: Text(
                     i18n.of(context).greenTheme,
                     style: theme.supportedLightThemes[AppTheme.Green]!.textTheme
-                        .bodyText2,
+                        .titleSmall,
                   ),
                   onTap: () => theme.state = AppTheme.Green,
                 ),
@@ -71,7 +71,7 @@ class PreferencePage extends StatelessWidget {
                   title: Text(
                     i18n.of(context).blueTheme,
                     style: theme.supportedLightThemes[AppTheme.Blue]!.textTheme
-                        .bodyText2,
+                        .titleSmall,
                   ),
                   onTap: () => theme.state = AppTheme.Blue,
                 ),
@@ -98,7 +98,7 @@ class PreferencePage extends StatelessWidget {
                   SizedBox(width: 8),
                   Switch(
                     value: theme.isDarkTheme,
-                    onChanged: (_) => theme.toggle(),
+                    onChanged: (c) => theme.toggle(),
                   ),
                 ],
                 mainAxisAlignment: MainAxisAlignment.center,

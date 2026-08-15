@@ -21,11 +21,11 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.data(
       listenTo: RM.inject(() => ''),
-      builder: (_) {
+      builder: (c) {
         return MaterialApp(
           home: OnBuilder.data(
             listenTo: counter,
-            builder: (_) => Text('${counter.state}'),
+            builder: (c) => Text('${counter.state}'),
             sideEffects: SideEffects(dispose: () => RM.disposeAll()),
           ),
         );

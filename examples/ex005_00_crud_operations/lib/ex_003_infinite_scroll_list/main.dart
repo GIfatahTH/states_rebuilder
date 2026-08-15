@@ -86,7 +86,7 @@ class PostsPage extends ReactiveStatelessWidget {
                         onWaiting: () => const Center(
                               child: CircularProgressIndicator(),
                             ),
-                        orElse: (_) => const SizedBox.shrink())
+                        orElse: (c) => const SizedBox.shrink())
                     : ElevatedButton(
                         onPressed: () {
                           posts.customStatus = null;

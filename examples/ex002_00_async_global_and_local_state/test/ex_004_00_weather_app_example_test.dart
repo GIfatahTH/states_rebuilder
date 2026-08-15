@@ -15,7 +15,7 @@ void main() {
     'Fetch city without error',
     (tester) async {
       when(() => fakeRepository.fetchWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(cityName: 'City', temperatureCelsius: 10),
         ),
@@ -35,7 +35,7 @@ void main() {
     'Fetch city with error',
     (tester) async {
       when(() => fakeRepository.fetchWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => throw NetworkException('Failure'),
         ),
@@ -57,13 +57,13 @@ void main() {
     'Fetch city and navigate to detailed',
     (tester) async {
       when(() => fakeRepository.fetchWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(cityName: 'City', temperatureCelsius: 10),
         ),
       );
       when(() => fakeRepository.fetchDetailedWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(
             cityName: 'City',
@@ -93,13 +93,13 @@ void main() {
       expect(find.text('100.0 °F'), findsOneWidget);
       // Refreshing ...
       when(() => fakeRepository.fetchWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(cityName: 'City', temperatureCelsius: 100),
         ),
       );
       when(() => fakeRepository.fetchDetailedWeather('City')).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(
             cityName: 'City',

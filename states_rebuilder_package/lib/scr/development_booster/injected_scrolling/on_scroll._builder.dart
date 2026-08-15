@@ -13,18 +13,11 @@ class _Rebuild {
     Widget Function(InjectedScrolling) builder, {
     Key? key,
   }) {
-    return OnScrollBuilder(
-      key: key,
-      listenTo: inj,
-      builder: builder,
-    );
+    return OnScrollBuilder(key: key, listenTo: inj, builder: builder);
   }
 
   call(Widget Function() builder) {
-    return OnBuilder(
-      listenTo: inj,
-      builder: builder,
-    );
+    return OnBuilder(listenTo: inj, builder: builder);
   }
 }
 
@@ -111,9 +104,10 @@ class OnScrollBuilder extends MyStatefulWidget {
     required this.listenTo,
     required Widget Function(InjectedScrolling) builder,
   }) : super(
-            key: key,
-            observers: (_) => [listenTo as ReactiveModelImp],
-            builder: (_, __, ___) => builder(listenTo));
+         key: key,
+         observers: (c) => [listenTo as ReactiveModelImp],
+         builder: (c, __, ___) => builder(listenTo),
+       );
 
   /// [InjectedScrolling] to listen to.
   final InjectedScrolling listenTo;

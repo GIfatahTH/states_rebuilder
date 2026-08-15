@@ -10,7 +10,7 @@ class CommentsBloc {
   );
 
   void read(int postId) {
-    commentsRM.crud.read(param: (_) => postId);
+    commentsRM.crud.read(param: (c) => postId);
   }
 }
 

@@ -22,7 +22,7 @@ final Injected<int> counter = RM.inject<int>(
   ),
   // SideEffects.onAll(
   //   onWaiting: () => print('waiting'),
-  //   onError: (e, _) => print('error : $e'),
+  //   onError: (e, c) => print('error : $e'),
   //   onData: (data) => print('data $data'),
   // ),
   // onInitialized: (int? state) => print('Initialized'),

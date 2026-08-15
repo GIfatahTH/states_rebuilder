@@ -128,18 +128,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     //use of futureBuilder to limit the rebuild to this widget only
     return OnBuilder.all(
-      sideEffects: SideEffects(
-        dispose: () => authService.dispose(),
-      ),
+      sideEffects: SideEffects(dispose: () => authService.dispose()),
       listenTo: Injected.future(
-        creator: () => authService.stateAsync.then(
-          (s) => s.autoLogin(),
-        ),
+        creator: () => authService.stateAsync.then((s) => s.autoLogin()),
       ),
       onWaiting: () => Text('Waiting for auto login'),
       // onError: null, // if onError is null, the onData is called instead
-      onError: (e, _) => Text(e.message),
-      onData: (_) =>
+      onError: (e, c) => Text(e.message),
+      onData: (c) =>
           authService.state.user is NullUser ? AuthPage() : HomePage(),
     );
   }
@@ -213,22 +209,17 @@ class FakeAuthRepository extends IAuthRepository {
 
 //
 void main() {
-  setUp(
-    () {
-      // inject the fake implementations
-      localStorage.injectFutureMock(
-        () {
-          return FakeLocalStorage().init();
-        },
-      );
-      authRepository.injectMock(() => FakeAuthRepository());
-    },
-  );
+  setUp(() {
+    // inject the fake implementations
+    localStorage.injectFutureMock(() {
+      return FakeLocalStorage().init();
+    });
+    authRepository.injectMock(() => FakeAuthRepository());
+  });
   testWidgets('First build with no user auto logged', (tester) async {
-    await tester.pumpWidget(Directionality(
-      textDirection: TextDirection.ltr,
-      child: MyApp(),
-    ));
+    await tester.pumpWidget(
+      Directionality(textDirection: TextDirection.ltr, child: MyApp()),
+    );
     //localStorage is waiting for init method
     expect(localStorage.isWaiting, isTrue);
     // expect(() => (localStorage.state as FakeLocalStorage), throwsArgumentError);
@@ -247,21 +238,18 @@ void main() {
 
   testWidgets('initial start with an auto logged user', (tester) async {
     //pre persist the auto logged user data
-    localStorage.injectFutureMock(
-      () {
-        return FakeLocalStorage(preFilledValue: {
+    localStorage.injectFutureMock(() {
+      return FakeLocalStorage(
+        preFilledValue: {
           'User-Token': 'user-1-token',
           'User-name': 'user-1',
-          'User-email': 'user-1@mail.com'
-        }).init();
-      },
-    );
+          'User-email': 'user-1@mail.com',
+        },
+      ).init();
+    });
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: MyApp(),
-      ),
+      Directionality(textDirection: TextDirection.ltr, child: MyApp()),
     );
     //
     //localStorage is waiting for init method
@@ -285,15 +273,12 @@ void main() {
 
   //
   testWidgets('initial build with error ', (tester) async {
-    localStorage.injectFutureMock(
-      () {
-        return FakeLocalStorage(shouldThrow: true).init();
-      },
+    localStorage.injectFutureMock(() {
+      return FakeLocalStorage(shouldThrow: true).init();
+    });
+    await tester.pumpWidget(
+      Directionality(textDirection: TextDirection.ltr, child: MyApp()),
     );
-    await tester.pumpWidget(Directionality(
-      textDirection: TextDirection.ltr,
-      child: MyApp(),
-    ));
     //
     //localStorage is waiting for init method
     expect(localStorage.isWaiting, isTrue);

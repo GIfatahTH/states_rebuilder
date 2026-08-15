@@ -162,7 +162,7 @@ final user = RM.inject<User>(
     //Show snackBar on error
     ErrorHandler.showErrorSnackBar(e);
   },
-  onDisposed: (_) {
+  onDisposed: (c) {
       //cancel timer on app exiting
     _cancelExpirationTimer();
   },
@@ -199,9 +199,9 @@ In the UI part:
         onWaiting: () => SplashScreen(),
         //On Error display the authPage and a Snackbar with the error as defined
         //in onError callback of the user injected model.
-        onError: (_) => AuthPage(),
+        onError: (c) => AuthPage(),
 
-        onData: (_) => Container(),//Never reached
+        onData: (c) => Container(),//Never reached
     ),
   ),
 ```

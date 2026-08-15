@@ -12,7 +12,7 @@ void main() {
     registerFallbackValue(Todo(description: '', id: null));
   });
   when(() => todosRepositoryMock.getTodos()).thenAnswer(
-    (_) => Future.delayed(
+    (c) => Future.delayed(
       const Duration(seconds: 1),
       () => [
         Todo(description: 'todo1', id: 'todo1'),
@@ -28,7 +28,7 @@ void main() {
             captureAny(
                 that: isA<Todo>().having((t) => t.description, '', 'todo3')),
           )).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Todo(description: 'todo3', id: 'todo3'),
         ),
@@ -56,7 +56,7 @@ void main() {
             captureAny(
                 that: isA<Todo>().having((t) => t.description, '', 'todo3')),
           )).thenAnswer(
-        (_) => Future.delayed(
+        (c) => Future.delayed(
           const Duration(seconds: 1),
           () => throw Exception('Adding failed'),
         ),

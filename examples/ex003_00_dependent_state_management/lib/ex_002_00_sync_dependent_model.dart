@@ -84,7 +84,7 @@ class MyHomePage extends ReactiveStatelessWidget {
             const SizedBox(height: 32),
             Text(
               'The Sum is:  ${counterViewModel.sumCounter}',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
           ],
         ),
@@ -109,7 +109,7 @@ class _CountIncrementorWidget extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.headline4,
+          style: Theme.of(context).textTheme.headlineLarge,
         ),
         const SizedBox(width: 8),
         IconButton(

@@ -28,7 +28,7 @@ void main() {
 
   late Post postFromHomePage;
   Widget postPage = TopAppWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       home: CommentsPage(
         post: postFromHomePage = postsBloc.posts[0],
       ),

@@ -39,7 +39,7 @@ class CountDownTimer {
   final Injected<int> _timer = RM.injectStream<int>(
     () => Stream.periodic(Duration(seconds: 1), (num) => num + 1),
     initialState: 0,
-    onInitialized: (_, subscription) {
+    onInitialized: (c, subscription) {
       //As stream automatically starts emitting on creation, we have to stop it
       subscription.pause();
       //reset the timerStatus back to ready.

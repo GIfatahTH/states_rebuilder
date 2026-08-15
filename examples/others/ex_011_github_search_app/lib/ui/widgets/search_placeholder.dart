@@ -9,7 +9,7 @@ class SearchPlaceholder extends StatelessWidget {
     return Center(
       child: Text(
         title,
-        style: theme.textTheme.headline5,
+        style: theme.textTheme.headlineMedium,
         textAlign: TextAlign.center,
       ),
     );

@@ -22,14 +22,8 @@ class Product {
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
 
-  Product copyWith({
-    int? id,
-    String? name,
-  }) {
-    return Product(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
+  Product copyWith({int? id, String? name}) {
+    return Product(id: id ?? this.id, name: name ?? this.name);
   }
 }
 
@@ -100,8 +94,8 @@ final products = RM.injectCRUD<Product, Object>(
     onWaiting: () {
       onCRUDMessage = 'Waiting...';
     },
-    onError: (_, __) {
-      onCRUDMessage = _.message;
+    onError: (c, __) {
+      onCRUDMessage = c.message;
     },
     onResult: (r) {
       onCRUDMessage = 'Result: $r';
@@ -132,8 +126,8 @@ void main() {
     products.crud.create(
       Product(id: 2, name: 'product 2'),
       isOptimistic: false,
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResultMessage = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResultMessage = c,
     );
     expect(numberOfonStateMutationCall, 0);
     expect(onResultMessage, null);
@@ -156,8 +150,8 @@ void main() {
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
       isOptimistic: false,
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResultMessage = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResultMessage = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 0);
@@ -180,8 +174,8 @@ void main() {
     products.crud.delete(
       where: (product) => product.id == 2,
       isOptimistic: false,
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResultMessage = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResultMessage = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 0);
@@ -261,8 +255,8 @@ void main() {
     onCRUDMessage = '';
     products.crud.create(
       Product(id: 2, name: 'product 2'),
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResult = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(onCRUDMessage, 'Waiting...');
@@ -288,8 +282,8 @@ void main() {
     products.crud.update(
       where: (product) => product.id == 2,
       set: (product) => product.copyWith(name: 'product 2_new'),
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResult = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(onCRUDMessage, 'Waiting...');
@@ -311,8 +305,8 @@ void main() {
     onResult = null;
     products.crud.delete(
       where: (product) => product.id == 2,
-      sideEffects: SideEffects.onData((_) => numberOfonStateMutationCall++),
-      onResult: (_) => onResult = _,
+      sideEffects: SideEffects.onData((c) => numberOfonStateMutationCall++),
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 1);
@@ -348,10 +342,11 @@ void main() {
     products.crud.create(
       Product(id: 2, name: 'product 2'),
       sideEffects: SideEffects.onAll(
-          onError: (_, __) => errorMessage = _.message,
-          onData: (_) => numberOfonStateMutationCall++,
-          onWaiting: null),
-      onResult: (_) => onResult = _,
+        onError: (c, __) => errorMessage = c.message,
+        onData: (c) => numberOfonStateMutationCall++,
+        onWaiting: null,
+      ),
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 1);
@@ -377,11 +372,11 @@ void main() {
       where: (product) => product.id == 1,
       set: (product) => product.copyWith(name: 'product 1_new'),
       sideEffects: SideEffects.onAll(
-        onError: (_, __) => errorMessage = _.message,
-        onData: (_) => numberOfonStateMutationCall++,
+        onError: (c, __) => errorMessage = c.message,
+        onData: (c) => numberOfonStateMutationCall++,
         onWaiting: null,
       ),
-      onResult: (_) => onResult = _,
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 1);
@@ -405,11 +400,11 @@ void main() {
     products.crud.delete(
       where: (product) => product.id == 1,
       sideEffects: SideEffects.onOrElse(
-        onError: (err, _) => errorMessage = err.message,
-        onData: (_) => numberOfonStateMutationCall++,
-        orElse: (_) {},
+        onError: (err, c) => errorMessage = err.message,
+        onData: (c) => numberOfonStateMutationCall++,
+        orElse: (c) {},
       ),
-      onResult: (_) => onResult = _,
+      onResult: (c) => onResult = c,
     );
     await tester.pump();
     expect(numberOfonStateMutationCall, 1);
@@ -434,7 +429,7 @@ void main() {
       textDirection: TextDirection.rtl,
       child: products.rebuild.onCRUD(
         onWaiting: () => Text('Waiting...'),
-        onError: (_, __) => Text(_.message),
+        onError: (c, __) => Text(c.message),
         onResult: (r) => Text('Result: $r'),
       ),
     );
@@ -484,7 +479,7 @@ void main() {
       child: OnCRUDBuilder(
         listenTo: products,
         onWaiting: () => Text('Waiting...'),
-        onError: (_, __) => Text(_.message),
+        onError: (c, __) => Text(c.message),
         onResult: (r) {
           return Text('Result: $r');
         },
@@ -498,9 +493,7 @@ void main() {
     expect(find.text('Result: [Instance of \'Product\']'), findsOneWidget);
 
     //CREATE Peissimisally
-    products.crud.create(
-      Product(id: 2, name: 'product 2'),
-    );
+    products.crud.create(Product(id: 2, name: 'product 2'));
     await tester.pump();
     await tester.pump();
     expect(find.text('Waiting...'), findsOneWidget);
@@ -518,9 +511,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(find.text('Result: 1 items updated'), findsOneWidget);
     //DELETE
-    products.crud.delete(
-      where: (product) => product.id == 2,
-    );
+    products.crud.delete(where: (product) => product.id == 2);
     await tester.pump();
     await tester.pump();
     expect(find.text('Waiting...'), findsOneWidget);
@@ -539,15 +530,15 @@ void main() {
           OnCRUDBuilder(
             listenTo: products,
             onWaiting: () => Text('CRUD Waiting...'),
-            onError: (_, __) => Text('CRUD' + _.message),
+            onError: (c, __) => Text('CRUD' + c.message),
             onResult: (r) => Text('Result: $r'),
           ),
           OnBuilder.all(
             listenTo: products,
             onIdle: () => Text('Idel'),
             onWaiting: () => Text('OnAll Waiting...'),
-            onError: (_, __) => Text('OnAll ' + _.message),
-            onData: (_) {
+            onError: (c, __) => Text('OnAll ' + c.message),
+            onData: (c) {
               numberOfOnDataRebuild++;
               return Text('onData');
             },
@@ -566,9 +557,7 @@ void main() {
     expect(numberOfOnDataRebuild, 1);
 
     //CREATE Peissimisally
-    products.crud.create(
-      Product(id: 2, name: 'product 2'),
-    );
+    products.crud.create(Product(id: 2, name: 'product 2'));
     await tester.pump();
     await tester.pump();
     expect(find.text('CRUD Waiting...'), findsOneWidget);
@@ -598,9 +587,7 @@ void main() {
     expect(find.text('onData'), findsOneWidget);
     expect(numberOfOnDataRebuild, 3);
     //DELETE
-    products.crud.delete(
-      where: (product) => product.id == 2,
-    );
+    products.crud.delete(where: (product) => product.id == 2);
     await tester.pump();
     await tester.pump();
     expect(find.text('CRUD Waiting...'), findsOneWidget);
@@ -619,9 +606,7 @@ void main() {
     expect(products.hasData, true);
     expect(products.state, [Product(id: 1, name: 'product 1')]);
     //
-    products.crud.create(
-      Product(id: 2, name: 'product 2'),
-    );
+    products.crud.create(Product(id: 2, name: 'product 2'));
     await tester.pump();
     await tester.pump();
 
@@ -642,94 +627,87 @@ void main() {
     expect(_repo._products.length, 2);
   });
 
-  testWidgets(
-    'When On.crud hasError'
-    'Refresh it',
-    (tester) async {
-      late void Function() refresher;
-      final widget = Directionality(
-        textDirection: TextDirection.rtl,
-        child: OnCRUDBuilder(
-          listenTo: products,
-          onWaiting: () => Text('Waiting...'),
-          onError: (_, refresh) {
-            refresher = refresh;
-            return Text(_.message);
-          },
-          onResult: (r) => Text('Result: $r'),
-        ),
-      );
+  testWidgets('When On.crud hasError'
+      'Refresh it', (tester) async {
+    late void Function() refresher;
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: OnCRUDBuilder(
+        listenTo: products,
+        onWaiting: () => Text('Waiting...'),
+        onError: (c, refresh) {
+          refresher = refresh;
+          return Text(c.message);
+        },
+        onResult: (r) => Text('Result: $r'),
+      ),
+    );
 
-      ///READ
-      _repo.error = Exception('Read Error');
-      await tester.pumpWidget(widget);
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Read Error'), findsOneWidget);
-      _repo.error = null;
-      refresher();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Result: [Instance of \'Product\']'), findsOneWidget);
+    ///READ
+    _repo.error = Exception('Read Error');
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Read Error'), findsOneWidget);
+    _repo.error = null;
+    refresher();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Result: [Instance of \'Product\']'), findsOneWidget);
 
-      //CREATE Peissimisally
-      _repo.error = Exception('Create Error');
+    //CREATE Peissimisally
+    _repo.error = Exception('Create Error');
 
-      products.crud.create(
-        Product(id: 2, name: 'product 2'),
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Create Error'), findsOneWidget);
-      _repo.error = null;
-      refresher();
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Result: Instance of \'Product\''), findsOneWidget);
-      //UPDATA
-      _repo.error = Exception('Update Error');
+    products.crud.create(Product(id: 2, name: 'product 2'));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Create Error'), findsOneWidget);
+    _repo.error = null;
+    refresher();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Result: Instance of \'Product\''), findsOneWidget);
+    //UPDATA
+    _repo.error = Exception('Update Error');
 
-      products.crud.update(
-        where: (product) => product.id == 2,
-        set: (product) => product.copyWith(name: 'product 2_new'),
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Update Error'), findsOneWidget);
-      _repo.error = null;
-      refresher();
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Result: 1 items updated'), findsOneWidget);
-      //DELETE
-      _repo.error = Exception('Delete Error');
+    products.crud.update(
+      where: (product) => product.id == 2,
+      set: (product) => product.copyWith(name: 'product 2_new'),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Update Error'), findsOneWidget);
+    _repo.error = null;
+    refresher();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Result: 1 items updated'), findsOneWidget);
+    //DELETE
+    _repo.error = Exception('Delete Error');
 
-      products.crud.delete(
-        where: (product) => product.id == 2,
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Delete Error'), findsOneWidget);
-      _repo.error = null;
-      refresher();
-      await tester.pump();
-      await tester.pump();
-      expect(find.text('Waiting...'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Result: 1 items deleted'), findsOneWidget);
-    },
-  );
+    products.crud.delete(where: (product) => product.id == 2);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Delete Error'), findsOneWidget);
+    _repo.error = null;
+    refresher();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Waiting...'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Result: 1 items deleted'), findsOneWidget);
+  });
 
   // testWidgets(
   //   'WHEN On.crud is rebuild from a parent, it keeps its state'
@@ -748,8 +726,8 @@ void main() {
   //         () {
   //           return products.rebuild.onCRUD(
   //             onWaiting: () => Text('Waiting...'),
-  //             onError: (_, refresh) {
-  //               return Text(_.message);
+  //             onError: (c, refresh) {
+  //               return Text(c.message);
   //             },
   //             onResult: (r) => Text('Result: $r'),
   //             // onSetState: On(() {}),
@@ -785,104 +763,99 @@ void main() {
   //   },
   // );
 
-  testWidgets(
-    'OnBuilder.crud',
-    (tester) async {
-      StatesRebuilerLogger.isTestMode = true;
-      late InjectedCRUD<Product, Object> products;
-      products = RM.injectCRUD<Product, Object>(
-        () => _repo,
-        readOnInitialization: true,
-      );
-      final model = true.inj();
-      final widget = Directionality(
-        textDirection: TextDirection.rtl,
-        child: model.rebuild(
-          () {
-            return OnCRUDBuilder(
-              listenTo: products,
-              onWaiting: () => Text('Waiting...'),
-              onError: (_, refresh) {
-                return Text(_.message);
-              },
-              onResult: (r) => Text('Result: $r'),
-              dispose: () {},
-              debugPrintWhenRebuild: 'products',
-            );
+  testWidgets('OnBuilder.crud', (tester) async {
+    StatesRebuilerLogger.isTestMode = true;
+    late InjectedCRUD<Product, Object> products;
+    products = RM.injectCRUD<Product, Object>(
+      () => _repo,
+      readOnInitialization: true,
+    );
+    final model = true.inj();
+    final widget = Directionality(
+      textDirection: TextDirection.rtl,
+      child: model.rebuild(() {
+        return OnCRUDBuilder(
+          listenTo: products,
+          onWaiting: () => Text('Waiting...'),
+          onError: (c, refresh) {
+            return Text(c.message);
           },
-        ),
-      );
-      await tester.pumpWidget(widget);
+          onResult: (r) => Text('Result: $r'),
+          dispose: () {},
+          debugPrintWhenRebuild: 'products',
+        );
+      }),
+    );
+    await tester.pumpWidget(widget);
 
-      await tester.pump(Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 1));
 
-      products.crud.update(
-        where: (p) => p.id == 1,
-        set: (p) => p.copyWith(name: 'prod2'),
-      );
-      await tester.pump();
-      expect(
-          StatesRebuilerLogger.message,
-          endsWith(
-              'REBUILD <products>: SnapState<dynamic>(isWaiting (): null)'));
-      await tester.pump(Duration(seconds: 1));
-      expect(products.state.first.name, 'prod2');
+    products.crud.update(
+      where: (p) => p.id == 1,
+      set: (p) => p.copyWith(name: 'prod2'),
+    );
+    await tester.pump();
+    expect(
+      StatesRebuilerLogger.message,
+      endsWith('REBUILD <products>: SnapState<dynamic>(isWaiting (): null)'),
+    );
+    await tester.pump(Duration(seconds: 1));
+    expect(products.state.first.name, 'prod2');
 
-      model.notify();
-      await tester.pump();
-      expect(products.state.first.name, 'prod2');
-      expect(
-          StatesRebuilerLogger.message,
-          endsWith(
-              'REBUILD <products>: SnapState<dynamic>(hasData: 1 items updated)'));
-    },
-  );
+    model.notify();
+    await tester.pump();
+    expect(products.state.first.name, 'prod2');
+    expect(
+      StatesRebuilerLogger.message,
+      endsWith(
+        'REBUILD <products>: SnapState<dynamic>(hasData: 1 items updated)',
+      ),
+    );
+  });
 
-  testWidgets(
-    'Test when productsCRUD is mocked with simple injected',
-    (tester) async {
-      products.injectMock(() => [Product(id: 1, name: 'name')]);
-      expect(products.hasData, true);
-      expect(products.state.length, 1);
-      expect(products.isOnCRUD, false);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnCRUDBuilder(
-          listenTo: products,
-          onWaiting: () => Text('onWaiting'),
-          onResult: (_) => Text('onResult'),
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onResult'), findsOneWidget);
-    },
-  );
+  testWidgets('Test when productsCRUD is mocked with simple injected', (
+    tester,
+  ) async {
+    products.injectMock(() => [Product(id: 1, name: 'name')]);
+    expect(products.hasData, true);
+    expect(products.state.length, 1);
+    expect(products.isOnCRUD, false);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnCRUDBuilder(
+        listenTo: products,
+        onWaiting: () => Text('onWaiting'),
+        onResult: (c) => Text('onResult'),
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onResult'), findsOneWidget);
+  });
 
-  testWidgets(
-    'Test when productsCRUD is mocked with future injected',
-    (tester) async {
-      products.injectFutureMock(() async {
-        await Future.delayed(const Duration(seconds: 1));
-        return [Product(id: 1, name: 'name')];
-      });
+  testWidgets('Test when productsCRUD is mocked with future injected', (
+    tester,
+  ) async {
+    products.injectFutureMock(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      return [Product(id: 1, name: 'name')];
+    });
 
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnCRUDBuilder(
-          listenTo: products,
-          onWaiting: () => Text('onWaiting'),
-          onResult: (_) => Text('onResult'),
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onWaiting'), findsOneWidget);
-      expect(products.isWaiting, true);
-      expect(products.isOnCRUD, true);
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('onResult'), findsOneWidget);
-      expect(products.hasData, true);
-      expect(products.state.length, 1);
-      expect(products.isOnCRUD, false);
-    },
-  );
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnCRUDBuilder(
+        listenTo: products,
+        onWaiting: () => Text('onWaiting'),
+        onResult: (c) => Text('onResult'),
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onWaiting'), findsOneWidget);
+    expect(products.isWaiting, true);
+    expect(products.isOnCRUD, true);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('onResult'), findsOneWidget);
+    expect(products.hasData, true);
+    expect(products.state.length, 1);
+    expect(products.isOnCRUD, false);
+  });
 }

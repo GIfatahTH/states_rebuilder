@@ -97,7 +97,7 @@ class MyHomePage extends ReactiveStatelessWidget {
                     () {
                       return Text(
                         '${counter.state}',
-                        style: Theme.of(context).textTheme.headline4,
+                        style: Theme.of(context).textTheme.headlineLarge,
                       );
                     },
                   )
@@ -121,7 +121,7 @@ class CounterWidget extends ReactiveStatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       '${counter.state}',
-      style: Theme.of(context).textTheme.headline4,
+      style: Theme.of(context).textTheme.headlineLarge,
     );
   }
 }

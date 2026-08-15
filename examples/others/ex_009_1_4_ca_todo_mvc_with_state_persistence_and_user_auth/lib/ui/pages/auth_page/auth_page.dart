@@ -41,7 +41,7 @@ class AuthFormWidget extends StatelessWidget {
             ),
             keyboardType: TextInputType.emailAddress,
             autocorrect: false,
-            onSubmitted: (_) {
+            onSubmitted: (c) {
               signFormBloc.password.focusNode.requestFocus();
             },
           ),
@@ -56,7 +56,7 @@ class AuthFormWidget extends StatelessWidget {
             ),
             obscureText: true,
             autocorrect: false,
-            onSubmitted: (_) {
+            onSubmitted: (c) {
               if (signFormBloc.isRegister.state) {
                 signFormBloc.confirmPassword.focusNode.requestFocus();
               } else {
@@ -76,7 +76,7 @@ class AuthFormWidget extends StatelessWidget {
               ),
               obscureText: true,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 signFormBloc.form.submitFocusNode.requestFocus();
               },
             ),

@@ -201,7 +201,7 @@ class TimerText extends ReactiveStatelessWidget {
     final secondsStr = (duration % 60).floor().toString().padLeft(2, '0');
     return Text(
       '$minutesStr:$secondsStr',
-      style: Theme.of(context).textTheme.headline1,
+      style: Theme.of(context).textTheme.displayLarge,
     );
   }
 }
@@ -219,11 +219,11 @@ class Actions extends ReactiveStatelessWidget {
   @override
   Widget build(BuildContext context) {
     return timerBloc.timerState.when(
-      initial: (_) => FloatingActionButton(
+      initial: (c) => FloatingActionButton(
         child: const Icon(Icons.play_arrow),
         onPressed: timerBloc.start,
       ),
-      paused: (_) => Row(
+      paused: (c) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton(
@@ -236,7 +236,7 @@ class Actions extends ReactiveStatelessWidget {
           ),
         ],
       ),
-      running: (_) => Row(
+      running: (c) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton(

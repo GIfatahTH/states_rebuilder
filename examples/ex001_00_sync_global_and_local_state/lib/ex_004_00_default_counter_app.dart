@@ -62,7 +62,7 @@ class MyHomePage extends ReactiveStatelessWidget {
               builder: () {
                 return Text(
                   '${counter.state}',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 );
               },
             ),

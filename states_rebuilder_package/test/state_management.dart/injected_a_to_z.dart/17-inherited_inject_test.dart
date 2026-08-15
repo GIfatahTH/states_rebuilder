@@ -12,10 +12,7 @@ class Counter {
   Counter increment() => copyWith(id, value + 1);
 
   Counter copyWith(String? id, int? value) {
-    return Counter(
-      id: id ?? this.id,
-      value: value ?? this.value,
-    );
+    return Counter(id: id ?? this.id, value: value ?? this.value);
   }
 
   @override
@@ -75,15 +72,15 @@ class _App extends StatelessWidget {
           children: [
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[0],
-              builder: (_) => const CounterItem(),
+              builder: (c) => const CounterItem(),
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[1],
-              builder: (_) => const CounterItem(),
+              builder: (c) => const CounterItem(),
             ),
             injectedCounter.inherited(
               stateOverride: () => _listOfCounters[2],
-              builder: (_) => const CounterItem(),
+              builder: (c) => const CounterItem(),
             ),
           ],
         ),
@@ -101,7 +98,7 @@ class CounterItem extends StatelessWidget {
       children: [
         OnBuilder.data(
           listenTo: counter,
-          builder: (_) {
+          builder: (c) {
             //count the number of rebuild
             numberOfRebuild[counter.state.id] =
                 numberOfRebuild[counter.state.id]! + 1;
@@ -118,7 +115,7 @@ class CounterItem extends StatelessWidget {
           onPressed: () {
             Navigator.of(RM.context!).push(
               MaterialPageRoute(
-                builder: (_) {
+                builder: (c) {
                   return counter.reInherited(
                     context: context,
                     builder: (context) => const CounterItemDetailed(),
@@ -128,7 +125,7 @@ class CounterItem extends StatelessWidget {
             );
           },
           child: Text('Navigate to counter detailed'),
-        )
+        ),
       ],
     );
   }
@@ -147,11 +144,7 @@ class CounterItemDetailed extends StatelessWidget {
 
 void main() {
   setUp(() {
-    numberOfRebuild = {
-      'counter1': 0,
-      'counter2': 0,
-      'counter3': 0,
-    };
+    numberOfRebuild = {'counter1': 0, 'counter2': 0, 'counter3': 0};
     _listOfCounters = [
       Counter(id: 'counter1', value: 0),
       Counter(id: 'counter2', value: 0),
@@ -241,10 +234,7 @@ void main() {
 
   testWidgets('refresh injected counter', (tester) async {
     final rm = 0.inj();
-    await tester.pumpWidget(OnBuilder(
-      listenTo: rm,
-      builder: () => _App(),
-    ));
+    await tester.pumpWidget(OnBuilder(listenTo: rm, builder: () => _App()));
     //We expect to see three CounterItem widgets
     expect(find.byType(CounterItem), findsNWidgets(3));
     //
@@ -276,57 +266,58 @@ void main() {
   });
 
   testWidgets(
-      'Inherited counter state is available in a new route using reInherit',
-      (tester) async {
-    await tester.pumpWidget(_App());
-    //top to increment counter 1
-    await tester.tap(find.byKey(Key('counter1')));
-    await tester.pump();
-    expect(find.text('counter1: 1'), findsOneWidget);
-    //
-    //Tap on counter to navigate to detailed page
-    await tester.tap(find.byKey(Key('Navigate to counter1')));
-    await tester.pumpAndSettle();
-    //We are in the detailed screen
-    expect(find.byType(CounterItemDetailed), findsOneWidget);
-    //And we get the counter1 state using the context.
-    expect(find.text('Detailed of counter1: 1'), findsOneWidget);
-    //
-    //Pop back to list of counter page
-    Navigator.of(RM.context!).pop();
-    await tester.pumpAndSettle();
-    //
-    //Tap on counter to navigate to detailed page
-    await tester.tap(find.byKey(Key('Navigate to counter2')));
-    await tester.pumpAndSettle();
-    //We are in the detailed screen
-    expect(find.byType(CounterItemDetailed), findsOneWidget);
-    //And we get the counter2 state using the context.
-    expect(find.text('Detailed of counter2: 0'), findsOneWidget);
-    expect(find.byType(CounterItem), findsNWidgets(0));
+    'Inherited counter state is available in a new route using reInherit',
+    (tester) async {
+      await tester.pumpWidget(_App());
+      //top to increment counter 1
+      await tester.tap(find.byKey(Key('counter1')));
+      await tester.pump();
+      expect(find.text('counter1: 1'), findsOneWidget);
+      //
+      //Tap on counter to navigate to detailed page
+      await tester.tap(find.byKey(Key('Navigate to counter1')));
+      await tester.pumpAndSettle();
+      //We are in the detailed screen
+      expect(find.byType(CounterItemDetailed), findsOneWidget);
+      //And we get the counter1 state using the context.
+      expect(find.text('Detailed of counter1: 1'), findsOneWidget);
+      //
+      //Pop back to list of counter page
+      Navigator.of(RM.context!).pop();
+      await tester.pumpAndSettle();
+      //
+      //Tap on counter to navigate to detailed page
+      await tester.tap(find.byKey(Key('Navigate to counter2')));
+      await tester.pumpAndSettle();
+      //We are in the detailed screen
+      expect(find.byType(CounterItemDetailed), findsOneWidget);
+      //And we get the counter2 state using the context.
+      expect(find.text('Detailed of counter2: 0'), findsOneWidget);
+      expect(find.byType(CounterItem), findsNWidgets(0));
 
-    //
-    //Pop back to list of counter page
-    Navigator.of(RM.context!).pop();
-    await tester.pumpAndSettle();
-    expect(find.byType(CounterItem), findsNWidgets(3));
+      //
+      //Pop back to list of counter page
+      Navigator.of(RM.context!).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(CounterItem), findsNWidgets(3));
 
-    await tester.tap(find.byKey(Key('counter1'))); //TODO to check
-    await tester.pump();
-    //
-    //top to increment counter 3 twice
-    await tester.tap(find.byKey(Key('counter3')));
-    await tester.pump();
-    await tester.tap(find.byKey(Key('counter3')));
-    await tester.pump();
-    expect(find.text('counter3: 2'), findsOneWidget);
-    //
-    //Tap on counter to navigate to detailed page
-    await tester.tap(find.byKey(Key('Navigate to counter3')));
-    await tester.pumpAndSettle();
-    //We are in the detailed screen
-    expect(find.byType(CounterItemDetailed), findsOneWidget);
-    //And we get the counter3 state using the context.
-    expect(find.text('Detailed of counter3: 2'), findsOneWidget);
-  });
+      await tester.tap(find.byKey(Key('counter1'))); //TODO to check
+      await tester.pump();
+      //
+      //top to increment counter 3 twice
+      await tester.tap(find.byKey(Key('counter3')));
+      await tester.pump();
+      await tester.tap(find.byKey(Key('counter3')));
+      await tester.pump();
+      expect(find.text('counter3: 2'), findsOneWidget);
+      //
+      //Tap on counter to navigate to detailed page
+      await tester.tap(find.byKey(Key('Navigate to counter3')));
+      await tester.pumpAndSettle();
+      //We are in the detailed screen
+      expect(find.byType(CounterItemDetailed), findsOneWidget);
+      //And we get the counter3 state using the context.
+      expect(find.text('Detailed of counter3: 2'), findsOneWidget);
+    },
+  );
 }

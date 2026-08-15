@@ -135,7 +135,7 @@ class SignInScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Sign in',
-                          style: Theme.of(context).textTheme.headline4),
+                          style: Theme.of(context).textTheme.headlineLarge),
                       TextField(
                         decoration: InputDecoration(
                           labelText: 'Username',

@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget {
         itemCount: 10,
         itemBuilder: (context, index) {
           return Provider<MyModel>(
-            create: (_) => MyModel(value: index),
+            create: (c) => MyModel(value: index),
             child: const ItemTile(),
           );
         },
@@ -100,7 +100,7 @@ class HomePage extends StatelessWidget {
         itemBuilder: (context, index) {
           return modelRM.inherited(
             stateOverride: () => MyModel(value: index),
-            builder: (_) => const ItemTile(),
+            builder: (c) => const ItemTile(),
           );
         },
       ),
@@ -122,7 +122,7 @@ class ItemTile extends StatelessWidget {
         // InheritedWidget
         builder: (route) => modelRM.reInherited(
           context: context,
-          builder: (_) => route,
+          builder: (c) => route,
         ),
       ),
     );

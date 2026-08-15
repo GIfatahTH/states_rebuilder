@@ -59,6 +59,7 @@ final kPurplishThemeDark = ThemeData(
 );
 
 enum ThemeName { purplish, greenish }
+
 final themeRM = RM.injectTheme(
   themeMode: ThemeMode.system,
   persistKey: '__theme__',
@@ -80,7 +81,7 @@ class MyApp extends TopStatelessWidget {
     return MaterialApp(
       theme: themeRM.activeTheme().copyWith(
             textTheme: TextTheme(
-              bodyText2: TextStyle(
+              titleSmall: TextStyle(
                 fontSize: 22,
                 fontFamily: GoogleFonts.pacifico().fontFamily,
               ),

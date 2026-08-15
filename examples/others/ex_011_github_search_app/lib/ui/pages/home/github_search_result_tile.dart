@@ -34,7 +34,7 @@ class GitHubUserSearchResultTile extends StatelessWidget {
           SizedBox(height: 8.0),
           Text(
             user.login,
-            style: theme.textTheme.headline6,
+            style: theme.textTheme.headlineSmall,
             textAlign: TextAlign.start,
           )
         ],

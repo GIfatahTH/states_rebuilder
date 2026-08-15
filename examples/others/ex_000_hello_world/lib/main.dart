@@ -72,7 +72,7 @@ final helloName = RM.inject<String>(
       )),
     ),
     // the default case. hide the snackbar
-    orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
+    orElse: (c) => RM.scaffold.hideCurrentSnackBar(),
   ),
   //Set the undoStackLength to 5. This will automatically
   // enable doing and undoing of the  state

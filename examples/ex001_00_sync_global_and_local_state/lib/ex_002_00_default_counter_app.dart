@@ -96,7 +96,7 @@ class CounterWidget extends StatelessWidget {
       // For this widget to rebuild even if it is used with const modifier, this
       // widget must be ReactiveStateless
       '${MyHomePage._counter.state}',
-      style: Theme.of(context).textTheme.headline4,
+      style: Theme.of(context).textTheme.headlineLarge,
     );
   }
 }

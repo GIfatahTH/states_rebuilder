@@ -29,7 +29,7 @@ final navigator = RM.injectNavigator(
     '/page2': (data) => const PageWidget(title: 'Page2'),
     '/page3': (data) {
       return RouteWidget(
-        builder: (_) {
+        builder: (c) {
           return const PageWidget(title: 'Page3');
         },
         transitionsBuilder: RM.transitions.leftToRight(
@@ -38,14 +38,14 @@ final navigator = RM.injectNavigator(
       );
     },
     '/page4': (data) => RouteWidget(
-          builder: (_) {
+          builder: (c) {
             return const PageWidget(title: 'Page4');
           },
           transitionsBuilder: RM.transitions.none(),
         ),
     '/page5': (data) => RouteWidget(
           transitionsBuilder: RM.transitions.upToBottom(),
-          builder: (_) {
+          builder: (c) {
             return const Page5Home();
           },
           routes: {

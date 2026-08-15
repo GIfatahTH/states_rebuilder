@@ -27,7 +27,7 @@ class CounterViewModel {
     dependsOn: DependsOn(
       {counter1, counter2},
       // // Try shouldNotify.
-      // shouldNotify: (_) {
+      // shouldNotify: (c) {
       //   // Skip waiting
       //   return !counter1.isWaiting && !counter2.isWaiting;
       // },
@@ -93,7 +93,7 @@ class MyHomePage extends ReactiveStatelessWidget {
               children: [
                 Text(
                   'Counter1 :  ',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 counterViewModel.counter1.onAll(
                   onWaiting: () => const CircularProgressIndicator(),
@@ -102,7 +102,7 @@ class MyHomePage extends ReactiveStatelessWidget {
                     icon: const Icon(Icons.refresh),
                     label: Text(err.message),
                   ),
-                  onData: (_) => _CountIncrementorWidget(
+                  onData: (c) => _CountIncrementorWidget(
                     value: '${counterViewModel.counter1.state}',
                     onPressed: counterViewModel.incrementCounter1,
                   ),
@@ -110,7 +110,7 @@ class MyHomePage extends ReactiveStatelessWidget {
                 const SizedBox(width: 32),
                 Text(
                   'Counter2 :  ',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 counterViewModel.counter2.onAll(
                   onWaiting: () => const CircularProgressIndicator(),
@@ -136,7 +136,7 @@ class MyHomePage extends ReactiveStatelessWidget {
               ),
               onData: (data) => Text(
                 'The Sum is:  $data',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ),
           ],
@@ -162,7 +162,7 @@ class _CountIncrementorWidget extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.headline4,
+          style: Theme.of(context).textTheme.headlineLarge,
         ),
         const SizedBox(width: 8),
         IconButton(

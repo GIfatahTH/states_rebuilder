@@ -75,7 +75,7 @@ class _MyAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      title: Text('Catalog', style: Theme.of(context).textTheme.headline4),
+      title: Text('Catalog', style: Theme.of(context).textTheme.headlineLarge),
       floating: true,
     );
   }
@@ -109,7 +109,7 @@ class _MyListItem extends ReactiveStatelessWidget {
   @override
   Widget build(BuildContext context) {
     var item = itemNames.getById(index);
-    var textTheme = Theme.of(context).textTheme.headline6;
+    var textTheme = Theme.of(context).textTheme.headlineSmall;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: LimitedBox(

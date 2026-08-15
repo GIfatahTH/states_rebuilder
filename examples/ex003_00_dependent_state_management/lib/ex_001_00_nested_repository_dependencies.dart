@@ -129,7 +129,7 @@ class MyHomePage extends ReactiveStatelessWidget {
         child: counterViewModel.isViewStatus(
           onWaiting: () => const CircularProgressIndicator(),
           onError: (err, refresh) => Text('$err'),
-          onData: (_) => Column(
+          onData: (c) => Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const Text(
@@ -138,9 +138,9 @@ class MyHomePage extends ReactiveStatelessWidget {
               counterViewModel.counterStatus(
                 onWaiting: () => const CircularProgressIndicator(),
                 onError: (err, refresh) => Text('$err'),
-                onData: (_) => Text(
+                onData: (c) => Text(
                   '${counterViewModel.counter}',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
               ),
             ],

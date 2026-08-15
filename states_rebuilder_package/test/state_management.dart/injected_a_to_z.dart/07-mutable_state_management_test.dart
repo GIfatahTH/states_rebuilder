@@ -44,9 +44,7 @@ class CounterStore {
   }
 }
 
-final counter = RM.inject(
-  () => CounterStore(0),
-);
+final counter = RM.inject(() => CounterStore(0));
 
 //variable use to track the number of rebuilds
 int rebuilderCount = 0;
@@ -62,7 +60,7 @@ class MyApp extends StatelessWidget {
           //rebuilder will rebuild only if counter has data
           OnBuilder.data(
             listenTo: counter,
-            builder: (_) {
+            builder: (c) {
               rebuilderCount++;
               return Text('rebuilder: ${counter.state.counter}');
             },
@@ -80,11 +78,11 @@ class MyApp extends StatelessWidget {
               whenRebuilderCount++;
               return Text('whenRebuilder: Waiting');
             },
-            onError: (e, _) {
+            onError: (e, c) {
               whenRebuilderCount++;
               return Text('whenRebuilder: ${e.message}');
             },
-            onData: (_) {
+            onData: (c) {
               whenRebuilderCount++;
               return Text('whenRebuilder: ${counter.state.counter}');
             },

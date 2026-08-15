@@ -12,7 +12,7 @@ final animation = RM.injectAnimation(
 final _selected = RM.inject<bool>(
   () => true,
   sideEffects: SideEffects.onData(
-    (_) {
+    (c) {
       animation.refresh();
     },
   ),

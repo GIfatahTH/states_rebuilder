@@ -57,7 +57,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
     super.initState();
     timer = Timer.periodic(
       const Duration(seconds: 1),
-      (_) {
+      (c) {
         animation.refresh();
       },
     );

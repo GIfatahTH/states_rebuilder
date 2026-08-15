@@ -47,17 +47,16 @@ final Injected<I18n> i18n = RM.injectFuture<I18n>(
     // - lang/ar.json
     // - lang/en.json
 
-    String jsonString = await rootBundle
-        .loadString('lang/${currentLocale.state.languageCode}.json');
+    String jsonString = await rootBundle.loadString(
+      'lang/${currentLocale.state.languageCode}.json',
+    );
     Map<String, dynamic> jsonMap = json.decode(jsonString);
 
     //returning an instance of I18n
     return I18n.fromMap(
-      jsonMap.map(
-        (key, value) {
-          return MapEntry(key, value.toString());
-        },
-      ),
+      jsonMap.map((key, value) {
+        return MapEntry(key, value.toString());
+      }),
     );
   },
   dependsOn: DependsOn({currentLocale}),
@@ -71,7 +70,7 @@ class LocalizationsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.bindingObserver(
       listenTo: i18n,
-      didChangeLocales: (_, __) {
+      didChangeLocales: (c, __) {
         //when didChangeLocales is invoked,
         //we refresh the currentLocale and the i18n
         //It is only when they change that the widget will rebuild
@@ -89,10 +88,7 @@ class LocalizationsApp extends StatelessWidget {
           key: Key('${currentLocale.state}'),
           locale: currentLocale.state,
           // List all of the app's supported locales here
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('ar', 'DZ'),
-          ],
+          supportedLocales: const [Locale('en', 'US'), Locale('ar', 'DZ')],
           //In real app we use localizationsDelegates for Material and widget
           //Localizations
           //
@@ -140,8 +136,9 @@ void main() {
     _localeFromTheApp = null;
     _storedLocale = null;
   });
-  testWidgets('No stored locale, use the system locale (en_US)',
-      (tester) async {
+  testWidgets('No stored locale, use the system locale (en_US)', (
+    tester,
+  ) async {
     await tester.pumpWidget(LocalizationsApp());
     expect(find.text('Getting the json String ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -160,8 +157,9 @@ void main() {
     expect(find.text('هذه هي الجملة الثانية'), findsOneWidget);
   });
 
-  testWidgets('Manually change the locale form (en_US) ot (ar_DZ)',
-      (tester) async {
+  testWidgets('Manually change the locale form (en_US) ot (ar_DZ)', (
+    tester,
+  ) async {
     await tester.pumpWidget(LocalizationsApp());
     expect(find.text('Getting the json String ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -179,8 +177,9 @@ void main() {
     expect(find.text('هذه هي الجملة الثانية'), findsOneWidget);
   });
 
-  testWidgets('automatically change the locale form (en_US) ot (ar_DZ)',
-      (tester) async {
+  testWidgets('automatically change the locale form (en_US) ot (ar_DZ)', (
+    tester,
+  ) async {
     //To simulate that the system locale is changed, we set :
 
     //Holds the system locale

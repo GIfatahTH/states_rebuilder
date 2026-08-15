@@ -81,7 +81,7 @@ class FormWidget extends StatelessWidget {
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 _password.focusNode.requestFocus();
               },
             ),
@@ -95,7 +95,7 @@ class FormWidget extends StatelessWidget {
               ),
               obscureText: true,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 if (_isRegister.state) {
                   _confirmationPassword.focusNode.requestFocus();
                 } else {
@@ -118,7 +118,7 @@ class FormWidget extends StatelessWidget {
                           ),
                           obscureText: true,
                           autocorrect: false,
-                          onSubmitted: (_) {
+                          onSubmitted: (c) {
                             _form.submitFocusNode.requestFocus();
                           },
                         )

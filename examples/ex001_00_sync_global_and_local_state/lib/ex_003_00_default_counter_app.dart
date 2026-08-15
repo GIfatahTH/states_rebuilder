@@ -60,7 +60,7 @@ class MyHomePage extends StatelessWidget {
               () {
                 return Text(
                   '${counter.state}',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 );
               },
             ),
@@ -79,4 +79,4 @@ class MyHomePage extends StatelessWidget {
 /*
 * state when the widget is building, will look up the widget tree for the nearest 
 * ReactiveStateless widget to resister it.
-*/ 
+*/

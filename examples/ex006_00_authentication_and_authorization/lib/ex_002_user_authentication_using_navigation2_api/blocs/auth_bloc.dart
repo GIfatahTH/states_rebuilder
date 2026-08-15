@@ -14,7 +14,7 @@ class AuthBloc {
     // () => FireBaseAuthRepository(),
     () => FakeAuthRepository(),
     onAuthStream: (repo) => (repo as FireBaseAuthRepository).currentUser(),
-    onSigned: (_) {
+    onSigned: (c) {
       navigator.onNavigate();
     },
     onUnsigned: () {

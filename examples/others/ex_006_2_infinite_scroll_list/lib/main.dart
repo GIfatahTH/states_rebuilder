@@ -61,7 +61,7 @@ class PostsPage extends StatelessWidget {
                               onPressed: () => refresh(),
                               child: Text('Refresh Error'),
                             ),
-                            orElse: (_) => Center(
+                            orElse: (c) => Center(
                               child: CircularProgressIndicator(),
                             ),
                           )

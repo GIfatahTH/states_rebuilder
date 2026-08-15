@@ -199,7 +199,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const WeatherDetailPage(),
+              builder: (c) => const WeatherDetailPage(),
             ));
           },
         ),

@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
               print(Navigator.of(context));
               RM.navigate.to(const PreferencePage());
               // RM.navigate.navigatorKey.currentState!.push(
-              //     MaterialPageRoute(builder: (_) => const PreferencePage()));
+              //     MaterialPageRoute(builder: (c) => const PreferencePage()));
             },
           )
         ],
@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
           child: OnReactive(
             () => Text(
               i18n.of(context).counterTimes(counter.state),
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
           ),
         ),

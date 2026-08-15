@@ -78,7 +78,7 @@ class FormWidget extends StatelessWidget {
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 _password.focusNode.requestFocus();
               },
             ),
@@ -92,7 +92,7 @@ class FormWidget extends StatelessWidget {
               ),
               obscureText: true,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 if (_isRegister.state) {
                   _confirmationPassword.focusNode.requestFocus();
                 } else {
@@ -115,7 +115,7 @@ class FormWidget extends StatelessWidget {
                           ),
                           obscureText: true,
                           autocorrect: false,
-                          onSubmitted: (_) {
+                          onSubmitted: (c) {
                             _form.submitFocusNode.requestFocus();
                           },
                         )
@@ -146,7 +146,7 @@ class FormWidget extends StatelessWidget {
                           () async {
                             if (_isRegister.state) {
                               await user.auth.signUp(
-                                (_) => UserParam(
+                                (c) => UserParam(
                                   signUp: SignUp.withEmailAndPassword,
                                   email: _email.value,
                                   password: _password.value,
@@ -154,7 +154,7 @@ class FormWidget extends StatelessWidget {
                               );
                             } else {
                               await user.auth.signIn(
-                                (_) => UserParam(
+                                (c) => UserParam(
                                   signIn: SignIn.withEmailAndPassword,
                                   email: _email.value,
                                   password: _password.value,

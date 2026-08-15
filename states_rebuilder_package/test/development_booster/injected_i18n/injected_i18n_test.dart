@@ -26,14 +26,12 @@ void main() async {
     store.clear();
   });
 
-  testWidgets('system language is not in the supported local, get the first',
-      (tester) async {
+  testWidgets('system language is not in the supported local, get the first', (
+    tester,
+  ) async {
     TextDirection? textDirection;
     final i18n = RM.injectI18N(
-      {
-        Locale('ar'): () => 'arabic',
-        Locale('es'): () => 'spanish',
-      },
+      {Locale('ar'): () => 'arabic', Locale('es'): () => 'spanish'},
       // debugPrintWhenNotifiedPreMessage: 'i18n',
     );
     final widget = TopAppWidget(
@@ -62,40 +60,42 @@ void main() async {
   });
 
   testWidgets(
-      'system language is not in the supported local, get the same language code',
-      (tester) async {
-    TextDirection? textDirection;
-    final i18n = RM.injectI18N({
-      Locale('ar'): () => 'arabic',
-      Locale('en', 'TN'): () => 'english_TN',
-    });
-    final widget = TopAppWidget(
-      builder: (context) {
-        return MaterialApp(
-          locale: i18n.locale,
-          localeResolutionCallback: i18n.localeResolutionCallback,
-          localizationsDelegates: i18n.localizationsDelegates,
-          home: Builder(
-            builder: (ctx) {
-              textDirection = Directionality.of(ctx);
-              return Text(i18n.of(ctx));
-            },
-          ),
-        );
-      },
-    );
+    'system language is not in the supported local, get the same language code',
+    (tester) async {
+      TextDirection? textDirection;
+      final i18n = RM.injectI18N({
+        Locale('ar'): () => 'arabic',
+        Locale('en', 'TN'): () => 'english_TN',
+      });
+      final widget = TopAppWidget(
+        builder: (context) {
+          return MaterialApp(
+            locale: i18n.locale,
+            localeResolutionCallback: i18n.localeResolutionCallback,
+            localizationsDelegates: i18n.localizationsDelegates,
+            home: Builder(
+              builder: (ctx) {
+                textDirection = Directionality.of(ctx);
+                return Text(i18n.of(ctx));
+              },
+            ),
+          );
+        },
+      );
 
-    await tester.pumpWidget(widget);
-    expect(find.text('english_TN'), findsOneWidget);
-    expect(textDirection, TextDirection.ltr);
-    i18n.locale = Locale('ar', 'CN');
-    await tester.pump();
-    expect(find.text('arabic'), findsOneWidget);
-    expect(textDirection, TextDirection.rtl);
-  });
+      await tester.pumpWidget(widget);
+      expect(find.text('english_TN'), findsOneWidget);
+      expect(textDirection, TextDirection.ltr);
+      i18n.locale = Locale('ar', 'CN');
+      await tester.pump();
+      expect(find.text('arabic'), findsOneWidget);
+      expect(textDirection, TextDirection.rtl);
+    },
+  );
 
-  testWidgets('system language is in the supported local, get it',
-      (tester) async {
+  testWidgets('system language is in the supported local, get it', (
+    tester,
+  ) async {
     final i18n = RM.injectI18N({
       Locale('ar'): () => 'arabic',
       Locale('en', 'TN'): () => 'english_TN',
@@ -174,18 +174,15 @@ void main() async {
   });
 
   testWidgets('async translation', (tester) async {
-    final i18n = RM.injectI18N(
-      {
-        Locale('ar'): () =>
-            Future.delayed(Duration(seconds: 1), () => 'arabic'),
-        Locale('en', 'TN'): () =>
-            Future.delayed(Duration(seconds: 1), () => 'english_TN'),
-        Locale('en', 'US'): () =>
-            Future.delayed(Duration(seconds: 1), () => 'english_US'),
-        Locale('es', 'ES'): () =>
-            Future.delayed(Duration(seconds: 1), () => 'spanish'),
-      },
-    );
+    final i18n = RM.injectI18N({
+      Locale('ar'): () => Future.delayed(Duration(seconds: 1), () => 'arabic'),
+      Locale('en', 'TN'): () =>
+          Future.delayed(Duration(seconds: 1), () => 'english_TN'),
+      Locale('en', 'US'): () =>
+          Future.delayed(Duration(seconds: 1), () => 'english_US'),
+      Locale('es', 'ES'): () =>
+          Future.delayed(Duration(seconds: 1), () => 'spanish'),
+    });
     TextDirection? textDirection;
     Locale? localization;
 
@@ -319,8 +316,9 @@ void main() async {
     //
   });
 
-  testWidgets('persist language. non supported locale is stored',
-      (tester) async {
+  testWidgets('persist language. non supported locale is stored', (
+    tester,
+  ) async {
     TextDirection? textDirection;
     Locale? localization;
     store.addAll({'_lan_': 'fr#|#FF'});
@@ -360,15 +358,12 @@ void main() async {
   });
 
   testWidgets('persist language. system lang is stored', (tester) async {
-    final i18nStored = RM.injectI18N(
-      {
-        Locale('ar'): () => 'arabic',
-        Locale('en', 'TN'): () => 'english_TN',
-        Locale('en', 'US'): () => 'english_US',
-        'es'.locale(scriptCode: 'script', countryCode: 'ES'): () => 'spanish',
-      },
-      persistKey: '_lan_',
-    );
+    final i18nStored = RM.injectI18N({
+      Locale('ar'): () => 'arabic',
+      Locale('en', 'TN'): () => 'english_TN',
+      Locale('en', 'US'): () => 'english_US',
+      'es'.locale(scriptCode: 'script', countryCode: 'ES'): () => 'spanish',
+    }, persistKey: '_lan_');
 
     TextDirection? textDirection;
     Locale? localization;
@@ -378,7 +373,7 @@ void main() async {
         () async {
           store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': '#|#'});
-        }()
+        }(),
       ],
       onWaiting: () => CircularProgressIndicator(),
       // injectedI18N: i18nStored,
@@ -418,18 +413,17 @@ void main() async {
   });
 
   testWidgets('persist language. locale with script is stored', (tester) async {
-    final i18nStored = RM.injectI18N(
-      {
-        Locale('ar'): () => 'arabic',
-        Locale('en', 'TN'): () => 'english_TN',
-        Locale('en', 'US'): () => 'english_US',
-        Locale.fromSubtags(
-            languageCode: 'es',
-            scriptCode: 'script',
-            countryCode: 'ES'): () => 'spanish',
-      },
-      persistKey: '_lan_',
-    );
+    final i18nStored = RM.injectI18N({
+      Locale('ar'): () => 'arabic',
+      Locale('en', 'TN'): () => 'english_TN',
+      Locale('en', 'US'): () => 'english_US',
+      Locale.fromSubtags(
+        languageCode: 'es',
+        scriptCode: 'script',
+        countryCode: 'ES',
+      ): () =>
+          'spanish',
+    }, persistKey: '_lan_');
 
     TextDirection? textDirection;
     Locale? localization;
@@ -439,7 +433,7 @@ void main() async {
         () async {
           store = (await RM.storageInitializerMock()).store;
           store.addAll({'_lan_': 'es#|#script#|#ES'});
-        }()
+        }(),
       ],
       onWaiting: () => CircularProgressIndicator(),
       // injectedI18N: i18nStored,
@@ -469,65 +463,61 @@ void main() async {
     //
   });
 
-  testWidgets(
-    'WHEN middleSnapState is defined'
-    'AND WHEN async translation fails'
-    'THEN  return to another translation',
-    (tester) async {
-      SnapState<String>? _snapState;
-      int onSetStateNum = 0; // See how to use it here and with injectedTheme
-      late SnapState<String> _nextSnapState;
+  testWidgets('WHEN middleSnapState is defined'
+      'AND WHEN async translation fails'
+      'THEN  return to another translation', (tester) async {
+    SnapState<String>? _snapState;
+    int onSetStateNum = 0; // See how to use it here and with injectedTheme
+    late SnapState<String> _nextSnapState;
 
-      final i18n = RM.injectI18N<String>(
-        {
-          Locale('ar'): () => 'arabic',
-          Locale('en', 'TN'): () => Future.delayed(
-                Duration(seconds: 1),
-                () => throw Exception('Error'),
-              ),
-          Locale('en', 'US'): () => 'english_US',
-          Locale('es', 'ES'): () => 'spanish',
-        },
-        stateInterceptor: (currentSnap, nextSnap) {
-          _snapState = currentSnap;
-          _nextSnapState = nextSnap;
-          if (nextSnap.hasError &&
-              nextSnap.snapError?.error.message == 'Error') {
-            return currentSnap.copyToHasData('arabic');
-          }
-          return null;
-        },
-        sideEffects: SideEffects(
-          onSetState: (_) {
-            onSetStateNum++;
-          },
+    final i18n = RM.injectI18N<String>(
+      {
+        Locale('ar'): () => 'arabic',
+        Locale('en', 'TN'): () => Future.delayed(
+          Duration(seconds: 1),
+          () => throw Exception('Error'),
         ),
-      );
-      expect(_snapState, null);
+        Locale('en', 'US'): () => 'english_US',
+        Locale('es', 'ES'): () => 'spanish',
+      },
+      stateInterceptor: (currentSnap, nextSnap) {
+        _snapState = currentSnap;
+        _nextSnapState = nextSnap;
+        if (nextSnap.hasError && nextSnap.snapError?.error.message == 'Error') {
+          return currentSnap.copyToHasData('arabic');
+        }
+        return null;
+      },
+      sideEffects: SideEffects(
+        onSetState: (c) {
+          onSetStateNum++;
+        },
+      ),
+    );
+    expect(_snapState, null);
 
-      i18n.locale = Locale('en', 'TN');
-      //
+    i18n.locale = Locale('en', 'TN');
+    //
 
-      expect(_snapState?.isIdle, true);
-      expect(_snapState?.data, 'english_US');
-      //
-      expect(_nextSnapState.isWaiting, true);
-      expect(_nextSnapState.data, 'english_US');
-      //
-      await tester.pump(Duration(seconds: 1));
+    expect(_snapState?.isIdle, true);
+    expect(_snapState?.data, 'english_US');
+    //
+    expect(_nextSnapState.isWaiting, true);
+    expect(_nextSnapState.data, 'english_US');
+    //
+    await tester.pump(Duration(seconds: 1));
 
-      expect(_snapState?.isWaiting, true);
-      expect(_snapState?.data, 'english_US');
+    expect(_snapState?.isWaiting, true);
+    expect(_snapState?.data, 'english_US');
 
-      //
-      expect(_nextSnapState.hasError, true);
-      expect(_nextSnapState.data, 'english_US');
-      expect(_nextSnapState.snapError?.error.message, 'Error');
-      //
-      expect(i18n.state, 'arabic');
-      // expect(i18n.hasData, true);//TODO
-    },
-  );
+    //
+    expect(_nextSnapState.hasError, true);
+    expect(_nextSnapState.data, 'english_US');
+    expect(_nextSnapState.snapError?.error.message, 'Error');
+    //
+    expect(i18n.state, 'arabic');
+    // expect(i18n.hasData, true);//TODO
+  });
 }
 
 class _App extends StatelessWidget {

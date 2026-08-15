@@ -36,9 +36,7 @@ final Injected<String> query = RM.inject(
   //fetchedData is refresh which means :
   // - any pending future will be canceled.
   // - a new search request is called
-  sideEffects: SideEffects.onData(
-    (_) => fetchedUsers.refresh(),
-  ),
+  sideEffects: SideEffects.onData((c) => fetchedUsers.refresh()),
 );
 
 //Inject the list of fetched user
@@ -55,13 +53,13 @@ class UserSearcher extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: OnBuilder.data(
         listenTo: query,
-        builder: (_) {
+        builder: (c) {
           return query.state.isEmpty
               ? Text('Please enter a user name!')
               : OnBuilder.orElse(
                   listenTo: fetchedUsers,
                   onWaiting: () => CircularProgressIndicator(),
-                  orElse: (_) {
+                  orElse: (c) {
                     return Column(
                       children: fetchedUsers.state.map((e) => Text(e)).toList(),
                     );
@@ -75,10 +73,7 @@ class UserSearcher extends StatelessWidget {
 
 //This should be the onChanged of a TextFiled
 void _onChanged(String value) {
-  query.setState(
-    (s) => value,
-    debounceDelay: 500,
-  );
+  query.setState((s) => value, debounceDelay: 500);
 }
 
 //test

@@ -17,11 +17,11 @@ void main() {
   Finder loginTextField = find.byType(TextField);
 
   final Widget loginPage = TopAppWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       initialRoute: 'login',
       routes: {
-        '/posts': (_) => Text('This is the HomePage'),
-        '/': (_) => LoginPage(),
+        '/posts': (c) => Text('This is the HomePage'),
+        '/': (c) => LoginPage(),
       },
       navigatorKey: RM.navigate.navigatorKey,
     ),

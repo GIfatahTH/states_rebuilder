@@ -41,11 +41,11 @@ class Home extends ReactiveStatelessWidget {
           const Toolbar(),
           todosViewModel.onCRUD(
             onWaiting: () => const LinearProgressIndicator(),
-            // onError: (_, __) => SizedBox(
+            // onError: (c, __) => SizedBox(
             //   height: 4,
             //   child: Container(color: Colors.red),
             // ),
-            onResult: (_) => const SizedBox(height: 4),
+            onResult: (c) => const SizedBox(height: 4),
           ),
           if (todos.isNotEmpty) const Divider(height: 0),
           todosViewModel.onAll(
@@ -63,7 +63,7 @@ class Home extends ReactiveStatelessWidget {
                     );
                   }
                 : null,
-            onData: (_) {
+            onData: (c) {
               return Column(
                 children: [
                   for (var i = 0; i < todos.length; i++) ...[
@@ -71,7 +71,7 @@ class Home extends ReactiveStatelessWidget {
                     Builder(builder: (context) {
                       return Dismissible(
                         key: ValueKey(todos[i].id),
-                        onDismissed: (_) {
+                        onDismissed: (c) {
                           todosViewModel.remove(todos[i].id);
                         },
                         child: todosViewModel.item.inherited(
@@ -84,7 +84,7 @@ class Home extends ReactiveStatelessWidget {
                               textEditingController: TextEditingController(),
                             );
                           },
-                          builder: (_) => const TodoItemWidget(),
+                          builder: (c) => const TodoItemWidget(),
                         ),
                       );
                     })
@@ -249,7 +249,7 @@ class TodoItemWidget extends ReactiveStatelessWidget {
               ? TextField(
                   focusNode: todo.textFocusNode,
                   controller: todo.textEditingController,
-                  // onSubmitted: (_) {
+                  // onSubmitted: (c) {
                   //   todo.textFocusNode.unfocus();
                   // },
                 )

@@ -99,7 +99,7 @@ class MyHome extends ReactiveStatelessWidget {
             else
               Text(
                 '${counterRM.state}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             const SizedBox(height: 12),
           ],

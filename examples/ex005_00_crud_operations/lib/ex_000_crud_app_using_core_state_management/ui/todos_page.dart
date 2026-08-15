@@ -55,14 +55,14 @@ class Home extends ReactiveStatelessWidget {
                     );
                   }
                 : null,
-            onData: (_) {
+            onData: (c) {
               return Column(
                 children: [
                   for (var i = 0; i < todos.length; i++) ...[
                     if (i > 0) const Divider(height: 0),
                     Dismissible(
                       key: ValueKey(todos[i].id),
-                      onDismissed: (_) {
+                      onDismissed: (c) {
                         todosViewModel.remove(todos[i].id);
                       },
                       child: TodosViewModel.currentTodo.inherited(
@@ -75,7 +75,7 @@ class Home extends ReactiveStatelessWidget {
                             textEditingController: TextEditingController(),
                           );
                         },
-                        builder: (_) => const TodoItemWidget(),
+                        builder: (c) => const TodoItemWidget(),
                       ),
                     )
                   ],

@@ -16,7 +16,7 @@ void main() {
     'Mack BooksRepository and test the app '
     'THEN',
     (tester) async {
-      when(() => fakeRepository.getBooks()).thenAnswer((_) async {
+      when(() => fakeRepository.getBooks()).thenAnswer((c) async {
         await Future.delayed(const Duration(seconds: 1));
         return [
           Book(id: 'id1', title: 'title1', imageUrl: 'imageUrl1'),

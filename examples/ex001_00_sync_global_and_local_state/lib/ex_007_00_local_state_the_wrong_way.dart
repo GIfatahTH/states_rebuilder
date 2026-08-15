@@ -89,11 +89,11 @@ class CounterView extends ReactiveStatelessWidget {
         children: <Widget>[
           Text(
             'Counter $counterName: ',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           Text(
             '${counterViewModel.counter}',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           TextButton(
             onPressed: counterViewModel.increment,

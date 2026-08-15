@@ -11,10 +11,10 @@ import '../../../data_source/fake_api.dart';
 
 void main() {
   final Widget postsPage = TopAppWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       initialRoute: '/posts',
       routes: {
-        '/posts': (_) => PostsPage(),
+        '/posts': (c) => PostsPage(),
         '/comments': (context) {
           return Scaffold(body: Text('This is post detail page is displayed'));
         },

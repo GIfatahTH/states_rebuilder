@@ -59,12 +59,12 @@ class DetailScreen extends StatelessWidget {
                           ),
                           child: Text(
                             todo.state.task,
-                            style: Theme.of(context).textTheme.headline5,
+                            style: Theme.of(context).textTheme.headlineMedium,
                           ),
                         ),
                         Text(
                           todo.state.note,
-                          style: Theme.of(context).textTheme.subtitle1,
+                          style: Theme.of(context).textTheme.titleMedium,
                         )
                       ],
                     ),

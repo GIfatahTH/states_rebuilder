@@ -25,7 +25,7 @@ bool hasReachedMax = false;
 extension PostsX on List<Post> {
   void fetchMorePosts() {
     posts.crud.read(
-      param: (_) => posts.state.length,
+      param: (c) => posts.state.length,
     );
   }
 }

@@ -9,7 +9,7 @@ final Injected<int> timer = RM.injectStream<int>(
   () => Stream.periodic(Duration(seconds: 1), (n) => n + 1),
   initialState: 0,
   // isLazy: false,
-  onInitialized: (_, __) {
+  onInitialized: (c, __) {
     timerStatus.state = TimerStatus.ready;
   },
   // debugPrintWhenNotifiedPreMessage: 'timer',
@@ -18,23 +18,21 @@ final Injected<int> timer = RM.injectStream<int>(
 final timerStatus = RM.inject<TimerStatus>(
   () => TimerStatus.ready,
   // debugPrintWhenNotifiedPreMessage: 'timerStatus',
-  sideEffects: SideEffects.onData(
-    ((timerStatus) {
-      switch (timerStatus) {
-        case TimerStatus.running:
-          timer.subscription?.resume();
-          break;
-        case TimerStatus.ready:
-        case TimerStatus.paused:
-        default:
-          if (timer.subscription?.isPaused == false) {
-            //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
-            timer.subscription?.pause();
-          }
-          break;
-      }
-    }),
-  ),
+  sideEffects: SideEffects.onData(((timerStatus) {
+    switch (timerStatus) {
+      case TimerStatus.running:
+        timer.subscription?.resume();
+        break;
+      case TimerStatus.ready:
+      case TimerStatus.paused:
+      default:
+        if (timer.subscription?.isPaused == false) {
+          //To avoid pausing more than once. (doc: If the subscription is paused more than once, an equal number of resumes must be performed to resume the stream.)
+          timer.subscription?.pause();
+        }
+        break;
+    }
+  })),
 );
 
 // the initial timer value

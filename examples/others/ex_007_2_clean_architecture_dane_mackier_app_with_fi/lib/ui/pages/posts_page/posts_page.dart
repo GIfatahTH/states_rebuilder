@@ -19,7 +19,7 @@ class PostsPage extends ReactiveStatelessWidget {
       backgroundColor: backgroundColor,
       body: postsBloc.postsRM.onOrElse(
         onWaiting: () => Center(child: CircularProgressIndicator()),
-        orElse: (_) => Column(
+        orElse: (c) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UIHelper.verticalSpaceLarge(),

@@ -62,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                 : null,
             orElse: (data) {
               return OnTabPageViewBuilder(
-                builder: (_) => PageView(
+                builder: (c) => PageView(
                   controller: appTab.pageController,
                   children: [const TodoList(), const StatsCounter()],
                 ),

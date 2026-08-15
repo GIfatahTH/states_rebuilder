@@ -26,10 +26,10 @@ Widget fadeTransitionBuilder(context, animation, secondaryAnimation, child) {
 final navigator = RM.injectNavigator(
     transitionsBuilder: fadeTransitionBuilder,
     routes: {
-      '/signin': (_) => const SignInScreen(),
+      '/signin': (c) => const SignInScreen(),
       '/': (data) {
         return RouteWidget(
-          builder: (_) => const BookstoreScaffold(),
+          builder: (c) => const BookstoreScaffold(),
           routes: {
             '/': (data) => data.redirectTo('/books'),
             '/books': (data) => data.redirectTo('/books/popular'),

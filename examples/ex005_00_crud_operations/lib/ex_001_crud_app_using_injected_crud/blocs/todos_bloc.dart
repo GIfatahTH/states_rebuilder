@@ -89,7 +89,7 @@ class TodosViewModel {
       where: (todo) {
         return todo.id == todoToEdit.id;
       },
-      set: (_) {
+      set: (c) {
         return todoToEdit;
       },
     );

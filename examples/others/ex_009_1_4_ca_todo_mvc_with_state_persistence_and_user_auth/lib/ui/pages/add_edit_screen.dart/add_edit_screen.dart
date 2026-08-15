@@ -59,7 +59,7 @@ class AddEditPage extends StatelessWidget {
                     todo != null ? todo.state.task : '',
                   ),
                   autofocus: isEditing ? false : true,
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineMedium,
                   decoration: InputDecoration(hintText: _i18n.newTodoHint),
                   // validator: (val) =>
                   //     val!.trim().isEmpty ? _i18n.emptyTodoError : null,
@@ -71,7 +71,7 @@ class AddEditPage extends StatelessWidget {
                     todo != null ? todo.state.note : '',
                   ),
                   maxLines: 10,
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                   decoration: InputDecoration(
                     hintText: _i18n.notesHint,
                   ),

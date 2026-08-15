@@ -159,15 +159,15 @@ class WeatherView extends ReactiveStatelessWidget {
                   children: [
                     Text(
                       weatherService.weather!.location,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     Text(
                       weatherService.weather!.condition.name,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     Text(
                       weatherService.weather!.temperature.toString(),
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                   ],
                 ),

@@ -13,9 +13,7 @@ class Counter {
   }
 }
 
-final counter1 = RM.inject(
-  () => 0,
-);
+final counter1 = RM.inject(() => 0);
 final counter1Future = RM.injectFuture(
   () => Future.delayed(Duration(seconds: 1), () => Counter(1)),
   autoDisposeWhenNotUsed: true,
@@ -24,354 +22,330 @@ final counter1Future = RM.injectFuture(
 //
 
 void main() {
-  testWidgets(
-    'simple injected is linked to futureInjected',
-    (tester) async {
-      final counter1Computed = RM.inject<int?>(
-        () => counter1.state + counter1Future.state.count,
-        dependsOn: DependsOn({counter1Future, counter1}),
-      );
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnBuilder.orElse(
-          listenTo: counter1Computed,
-          onWaiting: () => Text('Waiting'),
-          orElse: (_) => Text('${counter1Computed.state}'),
-        ),
-      );
-      //
-      await tester.pumpWidget(widget);
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      counter1Computed.refresh();
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
-      counter1Future.refresh();
-      await tester.pump();
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-    },
-  );
+  testWidgets('simple injected is linked to futureInjected', (tester) async {
+    final counter1Computed = RM.inject<int?>(
+      () => counter1.state + counter1Future.state.count,
+      dependsOn: DependsOn({counter1Future, counter1}),
+    );
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnBuilder.orElse(
+        listenTo: counter1Computed,
+        onWaiting: () => Text('Waiting'),
+        orElse: (c) => Text('${counter1Computed.state}'),
+      ),
+    );
+    //
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    counter1Computed.refresh();
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+    counter1Future.refresh();
+    await tester.pump();
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+  });
 
-  testWidgets(
-    'futureInjected is linked to simple Injected',
-    (tester) async {
-      assert(injectedModels.isEmpty);
-      final counter2Future = RM.injectFuture<int>(
-        () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
-        dependsOn: DependsOn({counter1}),
-      );
+  testWidgets('futureInjected is linked to simple Injected', (tester) async {
+    assert(injectedModels.isEmpty);
+    final counter2Future = RM.injectFuture<int>(
+      () => Future.delayed(Duration(seconds: 1), () => counter1.state + 1),
+      dependsOn: DependsOn({counter1}),
+    );
 
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnBuilder.orElse(
-          listenTo: counter2Future,
-          onWaiting: () => Text('Waiting'),
-          orElse: (_) => Text('${counter2Future.state}'),
-        ),
-      );
-      //
-      await tester.pumpWidget(widget);
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      //
-      counter1.state++;
-      await tester.pump();
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('2'), findsOneWidget);
-    },
-  );
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnBuilder.orElse(
+        listenTo: counter2Future,
+        onWaiting: () => Text('Waiting'),
+        orElse: (c) => Text('${counter2Future.state}'),
+      ),
+    );
+    //
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    //
+    counter1.state++;
+    await tester.pump();
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+  });
 
-  testWidgets(
-    'futureInjected is linked to another future Injected',
-    (tester) async {
-      final counter1Future = RM.injectFuture(
-        () => Future.delayed(Duration(seconds: 2), () => [1]),
-      );
-      final counter2Future = RM.injectFuture<int>(
-        () => Future.delayed(Duration(seconds: 1), () {
-          return counter1Future.state.first + 1;
-        }),
-        dependsOn: DependsOn({counter1Future}),
-      );
+  testWidgets('futureInjected is linked to another future Injected', (
+    tester,
+  ) async {
+    final counter1Future = RM.injectFuture(
+      () => Future.delayed(Duration(seconds: 2), () => [1]),
+    );
+    final counter2Future = RM.injectFuture<int>(
+      () => Future.delayed(Duration(seconds: 1), () {
+        return counter1Future.state.first + 1;
+      }),
+      dependsOn: DependsOn({counter1Future}),
+    );
 
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnBuilder.orElse(
-          listenTo: counter2Future,
-          onWaiting: () => Text('Waiting'),
-          orElse: (_) {
-            return Text('${counter2Future.state}');
-          },
-        ),
-      );
-      //
-      await tester.pumpWidget(widget);
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('2'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'Stream Injected is linked to another future Injected',
-    (tester) async {
-      final counter1Future = RM.injectFuture(
-        () => Future.delayed(Duration(seconds: 2), () => [1]),
-      );
-      final counter2Stream = RM.injectStream<int>(
-        () {
-          return Stream.periodic(
-            Duration(seconds: 1),
-            (data) {
-              return counter1Future.state.first + data;
-            },
-          );
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnBuilder.orElse(
+        listenTo: counter2Future,
+        onWaiting: () => Text('Waiting'),
+        orElse: (c) {
+          return Text('${counter2Future.state}');
         },
-        dependsOn: DependsOn({counter1Future}),
-      );
+      ),
+    );
+    //
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+  });
 
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: OnBuilder.orElse(
-          listenTo: counter2Stream,
-          onWaiting: () => Text('Waiting'),
-          orElse: (_) {
-            return Text('${counter2Stream.state}');
-          },
-        ),
-      );
-      //
-      await tester.pumpWidget(widget);
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('Waiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('2'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('3'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-    },
-  );
+  testWidgets('Stream Injected is linked to another future Injected', (
+    tester,
+  ) async {
+    final counter1Future = RM.injectFuture(
+      () => Future.delayed(Duration(seconds: 2), () => [1]),
+    );
+    final counter2Stream = RM.injectStream<int>(() {
+      return Stream.periodic(Duration(seconds: 1), (data) {
+        return counter1Future.state.first + data;
+      });
+    }, dependsOn: DependsOn({counter1Future}));
 
-  testWidgets(
-    'form validation',
-    (tester) async {
-      final username = RM.inject(() => '');
-      final password = RM.inject(() => '');
-
-      void onUsernameChanged(String newUsername) {
-        username.setState(
-          (s) {
-            if (!newUsername.contains('@')) {
-              throw Exception('User name is not valid');
-            }
-            return newUsername;
-          },
-        );
-      }
-
-      void onPasswordChanged(String newPassword) {
-        password.setState(
-          (s) {
-            try {
-              int.parse(newPassword);
-            } catch (e) {
-              throw Exception('Password is not a valid number');
-            }
-            if (newPassword.length <= 2) {
-              throw Exception('Password is not valid');
-            }
-            return newPassword;
-          },
-        );
-      }
-
-      //
-      expect(username.isIdle, true);
-      expect(password.isIdle, true);
-
-      //
-      onUsernameChanged('m');
-      expect(username.hasError, true);
-      expect(username.error.message, 'User name is not valid');
-      //
-      onUsernameChanged('me');
-      expect(username.hasError, true);
-      expect(username.error.message, 'User name is not valid');
-      //
-      onUsernameChanged('me@');
-      expect(username.hasData, true);
-      expect(username.state, 'me@');
-      //
-      onUsernameChanged('me');
-      expect(username.hasError, true);
-      expect(username.error.message, 'User name is not valid');
-      //
-      //
-      onPasswordChanged('1');
-      expect(password.hasError, true);
-      expect(password.error.message, 'Password is not valid');
-      //
-      onPasswordChanged('12');
-      expect(password.hasError, true);
-      expect(password.error.message, 'Password is not valid');
-      //
-      onPasswordChanged('123');
-      expect(password.hasData, true);
-      expect(password.state, '123');
-      //
-      onPasswordChanged('12');
-      expect(password.hasError, true);
-      expect(password.error.message, 'Password is not valid');
-      //
-      onPasswordChanged('123');
-      expect(password.hasData, true);
-      expect(password.state, '123');
-      //
-      // onPasswordChanged('123a');
-      // expect(password.hasError, true);
-      // expect(password.error.message, 'Password is not a valid number');
-      // //
-      // onPasswordChanged('123');
-      // expect(password.hasData, true);
-      // expect(password.state, '123');
-    },
-  );
-
-  testWidgets(
-    'dependent counters',
-    (tester) async {
-      bool shouldThrow = false;
-      final counter1 = RM.inject(() => 0);
-      final counter1Future = RM.injectFuture(
-        () => Future.delayed(
-          Duration(seconds: 1),
-          () => shouldThrow ? throw Exception('An ERROR') : 1,
-        ),
-      );
-      final dependentCounter1 = RM.inject<int>(
-        () => counter1.state + counter1Future.state,
-        dependsOn: DependsOn({counter1, counter1Future}),
-      );
-      final dependentCounter2 = RM.inject<int>(
-        () => dependentCounter1.state + 1,
-        dependsOn: DependsOn({dependentCounter1}),
-      );
-      int numberOfNotification = 0;
-      dependentCounter2.addObserver(
-        listener: (rm) {
-          numberOfNotification++;
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: OnBuilder.orElse(
+        listenTo: counter2Stream,
+        onWaiting: () => Text('Waiting'),
+        orElse: (c) {
+          return Text('${counter2Stream.state}');
         },
-        shouldAutoClean: true,
-      );
+      ),
+    );
+    //
+    await tester.pumpWidget(widget);
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('Waiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('2'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('3'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+  });
 
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 1);
+  testWidgets('form validation', (tester) async {
+    final username = RM.inject(() => '');
+    final password = RM.inject(() => '');
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasData, true);
-      expect(dependentCounter1.hasData, true);
-      expect(dependentCounter2.hasData, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 2);
+    void onUsernameChanged(String newUsername) {
+      username.setState((s) {
+        if (!newUsername.contains('@')) {
+          throw Exception('User name is not valid');
+        }
+        return newUsername;
+      });
+    }
 
-      //
-      counter1Future.refresh();
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 3);
+    void onPasswordChanged(String newPassword) {
+      password.setState((s) {
+        try {
+          int.parse(newPassword);
+        } catch (e) {
+          throw Exception('Password is not a valid number');
+        }
+        if (newPassword.length <= 2) {
+          throw Exception('Password is not valid');
+        }
+        return newPassword;
+      });
+    }
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasData, true);
-      expect(dependentCounter1.hasData, true);
-      expect(dependentCounter2.hasData, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 4);
+    //
+    expect(username.isIdle, true);
+    expect(password.isIdle, true);
 
-      //
-      shouldThrow = true;
-      counter1Future.refresh();
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 5);
+    //
+    onUsernameChanged('m');
+    expect(username.hasError, true);
+    expect(username.error.message, 'User name is not valid');
+    //
+    onUsernameChanged('me');
+    expect(username.hasError, true);
+    expect(username.error.message, 'User name is not valid');
+    //
+    onUsernameChanged('me@');
+    expect(username.hasData, true);
+    expect(username.state, 'me@');
+    //
+    onUsernameChanged('me');
+    expect(username.hasError, true);
+    expect(username.error.message, 'User name is not valid');
+    //
+    //
+    onPasswordChanged('1');
+    expect(password.hasError, true);
+    expect(password.error.message, 'Password is not valid');
+    //
+    onPasswordChanged('12');
+    expect(password.hasError, true);
+    expect(password.error.message, 'Password is not valid');
+    //
+    onPasswordChanged('123');
+    expect(password.hasData, true);
+    expect(password.state, '123');
+    //
+    onPasswordChanged('12');
+    expect(password.hasError, true);
+    expect(password.error.message, 'Password is not valid');
+    //
+    onPasswordChanged('123');
+    expect(password.hasData, true);
+    expect(password.state, '123');
+    //
+    // onPasswordChanged('123a');
+    // expect(password.hasError, true);
+    // expect(password.error.message, 'Password is not a valid number');
+    // //
+    // onPasswordChanged('123');
+    // expect(password.hasData, true);
+    // expect(password.state, '123');
+  });
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasError, true);
-      expect(dependentCounter1.hasError, true);
-      expect(dependentCounter2.hasError, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 6);
+  testWidgets('dependent counters', (tester) async {
+    bool shouldThrow = false;
+    final counter1 = RM.inject(() => 0);
+    final counter1Future = RM.injectFuture(
+      () => Future.delayed(
+        Duration(seconds: 1),
+        () => shouldThrow ? throw Exception('An ERROR') : 1,
+      ),
+    );
+    final dependentCounter1 = RM.inject<int>(
+      () => counter1.state + counter1Future.state,
+      dependsOn: DependsOn({counter1, counter1Future}),
+    );
+    final dependentCounter2 = RM.inject<int>(
+      () => dependentCounter1.state + 1,
+      dependsOn: DependsOn({dependentCounter1}),
+    );
+    int numberOfNotification = 0;
+    dependentCounter2.addObserver(
+      listener: (rm) {
+        numberOfNotification++;
+      },
+      shouldAutoClean: true,
+    );
 
-      //
-      shouldThrow = false;
-      counter1Future.refresh();
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      // tow calls: one from error to initstate and second from init to isWaiting
-      expect(numberOfNotification, 8);
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 1);
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasData, true);
-      expect(dependentCounter1.hasData, true);
-      expect(dependentCounter2.hasData, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 9);
-      //
-      //
-      shouldThrow = true;
-      counter1Future.refresh();
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 10);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasData, true);
+    expect(dependentCounter1.hasData, true);
+    expect(dependentCounter2.hasData, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 2);
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasError, true);
-      expect(dependentCounter1.hasError, true);
-      expect(dependentCounter2.hasError, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 11);
+    //
+    counter1Future.refresh();
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 3);
 
-      //
-      shouldThrow = false;
-      counter1Future.refresh();
-      expect(dependentCounter2.isWaiting, true);
-      expect(dependentCounter1.isWaiting, true);
-      expect(counter1Future.isWaiting, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 13);
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasData, true);
+    expect(dependentCounter1.hasData, true);
+    expect(dependentCounter2.hasData, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 4);
 
-      await tester.pump(Duration(seconds: 1));
-      expect(counter1Future.hasData, true);
-      expect(dependentCounter1.hasData, true);
-      expect(dependentCounter2.hasData, true);
-      expect(counter1.isIdle, true);
-      expect(numberOfNotification, 14);
-    },
-  );
+    //
+    shouldThrow = true;
+    counter1Future.refresh();
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 5);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasError, true);
+    expect(dependentCounter1.hasError, true);
+    expect(dependentCounter2.hasError, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 6);
+
+    //
+    shouldThrow = false;
+    counter1Future.refresh();
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    // tow calls: one from error to initstate and second from init to isWaiting
+    expect(numberOfNotification, 8);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasData, true);
+    expect(dependentCounter1.hasData, true);
+    expect(dependentCounter2.hasData, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 9);
+    //
+    //
+    shouldThrow = true;
+    counter1Future.refresh();
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 10);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasError, true);
+    expect(dependentCounter1.hasError, true);
+    expect(dependentCounter2.hasError, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 11);
+
+    //
+    shouldThrow = false;
+    counter1Future.refresh();
+    expect(dependentCounter2.isWaiting, true);
+    expect(dependentCounter1.isWaiting, true);
+    expect(counter1Future.isWaiting, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 13);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(counter1Future.hasData, true);
+    expect(dependentCounter1.hasData, true);
+    expect(dependentCounter2.hasData, true);
+    expect(counter1.isIdle, true);
+    expect(numberOfNotification, 14);
+  });
 
   testWidgets('Object extension', (tester) async {
     final model = _Model(0).inj();
@@ -489,11 +463,10 @@ void main() {
     final widget1 = OnBuilder(
       listenTo: counter,
       builder: () => ElevatedButton(
-        child: Text(
-          counter.state.toString(),
-        ),
-        onPressed: () => Navigator.of(RM.context!)
-            .push(MaterialPageRoute(builder: (_) => widget2)),
+        child: Text(counter.state.toString()),
+        onPressed: () =>
+            Navigator.of(RM.context!)
+                .push(MaterialPageRoute(builder: (c) => widget2)),
       ),
     );
     await tester.pumpWidget(MaterialApp(home: widget1));
@@ -514,9 +487,7 @@ void main() {
     await tester.pump(Duration(milliseconds: 500));
     showDialog(
       context: RM.context!,
-      builder: (context) => AlertDialog(
-        content: Text('Dialog'),
-      ),
+      builder: (context) => AlertDialog(content: Text('Dialog')),
     );
     await tester.pumpAndSettle();
     expect(find.byType(ElevatedButton), findsOneWidget);
@@ -538,14 +509,14 @@ void main() {
           inheritedCounter1 = counter(context);
           inheritedCounter2 = counter.of(context);
           return OnBuilder(
-              listenTo: inheritedCounter1, builder: () => Container());
+            listenTo: inheritedCounter1,
+            builder: () => Container(),
+          );
         },
       ),
     );
 
-    await tester.pumpWidget(MaterialApp(
-      home: widget,
-    ));
+    await tester.pumpWidget(MaterialApp(home: widget));
 
     expect(inheritedCounter1, isA<Injected<int>>());
     expect(inheritedCounter1.state, 0);
@@ -585,10 +556,7 @@ void main() {
     final counter = RM.inject(() => 0);
     final dependentCounter = RM.inject<int>(
       () => counter.state + 1,
-      dependsOn: DependsOn(
-        {counter},
-        debounceDelay: 1000,
-      ),
+      dependsOn: DependsOn({counter}, debounceDelay: 1000),
     );
     dependentCounter.state;
     counter.state++;
@@ -618,10 +586,7 @@ void main() {
     final counter = RM.inject(() => 0);
     final dependentCounter = RM.inject<int>(
       () => counter.state + 1,
-      dependsOn: DependsOn(
-        {counter},
-        throttleDelay: 1000,
-      ),
+      dependsOn: DependsOn({counter}, throttleDelay: 1000),
     );
     dependentCounter.state;
 
@@ -647,12 +612,9 @@ void main() {
 
   testWidgets('depend on a state that is initialy on error', (tester) async {
     final counter = RM.inject<int>(() => throw Exception('Error'));
-    final dependentCounter = RM.inject<int>(
-      () {
-        return counter.state + 1;
-      },
-      dependsOn: DependsOn({counter}),
-    );
+    final dependentCounter = RM.inject<int>(() {
+      return counter.state + 1;
+    }, dependsOn: DependsOn({counter}));
     expect(counter.hasError, true);
     expect(dependentCounter.hasError, true);
   });
@@ -667,182 +629,162 @@ void main() {
     await tester.pumpWidget(dependentCounter.rebuild(() => Container()));
   });
 
-  testWidgets(
-    'test rebuilder (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: model.rebuild.call(
-          () {
-            return Text(model.state.toString());
-          },
-          sideEffects: SideEffects<int>(),
-          shouldRebuild: (_, __) {
-            return true;
-          },
-          watch: () {
-            return model.state;
-          },
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('0'), findsOneWidget);
-      model.state++;
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
-    },
-  );
-  testWidgets(
-    'test whenRebuilder (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: model.rebuild.onAll(
-          onIdle: () => Text('onIdle'),
-          onWaiting: () => Text('onWaiting'),
-          onError: (err, _) => Text('onError'),
-          onData: (_) => Text('onData'),
-          sideEffects: SideEffects<int>(),
-          shouldRebuild: (_, __) {
-            return true;
-          },
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onIdle'), findsOneWidget);
-      model.setState((s) => Future.delayed(Duration(seconds: 1)));
-      await tester.pump();
-      expect(find.text('onWaiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('onData'), findsOneWidget);
-    },
-  );
+  testWidgets('test rebuilder (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: model.rebuild.call(
+        () {
+          return Text(model.state.toString());
+        },
+        sideEffects: SideEffects<int>(),
+        shouldRebuild: (c, __) {
+          return true;
+        },
+        watch: () {
+          return model.state;
+        },
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+    model.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+  });
+  testWidgets('test whenRebuilder (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: model.rebuild.onAll(
+        onIdle: () => Text('onIdle'),
+        onWaiting: () => Text('onWaiting'),
+        onError: (err, c) => Text('onError'),
+        onData: (c) => Text('onData'),
+        sideEffects: SideEffects<int>(),
+        shouldRebuild: (c, __) {
+          return true;
+        },
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onIdle'), findsOneWidget);
+    model.setState((s) => Future.delayed(Duration(seconds: 1)));
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('onData'), findsOneWidget);
+  });
 
-  testWidgets(
-    'test whenRebuilderOr (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: model.rebuild.onOrElse(
-          onIdle: () => Text('onIdle'),
-          onWaiting: () => Text('onWaiting'),
-          onError: (err, _) => Text('onError'),
-          orElse: (_) => Text('onData'),
-          sideEffects: SideEffects<int>(),
-          shouldRebuild: (_, __) {
-            return true;
-          },
-          // watch: () {},
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onIdle'), findsOneWidget);
-      model.setState((s) => Future.delayed(Duration(seconds: 1)));
-      await tester.pump();
-      expect(find.text('onWaiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('onData'), findsOneWidget);
-    },
-  );
+  testWidgets('test whenRebuilderOr (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: model.rebuild.onOrElse(
+        onIdle: () => Text('onIdle'),
+        onWaiting: () => Text('onWaiting'),
+        onError: (err, c) => Text('onError'),
+        orElse: (c) => Text('onData'),
+        sideEffects: SideEffects<int>(),
+        shouldRebuild: (c, __) {
+          return true;
+        },
+        // watch: () {},
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onIdle'), findsOneWidget);
+    model.setState((s) => Future.delayed(Duration(seconds: 1)));
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('onData'), findsOneWidget);
+  });
 
-  testWidgets(
-    'test rebuilder for list (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: [model].rebuild(
-          () {
-            return Text(model.state.toString());
-          },
-          sideEffects: SideEffects(),
-          shouldRebuild: (_, __) {
-            return true;
-          },
-          watch: () {
-            return model.state;
-          },
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('0'), findsOneWidget);
-      model.state++;
-      await tester.pump();
-      expect(find.text('1'), findsOneWidget);
-    },
-  );
+  testWidgets('test rebuilder for list (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: [model].rebuild(
+        () {
+          return Text(model.state.toString());
+        },
+        sideEffects: SideEffects(),
+        shouldRebuild: (c, __) {
+          return true;
+        },
+        watch: () {
+          return model.state;
+        },
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('0'), findsOneWidget);
+    model.state++;
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+  });
 
-  testWidgets(
-    'test whenRebuilder for list (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: [model].rebuild.onAll(
-              onIdle: () => Text('onIdle'),
-              onWaiting: () => Text('onWaiting'),
-              onError: (err, _) => Text('onError'),
-              onData: (_) => Text('onData'),
-              sideEffects: SideEffects(),
-              shouldRebuild: (_, __) {
-                return true;
-              },
-            ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onIdle'), findsOneWidget);
-      model.setState((s) => Future.delayed(Duration(seconds: 1)));
-      await tester.pump();
-      expect(find.text('onWaiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('onData'), findsOneWidget);
-    },
-  );
+  testWidgets('test whenRebuilder for list (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: [model].rebuild.onAll(
+        onIdle: () => Text('onIdle'),
+        onWaiting: () => Text('onWaiting'),
+        onError: (err, c) => Text('onError'),
+        onData: (c) => Text('onData'),
+        sideEffects: SideEffects(),
+        shouldRebuild: (c, __) {
+          return true;
+        },
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onIdle'), findsOneWidget);
+    model.setState((s) => Future.delayed(Duration(seconds: 1)));
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('onData'), findsOneWidget);
+  });
 
-  testWidgets(
-    'test whenRebuilderOr for list (Deprecated)'
-    'THEN',
-    (tester) async {
-      final model = RM.inject(() => 0);
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: [model].rebuild.onOrElse(
-              onIdle: () => Text('onIdle'),
-              onWaiting: () => Text('onWaiting'),
-              onError: (err, _) => Text('onError'),
-              orElse: (_) => Text('onData'),
-              sideEffects: SideEffects(),
+  testWidgets('test whenRebuilderOr for list (Deprecated)'
+      'THEN', (tester) async {
+    final model = RM.inject(() => 0);
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: [model].rebuild.onOrElse(
+        onIdle: () => Text('onIdle'),
+        onWaiting: () => Text('onWaiting'),
+        onError: (err, c) => Text('onError'),
+        orElse: (c) => Text('onData'),
+        sideEffects: SideEffects(),
 
-              shouldRebuild: (_, __) {
-                return true;
-              },
-              // watch: () {},
-            ),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('onIdle'), findsOneWidget);
-      model.setState((s) => Future.delayed(Duration(seconds: 1)));
-      await tester.pump();
-      expect(find.text('onWaiting'), findsOneWidget);
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('onData'), findsOneWidget);
-    },
-  );
+        shouldRebuild: (c, __) {
+          return true;
+        },
+        // watch: () {},
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('onIdle'), findsOneWidget);
+    model.setState((s) => Future.delayed(Duration(seconds: 1)));
+    await tester.pump();
+    expect(find.text('onWaiting'), findsOneWidget);
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('onData'), findsOneWidget);
+  });
 }
 
 class _Model {
   int count;
-  _Model(
-    this.count,
-  );
+  _Model(this.count);
   void increment() => count++;
 
   @override

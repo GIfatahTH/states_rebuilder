@@ -40,13 +40,13 @@ class TodoItem extends StatelessWidget {
           ),
           title: Text(
             todo.state.task,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           subtitle: Text(
             todo.state.note,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
       ),

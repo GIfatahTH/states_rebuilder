@@ -32,7 +32,7 @@ final numbers = RM.injectCRUD<Number, NumberParam>(
         ),
       );
     },
-    onResult: (_) => count.refresh(),
+    onResult: (c) => count.refresh(),
   ),
 );
 
@@ -83,11 +83,11 @@ class App extends StatelessWidget {
       leading: OnCRUDBuilder(
         listenTo: numbers,
         onWaiting: () => Icon(Icons.circle, color: Colors.yellow),
-        onError: (_, retry) => IconButton(
+        onError: (c, retry) => IconButton(
           icon: Icon(Icons.refresh_outlined, color: Colors.red),
           onPressed: () => retry(),
         ),
-        onResult: (_) => Icon(Icons.check, color: Colors.green),
+        onResult: (c) => Icon(Icons.check, color: Colors.green),
       ),
       actions: [
         ElevatedButton(
@@ -137,14 +137,14 @@ class App extends StatelessWidget {
         //     onPressed: () => refresh(),
         //   ),
         // ),
-        orElse: (_) => ListView.builder(
+        orElse: (c) => ListView.builder(
           itemCount: numbers.state.length + 1,
           itemBuilder: (context, index) {
             if (index >= numbers.state.length) {
               return OnReactive(
                 () => numbers.onOrElse(
                   onWaiting: () => Center(child: CircularProgressIndicator()),
-                  orElse: (_) => SizedBox.shrink(),
+                  orElse: (c) => SizedBox.shrink(),
                 ),
               );
             }

@@ -8,7 +8,7 @@ class Counter1 {
   final int _incrementBy;
   final bool shouldThrow;
   Counter1({int incrementBy = 1, this.shouldThrow = false})
-      : _incrementBy = incrementBy;
+    : _incrementBy = incrementBy;
   int _count = 0;
   int get count => _count * _incrementBy;
   void increment() {
@@ -23,7 +23,7 @@ class Counter2 {
   final int _incrementBy;
   final bool shouldThrow;
   Counter2({int incrementBy = 1, this.shouldThrow = false})
-      : _incrementBy = incrementBy;
+    : _incrementBy = incrementBy;
   int _count = 0;
   int get count => _count * _incrementBy;
   Future<void> increment() async {
@@ -35,12 +35,8 @@ class Counter2 {
   }
 }
 
-final counter1 = RM.inject(
-  () => Counter1(),
-);
-final counter2 = RM.inject(
-  () => Counter2(),
-);
+final counter1 = RM.inject(() => Counter1());
+final counter2 = RM.inject(() => Counter2());
 
 final computedCounter = RM.inject<int>(
   () => counter1.state.count * counter2.state.count,
@@ -67,7 +63,7 @@ class CounterApp extends StatelessWidget {
         children: [
           OnBuilder.data(
             listenTo: counter1,
-            builder: (_) {
+            builder: (c) {
               counter1NbrOfRebuilds++;
               return Text('counter1 :${counter1.state.count}');
             },
@@ -76,8 +72,8 @@ class CounterApp extends StatelessWidget {
             listenTo: counter2,
             onIdle: () => Text('Idle'),
             onWaiting: () => Text('Waiting...'),
-            onError: (e, _) => Text(e.message),
-            onData: (_) {
+            onError: (e, c) => Text(e.message),
+            onData: (c) {
               counter2NbrOfRebuilds++;
               return Text('counter2 :${counter2.state.count}');
             },
@@ -85,17 +81,17 @@ class CounterApp extends StatelessWidget {
           OnBuilder.orElse(
             listenTo: computedCounter,
             onWaiting: () => Text('Waiting...'),
-            onError: (e, _) {
+            onError: (e, c) {
               return Text(e.message);
             },
-            orElse: (_) {
+            orElse: (c) {
               computedCounterNbrOfRebuilds++;
               return Text('computedCounter :${computedCounter.state}');
             },
           ),
           OnBuilder.data(
             listenTo: computedCounter,
-            builder: (_) => Text('rebuilder :${computedCounter.state}'),
+            builder: (c) => Text('rebuilder :${computedCounter.state}'),
           ),
         ],
       ),
@@ -116,8 +112,8 @@ class CounterApp1 extends StatelessWidget {
           OnBuilder.orElse(
             listenTo: anOtherComputedCounter,
             onWaiting: () => Text('Waiting...'),
-            onError: (e, _) => Text(e.message),
-            orElse: (_) {
+            onError: (e, c) => Text(e.message),
+            orElse: (c) {
               computedCounterNbrOfRebuilds++;
               return Text(anOtherComputedCounter.state);
             },
@@ -149,8 +145,9 @@ void main() {
     expect(computedCounterNbrOfRebuilds, 1);
   });
 
-  testWidgets('increment one counter, change the computed counter',
-      (tester) async {
+  testWidgets('increment one counter, change the computed counter', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
     //
     counter1.setState((s) => s.increment());

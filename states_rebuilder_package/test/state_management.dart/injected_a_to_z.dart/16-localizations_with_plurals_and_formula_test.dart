@@ -60,27 +60,24 @@ final currentLocale = RM.inject<Locale>(
       _storedLocale ?? WidgetsBinding.instance.platformDispatcher.locales.first,
   //Each time the currentLocale is changed, we refresh the i18n so it load the
   //right json file.
-  // onData: (_) => i18n.refresh(),
+  // onData: (c) => i18n.refresh(),
 );
 
-final Injected<I18n> i18n = RM.inject<I18n>(
-  () {
-    //returning an instance of I18n
-    for (final localeEntry in supportedLocalesMap.entries) {
-      if (localeEntry.key == currentLocale.state) {
-        return localeEntry.value;
-      }
+final Injected<I18n> i18n = RM.inject<I18n>(() {
+  //returning an instance of I18n
+  for (final localeEntry in supportedLocalesMap.entries) {
+    if (localeEntry.key == currentLocale.state) {
+      return localeEntry.value;
     }
+  }
 
-    for (final localeEntry in supportedLocalesMap.entries) {
-      if (localeEntry.key.languageCode == currentLocale.state.languageCode) {
-        return localeEntry.value;
-      }
+  for (final localeEntry in supportedLocalesMap.entries) {
+    if (localeEntry.key.languageCode == currentLocale.state.languageCode) {
+      return localeEntry.value;
     }
-    return En_US();
-  },
-  dependsOn: DependsOn({currentLocale}),
-);
+  }
+  return En_US();
+}, dependsOn: DependsOn({currentLocale}));
 
 final counter = RM.inject(() => 0);
 
@@ -90,7 +87,7 @@ class LocalizationsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.bindingObserver(
       listenTo: i18n,
-      didChangeLocales: (_, __) {
+      didChangeLocales: (c, __) {
         //when didChangeLocales is invoked,
         //we refresh the currentLocale and the i18n
         //It is only when they change that the widget will rebuild
@@ -124,7 +121,7 @@ class LocalizationsApp extends StatelessWidget {
                   Text(i18n.state.counter_app),
                   OnBuilder.data(
                     listenTo: counter,
-                    builder: (_) => Text(
+                    builder: (c) => Text(
                       i18n.state.you_have_pushed_the_button_$num_times(
                         counter.state,
                       ),
@@ -146,8 +143,9 @@ void main() {
     _storedLocale = null;
   });
 
-  testWidgets('No stored locale, use the system locale (en_US)',
-      (tester) async {
+  testWidgets('No stored locale, use the system locale (en_US)', (
+    tester,
+  ) async {
     await tester.pumpWidget(LocalizationsApp());
     expect(_localeFromTheApp, Locale('en', 'US'));
     expect(find.text('Counter app'), findsOneWidget);

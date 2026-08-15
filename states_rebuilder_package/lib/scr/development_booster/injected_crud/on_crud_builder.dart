@@ -94,42 +94,42 @@ class OnCRUDBuilder extends MyStatefulWidget {
     void Function()? dispose,
     String? debugPrintWhenRebuild,
   }) : super(
-          key: key,
-          observers: (context) {
-            return [(listenTo as InjectedCRUDImp).onCrudRM];
-          },
-          dispose: (_, __) {
-            dispose?.call();
-            listenTo.disposeIfNotUsed();
-          },
-          debugPrintWhenRebuild: debugPrintWhenRebuild,
-          builder: (context, snap, rm) {
-            final inj = rm as ReactiveModelImp;
-            if (inj.isWaiting) {
-              return onWaiting?.call() ?? onResult(inj.snapValue.data);
-            }
-            if (inj.hasError) {
-              // Widget? w;
-              // if (inj.hasError) {
-              //   w = onError?.call(
-              //     inj.error,
-              //     inj.snapValue.snapError!.refresher,
-              //   );
-              // } else {
-              //   w = onError?.call(
-              //     inj.error,
-              //     inj.snapValue.snapError!.refresher,
-              //   );
-              // }
-              return onError?.call(
-                    inj.error,
-                    inj.snapValue.snapError!.refresher,
-                  ) ??
-                  onResult(inj.snapValue.data);
-            }
-            return (onResult(inj.snapValue.data));
-          },
-        );
+         key: key,
+         observers: (context) {
+           return [(listenTo as InjectedCRUDImp).onCrudRM];
+         },
+         dispose: (c, __) {
+           dispose?.call();
+           listenTo.disposeIfNotUsed();
+         },
+         debugPrintWhenRebuild: debugPrintWhenRebuild,
+         builder: (context, snap, rm) {
+           final inj = rm as ReactiveModelImp;
+           if (inj.isWaiting) {
+             return onWaiting?.call() ?? onResult(inj.snapValue.data);
+           }
+           if (inj.hasError) {
+             // Widget? w;
+             // if (inj.hasError) {
+             //   w = onError?.call(
+             //     inj.error,
+             //     inj.snapValue.snapError!.refresher,
+             //   );
+             // } else {
+             //   w = onError?.call(
+             //     inj.error,
+             //     inj.snapValue.snapError!.refresher,
+             //   );
+             // }
+             return onError?.call(
+                   inj.error,
+                   inj.snapValue.snapError!.refresher,
+                 ) ??
+                 onResult(inj.snapValue.data);
+           }
+           return (onResult(inj.snapValue.data));
+         },
+       );
 
   /// InjectedCRUD to listen to
   final InjectedCRUD listenTo;

@@ -70,7 +70,7 @@ class CounterView extends ReactiveStatelessWidget {
             ),
             Text(
               '${counterViewModel.counter}',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 12),
             // Pushing the next route

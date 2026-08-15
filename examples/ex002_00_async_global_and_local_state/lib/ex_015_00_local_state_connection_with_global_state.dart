@@ -90,7 +90,7 @@ class MyApp extends StatelessWidget {
             // Create the local TodosViewModel
             child: todosViewModel.inherited(
               stateOverride: () => TodosViewModel(),
-              builder: (_) => Home(),
+              builder: (c) => Home(),
             ),
           ),
         ],
@@ -138,7 +138,7 @@ class Home extends ReactiveStatelessWidget {
               stateOverride: () {
                 return todos[i];
               },
-              builder: (_) => const TodoItem(),
+              builder: (c) => const TodoItem(),
             )
           ],
         ],

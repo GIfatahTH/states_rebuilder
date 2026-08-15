@@ -72,9 +72,9 @@ class App extends TopStatelessWidget {
       navigatorKey: RM.navigate.navigatorKey,
       onGenerateRoute: RM.navigate.onGenerateRoute(
         {
-          HomeScreen.routeName: (_) => const HomeScreen(),
-          AuthPage.routeName: (_) => const AuthPage(),
-          AddEditPage.routeName: (_) => const AddEditPage(),
+          HomeScreen.routeName: (c) => const HomeScreen(),
+          AuthPage.routeName: (c) => const AuthPage(),
+          AddEditPage.routeName: (c) => const AddEditPage(),
         },
         // transitionsBuilder: RM.transitions.upToBottom(),
       ),

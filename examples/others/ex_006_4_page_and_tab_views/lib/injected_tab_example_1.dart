@@ -71,7 +71,7 @@ class PageViewOnly extends StatelessWidget {
         () => PageView.builder(
           controller: injectedTabPage.pageController,
           itemCount: injectedTabPage.length,
-          itemBuilder: (_, i) {
+          itemBuilder: (c, i) {
             return Icon(
               icons[i],
               size: 50,
