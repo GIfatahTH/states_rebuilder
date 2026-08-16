@@ -1,6 +1,6 @@
 name: states_rebuilder
 description: a simple yet powerful state management technique for Flutter
-version: 6.4.0
+version: 7.0.0-dev2
 homepage: https://github.com/GIfatahTH/states_rebuilder
 environment:
   sdk: '>=3.13.0 <4.0.0'
@@ -12,8 +12,10 @@ dependencies:
     sdk: flutter 
   collection: ^1.14.11
   meta: ^1.7.0
-  navigation_builder: ^0.0.4-dev3
+  navigation_builder: ^0.0.5-dev1 
 
+  cupertino_ui: ^1.0.0
+  material_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

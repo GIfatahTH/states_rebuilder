@@ -1,6 +1,6 @@
 import 'package:ex_005_theme_switching/home_page.dart';
 import 'package:ex_005_theme_switching/main.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

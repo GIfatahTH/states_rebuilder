@@ -2,7 +2,7 @@ import 'package:clean_architecture_dane_mackier_app/blocs/user_bloc.dart';
 import 'package:clean_architecture_dane_mackier_app/data_source/api.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/exceptions/exception_handler.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 @immutable

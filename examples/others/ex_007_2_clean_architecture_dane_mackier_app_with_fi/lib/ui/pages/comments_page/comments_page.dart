@@ -1,5 +1,5 @@
 import 'package:clean_architecture_dane_mackier_app/blocs/posts_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../blocs/comments_bloc.dart';

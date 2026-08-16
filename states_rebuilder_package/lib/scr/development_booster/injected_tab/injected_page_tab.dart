@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../state_management/common/logger.dart';
 import '../../state_management/rm.dart';
 
@@ -83,7 +84,7 @@ part 'on_tab_builder.dart';
 ///  }
 /// ```
 ///  {@endtemplate}
-abstract class InjectedTabPageView implements IObservable<int> {
+abstract mixin class InjectedTabPageView implements IObservable<int> {
   ///Listen to the [InjectedTabPageView] and rebuild when tab index is changed.
   // late final rebuild = _RebuildTab(this);
   TabController? _tabController;
@@ -93,9 +94,10 @@ abstract class InjectedTabPageView implements IObservable<int> {
   TabController get tabController {
     _OnTabPageViewBuilderState._addToTabObs?.call(this);
     assert(
-        _tabController != null,
-        'TabController is not initialized yet. '
-        'You have to wrap the TabBarView or TabBar widget with the OnTabBuilder widget');
+      _tabController != null,
+      'TabController is not initialized yet. '
+      'You have to wrap the TabBarView or TabBar widget with the OnTabBuilder widget',
+    );
     return _tabController!;
   }
 
@@ -173,21 +175,13 @@ abstract class InjectedTabPageView implements IObservable<int> {
     Curve curve = Curves.ease,
   }) {
     if (_tabController != null) {
-      _tabController!.animateTo(
-        value,
-        duration: duration,
-        curve: curve,
-      );
+      _tabController!.animateTo(value, duration: duration, curve: curve);
     } else {
       assert(_pageController != null);
       if (duration == Duration.zero) {
         _pageController?.jumpToPage(value);
       } else {
-        _pageController?.animateToPage(
-          value,
-          duration: duration,
-          curve: curve,
-        );
+        _pageController?.animateToPage(value, duration: duration, curve: curve);
       }
     }
   }
@@ -283,11 +277,11 @@ class InjectedPageTabImp extends ReactiveModelImp<int>
     this.viewportFraction = 1.0,
     this.keepPage = true,
   }) : super(
-          creator: () => initialIndex,
-          initialState: initialIndex,
-          autoDisposeWhenNotUsed: true,
-          stateInterceptorGlobal: null,
-        ) {
+         creator: () => initialIndex,
+         initialState: initialIndex,
+         autoDisposeWhenNotUsed: true,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       _tabController = null;
       _pageController = null;
@@ -379,14 +373,13 @@ class InjectedPageTabImp extends ReactiveModelImp<int>
       if (snapState.data == _tabController!.index) {
         return;
       }
-      snapValue =
-          const SnapState<int>.none().copyToHasData(_tabController!.index);
+      snapValue = const SnapState<int>.none().copyToHasData(
+        _tabController!.index,
+      );
 
       if (!_pageIndexIsChanging) {
         if (duration == Duration.zero) {
-          _pageController?.jumpToPage(
-            _tabController!.index,
-          );
+          _pageController?.jumpToPage(_tabController!.index);
         } else {
           _pageController?.animateToPage(
             _tabController!.index,
@@ -425,11 +418,7 @@ class InjectedPageTabImp extends ReactiveModelImp<int>
         if (_page! >= _tabController!.length) {
           return;
         }
-        _tabController?.animateTo(
-          _page!,
-          duration: duration,
-          curve: curve,
-        );
+        _tabController?.animateTo(_page!, duration: duration, curve: curve);
         _pageIndexIsChanging = false;
       } else {
         snapValue = const SnapState<int>.none().copyToHasData(_page!);

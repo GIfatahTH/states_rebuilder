@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.0.11
   sembast: ^3.1.1+1
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

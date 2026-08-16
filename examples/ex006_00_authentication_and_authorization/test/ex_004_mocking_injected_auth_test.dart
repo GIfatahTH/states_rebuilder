@@ -3,7 +3,7 @@ import 'package:ex006_00_authentication_and_authorization/ex_003_auto_logout_and
 import 'package:ex006_00_authentication_and_authorization/ex_003_auto_logout_and_refresh_token/models/token.dart';
 import 'package:ex006_00_authentication_and_authorization/ex_003_auto_logout_and_refresh_token/models/user.dart';
 import 'package:ex006_00_authentication_and_authorization/ex_003_auto_logout_and_refresh_token/ui/home_page/home_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

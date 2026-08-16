@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, deprecated_member_use_from_same_package, unused_result
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';

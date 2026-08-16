@@ -35,7 +35,7 @@ part of 'injected_text_editing.dart';
 /// ```
 ///  {@endtemplate}
 
-abstract class InjectedFormField<T> implements IObservable<T> {
+abstract mixin class InjectedFormField<T> implements IObservable<T> {
   late final _baseFormField = this as _BaseFormField;
 
   ///Whether it passes the validation test
@@ -122,11 +122,11 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
     bool? isReadOnly,
     bool? isEnabled,
   }) : super(
-          creator: () => initialValue,
-          autoDisposeWhenNotUsed: autoDispose,
-          initialState: initialValue,
-          stateInterceptorGlobal: null,
-        ) {
+         creator: () => initialValue,
+         autoDisposeWhenNotUsed: autoDispose,
+         initialState: initialValue,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       this.initialValue = initialValue;
       form = null;
@@ -237,11 +237,9 @@ class InjectedFormFieldImp<T> extends ReactiveModelImp<T>
       if (form!.autovalidateMode == AutovalidateMode.always) {
         //When initialized and always auto validated, then validate in the next
         //frame
-        WidgetsBinding.instance.addPostFrameCallback(
-          (timeStamp) {
-            form!.validate();
-          },
-        );
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          form!.validate();
+        });
       } else {
         if (_validateOnLoseFocus == null && _validateOnValueChange != true) {
           //If the TextField is inside a On.form, set _validateOnLoseFocus to

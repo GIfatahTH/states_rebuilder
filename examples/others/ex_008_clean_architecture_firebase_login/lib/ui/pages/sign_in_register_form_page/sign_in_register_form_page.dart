@@ -3,7 +3,7 @@ import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out
 import '../../../domain/common/validator.dart';
 
 import '../../../domain/entities/user.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../injected.dart';

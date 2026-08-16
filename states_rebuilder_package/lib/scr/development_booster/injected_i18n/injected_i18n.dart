@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../state_management/rm.dart';
 
 /// Used to manage app localization and internationalization
-abstract class InjectedI18N<I18N> {
+abstract mixin class InjectedI18N<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
@@ -37,11 +37,7 @@ abstract class InjectedI18N<I18N> {
   /// [GlobalMaterialLocalizations], [GlobalWidgetsLocalizations] and
   /// [GlobalCupertinoLocalizations]
   final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates =
-      const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ];
+      GlobalMaterialLocalizations.delegates;
 
   /// Use [of] instead
   Injected<I18N> call(BuildContext context, {bool defaultToGlobal = false});

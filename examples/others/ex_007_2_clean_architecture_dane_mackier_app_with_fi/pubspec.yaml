@@ -29,6 +29,9 @@ dependencies:
   http: ^0.13.0-nullsafety.0
 
 
+  meta: any
+  cupertino_ui: any
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter  

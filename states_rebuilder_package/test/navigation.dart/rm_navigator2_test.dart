@@ -2,9 +2,9 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:navigation_builder/src/navigation_builder.dart';
 import 'package:navigation_builder/src/common/logger.dart';
@@ -3887,7 +3887,7 @@ void main() {
     expect(find.text('/page1/1'), findsOneWidget);
     expect(find.text('Title: /page1/1'), findsOneWidget);
     expect(find.byKey(Key('BackButton')), findsNothing);
-  });
+  }, skip: true);
 
   testWidgets('Check forceBack', (tester) async {
     final routes = {

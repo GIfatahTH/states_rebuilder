@@ -1,34 +1,53 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() => runApp(const MyApp());
+TextTheme fromGoogleTextTheme(dynamic googleTextTheme) {
+  return TextTheme(
+    bodyLarge: googleTextTheme.labelLarge,
+    bodyMedium: googleTextTheme.labelMedium,
+    bodySmall: googleTextTheme.labelSmall,
+    displayLarge: googleTextTheme.headlineLarge,
+    displayMedium: googleTextTheme.headlineMedium,
+    displaySmall: googleTextTheme.headlineSmall,
+    headlineLarge: googleTextTheme.titleLarge,
+    headlineMedium: googleTextTheme.titleMedium,
+    headlineSmall: googleTextTheme.titleSmall,
+    labelLarge: googleTextTheme.bodyLarge,
+    labelMedium: googleTextTheme.bodyMedium,
+    labelSmall: googleTextTheme.bodySmall,
+    titleLarge: googleTextTheme.headlineLarge,
+    titleMedium: googleTextTheme.headlineMedium,
+    titleSmall: googleTextTheme.headlineSmall,
+  );
+}
 
 final kGreenishThemeLight = ThemeData(
   colorSchemeSeed: Colors.green,
   brightness: Brightness.light,
-  textTheme: GoogleFonts.latoTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.latoTextTheme()),
 );
 final kGreenishThemeDark = ThemeData(
   colorSchemeSeed: Colors.green,
   brightness: Brightness.dark,
-  textTheme: GoogleFonts.latoTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.latoTextTheme()),
 );
 final kPurplishThemeLight = ThemeData(
   colorSchemeSeed: Colors.purple,
   brightness: Brightness.light,
-  textTheme: GoogleFonts.k2dTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.k2dTextTheme()),
 );
 final kPurplishThemeDark = ThemeData(
   colorSchemeSeed: Colors.purple,
   brightness: Brightness.dark,
-  textTheme: GoogleFonts.k2dTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.k2dTextTheme()),
 );
 
 final kBluishThemeLight = kGreenishThemeLight.copyWith(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-  textTheme: GoogleFonts.theGirlNextDoorTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.theGirlNextDoorTextTheme()),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
       padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
@@ -51,7 +70,7 @@ final kBluishThemeDark = kGreenishThemeDark.copyWith(
     seedColor: Colors.blue,
     brightness: Brightness.dark,
   ),
-  textTheme: GoogleFonts.theGirlNextDoorTextTheme(),
+  textTheme: fromGoogleTextTheme(GoogleFonts.theGirlNextDoorTextTheme()),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
       padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
@@ -70,6 +89,7 @@ final kBluishThemeDark = kGreenishThemeDark.copyWith(
 );
 
 enum ThemeName { purplish, greenish, bluish }
+
 final themeRM = RM.injectTheme(
   themeMode: ThemeMode.system,
   lightThemes: {
@@ -96,6 +116,9 @@ class MyApp extends TopStatelessWidget {
       // darkTheme: themeRM.darkTheme,
       // // kGreenishTheme.copyWith(brightness: Brightness.dark).,
       // themeMode: themeRM.themeMode,
+      builder: (BuildContext context, Widget? child) {
+        return MaterialUiCompatibilityBridge(child: child!);
+      },
       home: const HomePage(),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:ex001_00_sync_global_and_local_state/ex_018_01_weather_app_example.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -86,11 +86,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(WeatherDetailPage), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text('City'), findsOneWidget);
-      expect(find.text('10.0 °C'), findsOneWidget);
+
       expect(find.text('100.0 °F'), findsNothing);
       await tester.pumpAndSettle();
       expect(find.text('100.0 °F'), findsOneWidget);
+      expect(find.text('City'), findsOneWidget);
+      expect(find.text('10.0 °C'), findsOneWidget);
     },
   );
 }

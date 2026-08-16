@@ -1,6 +1,6 @@
 part of 'injected_text_editing.dart';
 
-abstract class _BaseFormField<T> {
+abstract mixin class _BaseFormField<T> {
   ///The associated [InjectedForm]
   late InjectedForm? form;
   late T? initialValue;

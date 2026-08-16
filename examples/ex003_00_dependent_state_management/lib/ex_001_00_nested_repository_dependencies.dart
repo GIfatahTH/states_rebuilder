@@ -6,7 +6,7 @@ import 'dart:async';
 * The first class should wait for plugin to initialize before being able to
 * instantiate objects.
 */
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Plugin1Repository {

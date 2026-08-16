@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 import '../../blocs/auth_bloc.dart';

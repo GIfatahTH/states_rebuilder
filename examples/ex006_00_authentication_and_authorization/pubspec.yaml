@@ -41,6 +41,8 @@ dependencies:
   google_sign_in: ^5.2.3
   hive_flutter: ^1.0.0
 
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

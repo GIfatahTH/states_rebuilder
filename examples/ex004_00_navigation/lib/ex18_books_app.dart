@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'ex16_books_app/data_source/library.dart';
@@ -90,6 +90,7 @@ class App extends TopStatelessWidget {
       theme: ThemeData.light(useMaterial3: false),
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );
   }
 }

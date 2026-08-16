@@ -1,6 +1,6 @@
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/sign_form_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class AuthPage extends StatelessWidget {

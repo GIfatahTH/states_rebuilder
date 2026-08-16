@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Use Child in combination of other widget listeners, to control
 /// the part of the widget tree to rebuild.

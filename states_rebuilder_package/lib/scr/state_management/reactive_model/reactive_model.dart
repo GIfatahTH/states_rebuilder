@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 /// Observable state interface
-abstract class IObservable<T> {
+abstract mixin class IObservable<T> {
   ///The state is initialized and never mutated.
   bool get isIdle;
 

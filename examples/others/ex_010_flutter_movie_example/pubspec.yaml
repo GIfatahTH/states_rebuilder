@@ -33,6 +33,8 @@ dependencies:
   states_rebuilder:
     path: ../../../states_rebuilder_package
 
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../state_management/common/consts.dart';
 import '../../state_management/rm.dart';
@@ -30,7 +30,7 @@ part 'on_auth_builder.dart';
 /// See: [InjectedAuth.auth], [_AuthService.signUp], [_AuthService.singIn],
 /// [_AuthService.signOut], [_AuthService.refreshToken],and
 /// [OnAuthBuilder]
-abstract class InjectedAuth<T, P> implements Injected<T> {
+abstract mixin class InjectedAuth<T, P> implements Injected<T> {
   // InjectedAuthImp<T, P> _getImp() => this as InjectedAuthImp<T, P>;
   IAuth<T, P>? _repo;
 

@@ -1,5 +1,5 @@
 import 'package:ex001_00_sync_global_and_local_state/ex_018_00_weather_app_example.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -56,29 +56,29 @@ void main() {
   testWidgets(
     'Fetch city and navigate to detailed',
     (tester) async {
-      when(() => fakeRepository.fetchWeather('City')).thenAnswer(
+      when(() => fakeRepository.fetchWeather('London')).thenAnswer(
         (c) => Future.delayed(
           const Duration(seconds: 1),
-          () => Weather(cityName: 'City', temperatureCelsius: 10),
+          () => Weather(cityName: 'London', temperatureCelsius: 10),
         ),
       );
-      when(() => fakeRepository.fetchDetailedWeather('City')).thenAnswer(
+      when(() => fakeRepository.fetchDetailedWeather('London')).thenAnswer(
         (c) => Future.delayed(
           const Duration(seconds: 1),
           () => Weather(
-            cityName: 'City',
+            cityName: 'London',
             temperatureCelsius: 10,
             temperatureFahrenheit: 100,
           ),
         ),
       );
       await tester.pumpWidget(const MyApp());
-      await tester.enterText(find.byType(TextField), 'City');
+      await tester.enterText(find.byType(TextField), 'London');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
-      expect(find.text('City'), findsOneWidget);
+      expect(find.text('London'), findsOneWidget);
       expect(find.text('10.0 °C'), findsOneWidget);
       //
       await tester.tap(find.text('See Details'));
@@ -86,10 +86,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(WeatherDetailPage), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text('City'), findsOneWidget);
-      expect(find.text('10.0 °C'), findsOneWidget);
+
       expect(find.text('100.0 °F'), findsNothing);
       await tester.pumpAndSettle();
+      expect(find.text('London'), findsOneWidget);
+      expect(find.text('10.0 °C'), findsOneWidget);
       expect(find.text('100.0 °F'), findsOneWidget);
     },
   );

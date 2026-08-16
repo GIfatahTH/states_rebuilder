@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../state_management/rm.dart';
@@ -47,7 +47,7 @@ part 'animate.dart';
 ///    ```
 ///  {@endtemplate}
 
-abstract class InjectedAnimation implements IObservable<double> {
+abstract mixin class InjectedAnimation implements IObservable<double> {
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   ///
   ///See [_RebuildAnimation.onAnimation]
@@ -118,11 +118,7 @@ abstract class InjectedAnimation implements IObservable<double> {
 
 ///InjectedAnimation implementation
 class InjectedAnimationImp extends ReactiveModelImp<double>
-    implements InjectedAnimation {
-  // 2. Add this line to satisfy all other missing implementations automatically:
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
+    with InjectedAnimation {
   ///InjectedAnimation implementation
   InjectedAnimationImp({
     Duration duration = const Duration(milliseconds: 500),

@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -60,10 +60,30 @@ void main() {
     expect('$padding', 'EdgeInsets.all(10.0)');
     expect('$margin', 'EdgeInsets.all(10.0)');
     expect('$constraints', 'BoxConstraints(0.0<=w<=100.0, 0.0<=h<=100.0)');
-    expect('$color', 'MaterialColor(primary value: Color(0xfff44336))');
+
     expect(
-      '$decoration',
-      'BoxDecoration(color: MaterialColor(primary value: Color(0xfff44336)))',
+      color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having(
+            (c) => c.r,
+            'red',
+            closeTo(0.9569, 0.0001),
+          ) // Handles floating-point rounding
+          .having((c) => c.g, 'green', closeTo(0.2627, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.2118, 0.0001)),
+    );
+    expect(
+      (decoration as BoxDecoration).color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having(
+            (c) => c.r,
+            'red',
+            closeTo(0.9569, 0.0001),
+          ) // Handles floating-point rounding
+          .having((c) => c.g, 'green', closeTo(0.2627, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.2118, 0.0001)),
     );
 
     selected = !selected;
@@ -76,8 +96,22 @@ void main() {
     expect('$padding', 'EdgeInsets.all(55.0)');
     expect('$margin', 'EdgeInsets.all(55.0)');
     expect('$constraints', 'BoxConstraints(0.0<=w<=50.0, 0.0<=h<=50.0)');
-    expect('$color', 'Color(0xfff9a19a)');
-    expect('$decoration', 'BoxDecoration(color: Color(0xfff9a19a))');
+    expect(
+      color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(0.9784, 0.0001))
+          .having((c) => c.g, 'green', closeTo(0.6314, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.6059, 0.0001)),
+    );
+    expect(
+      (decoration as BoxDecoration).color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(0.9784, 0.0001))
+          .having((c) => c.g, 'green', closeTo(0.6314, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.6059, 0.0001)),
+    );
 
     await tester.pumpAndSettle(Duration(milliseconds: 500));
     expect('$height', '100.0');
@@ -86,8 +120,22 @@ void main() {
     expect('$padding', 'EdgeInsets.all(100.0)');
     expect('$margin', 'EdgeInsets.all(100.0)');
     expect('$constraints', 'BoxConstraints(w=0.0, h=0.0)');
-    expect('$color', 'Color(0xffffffff)');
-    expect('$decoration', 'BoxDecoration(color: Color(0xffffffff))');
+    expect(
+      color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(1.0000, 0.0001))
+          .having((c) => c.g, 'green', closeTo(1.0000, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(1.0000, 0.0001)),
+    );
+    expect(
+      (decoration as BoxDecoration).color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(1.0000, 0.0001))
+          .having((c) => c.g, 'green', closeTo(1.0000, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(1.0000, 0.0001)),
+    );
   });
 
   testWidgets('WHEN  AlignmentGeometry, tow EdgeInsetsGeometry, constraints, color and  decoration are fined'
@@ -129,7 +177,14 @@ void main() {
     expect('$padding', 'null');
     expect('$margin', 'EdgeInsets.all(10.0)');
     expect('$constraints', 'BoxConstraints(0.0<=w<=100.0, 0.0<=h<=100.0)');
-    expect('$color', 'MaterialColor(primary value: Color(0xfff44336))');
+    expect(
+      color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(0.9569, 0.0001))
+          .having((c) => c.g, 'green', closeTo(0.2627, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.2118, 0.0001)),
+    );
     expect('$decoration', 'null');
 
     selected = !selected;
@@ -141,9 +196,23 @@ void main() {
     expect('$padding', 'EdgeInsets.all(50.0)');
     expect('$margin', 'EdgeInsets.all(5.0)');
     expect('$constraints', 'BoxConstraints(0.0<=w<=50.0, 0.0<=h<=50.0)');
-    expect('$color', 'Color(0x80f44336)');
-    expect('$decoration', 'BoxDecoration(color: Color(0x80ffffff))');
+    expect(
+      color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 0.5)
+          .having((c) => c.r, 'red', closeTo(0.9569, 0.0001))
+          .having((c) => c.g, 'green', closeTo(0.2627, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(0.2118, 0.0001)),
+    );
 
+    expect(
+      (decoration as BoxDecoration).color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 0.5000)
+          .having((c) => c.r, 'red', closeTo(1.0000, 0.0001))
+          .having((c) => c.g, 'green', closeTo(1.0000, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(1.0000, 0.0001)),
+    );
     await tester.pumpAndSettle(Duration(milliseconds: 500));
 
     expect('$alignment', 'Alignment.topLeft');
@@ -151,7 +220,14 @@ void main() {
     expect('$margin', 'null');
     expect('$constraints', 'null');
     expect('$color', 'null');
-    expect('$decoration', 'BoxDecoration(color: Color(0xffffffff))');
+    expect(
+      (decoration as BoxDecoration).color,
+      isA<Color>()
+          .having((c) => c.a, 'alpha', 1.0)
+          .having((c) => c.r, 'red', closeTo(1.0000, 0.0001))
+          .having((c) => c.g, 'green', closeTo(1.0000, 0.0001))
+          .having((c) => c.b, 'blue', closeTo(1.0000, 0.0001)),
+    );
   });
   testWidgets('WHEN two variable of the same type and same name are used'
       'THEN it will throw an ArgumentError', (tester) async {
@@ -370,7 +446,7 @@ void main() {
     final widget = animation.rebuild.onAnimation(
       (animate) => Container(
         width: width = animate.fromTween(
-          (c) => Tween(begin: _ ?? 0.0, end: 100.0),
+          (c) => Tween(begin: c ?? 0.0, end: 100.0),
         )!,
       ),
       onInitialized: () {

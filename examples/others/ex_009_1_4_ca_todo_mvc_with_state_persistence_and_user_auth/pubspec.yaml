@@ -26,6 +26,7 @@ dependencies:
   uuid: ^3.0.4
   http: ^0.13.3
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

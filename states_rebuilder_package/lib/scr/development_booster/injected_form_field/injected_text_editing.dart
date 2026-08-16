@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../state_management/listeners/on_reactive.dart';
@@ -43,7 +43,7 @@ part 'on_form_submission_builder.dart';
 /// * [InjectedFormField] for other type of inputs rather the text,
 /// * [InjectedForm] and [OnFormBuilder] to work with form.
 ///  {@endtemplate}
-abstract class InjectedTextEditing implements IObservable<String> {
+abstract mixin class InjectedTextEditing implements IObservable<String> {
   late TextEditingControllerImp? _controller;
 
   late final _baseFormField = this as _BaseFormField;
