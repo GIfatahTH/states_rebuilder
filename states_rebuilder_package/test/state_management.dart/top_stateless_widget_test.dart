@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
@@ -12,51 +12,47 @@ late void Function(AppLifecycleState state)? _didChangeAppLifecycleState;
 
 void main() {
   setUp(() {
-    _builder = (_) => Container();
+    _builder = (c) => Container();
     _onWaiting = null;
     _onError = null;
     _ensureInitialization = null;
     _didChangeAppLifecycleState = null;
   });
-  testWidgets(
-    'throw if waiteFore is defined without onWaiting',
-    (tester) async {
-      _ensureInitialization = () => [Future.value(0)];
-      await tester.pumpWidget(const _TopAppWidget1());
-      expect(tester.takeException(), isException);
-    },
-  );
+  testWidgets('throw if waiteFore is defined without onWaiting', (
+    tester,
+  ) async {
+    _ensureInitialization = () => [Future.value(0)];
+    await tester.pumpWidget(const _TopAppWidget1());
+    expect(tester.takeException(), isException);
+  });
 
-  testWidgets(
-    'provide i18n',
-    (tester) async {
-      // final i18n = RM.injectI18N({
-      //   const Locale('en'): () => 'hello',
-      //   const Locale('fr'): () => 'salut',
-      // });
+  testWidgets('provide i18n', (tester) async {
+    // final i18n = RM.injectI18N({
+    //   const Locale('en'): () => 'hello',
+    //   const Locale('fr'): () => 'salut',
+    // });
 
-      final i18n =
-          CustomInjected<bool>(creator: () => true, useInheritedWidget: true);
-      _builder = (ctx) {
-        i18n.state;
-        return MaterialApp(
-          home: Builder(
-            builder: (context) {
-              return Text(
-                i18n.of(context).toString(),
-              );
-            },
-          ),
-        );
-      };
+    final i18n = CustomInjected<bool>(
+      creator: () => true,
+      useInheritedWidget: true,
+    );
+    _builder = (ctx) {
+      i18n.state;
+      return MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Text(i18n.of(context).toString());
+          },
+        ),
+      );
+    };
 
-      await tester.pumpWidget(const _TopAppWidget1());
-      expect(find.text('true'), findsOneWidget);
-      i18n.toggle();
-      await tester.pump();
-      expect(find.text('false'), findsOneWidget);
-    },
-  );
+    await tester.pumpWidget(const _TopAppWidget1());
+    expect(find.text('true'), findsOneWidget);
+    i18n.toggle();
+    await tester.pump();
+    expect(find.text('false'), findsOneWidget);
+  });
 
   // testWidgets(//TODO
   //   'WHEN trying to get the app language using of(context)'
@@ -115,18 +111,16 @@ void main() {
     //       Future.delayed(const Duration(seconds: 1), () => 'hello'),
     // });
     final i18n = CustomInjected<String>(
-        creator: () =>
-            Future.delayed(const Duration(seconds: 1), () => 'hello'),
-        useInheritedWidget: true);
+      creator: () => Future.delayed(const Duration(seconds: 1), () => 'hello'),
+      useInheritedWidget: true,
+    );
     _builder = (ctx) {
       i18n.snapState;
       return MaterialApp(
         // locale: i18n.locale,
         home: Builder(
           builder: (context) {
-            return Text(
-              i18n.of(context),
-            );
+            return Text(i18n.of(context));
           },
         ),
       );
@@ -169,18 +163,16 @@ void main() {
 
   testWidgets('Top widget waits for provided futures', (tester) async {
     _builder = (ctx) {
-      return const MaterialApp(
-        home: Text('Is Ready'),
-      );
+      return const MaterialApp(home: Text('Is Ready'));
     };
     _onWaiting = const Directionality(
       textDirection: TextDirection.ltr,
       child: Text('Waiting...'),
     );
     _ensureInitialization = () => [
-          Future.delayed(const Duration(seconds: 1)),
-          Future.delayed(const Duration(seconds: 2)),
-        ];
+      Future.delayed(const Duration(seconds: 1)),
+      Future.delayed(const Duration(seconds: 2)),
+    ];
 
     await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
@@ -197,17 +189,19 @@ void main() {
     //       Future.delayed(const Duration(seconds: 1), () => 'hello'),
     // });
     final i18n = CustomInjected<String>(
-        creator: () =>
-            Future.delayed(const Duration(seconds: 1), () => 'hello'),
-        useInheritedWidget: true);
+      creator: () => Future.delayed(const Duration(seconds: 1), () => 'hello'),
+      useInheritedWidget: true,
+    );
 
     _builder = (ctx) {
       i18n.snapState;
       return MaterialApp(
         // locale: i18n.locale,
-        home: Builder(builder: (context) {
-          return Text(i18n.of(context));
-        }),
+        home: Builder(
+          builder: (context) {
+            return Text(i18n.of(context));
+          },
+        ),
       );
     };
     _onWaiting = const Directionality(
@@ -215,9 +209,9 @@ void main() {
       child: Text('Waiting...'),
     );
     _ensureInitialization = () => [
-          Future.delayed(const Duration(seconds: 2)),
-          i18n.stateAsync,
-        ];
+      Future.delayed(const Duration(seconds: 2)),
+      i18n.stateAsync,
+    ];
 
     await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
@@ -233,18 +227,20 @@ void main() {
     //       Future.delayed(const Duration(seconds: 2), () => 'hello'),
     // });
     final i18n = CustomInjected<String>(
-        creator: () =>
-            Future.delayed(const Duration(seconds: 2), () => 'hello'),
-        useInheritedWidget: true);
+      creator: () => Future.delayed(const Duration(seconds: 2), () => 'hello'),
+      useInheritedWidget: true,
+    );
 
     _builder = (ctx) {
       i18n.snapState;
 
       return MaterialApp(
         // locale: i18n.locale,
-        home: Builder(builder: (context) {
-          return Text(i18n.of(context));
-        }),
+        home: Builder(
+          builder: (context) {
+            return Text(i18n.of(context));
+          },
+        ),
       );
     };
     _onWaiting = const Directionality(
@@ -252,9 +248,9 @@ void main() {
       child: Text('Waiting...'),
     );
     _ensureInitialization = () => [
-          Future.delayed(const Duration(seconds: 2)),
-          // i18n.stateAsync,
-        ];
+      Future.delayed(const Duration(seconds: 2)),
+      // i18n.stateAsync,
+    ];
 
     await tester.pumpWidget(const _TopAppWidget1());
 
@@ -283,10 +279,12 @@ void main() {
       child: Text('Waiting...'),
     );
     _ensureInitialization = () => [
-          Future.delayed(const Duration(seconds: 1),
-              () => shouldThrow ? throw Exception('Error') : 1),
-          Future.delayed(const Duration(seconds: 2), () => 2),
-        ];
+      Future.delayed(
+        const Duration(seconds: 1),
+        () => shouldThrow ? throw Exception('Error') : 1,
+      ),
+      Future.delayed(const Duration(seconds: 2), () => 2),
+    ];
     _onError = (err, refresher) {
       refresh = refresher;
       return const Directionality(
@@ -309,8 +307,9 @@ void main() {
     expect(find.text('Data'), findsOneWidget);
   });
 
-  testWidgets('TopAppWidget error when errorScreen is not defined',
-      (tester) async {
+  testWidgets('TopAppWidget error when errorScreen is not defined', (
+    tester,
+  ) async {
     _builder = (ctx) {
       return const Directionality(
         textDirection: TextDirection.rtl,
@@ -322,62 +321,57 @@ void main() {
       child: Text('Waiting...'),
     );
     _ensureInitialization = () => [
-          Future.delayed(
-            const Duration(seconds: 1),
-            () => throw Exception('Error'),
-          ),
-        ];
+      Future.delayed(
+        const Duration(seconds: 1),
+        () => throw Exception('Error'),
+      ),
+    ];
 
     await tester.pumpWidget(const _TopAppWidget1());
     expect(find.text('Waiting...'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isException);
   });
-  testWidgets(
-    'TopStatelessWidget register to a ReactiveModel',
-    (tester) async {
-      final model = CustomInjected<bool>(
-        creator: () => true,
-      );
-      _builder = (_) => Directionality(
-            textDirection: TextDirection.ltr,
-            child: Text(model.state.toString()),
-          );
-      await tester.pumpWidget(const _TopAppWidget1());
-      expect(find.text('true'), findsOneWidget);
-      model.toggle();
-      await tester.pump();
-      expect(find.text('false'), findsOneWidget);
+  testWidgets('TopStatelessWidget register to a ReactiveModel', (tester) async {
+    final model = CustomInjected<bool>(creator: () => true);
+    _builder = (c) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Text(model.state.toString()),
+    );
+    await tester.pumpWidget(const _TopAppWidget1());
+    expect(find.text('true'), findsOneWidget);
+    model.toggle();
+    await tester.pump();
+    expect(find.text('false'), findsOneWidget);
 
-      // final theme = RM.injectTheme(lightThemes: {
-      //   'basic': ThemeData.light(),
-      // }, darkThemes: {
-      //   'basic': ThemeData.dark(),
-      // });
-      // late Brightness brightness;
-      // _builder = (context) {
-      //   return MaterialApp(
-      //     theme: theme.lightTheme,
-      //     darkTheme: theme.darkTheme,
-      //     themeMode: theme.themeMode,
-      //     home: () {
-      //       return Builder(
-      //         builder: (context) {
-      //           brightness = Theme.of(context).brightness;
-      //           return Container();
-      //         },
-      //       );
-      //     }(),
-      //   );
-      // };
-      // await tester.pumpWidget(const _TopAppWidget1());
-      // expect(brightness, Brightness.light);
-      // //
-      // theme.toggle();
-      // await tester.pumpAndSettle();
-      // expect(brightness, Brightness.dark);
-    },
-  );
+    // final theme = RM.injectTheme(lightThemes: {
+    //   'basic': ThemeData.light(),
+    // }, darkThemes: {
+    //   'basic': ThemeData.dark(),
+    // });
+    // late Brightness brightness;
+    // _builder = (context) {
+    //   return MaterialApp(
+    //     theme: theme.lightTheme,
+    //     darkTheme: theme.darkTheme,
+    //     themeMode: theme.themeMode,
+    //     home: () {
+    //       return Builder(
+    //         builder: (context) {
+    //           brightness = Theme.of(context).brightness;
+    //           return Container();
+    //         },
+    //       );
+    //     }(),
+    //   );
+    // };
+    // await tester.pumpWidget(const _TopAppWidget1());
+    // expect(brightness, Brightness.light);
+    // //
+    // theme.toggle();
+    // await tester.pumpAndSettle();
+    // expect(brightness, Brightness.dark);
+  });
   testWidgets('appLifeCycle works', (WidgetTester tester) async {
     final TestDefaultBinaryMessenger defaultBinaryMessenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
@@ -390,26 +384,46 @@ void main() {
 
     expect(lifecycleState, isNull);
 
-    ByteData? message =
-        const StringCodec().encodeMessage('AppLifecycleState.paused');
+    ByteData? message = const StringCodec().encodeMessage(
+      'AppLifecycleState.paused',
+    );
     await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
+      'flutter/lifecycle',
+      message,
+      (c) {},
+    );
     await tester.pump();
     expect(lifecycleState, AppLifecycleState.paused);
 
     message = const StringCodec().encodeMessage('AppLifecycleState.resumed');
     await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
+      'flutter/lifecycle',
+      message,
+      (c) {},
+    );
     expect(lifecycleState, AppLifecycleState.resumed);
 
     message = const StringCodec().encodeMessage('AppLifecycleState.inactive');
     await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
+      'flutter/lifecycle',
+      message,
+      (c) {},
+    );
     expect(lifecycleState, AppLifecycleState.inactive);
-
+    message = const StringCodec().encodeMessage('AppLifecycleState.paused');
+    await defaultBinaryMessenger.handlePlatformMessage(
+      'flutter/lifecycle',
+      message,
+      (c) {},
+    );
+    await tester.pump();
+    expect(lifecycleState, AppLifecycleState.paused);
     message = const StringCodec().encodeMessage('AppLifecycleState.detached');
     await defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/lifecycle', message, (_) {});
+      'flutter/lifecycle',
+      message,
+      (c) {},
+    );
     expect(lifecycleState, AppLifecycleState.detached);
   });
 }
@@ -456,19 +470,19 @@ class CustomInjected<T> extends InjectedImp<T> {
     required Object Function() creator,
     this.useInheritedWidget = false,
   }) : super(
-          autoDisposeWhenNotUsed: true,
-          creator: creator,
-          debugPrintWhenNotifiedPreMessageGlobal: null,
-          dependsOn: null,
-          initialState: null,
-          sideEffectsGlobal: null,
-          stateInterceptor: null,
-          toDebugString: null,
-          watch: null,
-        );
+         autoDisposeWhenNotUsed: true,
+         creator: creator,
+         debugPrintWhenNotifiedPreMessageGlobal: null,
+         dependsOn: null,
+         initialState: null,
+         sideEffectsGlobal: null,
+         stateInterceptor: null,
+         toDebugString: null,
+         watch: null,
+       );
   final bool useInheritedWidget;
 
-  bool onTopObserverAdded(_) {
+  bool onTopObserverAdded(c) {
     return useInheritedWidget;
   }
 

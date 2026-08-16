@@ -29,6 +29,8 @@ dependencies:
   states_rebuilder:
     path: ../../../states_rebuilder_package/
 
+  hive: any
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

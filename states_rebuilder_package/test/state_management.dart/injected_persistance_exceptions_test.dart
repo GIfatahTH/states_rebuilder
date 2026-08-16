@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/common/logger.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
@@ -12,8 +12,8 @@ var counter = RM.inject<int>(
     // debugPrintOperations: true,
   ),
   // onError: (e, s) => print('error'),
-  // onInitialized: (_) => print('onInitialized'),
-  // onDisposed: (_) => print('onDisposed'),
+  // onInitialized: (c) => print('onInitialized'),
+  // onDisposed: (c) => print('onDisposed'),
 );
 
 class App extends StatelessWidget {
@@ -22,10 +22,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-        textDirection: TextDirection.ltr,
-        child: counter.rebuild(
-          () => Text('counter: ${counter.state}'),
-        ));
+      textDirection: TextDirection.ltr,
+      child: counter.rebuild(() => Text('counter: ${counter.state}')),
+    );
   }
 }
 
@@ -80,23 +79,25 @@ void main() async {
     //   expect(err.message.contains('Delete All Error'), isTrue);
     // }
   });
-  testWidgets('persistStateProvider, catchPersistError and onError',
-      (tester) async {
+  testWidgets('persistStateProvider, catchPersistError and onError', (
+    tester,
+  ) async {
     counter = RM.injectFuture<int>(
-        () {
-          return Future.delayed(Duration(seconds: 1), () => 10);
+      () {
+        return Future.delayed(Duration(seconds: 1), () => 10);
+      },
+      persist: () => PersistState(
+        key: 'Future_counter',
+        persistStateProvider: PersistStoreMockImp(),
+        catchPersistError: true,
+      ),
+      sideEffects: SideEffects.onError(
+        (e, s) {
+          StatesRebuilerLogger.log('', e);
         },
-        persist: () => PersistState(
-              key: 'Future_counter',
-              persistStateProvider: PersistStoreMockImp(),
-              catchPersistError: true,
-            ),
-        sideEffects: SideEffects.onError(
-          (e, s) {
-            StatesRebuilerLogger.log('', e);
-          },
-          // debugPrintWhenNotifiedPreMessage: '',
-        ));
+        // debugPrintWhenNotifiedPreMessage: '',
+      ),
+    );
     expect(counter.isWaiting, true);
     await tester.pump(Duration(seconds: 1));
     expect(counter.state, 10);

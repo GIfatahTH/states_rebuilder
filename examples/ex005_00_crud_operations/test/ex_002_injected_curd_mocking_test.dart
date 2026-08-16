@@ -2,7 +2,7 @@ import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/app
 import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/blocs/todos_bloc.dart';
 import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/models/todo.dart';
 import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/ui/todos_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

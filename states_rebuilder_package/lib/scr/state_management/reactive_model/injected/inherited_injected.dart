@@ -17,7 +17,7 @@ class _InheritedInjected<T> extends InheritedWidget {
   final BuildContext context;
 
   @override
-  bool updateShouldNotify(_InheritedInjected _) {
-    return _.state != state;
+  bool updateShouldNotify(_InheritedInjected c) {
+    return c.state != state;
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+
 import 'package:meta/meta.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 // import 'package:navigation_builder/navigation_builder.dart';
 import 'package:navigation_builder/src/navigation_builder.dart';
 
@@ -275,7 +276,7 @@ abstract class RM {
     //   creator: creator,
     //   initialState: initialState,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized,
     //   onSetState: On(
     //     () {
@@ -289,7 +290,7 @@ abstract class RM {
     //   onDataForSideEffect: onData,
     //   onError: onError,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   dependsOn: dependsOn,
     //   undoStackLength: undoStackLength,
@@ -355,10 +356,10 @@ abstract class RM {
     //   onDataForSideEffect: onData,
     //   onError: onError,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized,
     //   onSetState: On(
     //     () {
@@ -457,10 +458,10 @@ abstract class RM {
     //   onDataForSideEffect: onData,
     //   onError: onError,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized != null
     //           ? (s) => onInitialized(s, inj.subscription!)
     //           : null,
@@ -689,10 +690,8 @@ abstract class RM {
     //
     void Function(T s)? onSigned,
     void Function()? onUnsigned,
-    SnapState<T>? Function(
-      SnapState<T> currentSnap,
-      SnapState<T> nextSnap,
-    )? stateInterceptor,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+    stateInterceptor,
     SideEffects<T>? sideEffects,
     //
     String? debugPrintWhenNotifiedPreMessage,
@@ -960,7 +959,8 @@ abstract class RM {
     SnapState<List<T>>? Function(
       SnapState<List<T>> currentSnap,
       SnapState<List<T>> nextSnap,
-    )? stateInterceptor,
+    )?
+    stateInterceptor,
     //
     int undoStackLength = 0,
     DependsOn<List<T>>? dependsOn,
@@ -998,10 +998,10 @@ abstract class RM {
     //           )
     //       : middleSnapState,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   onSetState: On(
     //     () {
@@ -1120,10 +1120,8 @@ abstract class RM {
     ThemeMode themeMode = ThemeMode.system,
     String? persistKey,
     //
-    SnapState<T>? Function(
-      SnapState<T> currentSnap,
-      SnapState<T> nextSnap,
-    )? stateInterceptor,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+    stateInterceptor,
     SideEffects<T>? sideEffects,
     //
     int undoStackLength = 0,
@@ -1167,10 +1165,10 @@ abstract class RM {
     //           )
     //       : middleSnapState,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   onSetState: On(
     //     () {
@@ -1265,10 +1263,8 @@ abstract class RM {
     Map<Locale, FutureOr<T> Function()> i18Ns, {
     String? persistKey,
     //
-    SnapState<T>? Function(
-      SnapState<T> currentSnap,
-      SnapState<T> nextSnap,
-    )? stateInterceptor,
+    SnapState<T>? Function(SnapState<T> currentSnap, SnapState<T> nextSnap)?
+    stateInterceptor,
     SideEffects<T>? sideEffects,
     //
     DependsOn<T>? dependsOn,
@@ -1306,10 +1302,10 @@ abstract class RM {
     //           )
     //       : middleSnapState,
     //   onInitialized: sideEffects?.initState != null
-    //       ? (_) => sideEffects!.initState!()
+    //       ? (c) => sideEffects!.initState!()
     //       : onInitialized,
     //   onDisposed: sideEffects?.dispose != null
-    //       ? (_) => sideEffects!.dispose!()
+    //       ? (c) => sideEffects!.dispose!()
     //       : onDisposed,
     //   onSetState: On(
     //     () {
@@ -2003,55 +1999,55 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       persist: persist,
       dependsOn: dependsOn,
     );
-//     late final InjectedImp<T> inj;
-//     return inj = InjectedImp<T>(
-//       creator: () {
-//         _envMapLength ??= impl.length;
-//         assert(RM.env != null, '''
-// You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
-//     ''');
-//         assert(impl[env] != null, '''
-// There is no implementation for $env of $T interface
-//     ''');
-//         assert(impl.length == _envMapLength, '''
-// You must be consistent about the number of flavor environments you have.
-// you had $_envMapLength flavors and you are defining ${impl.length} flavors.
-//     ''');
-//         return impl[env]!();
-//       },
-//       initialState: initialState,
-//       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+    //     late final InjectedImp<T> inj;
+    //     return inj = InjectedImp<T>(
+    //       creator: () {
+    //         _envMapLength ??= impl.length;
+    //         assert(RM.env != null, '''
+    // You are using [RM.injectFlavor]. You have to define the [RM.env] before the [runApp] method
+    //     ''');
+    //         assert(impl[env] != null, '''
+    // There is no implementation for $env of $T interface
+    //     ''');
+    //         assert(impl.length == _envMapLength, '''
+    // You must be consistent about the number of flavor environments you have.
+    // you had $_envMapLength flavors and you are defining ${impl.length} flavors.
+    //     ''');
+    //         return impl[env]!();
+    //       },
+    //       initialState: initialState,
+    //       autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
 
-//       onDisposed: sideEffects?.dispose != null
-//           ? (_) => sideEffects!.dispose!()
-//           : onDisposed,
-//       onInitialized: sideEffects?.initState != null
-//           ? (_) => sideEffects!.initState!()
-//           : onInitialized != null
-//               ? (s) => onInitialized(s)
-//               : null,
-//       onSetState: On(
-//         () {
-//           sideEffects
-//             ?..onSetState?.call(inj.snapState)
-//             ..onAfterBuild?.call();
-//           onSetState?.call(inj.snapState);
-//         },
-//       ),
+    //       onDisposed: sideEffects?.dispose != null
+    //           ? (c) => sideEffects!.dispose!()
+    //           : onDisposed,
+    //       onInitialized: sideEffects?.initState != null
+    //           ? (c) => sideEffects!.initState!()
+    //           : onInitialized != null
+    //               ? (s) => onInitialized(s)
+    //               : null,
+    //       onSetState: On(
+    //         () {
+    //           sideEffects
+    //             ?..onSetState?.call(inj.snapState)
+    //             ..onAfterBuild?.call();
+    //           onSetState?.call(inj.snapState);
+    //         },
+    //       ),
 
-//       onDataForSideEffect: onData,
-//       onError: onError,
-//       onWaiting: onWaiting,
+    //       onDataForSideEffect: onData,
+    //       onError: onError,
+    //       onWaiting: onWaiting,
 
-//       // watch: watch,
-//       dependsOn: dependsOn,
-//       undoStackLength: undoStackLength,
-//       persist: persist,
-//       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-//       toDebugString: toDebugString,
-//       middleSnapState: middleSnapState,
-//       isLazy: isLazy,
-//     );
+    //       // watch: watch,
+    //       dependsOn: dependsOn,
+    //       undoStackLength: undoStackLength,
+    //       persist: persist,
+    //       debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+    //       toDebugString: toDebugString,
+    //       middleSnapState: middleSnapState,
+    //       isLazy: isLazy,
+    //     );
   }
 
   /// Dispose all Injected State
@@ -2123,8 +2119,9 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
     // }
 
     if (_contextSet.isNotEmpty) {
-      final renderObject =
-          _contextSet.last.mounted ? _contextSet.last.findRenderObject() : null;
+      final renderObject = _contextSet.last.mounted
+          ? _contextSet.last.findRenderObject()
+          : null;
       if (renderObject != null && renderObject.attached != true) {
         _contextSet.removeLast();
         // ignore: recursive_getters
@@ -2337,6 +2334,11 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
   ///
   /// ### `debugPrintWhenRouted`: Optional [bool]. Defaults to false
   /// Print log a debug message when the state of the navigator is changed.
+  @Deprecated(
+    'Navigation functionalities will be separated from this package '
+    'use navigation_builder package instead'
+    'instead of RM.injectNavigator use NavigationBuilder.create',
+  )
   static InjectedNavigator injectNavigator({
     //ORDER OF routes is important (/signin, /) home is not used even if skipHome slash is false
     required Map<String, Widget Function(RouteData data)> routes,
@@ -2350,7 +2352,8 @@ you had $_envMapLength flavors and you are defining ${impl.length} flavors.
       Animation<double> animation,
       Animation<double> secondAnimation,
       Widget child,
-    )? transitionsBuilder,
+    )?
+    transitionsBuilder,
     Duration? transitionDuration,
     Redirect? Function(RouteData data)? onNavigate,
     bool? Function(RouteData? data)? onNavigateBack,

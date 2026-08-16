@@ -1,5 +1,5 @@
 import 'package:ex001_00_sync_global_and_local_state/ex_004_00_default_counter_app.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -73,7 +73,7 @@ class MyHomePage extends ReactiveStatelessWidget {
               builder: () {
                 return Text(
                   '${counter.state}',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 );
               },
             ),

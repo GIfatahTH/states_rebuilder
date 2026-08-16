@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+
 import '../../state_management/rm.dart';
 
 part 'on_scroll._builder.dart';
@@ -10,7 +11,7 @@ part 'on_scroll._builder.dart';
 /// This injected state abstracts the best practices to come out with a
 /// simple, clean, and testable approach to control Scrollable view.
 ///
-abstract class InjectedScrolling implements IObservable<double> {
+abstract mixin class InjectedScrolling implements IObservable<double> {
   ///Listen to the [InjectedScrolling] and rebuild when scrolling data is changed.
   // late final rebuild = _RebuildScrolling(this);
 
@@ -124,11 +125,11 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
     this.onScroll,
     this.onScrollEndedDelay = 300,
   }) : super(
-          creator: () => initialScrollOffset,
-          initialState: initialScrollOffset,
-          autoDisposeWhenNotUsed: true,
-          stateInterceptorGlobal: null,
-        ) {
+         creator: () => initialScrollOffset,
+         initialState: initialScrollOffset,
+         autoDisposeWhenNotUsed: true,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       _controller = null;
       _maxScrollExtent = null;
@@ -213,33 +214,28 @@ class InjectedScrollingImp extends ReactiveModelImp<double>
         hasEndedScrolling = false;
       }
       _timer?.cancel();
-      _timer = Timer(
-        Duration(milliseconds: onScrollEndedDelay),
-        () {
-          if (isScrolling) {
-            hasEndedScrolling = true;
-          }
+      _timer = Timer(Duration(milliseconds: onScrollEndedDelay), () {
+        if (isScrolling) {
+          hasEndedScrolling = true;
+        }
 
-          hasStartedScrolling = false;
-          isScrolling = false;
-          _userScrollDirection = null;
-          hasReachedMaxExtent = false;
-          hasReachedMinExtent = false;
-          onScroll?.call(this);
-          _timer = null;
-          notify();
-        },
-      );
+        hasStartedScrolling = false;
+        isScrolling = false;
+        _userScrollDirection = null;
+        hasReachedMaxExtent = false;
+        hasReachedMinExtent = false;
+        onScroll?.call(this);
+        _timer = null;
+        notify();
+      });
     }
 
-    _controller!.addListener(
-      () {
-        _maxScrollExtent = position.maxScrollExtent;
-        setFlags();
-        onScroll?.call(this);
-        _setState();
-      },
-    );
+    _controller!.addListener(() {
+      _maxScrollExtent = position.maxScrollExtent;
+      setFlags();
+      onScroll?.call(this);
+      _setState();
+    });
 
     return _controller!;
   }

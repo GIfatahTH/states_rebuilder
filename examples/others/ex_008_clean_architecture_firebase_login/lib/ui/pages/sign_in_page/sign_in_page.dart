@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/user.dart';
@@ -41,7 +41,7 @@ class SignInPage extends StatelessWidget {
                     onPressed: isLoading
                         ? null
                         : () => user.auth.signIn(
-                              (_) => UserParam(signIn: SignIn.withApple),
+                              (c) => UserParam(signIn: SignIn.withApple),
                             ),
                   ),
                   SizedBox(height: 8),
@@ -51,7 +51,7 @@ class SignInPage extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () => user.auth.signIn(
-                            (_) => UserParam(signIn: SignIn.withGoogle),
+                            (c) => UserParam(signIn: SignIn.withGoogle),
                           ),
                 ),
                 SizedBox(height: 8),
@@ -69,7 +69,7 @@ class SignInPage extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () => user.auth.signIn(
-                            (_) => UserParam(signIn: SignIn.anonymously),
+                            (c) => UserParam(signIn: SignIn.anonymously),
                           ),
                 ),
                 SizedBox(height: 8),

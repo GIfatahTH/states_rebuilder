@@ -1,5 +1,5 @@
 import 'package:ex_006_5_navigation/ex08_on_navigate_redirection_from.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 

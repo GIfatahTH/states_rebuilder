@@ -7,17 +7,13 @@ import 'common.dart';
 
 var counter = RM.inject<int>(
   () => 0,
-  persist: () => PersistState(
-    key: 'counter',
-  ),
+  persist: () => PersistState(key: 'counter'),
 );
 
 final counterFuture = RM.injectFuture<int>(
   () => Future.delayed(Duration(seconds: 1), () => 0),
   //Once the persist parameter is defined the state is persisted
-  persist: () => PersistState(
-    key: 'counterFuture',
-  ),
+  persist: () => PersistState(key: 'counterFuture'),
 );
 void main() async {
   //Inject a mocked implementation of ILocalStorage
@@ -32,43 +28,37 @@ void main() async {
       // print(e);
     }
   });
-  testWidgets(
-    'WHEN Injected state is persisted'
-    'THEN the state is persisted after is first created and after mutation'
-    'CASE no initial stored state',
-    (tester) async {
-      expect(store.store.isEmpty, isTrue);
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], null);
-      expect(counter.state, 0);
-      expect(store.store['counter'], '0');
-      expect(counterFuture.isWaiting, true);
-      expect(store.store['counterFuture'], null);
-      await tester.pump(Duration(seconds: 1));
-      expect(store.store['counterFuture'], '0');
-      //change the state of counter
-      counter.state++; //0+1=1
+  testWidgets('WHEN Injected state is persisted'
+      'THEN the state is persisted after is first created and after mutation'
+      'CASE no initial stored state', (tester) async {
+    expect(store.store.isEmpty, isTrue);
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], null);
+    expect(counter.state, 0);
+    expect(store.store['counter'], '0');
+    expect(counterFuture.isWaiting, true);
+    expect(store.store['counterFuture'], null);
+    await tester.pump(Duration(seconds: 1));
+    expect(store.store['counterFuture'], '0');
+    //change the state of counter
+    counter.state++; //0+1=1
 
-      //verify  the new state is persisted
-      expect(store.store['counter'], '1');
-      expect(store.store['counterFuture'], '0');
+    //verify  the new state is persisted
+    expect(store.store['counter'], '1');
+    expect(store.store['counterFuture'], '0');
 
-      //change the state of counterFuture
-      counterFuture.state++;
-      expect(store.store['counter'], '1');
-      expect(store.store['counterFuture'], '1');
-    },
-  );
+    //change the state of counterFuture
+    counterFuture.state++;
+    expect(store.store['counter'], '1');
+    expect(store.store['counterFuture'], '1');
+  });
 
   testWidgets(
     'WHEN Injected state is persisted AND if it is initially stored'
     'THEN the state is obtained form the store and injected future are not called',
     (tester) async {
       //Fil the store with what would be persisted store form older session
-      store.store.addAll({
-        'counter': '10',
-        'counterFuture': '10',
-      });
+      store.store.addAll({'counter': '10', 'counterFuture': '10'});
 
       //The state is recreated from the store,
       //The future does not started
@@ -81,10 +71,7 @@ void main() async {
     'WHEN refresh is called on a persisted state'
     'The stored value is deleted and the new state after refresh is persisted',
     (tester) async {
-      store.store.addAll({
-        'counter': '10',
-        'counterFuture': '10',
-      });
+      store.store.addAll({'counter': '10', 'counterFuture': '10'});
 
       //
       expect(counter.state, 10);
@@ -113,131 +100,119 @@ void main() async {
     },
   );
 
-  testWidgets(
-    'WHEN persistOn is set to PersistOn.disposed'
-    'THEN the state is not persisted until it is disposed',
-    (tester) async {
-      final counter = RM.inject(
-        () => 0,
-        persist: () => PersistState<int>(
-          key: 'counter',
-          persistOn: PersistOn.disposed,
-        ),
-      );
+  testWidgets('WHEN persistOn is set to PersistOn.disposed'
+      'THEN the state is not persisted until it is disposed', (tester) async {
+    final counter = RM.inject(
+      () => 0,
+      persist: () =>
+          PersistState<int>(key: 'counter', persistOn: PersistOn.disposed),
+    );
 
-      expect(store.store.isEmpty, isTrue);
-      expect(store.store['counter'], null);
-      expect(counter.state, 0);
-      expect(counterFuture.isWaiting, true);
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], null);
-      //
-      await tester.pump(Duration(seconds: 1));
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], '0');
+    expect(store.store.isEmpty, isTrue);
+    expect(store.store['counter'], null);
+    expect(counter.state, 0);
+    expect(counterFuture.isWaiting, true);
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], null);
+    //
+    await tester.pump(Duration(seconds: 1));
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], '0');
 
-      //increment counter
-      counter.state++;
-      //the new state is not persisted
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], '0');
-      //
-      //Dispose the state
-      counter.dispose();
-      counterFuture.dispose();
+    //increment counter
+    counter.state++;
+    //the new state is not persisted
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], '0');
+    //
+    //Dispose the state
+    counter.dispose();
+    counterFuture.dispose();
 
-      //the counter state is persist after it is disposed
-      expect(store.store['counter'], '1');
-      expect(store.store['counterFuture'], '0');
-    },
-  );
+    //the counter state is persist after it is disposed
+    expect(store.store['counter'], '1');
+    expect(store.store['counterFuture'], '0');
+  });
 
-  testWidgets(
-    'WHEN persistOn is set to PersistOn.manualPersist'
-    'THEN the state is only persisted manually',
-    (tester) async {
-      final counter = RM.inject(
-        () => 0,
-        persist: () => PersistState(
-          key: 'counter',
-          fromJson: (json) => int.parse(json),
-          toJson: (s) => '$s',
-          persistOn: PersistOn.manualPersist,
-        ),
-      );
+  testWidgets('WHEN persistOn is set to PersistOn.manualPersist'
+      'THEN the state is only persisted manually', (tester) async {
+    final counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        persistOn: PersistOn.manualPersist,
+      ),
+    );
 
-      expect(store.store.isEmpty, isTrue);
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], null);
-      //
-      expect(counter.state, 0);
-      expect(counterFuture.isWaiting, true);
-      await tester.pump(Duration(seconds: 1));
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], '0');
+    expect(store.store.isEmpty, isTrue);
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], null);
+    //
+    expect(counter.state, 0);
+    expect(counterFuture.isWaiting, true);
+    await tester.pump(Duration(seconds: 1));
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], '0');
 
-      //
-      counter.state++;
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], '0');
-      //manually persist the state
-      counter.persistState();
-      await tester.pump();
-      expect(store.store['counter'], '1');
-      expect(store.store['counterFuture'], '0');
-      //delete the persisted state
-      counter.deletePersistState();
-      await tester.pump();
-      expect(store.store['counter'], null);
-      expect(store.store['counterFuture'], '0');
-    },
-  );
+    //
+    counter.state++;
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], '0');
+    //manually persist the state
+    counter.persistState();
+    await tester.pump();
+    expect(store.store['counter'], '1');
+    expect(store.store['counterFuture'], '0');
+    //delete the persisted state
+    counter.deletePersistState();
+    await tester.pump();
+    expect(store.store['counter'], null);
+    expect(store.store['counterFuture'], '0');
+  });
 
-  testWidgets(
-    'WHEN throttleDelay is defined, '
-    'THEN the state is throttled',
-    (tester) async {
-      final counter = RM.inject(
-        () => 0,
-        persist: () => PersistState(
-          key: 'counter',
-          fromJson: (json) => int.parse(json),
-          toJson: (s) => '$s',
-          throttleDelay: 3000,
-        ),
-      );
+  testWidgets('WHEN throttleDelay is defined, '
+      'THEN the state is throttled', (tester) async {
+    final counter = RM.inject(
+      () => 0,
+      persist: () => PersistState(
+        key: 'counter',
+        fromJson: (json) => int.parse(json),
+        toJson: (s) => '$s',
+        throttleDelay: 3000,
+      ),
+    );
 
-      expect(store.store['counter'], null);
-      expect(counter.state, 0);
+    expect(store.store['counter'], null);
+    expect(counter.state, 0);
 
-      //first increment
-      counter.state++;
-      //after the first second
-      await tester.pump(Duration(seconds: 1));
-      //the state is not persisted
-      expect(store.store['counter'], null);
-      //the state is mutated and displayed
-      expect(counter.state, 1);
-      //
-      //second increment
-      counter.state++;
-      //after the another second
-      await tester.pump(Duration(seconds: 1));
-      //the state is not persisted
-      expect(store.store['counter'], null);
-      //the state is mutated and displayed
-      expect(counter.state, 2);
-      //
-      counter.state++;
-      await tester.pump(Duration(seconds: 1));
-      //After three seconds as in the throttleDelay the state is persisted
-      expect(store.store['counter'], '3');
-      expect(counter.state, 3);
-    },
-  );
+    //first increment
+    counter.state++;
+    //after the first second
+    await tester.pump(Duration(seconds: 1));
+    //the state is not persisted
+    expect(store.store['counter'], null);
+    //the state is mutated and displayed
+    expect(counter.state, 1);
+    //
+    //second increment
+    counter.state++;
+    //after the another second
+    await tester.pump(Duration(seconds: 1));
+    //the state is not persisted
+    expect(store.store['counter'], null);
+    //the state is mutated and displayed
+    expect(counter.state, 2);
+    //
+    counter.state++;
+    await tester.pump(Duration(seconds: 1));
+    //After three seconds as in the throttleDelay the state is persisted
+    expect(store.store['counter'], '3');
+    expect(counter.state, 3);
+  });
 
-  testWidgets(
-      'WHEN storage provider has an async read '
+  testWidgets('WHEN storage provider has an async read '
       'THEN reading is done asynchronously', (tester) async {
     store.isAsyncRead = true;
     store.timeToWait = 1000;
@@ -263,8 +238,7 @@ void main() async {
     expect(store.store, {'counter': '0'});
   });
 
-  testWidgets(
-      'WHEN reading fails'
+  testWidgets('WHEN reading fails'
       'THEN the state captures the exception', (tester) async {
     store.isAsyncRead = true;
     store.timeToThrow = 1000;
@@ -302,8 +276,9 @@ void main() async {
     expect(store.store, {'counter': '11'});
   });
 
-  testWidgets('WHEN formJson and read methods are async method',
-      (tester) async {
+  testWidgets('WHEN formJson and read methods are async method', (
+    tester,
+  ) async {
     counter = RM.inject(
       () => 0,
       persist: () => PersistState(
@@ -315,8 +290,8 @@ void main() async {
         toJson: (s) => '$s',
       ),
       initialState: 0,
-      // onInitialized: (_) => print('onInitialized'),
-      // onDisposed: (_) => print('onDisposed'),
+      // onInitialized: (c) => print('onInitialized'),
+      // onDisposed: (c) => print('onDisposed'),
     );
 
     store.isAsyncRead = true;
@@ -330,8 +305,7 @@ void main() async {
     expect(store.store, {'counter': '11'});
   });
 
-  testWidgets(
-      'WHEN a persistStateProvider is defined to override'
+  testWidgets('WHEN a persistStateProvider is defined to override'
       'the global storage provider', (tester) async {
     counter = RM.injectFuture(
       () => Future.delayed(Duration(seconds: 1), () => 0),
@@ -351,10 +325,10 @@ void main() async {
     counter.state++;
   });
   StatesRebuilerLogger.isTestMode = true;
-  testWidgets(
-      'WHEN catchPersistError is true'
-      'THEN persisted exceptions are caught and a print message is logged',
-      (tester) async {
+  testWidgets('WHEN catchPersistError is true'
+      'THEN persisted exceptions are caught and a print message is logged', (
+    tester,
+  ) async {
     final counter = RM.inject(
       () => 0,
       persist: () => PersistState(
@@ -388,26 +362,28 @@ void main() async {
     //
   });
 
-  testWidgets('Return to previous state and notify listeners when throw error',
-      (tester) async {
-    final counter = RM.inject(
-      () => 0,
-      persist: () => PersistState(
-        key: 'counter',
-        fromJson: (json) => int.parse(json),
-        toJson: (s) => '$s',
-      ),
-    );
-    expect(counter.state, 0);
-    store.exception = Exception('Write Error');
-    store.timeToThrow = 1000;
-    counter.state++;
-    expect(counter.state, 1);
-    expect(counter.hasData, true);
-    await tester.pump(Duration(seconds: 1));
-    expect(counter.hasError, true);
-    expect(counter.state, 0);
-  });
+  testWidgets(
+    'Return to previous state and notify listeners when throw error',
+    (tester) async {
+      final counter = RM.inject(
+        () => 0,
+        persist: () => PersistState(
+          key: 'counter',
+          fromJson: (json) => int.parse(json),
+          toJson: (s) => '$s',
+        ),
+      );
+      expect(counter.state, 0);
+      store.exception = Exception('Write Error');
+      store.timeToThrow = 1000;
+      counter.state++;
+      expect(counter.state, 1);
+      expect(counter.hasData, true);
+      await tester.pump(Duration(seconds: 1));
+      expect(counter.hasError, true);
+      expect(counter.state, 0);
+    },
+  );
 
   testWidgets('infer fromJson and toJson of int', (tester) async {
     final counter = RM.inject<int>(
@@ -452,8 +428,9 @@ void main() async {
     expect(counter.state, false);
     expect(store.store, {'counter': '0'});
   });
-  testWidgets('can not infer fromJson for non primitive, it throws',
-      (tester) async {
+  testWidgets('can not infer fromJson for non primitive, it throws', (
+    tester,
+  ) async {
     expect(
       () => RM.inject<List<int>>(
         () => [0],
@@ -463,15 +440,13 @@ void main() async {
     );
   });
 
-  testWidgets('can not infer toJson for non primitive, it throws',
-      (tester) async {
+  testWidgets('can not infer toJson for non primitive, it throws', (
+    tester,
+  ) async {
     expect(
       () => RM.inject<List<int>>(
         () => [0],
-        persist: () => PersistState(
-          key: 'counter',
-          fromJson: (json) => [0],
-        ),
+        persist: () => PersistState(key: 'counter', fromJson: (json) => [0]),
       ),
       throwsArgumentError,
     );
@@ -503,8 +478,7 @@ void main() async {
     expect(counter.state, 1);
   });
 
-  testWidgets(
-      'WHEN catchPersistError is false'
+  testWidgets('WHEN catchPersistError is false'
       'THEN persisted exceptions are thrown', (tester) async {
     final counter = RM.inject<int?>(
       () => 0,

@@ -10,32 +10,32 @@ class OnFormSubmissionBuilder extends MyStatefulWidget {
     this.onSubmissionError,
     required this.child,
   }) : super(
-          observers: (_) {
-            return [listenTo as ReactiveModelImp];
-          },
-          // shouldRebuild: (old, current) {
-          //   final inj = listenTo as InjectedFormImp;
-          //   if (inj.isWaiting) {
-          //     inj.onSubmitting?.call();
-          //   }
-          //   return true;
-          // },
-          builder: (context, snap, rm) {
-            final inj = listenTo as InjectedFormImp;
+         observers: (c) {
+           return [listenTo as ReactiveModelImp];
+         },
+         // shouldRebuild: (old, current) {
+         //   final inj = listenTo as InjectedFormImp;
+         //   if (inj.isWaiting) {
+         //     inj.onSubmitting?.call();
+         //   }
+         //   return true;
+         // },
+         builder: (context, snap, rm) {
+           final inj = listenTo as InjectedFormImp;
 
-            if (inj.isWaiting) {
-              return onSubmitting();
-            }
-            if (inj.hasError && onSubmissionError != null) {
-              return onSubmissionError(
-                inj.error,
-                inj.snapValue.snapError!.refresher,
-              );
-            }
-            return child;
-          },
-          key: key,
-        );
+           if (inj.isWaiting) {
+             return onSubmitting();
+           }
+           if (inj.hasError && onSubmissionError != null) {
+             return onSubmissionError(
+               inj.error,
+               inj.snapValue.snapError!.refresher,
+             );
+           }
+           return child;
+         },
+         key: key,
+       );
 
   /// InjectedForm to listen to
   final InjectedForm listenTo;
@@ -47,7 +47,7 @@ class OnFormSubmissionBuilder extends MyStatefulWidget {
   ///parameters using the onRefresh callback
 
   final Widget Function(dynamic error, VoidCallback onRefresh)?
-      onSubmissionError;
+  onSubmissionError;
 
   /// the Child widget
   final Widget child;

@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../states_rebuilder.dart';
 import '../../state_management/rm.dart';
@@ -32,14 +32,14 @@ part 'on_crud_builder.dart';
 /// See: [InjectedCRUD.crud], [_CRUDService.read], [_CRUDService.create],
 /// [_CRUDService.update], [_CRUDService.delete],[InjectedCRUD.item],
 /// [_Item.inherited] and [OnCRUDBuilder]
-abstract class InjectedCRUD<T, P> implements Injected<List<T>> {
+abstract mixin class InjectedCRUD<T, P> implements Injected<List<T>> {
   _CRUDService<T, P>? _crud;
 
   ///To create Read Update and Delete
   _CRUDService<T, P> get crud => _crud ??= _crud = _CRUDService<T, P>(
-        getRepoAs<ICRUD<T, P>>(),
-        this as InjectedCRUDImp<T, P>,
-      );
+    getRepoAs<ICRUD<T, P>>(),
+    this as InjectedCRUDImp<T, P>,
+  );
 
   // _Item<T, P>? _item;
 
@@ -220,18 +220,18 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
     required String? debugPrintWhenNotifiedPreMessage,
     required String Function(List<T>?)? toDebugString,
   }) : super(
-          creator: () => <T>[],
-          initialState: <T>[],
-          sideEffects: sideEffects,
-          stateInterceptor: stateInterceptor,
-          persist: persist,
-          undoStackLength: undoStackLength,
-          dependsOn: dependsOn,
-          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-          debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
-          toDebugString: toDebugString,
-          watch: null,
-        );
+         creator: () => <T>[],
+         initialState: <T>[],
+         sideEffects: sideEffects,
+         stateInterceptor: stateInterceptor,
+         persist: persist,
+         undoStackLength: undoStackLength,
+         dependsOn: dependsOn,
+         autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+         debugPrintWhenNotifiedPreMessage: debugPrintWhenNotifiedPreMessage,
+         toDebugString: toDebugString,
+         watch: null,
+       );
 
   final ICRUD<T, P> Function() repoCreator;
   final P Function()? param;
@@ -243,8 +243,9 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
     if (_onCrudRM != null) {
       return _onCrudRM!;
     }
-    _onCrudRM = ReactiveModel.create(creator: () => snapValue.data)
-        as ReactiveModelImp<Object?>;
+    _onCrudRM = ReactiveModel.create(
+      creator: () => snapValue.data,
+    ) as ReactiveModelImp<Object?>;
     initialize();
     if (snapValue.isWaiting || !_isOnCRUD) {
       _isOnCRUD = snapValue.isWaiting;
@@ -291,11 +292,7 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
           onMiddleCRUD(
             const SnapState.none().copyWith(
               status: StateStatus.hasError,
-              error: SnapError(
-                error: e,
-                stackTrace: s,
-                refresher: refresh,
-              ),
+              error: SnapError(error: e, stackTrace: s, refresher: refresh),
               infoMessage: '',
             ),
           );
@@ -318,8 +315,10 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
       onCRUDSideEffects?.onWaiting?.call();
     } else if (snap.hasError) {
       _isOnCRUD = false;
-      onCRUDSideEffects?.onError
-          ?.call(snap.snapError!.error, snap.snapError!.refresher);
+      onCRUDSideEffects?.onError?.call(
+        snap.snapError!.error,
+        snap.snapError!.refresher,
+      );
     } else if (snap.hasData) {
       _isOnCRUD = false;
       onCRUDSideEffects?.onResult(snap.data);
@@ -338,9 +337,8 @@ class InjectedCRUDImp<T, P> extends InjectedImpRedoPersistState<List<T>>
   void injectFutureMock(Future<List<T>> Function() fakeCreator) async {
     super.injectFutureMock(fakeCreator);
     stateAsync.then(
-      (value) => onMiddleCRUD(
-        const SnapState.none().copyToHasData(snapValue.data),
-      ),
+      (value) =>
+          onMiddleCRUD(const SnapState.none().copyToHasData(snapValue.data)),
     );
   }
 
@@ -449,56 +447,53 @@ class _CRUDService<T, P> {
 
     // injected.debugMessage = kCreating;
     Future<List<T>?> call() => injected.setState(
-          (s) async* {
-            injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
-            if (isOptimistic) {
-              yield <T>[...s, item];
-            }
-            try {
-              await injected._init();
-              addedItem = await _repository.create(
-                item,
-                param?.call(injected.param?.call()) ?? injected.param?.call(),
-              );
-              injected.onMiddleCRUD(
-                  const SnapState.none().copyToHasData(addedItem));
-              onResult?.call(addedItem);
-            } catch (e, stack) {
-              injected.onMiddleCRUD(
-                const SnapState.none().copyWith(
-                  status: StateStatus.hasError,
-                  error: SnapError(
-                    error: e,
-                    stackTrace: stack,
-                    refresher: call,
-                  ),
-                  infoMessage: '',
-                ),
-              );
+      (s) async* {
+        injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
+        if (isOptimistic) {
+          yield <T>[...s, item];
+        }
+        try {
+          await injected._init();
+          addedItem = await _repository.create(
+            item,
+            param?.call(injected.param?.call()) ?? injected.param?.call(),
+          );
+          injected.onMiddleCRUD(
+            const SnapState.none().copyToHasData(addedItem),
+          );
+          onResult?.call(addedItem);
+        } catch (e, stack) {
+          injected.onMiddleCRUD(
+            const SnapState.none().copyWith(
+              status: StateStatus.hasError,
+              error: SnapError(error: e, stackTrace: stack, refresher: call),
+              infoMessage: '',
+            ),
+          );
 
-              if (isOptimistic) {
-                yield s.where((e) => e != item).toList();
+          if (isOptimistic) {
+            yield s.where((e) => e != item).toList();
+          }
+          rethrow;
+        }
+        if (!isOptimistic) {
+          yield <T>[...s, addedItem!];
+        }
+      },
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          sideEffects?.onSetState?.call(snap);
+        },
+      ),
+      stateInterceptor: isOptimistic
+          ? (current, next) {
+              if (next.isWaiting) {
+                return current;
               }
-              rethrow;
+              return next;
             }
-            if (!isOptimistic) {
-              yield <T>[...s, addedItem!];
-            }
-          },
-          sideEffects: SideEffects(
-            onSetState: (snap) {
-              sideEffects?.onSetState?.call(snap);
-            },
-          ),
-          stateInterceptor: isOptimistic
-              ? (current, next) {
-                  if (next.isWaiting) {
-                    return current;
-                  }
-                  return next;
-                }
-              : null,
-        );
+          : null,
+    );
     await call();
     // if (injected.hasError) {
     //   if (isOptimistic) {
@@ -554,56 +549,52 @@ class _CRUDService<T, P> {
     }
     // injected.debugMessage = kUpdating;
     Future<List<T>?> call() => injected.setState(
-          (s) async* {
-            injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
-            if (isOptimistic) {
-              yield newState;
-              injected.item._refresh();
-            }
-            try {
-              await injected._init();
-              final dynamic r = await _repository.update(
-                updated,
-                param?.call(injected.param?.call()) ?? injected.param?.call(),
-              );
-              injected.onMiddleCRUD(const SnapState.none().copyToHasData(r));
-              onResult?.call(r);
-            } catch (e, s) {
-              injected.onMiddleCRUD(
-                const SnapState.none().copyWith(
-                  status: StateStatus.hasError,
-                  error: SnapError(
-                    error: e,
-                    stackTrace: s,
-                    refresher: call,
-                  ),
-                  infoMessage: '',
-                ),
-              );
-              if (isOptimistic) {
-                yield oldState;
-                injected.item._refresh();
+      (s) async* {
+        injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
+        if (isOptimistic) {
+          yield newState;
+          injected.item._refresh();
+        }
+        try {
+          await injected._init();
+          final dynamic r = await _repository.update(
+            updated,
+            param?.call(injected.param?.call()) ?? injected.param?.call(),
+          );
+          injected.onMiddleCRUD(const SnapState.none().copyToHasData(r));
+          onResult?.call(r);
+        } catch (e, s) {
+          injected.onMiddleCRUD(
+            const SnapState.none().copyWith(
+              status: StateStatus.hasError,
+              error: SnapError(error: e, stackTrace: s, refresher: call),
+              infoMessage: '',
+            ),
+          );
+          if (isOptimistic) {
+            yield oldState;
+            injected.item._refresh();
+          }
+          rethrow;
+        }
+        if (!isOptimistic) {
+          yield newState;
+        }
+      },
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          sideEffects?.onSetState?.call(snap);
+        },
+      ),
+      stateInterceptor: isOptimistic
+          ? (current, next) {
+              if (next.isWaiting) {
+                return current;
               }
-              rethrow;
+              return next;
             }
-            if (!isOptimistic) {
-              yield newState;
-            }
-          },
-          sideEffects: SideEffects(
-            onSetState: (snap) {
-              sideEffects?.onSetState?.call(snap);
-            },
-          ),
-          stateInterceptor: isOptimistic
-              ? (current, next) {
-                  if (next.isWaiting) {
-                    return current;
-                  }
-                  return next;
-                }
-              : null,
-        );
+          : null,
+    );
     await call();
     // if (injected.hasError) {
     //   if (isOptimistic) {
@@ -653,55 +644,51 @@ class _CRUDService<T, P> {
 
     // injected.debugMessage = kDeleting;
     Future<List<T>?> call() => injected.setState(
-          (s) async* {
-            injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
-            if (isOptimistic) {
-              yield newState;
-            }
-            try {
-              await injected._init();
-              final dynamic r = await _repository.delete(
-                removed,
-                param?.call(injected.param?.call()) ?? injected.param?.call(),
-              );
-              injected.onMiddleCRUD(const SnapState.none().copyToHasData(r));
-              onResult?.call(r);
-            } catch (e, s) {
-              injected.onMiddleCRUD(
-                const SnapState.none().copyWith(
-                  status: StateStatus.hasError,
-                  error: SnapError(
-                    error: e,
-                    stackTrace: s,
-                    refresher: call,
-                  ),
-                  infoMessage: '',
-                ),
-              );
-              if (isOptimistic) {
-                yield oldState;
-              }
-              rethrow;
-            }
+      (s) async* {
+        injected.onMiddleCRUD(const SnapState.none().copyToIsWaiting());
+        if (isOptimistic) {
+          yield newState;
+        }
+        try {
+          await injected._init();
+          final dynamic r = await _repository.delete(
+            removed,
+            param?.call(injected.param?.call()) ?? injected.param?.call(),
+          );
+          injected.onMiddleCRUD(const SnapState.none().copyToHasData(r));
+          onResult?.call(r);
+        } catch (e, s) {
+          injected.onMiddleCRUD(
+            const SnapState.none().copyWith(
+              status: StateStatus.hasError,
+              error: SnapError(error: e, stackTrace: s, refresher: call),
+              infoMessage: '',
+            ),
+          );
+          if (isOptimistic) {
+            yield oldState;
+          }
+          rethrow;
+        }
 
-            if (!isOptimistic) {
-              yield newState;
+        if (!isOptimistic) {
+          yield newState;
+        }
+      },
+      sideEffects: SideEffects(
+        onSetState: (snap) {
+          sideEffects?.onSetState?.call(snap);
+        },
+      ),
+      stateInterceptor: isOptimistic
+          ? (current, next) {
+              if (next.isWaiting) {
+                return current;
+              }
+              return null;
             }
-          },
-          sideEffects: SideEffects(
-            onSetState: (snap) {
-              sideEffects?.onSetState?.call(snap);
-            },
-          ),
-          stateInterceptor: isOptimistic
-              ? (current, next) {
-                  if (next.isWaiting) {
-                    return current;
-                  }
-                  return null;
-                }
-              : null,
-        );
+          : null,
+    );
     await call();
     // if (injected.hasError) {
     //   if (isOptimistic) {
@@ -724,16 +711,14 @@ class _Item<T, P> {
 
   late final InjectedImp<T> _injected = RM.inject<T>(
     () => throw UnimplementedError(),
-    sideEffects: SideEffects.onData(
-      (_) {
-        _injectedList.crud.update(
-          where: (t) {
-            return t == _injected.oldSnapState?.data;
-          },
-          set: (t) => _injected.snapValue.data!,
-        );
-      },
-    ),
+    sideEffects: SideEffects.onData((c) {
+      _injectedList.crud.update(
+        where: (t) {
+          return t == _injected.oldSnapState?.data;
+        },
+        set: (t) => _injected.snapValue.data!,
+      );
+    }),
     // debugPrintWhenNotifiedPreMessage: 'injectedList',
   ) as InjectedImp<T>;
 
@@ -830,11 +815,7 @@ class _Item<T, P> {
     required BuildContext context,
     required Widget Function(BuildContext) builder,
   }) {
-    return _injected.reInherited(
-      key: key,
-      context: context,
-      builder: builder,
-    );
+    return _injected.reInherited(key: key, context: context, builder: builder);
   }
 
   ///Obtain the item from the nearest [InheritedWidget] inserted using [inherited].
@@ -851,10 +832,7 @@ class _Item<T, P> {
   ///The [BuildContext] used, will not be registered.
   ///If you want to obtain the state and register it use the [of] method.
   Injected<T>? call(BuildContext context) {
-    final inj = _injected.call(
-      context,
-      defaultToGlobal: true,
-    );
+    final inj = _injected.call(context, defaultToGlobal: true);
     return inj == _injected ? null : inj;
   }
 

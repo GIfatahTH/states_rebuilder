@@ -1,8 +1,7 @@
 import 'package:ex_005_theme_switching/hive_storage.dart';
 
 import 'i18n.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'home_page.dart';
 import 'themes.dart';
@@ -48,9 +47,7 @@ class MyApp extends TopStatelessWidget {
       //   //your algorithm
       //   } ,
       localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
       ],
       // title: i18n.of(context).flutterDemo,
       home: const HomePage(),
@@ -58,4 +55,3 @@ class MyApp extends TopStatelessWidget {
     );
   }
 }
-

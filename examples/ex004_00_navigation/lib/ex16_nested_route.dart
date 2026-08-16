@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // Nested route show case
@@ -7,9 +7,9 @@ void main() => runApp(const MyApp());
 
 final navigator = RM.injectNavigator(
   // initialLocation: '/dashboard/invoices/weekly',
-  builder: (_) => const Home(),
+  builder: (c) => const Home(),
   // transitionsBuilder: RM.transitions.none(),
-  transitionsBuilder: (_, animation, __, child) {
+  transitionsBuilder: (c, animation, __, child) {
     return ScaleTransition(
       scale: animation,
       child: child,
@@ -20,11 +20,11 @@ final navigator = RM.injectNavigator(
   routes: {
     '/': (data) => data.redirectTo('/dashboard'),
     '/dashboard': (data) => RouteWidget(
-          builder: (_) => const Dash(),
+          builder: (c) => const Dash(),
           routes: {
             '/': (data) => const DashHome(),
             '/invoices': (data) => RouteWidget(
-                  builder: (_) => const Invoices(),
+                  builder: (c) => const Invoices(),
                   routes: {
                     '/': (data) => data.redirectTo('/daily'),
                     // '/': (data) => data.redirectTo('/dashboard/invoices/daily'),
@@ -70,6 +70,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       debugShowCheckedModeBanner: false,
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,
@@ -129,7 +130,7 @@ class DashHome extends StatelessWidget {
     return Center(
       child: Text(
         'DashHome',
-        style: Theme.of(context).textTheme.headline1,
+        style: Theme.of(context).textTheme.displayLarge,
       ),
     );
   }
@@ -167,7 +168,7 @@ class Team extends StatelessWidget {
       child: Center(
         child: Text(
           'Team Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -184,7 +185,7 @@ class About extends StatelessWidget {
       child: Center(
         child: Text(
           'About Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -201,7 +202,7 @@ class Support extends StatelessWidget {
       child: Center(
         child: Text(
           'Support Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -218,7 +219,7 @@ class DailyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Daily Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -235,7 +236,7 @@ class WeeklyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Weekly Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -252,7 +253,7 @@ class MonthlyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Monthly Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );

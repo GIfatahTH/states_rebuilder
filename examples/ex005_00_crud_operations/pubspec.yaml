@@ -37,16 +37,13 @@ dependencies:
   http: ^0.13.4
   uuid: ^3.0.4
 
+  states_rebuilder:
+    path: ../../states_rebuilder_package
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  states_rebuilder:
-    path: ../../states_rebuilder_package
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^1.0.0
 
 # For information on the generic Dart part of this file, see the

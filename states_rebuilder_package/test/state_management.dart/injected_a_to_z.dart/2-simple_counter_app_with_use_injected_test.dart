@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -21,11 +21,11 @@ class CounterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.data(
       listenTo: RM.inject(() => ''),
-      builder: (_) {
+      builder: (c) {
         return MaterialApp(
           home: OnBuilder.data(
             listenTo: counter,
-            builder: (_) => Text('${counter.state}'),
+            builder: (c) => Text('${counter.state}'),
             sideEffects: SideEffects(dispose: () => RM.disposeAll()),
           ),
         );

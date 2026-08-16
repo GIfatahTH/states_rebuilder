@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:adaptive_navigation/adaptive_navigation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import '../../ex18_books_app.dart';
 
@@ -27,36 +27,38 @@ class BookstoreScaffold extends StatelessWidget {
       return 0;
     }();
     return Scaffold(
-      body: AdaptiveNavigationScaffold(
-        selectedIndex: index,
-        body: context.routerOutlet,
-        onDestinationSelected: (idx) {
-          switch (ScaffoldTab.values[idx]) {
-            case ScaffoldTab.books:
-              navigator.to('/books');
-              break;
-            case ScaffoldTab.authors:
-              navigator.to('/authors');
-              break;
-            case ScaffoldTab.settings:
-              navigator.to('/settings');
-              break;
-          }
-        },
-        destinations: const [
-          AdaptiveScaffoldDestination(
-            title: 'Books',
-            icon: Icons.book,
-          ),
-          AdaptiveScaffoldDestination(
-            title: 'Authors',
-            icon: Icons.person,
-          ),
-          AdaptiveScaffoldDestination(
-            title: 'Settings',
-            icon: Icons.settings,
-          ),
-        ],
+      body: MaterialUiCompatibilityBridge(
+        child: AdaptiveNavigationScaffold(
+          selectedIndex: index,
+          body: context.routerOutlet,
+          onDestinationSelected: (idx) {
+            switch (ScaffoldTab.values[idx]) {
+              case ScaffoldTab.books:
+                navigator.to('/books');
+                break;
+              case ScaffoldTab.authors:
+                navigator.to('/authors');
+                break;
+              case ScaffoldTab.settings:
+                navigator.to('/settings');
+                break;
+            }
+          },
+          destinations: const [
+            AdaptiveScaffoldDestination(
+              title: 'Books',
+              icon: Icons.book,
+            ),
+            AdaptiveScaffoldDestination(
+              title: 'Authors',
+              icon: Icons.person,
+            ),
+            AdaptiveScaffoldDestination(
+              title: 'Settings',
+              icon: Icons.settings,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -149,7 +149,7 @@ class MyApp extends StatelessWidget {
     return OnBuilder.orElse(
       listenTo: authService,
       onWaiting: () => Text('Waiting for authentication'),
-      orElse: (_) =>
+      orElse: (c) =>
           authService.state.user is NullUser ? AuthPage() : ProductPage(),
     );
   }
@@ -169,8 +169,8 @@ class ProductPage extends StatelessWidget {
       listenTo: productService,
       onIdle: () => Text('onIDel'),
       onWaiting: () => Text('Waiting for products'),
-      onError: (e, _) => Text('error : $e'),
-      onData: (_) => Column(
+      onError: (e, c) => Text('error : $e'),
+      onData: (c) => Column(
         children: productService.state.products.map((p) => Text(p.id)).toList(),
       ),
       sideEffects: SideEffects(
@@ -206,7 +206,7 @@ class FakeAuthRepository extends IAuthRepository {
 
 class FakeProductRepository extends IProductRepository {
   FakeProductRepository({required String userId, required String token})
-      : super(userId, token);
+    : super(userId, token);
 
   @override
   Future<List<Product>> getProducts() async {
@@ -238,18 +238,14 @@ void main() {
   });
   //
   testWidgets('first start, app in the Auth page', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(MaterialApp(home: MyApp()));
     //at start up we expect to see the AuthPage
     expect(find.byType(AuthPage), findsOneWidget);
   });
 
   //
   testWidgets('user filled fields and logged in', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(MaterialApp(home: MyApp()));
 
     //simulate use entered a name and an password
     void _onPressedLogInUser1() {
@@ -266,9 +262,7 @@ void main() {
 
     //simulate user tapped the logout button
     void _onPressedLogout() {
-      authService.setState(
-        (s) => s.logout(),
-      );
+      authService.setState((s) => s.logout());
     }
 
     //First scenario: log in with user-1

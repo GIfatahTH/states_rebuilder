@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -22,10 +22,12 @@ final computedCounter = RM.inject<String>(
   //
   //initial value
   initialState: '0',
-  dependsOn: DependsOn<String>({counter1, counter2},
-      shouldNotify: (String? state) =>
-          int.parse(state?.isNotEmpty == true ? state! : '0') < 5 &&
-          counter1.state < 50),
+  dependsOn: DependsOn<String>(
+    {counter1, counter2},
+    shouldNotify: (String? state) =>
+        int.parse(state?.isNotEmpty == true ? state! : '0') < 5 &&
+        counter1.state < 50,
+  ),
   //when compute function will be invoked.
   //from the value of 5 the compute function will not be invoked
   //also if counter1.state > the compute function will not be invoked
@@ -77,17 +79,19 @@ class CounterApp extends StatelessWidget {
           //   },
           // ),
           OnBuilder.data(
-              listenTo: counter2,
-              builder: (_) {
-                numberOfCounter2Rebuild++;
-                return Text('counter2 : ${counter2.state}');
-              }),
+            listenTo: counter2,
+            builder: (c) {
+              numberOfCounter2Rebuild++;
+              return Text('counter2 : ${counter2.state}');
+            },
+          ),
           OnBuilder.data(
-              listenTo: computedCounter,
-              builder: (_) {
-                numberOfComputedRebuild++;
-                return Text('computedCounter : ${computedCounter.state}');
-              }),
+            listenTo: computedCounter,
+            builder: (c) {
+              numberOfComputedRebuild++;
+              return Text('computedCounter : ${computedCounter.state}');
+            },
+          ),
         ],
       ),
     );
@@ -118,8 +122,9 @@ void main() {
     expect(numberOfComputedRebuild, 1);
   });
 
-  testWidgets('increment counter1 => computedCounter is incremented',
-      (tester) async {
+  testWidgets('increment counter1 => computedCounter is incremented', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
     counter1.state = counter1.state + 10;
     await tester.pump();
@@ -139,8 +144,9 @@ void main() {
     expect(numberOfComputedRebuild, 2);
   });
 
-  testWidgets('increment counter2 => computedCounter is incremented',
-      (tester) async {
+  testWidgets('increment counter2 => computedCounter is incremented', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
     counter2.state = counter2.state + 10;
     await tester.pump();
@@ -161,38 +167,40 @@ void main() {
   });
 
   testWidgets(
-      'computedCounter will not rebuild if the competed result is not changed',
-      (tester) async {
-    await tester.pumpWidget(CounterApp());
+    'computedCounter will not rebuild if the competed result is not changed',
+    (tester) async {
+      await tester.pumpWidget(CounterApp());
 
-    // initial rebuild
-    expect(find.text('counter1 : 10'), findsOneWidget);
-    expect(find.text('counter2 : 10'), findsOneWidget);
-    expect(find.text('computedCounter : 2'), findsOneWidget);
+      // initial rebuild
+      expect(find.text('counter1 : 10'), findsOneWidget);
+      expect(find.text('counter2 : 10'), findsOneWidget);
+      expect(find.text('computedCounter : 2'), findsOneWidget);
 
-    counter1.state++;
+      counter1.state++;
 
-    await tester.pump();
+      await tester.pump();
 
-    expect(find.text('counter1 : 11'), findsOneWidget);
-    expect(find.text('counter2 : 10'), findsOneWidget);
-    // 11 + 10 = 21, the computed first digit is 2.
-    expect(find.text('computedCounter : 2'), findsOneWidget);
+      expect(find.text('counter1 : 11'), findsOneWidget);
+      expect(find.text('counter2 : 10'), findsOneWidget);
+      // 11 + 10 = 21, the computed first digit is 2.
+      expect(find.text('computedCounter : 2'), findsOneWidget);
 
-    //
-    //the compute method is called for the the second time
-    expect(numberOfComputeCall, 2);
-    //counter 1 is not rebuilt
-    expect(numberOfCounter1Rebuild, 2);
-    //counter 2 is  rebuild
-    expect(numberOfCounter2Rebuild, 1);
-    //Although the computed method is invoked twice, the computedCounter is not rebuilt rebuild,
-    //because the its value does not change
-    expect(numberOfComputedRebuild, 1);
-  });
+      //
+      //the compute method is called for the the second time
+      expect(numberOfComputeCall, 2);
+      //counter 1 is not rebuilt
+      expect(numberOfCounter1Rebuild, 2);
+      //counter 2 is  rebuild
+      expect(numberOfCounter2Rebuild, 1);
+      //Although the computed method is invoked twice, the computedCounter is not rebuilt rebuild,
+      //because the its value does not change
+      expect(numberOfComputedRebuild, 1);
+    },
+  );
 
-  testWidgets('compute will not be invoked if shouldCompute is false',
-      (tester) async {
+  testWidgets('compute will not be invoked if shouldCompute is false', (
+    tester,
+  ) async {
     await tester.pumpWidget(CounterApp());
 
     // initial rebuild

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'injected.dart';
@@ -61,7 +61,7 @@ class PostsPage extends StatelessWidget {
                               onPressed: () => refresh(),
                               child: Text('Refresh Error'),
                             ),
-                            orElse: (_) => Center(
+                            orElse: (c) => Center(
                               child: CircularProgressIndicator(),
                             ),
                           )

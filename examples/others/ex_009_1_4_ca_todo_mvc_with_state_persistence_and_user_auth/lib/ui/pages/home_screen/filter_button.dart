@@ -8,10 +8,10 @@ class FilterButton extends StatelessWidget {
   const FilterButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final defaultStyle = Theme.of(context).textTheme.bodyText2;
+    final defaultStyle = Theme.of(context).textTheme.titleSmall;
     final activeStyle = Theme.of(context)
         .textTheme
-        .bodyText2!
+        .titleSmall!
         .copyWith(color: Theme.of(context).colorScheme.secondary);
     final button = _Button(
       activeStyle: activeStyle,

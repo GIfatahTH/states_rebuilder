@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class RefreshWidget extends StatelessWidget {
@@ -28,7 +28,7 @@ class RefreshWidget extends StatelessWidget {
                 ),
               ],
             ),
-            orElse: (_) => IconButton(
+            orElse: (c) => IconButton(
               onPressed: () => rm.stateAsync = onPressed(),
               icon: child,
             ),

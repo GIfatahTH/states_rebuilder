@@ -2,7 +2,7 @@ import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/fetch_excep
 import 'package:clean_architecture_dane_mackier_app/blocs/exceptions/input_exception.dart';
 import 'package:clean_architecture_dane_mackier_app/blocs/user_bloc.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/login_page/login_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -17,11 +17,11 @@ void main() {
   Finder loginTextField = find.byType(TextField);
 
   final Widget loginPage = TopAppWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       initialRoute: 'login',
       routes: {
-        '/posts': (_) => Text('This is the HomePage'),
-        '/': (_) => LoginPage(),
+        '/posts': (c) => Text('This is the HomePage'),
+        '/': (c) => LoginPage(),
       },
       navigatorKey: RM.navigate.navigatorKey,
     ),

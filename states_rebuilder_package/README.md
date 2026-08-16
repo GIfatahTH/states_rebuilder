@@ -1158,7 +1158,7 @@ To deal with TextFields and Form validation
                 decoration: InputDecoration(
                   errorText: email.error,
                 ),
-                onSubmitted: (_) {
+                onSubmitted: (c) {
                   // Request the password node
                   password.focusNode.requestFocus();
                 },
@@ -1169,7 +1169,7 @@ To deal with TextFields and Form validation
                 decoration: new InputDecoration(
                   errorText: password.error,
                 ),
-                onSubmitted: (_) {
+                onSubmitted: (c) {
                   // Request the submit button node
                   form.submitFocusNode.requestFocus();
                 },

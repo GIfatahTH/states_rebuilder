@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
 import '../../blocs/auth_bloc.dart';
@@ -23,8 +23,8 @@ class HomePage extends StatelessWidget {
       ),
       body: Center(
         child: OnBuilder.createStream(
-          creator: () => Stream.periodic(const Duration(seconds: 1), (_) => _),
-          builder: (_) {
+          creator: () => Stream.periodic(const Duration(seconds: 1), (c) => c),
+          builder: (c) {
             if (!authBloc.isUserAuthenticated) return const SizedBox.shrink();
             final expireTime = authBloc.user.token.expiryDate!
                 .difference(DateTimeX.current)

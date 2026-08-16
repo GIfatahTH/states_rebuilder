@@ -108,9 +108,7 @@ class PersistState<T> {
           '',
           'No implementation of `IPersistStore` is provided.',
         );
-        StatesRebuilerLogger.log(
-          '',
-          '''
+        StatesRebuilerLogger.log('', '''
 PLEASE IMPLEMENT THE `IPersistStore` INTERFACE AND INITIALIZE IT IN THE "main" METHOD.
 
 void main() async { 
@@ -125,8 +123,7 @@ IF YOU ARE TESTING THE APP USE:
 final store = await RM.storageInitializerMock();
 
 
-''',
-        );
+''');
         return false;
       }
 
@@ -140,8 +137,9 @@ final store = await RM.storageInitializerMock();
     if (persistStateProvider != null && !_isInitialized) {
       _isInitialized = true;
       return _persistStateSingleton!.init().then(
-            (_) => () => read(),
-          );
+        (c) =>
+            () => read(),
+      );
     }
 
     try {
@@ -150,15 +148,10 @@ final store = await RM.storageInitializerMock();
         return null;
       }
       if (r is Future) {
-        return r.then(
-          (dynamic value) {
-            cachedJson = value as String?;
-            return () => _fromJsonHandler(
-                  key,
-                  cachedJson,
-                );
-          },
-        );
+        return r.then((dynamic value) {
+          cachedJson = value as String?;
+          return () => _fromJsonHandler(key, cachedJson);
+        });
       }
       cachedJson = r as String?;
       return _fromJsonHandler(key, cachedJson);
@@ -167,9 +160,7 @@ final store = await RM.storageInitializerMock();
         StatesRebuilerLogger.log('Read form localStorage error', e, s);
         return null;
       } else if (debugPrintOperations) {
-        StatesRebuilerLogger.log(
-          'PersistState: Read Error ($key) :$e',
-        );
+        StatesRebuilerLogger.log('PersistState: Read Error ($key) :$e');
       }
       rethrow;
     }
@@ -180,9 +171,7 @@ final store = await RM.storageInitializerMock();
       return null;
     }
     if (debugPrintOperations) {
-      StatesRebuilerLogger.log(
-        'PersistState: read($key) :$json',
-      );
+      StatesRebuilerLogger.log('PersistState: read($key) :$json');
     }
     return fromJson!(json);
   }
@@ -198,8 +187,10 @@ final store = await RM.storageInitializerMock();
       }
       _throttleTimer = Timer(Duration(milliseconds: throttleDelay!), () async {
         _throttleTimer = null;
-        final r = await _persistStateSingleton!
-            .write<String>(key, toJson!(_valueForThrottle!));
+        final r = await _persistStateSingleton!.write<String>(
+          key,
+          toJson!(_valueForThrottle!),
+        );
         if (debugPrintOperations) {
           StatesRebuilerLogger.log(
             'PersistState: write($key, $_valueForThrottle)',
@@ -217,9 +208,7 @@ final store = await RM.storageInitializerMock();
     cachedJson = json;
     await _persistStateSingleton!.write<String>(key, json);
     if (debugPrintOperations) {
-      StatesRebuilerLogger.log(
-        'PersistState: write($key, $json)',
-      );
+      StatesRebuilerLogger.log('PersistState: write($key, $json)');
     }
   }
 
@@ -239,9 +228,7 @@ final store = await RM.storageInitializerMock();
         return;
       }
       if (debugPrintOperations) {
-        StatesRebuilerLogger.log(
-          'PersistState: Delete Error ($key) :$e',
-        );
+        StatesRebuilerLogger.log('PersistState: Delete Error ($key) :$e');
       }
       rethrow;
     }

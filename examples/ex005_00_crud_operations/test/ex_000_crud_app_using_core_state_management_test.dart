@@ -1,5 +1,5 @@
 import 'package:ex005_00_crud_operations/ex_000_crud_app_using_core_state_management/app.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ex005_00_crud_operations/ex_000_crud_app_using_core_state_management/blocs/todos_bloc.dart';
@@ -256,6 +256,8 @@ void main() {
       expect(toggleAllToCompletedFinder, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1000));
       //
+      await tester.drag(checkedItemFinder.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
       shouldThrow = true;
       await tester.tap(unCheckedItemFinder.first);
       await tester.pump();

@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -8,7 +8,7 @@ void main() {
     final rm = RM.inject(() => 0);
     final widget = OnBuilder.data(
       listenTo: rm,
-      builder: (_) => Directionality(
+      builder: (c) => Directionality(
         textDirection: TextDirection.ltr,
         child: Text('${rm.state}'),
       ),
@@ -31,16 +31,15 @@ void main() {
           builder: (context) => OnBuilder.orElse(
             listenTo: rm,
             onWaiting: () => CircularProgressIndicator(),
-            orElse: (_) => Text('${rm.state}'),
-            sideEffects: SideEffects(onAfterBuild: () {
-              if (rm.isWaiting) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Container(),
-                  ),
-                );
-              }
-            }),
+            orElse: (c) => Text('${rm.state}'),
+            sideEffects: SideEffects(
+              onAfterBuild: () {
+                if (rm.isWaiting) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Container()));
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -63,28 +62,24 @@ void main() {
             listenTo: rm,
             onIdle: () => Text('Idle'),
             onWaiting: () => CircularProgressIndicator(),
-            onError: (err, _) => Text('${err.message}'),
-            onData: (_) => Text('${rm.state.count}'),
+            onError: (err, c) => Text('${err.message}'),
+            onData: (c) => Text('${rm.state.count}'),
             sideEffects: SideEffects.onOrElse(
               onWaiting: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 if (rm.state.count > 1) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greater then 1 from SnackBar'),
-                    ),
+                    SnackBar(content: Text('Greater then 1 from SnackBar')),
                   );
                 }
               },
-              onError: (err, _) {
+              onError: (err, c) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error from SnackBar'),
-                  ),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Error from SnackBar')));
               },
-              orElse: (_) {},
+              orElse: (c) {},
             ),
           ),
         ),
@@ -171,10 +166,12 @@ class _Model {
   int count;
   _Model(this.count);
   void incrementFuture() => Future.delayed(Duration(seconds: 1), () {
-        count++;
-      });
+    count++;
+  });
   void incrementFutureWithError([String? error]) => Future.delayed(
-      Duration(seconds: 1), () => throw Exception(error ?? 'Error Message'));
+    Duration(seconds: 1),
+    () => throw Exception(error ?? 'Error Message'),
+  );
   Stream<void> incrementStream() async* {
     await Future.delayed(Duration(seconds: 1), () => count++);
     yield null;

@@ -1,5 +1,5 @@
 import 'package:ex_006_5_navigation/ex02_imperative_navigation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -25,6 +25,7 @@ class BooksApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       title: 'Books App',
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,

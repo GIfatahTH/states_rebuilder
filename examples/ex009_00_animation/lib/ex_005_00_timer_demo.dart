@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -57,7 +57,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
     super.initState();
     timer = Timer.periodic(
       const Duration(seconds: 1),
-      (_) {
+      (c) {
         animation.refresh();
       },
     );

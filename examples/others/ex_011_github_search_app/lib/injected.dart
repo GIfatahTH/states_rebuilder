@@ -27,7 +27,7 @@ final Injected<String> userNameQuery = RM.inject(
   //Each time the state of userNameQuery is changed we refresh the fetchedGitHubUser,
   //so the current future is canceled and a new fetch request is established.
   sideEffects: SideEffects.onData(
-    (_) => fetchedGitHubUser.refresh(),
+    (c) => fetchedGitHubUser.refresh(),
   ),
 );
 

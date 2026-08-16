@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../blocs/auth_bloc.dart';
@@ -87,7 +87,7 @@ class AuthFormWidget extends StatelessWidget {
             ),
             keyboardType: TextInputType.emailAddress,
             autocorrect: false,
-            onSubmitted: (_) {
+            onSubmitted: (c) {
               password.focusNode.requestFocus();
             },
           ),
@@ -102,7 +102,7 @@ class AuthFormWidget extends StatelessWidget {
             ),
             obscureText: true,
             autocorrect: false,
-            onSubmitted: (_) {
+            onSubmitted: (c) {
               if (isRegister.state) {
                 confirmPassword.focusNode.requestFocus();
               } else {
@@ -122,7 +122,7 @@ class AuthFormWidget extends StatelessWidget {
               ),
               obscureText: true,
               autocorrect: false,
-              onSubmitted: (_) {
+              onSubmitted: (c) {
                 form.submitFocusNode.requestFocus();
               },
             ),

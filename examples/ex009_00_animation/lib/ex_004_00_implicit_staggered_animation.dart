@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -12,7 +12,7 @@ final animation = RM.injectAnimation(
 final _selected = RM.inject<bool>(
   () => true,
   sideEffects: SideEffects.onData(
-    (_) {
+    (c) {
       animation.refresh();
     },
   ),

@@ -53,79 +53,79 @@ class OnFormBuilder extends MyStatefulWidget {
     //TODO test and document
     WillPopCallback? onWillPop,
   }) : super(
-          key: key,
-          observers: (_) {
-            return [];
-          },
-          dispose: (_, __) {
-            isEnabledRM?.disposeIfNotUsed();
-            isReadOnlyRM?.disposeIfNotUsed();
-          },
-          shouldRebuild: (old, current) {
-            return !current.isWaiting;
-          },
-          builder: (context, snap, rm) {
-            final inj = listenTo as InjectedFormImp;
-            final child = OnReactive(() {
-              final cached = InjectedFormImp._currentInitializedForm;
-              InjectedFormImp._currentInitializedForm = inj
-                .._isEnabled = isEnabledRM?.state ?? inj._isEnabled
-                .._isReadOnly = isReadOnlyRM?.state ?? inj._isReadOnly;
-              return Stack(
-                children: [
-                  builder(),
-                  Builder(
-                    builder: (_) {
-                      InjectedFormImp._currentInitializedForm = cached;
-                      // inj
-                      //   .._isEnabled = null
-                      //   .._isReadOnly = null;
-                      return const SizedBox(height: 0, width: 0);
-                    },
-                  ),
-                ],
-              );
-            });
+         key: key,
+         observers: (c) {
+           return [];
+         },
+         dispose: (c, __) {
+           isEnabledRM?.disposeIfNotUsed();
+           isReadOnlyRM?.disposeIfNotUsed();
+         },
+         shouldRebuild: (old, current) {
+           return !current.isWaiting;
+         },
+         builder: (context, snap, rm) {
+           final inj = listenTo as InjectedFormImp;
+           final child = OnReactive(() {
+             final cached = InjectedFormImp._currentInitializedForm;
+             InjectedFormImp._currentInitializedForm = inj
+               .._isEnabled = isEnabledRM?.state ?? inj._isEnabled
+               .._isReadOnly = isReadOnlyRM?.state ?? inj._isReadOnly;
+             return Stack(
+               children: [
+                 builder(),
+                 Builder(
+                   builder: (c) {
+                     InjectedFormImp._currentInitializedForm = cached;
+                     // inj
+                     //   .._isEnabled = null
+                     //   .._isReadOnly = null;
+                     return const SizedBox(height: 0, width: 0);
+                   },
+                 ),
+               ],
+             );
+           });
 
-            if (onWillPop != null) {
-              return WillPopScope(child: child, onWillPop: onWillPop);
-            }
-            return child;
-          },
-        );
+           if (onWillPop != null) {
+             return WillPopScope(child: child, onWillPop: onWillPop);
+           }
+           return child;
+         },
+       );
 
   /// the InjectedForm to listen to
   final InjectedForm listenTo;
   @override
-  List<ReactiveModelImp> Function(BuildContext context) get observers => (_) {
-        InjectedFormImp._currentInitializedForm = (listenTo as InjectedFormImp)
-          .._isEnabled =
-              isEnabledRM?.state ?? (listenTo as InjectedFormImp)._isEnabled
-          .._isReadOnly =
-              isReadOnlyRM?.state ?? (listenTo as InjectedFormImp)._isReadOnly;
-        if (isEnabledRM != null) {
-          final disposer = isEnabledRM!.addObserver(
-            isSideEffects: false,
-            listener: (rm) {
-              (listenTo as ReactiveModel).notify();
-            },
-            shouldAutoClean: true,
-          );
-          cleaners.add(disposer);
-        }
+  List<ReactiveModelImp> Function(BuildContext context) get observers => (c) {
+    InjectedFormImp._currentInitializedForm = (listenTo as InjectedFormImp)
+      .._isEnabled =
+          isEnabledRM?.state ?? (listenTo as InjectedFormImp)._isEnabled
+      .._isReadOnly =
+          isReadOnlyRM?.state ?? (listenTo as InjectedFormImp)._isReadOnly;
+    if (isEnabledRM != null) {
+      final disposer = isEnabledRM!.addObserver(
+        isSideEffects: false,
+        listener: (rm) {
+          (listenTo as ReactiveModel).notify();
+        },
+        shouldAutoClean: true,
+      );
+      cleaners.add(disposer);
+    }
 
-        if (isReadOnlyRM != null) {
-          final disposer = isReadOnlyRM!.addObserver(
-            isSideEffects: false,
-            listener: (rm) {
-              (listenTo as ReactiveModel).notify();
-            },
-            shouldAutoClean: true,
-          );
-          cleaners.add(disposer);
-        }
-        return [listenTo as ReactiveModelImp];
-      };
+    if (isReadOnlyRM != null) {
+      final disposer = isReadOnlyRM!.addObserver(
+        isSideEffects: false,
+        listener: (rm) {
+          (listenTo as ReactiveModel).notify();
+        },
+        shouldAutoClean: true,
+      );
+      cleaners.add(disposer);
+    }
+    return [listenTo as ReactiveModelImp];
+  };
 
   /// ReactiveState of type bool. It is used to set the value of `isEnabled` of
   /// all child input fields.
@@ -136,7 +136,7 @@ class OnFormBuilder extends MyStatefulWidget {
   ///  final formRM =  RM.injectForm(
   ///    submissionSideEffects: SideEffects.onOrElse(
   ///      onWaiting: ()=> isEnabledRM = false,
-  ///      orElse: (_)=> isEnabledRM = true,
+  ///      orElse: (c)=> isEnabledRM = true,
   ///      submit: () => repository.submitForm( ... ),
   ///    ),
   ///  );
@@ -178,7 +178,7 @@ class OnFormBuilder extends MyStatefulWidget {
   ///  final formRM =  RM.injectForm(
   ///    submissionSideEffects: SideEffects.onOrElse(
   ///      onWaiting: ()=> isReadOnlyRM = true,
-  ///      orElse: (_)=> isReadOnlyRM = false,
+  ///      orElse: (c)=> isReadOnlyRM = false,
   ///      submit: () => repository.submitForm( ... ),
   ///    ),
   ///  );

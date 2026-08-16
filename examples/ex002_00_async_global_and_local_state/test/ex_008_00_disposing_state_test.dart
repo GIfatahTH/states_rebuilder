@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:ex002_00_async_global_and_local_state/ex_008_00_disposing_state.dart'
     as app;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mocktail/mocktail.dart';
@@ -223,7 +223,7 @@ class CounterView extends ReactiveStatelessWidget {
               ),
               Text(
                 '${counterViewModel.counter}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ],
           ),

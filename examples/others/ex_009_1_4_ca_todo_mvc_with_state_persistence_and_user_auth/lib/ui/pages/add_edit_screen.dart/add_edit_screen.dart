@@ -7,7 +7,7 @@
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/todos_bloc.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../domain/entities/todo.dart';
@@ -59,7 +59,7 @@ class AddEditPage extends StatelessWidget {
                     todo != null ? todo.state.task : '',
                   ),
                   autofocus: isEditing ? false : true,
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineMedium,
                   decoration: InputDecoration(hintText: _i18n.newTodoHint),
                   // validator: (val) =>
                   //     val!.trim().isEmpty ? _i18n.emptyTodoError : null,
@@ -71,7 +71,7 @@ class AddEditPage extends StatelessWidget {
                     todo != null ? todo.state.note : '',
                   ),
                   maxLines: 10,
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                   decoration: InputDecoration(
                     hintText: _i18n.notesHint,
                   ),

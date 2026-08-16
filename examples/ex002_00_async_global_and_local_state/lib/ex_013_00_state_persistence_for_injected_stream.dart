@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -51,7 +51,7 @@ class SharedPreferencesImp implements IPersistStore {
 final counterRM1 = RM.injectStream<int>(
   () => Stream.periodic(
     const Duration(seconds: 5),
-    (_) => Random().nextInt(1000),
+    (c) => Random().nextInt(1000),
   ),
   persist: () => PersistState(
     key: 'counter1',
@@ -63,7 +63,7 @@ final counterRM1 = RM.injectStream<int>(
 final counterRM2 = RM.injectStream<int>(
   () => Stream.periodic(
     const Duration(seconds: 5),
-    (_) => Random().nextInt(1000),
+    (c) => Random().nextInt(1000),
   ),
   persist: () => PersistState(
     key: 'counter2',
@@ -118,7 +118,7 @@ class MyHome extends ReactiveStatelessWidget {
             else
               Text(
                 '${counterRM1.state}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             const SizedBox(height: 12),
             const Text(
@@ -129,7 +129,7 @@ class MyHome extends ReactiveStatelessWidget {
             else
               Text(
                 '${counterRM2.state}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             const SizedBox(height: 12),
           ],

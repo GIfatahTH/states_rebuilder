@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final injectedTabPage = RM.injectTabPageView(
@@ -69,7 +69,7 @@ class TabViewOnly extends StatelessWidget {
       ),
       body: OnTabPageViewBuilder(
         listenTo: injectedTabPage,
-        builder: (_) => TabBarView(
+        builder: (c) => TabBarView(
           controller: injectedTabPage.tabController,
           children: icons
               .getRange(0, injectedTabPage.length)
@@ -78,7 +78,7 @@ class TabViewOnly extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: OnTabPageViewBuilder(
-        builder: (_) {
+        builder: (c) {
           return TabBar(
             controller: injectedTabPage.tabController,
             tabs: icons

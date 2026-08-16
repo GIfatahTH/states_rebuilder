@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 //counter is a global variable but the state of the counter is not.
@@ -12,7 +12,7 @@ final Injected<int> counter = RM.inject<int>(
   //
   //You can override this global side effect when calling setState
   sideEffects: SideEffects.onOrElse(
-    onData: (_) {
+    onData: (c) {
       //show snackBar
       //any current snackBar is hidden.
       RM.scaffold.showSnackBar(
@@ -30,7 +30,7 @@ final Injected<int> counter = RM.inject<int>(
         ),
       );
     },
-    orElse: (_) {},
+    orElse: (c) {},
   ),
   debugPrintWhenNotifiedPreMessage: '',
 );
@@ -60,7 +60,7 @@ class MyHomePage extends StatelessWidget {
                 onError: (error, refresh) => Text(counter.error.message),
                 onData: (data) => Text(
                   '$data',
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ),
             ),
@@ -79,7 +79,7 @@ class MyHomePage extends StatelessWidget {
               return counter + 1;
             },
             sideEffects: SideEffects.onAll(
-              onData: (_) {
+              onData: (c) {
                 RM.scaffold.hideCurrentSnackBar();
                 print('OnData from setState');
               },

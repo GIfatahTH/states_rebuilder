@@ -3,7 +3,7 @@ import 'package:clean_architecture_firebase_login/injected.dart';
 import 'package:clean_architecture_firebase_login/main.dart';
 import 'package:clean_architecture_firebase_login/service/exceptions/sign_in_out_exception.dart';
 import 'package:clean_architecture_firebase_login/ui/pages/sign_in_register_form_page/sign_in_register_form_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

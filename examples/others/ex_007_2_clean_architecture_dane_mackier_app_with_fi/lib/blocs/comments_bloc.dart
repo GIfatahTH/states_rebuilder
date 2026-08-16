@@ -1,5 +1,5 @@
 import 'package:clean_architecture_dane_mackier_app/data_source/api.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 @immutable
@@ -10,7 +10,7 @@ class CommentsBloc {
   );
 
   void read(int postId) {
-    commentsRM.crud.read(param: (_) => postId);
+    commentsRM.crud.read(param: (c) => postId);
   }
 }
 

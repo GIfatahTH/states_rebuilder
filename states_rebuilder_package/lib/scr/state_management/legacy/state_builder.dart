@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../rm.dart';
 
@@ -88,7 +88,7 @@ class StateBuilder<T> extends StatefulWidget {
   ///```
   ///Called when a dependency of this [State] object changes.
   final void Function(BuildContext context, ReactiveModel<T>? model)?
-      didChangeDependencies;
+  didChangeDependencies;
 
   ///```dart
   ///StateBuilder(
@@ -100,12 +100,16 @@ class StateBuilder<T> extends StatefulWidget {
   ///)
   ///```
   ///Called whenever the widget configuration changes.
-  final void Function(BuildContext context, ReactiveModel<T>? model,
-      StateBuilder<T> oldWidget)? didUpdateWidget;
+  final void Function(
+    BuildContext context,
+    ReactiveModel<T>? model,
+    StateBuilder<T> oldWidget,
+  )?
+  didUpdateWidget;
 
   ///Called after the widget is first inserted in the widget tree.
   final void Function(BuildContext context, ReactiveModel<T>? model)?
-      afterInitialBuild;
+  afterInitialBuild;
 
   ///```dart
   ///StateBuilder(
@@ -118,19 +122,22 @@ class StateBuilder<T> extends StatefulWidget {
   ///
   ///The builder is provided with a [BuildContext], [ReactiveModel] and [Widget] parameters.
   final Widget Function(
-          BuildContext context, ReactiveModel<T>? model, Widget child)?
-      builderWithChild;
+    BuildContext context,
+    ReactiveModel<T>? model,
+    Widget child,
+  )?
+  builderWithChild;
 
   ///The child to be used in [builderWithChild].
   final Widget? child;
 
   ///Called whenever this widget is notified.
   final dynamic Function(BuildContext context, ReactiveModel<T>? model)?
-      onSetState;
+  onSetState;
 
   /// Called whenever this widget is notified and after rebuilding the widget.
   final void Function(BuildContext context, ReactiveModel<T>? model)?
-      onRebuildState;
+  onRebuildState;
 
   /// callback to be executed before notifying listeners. It the returned value is
   /// the same as the last one, the rebuild process is interrupted.
@@ -164,7 +171,7 @@ class StateBuilder<T> extends StatefulWidget {
     this.didChangeDependencies,
     this.didUpdateWidget,
     this.afterInitialBuild,
-  })  : assert(builder != null || builderWithChild != null, '''
+  }) : assert(builder != null || builderWithChild != null, '''
   
   | ***Builder not defined*** 
   | You have to define either 'builder' or 'builderWithChild' parameter.
@@ -172,14 +179,14 @@ class StateBuilder<T> extends StatefulWidget {
   | If 'child' is null use 'builder' instead.
   
         '''),
-        assert(builderWithChild == null || child != null, '''
+       assert(builderWithChild == null || child != null, '''
   | ***child is null***
   | You have defined the 'builderWithChild' parameter without defining the child parameter.
   | Use 'builderWithChild' with 'child' parameter. 
   | If 'child' is null use 'builder' instead.
   
         '''),
-        super(key: key);
+       super(key: key);
 
   @override
   State<StateBuilder<T>> createState() {
@@ -196,15 +203,19 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
   void initState() {
     super.initState();
     final observe = widget.observe?.call() as ReactiveModelImp?;
-    final observeMany =
-        widget.observeMany?.map((e) => e()).cast<ReactiveModelImp>().toList();
+    final observeMany = widget.observeMany
+        ?.map((e) => e())
+        .cast<ReactiveModelImp>()
+        .toList();
     if (observe != null) {
       observes = [observe, ...(observeMany ?? [])];
     } else if (observeMany != null) {
       observes = observeMany;
     } else {
-      throw ArgumentError('You have to observe a model by defining '
-          'either observe or observeMany parameters');
+      throw ArgumentError(
+        'You have to observe a model by defining '
+        'either observe or observeMany parameters',
+      );
     }
   }
 
@@ -231,14 +242,10 @@ class StateBuilderState<T> extends State<StateBuilder<T>> {
         cachedWatch = widget.watch?.call(rm!.snapState);
         rmFromInitState = rm;
       },
-      dispose: (context, _) => widget.dispose?.call(context, rmFromInitState),
+      dispose: (context, c) => widget.dispose?.call(context, rmFromInitState),
       didChangeDependencies: widget.didChangeDependencies,
       didUpdateWidget: widget.didUpdateWidget != null
-          ? (context, rm, _) => widget.didUpdateWidget!(
-                context,
-                rm,
-                oldWidget,
-              )
+          ? (context, rm, c) => widget.didUpdateWidget!(context, rm, oldWidget)
           : null,
       onSetState: (context, snap, rm) {
         widget.onSetState?.call(context, rm);

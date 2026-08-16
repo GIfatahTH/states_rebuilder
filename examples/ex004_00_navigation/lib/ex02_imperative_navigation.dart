@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // The same example as the last one using imperative navigation
@@ -50,6 +50,7 @@ class BooksApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       title: 'Books App',
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,
@@ -102,8 +103,8 @@ class BookDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(book.title, style: Theme.of(context).textTheme.headline6),
-            Text(book.author, style: Theme.of(context).textTheme.subtitle1),
+            Text(book.title, style: Theme.of(context).textTheme.headlineSmall),
+            Text(book.author, style: Theme.of(context).textTheme.titleMedium),
           ],
         ),
       ),

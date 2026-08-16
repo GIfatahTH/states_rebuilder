@@ -44,13 +44,13 @@ class AuthBloc {
 
   Future<User?> signUp(String email, String password) {
     return userRM.auth.signUp(
-      (_) => UserParam(email: email, password: password),
+      (c) => UserParam(email: email, password: password),
     );
   }
 
   Future<User?> signIn(String email, String password) {
     return userRM.auth.signIn(
-      (_) => UserParam(email: email, password: password),
+      (c) => UserParam(email: email, password: password),
     );
   }
 

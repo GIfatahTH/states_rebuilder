@@ -15,7 +15,7 @@ class ArchSampleLocalizations {
   final Locale locale;
 
   static Future<ArchSampleLocalizations> load(Locale locale) {
-    return initializeMessages(locale.toString()).then((_) {
+    return initializeMessages(locale.toString()).then((c) {
       return ArchSampleLocalizations(locale);
     });
   }

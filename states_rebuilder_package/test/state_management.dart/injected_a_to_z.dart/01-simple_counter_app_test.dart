@@ -1,6 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors, avoid_print
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -22,7 +22,7 @@ final Injected<int> counter = RM.inject<int>(
   ),
   // SideEffects.onAll(
   //   onWaiting: () => print('waiting'),
-  //   onError: (e, _) => print('error : $e'),
+  //   onError: (e, c) => print('error : $e'),
   //   onData: (data) => print('data $data'),
   // ),
   // onInitialized: (int? state) => print('Initialized'),

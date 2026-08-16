@@ -27,7 +27,7 @@ class MessageLookup extends MessageLookupByLibrary {
   @override
   final messages = _notInlinedMessages(_notInlinedMessages);
 
-  static Map<String, dynamic> _notInlinedMessages(_) => {
+  static Map<String, dynamic> _notInlinedMessages(c) => {
         'activeTodos': MessageLookupByLibrary.simpleMessage('Active Todos'),
         'addTodo': MessageLookupByLibrary.simpleMessage('Add Todo'),
         'cancel': MessageLookupByLibrary.simpleMessage('Cancel'),

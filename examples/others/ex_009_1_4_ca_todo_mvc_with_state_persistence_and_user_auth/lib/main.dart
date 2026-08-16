@@ -2,8 +2,7 @@ import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/blocs/au
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/data_source/hive_storage.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/localization/localization.dart';
 import 'package:ex_009_1_3_ca_todo_mvc_with_state_persistence_user_auth/ui/theme/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'ui/pages/add_edit_screen.dart/add_edit_screen.dart';
@@ -58,9 +57,7 @@ class App extends TopStatelessWidget {
       locale: i18n.locale,
       localeResolutionCallback: i18n.localeResolutionCallback,
       localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
       ],
       home: OnAuthBuilder(
         listenTo: authBloc.userRM,
@@ -72,9 +69,9 @@ class App extends TopStatelessWidget {
       navigatorKey: RM.navigate.navigatorKey,
       onGenerateRoute: RM.navigate.onGenerateRoute(
         {
-          HomeScreen.routeName: (_) => const HomeScreen(),
-          AuthPage.routeName: (_) => const AuthPage(),
-          AddEditPage.routeName: (_) => const AddEditPage(),
+          HomeScreen.routeName: (c) => const HomeScreen(),
+          AuthPage.routeName: (c) => const AuthPage(),
+          AddEditPage.routeName: (c) => const AddEditPage(),
         },
         // transitionsBuilder: RM.transitions.upToBottom(),
       ),

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -159,15 +159,15 @@ class WeatherView extends ReactiveStatelessWidget {
                   children: [
                     Text(
                       weatherService.weather!.location,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     Text(
                       weatherService.weather!.condition.name,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     Text(
                       weatherService.weather!.temperature.toString(),
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                   ],
                 ),

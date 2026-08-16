@@ -102,7 +102,7 @@ final counterStore = RM.injectFlavor(
   //As config model have any observer, it can not be disposed automatically,
   //we have to Dispose it Manually.
   //For this example here is the appropriate place
-  onDisposed: (_) => config.dispose(),
+  onDisposed: (c) => config.dispose(),
 );
 ```
 
@@ -179,7 +179,7 @@ class MyHomePage extends StatelessWidget {
                 onError: (error) => Text(counterStore.error.message),
                 onData: () => Text(
                   '${counterStore.state.count}',
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ).listenTo(counterStore),
             ],

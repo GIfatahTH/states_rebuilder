@@ -21,10 +21,7 @@ class _Rebuild {
   }
 
   call(Widget Function() builder) {
-    return OnBuilder(
-      listenTo: inj,
-      builder: builder,
-    );
+    return OnBuilder(listenTo: inj, builder: builder);
   }
 }
 
@@ -139,8 +136,10 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
       if (_assertionList.contains(name)) {
         if (_assertionList.isNotEmpty) {
           _assertionList.clear();
-          throw ArgumentError('Duplication of <$T> with the same name is '
-              'not allowed. Use distinct name. The name is: $name');
+          throw ArgumentError(
+            'Duplication of <$T> with the same name is '
+            'not allowed. Use distinct name. The name is: $name',
+          );
         }
       }
       _assertionList.add(name);
@@ -181,7 +180,7 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
     //   return getValue(name);
     // }
     return _animateTween(
-      (begin, _) => fn(begin),
+      (begin, c) => fn(begin),
       null,
       curve,
       reserveCurve,
@@ -199,10 +198,8 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
     name = '$T' + name;
 
     return _animateTween<T>(
-      (begin, isInitialized) => _getTween(
-        isInitialized ? begin : begin ?? value,
-        value,
-      ),
+      (begin, isInitialized) =>
+          _getTween(isInitialized ? begin : begin ?? value, value),
       value,
       curve,
       reserveCurve,
@@ -235,14 +232,11 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
     super.initState();
     _injected.initializer(this);
     widget.onInitialized?.call();
-    animate = Animate._(
-      value: animateValue,
-      fromTween: animateTween,
-    );
+    animate = Animate._(value: animateValue, fromTween: animateTween);
 
     disposer = _injected.addObserver(
       isSideEffects: false,
-      listener: (_) {
+      listener: (c) {
         if (_hasChanged || animate.shouldAlwaysRebuild) {
           try {
             assert(() {
@@ -260,20 +254,16 @@ class _OnAnimationBuilderState extends State<OnAnimationBuilder>
       shouldAutoClean: true,
     );
 
-    disposeDidUpdateWidget = _injected.addToDidUpdateWidgetListeners(
-      () {
-        _hasChanged = true;
-        _didUpdateWidget();
-      },
-    );
-    disposeAnimationReset = _injected.addToResetAnimationListeners(
-      () {
-        _evaluateAnimation.forEach((key, value) {
-          value.forwardAnimation = null;
-          value.backwardAnimation = null;
-        });
-      },
-    );
+    disposeDidUpdateWidget = _injected.addToDidUpdateWidgetListeners(() {
+      _hasChanged = true;
+      _didUpdateWidget();
+    });
+    disposeAnimationReset = _injected.addToResetAnimationListeners(() {
+      _evaluateAnimation.forEach((key, value) {
+        value.forwardAnimation = null;
+        value.backwardAnimation = null;
+      });
+    });
   }
 
   void resetState() {

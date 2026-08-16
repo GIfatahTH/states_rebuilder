@@ -1,5 +1,5 @@
 import 'package:ex005_00_crud_operations/ex_001_crud_app_using_injected_crud/app.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -274,6 +274,8 @@ void main() {
       expect(toggleAllToCompletedFinder, findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1000));
       //
+      await tester.drag(checkedItemFinder.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
       shouldThrow = true;
       await tester.tap(unCheckedItemFinder.first);
       await tester.pump();

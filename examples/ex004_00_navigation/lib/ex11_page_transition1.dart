@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // Show case on how to custom page transition animation
@@ -29,7 +29,7 @@ final navigator = RM.injectNavigator(
     '/page2': (data) => const PageWidget(title: 'Page2'),
     '/page3': (data) {
       return RouteWidget(
-        builder: (_) {
+        builder: (c) {
           return const PageWidget(title: 'Page3');
         },
         transitionsBuilder: RM.transitions.leftToRight(
@@ -38,14 +38,14 @@ final navigator = RM.injectNavigator(
       );
     },
     '/page4': (data) => RouteWidget(
-          builder: (_) {
+          builder: (c) {
             return const PageWidget(title: 'Page4');
           },
           transitionsBuilder: RM.transitions.none(),
         ),
     '/page5': (data) => RouteWidget(
           transitionsBuilder: RM.transitions.upToBottom(),
-          builder: (_) {
+          builder: (c) {
             return const Page5Home();
           },
           routes: {
@@ -66,6 +66,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       title: 'Books App',
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,

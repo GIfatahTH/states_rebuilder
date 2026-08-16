@@ -91,7 +91,7 @@ part of 'injected_text_editing.dart';
 /// * [InjectedTextEditing] to inject a [TextEditingController],
 ///  {@endtemplate}
 
-abstract class InjectedForm implements IObservable<bool?> {
+abstract mixin class InjectedForm implements IObservable<bool?> {
   ///Listen to the [InjectedForm] and rebuild when it is notified.
   // late final rebuild = _RebuildForm(this);
 
@@ -174,13 +174,13 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
     Future<void> Function()? submit,
     bool? isEnabled,
     bool? isReadOnly,
-  })  : _submit = submit,
-        super(
-          creator: () => null,
-          initialState: null,
-          autoDisposeWhenNotUsed: true,
-          stateInterceptorGlobal: null,
-        ) {
+  }) : _submit = submit,
+       super(
+         creator: () => null,
+         initialState: null,
+         autoDisposeWhenNotUsed: true,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       this.autovalidateMode = autovalidateMode;
       _submitFocusNode = null;
@@ -326,9 +326,7 @@ class InjectedFormImp extends ReactiveModelImp<bool?> with InjectedForm {
       }
     }
 
-    await setState(
-      () => fn == null ? _submit?.call() : fn(),
-    );
+    await setState(() => fn == null ? _submit?.call() : fn());
   }
 
   // void enableFields(bool isEnabled) {

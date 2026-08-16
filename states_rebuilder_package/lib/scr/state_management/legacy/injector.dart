@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../rm.dart';
 
@@ -208,16 +208,14 @@ class Injector extends StatefulWidget {
   static Inject<T> _getInject<T>(String name, [bool silent = false]) {
     final Inject<dynamic>? inject =
         InjectorState.allRegisteredModelInApp[name]?.last;
-    assert(
-      () {
-        if (silent != true && inject == null) {
-          throw Exception(
-            '$T is not registered yet.\nUser Injector to register it',
-          );
-        }
-        return true;
-      }(),
-    );
+    assert(() {
+      if (silent != true && inject == null) {
+        throw Exception(
+          '$T is not registered yet.\nUser Injector to register it',
+        );
+      }
+      return true;
+    }());
 
     return inject as Inject<T>;
   }
@@ -268,7 +266,7 @@ class InjectorState extends State<Injector> {
 
     if (widget.afterInitialBuild != null) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => widget.afterInitialBuild!(context),
+        (c) => widget.afterInitialBuild!(context),
       );
     }
   }
@@ -324,14 +322,8 @@ class InjectorStateAppLifeCycle extends InjectorState
 ///
 abstract class IN {
   ///Get the plain injected object
-  static T? get<T>({
-    dynamic name,
-    bool silent = false,
-  }) {
-    return Injector.get<T>(
-      name: name,
-      silent: silent,
-    );
+  static T? get<T>({dynamic name, bool silent = false}) {
+    return Injector.get<T>(name: name, silent: silent);
   }
 }
 
@@ -355,8 +347,9 @@ void unregisterInjects(List<Inject<dynamic>> _injects) {
     inject.injected.dispose();
 
     final name = inject.getName();
-    final isRemoved =
-        InjectorState.allRegisteredModelInApp[name]?.remove(inject);
+    final isRemoved = InjectorState.allRegisteredModelInApp[name]?.remove(
+      inject,
+    );
     if (isRemoved != true) {
       continue;
     }

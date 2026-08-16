@@ -22,7 +22,7 @@ final posts = RM.injectCRUD<Post, int>(
 extension PostsX on List<Post> {
   void fetchMorePosts() {
     posts.crud.read(
-      param: (_) => posts.state.length,
+      param: (c) => posts.state.length,
       middleState: (state, nextState) {
         if (nextState.isEmpty) {
           posts.customStatus = 'hasReachedMax';

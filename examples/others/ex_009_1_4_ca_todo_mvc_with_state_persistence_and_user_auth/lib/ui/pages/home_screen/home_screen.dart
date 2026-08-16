@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../blocs/auth_bloc.dart';
@@ -62,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                 : null,
             orElse: (data) {
               return OnTabPageViewBuilder(
-                builder: (_) => PageView(
+                builder: (c) => PageView(
                   controller: appTab.pageController,
                   children: [const TodoList(), const StatsCounter()],
                 ),

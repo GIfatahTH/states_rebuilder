@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // Re-implementation of ResoCoder demo example
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'Custom Page Transitions',
       routerDelegate: navigator.routerDelegate,
       routeInformationParser: navigator.routeInformationParser,
-      theme: ThemeData.light().copyWith(
+      theme: ThemeData.light(useMaterial3: false).copyWith(
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: Colors.deepOrange,
         ),

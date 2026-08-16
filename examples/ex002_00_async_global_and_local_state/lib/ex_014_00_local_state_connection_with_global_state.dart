@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -143,7 +143,7 @@ class Home extends ReactiveStatelessWidget {
               // setting that the local created state will notify the global
               // state currentTodo.
               // connectWithGlobal: true, // default to ture
-              builder: (_) => const TodoItem(),
+              builder: (c) => const TodoItem(),
             )
           ],
         ],

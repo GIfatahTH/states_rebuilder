@@ -1,3 +1,9 @@
+## 6.4.0
+* Update to fit Flutter 3.19 release
+* `RM.injectNavigator` is deprecated
+## 6.3.1-dev1
+* Add `ReactiveModel.isStateInitialized` getter to check if the state has already initialized or not yet.
+
 ## 6.3.0
 * update to dart3
 * internal refactor
@@ -508,7 +514,7 @@ void main() {
           Flavor.Dev:()=>DevConfig(),
         }),
       ],
-      builder: (_){
+      builder: (c){
         return MyApp(
           appTitle: Injector.get<ConfigInterface>().appDisplayName;
         );
@@ -570,7 +576,7 @@ class App extends StatelessWidget {
           // Subscribe StateBuilder widget ot counterRM
           child: StateBuilder(
             models: [counterRM],
-            builder: (context, _) {
+            builder: (context, c) {
               return Text('${counterRM.value}');
             },
           ),
@@ -593,7 +599,7 @@ instead of:
 Widget build(BuildContext context) {
     return StateBuilder<PlugIn1>(
       models: [Injector.getAsReactive<PlugIn1>()],
-      builder: (_, plugin1RM) {
+      builder: (c, plugin1RM) {
         return plugin1RM.whenConnectionState(
           onIdle: () => Text('onIDle'),
           onWaiting: () => CircularProgressIndicator(),

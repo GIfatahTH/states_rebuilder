@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Contains useful functions to reduce boilerplate code
 class UIHelper {

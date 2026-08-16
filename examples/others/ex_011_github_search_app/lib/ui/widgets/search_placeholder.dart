@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SearchPlaceholder extends StatelessWidget {
   const SearchPlaceholder({required this.title});
@@ -9,7 +9,7 @@ class SearchPlaceholder extends StatelessWidget {
     return Center(
       child: Text(
         title,
-        style: theme.textTheme.headline5,
+        style: theme.textTheme.headlineMedium,
         textAlign: TextAlign.center,
       ),
     );

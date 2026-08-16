@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -25,16 +25,11 @@ class App extends StatelessWidget {
         //called if at least on plugin is waiting.
         onWaiting: () => Text('Waiting'),
         //called if no plugin is waiting and at least on of them has error
-        onError: (error, _) => Text('error'),
+        onError: (error, c) => Text('error'),
         //called if both plugins have been initialized successfully
-        onData: (_) {
+        onData: (c) {
           //Here it is safe to use our plugins
-          return Column(
-            children: [
-              Text(plugin1.state),
-              Text(plugin2.state),
-            ],
-          );
+          return Column(children: [Text(plugin1.state), Text(plugin2.state)]);
         },
       ),
     );

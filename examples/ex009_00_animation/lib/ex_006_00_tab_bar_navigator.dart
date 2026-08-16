@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -62,7 +62,7 @@ class TabBarNavigator extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               backgroundColor: animate(
                                   i == index.state ? Colors.blue : null, '$i'),
-                              primary: animate(
+                              foregroundColor: animate(
                                   i != index.state ? Colors.blue : Colors.white,
                                   'primary$i'),
                             ),

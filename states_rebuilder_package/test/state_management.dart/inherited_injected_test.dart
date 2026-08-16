@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
@@ -16,11 +16,12 @@ void main() {
       builder: (ctx) {
         context1 = ctx;
         return counter2.inherited(
-            stateOverride: null,
-            builder: (ctx) {
-              context2 = ctx;
-              return Container();
-            });
+          stateOverride: null,
+          builder: (ctx) {
+            context2 = ctx;
+            return Container();
+          },
+        );
       },
     );
 
@@ -42,11 +43,12 @@ void main() {
       builder: (ctx) {
         context1 = ctx;
         return counter2.inherited(
-            stateOverride: () => counter2.state,
-            builder: (ctx) {
-              context2 = ctx;
-              return Container();
-            });
+          stateOverride: () => counter2.state,
+          builder: (ctx) {
+            context2 = ctx;
+            return Container();
+          },
+        );
       },
     );
 
@@ -83,9 +85,7 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     expect(counter1.state, 12);
     //
-    inherited1.setState(
-      (s) => throw Exception(),
-    );
+    inherited1.setState((s) => throw Exception());
     await tester.pump();
     expect(counter1.hasError, true);
   });
@@ -158,15 +158,14 @@ void main() {
     expect(counter1.hasError, true);
   });
 
-  testWidgets('reInherited works when stateOverride is defined',
-      (tester) async {
+  testWidgets('reInherited works when stateOverride is defined', (
+    tester,
+  ) async {
     int disposedNum = 0;
     final switcher = true.inj();
     final counter = RM.inject(
       () => 1,
-      sideEffects: SideEffects(
-        dispose: () => disposedNum++,
-      ),
+      sideEffects: SideEffects(dispose: () => disposedNum++),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -195,7 +194,7 @@ void main() {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) {
+        builder: (c) {
           return counter.reInherited(
             context: context,
             builder: (ctx) {
@@ -220,7 +219,7 @@ void main() {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) {
+        builder: (c) {
           return counter.reInherited(
             context: context,
             builder: (ctx) {
@@ -269,15 +268,14 @@ void main() {
     expect((counter).inheritedInjects.length, 0);
   });
 
-  testWidgets('reInherited works when stateOverride is not defined',
-      (tester) async {
+  testWidgets('reInherited works when stateOverride is not defined', (
+    tester,
+  ) async {
     int disposedNum = 0;
     final switcher = true.inj();
     final counter = RM.inject(
       () => 2,
-      sideEffects: SideEffects(
-        dispose: () => disposedNum++,
-      ),
+      sideEffects: SideEffects(dispose: () => disposedNum++),
     );
     late BuildContext context;
     late BuildContext context1;
@@ -306,7 +304,7 @@ void main() {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) {
+        builder: (c) {
           return counter.reInherited(
             context: context,
             builder: (ctx) {
@@ -331,7 +329,7 @@ void main() {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) {
+        builder: (c) {
           return counter.reInherited(
             context: context,
             builder: (ctx) {
@@ -380,160 +378,150 @@ void main() {
     expect((counter).inheritedInjects.length, 0);
   });
 
-  testWidgets(
-    'WHEN the list of items is updated and WHEN item is refreshed'
-    'THEN only updated item is rebuild',
-    (tester) async {
-      final items = RM.inject(
-        () => [1, 2, 3],
-      );
-      //
-      final hideAll = false.inj();
-      final widget = MaterialApp(
-        home: OnReactive(() {
-          return ListView.builder(
-            itemCount: items.state.length,
-            itemBuilder: (_, i) {
-              if (hideAll.state) {
-                return Container();
-              }
-              return _item.inherited(
-                stateOverride: () {
-                  return items.state[i];
-                },
-                builder: (context) {
-                  return const _Item();
-                },
-              );
-            },
-          );
-        }),
-      );
-      await tester.pumpWidget(widget);
-      expect(rebuiltItems, [1, 2, 3]);
-      rebuiltItems.clear();
-      items.state = [1, 2, 3, 4];
-      await tester.pump();
-      expect(rebuiltItems, [4]);
-      rebuiltItems.clear();
-      final list = [1, 2, 3, 5];
-      items.state = list;
-      await tester.pump();
-      _item.refresh();
-      await tester.pump();
-      await tester.pump();
-      expect(rebuiltItems, [5]);
-      //
-      // Provoke UnimplementedError and RangeError that are captured
-      list.removeLast();
-      hideAll.toggle();
-      _item.refresh();
-      await tester.pumpAndSettle();
-      expect(find.byType(_Item), findsNothing);
-      //
-      hideAll.toggle();
-      _item.refresh();
-      await tester.pumpAndSettle();
-      expect(find.byType(_Item), findsNWidgets(3));
-
-      //
-      _item.refresh();
-      hideAll.toggle();
-      await tester.pumpAndSettle();
-      expect(find.byType(_Item), findsNWidgets(0));
-      hideAll.toggle();
-      await tester.pump();
-      //
-      rebuiltItems.clear();
-      items.state = [1, 22, 3];
-      await tester.pump();
-      _item.refresh();
-      await tester.pump();
-      await tester.pump();
-      expect(rebuiltItems, [22]);
-    },
-  );
-
-  testWidgets(
-    'Check that Items anc be linked to item without cyclic loop',
-    (tester) async {
-      late Injected<_Counter> itemRM;
-      late List<Injected<_Counter>> childItem = [];
-      final itemsRM = RM.inject<List<_Counter>>(
-        () => [_Counter(1, 1), _Counter(2, 2), _Counter(3, 3)],
-        // debugPrintWhenNotifiedPreMessage: '',
-        sideEffects: SideEffects.onData(
-          (_) {
-            itemRM.refresh();
+  testWidgets('WHEN the list of items is updated and WHEN item is refreshed'
+      'THEN only updated item is rebuild', (tester) async {
+    final items = RM.inject(() => [1, 2, 3]);
+    //
+    final hideAll = false.inj();
+    final widget = MaterialApp(
+      home: OnReactive(() {
+        return ListView.builder(
+          itemCount: items.state.length,
+          itemBuilder: (c, i) {
+            if (hideAll.state) {
+              return Container();
+            }
+            return _item.inherited(
+              stateOverride: () {
+                return items.state[i];
+              },
+              builder: (context) {
+                return const _Item();
+              },
+            );
           },
-        ),
-      );
+        );
+      }),
+    );
+    await tester.pumpWidget(widget);
+    expect(rebuiltItems, [1, 2, 3]);
+    rebuiltItems.clear();
+    items.state = [1, 2, 3, 4];
+    await tester.pump();
+    expect(rebuiltItems, [4]);
+    rebuiltItems.clear();
+    final list = [1, 2, 3, 5];
+    items.state = list;
+    await tester.pump();
+    _item.refresh();
+    await tester.pump();
+    await tester.pump();
+    expect(rebuiltItems, [5]);
+    //
+    // Provoke UnimplementedError and RangeError that are captured
+    list.removeLast();
+    hideAll.toggle();
+    _item.refresh();
+    await tester.pumpAndSettle();
+    expect(find.byType(_Item), findsNothing);
+    //
+    hideAll.toggle();
+    _item.refresh();
+    await tester.pumpAndSettle();
+    expect(find.byType(_Item), findsNWidgets(3));
 
-      itemRM = RM.inject<_Counter>(
-        () => throw UnimplementedError(),
-        sideEffects: SideEffects.onData(
-          (_) {
-            itemsRM.state = [
-              for (var item in itemsRM.state)
-                if (item.id == _.id) _ else item
-            ];
+    //
+    _item.refresh();
+    hideAll.toggle();
+    await tester.pumpAndSettle();
+    expect(find.byType(_Item), findsNWidgets(0));
+    hideAll.toggle();
+    await tester.pump();
+    //
+    rebuiltItems.clear();
+    items.state = [1, 22, 3];
+    await tester.pump();
+    _item.refresh();
+    await tester.pump();
+    await tester.pump();
+    expect(rebuiltItems, [22]);
+  });
+
+  testWidgets('Check that Items anc be linked to item without cyclic loop', (
+    tester,
+  ) async {
+    late Injected<_Counter> itemRM;
+    late List<Injected<_Counter>> childItem = [];
+    final itemsRM = RM.inject<List<_Counter>>(
+      () => [_Counter(1, 1), _Counter(2, 2), _Counter(3, 3)],
+      // debugPrintWhenNotifiedPreMessage: '',
+      sideEffects: SideEffects.onData((c) {
+        itemRM.refresh();
+      }),
+    );
+
+    itemRM = RM.inject<_Counter>(
+      () => throw UnimplementedError(),
+      sideEffects: SideEffects.onData((c) {
+        itemsRM.state = [
+          for (var item in itemsRM.state)
+            if (item.id == c.id) c else item,
+        ];
+      }),
+    );
+    //
+    final hideAll = false.inj();
+    final widget = MaterialApp(
+      home: OnReactive(() {
+        return ListView.builder(
+          itemCount: itemsRM.state.length,
+          itemBuilder: (c, i) {
+            if (hideAll.state) {
+              return Container();
+            }
+            return itemRM.inherited(
+              stateOverride: () {
+                return itemsRM.state[i];
+              },
+              builder: (context) {
+                childItem.add(itemRM(context));
+                final item = itemRM.of(context);
+                return Text('Item: ${item.id}');
+              },
+            );
           },
-        ),
-      );
-      //
-      final hideAll = false.inj();
-      final widget = MaterialApp(
-        home: OnReactive(() {
-          return ListView.builder(
-            itemCount: itemsRM.state.length,
-            itemBuilder: (_, i) {
-              if (hideAll.state) {
-                return Container();
-              }
-              return itemRM.inherited(
-                stateOverride: () {
-                  return itemsRM.state[i];
-                },
-                builder: (context) {
-                  childItem.add(itemRM(context));
-                  final item = itemRM.of(context);
-                  return Text('Item: ${item.id}');
-                },
-              );
-            },
-          );
-        }),
-      );
-      await tester.pumpWidget(widget);
-      expect(find.text('Item: 1'), findsOneWidget);
-      expect(find.text('Item: 2'), findsOneWidget);
-      expect(find.text('Item: 3'), findsOneWidget);
-      expect(childItem.length, 3);
-      //
-      childItem[0].state = _Counter(1, 10);
-      childItem.clear();
-      await tester.pump();
-      expect(itemsRM.state.first.counter, 10);
-      //
-      childItem[2].state = _Counter(3, 30);
-      childItem.clear();
-      await tester.pump();
-      expect(itemsRM.state[2].counter, 30);
-      //
-      childItem.clear();
-      itemsRM.state = [
-        for (var item in itemsRM.state)
-          if (item.id == 2) _Counter(2, 20) else item
-      ];
-      await tester.pump();
-      expect(childItem[0].state.counter, 10);
-      expect(childItem[1].state.counter, 20);
-      expect(childItem[2].state.counter, 30);
-      expect(itemsRM.state[0].counter, 10);
-      expect(itemsRM.state[1].counter, 20);
-      expect(itemsRM.state[2].counter, 30);
-    },
-  );
+        );
+      }),
+    );
+    await tester.pumpWidget(widget);
+    expect(find.text('Item: 1'), findsOneWidget);
+    expect(find.text('Item: 2'), findsOneWidget);
+    expect(find.text('Item: 3'), findsOneWidget);
+    expect(childItem.length, 3);
+    //
+    childItem[0].state = _Counter(1, 10);
+    childItem.clear();
+    await tester.pump();
+    expect(itemsRM.state.first.counter, 10);
+    //
+    childItem[2].state = _Counter(3, 30);
+    childItem.clear();
+    await tester.pump();
+    expect(itemsRM.state[2].counter, 30);
+    //
+    childItem.clear();
+    itemsRM.state = [
+      for (var item in itemsRM.state)
+        if (item.id == 2) _Counter(2, 20) else item,
+    ];
+    await tester.pump();
+    expect(childItem[0].state.counter, 10);
+    expect(childItem[1].state.counter, 20);
+    expect(childItem[2].state.counter, 30);
+    expect(itemsRM.state[0].counter, 10);
+    expect(itemsRM.state[1].counter, 20);
+    expect(itemsRM.state[2].counter, 30);
+  });
 
   testWidgets(
     'WHEN one inherited model is disposed'
@@ -549,15 +537,15 @@ void main() {
             children: [
               model.inherited(
                 stateOverride: () => value,
-                builder: (_) {
-                  return Text(model.of(_).toString());
+                builder: (c) {
+                  return Text(model.of(c).toString());
                 },
               ),
               if (switcher.state)
                 model.inherited(
                   stateOverride: () => 1,
-                  builder: (_) {
-                    return Text(model.of(_).toString());
+                  builder: (c) {
+                    return Text(model.of(c).toString());
                   },
                 ),
             ],
@@ -588,58 +576,57 @@ void main() {
     },
   );
 
-  testWidgets(
-    'WHEN inherited model is refreshed'
-    'THEN it holds the state of the last inherited after refresh',
-    (tester) async {
-      final model = RM.inject<int>(() => throw UnimplementedError());
-      late Injected<int> model1;
-      late Injected<int> model2;
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: Column(
-          children: [
-            model.inherited(
-              builder: (_) {
-                model1 = model(_);
-                return Container();
-              },
-              stateOverride: () => 1,
-            ),
-            model.inherited(
-              builder: (_) {
-                model2 = model(_);
-                return Container();
-              },
-              stateOverride: () => 2,
-            ),
-          ],
-        ),
-      );
-      await tester.pumpWidget(widget);
-      expect(model1.state, 1);
-      expect(model2.state, 2);
-      expect(model.state, 2);
-      //
-      model.refresh();
-      await tester.pump();
-      expect(model1.state, 1);
-      expect(model2.state, 2);
-      expect(model.state, 2);
-      //
-      model1.state = 3;
-      await tester.pump();
-      expect(model1.state, 3);
-      expect(model2.state, 2);
-      expect(model.state, 3);
-      //
-      model.refresh();
-      await tester.pump();
-      expect(model1.state, 1);
-      expect(model2.state, 2);
-      expect(model.state, 2);
-    },
-  );
+  testWidgets('WHEN inherited model is refreshed'
+      'THEN it holds the state of the last inherited after refresh', (
+    tester,
+  ) async {
+    final model = RM.inject<int>(() => throw UnimplementedError());
+    late Injected<int> model1;
+    late Injected<int> model2;
+    final widget = Directionality(
+      textDirection: TextDirection.ltr,
+      child: Column(
+        children: [
+          model.inherited(
+            builder: (c) {
+              model1 = model(c);
+              return Container();
+            },
+            stateOverride: () => 1,
+          ),
+          model.inherited(
+            builder: (c) {
+              model2 = model(c);
+              return Container();
+            },
+            stateOverride: () => 2,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpWidget(widget);
+    expect(model1.state, 1);
+    expect(model2.state, 2);
+    expect(model.state, 2);
+    //
+    model.refresh();
+    await tester.pump();
+    expect(model1.state, 1);
+    expect(model2.state, 2);
+    expect(model.state, 2);
+    //
+    model1.state = 3;
+    await tester.pump();
+    expect(model1.state, 3);
+    expect(model2.state, 2);
+    expect(model.state, 3);
+    //
+    model.refresh();
+    await tester.pump();
+    expect(model1.state, 1);
+    expect(model2.state, 2);
+    expect(model.state, 2);
+  });
 }
 
 class _Counter {
@@ -659,9 +646,7 @@ final _item = RM.inject<int>(() {
 List<int> rebuiltItems = [];
 
 class _Item extends StatelessWidget {
-  const _Item({
-    Key? key,
-  }) : super(key: key);
+  const _Item({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

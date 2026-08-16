@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -199,7 +199,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const WeatherDetailPage(),
+              builder: (c) => const WeatherDetailPage(),
             ));
           },
         ),

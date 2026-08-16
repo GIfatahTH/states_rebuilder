@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'l10n/i18n.dart';
@@ -30,13 +30,13 @@ class MyHomePage extends ReactiveStatelessWidget {
 
   static final _counter = 0.inj();
   static final unselectedStyle = ElevatedButton.styleFrom(
-    primary: Colors.white,
-    onPrimary: Colors.blue,
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.blue,
   );
   @override
   Widget build(BuildContext context) {
     final _i18n = i18nRM.of(context);
-    final textStyle = Theme.of(context).textTheme.headline4;
+    final textStyle = Theme.of(context).textTheme.headlineLarge;
     return Scaffold(
       appBar: AppBar(
         title: Text(_i18n.helloWorld),

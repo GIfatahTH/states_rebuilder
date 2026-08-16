@@ -1,12 +1,9 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
-final appThemes = {
-  'light': ThemeData.light(),
-  'dark': ThemeData.dark(),
-};
+final appThemes = {'light': ThemeData.light(), 'dark': ThemeData.dark()};
 
 final themeData = RM.inject(() => appThemes['light']);
 
@@ -17,7 +14,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.data(
       listenTo: themeData,
-      builder: (_) => MaterialApp(
+      builder: (c) => MaterialApp(
         theme: themeData.state,
         home: Builder(
           builder: (context) {

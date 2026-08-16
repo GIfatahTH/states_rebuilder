@@ -35,6 +35,8 @@ dependencies:
   cupertino_icons: ^1.0.1
   hive_flutter: ^1.1.0
 
+  hive: any
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

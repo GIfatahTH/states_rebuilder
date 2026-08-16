@@ -4,9 +4,7 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 
 final counter = RM.inject<int>(
   () => 0,
-  sideEffects: SideEffects.onData(
-    (_) {},
-  ),
+  sideEffects: SideEffects.onData((c) {}),
   undoStackLength: 8,
 );
 
@@ -14,77 +12,73 @@ void main() {
   setUp(() {
     counter.dispose();
   });
-  testWidgets(
-    'WHEN undoStackLength is greater than 0'
-    'THEN state is redone and done',
-    (tester) async {
-      //Expect that initially, we can not undo or redo the state
-      expect(counter.canUndoState, false);
-      expect(counter.canRedoState, false);
+  testWidgets('WHEN undoStackLength is greater than 0'
+      'THEN state is redone and done', (tester) async {
+    //Expect that initially, we can not undo or redo the state
+    expect(counter.canUndoState, false);
+    expect(counter.canRedoState, false);
 
-      expect(counter.state, 0);
+    expect(counter.state, 0);
 
-      //first increment
-      counter.state++;
-      expect(counter.state, 1);
+    //first increment
+    counter.state++;
+    expect(counter.state, 1);
 
-      //Now as the state change, we can undo the state but
-      //still we can not redo it.
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
+    //Now as the state change, we can undo the state but
+    //still we can not redo it.
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
 
-      //Second increment
-      counter.state++;
-      expect(counter.state, 2);
+    //Second increment
+    counter.state++;
+    expect(counter.state, 2);
 
-      //Again, we can undo the state but
-      //still we can not redo it.
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
+    //Again, we can undo the state but
+    //still we can not redo it.
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
 
-      //First call of undoState
-      counter.undoState();
+    //First call of undoState
+    counter.undoState();
 
-      //the state is back to the last state and widget is refreshed
-      expect(counter.state, 1);
+    //the state is back to the last state and widget is refreshed
+    expect(counter.state, 1);
 
-      //We can continue undoState and we can redo the last undo
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, true);
+    //We can continue undoState and we can redo the last undo
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, true);
 
-      //Second call of undoState
-      counter.undoState();
+    //Second call of undoState
+    counter.undoState();
 
-      //The initial state
-      expect(counter.state, 0);
+    //The initial state
+    expect(counter.state, 0);
 
-      //We can not undoState because stack is empty
-      expect(counter.canUndoState, false);
-      //We can redo the undos
-      expect(counter.canRedoState, true);
+    //We can not undoState because stack is empty
+    expect(counter.canUndoState, false);
+    //We can redo the undos
+    expect(counter.canRedoState, true);
 
-      //First redo
-      counter.redoState();
+    //First redo
+    counter.redoState();
 
-      expect(counter.state, 1);
+    expect(counter.state, 1);
 
-      //We can both undo and redo
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, true);
+    //We can both undo and redo
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, true);
 
-      //
-      counter.redoState();
+    //
+    counter.redoState();
 
-      expect(counter.state, 2);
+    expect(counter.state, 2);
 
-      //We can undo but not redo
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
-    },
-  );
+    //We can undo but not redo
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
+  });
 
-  testWidgets(
-      'WHEN state is mutated'
+  testWidgets('WHEN state is mutated'
       'THEN the redo stack is reset', (tester) async {
     expect(counter.state, 0);
 
@@ -121,10 +115,10 @@ void main() {
     expect(counter.canRedoState, false);
   });
 
-  testWidgets(
-      'WHEN state is mutated asynchronously'
-      'THEN only state with hasData flag are add to the undo redo stack',
-      (tester) async {
+  testWidgets('WHEN state is mutated asynchronously'
+      'THEN only state with hasData flag are add to the undo redo stack', (
+    tester,
+  ) async {
     void _onPressed() {
       counter.setState((s) async {
         await Future.delayed(Duration(seconds: 1));
@@ -168,8 +162,7 @@ void main() {
     expect(counter.state, 0);
   });
 
-  testWidgets(
-      'WHEN clearUndoStack is called'
+  testWidgets('WHEN clearUndoStack is called'
       'THEN the undo redo history is cleared', (tester) async {
     expect(counter.state, 0);
     //First increment
@@ -196,30 +189,24 @@ void main() {
     expect(counter.canRedoState, false);
   });
 
-  testWidgets(
-    'WHEN state mutation exceeds the undoStackLent'
-    'THEN the first in state is popped out',
-    (tester) async {
-      final counter = RM.inject<int>(
-        () => 0,
-        undoStackLength: 2,
-      );
-      expect(counter.canUndoState, false);
-      expect(counter.canRedoState, false);
-      counter.state++;
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
-      counter.state++;
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
-      counter.state++;
-      expect(counter.canUndoState, true);
-      expect(counter.canRedoState, false);
-      expect(counter.state, 3);
-      counter.undoState();
-      expect(counter.canUndoState, false);
-      expect(counter.canRedoState, true);
-      expect(counter.state, 2);
-    },
-  );
+  testWidgets('WHEN state mutation exceeds the undoStackLent'
+      'THEN the first in state is popped out', (tester) async {
+    final counter = RM.inject<int>(() => 0, undoStackLength: 2);
+    expect(counter.canUndoState, false);
+    expect(counter.canRedoState, false);
+    counter.state++;
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
+    counter.state++;
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
+    counter.state++;
+    expect(counter.canUndoState, true);
+    expect(counter.canRedoState, false);
+    expect(counter.state, 3);
+    counter.undoState();
+    expect(counter.canUndoState, false);
+    expect(counter.canRedoState, true);
+    expect(counter.state, 2);
+  });
 }

@@ -23,7 +23,7 @@
 
 //   Before calling any method a decedent BuildContext of Scaffold must be set.
 //   This can be done either:
-  
+
 //   * ```dart
 //      onPressed: (){
 //       RM.scaffold.context= context;
@@ -35,7 +35,7 @@
 //       modelRM.setState(
 //        (s)=> doSomeThing(),
 //        context:context,
-//        onData: (_,__){
+//        onData: (c,__){
 //           RM.scaffold.showBottomSheet(...);
 //         )
 //       }
@@ -89,7 +89,7 @@
 //   ///    modelRM.setState(
 //   ///     (s)=> doSomeThing(),
 //   ///     context:context,
-//   ///     onData: (_,__){
+//   ///     onData: (c,__){
 //   ///        RM.scaffold.showBottomSheet(...);
 //   ///      )
 //   ///    }
@@ -103,7 +103,7 @@
 //     Clip? clipBehavior,
 //   }) {
 //     final r = scaffoldState.showBottomSheet<T>(
-//       (_) => bottomSheet,
+//       (c) => bottomSheet,
 //       backgroundColor: backgroundColor,
 //       elevation: elevation,
 //       shape: shape,
@@ -139,7 +139,7 @@
 //   ///    modelRM.setState(
 //   ///     (s)=> doSomeThing(),
 //   ///     context:context,
-//   ///     onData: (_,__){
+//   ///     onData: (c,__){
 //   ///        RM.scaffold.showSnackBar(...);
 //   ///      )
 //   ///    }
@@ -194,7 +194,7 @@
 //   ///    modelRM.setState(
 //   ///     (s)=> doSomeThing(),
 //   ///     context:context,
-//   ///     onData: (_,__){
+//   ///     onData: (c,__){
 //   ///        RM.scaffold.openDrawer();
 //   ///      )
 //   ///    }
@@ -223,7 +223,7 @@
 //   ///    modelRM.setState(
 //   ///     (s)=> doSomeThing(),
 //   ///     context:context,
-//   ///     onData: (_,__){
+//   ///     onData: (c,__){
 //   ///        RM.scaffold.openEndDrawer();
 //   ///      )
 //   ///    }

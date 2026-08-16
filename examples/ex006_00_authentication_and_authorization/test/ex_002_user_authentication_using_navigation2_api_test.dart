@@ -7,7 +7,7 @@ import 'package:ex006_00_authentication_and_authorization/ex_002_user_authentica
 import 'package:ex006_00_authentication_and_authorization/ex_002_user_authentication_using_navigation2_api/ui/sign_in_page/sign_in_page.dart';
 import 'package:ex006_00_authentication_and_authorization/ex_002_user_authentication_using_navigation2_api/ui/sign_in_register_form_page/sign_in_register_form_page.dart';
 import 'package:ex006_00_authentication_and_authorization/ex_002_user_authentication_using_navigation2_api/ui/widgets/splash_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

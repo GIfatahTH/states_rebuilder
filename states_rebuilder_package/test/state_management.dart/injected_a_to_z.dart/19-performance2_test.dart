@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -17,21 +17,22 @@ class Counters extends StatelessWidget {
   Widget build(BuildContext context) {
     //Use StateBuilder to register to model
     return OnBuilder.data(
-        listenTo: model,
-        builder: (_) {
-          //onEach rebuild increment numberOfWHoleListRebuild
-          numberOfWHoleListRebuild++;
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            //The listView builder
-            child: ListView.builder(
-              itemCount: counters.length,
-              itemBuilder: (ctx, index) {
-                return CounterItem(index: index);
-              },
-            ),
-          );
-        });
+      listenTo: model,
+      builder: (c) {
+        //onEach rebuild increment numberOfWHoleListRebuild
+        numberOfWHoleListRebuild++;
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          //The listView builder
+          child: ListView.builder(
+            itemCount: counters.length,
+            itemBuilder: (ctx, index) {
+              return CounterItem(index: index);
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -39,8 +40,8 @@ class CounterItem extends StatelessWidget {
   final int index;
 
   const CounterItem({Key? key, required this.index})
-      //This will be called whenever any of the parent widget rebuilds.
-      : super(key: key);
+    //This will be called whenever any of the parent widget rebuilds.
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +59,7 @@ class CounterItem extends StatelessWidget {
             },
           ),
           onPressed: () => counter.state++,
-        )
+        ),
       ],
     );
   }
@@ -97,39 +98,40 @@ void main() {
   });
 
   testWidgets(
-      'Should increment counter of index 2 and keep state after parent rebuild',
-      (tester) async {
-    await tester.pumpWidget(Counters());
+    'Should increment counter of index 2 and keep state after parent rebuild',
+    (tester) async {
+      await tester.pumpWidget(Counters());
 
-    //Tap on the button that has '100' as text
-    await tester.tap(find.byKey(Key('button-2')));
-    await tester.pump();
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('10'), findsOneWidget);
-    expect(find.text('101'), findsOneWidget); //Here the change
-    expect(find.text('1000'), findsOneWidget);
-    //
-    expect(numberOfWHoleListRebuild, equals(1));
+      //Tap on the button that has '100' as text
+      await tester.tap(find.byKey(Key('button-2')));
+      await tester.pump();
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('10'), findsOneWidget);
+      expect(find.text('101'), findsOneWidget); //Here the change
+      expect(find.text('1000'), findsOneWidget);
+      //
+      expect(numberOfWHoleListRebuild, equals(1));
 
-    //Rebuild the whole list
-    model.notify();
-    await tester.pump();
+      //Rebuild the whole list
+      model.notify();
+      await tester.pump();
 
-    //Indeed the whole list is rebuilt
-    expect(numberOfWHoleListRebuild, equals(2));
+      //Indeed the whole list is rebuilt
+      expect(numberOfWHoleListRebuild, equals(2));
 
-    //The state is reserved
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('10'), findsOneWidget);
-    expect(find.text('101'), findsOneWidget);
-    expect(find.text('1000'), findsOneWidget);
+      //The state is reserved
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('10'), findsOneWidget);
+      expect(find.text('101'), findsOneWidget);
+      expect(find.text('1000'), findsOneWidget);
 
-    //Tap on the button that has '1000' as text
-    await tester.tap(find.byKey(Key('button-3')));
-    await tester.pump();
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('10'), findsOneWidget);
-    expect(find.text('101'), findsOneWidget);
-    expect(find.text('1001'), findsOneWidget);
-  });
+      //Tap on the button that has '1000' as text
+      await tester.tap(find.byKey(Key('button-3')));
+      await tester.pump();
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('10'), findsOneWidget);
+      expect(find.text('101'), findsOneWidget);
+      expect(find.text('1001'), findsOneWidget);
+    },
+  );
 }

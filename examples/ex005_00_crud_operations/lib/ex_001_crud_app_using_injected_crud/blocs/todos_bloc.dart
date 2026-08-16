@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,6 +21,7 @@ class TodosViewModel {
     // () => TodosFakeRepository(),
     // () => TodosFakeRepository(shouldThrowExceptions: () => Random().nextBool()),
     readOnInitialization: true,
+    // debugPrintWhenNotifiedPreMessage: '',
     sideEffects: SideEffects.onError(
       (err, refresh) {
         if (_todosRM.state.isEmpty) return;
@@ -88,7 +89,7 @@ class TodosViewModel {
       where: (todo) {
         return todo.id == todoToEdit.id;
       },
-      set: (_) {
+      set: (c) {
         return todoToEdit;
       },
     );

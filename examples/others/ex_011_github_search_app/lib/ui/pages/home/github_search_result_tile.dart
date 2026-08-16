@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:github_search_app/domain/entities/github_user.dart';
 
 import '../../../injected.dart';
@@ -34,7 +34,7 @@ class GitHubUserSearchResultTile extends StatelessWidget {
           SizedBox(height: 8.0),
           Text(
             user.login,
-            style: theme.textTheme.headline6,
+            style: theme.textTheme.headlineSmall,
             textAlign: TextAlign.start,
           )
         ],

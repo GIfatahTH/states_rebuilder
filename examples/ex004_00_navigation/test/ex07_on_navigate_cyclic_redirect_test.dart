@@ -11,7 +11,7 @@ void main() {
       await tester.tap(find.text('to page1'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Infinite redirect loop: (/page1) not found'),
+        find.text('Infinite redirect loop: (/page1)'),
         findsOneWidget,
       );
       navigator.back();
@@ -20,7 +20,7 @@ void main() {
       await tester.tap(find.text('to page2'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Infinite redirect loop: (/page2, /page3) not found'),
+        find.text('Infinite redirect loop: (/page2, /page3)'),
         findsOneWidget,
       );
       navigator.back();
@@ -29,7 +29,7 @@ void main() {
       await tester.tap(find.text('to page3'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Infinite redirect loop: (/page3, /page2) not found'),
+        find.text('Infinite redirect loop: (/page3, /page2)'),
         findsOneWidget,
       );
       navigator.back();
@@ -38,7 +38,7 @@ void main() {
       await tester.tap(find.text('to page4'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Infinite redirect loop: (/page4, /page5) not found'),
+        find.text('Infinite redirect loop: (/page4, /page5)'),
         findsOneWidget,
       );
       navigator.back();
@@ -47,7 +47,7 @@ void main() {
       await tester.tap(find.text('to page5'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Infinite redirect loop: (/page5, /page4) not found'),
+        find.text('Infinite redirect loop: (/page5, /page4)'),
         findsOneWidget,
       );
       navigator.back();

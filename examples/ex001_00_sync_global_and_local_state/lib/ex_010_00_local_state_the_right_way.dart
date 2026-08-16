@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -85,7 +85,7 @@ class CounterView extends ReactiveStatelessWidget {
             ),
             Text(
               '${_counterViewModel.counter}',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 12),
             ElevatedButton(
@@ -113,7 +113,7 @@ class CounterView extends ReactiveStatelessWidget {
                 children: [
                   Text(
                     'The global counter is ${counterViewModel.state.counter}',
-                    style: Theme.of(context).textTheme.headline5,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   TextButton(
                     onPressed: counterViewModel.state.increment,

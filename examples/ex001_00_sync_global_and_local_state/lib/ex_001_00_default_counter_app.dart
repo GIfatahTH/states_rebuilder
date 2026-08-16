@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -68,7 +68,7 @@ class MyHomePage extends ReactiveStatelessWidget {
               // following will listen to _counter state to rebuild when
               // the _counter state emits a notification
               '${_counter.state}',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
           ],
         ),

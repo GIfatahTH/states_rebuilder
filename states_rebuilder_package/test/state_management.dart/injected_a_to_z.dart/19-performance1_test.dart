@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -8,13 +8,10 @@ import 'package:states_rebuilder/states_rebuilder.dart';
 int? streamData;
 
 final injectedStream = RM.injectStream(
-  () => Stream<int>.periodic(
-    Duration(seconds: 1),
-    (data) {
-      streamData = data;
-      return data;
-    },
-  ),
+  () => Stream<int>.periodic(Duration(seconds: 1), (data) {
+    streamData = data;
+    return data;
+  }),
   initialState: 0,
 );
 
@@ -36,7 +33,7 @@ class _MyAppState extends State<MyApp> {
           if (!_isHidden)
             OnBuilder.data(
               listenTo: injectedStream,
-              builder: (_) => Text('${injectedStream.state}'),
+              builder: (c) => Text('${injectedStream.state}'),
             )
           else
             Text('Injected stream is disposed'),
@@ -51,91 +48,89 @@ class _MyAppState extends State<MyApp> {
 }
 
 void main() {
-  testWidgets(
-    'Should close stream when injected model is disposed',
-    (tester) async {
-      await tester.pumpWidget(MyApp());
-      //Initial value of stream is 0
-      expect(find.text('0'), findsOneWidget);
-      expect(streamData, isNull);
+  testWidgets('Should close stream when injected model is disposed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(MyApp());
+    //Initial value of stream is 0
+    expect(find.text('0'), findsOneWidget);
+    expect(streamData, isNull);
 
-      //after 1 second emitting 0
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('0'), findsOneWidget);
-      expect(streamData, 0);
+    //after 1 second emitting 0
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+    expect(streamData, 0);
 
-      //after another 1 second emitting 1
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      expect(streamData, 1);
+    //after another 1 second emitting 1
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    expect(streamData, 1);
 
-      //hide injected stream widget observer
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pump();
-      //
-      expect(find.text('Injected stream is disposed'), findsOneWidget);
-      //the stream does not emit any new value
-      expect(streamData, 1);
+    //hide injected stream widget observer
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    //
+    expect(find.text('Injected stream is disposed'), findsOneWidget);
+    //the stream does not emit any new value
+    expect(streamData, 1);
 
-      //after 1 second, the stream does not emit any new value
-      await tester.pump(Duration(seconds: 1));
-      expect(streamData, 1);
+    //after 1 second, the stream does not emit any new value
+    await tester.pump(Duration(seconds: 1));
+    expect(streamData, 1);
 
-      //after another 1 second, the stream does not emit any new value
-      await tester.pump(Duration(seconds: 1));
-      expect(streamData, 1);
+    //after another 1 second, the stream does not emit any new value
+    await tester.pump(Duration(seconds: 1));
+    expect(streamData, 1);
 
-      //which means that the stream is disposed
+    //which means that the stream is disposed
 
-      //If we toggle to display the injected stream,
-      //an new stream subscription is established and we expect to see the value
-      // null, 0, 1, and so on.
-    },
-  );
+    //If we toggle to display the injected stream,
+    //an new stream subscription is established and we expect to see the value
+    // null, 0, 1, and so on.
+  });
 
   //This is the same test as above. we can run all the test without any cross
   //interference between the two tests.
-  testWidgets(
-    'Should close stream when injected model is disposed 2',
-    (tester) async {
-      //We must reset the global variable streamData to null
-      streamData = null;
-      await tester.pumpWidget(MyApp());
-      //Initial value of stream is 0
-      expect(find.text('0'), findsOneWidget);
-      expect(streamData, isNull);
+  testWidgets('Should close stream when injected model is disposed 2', (
+    tester,
+  ) async {
+    //We must reset the global variable streamData to null
+    streamData = null;
+    await tester.pumpWidget(MyApp());
+    //Initial value of stream is 0
+    expect(find.text('0'), findsOneWidget);
+    expect(streamData, isNull);
 
-      //after 1 second emitting 0
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('0'), findsOneWidget);
-      expect(streamData, 0);
+    //after 1 second emitting 0
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('0'), findsOneWidget);
+    expect(streamData, 0);
 
-      //after another 1 second emitting 1
-      await tester.pump(Duration(seconds: 1));
-      expect(find.text('1'), findsOneWidget);
-      expect(streamData, 1);
+    //after another 1 second emitting 1
+    await tester.pump(Duration(seconds: 1));
+    expect(find.text('1'), findsOneWidget);
+    expect(streamData, 1);
 
-      //hide injected stream widget observer
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pump();
-      //
-      expect(find.text('Injected stream is disposed'), findsOneWidget);
-      //the stream does not emit any new value
-      expect(streamData, 1);
+    //hide injected stream widget observer
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    //
+    expect(find.text('Injected stream is disposed'), findsOneWidget);
+    //the stream does not emit any new value
+    expect(streamData, 1);
 
-      //after 1 second, the stream does not emit any new value
-      await tester.pump(Duration(seconds: 1));
-      expect(streamData, 1);
+    //after 1 second, the stream does not emit any new value
+    await tester.pump(Duration(seconds: 1));
+    expect(streamData, 1);
 
-      //after another 1 second, the stream does not emit any new value
-      await tester.pump(Duration(seconds: 1));
-      expect(streamData, 1);
+    //after another 1 second, the stream does not emit any new value
+    await tester.pump(Duration(seconds: 1));
+    expect(streamData, 1);
 
-      //which means that the stream is disposed
+    //which means that the stream is disposed
 
-      //If we toggle to display the injected stream,
-      //an new stream subscription is established and we expect to see the value
-      // null, 0, 1, and so on.
-    },
-  );
+    //If we toggle to display the injected stream,
+    //an new stream subscription is established and we expect to see the value
+    // null, 0, 1, and so on.
+  });
 }

@@ -6,7 +6,7 @@ import 'dart:async';
 * The first class should wait for plugin to initialize before being able to
 * instantiate objects.
 */
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 class Plugin1Repository {
@@ -129,7 +129,7 @@ class MyHomePage extends ReactiveStatelessWidget {
         child: counterViewModel.isViewStatus(
           onWaiting: () => const CircularProgressIndicator(),
           onError: (err, refresh) => Text('$err'),
-          onData: (_) => Column(
+          onData: (c) => Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const Text(
@@ -138,9 +138,9 @@ class MyHomePage extends ReactiveStatelessWidget {
               counterViewModel.counterStatus(
                 onWaiting: () => const CircularProgressIndicator(),
                 onError: (err, refresh) => Text('$err'),
-                onData: (_) => Text(
+                onData: (c) => Text(
                   '${counterViewModel.counter}',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
               ),
             ],

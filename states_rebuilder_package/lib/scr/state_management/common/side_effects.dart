@@ -30,14 +30,12 @@ class SideEffects<T> {
     VoidCallback? onAfterBuild,
   }) {
     if (onAfterBuild != null) {
-      _onAfterBuild =
-          ([bool? isDisposed]) => WidgetsBinding.instance.addPostFrameCallback(
-                (_) {
-                  if (isDisposed != true) {
-                    onAfterBuild();
-                  }
-                },
-              );
+      _onAfterBuild = ([bool? isDisposed]) =>
+          WidgetsBinding.instance.addPostFrameCallback((c) {
+            if (isDisposed != true) {
+              onAfterBuild();
+            }
+          });
     }
   }
 

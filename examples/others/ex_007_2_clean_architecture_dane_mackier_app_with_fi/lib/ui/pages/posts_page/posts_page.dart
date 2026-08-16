@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../../blocs/posts_bloc.dart';
@@ -19,7 +19,7 @@ class PostsPage extends ReactiveStatelessWidget {
       backgroundColor: backgroundColor,
       body: postsBloc.postsRM.onOrElse(
         onWaiting: () => Center(child: CircularProgressIndicator()),
-        orElse: (_) => Column(
+        orElse: (c) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UIHelper.verticalSpaceLarge(),

@@ -1,9 +1,8 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:example/i18n.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'name_repository.dart';
 
 // Inject the repository, so it can be mocked in test.
@@ -58,7 +57,7 @@ final helloName = RM.inject<String>(
           SnackBar(content: Text('${err.message}')),
         ),
         // the other case. hide the snackbar
-        orElse: (_) => RM.scaffold.hideCurrentSnackBar(),
+        orElse: (c) => RM.scaffold.hideCurrentSnackBar(),
       );
     },
   ),
@@ -104,10 +103,7 @@ class MyApp extends TopStatelessWidget {
       navigatorKey: RM.navigate.navigatorKey,
       locale: i18n.locale,
       localeResolutionCallback: i18n.localeResolutionCallback,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: const HomeWidget(),
       debugShowCheckedModeBanner: false,
     );

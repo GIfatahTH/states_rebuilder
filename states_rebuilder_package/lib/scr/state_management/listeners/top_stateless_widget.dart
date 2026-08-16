@@ -218,7 +218,9 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
     );
     for (var i = 0; i < inheritedInjects.length - 1; i++) {
       final c = child;
-      child = inheritedInjects.elementAt(i).inherited(
+      child = inheritedInjects
+          .elementAt(i)
+          .inherited(
             stateOverride: null,
             builder: (context) {
               return c;
@@ -285,9 +287,11 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
   Widget getOnWaitingWidget() {
     final child = widget.splashScreen();
     if (child == null) {
-      throw Exception('TopWidget is waiting for dependencies to initialize. '
-          'you have to define a waiting screen using the onWaiting '
-          'parameter of the TopWidget');
+      throw Exception(
+        'TopWidget is waiting for dependencies to initialize. '
+        'you have to define a waiting screen using the onWaiting '
+        'parameter of the TopWidget',
+      );
     }
     return MaterialApp(
       key: _materialAppKe,
@@ -328,7 +332,7 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
       if (isInheritedInjectsWaiting) {
         return getOnWaitingWidget();
       }
-      return getInheritedWidgets(child != null ? (_) => child! : widget.build);
+      return getInheritedWidgets(child != null ? (c) => child! : widget.build);
     }
     // if (injectedI18N != null) {
     //   if (injectedI18N!.isWaiting == true) {
@@ -346,7 +350,8 @@ class _TopStatelessWidgetState extends State<TopStatelessWidget> {
 }
 
 class _TopStatelessWidgetStateWidgetsBindingObserverState
-    extends _TopStatelessWidgetState with WidgetsBindingObserver {
+    extends _TopStatelessWidgetState
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

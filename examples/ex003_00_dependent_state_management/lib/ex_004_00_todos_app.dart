@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 import 'package:uuid/uuid.dart';
 
@@ -234,7 +234,7 @@ class Home extends ReactiveStatelessWidget {
               if (i > 0) const Divider(height: 0),
               Dismissible(
                 key: ValueKey(todos[i].id),
-                onDismissed: (_) {
+                onDismissed: (c) {
                   todosViewModel.remove(i);
                 },
                 child: TodosViewModel.currentTodo.inherited(
@@ -247,7 +247,7 @@ class Home extends ReactiveStatelessWidget {
                       textEditingController: TextEditingController(),
                     );
                   },
-                  builder: (_) => const TodoItemWidget(),
+                  builder: (c) => const TodoItemWidget(),
                 ),
               )
             ],

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
 * Example of local states displayed in a ListView. Although states are supposed 
@@ -89,11 +89,11 @@ class CounterView extends ReactiveStatelessWidget {
         children: <Widget>[
           Text(
             'Counter $counterName: ',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           Text(
             '${counterViewModel.counter}',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           TextButton(
             onPressed: counterViewModel.increment,

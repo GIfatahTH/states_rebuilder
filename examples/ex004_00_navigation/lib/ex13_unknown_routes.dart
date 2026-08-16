@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // You can define your unknownRoute implementation
@@ -44,6 +44,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       debugShowCheckedModeBanner: false,
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,

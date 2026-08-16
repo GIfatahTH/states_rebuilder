@@ -12,11 +12,11 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     required this.dependsOn,
     required this.watch,
   }) : super(
-          creator: creator,
-          initialState: initialState,
-          stateInterceptorGlobal: stateInterceptor,
-          autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
-        ) {
+         creator: creator,
+         initialState: initialState,
+         stateInterceptorGlobal: stateInterceptor,
+         autoDisposeWhenNotUsed: autoDisposeWhenNotUsed,
+       ) {
     resetDefaultState(() {
       creatorUpdatable = creator;
     });
@@ -48,11 +48,11 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   @override
   SnapState<T> get initialSnapState => SnapState<T>.none(
-        debugName: debugPrintWhenNotifiedPreMessageGlobal ?? '',
-        toDebugString: toDebugString,
-        infoMessage: kInitMessage,
-        data: initialState,
-      );
+    debugName: debugPrintWhenNotifiedPreMessageGlobal ?? '',
+    toDebugString: toDebugString,
+    infoMessage: kInitMessage,
+    data: initialState,
+  );
   @override
   Object? Function() get mockableCreator {
     if (!isInitialized && dependsOn != null) {
@@ -92,9 +92,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
         }
       }
       if (inheritedInjects.isNotEmpty) {
-        notify(
-          nextSnap: inheritedInjects.last.snapValue,
-        );
+        notify(nextSnap: inheritedInjects.last.snapValue);
       }
 
       try {
@@ -204,9 +202,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
             );
           }
           // _reactiveModelState.setStateFn(
-          //   (_) => s,
+          //   (c) => s,
           //   middleState: _middleSnap,
-          //   onDone: (_) {},
+          //   onDone: (c) {},
           // )();
         } catch (e) {
           if (e is! UnimplementedError) {
@@ -235,8 +233,8 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     required BuildContext context,
     required Widget Function(BuildContext context) builder,
   }) {
-    final inj =
-        context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>()!;
+    final inj = context
+        .dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>()!;
     return _inherited(
       key: key,
       reInheritedInject: inj.injected,
@@ -335,7 +333,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
           };
           if (snapValue._infoMessage == kRefreshMessage) {
             _isInheritedDirty = true;
-            rm.refresh(infoMessage: kRecomputing).onError((_, __) {});
+            rm.refresh(infoMessage: kRecomputing).onError((c, __) {});
           }
         }
       },
@@ -353,18 +351,15 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   @override
   T of(BuildContext context, {bool defaultToGlobal = false}) {
-    final _inheritedInjected =
-        context.dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
+    final _inheritedInjected = context
+        .dependOnInheritedWidgetOfExactType<_InheritedInjected<T>>();
 
     if (_inheritedInjected != null) {
       if (_inheritedInjected.globalInjected == this) {
         _inheritedInjected.injected.initialize();
         return _inheritedInjected.injected.snapValue.state;
       } else {
-        return of(
-          _inheritedInjected.context,
-          defaultToGlobal: defaultToGlobal,
-        );
+        return of(_inheritedInjected.context, defaultToGlobal: defaultToGlobal);
       }
     }
     if (defaultToGlobal) {
@@ -380,9 +375,13 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
 
   @override
   Injected<T> call(BuildContext context, {bool defaultToGlobal = false}) {
-    final _inheritedInjected = context
-        .getElementForInheritedWidgetOfExactType<_InheritedInjected<T>>()
-        ?.widget as _InheritedInjected<T>?;
+    final _inheritedInjected =
+        context
+                .getElementForInheritedWidgetOfExactType<
+                  _InheritedInjected<T>
+                >()
+                ?.widget
+            as _InheritedInjected<T>?;
 
     if (_inheritedInjected != null) {
       if (_inheritedInjected.globalInjected == this) {
@@ -403,7 +402,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
   }
 
   void _setCombinedInheritedSnap(
-      Set<InjectedImp<T>> inheritStates, InjectedImp<T> inj) {
+    Set<InjectedImp<T>> inheritStates,
+    InjectedImp<T> inj,
+  ) {
     bool isWaiting = false;
     SnapError? snapError;
     // SnapState<T>? oldSnap;
@@ -441,12 +442,9 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
     //       debugName: _snapState.debugName,
     //     );
     notify(
-      nextSnap: newSnap?.copyWith(
-            debugName: _snapState._debugName,
-          ) ??
-          inj._snapState.copyWith(
-            debugName: _snapState._debugName,
-          ),
+      nextSnap:
+          newSnap?.copyWith(debugName: _snapState._debugName) ??
+          inj._snapState.copyWith(debugName: _snapState._debugName),
     );
   }
 
@@ -547,7 +545,7 @@ class InjectedImp<T> extends ReactiveModelImp<T> implements Injected<T> {
         (s) {
           try {
             return mockableCreator();
-          } catch (_) {
+          } catch (c) {
             return snapValue.data;
           }
         },

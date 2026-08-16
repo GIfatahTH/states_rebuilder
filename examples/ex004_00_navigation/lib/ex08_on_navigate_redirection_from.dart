@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 // This example is a show case that when a route redirect at another route, the
@@ -52,6 +52,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       title: 'Books App',
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,

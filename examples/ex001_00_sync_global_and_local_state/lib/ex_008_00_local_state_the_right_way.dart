@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /*
@@ -104,11 +104,11 @@ class CounterView extends ReactiveStatelessWidget {
         children: <Widget>[
           Text(
             'Counter $counterName: ',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           Text(
             '${_counterViewModel.counter}',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           TextButton(
             onPressed: _counterViewModel.increment,

@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../state_management/rm.dart';
 
 part 'on_animation_builder.dart';
@@ -34,7 +35,7 @@ part 'animate.dart';
 ///             final width = animate(selected ? 200.0 : 100.0);
 ///
 ///             // Explicit animation
-///             final height = animate.fromTween((_)=> Tween(200.0, 100.0));
+///             final height = animate.fromTween((c)=> Tween(200.0, 100.0));
 ///
 ///             return Container(
 ///               width: width,
@@ -46,7 +47,7 @@ part 'animate.dart';
 ///    ```
 ///  {@endtemplate}
 
-abstract class InjectedAnimation implements IObservable<double> {
+abstract mixin class InjectedAnimation implements IObservable<double> {
   ///Listen to the [InjectedAnimation] and rebuild when animation ticks.
   ///
   ///See [_RebuildAnimation.onAnimation]
@@ -134,11 +135,11 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
     this.onInitialized,
     this.endAnimationListener,
   }) : super(
-          creator: () => 0.0,
-          initialState: 0.0,
-          autoDisposeWhenNotUsed: true,
-          stateInterceptorGlobal: null,
-        ) {
+         creator: () => 0.0,
+         initialState: 0.0,
+         autoDisposeWhenNotUsed: true,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       this.duration = duration;
       this.reverseDuration = reverseDuration;
@@ -273,7 +274,7 @@ class InjectedAnimationImp extends ReactiveModelImp<double>
         }
         endAnimationListener?.call();
         repeatCount = null;
-        WidgetsBinding.instance.scheduleFrameCallback((_) {
+        WidgetsBinding.instance.scheduleFrameCallback((c) {
           notify(); //TODO Check me. Used to trigger a rebuild after animation ends
         });
       } else {
@@ -438,29 +439,17 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
     return null;
   }
   if (val is double?) {
-    return Tween(
-      begin: begin as double?,
-      end: end as double?,
-    );
+    return Tween(begin: begin as double?, end: end as double?);
   }
 
   if (val is Color?) {
-    return ColorTween(
-      begin: begin as Color?,
-      end: end as Color?,
-    );
+    return ColorTween(begin: begin as Color?, end: end as Color?);
   }
   if (val is Offset?) {
-    return Tween<Offset>(
-      begin: begin as Offset?,
-      end: end as Offset?,
-    );
+    return Tween<Offset>(begin: begin as Offset?, end: end as Offset?);
   }
   if (val is Size) {
-    return SizeTween(
-      begin: begin as Size?,
-      end: end as Size?,
-    );
+    return SizeTween(begin: begin as Size?, end: end as Size?);
   }
 
   if (val is AlignmentGeometry?) {
@@ -492,17 +481,11 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
   }
 
   if (val is TextStyle?) {
-    return TextStyleTween(
-      begin: begin as TextStyle?,
-      end: end as TextStyle?,
-    );
+    return TextStyleTween(begin: begin as TextStyle?, end: end as TextStyle?);
   }
 
   if (val is Rect) {
-    return RectTween(
-      begin: begin as Rect?,
-      end: end as Rect?,
-    );
+    return RectTween(begin: begin as Rect?, end: end as Rect?);
   }
 
   if (val is RelativeRect) {
@@ -513,10 +496,7 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
   }
 
   if (val is int) {
-    return IntTween(
-      begin: begin as int?,
-      end: end as int?,
-    );
+    return IntTween(begin: begin as int?, end: end as int?);
   }
 
   if (val is BorderRadius?) {
@@ -527,19 +507,15 @@ Tween<dynamic>? _getTween<T>(T? begin, T? end) {
   }
 
   if (val is ThemeData?) {
-    return ThemeDataTween(
-      begin: begin as ThemeData?,
-      end: end as ThemeData?,
-    );
+    return ThemeDataTween(begin: begin as ThemeData?, end: end as ThemeData?);
   }
 
   if (val is Matrix4?) {
-    return Matrix4Tween(
-      begin: begin as Matrix4?,
-      end: end as Matrix4?,
-    );
+    return Matrix4Tween(begin: begin as Matrix4?, end: end as Matrix4?);
   }
 
-  throw UnimplementedError('The $T property has no built-in tween. '
-      'Please use [Animate.fromTween] and define your tween');
+  throw UnimplementedError(
+    'The $T property has no built-in tween. '
+    'Please use [Animate.fromTween] and define your tween',
+  );
 }

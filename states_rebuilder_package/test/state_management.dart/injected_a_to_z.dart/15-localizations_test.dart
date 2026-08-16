@@ -1,9 +1,8 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -47,17 +46,16 @@ final Injected<I18n> i18n = RM.injectFuture<I18n>(
     // - lang/ar.json
     // - lang/en.json
 
-    String jsonString = await rootBundle
-        .loadString('lang/${currentLocale.state.languageCode}.json');
+    String jsonString = await rootBundle.loadString(
+      'lang/${currentLocale.state.languageCode}.json',
+    );
     Map<String, dynamic> jsonMap = json.decode(jsonString);
 
     //returning an instance of I18n
     return I18n.fromMap(
-      jsonMap.map(
-        (key, value) {
-          return MapEntry(key, value.toString());
-        },
-      ),
+      jsonMap.map((key, value) {
+        return MapEntry(key, value.toString());
+      }),
     );
   },
   dependsOn: DependsOn({currentLocale}),
@@ -71,7 +69,7 @@ class LocalizationsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnBuilder.bindingObserver(
       listenTo: i18n,
-      didChangeLocales: (_, __) {
+      didChangeLocales: (c, __) {
         //when didChangeLocales is invoked,
         //we refresh the currentLocale and the i18n
         //It is only when they change that the widget will rebuild
@@ -89,18 +87,12 @@ class LocalizationsApp extends StatelessWidget {
           key: Key('${currentLocale.state}'),
           locale: currentLocale.state,
           // List all of the app's supported locales here
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('ar', 'DZ'),
-          ],
+          supportedLocales: const [Locale('en', 'US'), Locale('ar', 'DZ')],
           //In real app we use localizationsDelegates for Material and widget
           //Localizations
           //
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+
           home: Builder(
             builder: (context) {
               _localeFromTheApp = Localizations.localeOf(context);
@@ -140,8 +132,9 @@ void main() {
     _localeFromTheApp = null;
     _storedLocale = null;
   });
-  testWidgets('No stored locale, use the system locale (en_US)',
-      (tester) async {
+  testWidgets('No stored locale, use the system locale (en_US)', (
+    tester,
+  ) async {
     await tester.pumpWidget(LocalizationsApp());
     expect(find.text('Getting the json String ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -160,8 +153,9 @@ void main() {
     expect(find.text('هذه هي الجملة الثانية'), findsOneWidget);
   });
 
-  testWidgets('Manually change the locale form (en_US) ot (ar_DZ)',
-      (tester) async {
+  testWidgets('Manually change the locale form (en_US) ot (ar_DZ)', (
+    tester,
+  ) async {
     await tester.pumpWidget(LocalizationsApp());
     expect(find.text('Getting the json String ...'), findsOneWidget);
     await tester.pump(Duration(seconds: 1));
@@ -179,8 +173,9 @@ void main() {
     expect(find.text('هذه هي الجملة الثانية'), findsOneWidget);
   });
 
-  testWidgets('automatically change the locale form (en_US) ot (ar_DZ)',
-      (tester) async {
+  testWidgets('automatically change the locale form (en_US) ot (ar_DZ)', (
+    tester,
+  ) async {
     //To simulate that the system locale is changed, we set :
 
     //Holds the system locale

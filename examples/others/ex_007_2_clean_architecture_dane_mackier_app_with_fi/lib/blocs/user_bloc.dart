@@ -10,7 +10,7 @@ import 'common/input_parser.dart';
 class UserBloc {
   final userRM = RM.injectAuth<User?, int>(
     () => UserRepository(),
-    onSigned: (_) {
+    onSigned: (c) {
       RM.navigate.toNamed(('/posts'));
     },
     sideEffects: SideEffects.onError(
@@ -22,7 +22,7 @@ class UserBloc {
   User? get user => userRM.state;
   void signIn(String text) {
     userRM.auth.signIn(
-      (_) => InputParser.parse(text),
+      (c) => InputParser.parse(text),
     );
   }
 }

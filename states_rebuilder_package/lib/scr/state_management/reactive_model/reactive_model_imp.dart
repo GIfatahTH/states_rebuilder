@@ -58,7 +58,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       isInitialized = true;
     }
     setStateNullable(
-      (_) => value,
+      (c) => value,
       middleSetState: middleSetState,
       stackTrace: kDebugMode ? StackTrace.current : null,
     );
@@ -86,7 +86,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       isInitialized = true;
     }
     setStateNullable(
-      (_) => value,
+      (c) => value,
       middleSetState: middleSetState,
       stackTrace: kDebugMode ? StackTrace.current : null,
     );
@@ -127,24 +127,18 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
     if (debounceDelay > 0) {
       _debounceTimer?.cancel();
-      _debounceTimer = Timer(
-        Duration(milliseconds: debounceDelay),
-        () {
-          call();
-          _debounceTimer = null;
-        },
-      );
+      _debounceTimer = Timer(Duration(milliseconds: debounceDelay), () {
+        call();
+        _debounceTimer = null;
+      });
       return Future.value(_snapState.state);
     } else if (throttleDelay > 0) {
       if (_debounceTimer != null) {
         return Future.value(_snapState.state);
       }
-      _debounceTimer = Timer(
-        Duration(milliseconds: throttleDelay),
-        () {
-          _debounceTimer = null;
-        },
-      );
+      _debounceTimer = Timer(Duration(milliseconds: throttleDelay), () {
+        _debounceTimer = null;
+      });
     }
     return call();
   }
@@ -176,12 +170,9 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           snapState._infoMessage != kDependsOn &&
           _snapState._infoMessage != kStopWaiting) {
         _snapState = _snapState.copyToHasData(result).copyToIsWaiting();
-        notify(shouldOverrideDefaultSideEffects: (_) => true);
+        notify(shouldOverrideDefaultSideEffects: (c) => true);
       } else {
-        middleSetState(
-          StateStatus.hasData,
-          result,
-        );
+        middleSetState(StateStatus.hasData, result);
       }
       return SynchronousFuture(_snapState.data);
     } catch (e, s) {
@@ -412,10 +403,8 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
 
   // Getter to be overridden by implementors
   Object? Function() get mockableCreator => creator;
-  SnapState<T> get initialSnapState => SnapState<T>.none(
-        infoMessage: kInitMessage,
-        data: initialState,
-      );
+  SnapState<T> get initialSnapState =>
+      SnapState<T>.none(infoMessage: kInitMessage, data: initialState);
   void onStateInitialized() {}
 
   @override
@@ -475,7 +464,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
       );
       _notifyDependentListeners();
       setStateNullable(
-        (_) => mockableCreator(),
+        (c) => mockableCreator(),
         middleSetState: middleSetCreator,
         stackTrace: stackTrace,
       );
@@ -505,7 +494,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
     ReactiveStatelessWidget.addToObs = null;
     isInitialized = true;
     setStateNullable(
-      (_) => creator(),
+      (c) => creator(),
       middleSetState: middleSetCreator,
       stackTrace: stackTrace,
     );
@@ -563,7 +552,7 @@ class ReactiveModelImp<T> extends ReactiveModel<T> {
           _snapState = _snapState
               .oldSnapState!; // Return to old state without notification.
           setStateNullable(
-            (_) => event(),
+            (c) => event(),
             middleSetState: middleSetState,
             stackTrace: stackTrace,
           );

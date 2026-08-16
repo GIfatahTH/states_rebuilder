@@ -6,8 +6,8 @@ import 'ui/sign_in_page/sign_in_page.dart';
 
 final navigator = RM.injectNavigator(
   routes: {
-    '/': (_) => const HomePage(),
-    '/sign_in': (_) => const SignInPage(),
+    '/': (c) => const HomePage(),
+    '/sign_in': (c) => const SignInPage(),
   },
   transitionsBuilder: RM.transitions.leftToRight(),
   onNavigate: (routeData) {

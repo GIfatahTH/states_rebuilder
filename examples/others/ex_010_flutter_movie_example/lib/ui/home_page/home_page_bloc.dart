@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import '../../bloc/movie_repository_bloc.dart';

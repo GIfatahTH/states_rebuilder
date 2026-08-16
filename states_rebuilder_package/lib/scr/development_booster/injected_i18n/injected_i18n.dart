@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../state_management/rm.dart';
 
 /// Used to manage app localization and internationalization
-abstract class InjectedI18N<I18N> {
+abstract mixin class InjectedI18N<I18N> {
   ///Get lists of supported locales
   List<Locale> get supportedLocales;
 
@@ -30,29 +31,19 @@ abstract class InjectedI18N<I18N> {
   ///for more elaborate logic, use [MaterialApp.localeListResolutionCallback]
   ///and define your logic.
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
-      get localeResolutionCallback;
+  get localeResolutionCallback;
 
   /// return a list of prebuilt LocalizationsDelegates:
   /// [GlobalMaterialLocalizations], [GlobalWidgetsLocalizations] and
   /// [GlobalCupertinoLocalizations]
   final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates =
-      const [
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ];
+      GlobalMaterialLocalizations.delegates;
 
   /// Use [of] instead
-  Injected<I18N> call(
-    BuildContext context, {
-    bool defaultToGlobal = false,
-  });
+  Injected<I18N> call(BuildContext context, {bool defaultToGlobal = false});
 
   /// Obtain the current translation using [inherited].
-  I18N of(
-    BuildContext context, {
-    bool defaultToGlobal = false,
-  });
+  I18N of(BuildContext context, {bool defaultToGlobal = false});
 
   /// dispose the state
   void dispose();
@@ -96,7 +87,8 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
               if (_locale is SystemLocale) {
                 l = '#|#';
               } else {
-                l = '${_locale!.languageCode}#|#' +
+                l =
+                    '${_locale!.languageCode}#|#' +
                     (_locale?.scriptCode != null
                         ? '${_locale!.scriptCode}#|#'
                         : '') +
@@ -120,7 +112,7 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
                 WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => sideEffects!.onSetState!(snap),
+                  (c) => sideEffects!.onSetState!(snap),
                 );
               }
             : null,
@@ -222,8 +214,9 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
       }
     }
 
-    final l = i18Ns.keys
-        .firstWhereOrNull((l) => locale.languageCode == l.languageCode);
+    final l = i18Ns.keys.firstWhereOrNull(
+      (l) => locale.languageCode == l.languageCode,
+    );
     if (l != null) {
       return l;
     }
@@ -236,9 +229,9 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
 
   @override
   Locale Function(Locale? locale, Iterable<Locale> supportedLocales)
-      get localeResolutionCallback => (locale, __) {
-            return _locale!;
-          };
+  get localeResolutionCallback => (locale, __) {
+    return _locale!;
+  };
 
   void didChangeLocales(List<Locale>? locales) {
     if (_locale is SystemLocale && locale != null) {
@@ -251,15 +244,9 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   //   super.initialize();
   // }
   @override
-  I18N of(
-    BuildContext context, {
-    bool defaultToGlobal = false,
-  }) {
+  I18N of(BuildContext context, {bool defaultToGlobal = false}) {
     try {
-      return injected.of(
-        context,
-        defaultToGlobal: defaultToGlobal,
-      );
+      return injected.of(context, defaultToGlobal: defaultToGlobal);
     } catch (e) {
       final widget = context.widget;
       if (widget is TopStatelessWidget) {
@@ -278,13 +265,8 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
   }
 
   @override
-  Injected<I18N> call(
-    BuildContext context, {
-    bool defaultToGlobal = false,
-  }) {
-    throw Exception(
-      'Use of(context) method instead',
-    );
+  Injected<I18N> call(BuildContext context, {bool defaultToGlobal = false}) {
+    throw Exception('Use of(context) method instead');
   }
 
   @override
@@ -296,12 +278,13 @@ class InjectedI18NImp<I18N> with InjectedI18N<I18N> {
 ///Used to represent the locale of the system.
 class SystemLocale extends Locale {
   SystemLocale._(Locale locale)
-      : super.fromSubtags(
-          languageCode: locale.languageCode,
-          countryCode:
-              locale.countryCode?.isEmpty == true ? null : locale.countryCode,
-          scriptCode: locale.scriptCode,
-        );
+    : super.fromSubtags(
+        languageCode: locale.languageCode,
+        countryCode: locale.countryCode?.isEmpty == true
+            ? null
+            : locale.countryCode,
+        scriptCode: locale.scriptCode,
+      );
   factory SystemLocale() {
     return SystemLocale._(const Locale('systemLocale'));
   }

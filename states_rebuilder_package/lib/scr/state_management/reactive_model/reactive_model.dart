@@ -1,7 +1,7 @@
 part of '../rm.dart';
 
 /// Observable state interface
-abstract class IObservable<T> {
+abstract mixin class IObservable<T> {
   ///The state is initialized and never mutated.
   bool get isIdle;
 
@@ -137,6 +137,9 @@ abstract class ReactiveModel<T> with IObservable<T> {
 
   /// The current state
   T get state;
+
+  // Whether the state has been initialized or not
+  bool get isStateInitialized;
 
   /// Sync state mutation.
   ///
@@ -323,7 +326,7 @@ abstract class ReactiveModel<T> with IObservable<T> {
     return onAll<R>(
       onIdle: onIdle,
       onWaiting: onWaiting,
-      onError: onError != null ? (_, __) => onError(_) : null,
+      onError: onError != null ? (c, __) => onError(c) : null,
       onData: onData,
     );
   }

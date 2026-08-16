@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'ex16_books_app/data_source/library.dart';
@@ -26,10 +26,10 @@ Widget fadeTransitionBuilder(context, animation, secondaryAnimation, child) {
 final navigator = RM.injectNavigator(
     transitionsBuilder: fadeTransitionBuilder,
     routes: {
-      '/signin': (_) => const SignInScreen(),
+      '/signin': (c) => const SignInScreen(),
       '/': (data) {
         return RouteWidget(
-          builder: (_) => const BookstoreScaffold(),
+          builder: (c) => const BookstoreScaffold(),
           routes: {
             '/': (data) => data.redirectTo('/books'),
             '/books': (data) => data.redirectTo('/books/popular'),
@@ -87,8 +87,10 @@ class App extends TopStatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );
   }
 }

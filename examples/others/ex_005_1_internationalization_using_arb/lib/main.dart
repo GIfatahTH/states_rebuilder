@@ -1,5 +1,5 @@
 import 'package:ex_005_1_internationalization_using_arb/l10n/i18n.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -31,7 +31,7 @@ class MyHomePage extends ReactiveStatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _i18n = i18nRM.of(context);
-    final textStyle = Theme.of(context).textTheme.headline4;
+    final textStyle = Theme.of(context).textTheme.headlineLarge;
     return Scaffold(
       appBar: AppBar(
         title: Text(_i18n.helloWorld),

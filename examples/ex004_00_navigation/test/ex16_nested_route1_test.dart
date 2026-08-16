@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -7,11 +7,11 @@ late InjectedNavigator navigator;
 final Map<String, Widget Function(RouteData)> routes = {
   '/': (data) => data.redirectTo('/dashboard'),
   '/dashboard': (data) => RouteWidget(
-        builder: (_) => const Dash(),
+        builder: (c) => const Dash(),
         routes: {
           '/': (data) => const DashHome(),
           '/invoices': (data) => RouteWidget(
-                builder: (_) => const Invoices(),
+                builder: (c) => const Invoices(),
                 routes: {
                   '/': (data) => data.redirectTo('/daily'),
                   // '/': (data) => data.redirectTo('/dashboard/invoices/daily'),
@@ -167,7 +167,7 @@ void main() {
     (tester) async {
       navigator = RM.injectNavigator(
         initialLocation: '/dashboard/invoices/weekly',
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -182,7 +182,7 @@ void main() {
     (tester) async {
       navigator = RM.injectNavigator(
         initialLocation: '/dashboard/invoices/weekly454',
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -202,7 +202,7 @@ void main() {
     (tester) async {
       navigator = RM.injectNavigator(
         initialLocation: '/dashboard/invoices/weekly/1',
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -224,11 +224,11 @@ void main() {
       final Map<String, Widget Function(RouteData)> routes = {
         '/': (data) => data.redirectTo('/dashboard'),
         '/dashboard': (data) => RouteWidget(
-              builder: (_) => const Dash(),
+              builder: (c) => const Dash(),
               routes: {
                 '/': (data) => const DashHome(),
                 '/invoices': (data) => RouteWidget(
-                      builder: (_) => const Invoices(),
+                      builder: (c) => const Invoices(),
                       routes: {
                         '/': (data) =>
                             data.redirectTo('/dashboard/invoices/weekly'),
@@ -246,7 +246,7 @@ void main() {
         '/support': (data) => const Support(),
       };
       navigator = RM.injectNavigator(
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -268,11 +268,11 @@ void main() {
       final Map<String, Widget Function(RouteData)> routes = {
         '/': (data) => data.redirectTo('/dashboard'),
         '/dashboard': (data) => RouteWidget(
-              builder: (_) => const Dash(),
+              builder: (c) => const Dash(),
               routes: {
                 '/': (data) => const DashHome(),
                 '/invoices': (data) => RouteWidget(
-                      builder: (_) => const Invoices(),
+                      builder: (c) => const Invoices(),
                       routes: {
                         '/': (data) => data.redirectTo('/about'),
                         '/daily': (data) => const DailyInvoices(),
@@ -288,7 +288,7 @@ void main() {
         '/support': (data) => const Support(),
       };
       navigator = RM.injectNavigator(
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -310,11 +310,11 @@ void main() {
       final Map<String, Widget Function(RouteData)> routes = {
         '/': (data) => data.redirectTo('/dashboard'),
         '/dashboard': (data) => RouteWidget(
-              builder: (_) => const Dash(),
+              builder: (c) => const Dash(),
               routes: {
                 '/': (data) => const DashHome(),
                 '/invoices': (data) => RouteWidget(
-                      builder: (_) => const Invoices(),
+                      builder: (c) => const Invoices(),
                       routes: {
                         '/': (data) => data.redirectTo('/about/404'),
                         '/daily': (data) => const DailyInvoices(),
@@ -330,7 +330,7 @@ void main() {
         '/support': (data) => const Support(),
       };
       navigator = RM.injectNavigator(
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -352,11 +352,11 @@ void main() {
       final Map<String, Widget Function(RouteData)> routes = {
         '/': (data) => data.redirectTo('/dashboard'),
         '/dashboard': (data) => RouteWidget(
-              builder: (_) => const Dash(),
+              builder: (c) => const Dash(),
               routes: {
                 '/': (data) => const DashHome(),
                 '/invoices': (data) => RouteWidget(
-                      builder: (_) => const Invoices(),
+                      builder: (c) => const Invoices(),
                       routes: {
                         '/': (data) => data.redirectTo('/daily'),
                         '/daily': (data) => const DailyInvoices(),
@@ -371,7 +371,7 @@ void main() {
         '/support': (data) => const Support(),
       };
       navigator = RM.injectNavigator(
-        builder: (_) => const Home(),
+        builder: (c) => const Home(),
         transitionsBuilder: RM.transitions.none(),
         routes: routes,
       );
@@ -399,6 +399,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       debugShowCheckedModeBanner: false,
       routeInformationParser: navigator.routeInformationParser,
       routerDelegate: navigator.routerDelegate,
@@ -458,7 +459,7 @@ class DashHome extends StatelessWidget {
     return Center(
       child: Text(
         'DashHome',
-        style: Theme.of(context).textTheme.headline1,
+        style: Theme.of(context).textTheme.displayLarge,
       ),
     );
   }
@@ -496,7 +497,7 @@ class Team extends StatelessWidget {
       child: Center(
         child: Text(
           'Team Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -513,7 +514,7 @@ class About extends StatelessWidget {
       child: Center(
         child: Text(
           'About Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -530,7 +531,7 @@ class Support extends StatelessWidget {
       child: Center(
         child: Text(
           'Support Page',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -547,7 +548,7 @@ class DailyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Daily Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -564,7 +565,7 @@ class WeeklyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Weekly Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );
@@ -581,7 +582,7 @@ class MonthlyInvoices extends StatelessWidget {
       child: Center(
         child: Text(
           'Monthly Invoices',
-          style: Theme.of(context).textTheme.headline2,
+          style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
     );

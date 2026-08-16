@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'sign_in_bloc.dart';
 
@@ -37,7 +37,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Sign in', style: Theme.of(context).textTheme.headline4),
+                  Text('Sign in',
+                      style: Theme.of(context).textTheme.headlineLarge),
                   TextField(
                     decoration: const InputDecoration(labelText: 'Username'),
                     controller: _usernameController,

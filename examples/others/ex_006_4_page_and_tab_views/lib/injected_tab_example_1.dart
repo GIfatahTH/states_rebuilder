@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final injectedTabPage = RM.injectTabPageView(
@@ -71,7 +71,7 @@ class PageViewOnly extends StatelessWidget {
         () => PageView.builder(
           controller: injectedTabPage.pageController,
           itemCount: injectedTabPage.length,
-          itemBuilder: (_, i) {
+          itemBuilder: (c, i) {
             return Icon(
               icons[i],
               size: 50,
@@ -102,7 +102,7 @@ class PageViewOnly extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
                                 animate(i == index ? Colors.blue : null, '$i'),
-                            primary: animate(
+                            foregroundColor: animate(
                                 i != index ? Colors.blue : Colors.white,
                                 'primary$i'),
                           ),

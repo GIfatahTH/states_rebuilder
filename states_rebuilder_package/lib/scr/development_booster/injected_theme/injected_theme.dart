@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../state_management/rm.dart';
 
 ///{@template InjectedTheme}
@@ -36,7 +37,7 @@ import '../../state_management/rm.dart';
 ///   ```
 ///  {@endtemplate}
 
-abstract class InjectedTheme<KEY> {
+abstract mixin class InjectedTheme<KEY> {
   // KEY get state => getInjectedState(this);
   /// The current state  (theme name)
   KEY get state;
@@ -146,7 +147,7 @@ class InjectedThemeImp<KEY> with InjectedTheme<KEY> {
                 //For InjectedI18N and InjectedTheme schedule side effects
                 //for the next frame.
                 WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => sideEffects!.onSetState!(snap),
+                  (c) => sideEffects!.onSetState!(snap),
                 );
               }
             : null,

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
 * This is a rewrite of the weather app from ResoCoder tutorial using the new
@@ -127,7 +127,7 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         child: weatherService.whenWether(
           onIdle: () => buildInitialInput(),
           onWaiting: () => const LoadingWidget(),
-          onError: (_, __) => buildInitialInput(),
+          onError: (c, __) => buildInitialInput(),
           onData: (data) => buildColumnWithData(context),
         ),
       ),
@@ -160,11 +160,11 @@ class WeatherSearchPage extends ReactiveStatelessWidget {
         ElevatedButton(
           child: const Text('See Details'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.lightBlue[100],
+            backgroundColor: Colors.lightBlue[100],
           ),
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const WeatherDetailPage(),
+              builder: (c) => const WeatherDetailPage(),
             ));
           },
         ),

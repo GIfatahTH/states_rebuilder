@@ -5,7 +5,7 @@ import 'package:clean_architecture_dane_mackier_app/blocs/user_bloc.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/post.dart';
 import 'package:clean_architecture_dane_mackier_app/domain/entities/user.dart';
 import 'package:clean_architecture_dane_mackier_app/ui/pages/comments_page/comments_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -28,7 +28,7 @@ void main() {
 
   late Post postFromHomePage;
   Widget postPage = TopAppWidget(
-    builder: (_) => MaterialApp(
+    builder: (c) => MaterialApp(
       home: CommentsPage(
         post: postFromHomePage = postsBloc.posts[0],
       ),

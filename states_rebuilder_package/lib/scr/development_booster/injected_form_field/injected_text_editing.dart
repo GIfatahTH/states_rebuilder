@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../state_management/listeners/on_reactive.dart';
 import '../../state_management/rm.dart';
 
@@ -31,7 +32,7 @@ part 'on_form_submission_builder.dart';
 ///         decoration:  InputDecoration(
 ///             errorText: email.error, //To display the error message.
 ///         ),
-///         onSubmitted: (_) {
+///         onSubmitted: (c) {
 ///             //Focus on the password TextField after submission
 ///             password.focusNode.requestFocus();
 ///         },
@@ -42,7 +43,7 @@ part 'on_form_submission_builder.dart';
 /// * [InjectedFormField] for other type of inputs rather the text,
 /// * [InjectedForm] and [OnFormBuilder] to work with form.
 ///  {@endtemplate}
-abstract class InjectedTextEditing implements IObservable<String> {
+abstract mixin class InjectedTextEditing implements IObservable<String> {
   late TextEditingControllerImp? _controller;
 
   late final _baseFormField = this as _BaseFormField;
@@ -166,14 +167,14 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
     bool? validateOnLoseFocus,
     bool? isReadOnly,
     bool? isEnabled,
-  })  : _composing = composing,
-        _selection = selection,
-        super(
-          creator: () => text,
-          initialState: text,
-          autoDisposeWhenNotUsed: autoDispose,
-          stateInterceptorGlobal: null,
-        ) {
+  }) : _composing = composing,
+       _selection = selection,
+       super(
+         creator: () => text,
+         initialState: text,
+         autoDisposeWhenNotUsed: autoDispose,
+         stateInterceptorGlobal: null,
+       ) {
     _resetDefaultState = () {
       initialValue = text;
       _controller = null;
@@ -226,17 +227,16 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
       form ??= InjectedFormImp._currentInitializedForm;
       _formIsSet = true; // TODO check me
       if (form != null) {
-        formTextFieldDisposer =
-            (form as InjectedFormImp).addTextFieldToForm(this);
+        formTextFieldDisposer = (form as InjectedFormImp).addTextFieldToForm(
+          this,
+        );
 
         if (form!.autovalidateMode == AutovalidateMode.always) {
           //When initialized and always auto validated, then validate in the next
           //frame
-          WidgetsBinding.instance.addPostFrameCallback(
-            (timeStamp) {
-              form!.validate();
-            },
-          );
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            form!.validate();
+          });
         } else {
           if (_validateOnLoseFocus == null && _validateOnValueChange != true) {
             //If the TextField is inside a On.form, set _validateOnLoseFocus to
@@ -360,7 +360,7 @@ class InjectedTextEditingImp extends ReactiveModelImp<String>
     _controller?.dispose();
     _controller = null;
     formTextFieldDisposer?.call();
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((c) {
       //Dispose after the associated TextField remove its listeners to _focusNode
       _focusNode?.dispose();
       _resetDefaultState();

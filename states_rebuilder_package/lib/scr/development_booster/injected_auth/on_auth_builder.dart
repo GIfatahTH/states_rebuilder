@@ -50,47 +50,47 @@ class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
     this.navigatorKey,
     String? debugPrintWhenRebuild,
   }) : super(
-          key: key,
-          observers: (context) {
-            NavigatorState? navigatorState;
-            if (navigatorKey == null && useRouteNavigation == true) {
-              navigatorState = RM.navigate.navigatorKey.currentState;
-            } else if (navigatorKey != null) {
-              navigatorState = navigatorKey.currentState;
-            }
-            if (navigatorState != null) {
-              (listenTo as ReactiveModelImp).initialize();
-              // ignore: unused_result
-              listenTo.addObserver(
-                isSideEffects: true,
-                listener: (rm) {
-                  if (!rm.hasData) return;
-                  navigatorState!.pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) {
-                        return (listenTo as InjectedAuthImp).isSigned
-                            ? onSigned()
-                            : onUnsigned();
-                      },
-                    ),
-                    (route) => false,
-                  );
-                },
-                shouldAutoClean: false,
-              );
-            }
-            return [listenTo as InjectedAuthImp];
-          },
-          debugPrintWhenRebuild: debugPrintWhenRebuild,
-          sideEffects: sideEffects,
-          shouldRebuild: (old, current) {
-            if (navigatorKey != null || useRouteNavigation) {
-              return false;
-            }
-            return true;
-          },
-          builder: null,
-        );
+         key: key,
+         observers: (context) {
+           NavigatorState? navigatorState;
+           if (navigatorKey == null && useRouteNavigation == true) {
+             navigatorState = RM.navigate.navigatorKey.currentState;
+           } else if (navigatorKey != null) {
+             navigatorState = navigatorKey.currentState;
+           }
+           if (navigatorState != null) {
+             (listenTo as ReactiveModelImp).initialize();
+             // ignore: unused_result
+             listenTo.addObserver(
+               isSideEffects: true,
+               listener: (rm) {
+                 if (!rm.hasData) return;
+                 navigatorState!.pushAndRemoveUntil(
+                   MaterialPageRoute(
+                     builder: (c) {
+                       return (listenTo as InjectedAuthImp).isSigned
+                           ? onSigned()
+                           : onUnsigned();
+                     },
+                   ),
+                   (route) => false,
+                 );
+               },
+               shouldAutoClean: false,
+             );
+           }
+           return [listenTo as InjectedAuthImp];
+         },
+         debugPrintWhenRebuild: debugPrintWhenRebuild,
+         sideEffects: sideEffects,
+         shouldRebuild: (old, current) {
+           if (navigatorKey != null || useRouteNavigation) {
+             return false;
+           }
+           return true;
+         },
+         builder: null,
+       );
 
   /// [InjectedAuth] to listen to.
   final InjectedAuth<T, P> listenTo;
@@ -123,9 +123,7 @@ class OnAuthBuilder<T, P> extends MyStatefulWidget<T> {
 
   /// NavigatorKey used for navigation between onSigned and onUnsigned
   final GlobalKey<NavigatorState>? navigatorKey;
-  final _map = {
-    'onInitialWaiting': true,
-  };
+  final _map = {'onInitialWaiting': true};
 
   @override
   Widget builder(context, snap, rm) {

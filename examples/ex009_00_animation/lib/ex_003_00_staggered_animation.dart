@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 void main() {
@@ -69,7 +69,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
                 final padding = animate
                     .setCurve(const Interval(0.250, 0.375, curve: Curves.ease))
                     .fromTween(
-                      (_) => EdgeInsetsTween(
+                      (c) => EdgeInsetsTween(
                         begin: const EdgeInsets.only(bottom: 16.0),
                         end: const EdgeInsets.only(bottom: 75.0),
                       ),
@@ -77,24 +77,24 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
                 final opacity = animate
                     .setCurve(const Interval(0.0, 0.100, curve: Curves.ease))
                     .fromTween(
-                      (_) => Tween<double>(begin: 0.0, end: 1.0),
+                      (c) => Tween<double>(begin: 0.0, end: 1.0),
                     )!;
                 final containerWidget = animate
                     .setCurve(const Interval(0.125, 0.250, curve: Curves.ease))
                     .fromTween(
-                      (_) => Tween<double>(begin: 50.0, end: 150.0),
+                      (c) => Tween<double>(begin: 50.0, end: 150.0),
                       'width',
                     )!;
                 final containerHeight = animate
                     .setCurve(const Interval(0.250, 0.375, curve: Curves.ease))
                     .fromTween(
-                      (_) => Tween<double>(begin: 50.0, end: 150.0),
+                      (c) => Tween<double>(begin: 50.0, end: 150.0),
                       'height',
                     )!;
                 final color = animate
                     .setCurve(const Interval(0.500, 0.750, curve: Curves.ease))
                     .fromTween(
-                      (_) => ColorTween(
+                      (c) => ColorTween(
                         begin: Colors.indigo[100],
                         end: Colors.orange[400],
                       ),
@@ -102,7 +102,7 @@ class _MyStaggeredWidgetState extends State<MyStatefulWidget> {
                 final borderRadius = animate
                     .setCurve(const Interval(0.375, 0.500, curve: Curves.ease))
                     .fromTween(
-                      (_) => BorderRadiusTween(
+                      (c) => BorderRadiusTween(
                         begin: BorderRadius.circular(4.0),
                         end: BorderRadius.circular(75.0),
                       ),

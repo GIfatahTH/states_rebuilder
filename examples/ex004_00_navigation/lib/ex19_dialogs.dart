@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 final navigator = RM.injectNavigator(
@@ -11,6 +11,7 @@ final navigator = RM.injectNavigator(
 void main() {
   runApp(
     MaterialApp.router(
+      theme: ThemeData.light(useMaterial3: false),
       routerDelegate: navigator.routerDelegate,
       routeInformationParser: navigator.routeInformationParser,
     ),

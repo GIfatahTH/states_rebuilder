@@ -15,7 +15,7 @@ class TodoList extends StatelessWidget {
                 item: () {
                   return todosBloc.todosFiltered.state[index];
                 },
-                builder: (_) => TodoItem(),
+                builder: (c) => TodoItem(),
                 debugPrintWhenNotifiedPreMessage: 'todo $index',
               );
             } else {
@@ -23,7 +23,7 @@ class TodoList extends StatelessWidget {
               //while waiting for adding one item
               return todosBloc.todosFiltered.onOrElse(
                 onWaiting: () => Center(child: CircularProgressIndicator()),
-                orElse: (_) => Container(),
+                orElse: (c) => Container(),
               );
             }
           },

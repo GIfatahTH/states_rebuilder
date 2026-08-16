@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 /*
 * Example of state cleaning (disposing of).
@@ -147,7 +147,7 @@ class CounterView extends ReactiveStatelessWidget {
               ),
               Text(
                 '${counterViewModel.counter}',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ],
           ),

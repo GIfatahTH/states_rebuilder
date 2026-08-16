@@ -354,7 +354,7 @@ final count = RM.injectFuture<List<int>>(
   //method is recalculated.
   //We set shouldNotify to false while the number state is invoking a CRUD method.
   //This is to make sure counts are calculated after data is persisted
-  dependsOn: DependsOn({numbers}, shouldNotify: (_) => !numbers.isOnCRUD),
+  dependsOn: DependsOn({numbers}, shouldNotify: (c) => !numbers.isOnCRUD),
 );
 ```
 That's all, your logic is ready and your injected state is reactive and knows how to crud your backend service.
@@ -583,11 +583,11 @@ AppBar _appBarMethod() {
         onWaiting: () => Icon(Icons.circle, color: Colors.yellow),
         //On error we can refresh and recall the last operation.
 
-        onError: (_, retry) => IconButton(
+        onError: (c, retry) => IconButton(
           icon: Icon(Icons.refresh_outlined, color: Colors.red),
           onPressed: () => retry(),
         ),
-        onResult: (_) => Icon(Icons.circle, color: Colors.green),
+        onResult: (c) => Icon(Icons.circle, color: Colors.green),
       ).listenTo(numbers),
       actions: [
 

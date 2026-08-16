@@ -50,14 +50,14 @@ part of '../rm.dart';
 /// OnBuilder.orElse(
 ///     listenTo: counter,
 ///     onWaiting: () => Text('onWaiting'),
-///     orElse: (_) => Text('{counter.state}'),
+///     orElse: (c) => Text('{counter.state}'),
 ///
 /// ),
 ///
 /// //Method-like
 /// counter.rebuild.onOrElse(
 ///     onWaiting: () => Text('onWaiting'),
-///     orElse: (_) => Text('{counter.state}'),
+///     orElse: (c) => Text('{counter.state}'),
 /// ),
 /// ```
 /// {@endtemplate}
@@ -97,16 +97,16 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     ShouldRebuild? shouldRebuild,
     Object? Function()? watch,
     String? debugPrintWhenRebuild,
-  })  : assert(listenTo != null || listenToMany != null),
-        super(
-          key: key,
-          observers: (_) => listenTo != null
-              ? [listenTo as ReactiveModelImp]
-              : listenToMany!.cast<ReactiveModelImp>(),
-          builder: (_, __, ___) => builder(),
-          sideEffects: sideEffects,
-          shouldRebuild: shouldRebuild,
-        );
+  }) : assert(listenTo != null || listenToMany != null),
+       super(
+         key: key,
+         observers: (c) => listenTo != null
+             ? [listenTo as ReactiveModelImp]
+             : listenToMany!.cast<ReactiveModelImp>(),
+         builder: (c, __, ___) => builder(),
+         sideEffects: sideEffects,
+         shouldRebuild: shouldRebuild,
+       );
 
   ///{@macro OnBuilder}
   OnBuilder.data({
@@ -118,28 +118,28 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     ShouldRebuild? shouldRebuild,
     Object? Function()? watch,
     String? debugPrintWhenRebuild,
-  })  : assert(listenTo != null || listenToMany != null),
-        super(
-          key: key,
-          observers: (_) => listenTo != null
-              ? [listenTo as ReactiveModelImp]
-              : listenToMany!.cast<ReactiveModelImp>(),
-          builder: (_, snap, ___) => builder(snap.state),
-          sideEffects: sideEffects,
-          shouldRebuild: (oldSnap, newSnap) {
-            if (StateStatus.hasData == newSnap.status ||
-                StateStatus.isIdle == newSnap.status) {
-              return shouldRebuild?.call(oldSnap, newSnap) ?? true;
-            }
-            return false;
-          },
-        );
+  }) : assert(listenTo != null || listenToMany != null),
+       super(
+         key: key,
+         observers: (c) => listenTo != null
+             ? [listenTo as ReactiveModelImp]
+             : listenToMany!.cast<ReactiveModelImp>(),
+         builder: (c, snap, ___) => builder(snap.state),
+         sideEffects: sideEffects,
+         shouldRebuild: (oldSnap, newSnap) {
+           if (StateStatus.hasData == newSnap.status ||
+               StateStatus.isIdle == newSnap.status) {
+             return shouldRebuild?.call(oldSnap, newSnap) ?? true;
+           }
+           return false;
+         },
+       );
 
   // {
   //   // return OnBuilder._(
   //   //   key: key,
   //   //   listenTo: listenTo,
-  //   //   build: (_) => builder(_.state),
+  //   //   build: (c) => builder(c.state),
   //   //   onStatus: StateStatus.hasData,
   //   //   sideEffects: sideEffects,
   //   // );
@@ -153,25 +153,25 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     SideEffects<T>? sideEffects,
     required Widget Function(ReactiveModel<T> rm) builder,
   }) : super(
-          key: key,
-          observers: (_) => [
-            creator != null
-                ? ReactiveModel<T>.create(
-                    creator: creator,
-                    initialState: null,
-                    autoDisposeWhenNotUsed: true,
-                  ) as ReactiveModelImp<T>
-                : create != null
-                    ? create() as ReactiveModelImp<T>
-                    : ReactiveModel<T>.create(
-                        creator: () => null,
-                        initialState: null,
-                        autoDisposeWhenNotUsed: true,
-                      ) as ReactiveModelImp<void>,
-          ],
-          builder: (_, __, rm) => builder(rm),
-          sideEffects: sideEffects,
-        );
+         key: key,
+         observers: (c) => [
+           creator != null
+               ? ReactiveModel<T>.create(
+                   creator: creator,
+                   initialState: null,
+                   autoDisposeWhenNotUsed: true,
+                 ) as ReactiveModelImp<T>
+               : create != null
+               ? create() as ReactiveModelImp<T>
+               : ReactiveModel<T>.create(
+                   creator: () => null,
+                   initialState: null,
+                   autoDisposeWhenNotUsed: true,
+                 ) as ReactiveModelImp<void>,
+         ],
+         builder: (c, __, rm) => builder(rm),
+         sideEffects: sideEffects,
+       );
 
   /// Create a ReactiveModel state from a future and listen to it
   OnBuilder.createFuture({
@@ -181,17 +181,17 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     SideEffects<T>? sideEffects,
     required Widget Function(ReactiveModel<T> rm) builder,
   }) : super(
-          key: key,
-          observers: (_) => [
-            ReactiveModel<T>.create(
-              creator: creator,
-              initialState: initialState,
-              autoDisposeWhenNotUsed: true,
-            ) as ReactiveModelImp
-          ],
-          builder: (_, __, rm) => builder(rm),
-          sideEffects: sideEffects,
-        );
+         key: key,
+         observers: (c) => [
+           ReactiveModel<T>.create(
+             creator: creator,
+             initialState: initialState,
+             autoDisposeWhenNotUsed: true,
+           ) as ReactiveModelImp,
+         ],
+         builder: (c, __, rm) => builder(rm),
+         sideEffects: sideEffects,
+       );
 
   /// Create a ReactiveModel state from a stream and listen to it
   OnBuilder.createStream({
@@ -201,17 +201,17 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     SideEffects<T>? sideEffects,
     required Widget Function(ReactiveModel<T> rm) builder,
   }) : super(
-          key: key,
-          observers: (_) => [
-            ReactiveModel<T>.create(
-              creator: creator,
-              initialState: initialState,
-              autoDisposeWhenNotUsed: true,
-            ) as ReactiveModelImp
-          ],
-          builder: (_, __, rm) => builder(rm),
-          sideEffects: sideEffects,
-        );
+         key: key,
+         observers: (c) => [
+           ReactiveModel<T>.create(
+             creator: creator,
+             initialState: initialState,
+             autoDisposeWhenNotUsed: true,
+           ) as ReactiveModelImp,
+         ],
+         builder: (c, __, rm) => builder(rm),
+         sideEffects: sideEffects,
+       );
 
   ///{@macro OnBuilder}
   OnBuilder.all({
@@ -226,23 +226,23 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     ShouldRebuild? shouldRebuild,
     Object? Function()? watch,
     String? debugPrintWhenRebuild,
-  })  : assert(listenTo != null || listenToMany != null),
-        super(
-          key: key,
-          observers: (_) => listenTo != null
-              ? [listenTo as ReactiveModelImp]
-              : listenToMany!.cast<ReactiveModelImp>(),
-          builder: (_, snap, ___) {
-            return snap.onAll<Widget>(
-              onIdle: onIdle,
-              onWaiting: onWaiting,
-              onError: onError,
-              onData: (_) => onData(_),
-            );
-          },
-          sideEffects: sideEffects,
-          shouldRebuild: shouldRebuild,
-        );
+  }) : assert(listenTo != null || listenToMany != null),
+       super(
+         key: key,
+         observers: (c) => listenTo != null
+             ? [listenTo as ReactiveModelImp]
+             : listenToMany!.cast<ReactiveModelImp>(),
+         builder: (c, snap, ___) {
+           return snap.onAll<Widget>(
+             onIdle: onIdle,
+             onWaiting: onWaiting,
+             onError: onError,
+             onData: (c) => onData(c),
+           );
+         },
+         sideEffects: sideEffects,
+         shouldRebuild: shouldRebuild,
+       );
 
   ///{@macro OnBuilder}
   OnBuilder.orElse({
@@ -258,24 +258,24 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     ShouldRebuild? shouldRebuild,
     Object? Function()? watch,
     String? debugPrintWhenRebuild,
-  })  : assert(listenTo != null || listenToMany != null),
-        super(
-          key: key,
-          observers: (_) => listenTo != null
-              ? [listenTo as ReactiveModelImp]
-              : listenToMany!.cast<ReactiveModelImp>(),
-          builder: (_, snap, ___) {
-            return snap.onOrElse<Widget>(
-              onIdle: onIdle,
-              onWaiting: onWaiting,
-              onError: onError,
-              onData: onData != null ? (_) => onData(_) : null,
-              orElse: (_) => orElse(_),
-            );
-          },
-          sideEffects: sideEffects,
-          shouldRebuild: shouldRebuild,
-        );
+  }) : assert(listenTo != null || listenToMany != null),
+       super(
+         key: key,
+         observers: (c) => listenTo != null
+             ? [listenTo as ReactiveModelImp]
+             : listenToMany!.cast<ReactiveModelImp>(),
+         builder: (c, snap, ___) {
+           return snap.onOrElse<Widget>(
+             onIdle: onIdle,
+             onWaiting: onWaiting,
+             onError: onError,
+             onData: onData != null ? (c) => onData(c) : null,
+             orElse: (c) => orElse(c),
+           );
+         },
+         sideEffects: sideEffects,
+         shouldRebuild: shouldRebuild,
+       );
   // final Widget Function(ReactiveModelImp rm)? build;
   // final StateStatus? onStatus;
 
@@ -291,7 +291,7 @@ class OnBuilder<T> extends MyStatefulWidget<T> {
     // this.watch,
     // this.debugPrintWhenRebuild,
     void Function(BuildContext context, AppLifecycleState state)?
-        didChangeAppLifecycleState,
+    didChangeAppLifecycleState,
     void Function(BuildContext context, List<Locale>? locale)? didChangeLocales,
   }) {
     return OnBuilderBindingObserver<T>(
@@ -316,18 +316,18 @@ class OnBuilderBindingObserver<T> extends OnBuilder<T> {
     this.didChangeAppLifecycleState,
     this.didChangeLocales,
   }) : super(
-          listenTo: listenTo ?? ReactiveModel.create(creator: () => null),
-          key: key,
-          builder: builder,
-          sideEffects: sideEffects,
-          shouldRebuild: shouldRebuild,
-        );
+         listenTo: listenTo ?? ReactiveModel.create(creator: () => null),
+         key: key,
+         builder: builder,
+         sideEffects: sideEffects,
+         shouldRebuild: shouldRebuild,
+       );
 
   ///Called when the system puts the app in the background or returns the app to the foreground.
   ///
   ///The third parameter depends on the mixin used. It is a TickerProvider for tickerProviderStateMixin
   final void Function(BuildContext context, AppLifecycleState state)?
-      didChangeAppLifecycleState;
+  didChangeAppLifecycleState;
 
   ///Called when the system tells the app that the user's locale has changed.
   ///For example, if the user changes the system language settings.
@@ -336,7 +336,7 @@ class OnBuilderBindingObserver<T> extends OnBuilder<T> {
   ///   * [List<Locale>] (positional parameter): List of system Locales as defined in
   /// the system language settings
   final void Function(BuildContext context, List<Locale>? locale)?
-      didChangeLocales;
+  didChangeLocales;
   @override
   _OnBuilderBindingObserverState<T> createState() =>
       _OnBuilderBindingObserverState<T>();
@@ -358,15 +358,17 @@ class _OnBuilderBindingObserverState<T> extends _MyStatefulWidgetState<T>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    (widget as OnBuilderBindingObserver)
-        .didChangeAppLifecycleState
-        ?.call(context, state);
+    (widget as OnBuilderBindingObserver).didChangeAppLifecycleState?.call(
+      context,
+      state,
+    );
   }
 
   @override
   void didChangeLocales(List<Locale>? locale) {
-    (widget as OnBuilderBindingObserver)
-        .didChangeLocales
-        ?.call(context, locale);
+    (widget as OnBuilderBindingObserver).didChangeLocales?.call(
+      context,
+      locale,
+    );
   }
 }

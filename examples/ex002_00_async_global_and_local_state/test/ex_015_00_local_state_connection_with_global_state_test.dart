@@ -1,5 +1,5 @@
 import 'package:ex002_00_async_global_and_local_state/ex_015_00_local_state_connection_with_global_state.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -22,17 +22,21 @@ void main() {
       //
       await tester.enterText(find.byType(TextField).first, 'New Todo 1');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.drag(todoItemHome1.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(todosViewModel.state.todos.length, 2);
       expect(todoItemHome1, findsNWidgets(2));
       expect(todoItemHome2, findsNWidgets(1));
 
       expect(find.text('New Todo 1'), findsOneWidget);
-      expect(todosViewModel.state.todos.length, 2);
       //
       //
       await tester.enterText(find.byType(TextField).last, 'New Todo 2');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
+      await tester.pumpAndSettle();
+      await tester.drag(todoItemHome2.first, const Offset(0, -200));
+      await tester.pumpAndSettle();
       expect(todoItemHome1, findsNWidgets(2));
       expect(todoItemHome2, findsNWidgets(2));
 

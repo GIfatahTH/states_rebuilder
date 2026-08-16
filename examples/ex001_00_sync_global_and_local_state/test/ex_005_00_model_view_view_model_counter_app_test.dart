@@ -1,5 +1,5 @@
 import 'package:ex001_00_sync_global_and_local_state/ex_005_00_model_view_view_model_counter_app.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

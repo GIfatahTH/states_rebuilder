@@ -3,7 +3,7 @@ import 'package:states_rebuilder/scr/state_management/state_management.dart';
 import 'blocs/auth_bloc.dart';
 import 'navigator.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'ui/widgets/splash_screen.dart';
 

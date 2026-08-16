@@ -1,6 +1,6 @@
 import 'package:ex_001_3_state_persistence/hive_imp.dart';
 import 'package:ex_001_3_state_persistence/shared_prefrences.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 import 'fake_imp.dart';
@@ -73,7 +73,7 @@ class MyHomePage extends StatelessWidget {
             OnReactive(
               () => Text(
                 '${counter.state}',
-                style: Theme.of(context).textTheme.headline5,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
             ),
           ],

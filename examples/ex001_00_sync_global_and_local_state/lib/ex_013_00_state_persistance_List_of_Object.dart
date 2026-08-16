@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -206,11 +206,11 @@ class CounterView extends StatelessWidget {
         children: <Widget>[
           Text(
             'Counter $index: ',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           Text(
             '${counterViewModel.counters[index].value}',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           TextButton(
             onPressed: () => counterViewModel.increment(index),

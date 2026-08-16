@@ -1,5 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, prefer_const_constructors
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -26,9 +26,7 @@ var counter = RM.inject(
 );
 
 //Used to dispose counter for test
-final switcher = RM.inject(
-  () => true,
-);
+final switcher = RM.inject(() => true);
 
 class App extends StatelessWidget {
   @override
@@ -39,17 +37,17 @@ class App extends StatelessWidget {
         children: [
           OnBuilder.data(
             listenTo: switcher,
-            builder: (_) => switcher.state
+            builder: (c) => switcher.state
                 ? OnBuilder.data(
                     listenTo: counter,
-                    builder: (_) => Text('counter: ${counter.state}'),
+                    builder: (c) => Text('counter: ${counter.state}'),
                   )
                 : Container(),
           ),
           OnBuilder.orElse(
             listenTo: counterFuture,
             onWaiting: () => Text('Waiting...'),
-            orElse: (_) => Text('counterFuture: ${counterFuture.state}'),
+            orElse: (c) => Text('counterFuture: ${counterFuture.state}'),
           ),
         ],
       ),
@@ -64,8 +62,9 @@ void main() async {
   setUp(() {
     store.clear();
   });
-  testWidgets('persist state onData (Default) no initial persisted state',
-      (tester) async {
+  testWidgets('persist state onData (Default) no initial persisted state', (
+    tester,
+  ) async {
     expect(store.isEmpty, isTrue);
     expect(store['counter'], null);
     await tester.pumpWidget(App());
@@ -96,13 +95,11 @@ void main() async {
     expect(store['counterFuture'], '1');
   });
 
-  testWidgets('persist state onData (Default) with initial persisted state',
-      (tester) async {
+  testWidgets('persist state onData (Default) with initial persisted state', (
+    tester,
+  ) async {
     //Fil the store with what would be persisted store form older session
-    store.addAll({
-      'counter': '10',
-      'counterFuture': '10',
-    });
+    store.addAll({'counter': '10', 'counterFuture': '10'});
 
     await tester.pumpWidget(App());
 
@@ -112,12 +109,10 @@ void main() async {
     expect(find.text('counterFuture: 10'), findsOneWidget);
   });
 
-  testWidgets('refresh state should reset the persistent state',
-      (tester) async {
-    store.addAll({
-      'counter': '10',
-      'counterFuture': '10',
-    });
+  testWidgets('refresh state should reset the persistent state', (
+    tester,
+  ) async {
+    store.addAll({'counter': '10', 'counterFuture': '10'});
 
     await tester.pumpWidget(App());
 
@@ -150,10 +145,8 @@ void main() async {
   testWidgets('persist state onDisposed ', (tester) async {
     counter = RM.inject(
       () => 0,
-      persist: () => PersistState(
-        key: 'counter',
-        persistOn: PersistOn.disposed,
-      ),
+      persist: () =>
+          PersistState(key: 'counter', persistOn: PersistOn.disposed),
     );
 
     expect(store.isEmpty, isTrue);

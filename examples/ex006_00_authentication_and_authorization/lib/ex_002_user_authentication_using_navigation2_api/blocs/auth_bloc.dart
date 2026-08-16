@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:states_rebuilder/scr/development_booster/development_booster.dart';
 import 'package:states_rebuilder/scr/state_management/rm.dart';
 
@@ -14,7 +14,7 @@ class AuthBloc {
     // () => FireBaseAuthRepository(),
     () => FakeAuthRepository(),
     onAuthStream: (repo) => (repo as FireBaseAuthRepository).currentUser(),
-    onSigned: (_) {
+    onSigned: (c) {
       navigator.onNavigate();
     },
     onUnsigned: () {

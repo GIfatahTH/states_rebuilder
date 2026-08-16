@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -73,13 +73,13 @@ class MyHomePage extends ReactiveStatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   static final unselectedStyle = ElevatedButton.styleFrom(
-    primary: Colors.white,
-    onPrimary: Colors.blue,
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.blue,
   );
   @override
   Widget build(BuildContext context) {
     final _i18n = i18nRM.of(context);
-    final textStyle = Theme.of(context).textTheme.headline4;
+    final textStyle = Theme.of(context).textTheme.headlineLarge;
     return Scaffold(
       appBar: AppBar(
         title: Text(_i18n.translate('hello_world')),
